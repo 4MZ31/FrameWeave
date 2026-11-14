@@ -21,6 +21,9 @@ then (latest change: see the date of the newest commit). The modifications, in s
 - Picture & sound editor, sound profiles and the saved-recording card (`qml/Veyra/PushPicture.qml`,
   `PushSoundProfile.qml`, `PushRecordingSaved.qml`, `src/sink/SoundProfile.cpp`).
 - NVIDIA Image Scaling as a super-resolution choice (`src/pipeline/NisPass.cpp`, `shaders/Nis*.hlsl`).
+- Optimise for my PC, game presets, latency readout, Discord sharing and the capture card list
+  (`include/veyra/engine/PushBenchmarkProbe.h`, `src/ui/bridge/PushFps.cpp`, `qml/Veyra/PushOptimizeDialog.qml`,
+  `PushGamePresetsDialog.qml`, `PushGamePresets.js`, `PushLatencyBadge.qml`, `PushCaptureCards.js`).
 - ANR frame generation as in Veyra 2.1.6: no ANR file ships; usable once the user adds ANR's own files.
 
 The complete, dated list of changes is the Git history of https://github.com/DosukaSOL/PushFPS, starting

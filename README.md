@@ -77,6 +77,23 @@ GPL-3.0, no account needed. Built on Veyra, the open-source video enhancer by Li
 </tr>
 </table>
 
+## Only in PushFPS
+
+PushFPS is built on [Veyra](https://github.com/Likely7/Veyra-NRVideo), a general video enhancer. On top of
+everything Veyra does, PushFPS adds what console players need:
+
+| Feature | What it does |
+|---|---|
+| **Optimise for my PC** | Tests every frame generation method, AI enhancement and upscaler on your real game picture, measures frame rate, 1% low and latency, and keeps the best combination |
+| **Game presets** | GTA VI and other layouts in one click, with the minimap and HUD kept sharp. Save your own and share them as a code |
+| **Quick setup** | Console, game frame rate and target frame rate instead of hundreds of settings, with console and game profiles |
+| **Latency on screen** | The measured PC latency, frame rate and 1% low over the picture |
+| **NVIDIA Image Scaling** | Fast upscaling and sharpening on NVIDIA, AMD and Intel graphics |
+| **Picture & sound editor** | Picture styles, gamma, sharpness and sound profiles (bass boost, footsteps, night mode and more) |
+| **Share clips** | Saved recordings and instant replays go to Discord in one click |
+| **OBS Studio plugin** | Your boosted picture as a source in OBS |
+| **Tested capture cards** | Which cards are known to work, shown in the app |
+
 ## How it works
 
 ```mermaid
@@ -184,7 +201,8 @@ enhancement on Radeon and on RTX 30 cards is an optional experimental extra (see
    most cards; use 4K if your card captures 4K60.
 3. **PlayStation only: turn HDCP off.** Settings, System, HDMI, turn off *Enable HDCP*. With HDCP on, the
    capture card only shows black. Xbox and Switch games are not HDCP protected.
-4. **Open PushFPS and fill in the quick setup** on the home screen:
+4. **Open PushFPS and fill in the quick setup** on the home screen, or let PushFPS do it: connect the capture
+   card (step 5), get the game on screen and click **Optimise for my PC**.
 
    | Setting | What to pick |
    |---|---|
@@ -201,6 +219,39 @@ enhancement on Radeon and on RTX 30 cards is an optional experimental extra (see
 > Close other apps that use the capture card (OBS, the card's own software) before connecting.
 > Only one program can use a capture card at a time. To show PushFPS in OBS, use the
 > [OBS Studio plugin](#obs-studio-plugin) instead.
+
+## Optimise for my PC
+
+Click **Optimise for my PC** in the quick setup while your game is on screen. In one to two minutes PushFPS:
+
+1. measures the picture without effects, to find the game's frame rate (30, 40 or 60) and the base latency;
+2. tries each frame generation method your graphics card offers at the highest frame rate your screen shows
+   (120 FPS on a 120 Hz or faster screen), and at 60 FPS if none holds that;
+3. adds AI enhancement to the best one, then the upscalers when your screen is larger than the capture;
+4. measures the winner again to confirm it, and applies it. **Undo** puts your old settings back.
+
+Every number is measured on the real picture: PushFPS times each frame it hands to the display and each
+frame's latency, after the settings are applied and warmed up, over a 6-second window per combination. A
+combination only counts when it really generated frames, reached 95 % of its target, kept its 1% low at
+80 % of the target, dropped under 1 % of the capture card's frames, and added no more than 60 ms of latency.
+
+## Game presets
+
+Click **Game presets** in the quick setup and pick a game:
+
+| Preset | Protected areas |
+|---|---|
+| **GTA VI** | Minimap bottom left; money and wanted level top right (estimated from the GTA series, check it once you play) |
+| Open world, minimap bottom left / top right | The minimap |
+| Action, HUD in the bottom corners | Health, weapon and ammo |
+| Racing, speedometer bottom right | Speed, gear and minimap |
+| Shooter, HUD in all four corners | Every corner |
+| Cinematic | None |
+
+Protected areas use *Exclude all effects*: they keep the console's own pixels and are never interpolated, so
+text and the minimap don't smear when the camera moves. Adjust them in Professional mode, *Quality*,
+*Exclude all effects*. **Save current settings as a preset** stores your own, including the areas you drew.
+**Copy code** gives a `PUSHFPS1:` code to share on Reddit or Discord; **Add** or **Open file** imports one.
 
 ## Profiles
 
@@ -237,6 +288,9 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
   Turn it on next to the Record button or under *Settings, Playback*. It can run while you record. It uses
   an extra hardware encoder and some memory while it is on, so it is off by default.
 - **Microphone**: add your mic to recordings, mixed with the game sound or as its own audio track.
+- **Share to Discord**: the card that appears after saving has **Share to Discord**. Without setup it copies
+  the clip and opens Discord, so you paste it with Ctrl+V. With a Discord webhook in *Settings, Playback*
+  it posts clips up to 10 MB straight to that channel.
 
 ## Upscaling: NVIDIA Image Scaling and more
 
@@ -252,7 +306,8 @@ generation.
 
 ## OBS Studio plugin
 
-The plugin adds a **PushFPS** source to OBS Studio 28 or newer on Windows. It shows the PushFPS picture,
+The plugin adds a **PushFPS** source to OBS Studio 28 or newer on Windows, including OBS 33 (it installs in
+the plugin layout that OBS 34 will require, so the Plugin Manager doesn't flag it as Legacy). It shows the PushFPS picture,
 generated frames included, in any scene, and can start PushFPS for you.
 
 1. Download **PushFPS-OBS-Plugin-…-win64.zip** from [Releases](https://github.com/DosukaSOL/PushFPS/releases)
@@ -276,6 +331,21 @@ restart it. Uninstall: `Install-PushFPS-OBS.cmd -Uninstall`.
 GitHub Actions, which opens a scene with a PushFPS source, lets it start PushFPS and checks that it finds
 the window.</sub>
 
+## Capture cards
+
+| Capture card | Status |
+|---|---|
+| Elgato 4K X | Tested with PushFPS (RTX 5090, console games and videos) |
+| T911 4K60 | Tested by Veyra's developer (4K60 NV12, RTX 5070) |
+| Elgato HD60 X, 4K S, 4K Pro / 4K60 Pro | Not tested yet |
+| AVerMedia Live Gamer 4K 2.1 (GC575), Live Gamer Ultra 2.1 (GC553G2) | Not tested yet |
+| Magewell USB Capture HDMI 4K Plus | Not tested yet (native low-latency mode from Veyra) |
+| Blackmagic DeckLink / UltraStudio | Not tested yet (Blackmagic's own interface from Veyra) |
+
+Any card that Windows shows as a camera and that sends uncompressed 1080p60 or 4K60 should work. The quick
+setup shows whether your card is on this list. Tested yours?
+[Send a capture card report](https://github.com/DosukaSOL/PushFPS/issues/new?template=capture-card-report.yml).
+
 ## Tune it for your setup
 
 | If you see | Try |
@@ -288,6 +358,10 @@ the window.</sub>
 | Frame rate drops with AI enhancement on | Turn AI enhancement off, or lower its resolution in Professional mode |
 
 ## Latency
+
+Turn on **Show latency on screen** in the quick setup to see the measured PC latency (capture card picture
+arriving to handing it to the display, mean and 95th percentile), the frame rate and the 1% low over the
+picture. The capture card, the display and the game add their own delay, which software can't measure.
 
 To place a frame between two real frames, PushFPS has to wait for the second one. With a 30 FPS game that
 adds up to one frame (about 33 ms) on top of the capture card's own delay, which depends on the card.
@@ -325,7 +399,12 @@ In your user folder, next to Veyra's settings. Updating PushFPS keeps them.
 - [x] Picture and sound editor, sound profiles, edit after recording
 - [x] NVIDIA Image Scaling (NIS) upscaling and sharpening on any DirectX 12 GPU
 - [x] Instant replay and microphone recording (from Veyra 2.1.6)
-- [ ] Tested settings for popular capture cards, from real-hardware reports
+- [x] Optimise for my PC: measured, automatic settings
+- [x] Game presets with HUD protection and share codes
+- [x] Latency readout on the picture
+- [x] Share clips to Discord
+- [x] Capture card list with tested status and a report form
+- [ ] More tested capture cards and game presets, from player reports
 - [ ] macOS version
 
 ## Build from source
