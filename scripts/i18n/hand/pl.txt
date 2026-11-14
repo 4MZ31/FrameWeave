@@ -1220,5 +1220,82 @@
 1219|Pobierz i zainstaluj
 1220|Ten plik nie zawiera nvngx_dlssg.dll od ANR. Wybierz pakiet anr-fg od Apex
 1221|Wybierz pakiet ANR pobrany od Apex Compute
+1222|Gra działająca w %1 FPS będzie działać w %2 FPS (generowanie klatek %3×)
+1223|Działa %1. Podłącza się do interfejsu i do wideo, co może zawiesić PushFPS. Uruchom ponownie PushFPS, aby włączyć zgodne rysowanie: interfejs będzie rysowany programowo, a %1 obejmie tylko wideo. Uruchomić ponownie teraz? Odtwarzanie lub strumieniowanie zostanie przerwane.
+1224|1% low tylko %1 FPS, za mało stabilnie
+1225|Zalecane ustawienia dla gier takich jak GTA VI, z ostrą minimapą i HUD
+1226|Postaw Switch 2 w stacji dokującej z 60 Hz. Gry nie mają HDCP, więc są przechwytywane bez zmian.
+1227|Na Xboksie wybierz 60 Hz w Ustawienia → Ogólne → Opcje telewizora i wyświetlania. Gry nie mają HDCP, więc są przechwytywane bez zmian.
+1228|W trybie Profesjonalnym ustawiono własną krzywą; przeciągnięcie ją zastąpi
+1229|Jasność półtonów; czerń i biel się nie zmieniają
+1230|Wybierz liczbę klatek i obraz dla gier konsolowych. Wszystko inne jest w trybie Profesjonalnym.
+1231|Gry zachowują liczbę klatek konsoli
+1232|Twoja konsola przez kartę przechwytującą, podbita przez PC do 60 lub 120 FPS
+1233|Ustaw konsolę na 60 Hz. Na PlayStation wyłącz HDCP w Ustawienia → System → HDMI, inaczej obraz pozostanie czarny.
+1234|Ustaw konsolę na 60 Hz i wyłącz HDCP, jeśli jest taka opcja, inaczej obraz może pozostać czarny.
+1235|5-pasmowy korektor, ±12 dB na pasmo
+1236|Zapisz bieżące ustawienia jako preset
+1237|Najpierw podłącz kartę przechwytującą i wyświetl obraz gry, potem zacznij
+1238|Wył.: tylko generowanie klatek. Wł.: każda klatka przechodzi też przez neuronowy renderer NVIDIA (DLSS 5 NR) dla ostrzejszego obrazu, kosztem większego obciążenia GPU
+1239|Mniej kolejkowania, mniejsze opóźnienie sterowania
+1240|Usuń „%1”
+1241|Gry fabularne i filmy: cały obraz dostaje generowanie klatek
+1242|Wydobywa szczegóły i krawędzie (tekstura)
+1243|Akcja · HUD w dolnych rogach
+1244|Zawiera liczbę klatek gry, docelową liczbę klatek i obszary „Wyklucz ze wszystkich efektów” narysowane w trybie Profesjonalnym
+1245|Wyrównuje głośne i ciche fragmenty, na późne wieczory
+1246|Osiągnięto tylko %1 FPS
+1247|Minimapa lub kompas w prawym górnym rogu
+1248|Prędkość, bieg i minimapa w prawym dolnym rogu
+1249|Testuje każdą kombinację na Twoim prawdziwym obrazie i wybiera najlepszą
+1250|Testuje każdą metodę generowania klatek, ulepszanie AI i skalowanie na Twoim prawdziwym obrazie i wybiera najpłynniejszą kombinację z najmniejszym opóźnieniem
+1251|Skopiuj kod, aby wysłać go znajomym lub wrzucić na Reddit / Discord, albo zapisz go jako plik
+1252|Większość gier konsolowych działa w 30 FPS; wybierz 60 dla trybów wydajności
+1253|Zmierzone opóźnienie PC (od dotarcia obrazu z karty przechwytującej do przekazania go na ekran) i liczba klatek; karta przechwytująca, ekran i gra dodają własne
+1254|Wyraźniejsze dialogi i czat głosowy, bez niskiego dudnienia
+1255|Strzelanka · HUD we wszystkich czterech rogach
+1256|Minimapa w lewym dolnym rogu, pieniądze i poziom poszukiwania w prawym górnym. Układ oszacowany na podstawie serii GTA; sprawdź go podczas gry
+1257|Okrągła lub kwadratowa minimapa w lewym dolnym rogu
+1258|Zdrowie w lewym dolnym rogu, broń i amunicja w prawym dolnym
+1259|Zapisano „%1” (obszary HUD: %2)
+1260|Usunięto „%1”
+1261|Skopiowano klip. Naciśnij Ctrl+V w Discordzie, aby go wkleić
+1262|Skopiowano. Wklej do dowolnego czatu lub folderu
+1263|Zastosowano „%1”
+1264|Zastosowano „%1”: chronione obszary HUD: %2. Dopracuj je w trybie Profesjonalnym → Jakość → Wyklucz ze wszystkich efektów
+1265|Dodano „%1”
+1266|Pełny ekran zablokowany · Ctrl+L, aby odblokować, Esc, aby wyjść
+1267|Opóźnienie %1 ms
+1268|Opóźnienie = czas od dotarcia obrazu z karty przechwytującej do PC do przekazania go na ekran (tylko część PC; bez karty, ekranu i gry). Im bliżej średniej jest 1% low, tym płynniej.
+1269|Dodaje za duże opóźnienie (%1 ms)
+1270|Łańcuch przetwarzania nie ma etapu koloru
+1271|Ta metoda generowania klatek daje do %1×: gra w %2 FPS osiąga około %3 FPS
+1272|Nagranie ma już wygenerowane klatki. Przed eksportem wyłącz generowanie klatek w trybie Profesjonalnym, aby nie generować ich dwa razy.
+1273|Zapisz te ustawienia dla gry i przełączaj się na nie jednym kliknięciem
+1274|Pasek odtwarzania ukryty · przesuń wskaźnik na górę i kliknij oko w doku, aby go przywrócić
+1275|Generowanie klatek na całym obrazie
+1276|Nie udało się zmierzyć obrazu odniesienia: %1
+1277|Pełniejsze niskie i wysokie tony, lekka kompresja
+1278|Najlepsza kombinacja: %1. Zastosowano.
+1279|W tej sesji użycie VRAM na pełnym ekranie stale rosło. Odtwarzaj w oknie; otwórz źródło ponownie, aby znów sprawdzić pełny ekran.
+1280|To oprogramowanie jest darmowe i otwarte. Jeśli Ci pomaga, możesz →
+1281|Wykryto %1
+1282|Wykryto usługę nakładki RTSS
+1283|Usługa nakładki RTSS działa. Uruchom ponownie PushFPS, aby włączyć zgodne rysowanie i pokazywać OSD tylko na wideo. Uruchomić ponownie teraz? Odtwarzanie lub strumieniowanie zostanie przerwane.
+1284|Zalecane ustawienia dla każdej gry, z ostrą minimapą i HUD (te obszary nie dostają generowania klatek ani efektów)
+1285|Żadna kombinacja nie utrzymała celu stabilnie, więc Twoje ustawienia zostały zachowane. Spróbuj niższego celu lub wyłącz inne efekty i uruchom ponownie
+1286|Nie zmieniaj źródła w trakcie; możesz dalej grać
+1287|Ustawienia zmieniły się w trakcie pomiaru
+1288|Obraz się zatrzymał. Optymalizację anulowano i przywrócono Twoje ustawienia
+1289|Wydobywa kroki i strzały, do gier rywalizacyjnych
+1290|Zielone obszary zachowują obraz konsoli bez zmian, bez generowania klatek, więc tekst i minimapa pozostają ostre
+1291|Wyświetl grę przez kartę przechwytującą i zacznij. PushFPS testuje każdą dostępną kombinację na Twoim prawdziwym obrazie (około 10 sekund każda, łącznie 1–2 minuty), mierzy prawdziwą liczbę klatek, 1% low i opóźnienie, i wybiera najlepszą.
+1292|Wyścigi · prędkościomierz w prawym dolnym rogu
+1293|Nikt jeszcze nie zgłosił tej karty; podziel się wynikami na GitHubie
+1294|To nie jest prawidłowy kod presetu PushFPS
+1295|Wbudowany preset już używa tej nazwy
+1296|Ten PC nie obsłuży tej kombinacji
+1297|Karta przechwytująca utraciła %1% klatek
+1298|. Nagrania też to zachowują. Przekazywanie Dolby / DTS nie jest objęte
 zh:轻|Lekki
 zh:亮|Światło

@@ -1220,5 +1220,82 @@
 1219|Downloaden en installeren
 1220|Dit bestand bevat geen nvngx_dlssg.dll van ANR. Kies het anr-fg-pakket van Apex
 1221|Kies het ANR-pakket dat je van Apex Compute hebt gedownload
+1222|Een game van %1 FPS draait op %2 FPS (%3× framegeneratie)
+1223|%1 draait. Het haakt in op zowel de interface als de video, waardoor PushFPS kan vastlopen. Start PushFPS opnieuw om compatibele weergave in te schakelen: de interface wordt dan in software getekend en %1 raakt alleen de video. Nu opnieuw starten? Afspelen of streamen stopt.
+1224|1% low maar %1 FPS, niet stabiel genoeg
+1225|Aanbevolen instellingen voor games zoals GTA VI, met een scherpe minimap en HUD
+1226|Zet de Switch 2 in het dock op 60 Hz. Games hebben geen HDCP, dus ze worden gewoon opgenomen.
+1227|Kies op Xbox 60 Hz bij Instellingen → Algemeen → Tv- en weergaveopties. Games hebben geen HDCP, dus ze worden gewoon opgenomen.
+1228|In Professionele modus is een eigen curve ingesteld; slepen vervangt die
+1229|Helderheid van de middentonen; zwart en wit blijven gelijk
+1230|Kies een framerate en beeld voor consolegames. Al het andere staat in Professionele modus.
+1231|Games houden de eigen framerate van de console
+1232|Je console via een capturekaart, door je pc opgekrikt naar 60 of 120 FPS
+1233|Zet de console op 60 Hz. Zet op PlayStation HDCP uit bij Instellingen → Systeem → HDMI, anders blijft het beeld zwart.
+1234|Zet de console op 60 Hz en zet HDCP uit als die optie er is, anders kan het beeld zwart blijven.
+1235|Equalizer met 5 banden, ±12 dB per band
+1236|Huidige instellingen opslaan als preset
+1237|Sluit eerst je capturekaart aan en zet het gamebeeld in beeld, start dan
+1238|Uit: alleen framegeneratie. Aan: elk frame gaat ook door de neurale renderer van NVIDIA (DLSS 5 NR) voor een scherper beeld, wat meer van de GPU vraagt
+1239|Minder wachtrij, lagere invoerlatentie
+1240|“%1” verwijderen
+1241|Verhaalgames en films: het hele beeld krijgt framegeneratie
+1242|Haalt details en randen naar voren (textuur)
+1243|Actie · HUD in de onderste hoeken
+1244|Bevat de framerate van de game, de doelframerate en de gebieden voor “Alle effecten uitsluiten” die je in Professionele modus hebt getekend
+1245|Maakt harde en zachte delen gelijker, voor 's avonds laat
+1246|Haalde maar %1 FPS
+1247|Minimap of kompas in de rechterbovenhoek
+1248|Snelheid, versnelling en minimap in de rechteronderhoek
+1249|Test elke combinatie op je echte beeld en kiest de beste
+1250|Test elke framegeneratiemethode, AI-verbetering en upscaler op je echte beeld en kiest de vloeiendste combinatie met de laagste latentie
+1251|Kopieer de code om naar vrienden te sturen of op Reddit / Discord te zetten, of sla hem op als bestand
+1252|De meeste consolegames draaien op 30 FPS; kies 60 voor prestatiemodi
+1253|Gemeten pc-latentie (van het binnenkomen van het capturebeeld tot het doorgeven aan het scherm) en framerate; de capturekaart, het scherm en de game tellen daar nog bij op
+1254|Duidelijkere dialogen en voicechat, zonder laag gerommel
+1255|Shooter · HUD in alle vier de hoeken
+1256|Minimap linksonder, geld en wanted-niveau rechtsboven. Indeling geschat op de GTA-reeks; controleer hem zodra je speelt
+1257|Ronde of vierkante minimap in de linkerbenedenhoek
+1258|Gezondheid linksonder, wapen en munitie rechtsonder
+1259|“%1” opgeslagen (%2 HUD-gebieden)
+1260|“%1” verwijderd
+1261|Clip gekopieerd. Druk in Discord op Ctrl+V om hem te plakken
+1262|Gekopieerd. Plak het in een chat of map
+1263|“%1” toegepast
+1264|“%1” toegepast: %2 HUD-gebieden beschermd. Verfijn ze in Professionele modus → Kwaliteit → Alle effecten uitsluiten
+1265|“%1” toegevoegd
+1266|Volledig scherm vergrendeld · Ctrl+L om te ontgrendelen, Esc om volledig scherm te verlaten
+1267|Latentie %1 ms
+1268|Latentie = tijd van het capturebeeld dat de pc bereikt tot het doorgeven aan het scherm (alleen het pc-deel; niet de capturekaart, het scherm of de game). Hoe dichter de 1% low bij het gemiddelde ligt, hoe vloeiender.
+1269|Voegt te veel latentie toe (%1 ms)
+1270|De verwerkingsketen heeft geen kleurstap
+1271|Deze framegeneratiemethode gaat tot %1×: een game van %2 FPS haalt ongeveer %3 FPS
+1272|De opname bevat al gegenereerde frames. Zet framegeneratie uit in Professionele modus voor je exporteert, zodat frames niet twee keer worden gegenereerd.
+1273|Sla deze instellingen op voor een game en schakel er met één klik naar over
+1274|Afspeelbalk verborgen · beweeg de aanwijzer naar boven en klik op het oog in het dock om hem terug te halen
+1275|Framegeneratie op het hele beeld
+1276|Kon het basisbeeld niet meten: %1
+1277|Vollere lagen en hogen, lichte compressie
+1278|Beste combinatie: %1. Toegepast.
+1279|Het VRAM bleef groeien in volledig scherm tijdens deze sessie. Speel in een venster af; open de bron opnieuw om volledig scherm weer te testen.
+1280|Deze software is gratis en open source. Heb je er iets aan, dan kun je →
+1281|%1 gevonden
+1282|RTSS-overlaydienst gevonden
+1283|De RTSS-overlaydienst draait. Start PushFPS opnieuw om compatibele weergave in te schakelen en de OSD alleen op de video te tonen. Nu opnieuw starten? Afspelen of streamen stopt.
+1284|Aanbevolen instellingen per game, met een scherpe minimap en HUD (die gebieden krijgen geen framegeneratie en geen effecten)
+1285|Geen enkele framegeneratiecombinatie hield het doel stabiel vast, dus je instellingen zijn bewaard. Probeer een lager doel of zet andere effecten uit en probeer het opnieuw
+1286|Wissel niet van bron terwijl het loopt; je kunt gewoon doorspelen
+1287|Instellingen veranderd tijdens de meting
+1288|Het beeld stopte. Optimaliseren is geannuleerd en je instellingen zijn hersteld
+1289|Laat voetstappen en schoten beter horen, voor competitieve games
+1290|Groene gebieden houden het consolebeeld zoals het is, zonder framegeneratie, zodat tekst en de minimap scherp blijven
+1291|Zet de game in beeld via je capturekaart en start dan. PushFPS test elke beschikbare combinatie op je echte beeld (ongeveer 10 seconden per stuk, 1 à 2 minuten in totaal), meet de echte framerate, 1% low en latentie, en kiest de beste.
+1292|Racen · snelheidsmeter rechtsonder
+1293|Nog niemand heeft deze kaart gemeld; deel je resultaten op GitHub
+1294|Dat is geen geldige PushFPS-presetcode
+1295|Een ingebouwde preset gebruikt deze naam al
+1296|Deze pc kan deze combinatie niet draaien
+1297|Capturekaart liet %1% van de frames vallen
+1298|. Opnames houden het ook. Dolby / DTS-passthrough wordt niet beïnvloed
 zh:轻|Licht
 zh:亮|Licht

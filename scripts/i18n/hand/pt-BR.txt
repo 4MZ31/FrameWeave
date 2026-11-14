@@ -1220,5 +1220,82 @@
 1219|Baixar e instalar
 1220|Este arquivo não tem o nvngx_dlssg.dll do ANR. Escolha o pacote anr-fg da Apex
 1221|Escolha o pacote do ANR que você baixou da Apex Compute
+1222|Um jogo a %1 FPS vai rodar a %2 FPS (geração de quadros %3×)
+1223|%1 está rodando. Ele se conecta à interface e ao vídeo, o que pode travar o PushFPS. Reinicie o PushFPS para ativar o desenho compatível: a interface passa a ser desenhada por software e %1 afeta só o vídeo. Reiniciar agora? A reprodução ou o streaming vai parar.
+1224|1% low de apenas %1 FPS, não é estável o suficiente
+1225|Configurações recomendadas para jogos como GTA VI, com minimapa e HUD nítidos
+1226|Coloque o Switch 2 no dock a 60 Hz. Os jogos não têm HDCP, então são capturados como estão.
+1227|No Xbox, escolha 60 Hz em Configurações → Geral → Opções de TV e exibição. Os jogos não têm HDCP, então são capturados como estão.
+1228|Há uma curva personalizada no modo Profissional; arrastar a substitui
+1229|Brilho dos meios-tons; o preto e o branco não mudam
+1230|Escolha a taxa de quadros e a imagem para jogos de console. Todo o resto fica no modo Profissional.
+1231|Os jogos mantêm a taxa de quadros do console
+1232|Seu console por uma placa de captura, levado a 60 ou 120 FPS pelo seu PC
+1233|Coloque o console em 60 Hz. No PlayStation, desative o HDCP em Configurações → Sistema → HDMI, senão a imagem capturada fica preta.
+1234|Coloque o console em 60 Hz e desative o HDCP se houver essa opção, senão a imagem capturada pode ficar preta.
+1235|Equalizador de 5 bandas, ±12 dB por banda
+1236|Salvar as configurações atuais como predefinição
+1237|Conecte primeiro a placa de captura e coloque a imagem do jogo na tela, depois comece
+1238|Desligado: só geração de quadros. Ligado: cada quadro também passa pelo renderizador neural da NVIDIA (DLSS 5 NR) para uma imagem mais nítida, com mais carga na GPU
+1239|Menos fila, menor latência de entrada
+1240|Excluir “%1”
+1241|Jogos de história e filmes: a imagem inteira recebe geração de quadros
+1242|Realça detalhes e bordas (textura)
+1243|Ação · HUD nos cantos de baixo
+1244|Inclui a taxa de quadros do jogo, a taxa alvo e as áreas de “Excluir todos os efeitos” que você desenhou no modo Profissional
+1245|Equilibra partes altas e baixas, para jogar tarde da noite
+1246|Chegou a apenas %1 FPS
+1247|Minimapa ou bússola no canto superior direito
+1248|Velocidade, marcha e minimapa no canto inferior direito
+1249|Testa cada combinação na sua imagem real e escolhe a melhor
+1250|Testa cada método de geração de quadros, melhoria com IA e upscaler na sua imagem real e escolhe a combinação mais fluida e com menor latência
+1251|Copie o código para mandar aos amigos ou postar no Reddit / Discord, ou salve-o como arquivo
+1252|A maioria dos jogos de console roda a 30 FPS; escolha 60 para modos de desempenho
+1253|Latência medida do PC (da chegada da imagem da placa de captura até a entrega à tela) e taxa de quadros; a placa de captura, a tela e o jogo somam a deles
+1254|Diálogos e chat de voz mais claros, sem ronco grave
+1255|Tiro · HUD nos quatro cantos
+1256|Minimapa no canto inferior esquerdo, dinheiro e nível de procurado no superior direito. Layout estimado pela série GTA; confira quando jogar
+1257|Minimapa redondo ou quadrado no canto inferior esquerdo
+1258|Vida no canto inferior esquerdo, arma e munição no inferior direito
+1259|“%1” salvo (%2 áreas do HUD)
+1260|“%1” excluído
+1261|Clipe copiado. Pressione Ctrl+V no Discord para colar
+1262|Copiado. Cole em qualquer chat ou pasta
+1263|“%1” aplicado
+1264|“%1” aplicado: %2 áreas do HUD protegidas. Ajuste-as no modo Profissional → Qualidade → Excluir todos os efeitos
+1265|“%1” adicionado
+1266|Tela cheia bloqueada · Ctrl+L para desbloquear, Esc para sair da tela cheia
+1267|Latência %1 ms
+1268|Latência = tempo da imagem da placa de captura chegando ao PC até ser entregue à tela (só a parte do PC; não a placa de captura, a tela ou o jogo). Quanto mais perto o 1% low estiver da média, mais fluido.
+1269|Adiciona latência demais (%1 ms)
+1270|A cadeia de processamento não tem etapa de cor
+1271|Este método de geração de quadros vai até %1×: um jogo a %2 FPS chega a cerca de %3 FPS
+1272|A gravação já tem quadros gerados. Desligue a geração de quadros no modo Profissional antes de exportar, para que os quadros não sejam gerados duas vezes.
+1273|Salve estas configurações para um jogo e mude para elas com um clique
+1274|Barra de reprodução oculta · leve o ponteiro ao topo e clique no olho do dock para trazê-la de volta
+1275|Geração de quadros na imagem inteira
+1276|Não foi possível medir a imagem de referência: %1
+1277|Graves e agudos mais encorpados, compressão leve
+1278|Melhor combinação: %1. Aplicada.
+1279|A VRAM não parou de crescer em tela cheia nesta sessão. Use a reprodução em janela; reabra a fonte para testar a tela cheia de novo.
+1280|Este software é gratuito e de código aberto. Se ele ajuda você, você pode →
+1281|%1 detectado
+1282|Serviço de overlay do RTSS detectado
+1283|O serviço de overlay do RTSS está rodando. Reinicie o PushFPS para ativar o desenho compatível e mostrar o OSD só no vídeo. Reiniciar agora? A reprodução ou o streaming vai parar.
+1284|Configurações recomendadas por jogo, com minimapa e HUD nítidos (essas áreas não recebem geração de quadros nem efeitos)
+1285|Nenhuma combinação manteve o alvo de forma estável, então suas configurações foram mantidas. Tente um alvo menor ou desligue outros efeitos e rode de novo
+1286|Não troque de fonte enquanto ele roda; você pode continuar jogando
+1287|As configurações mudaram durante a medição
+1288|A imagem parou. A otimização foi cancelada e suas configurações restauradas
+1289|Realça passos e tiros, para jogos competitivos
+1290|As áreas verdes mantêm a imagem do console como está, sem geração de quadros, para que o texto e o minimapa fiquem nítidos
+1291|Coloque o jogo na tela pela placa de captura e comece. O PushFPS testa cada combinação disponível na sua imagem real (cerca de 10 segundos cada, 1 a 2 minutos no total), mede a taxa de quadros real, o 1% low e a latência, e escolhe a melhor.
+1292|Corrida · velocímetro no canto inferior direito
+1293|Ninguém relatou esta placa ainda; compartilhe seus resultados no GitHub
+1294|Esse não é um código de predefinição do PushFPS válido
+1295|Uma predefinição integrada já usa este nome
+1296|Este PC não consegue rodar esta combinação
+1297|A placa de captura perdeu %1% dos quadros
+1298|. As gravações também mantêm isso. O passthrough Dolby / DTS não é afetado
 zh:轻|Leve
 zh:亮|Luz

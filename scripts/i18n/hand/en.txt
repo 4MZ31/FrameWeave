@@ -1220,3 +1220,80 @@
 1219|Get and install
 1220|There's no ANR nvngx_dlssg.dll in this file. Choose Apex's anr-fg package
 1221|Choose the ANR package you downloaded from Apex Compute
+1222|A %1 FPS game will run at %2 FPS (%3× frame generation)
+1223|%1 is running. It hooks both the interface and the video, which can freeze PushFPS. Restart PushFPS to enable compatible rendering: the interface is then drawn in software and %1 only affects the video. Restart now? Current playback or streaming will stop.
+1224|1% low only %1 FPS, not steady enough
+1225|Recommended settings for games like GTA VI, with a sharp minimap and HUD
+1226|Put the Switch 2 in its dock at 60 Hz. Games have no HDCP, so they capture as is.
+1227|On Xbox, choose 60 Hz in Settings → General → TV & display options. Games have no HDCP, so they capture as is.
+1228|A custom curve is set in Professional mode; dragging replaces it
+1229|Midtone brightness; black and white stay put
+1230|Pick a frame rate and picture for console games. Everything else is in Professional mode.
+1231|Games keep the console's own frame rate
+1232|Your console through a capture card, boosted to 60 or 120 FPS by your PC
+1233|Set the console to 60 Hz output. On PlayStation, turn off HDCP in Settings → System → HDMI, or the capture picture stays black.
+1234|Set the console to 60 Hz and turn off HDCP if it has that option, or the capture picture may stay black.
+1235|5-band equalizer, ±12 dB per band
+1236|Save current settings as a preset
+1237|Connect your capture card and get the game picture on screen first, then start
+1238|Off: frame generation only. On: every frame also goes through NVIDIA's neural renderer (DLSS 5 NR) for a sharper picture, at a higher GPU cost
+1239|Less queuing, lower input latency
+1240|Delete “%1”
+1241|Story games and films: the whole picture gets frame generation
+1242|Brings out detail and edges (texture)
+1243|Action · HUD in the bottom corners
+1244|Includes the game frame rate, target frame rate and the “Exclude all effects” areas you drew in Professional mode
+1245|Evens out loud and quiet parts, for late nights
+1246|Reached only %1 FPS
+1247|Minimap or compass in the top right corner
+1248|Speed, gear and minimap in the bottom right corner
+1249|Tests every combination on your real picture and picks the best one
+1250|Tests each frame generation method, AI enhancement and upscaler on your real picture and picks the smoothest, lowest-latency combination
+1251|Copy the code to send to friends or post on Reddit / Discord, or save it as a file
+1252|Most console games run at 30 FPS; pick 60 for performance modes
+1253|Measured PC latency (capture card picture arriving to handing it to the display) and frame rate; the capture card, display and game add their own
+1254|Clearer dialogue and voice chat, without low rumble
+1255|Shooter · HUD in all four corners
+1256|Minimap bottom left, money and wanted level top right. Layout estimated from the GTA series; check it once you play
+1257|Round or square minimap in the bottom left corner
+1258|Health bottom left, weapon and ammo bottom right
+1259|Saved “%1” (%2 HUD areas)
+1260|Deleted “%1”
+1261|Clip copied. Press Ctrl+V in Discord to paste it
+1262|Copied. Paste it into any chat or folder
+1263|Applied “%1”
+1264|Applied “%1”: %2 HUD areas protected. Fine-tune them in Professional mode → Quality → Exclude all effects
+1265|Added “%1”
+1266|Fullscreen locked · Ctrl+L to unlock, Esc to leave fullscreen
+1267|Latency %1 ms
+1268|Latency = time from the capture card picture reaching the PC to it being handed to the display (the PC part only; not the capture card, display or game). The closer the 1% low is to the average, the smoother.
+1269|Adds too much latency (%1 ms)
+1270|The processing chain has no colour stage
+1271|This frame generation method goes up to %1×: a %2 FPS game reaches about %3 FPS
+1272|The recording already has generated frames. Turn frame generation off in Professional mode before exporting it, so frames are not generated twice.
+1273|Save these settings for a game, then switch to them in one click
+1274|Playback bar hidden · move the pointer to the top and click the eye in the dock to bring it back
+1275|Frame generation on the whole picture
+1276|Could not measure the baseline picture: %1
+1277|Fuller lows and highs, light compression
+1278|Best combination: %1. Applied.
+1279|VRAM kept growing in fullscreen during this session. Use windowed playback; reopen the source to test fullscreen again.
+1280|This software is free and open source. If it helps you, you can →
+1281|%1 detected
+1282|RTSS on-screen display service detected
+1283|The RTSS on-screen display service is running. Restart PushFPS to enable compatible rendering and show the OSD on the video only. Restart now? Current playback or streaming will stop.
+1284|Recommended settings per game, with a sharp minimap and HUD (those areas get no frame generation and no effects)
+1285|No frame generation combination held its target steadily, so your settings were kept. Try a lower target or turn other effects off, then run it again
+1286|Don't switch sources while it runs; you can keep playing
+1287|Settings changed during the measurement
+1288|The picture stopped. Optimising was cancelled and your settings restored
+1289|Brings out footsteps and gunfire, for competitive games
+1290|Green areas keep the console picture as it is, with no frame generation, so text and the minimap stay sharp
+1291|Get the game on screen through your capture card, then start. PushFPS tests every available combination on your real picture (about 10 seconds each, 1 to 2 minutes in all), measures the real frame rate, 1% low and latency, and picks the best one.
+1292|Racing · speedometer bottom right
+1293|Nobody has reported this card yet; share your results on GitHub
+1294|That isn't a valid PushFPS preset code
+1295|A built-in preset already uses this name
+1296|This PC can't run this combination
+1297|Capture card dropped %1% of frames
+1298|. Recordings keep it too. Dolby / DTS passthrough is not affected

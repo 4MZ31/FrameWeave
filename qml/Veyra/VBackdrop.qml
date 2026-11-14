@@ -21,11 +21,11 @@ Item {
     Component {
         id: softwareBackground
         Rectangle {
-            color: Theme.bgOuter
+            color: Theme.mode === "default" ? Theme.bgOuter : Theme.bgMid
             radius: backdrop.radius
             Image {
                 anchors.fill: parent
-                visible: Theme.backdropLevel !== 0
+                visible: Theme.backdropLevel !== 0 && Theme.mode === "default"
                 source: Theme.backdropLevel === 2 ? "backdrop-strong.png" : "backdrop.png"
                 smooth: true
             }
@@ -62,8 +62,9 @@ Item {
             ShapePath {
                 strokeWidth: 1
                 strokeColor: backdrop.strokeColor
-                fillColor: Theme.bgOuter
-                fillItem: Theme.backdropLevel === 0 ? null : fill
+                // PushFPS: the gradient image is dark; the black and light modes use a flat colour.
+                fillColor: Theme.mode === "default" ? Theme.bgOuter : Theme.bgMid
+                fillItem: Theme.backdropLevel === 0 || Theme.mode !== "default" ? null : fill
                 PathRectangle {
                     x: 0.5; y: 0.5
                     width: backdrop.width - 1; height: backdrop.height - 1

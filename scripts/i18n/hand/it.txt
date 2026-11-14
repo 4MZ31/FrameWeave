@@ -1220,5 +1220,82 @@
 1219|Scarica e installa
 1220|Questo file non contiene il nvngx_dlssg.dll di ANR. Scegli il pacchetto anr-fg di Apex
 1221|Scegli il pacchetto ANR scaricato da Apex Compute
+1222|Un gioco a %1 FPS girerà a %2 FPS (generazione dei fotogrammi %3×)
+1223|%1 è in esecuzione. Si aggancia sia all'interfaccia sia al video e può bloccare PushFPS. Riavvia PushFPS per attivare il disegno compatibile: l'interfaccia viene disegnata via software e %1 agisce solo sul video. Riavviare ora? La riproduzione o lo streaming si interromperanno.
+1224|1% low di soli %1 FPS, non abbastanza stabile
+1225|Impostazioni consigliate per giochi come GTA VI, con minimappa e HUD nitidi
+1226|Metti la Switch 2 nel dock a 60 Hz. I giochi non hanno HDCP, quindi vengono acquisiti così come sono.
+1227|Su Xbox scegli 60 Hz in Impostazioni → Generali → Opzioni TV e schermo. I giochi non hanno HDCP, quindi vengono acquisiti così come sono.
+1228|Nella modalità Professionale c'è una curva personalizzata; trascinare la sostituisce
+1229|Luminosità dei toni medi; il nero e il bianco restano invariati
+1230|Scegli frequenza dei fotogrammi e immagine per i giochi console. Tutto il resto è nella modalità Professionale.
+1231|I giochi mantengono la frequenza dei fotogrammi della console
+1232|La tua console tramite una scheda di acquisizione, portata a 60 o 120 FPS dal tuo PC
+1233|Imposta la console a 60 Hz. Su PlayStation disattiva l'HDCP in Impostazioni → Sistema → HDMI, altrimenti l'immagine resta nera.
+1234|Imposta la console a 60 Hz e disattiva l'HDCP se c'è l'opzione, altrimenti l'immagine potrebbe restare nera.
+1235|Equalizzatore a 5 bande, ±12 dB per banda
+1236|Salva le impostazioni attuali come preset
+1237|Collega prima la scheda di acquisizione e porta l'immagine del gioco sullo schermo, poi avvia
+1238|Disattivato: solo generazione dei fotogrammi. Attivato: ogni fotogramma passa anche dal renderer neurale di NVIDIA (DLSS 5 NR) per un'immagine più nitida, con più carico sulla GPU
+1239|Meno coda, minore latenza di input
+1240|Elimina «%1»
+1241|Giochi narrativi e film: tutta l'immagine riceve la generazione dei fotogrammi
+1242|Fa risaltare dettagli e bordi (texture)
+1243|Azione · HUD negli angoli in basso
+1244|Include la frequenza del gioco, la frequenza obiettivo e le aree «Escludi tutti gli effetti» disegnate nella modalità Professionale
+1245|Livella le parti forti e quelle deboli, per giocare a tarda notte
+1246|Raggiunti solo %1 FPS
+1247|Minimappa o bussola nell'angolo in alto a destra
+1248|Velocità, marcia e minimappa nell'angolo in basso a destra
+1249|Prova ogni combinazione sulla tua immagine reale e sceglie la migliore
+1250|Prova ogni metodo di generazione dei fotogrammi, miglioramento IA e upscaler sulla tua immagine reale e sceglie la combinazione più fluida e con meno latenza
+1251|Copia il codice per mandarlo agli amici o pubblicarlo su Reddit / Discord, oppure salvalo come file
+1252|La maggior parte dei giochi console gira a 30 FPS; scegli 60 per le modalità prestazioni
+1253|Latenza del PC misurata (dall'arrivo dell'immagine della scheda di acquisizione alla consegna allo schermo) e frequenza dei fotogrammi; scheda di acquisizione, schermo e gioco aggiungono la propria
+1254|Dialoghi e chat vocale più chiari, senza rimbombi bassi
+1255|Sparatutto · HUD in tutti e quattro gli angoli
+1256|Minimappa in basso a sinistra, soldi e livello di ricercato in alto a destra. Disposizione stimata dalla serie GTA; controllala quando giochi
+1257|Minimappa rotonda o quadrata nell'angolo in basso a sinistra
+1258|Salute in basso a sinistra, arma e munizioni in basso a destra
+1259|«%1» salvato (%2 aree HUD)
+1260|«%1» eliminato
+1261|Clip copiata. Premi Ctrl+V in Discord per incollarla
+1262|Copiato. Incollalo in qualsiasi chat o cartella
+1263|«%1» applicato
+1264|«%1» applicato: %2 aree HUD protette. Perfezionale nella modalità Professionale → Qualità → Escludi tutti gli effetti
+1265|«%1» aggiunto
+1266|Schermo intero bloccato · Ctrl+L per sbloccare, Esc per uscire
+1267|Latenza %1 ms
+1268|Latenza = tempo dall'arrivo dell'immagine della scheda di acquisizione nel PC alla consegna allo schermo (solo la parte del PC; non la scheda, lo schermo o il gioco). Più l'1% low è vicino alla media, più è fluido.
+1269|Aggiunge troppa latenza (%1 ms)
+1270|La catena di elaborazione non ha una fase colore
+1271|Questo metodo di generazione dei fotogrammi arriva fino a %1×: un gioco a %2 FPS raggiunge circa %3 FPS
+1272|La registrazione contiene già fotogrammi generati. Disattiva la generazione dei fotogrammi nella modalità Professionale prima di esportarla, così non vengono generati due volte.
+1273|Salva queste impostazioni per un gioco e passaci con un clic
+1274|Barra di riproduzione nascosta · porta il puntatore in alto e fai clic sull'occhio nel dock per riaverla
+1275|Generazione dei fotogrammi su tutta l'immagine
+1276|Impossibile misurare l'immagine di riferimento: %1
+1277|Bassi e alti più pieni, compressione leggera
+1278|Combinazione migliore: %1. Applicata.
+1279|La VRAM ha continuato a crescere a schermo intero in questa sessione. Usa la riproduzione in finestra; riapri la sorgente per riprovare lo schermo intero.
+1280|Questo software è gratuito e open source. Se ti è utile, puoi →
+1281|%1 rilevato
+1282|Servizio di overlay RTSS rilevato
+1283|Il servizio di overlay RTSS è in esecuzione. Riavvia PushFPS per attivare il disegno compatibile e mostrare l'OSD solo sul video. Riavviare ora? La riproduzione o lo streaming si interromperanno.
+1284|Impostazioni consigliate per ogni gioco, con minimappa e HUD nitidi (quelle aree non ricevono generazione dei fotogrammi né effetti)
+1285|Nessuna combinazione ha mantenuto l'obiettivo in modo stabile, quindi le tue impostazioni sono rimaste. Prova un obiettivo più basso o disattiva altri effetti, poi riprova
+1286|Non cambiare sorgente mentre è in corso; puoi continuare a giocare
+1287|Le impostazioni sono cambiate durante la misurazione
+1288|L'immagine si è fermata. L'ottimizzazione è stata annullata e le tue impostazioni ripristinate
+1289|Fa risaltare passi e spari, per i giochi competitivi
+1290|Le aree verdi mantengono l'immagine della console così com'è, senza generazione dei fotogrammi, così testo e minimappa restano nitidi
+1291|Porta il gioco sullo schermo con la scheda di acquisizione e avvia. PushFPS prova ogni combinazione disponibile sulla tua immagine reale (circa 10 secondi ciascuna, da 1 a 2 minuti in tutto), misura frequenza reale, 1% low e latenza, e sceglie la migliore.
+1292|Corse · tachimetro in basso a destra
+1293|Nessuno ha ancora segnalato questa scheda; condividi i tuoi risultati su GitHub
+1294|Questo non è un codice preset PushFPS valido
+1295|Un preset integrato usa già questo nome
+1296|Questo PC non può eseguire questa combinazione
+1297|La scheda di acquisizione ha perso il %1% dei fotogrammi
+1298|. Anche le registrazioni lo mantengono. Il passthrough Dolby / DTS non è interessato
 zh:轻|Leggero
 zh:亮|Luce

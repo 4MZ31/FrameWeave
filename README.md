@@ -374,10 +374,12 @@ setup shows whether your card is on this list. Tested yours?
 German, Spanish, French, Italian, Portuguese (Brazil), Turkish, Polish, Russian and Arabic. *Automatic*
 follows your Windows language.
 
-The ten newest (Dutch to Arabic) are machine-translated with [Argos Translate](https://github.com/argosopentech/argos-translate)
-and checked by script, not yet by native speakers. If a word reads wrong in your language, please open an issue
-or edit `i18n/catalog.json`: every string is listed there. Arabic text is shown correctly, but the layout
-is not mirrored right-to-left yet.
+In the ten newest (Dutch to Arabic) every button, menu and setting name and all PushFPS feature texts are
+translated by hand; longer help texts in the advanced pages are machine-translated with
+[Argos Translate](https://github.com/argosopentech/argos-translate) and fall back to English where the
+machine output was not usable. If a word reads wrong in your language, please open an issue, or fix it in
+`scripts/i18n/hand/<language>.txt`. Arabic text is shown correctly, but the layout is not fully mirrored
+right-to-left yet.
 
 **Settings → Appearance** switches between *Default* (dark grey), *Black* (almost-black surfaces, good on
 OLED screens) and *Light*. Text and controls keep a readable contrast in every mode (checked by an

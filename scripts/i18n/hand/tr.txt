@@ -1220,5 +1220,82 @@
 1219|İndir ve kur
 1220|Bu dosyada ANR’nin nvngx_dlssg.dll dosyası yok. Apex’in anr-fg paketini seçin
 1221|Apex Compute’tan indirdiğiniz ANR paketini seçin
+1222|%1 FPS'lik bir oyun %2 FPS'te çalışır (%3× kare oluşturma)
+1223|%1 çalışıyor. Hem arayüze hem videoya bağlanır ve PushFPS'i dondurabilir. Uyumlu çizimi açmak için PushFPS'i yeniden başlatın: arayüz yazılımla çizilir ve %1 yalnızca videoyu etkiler. Şimdi yeniden başlatılsın mı? Oynatma veya yayın durur.
+1224|1% low yalnızca %1 FPS, yeterince kararlı değil
+1225|GTA VI gibi oyunlar için önerilen ayarlar, keskin mini harita ve HUD ile
+1226|Switch 2'yi 60 Hz'de dock'a yerleştirin. Oyunlarda HDCP yoktur, olduğu gibi yakalanır.
+1227|Xbox'ta Ayarlar → Genel → TV ve ekran seçenekleri'nden 60 Hz seçin. Oyunlarda HDCP yoktur, olduğu gibi yakalanır.
+1228|Profesyonel modda özel bir eğri ayarlı; sürüklemek onu değiştirir
+1229|Orta tonların parlaklığı; siyah ve beyaz değişmez
+1230|Konsol oyunları için kare hızını ve görüntüyü seçin. Diğer her şey Profesyonel moddadır.
+1231|Oyunlar konsolun kendi kare hızında kalır
+1232|Konsolunuz bir yakalama kartıyla, bilgisayarınız sayesinde 60 veya 120 FPS'te
+1233|Konsolu 60 Hz'e ayarlayın. PlayStation'da Ayarlar → Sistem → HDMI'dan HDCP'yi kapatın, yoksa yakalanan görüntü siyah kalır.
+1234|Konsolu 60 Hz'e ayarlayın ve böyle bir seçenek varsa HDCP'yi kapatın, yoksa yakalanan görüntü siyah kalabilir.
+1235|5 bantlı ekolayzır, bant başına ±12 dB
+1236|Geçerli ayarları hazır ayar olarak kaydet
+1237|Önce yakalama kartınızı bağlayın ve oyun görüntüsünü ekrana getirin, sonra başlatın
+1238|Kapalı: yalnızca kare oluşturma. Açık: her kare ayrıca daha keskin bir görüntü için NVIDIA'nın nöral işleyicisinden (DLSS 5 NR) geçer, GPU yükü artar
+1239|Daha az kuyruk, daha düşük giriş gecikmesi
+1240|“%1” silinsin
+1241|Hikâye oyunları ve filmler: tüm görüntüye kare oluşturma uygulanır
+1242|Ayrıntıları ve kenarları öne çıkarır (doku)
+1243|Aksiyon · HUD alt köşelerde
+1244|Oyunun kare hızını, hedef kare hızını ve Profesyonel modda çizdiğiniz “Tüm efektlerin dışında tut” alanlarını içerir
+1245|Yüksek ve alçak sesleri dengeler, gece geç saatler için
+1246|Yalnızca %1 FPS'e ulaştı
+1247|Sağ üst köşede mini harita veya pusula
+1248|Sağ alt köşede hız, vites ve mini harita
+1249|Her kombinasyonu gerçek görüntünüzde dener ve en iyisini seçer
+1250|Her kare oluşturma yöntemini, yapay zekâ iyileştirmeyi ve ölçekleyiciyi gerçek görüntünüzde dener; en akıcı ve en düşük gecikmeli kombinasyonu seçer
+1251|Kodu arkadaşlarınıza göndermek veya Reddit / Discord'da paylaşmak için kopyalayın ya da dosya olarak kaydedin
+1252|Konsol oyunlarının çoğu 30 FPS'te çalışır; performans modları için 60'ı seçin
+1253|Ölçülen PC gecikmesi (yakalama kartı görüntüsünün gelişinden ekrana verilmesine kadar) ve kare hızı; yakalama kartı, ekran ve oyun kendi gecikmelerini ekler
+1254|Daha net diyaloglar ve sesli sohbet, alçak uğultu olmadan
+1255|Nişancı · HUD dört köşede
+1256|Mini harita sol altta, para ve aranma seviyesi sağ üstte. Düzen GTA serisinden tahmin edildi; oynarken kontrol edin
+1257|Sol alt köşede yuvarlak veya kare mini harita
+1258|Sağlık sol altta, silah ve cephane sağ altta
+1259|“%1” kaydedildi (%2 HUD alanı)
+1260|“%1” silindi
+1261|Klip kopyalandı. Yapıştırmak için Discord'da Ctrl+V'ye basın
+1262|Kopyalandı. Herhangi bir sohbete veya klasöre yapıştırın
+1263|“%1” uygulandı
+1264|“%1” uygulandı: %2 HUD alanı korunuyor. Profesyonel mod → Kalite → Tüm efektlerin dışında tut bölümünden ince ayar yapın
+1265|“%1” eklendi
+1266|Tam ekran kilitli · kilidi açmak için Ctrl+L, tam ekrandan çıkmak için Esc
+1267|Gecikme %1 ms
+1268|Gecikme = yakalama kartı görüntüsünün PC'ye ulaşmasından ekrana verilmesine kadar geçen süre (yalnızca PC kısmı; yakalama kartı, ekran veya oyun değil). 1% low ortalamaya ne kadar yakınsa o kadar akıcıdır.
+1269|Çok fazla gecikme ekliyor (%1 ms)
+1270|İşleme zincirinde renk aşaması yok
+1271|Bu kare oluşturma yöntemi %1×'e kadar çıkar: %2 FPS'lik bir oyun yaklaşık %3 FPS'e ulaşır
+1272|Kayıt zaten oluşturulmuş kareler içeriyor. Kareler iki kez oluşturulmasın diye dışa aktarmadan önce Profesyonel modda kare oluşturmayı kapatın.
+1273|Bu ayarları bir oyun için kaydedin, sonra tek tıkla onlara geçin
+1274|Oynatma çubuğu gizli · geri getirmek için imleci yukarı götürün ve dock'taki göze tıklayın
+1275|Tüm görüntüde kare oluşturma
+1276|Referans görüntü ölçülemedi: %1
+1277|Daha dolgun bas ve tizler, hafif sıkıştırma
+1278|En iyi kombinasyon: %1. Uygulandı.
+1279|Bu oturumda tam ekranda VRAM kullanımı sürekli arttı. Pencerede oynatın; tam ekranı yeniden denemek için kaynağı yeniden açın.
+1280|Bu yazılım ücretsiz ve açık kaynaklıdır. İşinize yararsa şunu yapabilirsiniz →
+1281|%1 algılandı
+1282|RTSS ekran üstü gösterim hizmeti algılandı
+1283|RTSS ekran üstü gösterim hizmeti çalışıyor. Uyumlu çizimi açmak ve OSD'yi yalnızca videoda göstermek için PushFPS'i yeniden başlatın. Şimdi yeniden başlatılsın mı? Oynatma veya yayın durur.
+1284|Oyun başına önerilen ayarlar, keskin mini harita ve HUD ile (bu alanlara kare oluşturma ve efekt uygulanmaz)
+1285|Hiçbir kombinasyon hedefi kararlı biçimde tutamadı, bu yüzden ayarlarınız korundu. Daha düşük bir hedef deneyin veya diğer efektleri kapatıp yeniden çalıştırın
+1286|Çalışırken kaynağı değiştirmeyin; oynamaya devam edebilirsiniz
+1287|Ölçüm sırasında ayarlar değişti
+1288|Görüntü durdu. Optimizasyon iptal edildi ve ayarlarınız geri yüklendi
+1289|Ayak seslerini ve silah seslerini öne çıkarır, rekabetçi oyunlar için
+1290|Yeşil alanlar konsol görüntüsünü olduğu gibi korur, kare oluşturma uygulanmaz; böylece yazılar ve mini harita keskin kalır
+1291|Oyunu yakalama kartınızla ekrana getirin, sonra başlatın. PushFPS mevcut her kombinasyonu gerçek görüntünüzde dener (her biri yaklaşık 10 saniye, toplam 1–2 dakika), gerçek kare hızını, 1% low değerini ve gecikmeyi ölçer, en iyisini seçer.
+1292|Yarış · hız göstergesi sağ altta
+1293|Bu kartı henüz kimse bildirmedi; sonuçlarınızı GitHub'da paylaşın
+1294|Bu geçerli bir PushFPS hazır ayar kodu değil
+1295|Yerleşik bir hazır ayar bu adı zaten kullanıyor
+1296|Bu bilgisayar bu kombinasyonu çalıştıramıyor
+1297|Yakalama kartı karelerin %%1'ini düşürdü
+1298|. Kayıtlarda da korunur. Dolby / DTS geçişi etkilenmez
 zh:轻|Hafif
 zh:亮|Işık

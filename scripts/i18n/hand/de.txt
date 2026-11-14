@@ -1220,5 +1220,82 @@
 1219|Herunterladen und installieren
 1220|Diese Datei enthält keine nvngx_dlssg.dll von ANR. Wähle das anr-fg-Paket von Apex
 1221|Wähle das von Apex Compute heruntergeladene ANR-Paket
+1222|Ein Spiel mit %1 FPS läuft mit %2 FPS (%3× Frame-Generierung)
+1223|%1 läuft. Es klinkt sich in Oberfläche und Video ein, was PushFPS einfrieren kann. Starte PushFPS neu, um kompatibles Rendern zu aktivieren: Die Oberfläche wird dann per Software gezeichnet und %1 betrifft nur das Video. Jetzt neu starten? Wiedergabe oder Streaming wird beendet.
+1224|1% low nur %1 FPS, nicht stabil genug
+1225|Empfohlene Einstellungen für Spiele wie GTA VI, mit scharfer Minikarte und HUD
+1226|Stelle die Switch 2 im Dock auf 60 Hz. Spiele haben kein HDCP und werden direkt aufgenommen.
+1227|Wähle auf der Xbox 60 Hz unter Einstellungen → Allgemein → TV- und Anzeigeoptionen. Spiele haben kein HDCP und werden direkt aufgenommen.
+1228|Im Profi-Modus ist eine eigene Kurve gesetzt; Ziehen ersetzt sie
+1229|Helligkeit der Mitteltöne; Schwarz und Weiß bleiben gleich
+1230|Wähle Bildrate und Bild für Konsolenspiele. Alles andere findest du im Profi-Modus.
+1231|Spiele behalten die Bildrate der Konsole
+1232|Deine Konsole über eine Capture-Karte, von deinem PC auf 60 oder 120 FPS gebracht
+1233|Stelle die Konsole auf 60 Hz. Schalte auf der PlayStation HDCP unter Einstellungen → System → HDMI aus, sonst bleibt das Bild schwarz.
+1234|Stelle die Konsole auf 60 Hz und schalte HDCP aus, falls es die Option gibt, sonst kann das Bild schwarz bleiben.
+1235|5-Band-Equalizer, ±12 dB pro Band
+1236|Aktuelle Einstellungen als Preset speichern
+1237|Schließe zuerst deine Capture-Karte an und bring das Spielbild auf den Schirm, dann starte
+1238|Aus: nur Frame-Generierung. An: Jeder Frame läuft zusätzlich durch NVIDIAs neuronalen Renderer (DLSS 5 NR) für ein schärferes Bild, bei höherer GPU-Last
+1239|Weniger Warteschlange, geringere Eingabelatenz
+1240|„%1“ löschen
+1241|Story-Spiele und Filme: Das ganze Bild bekommt Frame-Generierung
+1242|Hebt Details und Kanten hervor (Textur)
+1243|Action · HUD in den unteren Ecken
+1244|Enthält die Bildrate des Spiels, die Ziel-Bildrate und die im Profi-Modus gezeichneten Bereiche für „Alle Effekte ausschließen“
+1245|Gleicht laute und leise Stellen aus, für späte Abende
+1246|Nur %1 FPS erreicht
+1247|Minikarte oder Kompass oben rechts
+1248|Tempo, Gang und Minikarte unten rechts
+1249|Testet jede Kombination an deinem echten Bild und wählt die beste
+1250|Testet jede Methode der Frame-Generierung, KI-Verbesserung und jeden Upscaler an deinem echten Bild und wählt die flüssigste Kombination mit der geringsten Latenz
+1251|Kopiere den Code, um ihn Freunden zu schicken oder auf Reddit / Discord zu posten, oder speichere ihn als Datei
+1252|Die meisten Konsolenspiele laufen mit 30 FPS; wähle 60 für Leistungsmodi
+1253|Gemessene PC-Latenz (vom Eintreffen des Capture-Bildes bis zur Übergabe an die Anzeige) und Bildrate; Capture-Karte, Anzeige und Spiel kommen noch hinzu
+1254|Klarere Dialoge und Voice-Chat, ohne tiefes Grollen
+1255|Shooter · HUD in allen vier Ecken
+1256|Minikarte unten links, Geld und Fahndungslevel oben rechts. Layout anhand der GTA-Reihe geschätzt; prüfe es beim Spielen
+1257|Runde oder eckige Minikarte unten links
+1258|Gesundheit unten links, Waffe und Munition unten rechts
+1259|„%1“ gespeichert (%2 HUD-Bereiche)
+1260|„%1“ gelöscht
+1261|Clip kopiert. Drücke in Discord Strg+V zum Einfügen
+1262|Kopiert. In jeden Chat oder Ordner einfügbar
+1263|„%1“ angewendet
+1264|„%1“ angewendet: %2 HUD-Bereiche geschützt. Feinschliff im Profi-Modus → Qualität → Alle Effekte ausschließen
+1265|„%1“ hinzugefügt
+1266|Vollbild gesperrt · Strg+L zum Entsperren, Esc zum Verlassen
+1267|Latenz %1 ms
+1268|Latenz = Zeit vom Eintreffen des Capture-Bildes im PC bis zur Übergabe an die Anzeige (nur der PC-Anteil, nicht Capture-Karte, Anzeige oder Spiel). Je näher das 1% low am Durchschnitt liegt, desto flüssiger.
+1269|Erhöht die Latenz zu stark (%1 ms)
+1270|Die Verarbeitungskette hat keine Farbstufe
+1271|Diese Methode der Frame-Generierung schafft bis zu %1×: Ein Spiel mit %2 FPS erreicht etwa %3 FPS
+1272|Die Aufnahme enthält bereits erzeugte Frames. Schalte die Frame-Generierung im Profi-Modus vor dem Export aus, damit keine Frames doppelt erzeugt werden.
+1273|Speichere diese Einstellungen für ein Spiel und wechsle mit einem Klick dorthin
+1274|Wiedergabeleiste ausgeblendet · Zeiger nach oben bewegen und auf das Auge im Dock klicken, um sie zurückzuholen
+1275|Frame-Generierung auf dem ganzen Bild
+1276|Das Ausgangsbild konnte nicht gemessen werden: %1
+1277|Vollere Tiefen und Höhen, leichte Kompression
+1278|Beste Kombination: %1. Angewendet.
+1279|Der VRAM-Verbrauch ist in dieser Sitzung im Vollbild ständig gestiegen. Nutze die Fensterwiedergabe; öffne die Quelle neu, um Vollbild erneut zu testen.
+1280|Diese Software ist kostenlos und quelloffen. Wenn sie dir hilft, kannst du →
+1281|%1 erkannt
+1282|RTSS-Overlay-Dienst erkannt
+1283|Der RTSS-Overlay-Dienst läuft. Starte PushFPS neu, um kompatibles Rendern zu aktivieren und das OSD nur auf dem Video zu zeigen. Jetzt neu starten? Wiedergabe oder Streaming wird beendet.
+1284|Empfohlene Einstellungen pro Spiel, mit scharfer Minikarte und HUD (diese Bereiche bekommen keine Frame-Generierung und keine Effekte)
+1285|Keine Kombination hat das Ziel stabil gehalten, deine Einstellungen bleiben. Versuche ein niedrigeres Ziel oder schalte andere Effekte aus und starte erneut
+1286|Wechsle während des Laufs nicht die Quelle; du kannst weiterspielen
+1287|Einstellungen wurden während der Messung geändert
+1288|Das Bild ist stehen geblieben. Die Optimierung wurde abgebrochen und deine Einstellungen wiederhergestellt
+1289|Hebt Schritte und Schüsse hervor, für kompetitive Spiele
+1290|Grüne Bereiche behalten das Konsolenbild unverändert, ohne Frame-Generierung, damit Text und Minikarte scharf bleiben
+1291|Bring das Spiel über deine Capture-Karte auf den Schirm und starte dann. PushFPS testet jede verfügbare Kombination an deinem echten Bild (je etwa 10 Sekunden, insgesamt 1 bis 2 Minuten), misst echte Bildrate, 1% low und Latenz und wählt die beste.
+1292|Rennspiel · Tacho unten rechts
+1293|Diese Karte hat noch niemand gemeldet; teile deine Ergebnisse auf GitHub
+1294|Das ist kein gültiger PushFPS-Preset-Code
+1295|Ein eingebautes Preset nutzt diesen Namen bereits
+1296|Dieser PC kann diese Kombination nicht ausführen
+1297|Capture-Karte hat %1% der Frames verworfen
+1298|. Aufnahmen behalten es ebenfalls. Dolby / DTS-Passthrough ist nicht betroffen
 zh:轻|Leicht
 zh:亮|Licht

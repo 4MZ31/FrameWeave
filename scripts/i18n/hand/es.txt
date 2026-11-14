@@ -1220,5 +1220,82 @@
 1219|Obtener e instalar
 1220|Este archivo no contiene el nvngx_dlssg.dll de ANR. Elige el paquete anr-fg de Apex
 1221|Elige el paquete de ANR que descargaste de Apex Compute
+1222|Un juego a %1 FPS irá a %2 FPS (generación de fotogramas %3×)
+1223|%1 está en marcha. Se engancha a la interfaz y al vídeo, lo que puede congelar PushFPS. Reinicia PushFPS para activar el modo de dibujo compatible: la interfaz se dibuja por software y %1 solo afecta al vídeo. ¿Reiniciar ahora? La reproducción o el streaming se detendrán.
+1224|El 1% low es solo de %1 FPS, no es lo bastante estable
+1225|Ajustes recomendados para juegos como GTA VI, con el minimapa y el HUD nítidos
+1226|Pon la Switch 2 en el dock a 60 Hz. Los juegos no tienen HDCP, así que se capturan tal cual.
+1227|En Xbox, elige 60 Hz en Configuración → General → Opciones de TV y pantalla. Los juegos no tienen HDCP, así que se capturan tal cual.
+1228|Hay una curva personalizada en el modo Profesional; arrastrar la sustituye
+1229|Brillo de los medios tonos; el negro y el blanco no cambian
+1230|Elige la tasa de fotogramas y la imagen para juegos de consola. Todo lo demás está en el modo Profesional.
+1231|Los juegos mantienen la tasa de fotogramas de la consola
+1232|Tu consola a través de una capturadora, llevada a 60 o 120 FPS por tu PC
+1233|Pon la consola a 60 Hz. En PlayStation, desactiva HDCP en Ajustes → Sistema → HDMI o la imagen capturada se quedará en negro.
+1234|Pon la consola a 60 Hz y desactiva HDCP si tiene esa opción, o la imagen capturada puede quedarse en negro.
+1235|Ecualizador de 5 bandas, ±12 dB por banda
+1236|Guardar los ajustes actuales como preajuste
+1237|Conecta primero la capturadora y pon la imagen del juego en pantalla, luego empieza
+1238|Desactivado: solo generación de fotogramas. Activado: cada fotograma pasa además por el renderizador neuronal de NVIDIA (DLSS 5 NR) para una imagen más nítida, con más carga de GPU
+1239|Menos cola, menos latencia de entrada
+1240|Eliminar «%1»
+1241|Juegos de historia y películas: toda la imagen recibe generación de fotogramas
+1242|Realza el detalle y los bordes (textura)
+1243|Acción · HUD en las esquinas inferiores
+1244|Incluye la tasa de fotogramas del juego, la tasa objetivo y las áreas de «Excluir todos los efectos» que dibujaste en el modo Profesional
+1245|Iguala las partes fuertes y suaves, para jugar de noche
+1246|Solo alcanzó %1 FPS
+1247|Minimapa o brújula en la esquina superior derecha
+1248|Velocidad, marcha y minimapa en la esquina inferior derecha
+1249|Prueba cada combinación con tu imagen real y elige la mejor
+1250|Prueba cada método de generación de fotogramas, mejora con IA y escalador con tu imagen real y elige la combinación más fluida y con menos latencia
+1251|Copia el código para enviarlo a tus amigos o publicarlo en Reddit / Discord, o guárdalo como archivo
+1252|La mayoría de los juegos de consola van a 30 FPS; elige 60 para los modos de rendimiento
+1253|Latencia medida del PC (desde que llega la imagen de la capturadora hasta que se entrega a la pantalla) y tasa de fotogramas; la capturadora, la pantalla y el juego añaden la suya
+1254|Diálogos y chat de voz más claros, sin retumbos graves
+1255|Shooter · HUD en las cuatro esquinas
+1256|Minimapa abajo a la izquierda, dinero y nivel de búsqueda arriba a la derecha. Distribución estimada a partir de la saga GTA; compruébala cuando juegues
+1257|Minimapa redondo o cuadrado en la esquina inferior izquierda
+1258|Salud abajo a la izquierda, arma y munición abajo a la derecha
+1259|«%1» guardado (%2 áreas del HUD)
+1260|«%1» eliminado
+1261|Clip copiado. Pulsa Ctrl+V en Discord para pegarlo
+1262|Copiado. Pégalo en cualquier chat o carpeta
+1263|«%1» aplicado
+1264|«%1» aplicado: %2 áreas del HUD protegidas. Ajústalas en el modo Profesional → Calidad → Excluir todos los efectos
+1265|«%1» añadido
+1266|Pantalla completa bloqueada · Ctrl+L para desbloquear, Esc para salir
+1267|Latencia %1 ms
+1268|Latencia = tiempo desde que la imagen de la capturadora llega al PC hasta que se entrega a la pantalla (solo la parte del PC; no la capturadora, la pantalla ni el juego). Cuanto más cerca esté el 1% low de la media, más fluido.
+1269|Añade demasiada latencia (%1 ms)
+1270|La cadena de procesamiento no tiene etapa de color
+1271|Este método de generación de fotogramas llega hasta %1×: un juego a %2 FPS alcanza unos %3 FPS
+1272|La grabación ya tiene fotogramas generados. Desactiva la generación de fotogramas en el modo Profesional antes de exportarla para no generarlos dos veces.
+1273|Guarda estos ajustes para un juego y cambia a ellos con un clic
+1274|Barra de reproducción oculta · mueve el puntero arriba y haz clic en el ojo del dock para recuperarla
+1275|Generación de fotogramas en toda la imagen
+1276|No se pudo medir la imagen de referencia: %1
+1277|Graves y agudos más llenos, compresión ligera
+1278|Mejor combinación: %1. Aplicada.
+1279|La VRAM no paró de crecer en pantalla completa durante esta sesión. Usa la reproducción en ventana; vuelve a abrir la fuente para probar la pantalla completa otra vez.
+1280|Este software es gratuito y de código abierto. Si te ayuda, puedes →
+1281|Se detectó %1
+1282|Se detectó el servicio de superposición de RTSS
+1283|El servicio de superposición de RTSS está en marcha. Reinicia PushFPS para activar el dibujo compatible y mostrar el OSD solo sobre el vídeo. ¿Reiniciar ahora? La reproducción o el streaming se detendrán.
+1284|Ajustes recomendados por juego, con el minimapa y el HUD nítidos (esas áreas no reciben generación de fotogramas ni efectos)
+1285|Ninguna combinación mantuvo el objetivo de forma estable, así que se conservaron tus ajustes. Prueba un objetivo más bajo o desactiva otros efectos y vuelve a intentarlo
+1286|No cambies de fuente mientras se ejecuta; puedes seguir jugando
+1287|Los ajustes cambiaron durante la medición
+1288|La imagen se detuvo. Se canceló la optimización y se restauraron tus ajustes
+1289|Realza los pasos y los disparos, para juegos competitivos
+1290|Las áreas verdes mantienen la imagen de la consola tal cual, sin generación de fotogramas, para que el texto y el minimapa sigan nítidos
+1291|Pon el juego en pantalla con tu capturadora y empieza. PushFPS prueba cada combinación disponible con tu imagen real (unos 10 segundos cada una, de 1 a 2 minutos en total), mide la tasa de fotogramas real, el 1% low y la latencia, y elige la mejor.
+1292|Carreras · velocímetro abajo a la derecha
+1293|Nadie ha informado aún de esta capturadora; comparte tus resultados en GitHub
+1294|Ese no es un código de preajuste de PushFPS válido
+1295|Ya hay un preajuste integrado con este nombre
+1296|Este PC no puede ejecutar esta combinación
+1297|La capturadora perdió el %1% de los fotogramas
+1298|. Las grabaciones también lo mantienen. El paso directo Dolby / DTS no se ve afectado
 zh:轻|Suave
 zh:亮|Luz
