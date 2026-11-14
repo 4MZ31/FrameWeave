@@ -103,7 +103,7 @@ QtObject {
     function colourUndo() { colourUndoCount++; return true }
     function soundResponseDb(preset, eq, hz) { return preset === 0 ? 0 : 3 }
     property var recordingState: ({saved: 0, active: false, path: ""})
-    signal recordingChanged()
+    // `recording` (below) declares recordingChanged() as well.
     property var replayState: ({saved: 0, active: false, path: ""})
     signal replayChanged()
     // PushFPS optimiser, game presets, latency readout and sharing (src/ui/bridge/PushFps.cpp).
