@@ -109,6 +109,8 @@ void PushHudSampler::finishLocked() {
     detection_ = hud::detect(frames_);
     running_ = false; done_ = true;
     frames_.clear();
+    // Nothing is in flight now: give the readback memory (up to 66 MB at 4K FP16) and the device back.
+    readback_.Reset(); device_.Reset(); readbackBytes_ = 0;
     veyra::log::info("push-hud", std::format("detection done regions={} motion={:.2f} candidates={} tooStill={}",
         detection_.regions.size(), detection_.motion, detection_.candidateCells, detection_.tooStill));
 }
