@@ -1316,3 +1316,51 @@
 1315|La GPU no admite los ajustes de codificación avanzados elegidos; se graba con los estándar
 zh:轻|Suave
 zh:亮|Luz
+1316|G-SYNC o FreeSync: el monitor se actualiza cuando llega un fotograma nuevo en lugar de a una frecuencia fija, así una tasa irregular no produce cortes ni tirones
+1317|¿El HUD no está en su sitio?
+1318|Protección del HUD
+1319|Falló la detección del HUD
+1320|NVIDIA Image Scaling es un filtro de código abierto para escalar y enfocar que funciona en tarjetas gráficas de cualquier marca. Demasiado enfoque dibuja halos blancos en los bordes
+1321|Consola · %1 FPS
+1322|Detener clip comparativo
+1323|Borrar todo
+1324|Un fotograma clave es una imagen completa; los fotogramas intermedios solo guardan lo que cambió. Los reproductores y editores solo pueden empezar a decodificar en un fotograma clave
+1325|Menos fotogramas esperan en cola en la tarjeta gráfica, así la imagen reacciona antes después de pulsar un botón. Solo tarjetas NVIDIA
+1326|Detecta el HUD en la imagen de tu juego o arrastra los recuadros a mano
+1327|Arrastra sobre la imagen para dibujar un recuadro nuevo (hasta 4). Arrastra un recuadro para moverlo y sus esquinas para cambiar su tamaño
+1328|Clip comparativo
+1329|El clip comparativo no tiene fotogramas generados, así que ambas mitades son iguales. Comprueba que la generación de fotogramas esté funcionando
+1330|Las partes que no se mueven, como el minimapa, la salud y la munición, conservan los píxeles de la consola y no se interpolan, así que se ven nítidas. Tras la detección automática puedes arrastrar los recuadros para corregirlos
+1331|La protección del HUD está desactivada; se interpola toda la imagen
+1332|Aplicado: %1 zonas conservan los píxeles de la consola
+1333|Ayuda
+1334|El formato de imagen actual no admite la detección automática del HUD
+1335|Graba un vídeo comparativo de 15 segundos: a la izquierda la tasa de fotogramas original de la consola, a la derecha PushFPS
+1336|Se encontraron %1 zonas de HUD. Revisa los recuadros verdes, arrástralos para corregirlos si hace falta y pulsa Aplicar
+1337|No se pudo leer la imagen; se detuvo la detección del HUD
+1338|No hay memoria de vídeo suficiente para detectar el HUD
+1339|Hasta 4 recuadros; borra uno primero
+1340|Grabando un clip comparativo de %1 segundos: a la izquierda la tasa original de la consola, a la derecha PushFPS
+1341|Obteniendo la imagen…
+1342|Observando la imagen %1 / %2
+1343|Observando la imagen unos 5 segundos. Gira la cámara o camina en el juego
+1344|El máximo de fotogramas por segundo. Con generación de fotogramas mantiene la salida en la tasa objetivo, así el movimiento es más uniforme
+1345|No se encontró HUD. Puedes arrastrar sobre la imagen para dibujar recuadros a mano
+1346|No llegó ninguna imagen. Comprueba que la imagen se esté reproduciendo y que la ventana de PushFPS no esté minimizada
+1347|No se está reproduciendo nada, así que no se puede detectar el HUD
+1348|Sin imagen. Conecta una capturadora y empieza a reproducir para ajustar los recuadros sobre la imagen de tu juego
+1349|Añadir recuadro
+1350|Cuántas imágenes nuevas dibuja el propio juego por segundo. La consola siempre envía una señal de 60 Hz, así que un juego a 30 FPS muestra cada imagen dos veces. PushFPS lo usa para decidir cuántos fotogramas generar
+1351|La IA elimina los bloques y el ruido que deja la compresión de la capturadora, para que los detalles se vean más claros. Es independiente de la generación de fotogramas y se activa por separado
+1352|La imagen apenas se movió, así que no se pudo distinguir el HUD. Gira la cámara o muévete en el juego y vuelve a intentarlo
+1353|La tasa de bits es la cantidad de datos que usa el vídeo por segundo. El control de tasa decide cómo los reparte el codificador: más datos, más calidad y archivo más grande
+1354|Cuánto esfuerzo dedica el codificador a cada fotograma. Más lento comprime mejor, así el mismo tamaño de archivo da más calidad
+1355|Encuentra el minimapa y el HUD automáticamente y los deja fuera de la generación de fotogramas; puedes corregir los recuadros a mano
+1356|Detectar automáticamente
+1357|Imágenes por segundo tras la generación de fotogramas. Los fotogramas generados van entre dos imágenes reales para suavizar el movimiento; el mando no responde más rápido
+1358|Observa la imagen unos segundos para encontrar el HUD que no se mueve
+1359|Activa primero la generación de fotogramas: el clip comparativo pone la tasa original de la consola junto a la imagen generada
+1360|Conecta primero una capturadora y empieza a reproducir
+1361|Ajustar zonas del HUD
+1362|Gira la cámara o camina: el HUD se queda quieto mientras el resto se mueve
+1363|Obtener una imagen nueva

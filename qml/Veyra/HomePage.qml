@@ -122,13 +122,9 @@ VPage {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 14
                 spacing: 6
-                Text {
+                PushWordmark {
                     Layout.alignment: Qt.AlignHCenter
-                    text: veyra.appName
-                    color: Theme.t1
-                    font.family: Theme.fontUi
-                    font.pixelSize: Theme.fsH1
-                    font.weight: Font.DemiBold; font.variableAxes: Theme.axesDemiBold
+                    pixelSize: Theme.fsH1 + 8
                 }
                 Text {
                     Layout.alignment: Qt.AlignHCenter

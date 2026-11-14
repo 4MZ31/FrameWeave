@@ -1316,3 +1316,51 @@
 1315|A GPU não aceita as configurações avançadas de codificação escolhidas; gravando com as padrão
 zh:轻|Leve
 zh:亮|Luz
+1316|G-SYNC ou FreeSync: o monitor atualiza quando chega um novo quadro, e não em frequência fixa; assim uma taxa irregular não causa cortes nem engasgos
+1317|HUD no lugar errado?
+1318|Proteção do HUD
+1319|Falha na detecção do HUD
+1320|NVIDIA Image Scaling é um filtro de código aberto de ampliação e nitidez que funciona em placas de vídeo de qualquer marca. Nitidez demais cria halos brancos nas bordas
+1321|Console · %1 FPS
+1322|Parar clipe comparativo
+1323|Limpar tudo
+1324|Um quadro-chave é uma imagem completa; os quadros intermediários só guardam o que mudou. Players e editores de vídeo só conseguem começar a decodificar em um quadro-chave
+1325|Menos quadros esperam na fila da placa de vídeo, então a imagem reage mais rápido depois de apertar um botão. Somente placas NVIDIA
+1326|Detecte o HUD na imagem do seu jogo ou arraste as caixas manualmente
+1327|Arraste sobre a imagem para desenhar uma nova caixa (até 4). Arraste uma caixa para movê-la e os cantos para redimensioná-la
+1328|Clipe comparativo
+1329|O clipe comparativo não tem quadros gerados, então as duas metades são iguais. Verifique se a geração de quadros está funcionando
+1330|Partes fixas como minimapa, vida e munição mantêm os pixels do console e não são interpoladas, então continuam nítidas. Depois da detecção automática, você pode arrastar as caixas para corrigir
+1331|Proteção do HUD desligada; a imagem inteira é interpolada
+1332|Aplicado: %1 áreas mantêm os pixels do console
+1333|Ajuda
+1334|O formato de imagem atual não permite a detecção automática do HUD
+1335|Grave um vídeo comparativo de 15 segundos: à esquerda a taxa de quadros original do console, à direita o PushFPS
+1336|%1 áreas de HUD encontradas. Confira as caixas verdes, arraste para corrigir se precisar e clique em Aplicar
+1337|Não foi possível ler a imagem; detecção do HUD interrompida
+1338|Memória de vídeo insuficiente para detectar o HUD
+1339|No máximo 4 caixas; exclua uma primeiro
+1340|Gravando um clipe comparativo de %1 segundos: à esquerda a taxa original do console, à direita o PushFPS
+1341|Obtendo a imagem…
+1342|Observando a imagem %1 / %2
+1343|Observando a imagem por cerca de 5 segundos. Gire a câmera ou ande pelo jogo
+1344|O máximo de quadros exibidos por segundo. Com geração de quadros, mantém a saída na taxa alvo, deixando o movimento mais uniforme
+1345|Nenhum HUD encontrado. Arraste sobre a imagem para desenhar caixas manualmente
+1346|Nenhuma imagem chegou. Verifique se a imagem está sendo reproduzida e se a janela do PushFPS não está minimizada
+1347|Nada está sendo reproduzido, então não é possível detectar o HUD
+1348|Sem imagem. Conecte uma placa de captura e comece a reproduzir para ajustar as caixas na imagem do seu jogo
+1349|Adicionar caixa
+1350|Quantas imagens novas o próprio jogo desenha por segundo. O console sempre envia um sinal de 60 Hz, então um jogo a 30 FPS mostra cada imagem duas vezes. O PushFPS usa isso para decidir quantos quadros gerar
+1351|A IA remove os blocos e o ruído deixados pela compressão da placa de captura, deixando os detalhes mais claros. É independente da geração de quadros e pode ser ligada separadamente
+1352|A imagem quase não se moveu, então não foi possível distinguir o HUD. Gire a câmera ou ande no jogo e tente de novo
+1353|A taxa de bits é a quantidade de dados que o vídeo usa por segundo. O controle de taxa decide como o codificador a distribui: mais dados, mais qualidade e arquivo maior
+1354|Quanto esforço o codificador dedica a cada quadro. Mais lento comprime melhor, então o mesmo tamanho de arquivo tem mais qualidade
+1355|Encontra o minimapa e o HUD automaticamente e os deixa fora da geração de quadros; dá para corrigir as caixas manualmente
+1356|Detectar automaticamente
+1357|Imagens exibidas por segundo após a geração de quadros. Os quadros gerados entram entre duas imagens reais para suavizar o movimento; o controle não responde mais rápido
+1358|Observa a imagem por alguns segundos para encontrar o HUD fixo
+1359|Ative primeiro a geração de quadros: o clipe comparativo coloca a taxa original do console ao lado da imagem gerada
+1360|Conecte primeiro uma placa de captura e comece a reproduzir
+1361|Ajustar áreas do HUD
+1362|Gire a câmera ou ande: o HUD fica parado enquanto o resto se move
+1363|Obter uma nova imagem

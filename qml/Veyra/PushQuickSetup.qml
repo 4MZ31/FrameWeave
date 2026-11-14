@@ -270,8 +270,15 @@ VGroup {
         }
     }
 
-    // PushFPS tools: measure this PC, or start from a game's preset.
-    RowLayout {
+    // PushFPS tools: measure this PC, start from a game's preset, protect the HUD,
+    // record a before/after clip. They wrap onto a second line in narrow panels.
+    readonly property bool compareRecording: veyra.recording && veyra.recordingState.compare === true
+    function openOnPicture(dialog) {
+        // The picture has to be on screen while it is sampled (a hidden window presents differently).
+        if (veyra.hasSource && !quick.compactPro) veyra.navigate("pro")
+        veyra.navigate(dialog)
+    }
+    Flow {
         objectName: "pushfps-tools-row"
         Layout.fillWidth: true
         Layout.topMargin: 8
@@ -284,7 +291,7 @@ VGroup {
             text: qsTr("为我的电脑优化")
             tip: qsTr("在实际画面上测试每种组合，自动选出最好的一种")
             // The picture has to be on screen while it is measured (a hidden window presents differently).
-            onClicked: { if (veyra.hasSource && !quick.compactPro) veyra.navigate("pro"); veyra.navigate("optimize") }
+            onClicked: quick.openOnPicture("optimize")
         }
         VButton {
             objectName: "pushfps-game-presets"
@@ -294,7 +301,27 @@ VGroup {
             tip: qsTr("GTA VI 等游戏的推荐设置，小地图和 HUD 保持清晰")
             onClicked: veyra.navigate("games")
         }
-        Item { Layout.fillWidth: true }
+        VButton {
+            objectName: "pushfps-hud"
+            ghost: true
+            iconName: "scan"
+            text: qsTr("HUD 保护")
+            tip: qsTr("自动找出小地图和 HUD，让它们不补帧；方框可以手动修正")
+            onClicked: quick.openOnPicture("hud")
+        }
+        VButton {
+            objectName: "pushfps-compare-clip"
+            ghost: true
+            iconName: "split"
+            text: quick.compareRecording ? qsTr("停止对比片段") : qsTr("对比片段")
+            tip: qsTr("录制 15 秒的左右对比视频：左边是主机原本的帧率，右边是 PushFPS")
+            enabled: veyra.hasSource && (quick.compareRecording || !veyra.recording)
+            opacity: enabled ? 1 : 0.4
+            onClicked: {
+                if (quick.compareRecording) veyra.stopRecording("compare-button")
+                else veyra.pushStartCompareClip(15)
+            }
+        }
     }
 
     // The capture card in use, and whether it is on PushFPS's tested list.
@@ -393,6 +420,7 @@ VGroup {
     VRow {
         objectName: "pushfps-game-fps-row"
         label: qsTr("游戏帧率")
+        help: qsTr("游戏自己每秒画出多少张新画面。主机总是输出 60 Hz 信号，30 FPS 的游戏每张画面会重复一次。PushFPS 根据它决定要生成几帧")
         hint: qsTr("大多数主机游戏为 30 FPS；性能模式选 60")
         VSeg {
             objectName: "pushfps-game-fps"
@@ -407,6 +435,7 @@ VGroup {
     VRow {
         objectName: "pushfps-target-row"
         label: qsTr("目标帧率")
+        help: qsTr("补帧后每秒显示的画面数。生成的帧插在两张真实画面之间，让运动更顺滑；手柄的反应速度不会因此变快")
         hint: quick.targetHint
         hintBelow: true
         hintColor: quick.fgPossible ? Theme.t3 : Theme.warn
@@ -428,6 +457,7 @@ VGroup {
     VRow {
         objectName: "pushfps-enhance-row"
         label: qsTr("AI 画面增强")
+        help: qsTr("用 AI 去掉采集卡压缩造成的色块和噪点，让细节更清楚。和补帧无关，可以单独开关")
         hint: quick.nrPossible ? qsTr("关闭时只做补帧。开启后每帧都经过 NVIDIA 神经渲染（DLSS 5 NR）增强，画面更清晰，但更耗 GPU")
                                : (Support.status(veyra, "nr").reason || "")
         VSwitch {
@@ -454,6 +484,7 @@ VGroup {
         objectName: "pushfps-low-latency-row"
         visible: !quick.compact
         label: qsTr("英伟达低延迟")
+        help: qsTr("减少在显卡里排队等待的画面，从按下按键到画面反应更快。只在 NVIDIA 显卡上可用")
         hint: veyra.nvidiaLowLatencyAvailable === true ? qsTr("减少处理排队，降低输入延迟") : qsTr("需要 NVIDIA 显卡")
         VSwitch {
             objectName: "pushfps-low-latency"

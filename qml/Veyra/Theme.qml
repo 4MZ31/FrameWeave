@@ -54,6 +54,8 @@ QtObject {
     // Light mode: a deeper green (and near-black for the white variant), since the
     // brand green is too light for text and icons on white.
     readonly property color accent: accentWhite ? (light ? "#15171A" : "#F3F3F5") : (light ? "#2F7A06" : "#89F52A")
+    // The logo's green, also with the white accent (the PushFPS wordmark's "FPS").
+    readonly property color brandGreen: light ? "#2F7A06" : "#89F52A"
     readonly property color accentInk: accentWhite ? (light ? "#FFFFFF" : "#0B0B0E") : (light ? "#FFFFFF" : "#0D1A04")
     readonly property color accentSoft: accentWhite ? ink(0.1) : (light ? Qt.rgba(0.184, 0.478, 0.024, 0.12) : Qt.rgba(0.537, 0.961, 0.165, 0.14))
     readonly property color accentGlow: accentWhite ? ink(0.35) : (light ? Qt.rgba(0.184, 0.478, 0.024, 0.30) : Qt.rgba(0.537, 0.961, 0.165, 0.35))

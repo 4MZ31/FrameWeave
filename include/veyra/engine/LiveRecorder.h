@@ -29,6 +29,7 @@
 #include <string>
 
 #include "veyra/engine/PresentCapture.h"
+#include "veyra/engine/RecordingCompare.h"
 
 namespace veyra::engine {
 
@@ -49,6 +50,10 @@ struct RecordingSettings {
     uint32_t keyframeSeconds=2;  // keyframe interval
     uint32_t audioKbps=192;      // AAC bitrate per track
     bool matroska=false;         // MKV instead of fragmented MP4 (recordings; replays stay MP4)
+    // PushFPS before/after comparison clip (RecordingCompare.h): left half the
+    // console's real frames, right half every presented frame. Recordings only.
+    bool compare=false;
+    RecordingLabelRenderer compareLabels; // optional labels, called per file on the engine thread
     // Instant replay recorder only.
     uint32_t replaySeconds=60;   // how much the buffer keeps
     uint64_t replayMemoryBytes=0;// memory cap; 0: an eighth of the installed memory, 512 MB to 4 GB
@@ -66,6 +71,8 @@ struct RecordingStatus {
     uint64_t dropped=0;          // presented frames skipped because the encoder or disk was busy
     double seconds=0;            // time since the first recorded frame
     uint32_t files=0;            // files this recording wrote (more than one after a size change)
+    bool compare=false;          // a comparison clip
+    uint64_t generatedFrames=0;  // comparison clip: generated frames recorded so far (0: both halves match)
     bool audio=false;            // the current file has a sound track
     bool microphone=false;       // it records the microphone
     std::wstring microphoneError;// the microphone cannot be opened (its track continues silent)

@@ -1316,3 +1316,51 @@
 1315|GPU seçilen gelişmiş kodlama ayarlarını desteklemiyor; standart ayarlarla kaydediliyor
 zh:轻|Hafif
 zh:亮|Işık
+1316|G-SYNC veya FreeSync: monitör sabit bir hızda değil, yeni kare geldiğinde yenilenir; böylece dengesiz kare hızı yırtılma ve takılma yapmaz
+1317|HUD yanlış yerde mi?
+1318|HUD koruması
+1319|HUD algılama başarısız
+1320|NVIDIA Image Scaling, her marka ekran kartında çalışan açık kaynaklı bir büyütme ve keskinleştirme filtresidir. Çok fazla keskinlik kenarlarda beyaz haleler oluşturur
+1321|Konsol · %1 FPS
+1322|Karşılaştırma klibini durdur
+1323|Tümünü temizle
+1324|Anahtar kare tam bir resimdir; aradaki kareler yalnızca değişenleri saklar. Oynatıcılar ve video düzenleyiciler kod çözmeye yalnızca bir anahtar karede başlayabilir
+1325|Ekran kartında sırada bekleyen kare sayısı azalır; bir tuşa bastıktan sonra görüntü daha çabuk tepki verir. Yalnızca NVIDIA ekran kartları
+1326|HUD’yi kendi oyun görüntünde algıla veya kutuları elle sürükle
+1327|Yeni kutu çizmek için görüntü üzerinde sürükle (en fazla 4). Taşımak için kutuyu, boyutlandırmak için köşelerini sürükle
+1328|Karşılaştırma klibi
+1329|Karşılaştırma klibinde üretilmiş kare yok, iki yarı aynı. Kare üretiminin çalıştığını kontrol et
+1330|Mini harita, can ve cephane gibi sabit kısımlar konsolun kendi piksellerini korur ve ara kare üretilmez; bu yüzden net kalır. Otomatik algılamadan sonra kutuları sürükleyerek düzeltebilirsin
+1331|HUD koruması kapalı; tüm görüntüye ara kare üretiliyor
+1332|Uygulandı: %1 alan konsolun kendi piksellerini koruyor
+1333|Yardım
+1334|Geçerli görüntü biçimi otomatik HUD algılamayı desteklemiyor
+1335|15 saniyelik yan yana video kaydet: solda konsolun kendi kare hızı, sağda PushFPS
+1336|%1 HUD alanı bulundu. Yeşil kutuları kontrol et, gerekirse sürükleyerek düzelt, sonra Uygula’ya tıkla
+1337|Görüntü okunamadı; HUD algılama durduruldu
+1338|HUD’yi algılamak için yeterli video belleği yok
+1339|En fazla 4 kutu; önce birini sil
+1340|%1 saniyelik karşılaştırma klibi kaydediliyor: solda konsolun kendi kare hızı, sağda PushFPS
+1341|Görüntü alınıyor…
+1342|Görüntü izleniyor %1 / %2
+1343|Görüntü yaklaşık 5 saniye izleniyor. Oyunda kamerayı çevir veya yürü
+1344|Saniyede gösterilen en fazla kare. Kare üretimiyle çıkışı hedef kare hızında tutar; hareket daha düzenli olur
+1345|HUD bulunamadı. Görüntü üzerinde sürükleyerek elle kutu çizebilirsin
+1346|Görüntü gelmedi. Görüntünün oynatıldığını ve PushFPS penceresinin simge durumunda olmadığını kontrol et
+1347|Oynatılan bir şey yok, HUD algılanamıyor
+1348|Görüntü yok. Kutuları kendi oyun görüntünde ayarlamak için bir yakalama kartı bağla ve oynatmayı başlat
+1349|Kutu ekle
+1350|Oyunun kendisinin saniyede çizdiği yeni resim sayısı. Konsol her zaman 60 Hz sinyal gönderir; 30 FPS bir oyun her resmi iki kez gösterir. PushFPS kaç kare üreteceğine buna göre karar verir
+1351|Yapay zekâ yakalama kartı sıkıştırmasının bıraktığı blokları ve gürültüyü temizler, ayrıntılar daha net görünür. Kare üretiminden bağımsızdır, ayrıca açılıp kapatılabilir
+1352|Görüntü neredeyse hiç hareket etmedi, HUD ayırt edilemedi. Oyunda kamerayı çevir veya hareket et, sonra tekrar dene
+1353|Bit hızı, videonun saniyede kullandığı veri miktarıdır. Hız denetimi kodlayıcının bunu nasıl dağıtacağını belirler: daha fazla veri, daha iyi kalite ve daha büyük dosya demektir
+1354|Kodlayıcının her kareye harcadığı emek. Daha yavaş daha iyi sıkıştırır; aynı dosya boyutunda kalite daha yüksek olur
+1355|Mini haritayı ve HUD’yi otomatik bulur ve kare üretiminin dışında tutar; kutuları elle düzeltebilirsin
+1356|Otomatik algıla
+1357|Kare üretiminden sonra saniyede gösterilen resim sayısı. Üretilen kareler iki gerçek resmin arasına girer ve hareketi akıcılaştırır; kumanda daha hızlı tepki vermez
+1358|Sabit HUD’yi bulmak için görüntüyü birkaç saniye izler
+1359|Önce kare üretimini aç: karşılaştırma klibi konsolun kendi kare hızını üretilmiş görüntünün yanına koyar
+1360|Önce bir yakalama kartı bağla ve oynatmayı başlat
+1361|HUD alanlarını ayarla
+1362|Kamerayı çevir veya yürü: geri kalan hareket ederken HUD sabit kalır
+1363|Yeni görüntü al

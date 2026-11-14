@@ -1316,3 +1316,51 @@
 1315|GPU nie obsługuje wybranych zaawansowanych ustawień kodowania; nagrywanie z ustawieniami standardowymi
 zh:轻|Lekki
 zh:亮|Światło
+1316|G-SYNC lub FreeSync: monitor odświeża obraz, gdy przychodzi nowa klatka, a nie ze stałą częstotliwością, więc nierówna liczba klatek nie rwie ani nie przycina
+1317|HUD w złym miejscu?
+1318|Ochrona HUD
+1319|Wykrywanie HUD nie powiodło się
+1320|NVIDIA Image Scaling to otwartoźródłowy filtr skalowania i wyostrzania działający na kartach graficznych każdej marki. Zbyt duże wyostrzenie daje białe obwódki na krawędziach
+1321|Konsola · %1 FPS
+1322|Zatrzymaj klip porównawczy
+1323|Wyczyść wszystko
+1324|Klatka kluczowa to pełny obraz; klatki pomiędzy zapisują tylko zmiany. Odtwarzacze i edytory wideo mogą zacząć dekodowanie tylko od klatki kluczowej
+1325|Mniej klatek czeka w kolejce na karcie graficznej, więc obraz reaguje szybciej po naciśnięciu przycisku. Tylko karty NVIDIA
+1326|Wykryj HUD na obrazie własnej gry albo przeciągnij ramki ręcznie
+1327|Przeciągnij po obrazie, aby narysować nową ramkę (maks. 4). Przeciągnij ramkę, aby ją przesunąć, a jej rogi, aby zmienić rozmiar
+1328|Klip porównawczy
+1329|Klip porównawczy nie ma wygenerowanych klatek, więc obie połowy są takie same. Sprawdź, czy generowanie klatek działa
+1330|Nieruchome elementy, takie jak minimapa, zdrowie i amunicja, zachowują piksele konsoli i nie są interpolowane, więc pozostają ostre. Po automatycznym wykryciu możesz przeciągnąć ramki, aby je poprawić
+1331|Ochrona HUD wyłączona; interpolowany jest cały obraz
+1332|Zastosowano: %1 obszary zachowują piksele konsoli
+1333|Pomoc
+1334|Bieżący format obrazu nie obsługuje automatycznego wykrywania HUD
+1335|Nagraj 15-sekundowe wideo obok siebie: po lewej oryginalna liczba klatek konsoli, po prawej PushFPS
+1336|Znaleziono obszary HUD: %1. Sprawdź zielone ramki, w razie potrzeby przeciągnij je, a potem kliknij Zastosuj
+1337|Nie można odczytać obrazu; wykrywanie HUD zatrzymane
+1338|Za mało pamięci wideo, aby wykryć HUD
+1339|Maksymalnie 4 ramki; najpierw usuń jedną
+1340|Nagrywanie klipu porównawczego (%1 s): po lewej oryginalna liczba klatek konsoli, po prawej PushFPS
+1341|Pobieranie obrazu…
+1342|Obserwowanie obrazu %1 / %2
+1343|Obserwuję obraz przez około 5 sekund. Obróć kamerę albo chodź w grze
+1344|Największa liczba klatek wyświetlanych na sekundę. Przy generowaniu klatek utrzymuje wyjście na docelowej liczbie klatek, więc ruch jest równiejszy
+1345|Nie znaleziono HUD. Możesz przeciągnąć po obrazie, aby narysować ramki ręcznie
+1346|Nie dotarł żaden obraz. Sprawdź, czy obraz jest odtwarzany, a okno PushFPS nie jest zminimalizowane
+1347|Nic nie jest odtwarzane, więc nie można wykryć HUD
+1348|Brak obrazu. Podłącz kartę przechwytującą i zacznij odtwarzanie, aby dopasować ramki na obrazie własnej gry
+1349|Dodaj ramkę
+1350|Ile nowych obrazów sama gra rysuje na sekundę. Konsola zawsze wysyła sygnał 60 Hz, więc gra w 30 FPS pokazuje każdy obraz dwa razy. PushFPS na tej podstawie decyduje, ile klatek wygenerować
+1351|AI usuwa bloki i szum pozostawione przez kompresję karty przechwytującej, więc szczegóły są wyraźniejsze. Niezależne od generowania klatek, można je włączać osobno
+1352|Obraz prawie się nie ruszał, więc nie dało się odróżnić HUD. Obróć kamerę lub porusz się w grze i spróbuj ponownie
+1353|Bitrate to ilość danych na sekundę wideo. Sterowanie bitrate decyduje, jak koder ją rozdziela: więcej danych to lepsza jakość i większy plik
+1354|Ile wysiłku koder wkłada w każdą klatkę. Wolniej znaczy lepsza kompresja, więc ten sam rozmiar pliku daje wyższą jakość
+1355|Automatycznie znajduje minimapę i HUD i wyłącza je z generowania klatek; ramki można poprawić ręcznie
+1356|Wykryj automatycznie
+1357|Obrazy wyświetlane na sekundę po wygenerowaniu klatek. Wygenerowane klatki trafiają między dwa prawdziwe obrazy, aby ruch był płynniejszy; kontroler nie reaguje przez to szybciej
+1358|Obserwuje obraz przez kilka sekund, aby znaleźć nieruchomy HUD
+1359|Najpierw włącz generowanie klatek: klip porównawczy zestawia oryginalną liczbę klatek konsoli z wygenerowanym obrazem
+1360|Najpierw podłącz kartę przechwytującą i zacznij odtwarzanie
+1361|Dostosuj obszary HUD
+1362|Obróć kamerę albo chodź: HUD stoi w miejscu, a reszta się porusza
+1363|Pobierz nowy obraz

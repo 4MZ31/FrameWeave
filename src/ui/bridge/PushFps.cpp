@@ -29,6 +29,11 @@
 #include <QNetworkRequest>
 #include <QStandardPaths>
 #include <QUrl>
+#include <QFont>
+#include <QFontMetrics>
+#include <QImage>
+#include <QPainter>
+#include <QTimer>
 
 namespace veyra::ui {
 namespace {
@@ -302,6 +307,118 @@ QString QmlPlayerBridge::pushLinkUrl(const QString& key) const {
 bool QmlPlayerBridge::pushOpenLink(const QString& key) {
     const QString url = pushLinkUrl(key);
     return !url.isEmpty() && QDesktopServices::openUrl(QUrl(url));
+}
+
+
+// --- PushFPS automatic HUD detection ------------------------------------------
+bool QmlPlayerBridge::pushStartHudDetection(int samples) {
+    if (!hasSource()) { emit notice(tr("没有正在播放的画面，无法识别 HUD"), true); return false; }
+    impl_->engine.startHudDetection(uint32_t(std::clamp(samples, 1, 32)), 350);
+    return true;
+}
+
+void QmlPlayerBridge::pushCancelHudDetection() { impl_->engine.cancelHudDetection(); }
+
+QVariantMap QmlPlayerBridge::pushHudDetection() {
+    const auto st = impl_->engine.hudDetection();
+    QVariantMap m;
+    m["running"] = st.running;
+    m["done"] = st.done;
+    m["failed"] = st.failed;
+    m["taken"] = int(st.taken);
+    m["target"] = int(st.target);
+    m["error"] = st.error.empty() ? QString() : uiText(st.error);
+    m["tooStill"] = st.detection.tooStill;
+    m["motion"] = st.detection.motion;
+    m["revision"] = QVariant::fromValue(qulonglong(st.revision));
+    QVariantList regions;
+    for (const auto& r : st.detection.regions)
+        regions << QVariantMap{{"left", r.left}, {"top", r.top}, {"right", r.right}, {"bottom", r.bottom}, {"ellipse", false}};
+    m["regions"] = regions;
+    // The last frame taken, for the box editor: written once per run.
+    if (st.done && st.preview.size() == size_t(engine::hud::kPreviewWidth) * engine::hud::kPreviewHeight * 3 &&
+        st.revision != impl_->hudPreviewRevision) {
+        const QString dir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+        const QString path = QDir(dir).filePath(QStringLiteral("pushfps-hud-%1.png").arg(qulonglong(st.revision)));
+        const QImage image(st.preview.data(), int(engine::hud::kPreviewWidth), int(engine::hud::kPreviewHeight),
+                           int(engine::hud::kPreviewWidth * 3), QImage::Format_RGB888);
+        if (image.save(path)) {
+            if (!impl_->hudPreviewPath.isEmpty() && impl_->hudPreviewPath != path) QFile::remove(impl_->hudPreviewPath);
+            impl_->hudPreviewPath = path;
+        }
+        impl_->hudPreviewRevision = st.revision;
+    }
+    m["preview"] = st.done && !impl_->hudPreviewPath.isEmpty() && st.revision == impl_->hudPreviewRevision
+        ? QUrl::fromLocalFile(impl_->hudPreviewPath).toString() : QString();
+    return m;
+}
+
+// --- PushFPS before/after comparison clips ------------------------------------
+namespace {
+// A label as grey levels: white bold text on a black box, sized for the picture height.
+veyra::engine::RecordingLabel drawCompareLabel(const QString& text, uint32_t pictureHeight) {
+    QFont font(QStringLiteral("Segoe UI"));
+    font.setPixelSize(std::max(12, int(pictureHeight / 27)));
+    font.setBold(true);
+    const QFontMetrics metrics(font);
+    const int pad = std::max(4, font.pixelSize() / 2);
+    int w = metrics.horizontalAdvance(text) + pad * 2, h = metrics.height() + pad;
+    w += w & 1; h += h & 1;
+    QImage image(w, h, QImage::Format_RGB32);
+    image.fill(Qt::black);
+    {
+        QPainter painter(&image);
+        painter.setRenderHint(QPainter::TextAntialiasing);
+        painter.setFont(font);
+        painter.setPen(Qt::white);
+        painter.drawText(image.rect(), Qt::AlignCenter, text);
+    }
+    veyra::engine::RecordingLabel label;
+    label.width = uint32_t(w); label.height = uint32_t(h);
+    label.luma.resize(size_t(w) * size_t(h));
+    for (int y = 0; y < h; ++y) {
+        const auto* row = reinterpret_cast<const QRgb*>(image.constScanLine(y));
+        for (int x = 0; x < w; ++x) label.luma[size_t(y) * size_t(w) + size_t(x)] = uint8_t(qGray(row[x]));
+    }
+    return label;
+}
+}
+
+bool QmlPlayerBridge::pushStartCompareClip(int seconds) {
+    if (recording()) { emit notice(tr("录制已在进行中"), true); return false; }
+    if (!hasSource()) { emit notice(tr("没有正在播放的画面，无法录制"), true); return false; }
+    const auto& s = impl_->snapshot;
+    if (!s.fgActive) { emit notice(tr("请先开启补帧：对比片段把主机原本的帧率和补帧后的画面放在一起"), true); return false; }
+    seconds = std::clamp(seconds, 5, 120);
+    auto options = recordingOptions();
+    options.compare = true;
+    // Frame rates for the labels: the console's own (distinct game frames),
+    // and what PushFPS presents.
+    const int gameFps = s.contentFps > 1 ? s.contentFps : std::clamp(impl_->prefInt("pushGameFps", 30), 24, 120);
+    const int shownFps = s.submissionFps && std::isfinite(*s.submissionFps) && *s.submissionFps > gameFps
+        ? int(std::lround(*s.submissionFps)) : gameFps * std::max(2, int(s.applied.multiplier));
+    const QString leftText = tr("主机原画 · %1 FPS").arg(gameFps);
+    const QString rightText = QStringLiteral("%1 · %2 FPS").arg(QString::fromLatin1(brand::kProductName)).arg(shownFps);
+    // Drawn here (UI thread) for the expected picture height; the recorder only copies them.
+    const auto out = s.metrics.resolution.output;
+    const uint32_t height = out.height > 0 ? uint32_t(out.height) : 1080;
+    const auto left = drawCompareLabel(leftText, height), right = drawCompareLabel(rightText, height);
+    options.compareLabels = [left, right](uint32_t, uint32_t, engine::RecordingLabel& l, engine::RecordingLabel& r) { l = left; r = right; };
+    std::wstring error;
+    if (!impl_->engine.requestRecording(options, error)) { emit notice(uiText(error), true); return false; }
+    veyra::log::info("push-compare", std::format("comparison clip seconds={} labels=\"{}\" / \"{}\" height={}", seconds,
+                                                 leftText.toStdString(), rightText.toStdString(), height));
+    impl_->recordingState["active"] = true;
+    impl_->recordingState["failed"] = false;
+    impl_->recordingState["compare"] = true;
+    emit recordingChanged();
+    const int generation = ++impl_->compareGeneration;
+    QTimer::singleShot(seconds * 1000, this, [this, generation] {
+        if (generation == impl_->compareGeneration && recording() && impl_->recordingState.value("compare").toBool())
+            stopRecording(QStringLiteral("compare-timer"));
+    });
+    emit notice(tr("正在录制 %1 秒的对比片段：左边是主机原本的帧率，右边是 PushFPS").arg(seconds), false);
+    return true;
 }
 
 }

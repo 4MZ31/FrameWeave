@@ -1314,3 +1314,51 @@
 1313|If the GPU can't use a combination, the recording switches to the standard settings and tells you
 1314|Restore
 1315|The GPU doesn't support the chosen advanced encoding settings; recording with the standard ones
+1316|G-SYNC or FreeSync: the monitor refreshes when a new frame arrives instead of at a fixed rate, so an uneven frame rate neither tears nor stutters
+1317|HUD in the wrong place?
+1318|HUD protection
+1319|HUD detection failed
+1320|NVIDIA Image Scaling is an open-source upscaling and sharpening filter that works on graphics cards of any brand. Too much sharpening draws white halos along edges
+1321|Console · %1 FPS
+1322|Stop comparison clip
+1323|Clear all
+1324|A keyframe is a complete picture; the frames in between only store what changed. Players and video editors can only start decoding at a keyframe
+1325|Fewer frames wait in line on the graphics card, so the picture reacts sooner after you press a button. NVIDIA graphics cards only
+1326|Detect the HUD on your own game picture, or drag the boxes by hand
+1327|Drag on the picture to draw a new box (up to 4). Drag a box to move it, drag its corners to resize it
+1328|Comparison clip
+1329|The comparison clip has no generated frames, so both halves are the same. Check that frame generation is running
+1330|Parts that stay put, such as the minimap, health and ammo, keep the console’s own pixels and are not interpolated, so they stay sharp. After automatic detection you can drag the boxes to correct them
+1331|HUD protection is off; the whole picture is interpolated
+1332|Applied: %1 areas keep the console’s own pixels
+1333|Help
+1334|The current picture format does not support automatic HUD detection
+1335|Record a 15-second side-by-side video: the console’s own frame rate on the left, PushFPS on the right
+1336|Found %1 HUD areas. Check the green boxes, drag them to correct them if needed, then click Apply
+1337|Could not read the picture; HUD detection stopped
+1338|Not enough video memory to detect the HUD
+1339|Up to 4 boxes; delete one first
+1340|Recording a %1-second comparison clip: the console’s own frame rate on the left, PushFPS on the right
+1341|Getting the picture…
+1342|Watching the picture %1 / %2
+1343|Watching the picture for about 5 seconds. Turn the camera or walk around in the game
+1344|The most frames shown per second. With frame generation it holds the output at the target frame rate, so motion is more even
+1345|No HUD found. You can drag on the picture to draw boxes by hand
+1346|No picture arrived. Check that the picture is playing and the PushFPS window is not minimised
+1347|Nothing is playing, so the HUD cannot be detected
+1348|No picture. Connect a capture card and start playing to adjust the boxes on your own game picture
+1349|Add box
+1350|How many new pictures the game itself draws per second. The console always sends a 60 Hz signal, so a 30 FPS game shows each picture twice. PushFPS uses this to decide how many frames to generate
+1351|AI removes the blocks and noise that capture card compression leaves, so details look clearer. Separate from frame generation and can be switched on its own
+1352|The picture hardly moved, so the HUD could not be told apart. Turn the camera or move in the game, then try again
+1353|Bitrate is how much data the video uses per second. Rate control decides how the encoder spends it: more data means better quality and a bigger file
+1354|How much effort the encoder spends on each frame. Slower compresses better, so the same file size gives higher quality
+1355|Finds the minimap and HUD automatically and keeps them out of frame generation; you can correct the boxes by hand
+1356|Detect automatically
+1357|Pictures shown per second after frame generation. Generated frames go between two real pictures to make motion smoother; the controller does not respond any faster
+1358|Watches the picture for a few seconds to find the HUD that stays put
+1359|Turn on frame generation first: the comparison clip puts the console’s own frame rate next to the generated picture
+1360|Connect a capture card and start playing first
+1361|Adjust HUD areas
+1362|Turn the camera or walk around: the HUD stays put while the rest moves
+1363|Get a new picture

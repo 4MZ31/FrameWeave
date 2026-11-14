@@ -86,3 +86,6 @@ PushRecordingSaved 1.0 PushRecordingSaved.qml
 PushOptimizeDialog 1.0 PushOptimizeDialog.qml
 PushGamePresetsDialog 1.0 PushGamePresetsDialog.qml
 PushLatencyBadge 1.0 PushLatencyBadge.qml
+VHelp 1.0 VHelp.qml
+PushWordmark 1.0 PushWordmark.qml
+PushHudDialog 1.0 PushHudDialog.qml

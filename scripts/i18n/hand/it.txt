@@ -1316,3 +1316,51 @@
 1315|La GPU non supporta le impostazioni di codifica avanzate scelte; si registra con quelle standard
 zh:轻|Leggero
 zh:亮|Luce
+1316|G-SYNC o FreeSync: il monitor si aggiorna quando arriva un nuovo fotogramma invece che a frequenza fissa, così un frame rate irregolare non strappa né scatta
+1317|HUD nel posto sbagliato?
+1318|Protezione HUD
+1319|Rilevamento HUD non riuscito
+1320|NVIDIA Image Scaling è un filtro open source di ingrandimento e nitidezza che funziona con schede video di qualsiasi marca. Troppa nitidezza crea aloni bianchi sui bordi
+1321|Console · %1 FPS
+1322|Ferma clip di confronto
+1323|Cancella tutto
+1324|Un fotogramma chiave è un’immagine completa; quelli intermedi memorizzano solo i cambiamenti. Lettori ed editor video possono iniziare a decodificare solo da un fotogramma chiave
+1325|Meno fotogrammi in coda sulla scheda video, così l’immagine reagisce prima dopo la pressione di un tasto. Solo schede NVIDIA
+1326|Rileva l’HUD sull’immagine del tuo gioco o trascina i riquadri a mano
+1327|Trascina sull’immagine per disegnare un nuovo riquadro (fino a 4). Trascina un riquadro per spostarlo e i suoi angoli per ridimensionarlo
+1328|Clip di confronto
+1329|La clip di confronto non contiene fotogrammi generati, quindi le due metà sono uguali. Controlla che la generazione di fotogrammi sia attiva
+1330|Le parti fisse come minimappa, salute e munizioni mantengono i pixel della console e non vengono interpolate, quindi restano nitide. Dopo il rilevamento automatico puoi trascinare i riquadri per correggerli
+1331|Protezione HUD disattivata: viene interpolata tutta l’immagine
+1332|Applicato: %1 aree mantengono i pixel della console
+1333|Aiuto
+1334|Il formato dell’immagine attuale non supporta il rilevamento automatico dell’HUD
+1335|Registra un video affiancato di 15 secondi: a sinistra il frame rate originale della console, a destra PushFPS
+1336|Trovate %1 aree HUD. Controlla i riquadri verdi, trascinali per correggerli se serve, poi fai clic su Applica
+1337|Impossibile leggere l’immagine; rilevamento HUD interrotto
+1338|Memoria video insufficiente per rilevare l’HUD
+1339|Al massimo 4 riquadri; eliminane prima uno
+1340|Registrazione di una clip di confronto di %1 secondi: a sinistra il frame rate originale della console, a destra PushFPS
+1341|Acquisizione dell’immagine…
+1342|Osservazione dell’immagine %1 / %2
+1343|Osservo l’immagine per circa 5 secondi. Ruota la visuale o muoviti nel gioco
+1344|Il massimo di fotogrammi mostrati al secondo. Con la generazione di fotogrammi tiene l’uscita al frame rate obiettivo, così il movimento è più regolare
+1345|Nessun HUD trovato. Puoi trascinare sull’immagine per disegnare i riquadri a mano
+1346|Nessuna immagine ricevuta. Controlla che l’immagine sia in riproduzione e che la finestra di PushFPS non sia ridotta a icona
+1347|Non c’è nulla in riproduzione, quindi non è possibile rilevare l’HUD
+1348|Nessuna immagine. Collega una scheda di acquisizione e avvia la riproduzione per regolare i riquadri sull’immagine del tuo gioco
+1349|Aggiungi riquadro
+1350|Quante nuove immagini disegna il gioco stesso al secondo. La console invia sempre un segnale a 60 Hz, quindi un gioco a 30 FPS mostra ogni immagine due volte. PushFPS lo usa per decidere quanti fotogrammi generare
+1351|L’IA rimuove i blocchi e il rumore lasciati dalla compressione della scheda di acquisizione, così i dettagli sono più chiari. È indipendente dalla generazione di fotogrammi e si attiva a parte
+1352|L’immagine si è mossa appena, quindi non è stato possibile distinguere l’HUD. Ruota la visuale o muoviti nel gioco e riprova
+1353|Il bitrate è la quantità di dati che il video usa al secondo. Il controllo del bitrate decide come l’encoder li distribuisce: più dati significano qualità migliore e file più grande
+1354|Quanto impegno mette l’encoder in ogni fotogramma. Più lento comprime meglio, quindi a parità di dimensione la qualità è più alta
+1355|Trova automaticamente minimappa e HUD e li esclude dalla generazione di fotogrammi; puoi correggere i riquadri a mano
+1356|Rileva automaticamente
+1357|Immagini mostrate al secondo dopo la generazione di fotogrammi. I fotogrammi generati vanno tra due immagini reali per rendere il movimento più fluido; il controller non risponde più velocemente
+1358|Osserva l’immagine per qualche secondo per trovare l’HUD fisso
+1359|Attiva prima la generazione di fotogrammi: la clip di confronto affianca il frame rate originale della console all’immagine generata
+1360|Collega prima una scheda di acquisizione e avvia la riproduzione
+1361|Regola aree HUD
+1362|Ruota la visuale o muoviti: l’HUD resta fermo mentre il resto si muove
+1363|Acquisisci una nuova immagine

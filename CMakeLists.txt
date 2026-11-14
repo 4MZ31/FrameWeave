@@ -505,6 +505,11 @@ target_compile_features(veyra_nis_gpu_tests PRIVATE cxx_std_20)
 target_compile_options(veyra_nis_gpu_tests PRIVATE /utf-8)
 target_link_libraries(veyra_nis_gpu_tests PRIVATE veyra_pipeline)
 add_dependencies(veyra_nis_gpu_tests veyra_shader_nis_color veyra_shader_nis_scaler_sdr veyra_shader_nis_scaler_pq)
+# PushFPS comparison clips and HUD frame sampling on a real D3D12 device (hardware or WARP), run in CI.
+add_executable(veyra_push_gpu_tests tests/integration/PushGpuTests.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp)
+target_compile_features(veyra_push_gpu_tests PRIVATE cxx_std_20)
+target_compile_options(veyra_push_gpu_tests PRIVATE /utf-8)
+target_link_libraries(veyra_push_gpu_tests PRIVATE veyra_pipeline)
 
 add_executable(veyra_pipeline_tests
   tests/unit/PipelineContractTests.cpp
@@ -926,6 +931,10 @@ if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avform
   add_executable(veyra_push_benchmark_tests tests/unit/PushBenchmarkTests.cpp)
 target_compile_features(veyra_push_benchmark_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_benchmark_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS automatic HUD detection on synthetic pictures.
+add_executable(veyra_push_hud_tests tests/unit/PushHudTests.cpp src/engine/PushHud.cpp)
+target_compile_features(veyra_push_hud_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_hud_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_sound_profile_tests tests/unit/SoundProfileTests.cpp src/sink/SoundProfile.cpp)
   target_compile_features(veyra_sound_profile_tests PRIVATE cxx_std_20)
   target_include_directories(veyra_sound_profile_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -1532,7 +1541,7 @@ add_executable(veyra_sr_reconstruction_tests tests/integration/SrReconstructionT
   target_link_libraries(veyra_repair_fg_tests PRIVATE veyra_pipeline veyra_sinks veyra_nvof)
 
   # Headless quality-core runner (Playbook R3.3): the phase5 gate's quality
-  add_library(veyra_engine STATIC src/engine/EngineController.cpp src/engine/EngineWatchdog.cpp src/engine/PreviewGpuSession.cpp src/engine/EngineControllerImage.cpp src/engine/PosterFrame.cpp src/engine/EffectChain.cpp src/engine/PresetLibrary.cpp src/ui/PlayerUiFacade.cpp src/engine/TiledImageProcessor.cpp src/engine/PresetStore.cpp src/engine/VideoPresenter.cpp src/engine/DisplayStateService.cpp src/engine/VideoExportJob.cpp src/engine/ExportStreams.cpp src/engine/ExportQueue.cpp src/engine/ExportJobManager.cpp src/engine/Subtitles.cpp src/engine/FgCompatibilityProbe.cpp src/engine/LiveRecorder.cpp src/engine/ReplayBuffer.cpp src/engine/MicrophoneCapture.cpp)
+  add_library(veyra_engine STATIC src/engine/EngineController.cpp src/engine/EngineWatchdog.cpp src/engine/PreviewGpuSession.cpp src/engine/EngineControllerImage.cpp src/engine/PosterFrame.cpp src/engine/EffectChain.cpp src/engine/PresetLibrary.cpp src/ui/PlayerUiFacade.cpp src/engine/TiledImageProcessor.cpp src/engine/PresetStore.cpp src/engine/VideoPresenter.cpp src/engine/DisplayStateService.cpp src/engine/VideoExportJob.cpp src/engine/ExportStreams.cpp src/engine/ExportQueue.cpp src/engine/ExportJobManager.cpp src/engine/Subtitles.cpp src/engine/FgCompatibilityProbe.cpp src/engine/LiveRecorder.cpp src/engine/ReplayBuffer.cpp src/engine/MicrophoneCapture.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp)
   target_sources(veyra_pipeline PRIVATE src/guidance/AmdOpticalFlow.cpp
     src/guidance/GpuDisOpticalFlow.cpp third_party/gpu-dis/src/gpu/native_strict_dis_provider.cpp)
   target_include_directories(veyra_pipeline PRIVATE third_party/gpu-dis/src/gpu)

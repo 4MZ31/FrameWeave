@@ -28,6 +28,7 @@ ColumnLayout {
         objectName: editor.namePrefix + "-nis-sharpness-row"
         visible: editor.nis
         label: qsTr("NIS 锐化")
+        help: qsTr("NVIDIA Image Scaling 是一个开源的放大和锐化滤镜，任何品牌的显卡都能用。锐化太高会在边缘出现白边")
         hint: qsTr("0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。")
         value: editor.nisSharpness + "%"
         VSlider {

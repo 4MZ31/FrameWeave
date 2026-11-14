@@ -27,6 +27,7 @@
 #include "veyra/sink/VideoEncoder.h"
 #include "veyra/engine/ExportOptions.h"
 #include "veyra/engine/LiveRecorder.h"
+#include "veyra/engine/PushHudSampler.h"
 #include "veyra/engine/DisplayStateService.h"
 namespace veyra::source { struct RemotePlayConnectDesc; class RemotePlaySessionSource; struct MoonlightConnectDesc; class MoonlightSessionSource; struct XboxConnectDesc; class XboxSessionSource; }
 namespace veyra::remoteplay { struct ControllerState;struct ControllerFeedback; }
@@ -276,6 +277,11 @@ public:
     bool setReplay(bool enabled,const RecordingSettings& options,std::wstring& error);
     bool saveReplay(const std::wstring& directory,std::wstring& error);
     RecordingStatus replaySnapshot()const;
+    // PushFPS automatic HUD detection (PushHudSampler.h): samples presented
+    // real frames while it runs; hudDetection() polls it. Any thread.
+    void startHudDetection(uint32_t samples,uint32_t intervalMs){hud_->start(samples,intervalMs);}
+    void cancelHudDetection(){hud_->cancel();}
+    PushHudSampler::Status hudDetection(){return hud_->status();}
     // Refresh/VRR state of monitors, shared by every session's presenter and
     // the UI; queried in the background on events only. Any thread.
     DisplayStateService& displayStates(){return displayStates_;}
@@ -317,7 +323,10 @@ private:
     // The instant replay buffer, a second recorder; both take the presented
     // frame through captures_.
     std::unique_ptr<LiveRecorder> replay_=std::make_unique<LiveRecorder>(true);
-    PresentCaptureFanout captures_{*recorder_,*replay_};
+    // PushFPS automatic HUD detection reads presented frames the same way.
+    std::unique_ptr<PushHudSampler> hud_=std::make_unique<PushHudSampler>();
+    PresentCaptureFanout recordings_{*recorder_,*replay_};
+    PresentCaptureFanout captures_{recordings_,*hud_};
     // Declared before worker_: it outlives the engine thread's presenters.
     DisplayStateService displayStates_;
     std::thread worker_;

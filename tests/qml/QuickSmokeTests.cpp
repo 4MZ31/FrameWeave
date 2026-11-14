@@ -103,7 +103,7 @@ QtObject {
     function colourUndo() { colourUndoCount++; return true }
     function soundResponseDb(preset, eq, hz) { return preset === 0 ? 0 : 3 }
     property var recordingState: ({saved: 0, active: false, path: ""})
-    signal recordingChanged()
+    // `recording` (below) declares recordingChanged() as well.
     property var replayState: ({saved: 0, active: false, path: ""})
     signal replayChanged()
     // PushFPS optimiser, game presets, latency readout and sharing (src/ui/bridge/PushFps.cpp).
@@ -145,6 +145,26 @@ QtObject {
     function pushOpenLink(key) { lastOpenedLink = key; return pushLinkUrl(key).length > 0 }
     function pushImportTextFile(title) { return importFileText }
     function pushExportTextFile(title, name, text) { lastExportText = text; return true }
+    // PushFPS HUD detection, comparison clips and the wordmark (tst_push_hud.qml).
+    property string appName: "PushFPS"
+    property bool recording: false
+    property var hudState: ({running: false, done: false, failed: false, taken: 0, target: 0, regions: [], preview: "", tooStill: false, motion: 0})
+    property int hudStarts: 0
+    property int hudLastSamples: 0
+    property int hudCancels: 0
+    property int compareStarts: 0
+    property int compareSeconds: 0
+    property int recordingStops: 0
+    function pushStartHudDetection(samples) {
+        if (!hasSource) return false
+        hudStarts++; hudLastSamples = samples
+        hudState = ({running: true, done: false, failed: false, taken: 0, target: samples, regions: [], preview: "", tooStill: false, motion: 0})
+        return true
+    }
+    function pushCancelHudDetection() { hudCancels++; hudState = ({running: false, done: false, failed: false, taken: 0, target: 0, regions: [], preview: ""}) }
+    function pushHudDetection() { return hudState }
+    function pushStartCompareClip(seconds) { compareStarts++; compareSeconds = seconds; return true }
+    function stopRecording(source) { recordingStops++; recording = false }
     // PushFPS super-resolution editor (SrStageEditor): ids as QmlPlayerBridge::srBackendChoices.
     property int videoSrQuality: 2
     property int dualSrQuality: 2

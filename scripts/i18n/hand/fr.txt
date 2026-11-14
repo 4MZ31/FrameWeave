@@ -1316,3 +1316,51 @@
 1315|Le GPU ne prend pas en charge les réglages d'encodage avancés choisis ; enregistrement avec les réglages standard
 zh:轻|Léger
 zh:亮|Lumière
+1316|G-SYNC ou FreeSync : l’écran se rafraîchit à l’arrivée de chaque nouvelle image plutôt qu’à fréquence fixe ; une fréquence d’images irrégulière ne déchire ni ne saccade
+1317|HUD mal placé ?
+1318|Protection du HUD
+1319|La détection du HUD a échoué
+1320|NVIDIA Image Scaling est un filtre open source d’agrandissement et de netteté qui fonctionne sur les cartes graphiques de toutes marques. Trop de netteté crée des halos blancs sur les contours
+1321|Console · %1 FPS
+1322|Arrêter le clip comparatif
+1323|Tout effacer
+1324|Une image clé est une image complète ; les images intermédiaires n’enregistrent que les changements. Les lecteurs et logiciels de montage ne peuvent commencer le décodage qu’à une image clé
+1325|Moins d’images attendent dans la file de la carte graphique : l’image réagit plus vite après un appui sur un bouton. Cartes NVIDIA uniquement
+1326|Détecter le HUD sur l’image de votre jeu, ou déplacer les cadres à la main
+1327|Faites glisser sur l’image pour dessiner un nouveau cadre (4 au maximum). Faites glisser un cadre pour le déplacer, et ses coins pour le redimensionner
+1328|Clip comparatif
+1329|Le clip comparatif ne contient aucune image générée : les deux moitiés sont identiques. Vérifiez que la génération d’images est active
+1330|Les éléments fixes comme la mini-carte, la santé et les munitions gardent les pixels de la console et ne sont pas interpolés : ils restent nets. Après la détection automatique, vous pouvez déplacer les cadres pour les corriger
+1331|Protection du HUD désactivée : toute l’image est interpolée
+1332|Appliqué : %1 zones gardent les pixels de la console
+1333|Aide
+1334|Le format d’image actuel ne permet pas la détection automatique du HUD
+1335|Enregistrer une vidéo comparative de 15 secondes : à gauche la fréquence d’images d’origine de la console, à droite PushFPS
+1336|%1 zones de HUD trouvées. Vérifiez les cadres verts, déplacez-les si nécessaire, puis cliquez sur Appliquer
+1337|Impossible de lire l’image ; détection du HUD arrêtée
+1338|Mémoire vidéo insuffisante pour détecter le HUD
+1339|4 cadres au maximum ; supprimez-en un d’abord
+1340|Enregistrement d’un clip comparatif de %1 secondes : à gauche la fréquence d’origine de la console, à droite PushFPS
+1341|Récupération de l’image…
+1342|Observation de l’image %1 / %2
+1343|Observation de l’image pendant environ 5 secondes. Tournez la caméra ou déplacez-vous dans le jeu
+1344|Le nombre maximal d’images affichées par seconde. Avec la génération d’images, il maintient la sortie à la fréquence cible pour un mouvement plus régulier
+1345|Aucun HUD trouvé. Faites glisser sur l’image pour dessiner des cadres à la main
+1346|Aucune image reçue. Vérifiez que l’image est en lecture et que la fenêtre de PushFPS n’est pas réduite
+1347|Rien n’est en lecture : impossible de détecter le HUD
+1348|Pas d’image. Branchez une carte d’acquisition et lancez la lecture pour ajuster les cadres sur l’image de votre jeu
+1349|Ajouter un cadre
+1350|Le nombre de nouvelles images que le jeu dessine lui-même par seconde. La console envoie toujours un signal à 60 Hz : un jeu à 30 FPS affiche donc chaque image deux fois. PushFPS s’en sert pour choisir combien d’images générer
+1351|L’IA supprime les blocs et le bruit laissés par la compression de la carte d’acquisition, pour des détails plus nets. Indépendant de la génération d’images, activable séparément
+1352|L’image a à peine bougé : impossible de distinguer le HUD. Tournez la caméra ou déplacez-vous dans le jeu, puis réessayez
+1353|Le débit est la quantité de données utilisée par seconde de vidéo. Le contrôle du débit décide comment l’encodeur la répartit : plus de données, meilleure qualité et fichier plus gros
+1354|L’effort que l’encodeur consacre à chaque image. Plus lent compresse mieux : la même taille de fichier donne une meilleure qualité
+1355|Trouve automatiquement la mini-carte et le HUD et les exclut de la génération d’images ; les cadres se corrigent à la main
+1356|Détecter automatiquement
+1357|Images affichées par seconde après la génération d’images. Les images générées s’insèrent entre deux vraies images pour fluidifier le mouvement ; la manette ne réagit pas plus vite
+1358|Observe l’image quelques secondes pour trouver le HUD fixe
+1359|Activez d’abord la génération d’images : le clip comparatif place la fréquence d’origine de la console à côté de l’image générée
+1360|Branchez d’abord une carte d’acquisition et lancez la lecture
+1361|Ajuster les zones du HUD
+1362|Tournez la caméra ou déplacez-vous : le HUD reste fixe pendant que le reste bouge
+1363|Récupérer une nouvelle image

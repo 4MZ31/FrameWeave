@@ -435,6 +435,10 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
     // PushFPS advanced recording (RecordingSettings).
     uint32_t rateControl=1,quality=22,preset=4,keyframeSeconds=2,audioKbps=192;
     bool matroska=false;
+    bool compareClip=false;                     // RecordingCompare: split comparison picture
+    RecordingLabelRenderer compareLabels;
+    std::unique_ptr<RecordingCompare> compare;
+    std::atomic<uint64_t> generated{0};         // comparison: generated frames recorded
     bool sound=false,microphone=false,microphoneTrack=false; // what the sound tracks take
     std::atomic<bool> audio{false};             // the file (or buffer) has sound tracks
     std::wstring path;                          // a recording's file
@@ -568,6 +572,15 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
             };
             if(!readback(width,height,slot.yRead,slot.yPitch)||!readback(width,height/2,slot.uvRead,slot.uvPitch)){reason=L"录制回读缓冲分配失败";return false;}
         }
+        if(compareClip){
+            RecordingLabel left,right;
+            if(compareLabels){
+                try{compareLabels(width,height,left,right);}
+                catch(...){left={};right={};veyra::log::warn("live-recorder","comparison labels could not be drawn; recording without them");}
+            }
+            compare=std::make_unique<RecordingCompare>();
+            if(!compare->create(device.Get(),width,height,hdr,left,right,reason))return false;
+        }
         encoderThread=std::thread([this]{encoderMain();});
         writerThread=std::thread([this]{writerMain();});
         return true;
@@ -602,6 +615,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         convert.bind(list,constants,pipeline::gpuHandleOf(convert,UINT(index)).ptr,pipeline::gpuHandleOf(convert,kSlots).ptr);
         list->Dispatch((width+15)/16,(height+15)/16,1);
         states.uavBarrier(list,y.Get());states.uavBarrier(list,uv.Get());
+        if(compare){compare->compose(list,states,y.Get(),uv.Get(),frame.generated);if(frame.generated)++generated;}
         states.transition(list,y.Get(),D3D12_RESOURCE_STATE_COPY_SOURCE);
         states.transition(list,uv.Get(),D3D12_RESOURCE_STATE_COPY_SOURCE);
         std::swap(source.Transition.StateBefore,source.Transition.StateAfter);
@@ -983,7 +997,7 @@ struct LiveRecorder::State {
     std::atomic<double> presentFps{0};
     bool failed=false;
     std::wstring path,error,encoder,note;
-    uint64_t framesBase=0,droppedBase=0;
+    uint64_t framesBase=0,droppedBase=0,generatedBase=0;
     uint32_t files=0;
     uint64_t started=0,saved=0;
     bool audioTrack=false;
@@ -999,7 +1013,7 @@ struct LiveRecorder::State {
         if(!why.empty()&&segment->noteText().empty())segment->setNote(why);
         if(const auto name=segment->encoderText();!name.empty())encoder=name;
         segment->finish(sink::recordingClockUs());
-        framesBase+=segment->frames.load();droppedBase+=segment->dropped.load();
+        framesBase+=segment->frames.load();droppedBase+=segment->dropped.load();generatedBase+=segment->generated.load();
         // What it buffered stays saveable until the next stretch is as long.
         if(segment->replay&&segment->replay->coverage().picture)frozen=segment->replay;
         finishing.push_back(segment);
@@ -1088,7 +1102,8 @@ bool LiveRecorder::start(const RecordingSettings& settings,std::wstring& error){
     }
     s.settings=settings;s.armed=true;s.failed=false;s.error.clear();s.note.clear();s.encoder.clear();
     s.framesBase=s.droppedBase=0;s.files=0;s.firstFrameUs=0;s.nextDueUs=0;s.lastSeconds=0;s.audioTrack=false;
-    s.baseName=std::wstring(veyra::brand::kProductNameW)+L"-"+fileStamp();s.nextNumber=1;++s.started;
+    s.baseName=std::wstring(veyra::brand::kProductNameW)+(settings.compare?L"-compare-":L"-")+fileStamp();s.nextNumber=1;++s.started;
+    s.generatedBase=0;
     veyra::log::info("live-recorder",std::format("armed directory={} bitrateMbps={} hevc={} fpsLimit={} audio={} microphone={}",
         utf8(settings.directory),settings.bitrateMbps,settings.hevc,settings.fpsLimit,settings.audio,
         settings.microphone?(settings.microphoneTrack?"track":"mixed"):"off"));
@@ -1119,9 +1134,11 @@ RecordingStatus LiveRecorder::status() const{
     out.active=s.armed;out.failed=s.failed;out.finishing=!s.finishing.empty();
     out.error=s.error;out.note=s.note;out.files=s.files;out.started=s.started;out.saved=s.saved;
     out.frames=s.framesBase;out.dropped=s.droppedBase;out.path=s.path;out.encoder=s.encoder;out.audio=s.audioTrack;
+    out.compare=s.settings.compare&&!s.replayMode;out.generatedFrames=s.generatedBase;
     if(s.current){
         if(!s.replayMode)out.path=s.current->path;
         out.frames+=s.current->frames.load();out.dropped+=s.current->dropped.load();
+        if(s.current->compare)out.generatedFrames+=s.current->generated.load();
         if(const auto name=s.current->encoderText();!name.empty())out.encoder=name;
         out.audio=s.current->audio;
         out.microphone=s.current->microphone&&s.current->audio;
@@ -1292,6 +1309,8 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         segment->preset=std::clamp(s.settings.preset,1u,7u);segment->keyframeSeconds=std::clamp(s.settings.keyframeSeconds,1u,10u);
         segment->audioKbps=std::clamp(s.settings.audioKbps,64u,320u);
         segment->matroska=s.settings.matroska&&!s.replayMode;
+        segment->compareClip=s.settings.compare&&!s.replayMode;
+        segment->compareLabels=s.settings.compareLabels;
         segment->audio=segment->sound||segment->microphone;
         if(s.replayMode){
             const uint64_t cap=s.settings.replayMemoryBytes?s.settings.replayMemoryBytes:defaultReplayMemory();
