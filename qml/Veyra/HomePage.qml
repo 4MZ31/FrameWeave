@@ -155,7 +155,7 @@ VPage {
                 gradient: Gradient {
                     orientation: Gradient.Horizontal
                     GradientStop { position: 0.0; color: Theme.accentSoft }
-                    GradientStop { position: 1.0; color: Qt.rgba(1, 1, 1, 0.03) }
+                    GradientStop { position: 1.0; color: Theme.ink(0.03) }
                 }
                 RowLayout {
                     anchors.fill: parent
@@ -316,7 +316,7 @@ VPage {
                                 spacing: 10
                                 Rectangle {
                                     implicitWidth: 32; implicitHeight: 32; radius: 9
-                                    color: Qt.rgba(1, 1, 1, 0.06)
+                                    color: Theme.ink(0.06)
                                     VIcon { anchors.centerIn: parent; name: modelData.glyph; size: 16 }
                                 }
                                 ColumnLayout {
@@ -437,7 +437,7 @@ VPage {
                         height: 28
                         radius: 99
                         opacity: modelData.exists ? 1 : 0.45
-                        color: chipHover.hovered && modelData.exists ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.04)
+                        color: chipHover.hovered && modelData.exists ? Theme.ink(0.08) : Theme.ink(0.04)
                         border.width: 1
                         border.color: Theme.stroke
                         Row {

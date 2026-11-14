@@ -84,7 +84,7 @@ VPage {
                     implicitHeight: 36
                     radius: 9
                     color: root.section === modelData.id ? Theme.card3
-                         : navHover.hovered ? Qt.rgba(1, 1, 1, 0.04) : "transparent"
+                         : navHover.hovered ? Theme.ink(0.04) : "transparent"
                     Behavior on color { ColorAnimation { duration: Theme.d(200) } }
                     // .setnav button: icon, 10px, label.
                     Row {
@@ -1106,7 +1106,7 @@ VPage {
                                     implicitWidth: Math.max(64, keyText.implicitWidth + 20)
                                     implicitHeight: 26
                                     radius: 7
-                                    color: capturing ? Theme.accentSoft : Qt.rgba(1, 1, 1, 0.06)
+                                    color: capturing ? Theme.accentSoft : Theme.ink(0.06)
                                     border.width: 1
                                     border.color: capturing ? Theme.accent : Theme.stroke
                                     Text {

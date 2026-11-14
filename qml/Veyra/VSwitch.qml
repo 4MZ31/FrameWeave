@@ -8,7 +8,7 @@ Rectangle {
     width: Theme.switchWidth
     height: Theme.switchHeight
     radius: 99
-    color: checked ? Theme.accent : Qt.rgba(1, 1, 1, 0.14)
+    color: checked ? Theme.accent : Theme.ink(0.14)
     Behavior on color { ColorAnimation { duration: Theme.d(250) } }
 
     Rectangle {

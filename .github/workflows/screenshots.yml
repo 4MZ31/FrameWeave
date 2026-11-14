@@ -84,7 +84,22 @@ jobs:
             @{ name = '11-pro-audio';      args = @('--page', 'pro', '--tab', 'audio') },
             @{ name = '12-optimize';       args = @('--page', 'home', '--dialog', 'optimize') },
             @{ name = '13-game-presets';   args = @('--page', 'home', '--dialog', 'games') },
-            @{ name = '14-settings-playback'; args = @('--page', 'set') }
+            @{ name = '14-settings-playback'; args = @('--page', 'set') },
+            # Appearance modes and languages: every text must stay readable.
+            @{ name = '15-light-home';     args = @('--page', 'home', '--dock-pinned', '--theme', 'light') },
+            @{ name = '16-light-pro';      args = @('--page', 'pro', '--tab', 'fg', '--theme', 'light') },
+            @{ name = '17-light-settings'; args = @('--page', 'set', '--theme', 'light') },
+            @{ name = '18-light-optimize'; args = @('--page', 'home', '--dialog', 'optimize', '--theme', 'light') },
+            @{ name = '19-light-node';     args = @('--page', 'node', '--theme', 'light') },
+            @{ name = '20-light-picture';  args = @('--page', 'home', '--tab', 'tuning', '--theme', 'light') },
+            @{ name = '21-black-home';     args = @('--page', 'home', '--dock-pinned', '--theme', 'black') },
+            @{ name = '22-black-pro';      args = @('--page', 'pro', '--tab', 'quality', '--theme', 'black') },
+            @{ name = '23-black-games';    args = @('--page', 'home', '--dialog', 'games', '--theme', 'black') },
+            @{ name = '24-lang-de';        args = @('--page', 'home', '--lang', 'de') },
+            @{ name = '25-lang-ar';        args = @('--page', 'home', '--lang', 'ar') },
+            @{ name = '26-lang-es-pro';    args = @('--page', 'pro', '--tab', 'fg', '--lang', 'es') },
+            @{ name = '27-lang-tr';        args = @('--page', 'set', '--lang', 'tr') },
+            @{ name = '28-lang-nl';        args = @('--page', 'home', '--lang', 'nl') }
           )
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"

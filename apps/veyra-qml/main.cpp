@@ -775,6 +775,7 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
     //   --menu <source|preset>  professional-page popover menu open
     //   --dock-pinned           dock open and held open
     //   --theme <default|black|light>  PushFPS appearance for this run (not saved)
+    //   --lang <code>           interface language, written to that run's preferences (use with --data-dir)
     //   --tip <page>            the dock button's tooltip for that page shown (review)
     //   --size <W>x<H>          window size in device-independent pixels
     //   --reduced-motion        every animation at zero duration
@@ -821,6 +822,8 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
             ++i;  // handled before the bridge was created
         } else if (a == QLatin1String("--import-1.4.4-data") && hasValue) {
             ++i;  // handled before the bridge was created
+        } else if (a == QLatin1String("--lang") && hasValue) {
+            testOptions.insert(QStringLiteral("lang"), args.at(++i));  // PushFPS: screenshots per language
         } else if (a == QLatin1String("--theme") && hasValue) {
             testOptions.insert(QStringLiteral("theme"), args.at(++i));  // PushFPS: default | black | light
         } else if (a == QLatin1String("--dock-pinned")) {

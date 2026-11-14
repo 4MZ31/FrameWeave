@@ -507,7 +507,7 @@ VPage {
                     id: rail
                     anchors.verticalCenter: parent.verticalCenter
                     width: parent.width; height: 6; radius: 3
-                    color: Qt.rgba(1, 1, 1, 0.10)
+                    color: Theme.ink(0.10)
                 }
                 // The kept range.
                 Rectangle {
@@ -543,7 +543,7 @@ VPage {
                 Rectangle {
                     objectName: "export-playhead"
                     width: 12; height: 12; radius: 6
-                    color: "#FFFFFF"
+                    color: Theme.t1
                     anchors.verticalCenter: rail.verticalCenter
                     x: timeline.head * timeline.width - width / 2
                     visible: veyra.duration > 0

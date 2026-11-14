@@ -365,7 +365,7 @@ DialogLayer {
                 visible: opt.phase === "running"
                 Layout.fillWidth: true
                 implicitHeight: 6; radius: 3
-                color: Qt.rgba(1, 1, 1, 0.08)
+                color: Theme.ink(0.08)
                 Rectangle {
                     width: parent.width * Math.min(1, (opt.steps.filter(s => s.result !== null).length + 0.5) / Math.max(1, opt.steps.length + 2))
                     height: parent.height; radius: 3; color: Theme.accent

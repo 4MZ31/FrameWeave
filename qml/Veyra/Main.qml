@@ -964,6 +964,8 @@ Window {
     onClosing: if (!root.fullscreen && !root.maximized && !root.cinema) veyra.rememberWindowSize(root.width, root.height)
     Component.onCompleted: {
         veyra.updates.startAutomaticCheck()
+        // --lang <code>: screenshots in another language (saved in that run's own --data-dir).
+        if (root.test.lang !== undefined) veyra.setPreference("language", root.test.lang)
         applyStartupSize()
         // Open on the configured page: the user's saved preference, or the
         // override a test passes on the command line.

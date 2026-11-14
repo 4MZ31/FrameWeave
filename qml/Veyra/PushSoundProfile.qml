@@ -73,7 +73,7 @@ ColumnLayout {
             const ctx = getContext("2d")
             ctx.reset()
             const w = width, h = height, mid = h / 2
-            ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.08)
+            ctx.strokeStyle = Theme.ink(0.08)
             ctx.lineWidth = 1
             ctx.beginPath(); ctx.moveTo(0, mid); ctx.lineTo(w, mid); ctx.stroke()
             for (const hz of [100, 1000, 10000]) {

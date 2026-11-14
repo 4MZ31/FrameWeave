@@ -562,7 +562,7 @@ VPage {
                 anchors.top: parent.top
                 anchors.topMargin: 3
                 width: 40; height: 4; radius: 4
-                color: splitHover.hovered ? Theme.accent : Qt.rgba(1, 1, 1, 0.18)
+                color: splitHover.hovered ? Theme.accent : Theme.ink(0.18)
             }
             HoverHandler { id: splitHover; cursorShape: Qt.SizeVerCursor }
             // Drag to share the height between the picture and the canvas: the
@@ -589,7 +589,7 @@ VPage {
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: Theme.rCard
-            color: "#0A0A0D"
+            color: Theme.light ? "#E9ECE5" : Theme.black ? "#000000" : "#0A0A0D"
             border.width: 1
             border.color: Theme.stroke
             clip: true
@@ -617,7 +617,7 @@ VPage {
                     ctx.reset()
                     const step = 22 * root.zoom
                     if (step < 5) return
-                    ctx.fillStyle = Qt.rgba(1, 1, 1, 0.08)
+                    ctx.fillStyle = Theme.ink(0.08)
                     const ox = ((root.panX % step) + step) % step
                     const oy = ((root.panY % step) + step) % step
                     for (let x = ox; x < width; x += step)
@@ -1083,7 +1083,7 @@ VPage {
                             height: parent.height
                             width: Math.round(telemetryWidth.value)
                             radius: 4
-                            color: modelData.measured ? modelData.color : Qt.rgba(1, 1, 1, 0.12)
+                            color: modelData.measured ? modelData.color : Theme.ink(0.12)
                             VTelemetryValue {
                                 id: telemetryWidth
                                 targetValue: timingStrip.widthOf(timingSegment.modelData)
@@ -1120,7 +1120,7 @@ VPage {
                         radius: 4
                         color: "transparent"
                         border.width: 1
-                        border.color: Qt.rgba(1, 1, 1, 0.12)
+                        border.color: Theme.ink(0.12)
                         clip: true
                         Text {
                             anchors.centerIn: parent
@@ -1155,7 +1155,7 @@ VPage {
         onXChanged: wires.requestPaint()
         onYChanged: wires.requestPaint()
         radius: 10
-        color: "#1D1D22"
+        color: Theme.light ? "#FFFFFF" : Theme.black ? "#121215" : "#1D1D22"
         border.width: 1
         border.color: Theme.stroke2
         Item {
@@ -1210,7 +1210,7 @@ VPage {
         width: node.type === "color" ? 360 : ["nr", "protection", "exclusion"].indexOf(node.type)>=0 ? 320 : 272
         height: body.implicitHeight
         radius: 10
-        color: "#1D1D22"
+        color: Theme.light ? "#FFFFFF" : Theme.black ? "#121215" : "#1D1D22"
         opacity: (node.enabled ? 1 : 0.74) * lifeOpacity
         property real lifeScale: 1
         property real lifeOpacity: 1
@@ -1235,7 +1235,7 @@ VPage {
         }
         border.width: willDetach || root.marked.indexOf(node.id) >= 0 ? 2 : 1
         border.color: willDetach ? Theme.err : root.selectedId === node.id ? "#FFFFFF"
-                    : root.marked.indexOf(node.id) >= 0 ? Theme.accent : Qt.rgba(1, 1, 1, 0.1)
+                    : root.marked.indexOf(node.id) >= 0 ? Theme.accent : Theme.ink(0.1)
         Behavior on border.color { ColorAnimation { duration: Theme.d(200) } }
         Behavior on opacity { NumberAnimation { duration: Theme.d(200) } }
 
@@ -1371,7 +1371,7 @@ VPage {
                     }
                     Rectangle {
                         width: 8; height: 8; radius: 4
-                        color: card.node.enabled ? "#FFFFFF" : Qt.rgba(1, 1, 1, 0.35)
+                        color: card.node.enabled ? "#FFFFFF" : Theme.ink(0.35)
                     }
                     Text {
                         Layout.fillWidth: true

@@ -175,7 +175,7 @@ DialogLayer {
             Layout.topMargin: 8; Layout.bottomMargin: 8
             implicitWidth: 320; implicitHeight: 180
             radius: 8
-            color: Qt.rgba(1, 1, 1, 0.04)
+            color: Theme.ink(0.04)
             border.width: 1; border.color: Theme.stroke
             Repeater {
                 model: games.selected ? games.selected.regions : []

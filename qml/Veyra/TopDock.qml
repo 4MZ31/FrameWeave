@@ -68,7 +68,7 @@ Item {
         width: dockRoot.opened ? 18 : (handleHover.hovered ? 64 : 52)
         height: 4
         radius: 4
-        color: handleHover.hovered ? Qt.rgba(1, 1, 1, 0.6) : Qt.rgba(1, 1, 1, 0.38)
+        color: handleHover.hovered ? Theme.ink(0.6) : Theme.ink(0.38)
         Behavior on color { ColorAnimation { duration: Theme.d(200) } }
         opacity: dockRoot.opened ? 0 : 1
         Behavior on width { NumberAnimation { duration: Theme.d(400); easing.bezierCurve: Theme.spring } }
@@ -231,7 +231,7 @@ Item {
                                     id: tipText
                                     anchors.centerIn: parent
                                     text: btn.modelData.tip
-                                    color: "#FFFFFF"
+                                    color: Theme.t1
                                     font.family: Theme.fontUi
                                     font.pixelSize: 11   // 11.5px; pixelSize is an int (fractional sizes: G3)
                                 }
@@ -287,7 +287,7 @@ Item {
                         id: pillTipText
                         anchors.centerIn: parent
                         text: dockRoot.pillHidden ? qsTr("显示播放条") : qsTr("隐藏播放条")
-                        color: "#FFFFFF"
+                        color: Theme.t1
                         font.family: Theme.fontUi
                         font.pixelSize: 11
                     }
@@ -357,7 +357,7 @@ Item {
                             id: wtipText
                             anchors.centerIn: parent
                             text: wbtn.modelData.tip
-                            color: "#FFFFFF"
+                            color: Theme.t1
                             font.family: Theme.fontUi
                             font.pixelSize: 11
                         }

@@ -246,7 +246,7 @@ VGroup {
         Layout.bottomMargin: 2
         implicitHeight: tipRow.implicitHeight + 16
         radius: 9
-        color: Qt.rgba(1, 1, 1, 0.035)
+        color: Theme.ink(0.035)
         border.width: 1
         border.color: Theme.stroke
         RowLayout {

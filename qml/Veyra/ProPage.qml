@@ -629,12 +629,12 @@ VPage {
                         width: parent.width
                         height: 3
                         radius: 9
-                        color: Qt.rgba(1, 1, 1, 0.14)
+                        color: Theme.ink(0.14)
                         Rectangle {
                             width: parent.width * proSeekArea.frac
                             height: parent.height
                             radius: 9
-                            color: "#FFFFFF"
+                            color: Theme.t1
                         }
                     }
                     // Press or drag anywhere on the rail: the picture follows the
@@ -644,7 +644,7 @@ VPage {
                     readonly property real frac: scrubbing ? scrubFrac : Math.max(0, Math.min(1, veyra.progress))
                     Rectangle {
                         width: 11; height: 11; radius: 5.5
-                        color: "#FFFFFF"
+                        color: Theme.t1
                         anchors.verticalCenter: parent.verticalCenter
                         x: proSeekArea.frac * proSeekArea.width - width / 2
                         visible: proSeekMouse.containsMouse || proSeekArea.scrubbing
@@ -941,7 +941,7 @@ VPage {
                                 width: parent.width
                                 height: 5
                                 radius: 9
-                                color: Qt.rgba(1, 1, 1, 0.08)
+                                color: Theme.ink(0.08)
                                 Rectangle {
                                     objectName: "stage-bar-fill"
                                     width: root.barsArmed ? Math.round(parent.width * (root.barsSettled ? liveFraction.value : Math.max(0, Math.min(1, modelData.fraction)))) : 0
@@ -1052,7 +1052,7 @@ VPage {
                                 const pad = Math.max(0.5, (hi - lo) * 0.2); lo -= pad; hi += pad
                                 const y = v => height - 2 - (v - lo) / (hi - lo) * (height - 4)
                                 if (budget > 0) {
-                                    g.strokeStyle = Qt.rgba(1, 1, 1, 0.12); g.lineWidth = 1; g.setLineDash([3, 3])
+                                    g.strokeStyle = Theme.ink(0.12); g.lineWidth = 1; g.setLineDash([3, 3])
                                     g.beginPath(); g.moveTo(0, y(budget)); g.lineTo(width, y(budget)); g.stroke(); g.setLineDash([])
                                 }
                                 const x = i => i / 47 * width + (48 - pts.length) / 47 * width
@@ -1141,7 +1141,7 @@ VPage {
             width: 3
             height: 36
             radius: 1.5
-            color: inspectorSplit.pressed ? Theme.accent : Qt.rgba(1, 1, 1, 0.28)
+            color: inspectorSplit.pressed ? Theme.accent : Theme.ink(0.28)
             opacity: inspectorSplit.containsMouse || inspectorSplit.pressed ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: Theme.d(150) } }
         }
@@ -1235,7 +1235,7 @@ VPage {
                         implicitHeight: 30
                         radius: 9
                         color: root.tab === modelData.id ? Theme.card3
-                             : tabHover.hovered ? Qt.rgba(1, 1, 1, 0.04) : "transparent"
+                             : tabHover.hovered ? Theme.ink(0.04) : "transparent"
                         Behavior on color { ColorAnimation { duration: Theme.d(200) } }
                         Text {
                             anchors.centerIn: parent
@@ -1262,7 +1262,7 @@ VPage {
                 // The design draws the chain bar on the 画质 tab only.
                 visible: root.tab === "quality"
                 radius: 12
-                color: Qt.rgba(1, 1, 1, 0.03)
+                color: Theme.ink(0.03)
                 border.width: 1
                 border.color: Theme.stroke
                 ColumnLayout {
@@ -1511,7 +1511,7 @@ VPage {
                                         delegate: Rectangle {
                                             required property var modelData
                                             width: 14; height: 4; radius: 3
-                                            color: modelData.enabled ? Theme.accent : Qt.rgba(1, 1, 1, 0.18)
+                                            color: modelData.enabled ? Theme.accent : Theme.ink(0.18)
                                             Behavior on color { ColorAnimation { duration: Theme.d(200) } }
                                         }
                                     }
@@ -2121,7 +2121,7 @@ VPage {
             spacing: 6
             Rectangle {
                 implicitWidth: 28; implicitHeight: 28; radius: 8
-                color: Qt.rgba(1, 1, 1, 0.06)
+                color: Theme.ink(0.06)
                 VIcon { anchors.centerIn: parent; name: mc.glyph; size: 14 }
             }
             Text {

@@ -111,7 +111,7 @@ Item {
         width: Math.max(1, parent.width - (slider.resettable ? 28 : 0))
         height: 4
         radius: 9
-        color: Qt.rgba(1, 1, 1, 0.12)
+        color: Theme.ink(0.12)
         gradient: slider.trackGradient
     }
     Rectangle {
@@ -133,8 +133,8 @@ Item {
         anchors.verticalCenter: track.verticalCenter
         x: track.width * slider.frac - width / 2
         scale: drag.active || hover.hovered ? 1.25 : 1.0
-        border.width: slider.activeFocus ? 2 : 0
-        border.color: Theme.accent
+        border.width: slider.activeFocus ? 2 : (Theme.light ? 1 : 0)
+        border.color: slider.activeFocus ? Theme.accent : Theme.stroke2
         Behavior on scale { NumberAnimation { duration: Theme.d(350); easing.bezierCurve: Theme.spring } }
     }
     // box-shadow: 0 2px 6px rgba(0,0,0,.5). A sibling MultiEffect, not layer.effect: Qt recreates a layer's effect item on
@@ -269,7 +269,7 @@ Item {
             text: parent.text; color: parent.enabled ? Theme.t2 : Theme.t3
             font.pixelSize: 16; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
         }
-        background: Rectangle { radius: 4; color: parent.hovered ? Qt.rgba(1,1,1,0.08) : "transparent" }
+        background: Rectangle { radius: 4; color: parent.hovered ? Theme.ink(0.08) : "transparent" }
         onClicked: {
             slider.commitValue(slider.defaultValue)
         }
