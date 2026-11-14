@@ -667,6 +667,7 @@ VPage {
                             readonly property int rateControl: veyra.preferences.recordRateControl !== undefined ? veyra.preferences.recordRateControl : 1
                             VRow {
                                 label: qsTr("码率控制")
+                                help: qsTr("码率是视频每秒使用的数据量。码率控制决定编码器怎样分配这些数据：越多数据，画质越好，文件越大")
                                 hint: qsTr("VBR：按画面复杂度分配码率（标准）。CBR：每秒码率固定，适合要上传的视频。恒定质量：画质固定，文件大小随画面变化")
                                 VSeg {
                                     objectName: "set-recrate"
@@ -692,6 +693,7 @@ VPage {
                             }
                             VRow {
                                 label: qsTr("编码预设")
+                                help: qsTr("编码器在每一帧上花多少功夫。越慢压缩得越好，同样的文件大小画质更高")
                                 hint: qsTr("越靠右画质越好，但显卡编码负担越重；标准为 4。录制卡顿时调低")
                                 VSeg {
                                     objectName: "set-recpreset"
@@ -703,6 +705,7 @@ VPage {
                             }
                             VRow {
                                 label: qsTr("关键帧间隔")
+                                help: qsTr("关键帧是一张完整的画面，其余的帧只记录变化。播放器和剪辑软件只能从关键帧开始解码")
                                 hint: qsTr("秒；越短越方便剪辑和拖动，文件稍大；标准为 2")
                                 VSeg {
                                     objectName: "set-reckeyframe"
@@ -1380,7 +1383,7 @@ VPage {
                         }
                         ColumnLayout {
                             spacing: 4
-                            VH1 { text: veyra.appName }
+                            PushWordmark { objectName: "about-wordmark"; pixelSize: 28 }
                             Text {
                                 text: qsTr("版本 ") + veyra.version
                                 color: Theme.t2

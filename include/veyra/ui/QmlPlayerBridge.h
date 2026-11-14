@@ -1473,6 +1473,14 @@ public:
     // Credits and links from Brand.h: "repo", "veyra", "anr", "anrReleases", "apex".
     Q_INVOKABLE bool pushOpenLink(const QString& key);
     Q_INVOKABLE QString pushLinkUrl(const QString& key) const;
+    // PushFPS automatic HUD detection (engine/PushHudSampler.h): samples=1 only
+    // takes a fresh picture for the box editor. pushHudDetection() polls it.
+    Q_INVOKABLE bool pushStartHudDetection(int samples);
+    Q_INVOKABLE void pushCancelHudDetection();
+    Q_INVOKABLE QVariantMap pushHudDetection();
+    // PushFPS before/after comparison clip (engine/RecordingCompare.h): a
+    // recording of `seconds` whose left half is the console's real frames.
+    Q_INVOKABLE bool pushStartCompareClip(int seconds);
     Q_INVOKABLE void copyDiagnostics();
     // Re-reads the runtime manifest (Settings → 组件与许可 calls it when shown).
     Q_INVOKABLE void refreshComponentList();

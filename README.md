@@ -104,6 +104,9 @@ everything Veyra does, PushFPS adds what console players need:
 |---|---|
 | **Optimise for my PC** | Tests every frame generation method, AI enhancement and upscaler on your real game picture, measures frame rate, 1% low and latency, and keeps the best combination |
 | **Game presets** | GTA VI and other layouts in one click, with the minimap and HUD kept sharp. Save your own and share them as a code |
+| **Automatic HUD detection** | Watches your game for a few seconds and finds the minimap, health and ammo, so they are never interpolated. Correct the boxes by dragging them |
+| **Before/after comparison clips** | Records a split-screen clip: the console's own frame rate on the left, PushFPS on the right, with the frame rates labelled |
+| **Help on hard settings** | A small **?** beside settings that need explaining; hover it for a short summary |
 | **Quick setup** | Console, game frame rate and target frame rate instead of hundreds of settings, with console and game profiles |
 | **Latency on screen** | The measured PC latency, frame rate and 1% low over the picture |
 | **NVIDIA Image Scaling** | Fast upscaling and sharpening on NVIDIA, AMD and Intel graphics |
@@ -277,9 +280,35 @@ Click **Game presets** in the quick setup and pick a game:
 | Cinematic | None |
 
 Protected areas use *Exclude all effects*: they keep the console's own pixels and are never interpolated, so
-text and the minimap don't smear when the camera moves. Adjust them in Professional mode, *Quality*,
-*Exclude all effects*. **Save current settings as a preset** stores your own, including the areas you drew.
+text and the minimap don't smear when the camera moves. **Adjust HUD areas** opens the HUD editor (see below);
+Professional mode, *Quality*, *Exclude all effects* has the same areas. **Save current settings as a preset** stores your own, including the areas you drew.
 **Copy code** gives a `PUSHFPS1:` code to share on Reddit or Discord; **Add** or **Open file** imports one.
+
+## Automatic HUD detection
+
+Click **HUD protection** in the quick setup while your game is playing, then **Detect automatically** and
+turn the camera or walk around for about five seconds. PushFPS looks for the parts of the picture that keep
+their detail while everything else moves (minimap, health, ammo, prompts) and draws up to four green boxes
+around them on a frame of your own game.
+
+If a box is off, fix it by hand: drag a box to move it, drag its corners to resize it, drag on an empty spot
+to draw a new one, and use the **×** on the selected box to delete it. **Apply** protects the boxes: those
+areas keep the console's own pixels and are never interpolated. With no boxes, the whole picture is
+interpolated.
+
+If the picture hardly moved during detection (a menu, a paused game), PushFPS can't tell the HUD apart and
+asks you to try again while moving. The detection reads a few presented frames on the GPU and works with
+every frame generation method; it does not change any setting until you click **Apply**.
+
+## Before/after comparison clips
+
+**Comparison clip** in the quick setup records a 15-second split-screen video into your recordings folder
+(`PushFPS-compare-….mp4`). The left half holds each real frame from the console until the next one arrives,
+so it moves at the game's own frame rate; the right half is every frame PushFPS shows, generated ones
+included. Both halves are labelled with their frame rate (for example *Console · 30 FPS* and *PushFPS ·
+60 FPS*), with a thin line between them. It uses your recording settings and the card that appears afterwards
+can share it to Discord. Frame generation has to be on; click the button again to stop early. HDR clips are
+split without the labels.
 
 ## Profiles
 
@@ -473,6 +502,9 @@ In your user folder, next to Veyra's settings. Updating PushFPS keeps them.
 - [x] Share clips to Discord
 - [x] Capture card list with tested status and a report form
 - [x] 14 interface languages, light and black appearance modes
+- [x] Automatic HUD detection with a box editor
+- [x] Before/after comparison clips
+- [x] Help marks (**?**) on settings that need explaining
 - [ ] Native-speaker review of the machine translations, right-to-left layout for Arabic
 - [ ] More tested capture cards and game presets, from player reports
 - [ ] macOS version

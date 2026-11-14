@@ -201,6 +201,20 @@ DialogLayer {
             VSwitch { objectName: "pushfps-game-preset-hud"; checked: games.protectHud; onToggled: checked => games.protectHud = checked }
         }
         VRow {
+            label: qsTr("HUD 位置不对？")
+            hint: qsTr("在你的游戏画面上自动识别 HUD，或手动拖动方框")
+            VButton {
+                objectName: "pushfps-game-preset-edit-hud"
+                ghost: true
+                iconName: "scan"
+                text: qsTr("调整 HUD 区域")
+                onClicked: {
+                    if (veyra.hasSource) veyra.navigate("pro")
+                    veyra.navigate("hud")
+                }
+            }
+        }
+        VRow {
             label: qsTr("游戏帧率 · 目标")
             value: games.selected ? games.selected.fps + " → " + (games.selected.target === "auto" ? qsTr("自动") : games.selected.target === "off" ? qsTr("不补帧")
                                     : games.selected.target === "monitor" ? qsTr("跟随显示器") : games.selected.target + " FPS") : ""

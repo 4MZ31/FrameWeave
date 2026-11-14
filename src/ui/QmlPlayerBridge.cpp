@@ -392,6 +392,9 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
             // PushFPS: counts finished files, so the interface can offer to edit the newest one.
             state["saved"]=QVariant::fromValue(qulonglong(live.saved));
             state["microphone"]=live.microphone;
+            // PushFPS comparison clip: generated frames in it (0: both halves show the same).
+            state["compare"]=live.compare;
+            state["generatedFrames"]=QVariant::fromValue(qulonglong(live.generatedFrames));
             if(state!=impl_->recordingState){
                 const auto previous=impl_->recordingState;
                 impl_->recordingState=state;
@@ -401,6 +404,8 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
                 if(live.failed&&!error.isEmpty()&&error!=previous.value("error").toString())emit notice(error,true);
                 if(live.saved!=impl_->recordingSaved){
                     impl_->recordingSaved=live.saved;
+                    if(live.compare&&live.generatedFrames==0)
+                        emit notice(tr("对比片段里没有生成的帧，左右两边相同。请确认补帧正在运行"),true);
                     emit notice(note.isEmpty()?tr("录制已保存：%1").arg(state.value("path").toString())
                                               :tr("录制已保存：%1（%2）").arg(state.value("path").toString(),note),false);
                 }else if(live.active&&!note.isEmpty()&&note!=previous.value("note").toString())emit notice(note,false);

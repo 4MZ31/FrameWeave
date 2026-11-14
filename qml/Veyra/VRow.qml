@@ -7,6 +7,9 @@ Item {
     property string hint: ""
     property color hintColor: Theme.t3
     property string value: ""
+    // PushFPS: a short explanation behind a "?" beside the label (VHelp), for
+    // settings that are hard to understand.
+    property string help: ""
     // Narrow panels with a wide control (导出 输出设置): the hint runs under the
     // whole row instead of being squeezed beside the control.
     property bool hintBelow: false
@@ -59,7 +62,22 @@ Item {
             // and a layout with no filling child cannot grow, which left the control
             // beside the label instead of at the row's right edge.
             // Grow the row for long labels instead of hiding translated text.
-            Text { Layout.fillWidth: true; Layout.minimumWidth: 0; text: row.label; color: Theme.tLabel; font.family: Theme.fontUi; font.pixelSize: Theme.fsBody; wrapMode: Text.Wrap }
+            Text { visible: row.help.length === 0; Layout.fillWidth: true; Layout.minimumWidth: 0; text: row.label; color: Theme.tLabel; font.family: Theme.fontUi; font.pixelSize: Theme.fsBody; wrapMode: Text.Wrap }
+            // With a help mark the "?" follows the label (and wraps with it).
+            RowLayout {
+                id: labelLine
+                visible: row.help.length > 0
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                spacing: 5
+                Text {
+                    Layout.maximumWidth: Math.max(0, labelLine.width - helpMark.implicitWidth - labelLine.spacing)
+                    Layout.minimumWidth: 0
+                    text: row.label; color: Theme.tLabel; font.family: Theme.fontUi; font.pixelSize: Theme.fsBody; wrapMode: Text.Wrap
+                }
+                VHelp { id: helpMark; objectName: "vrow-help"; text: row.help; Layout.alignment: Qt.AlignVCenter }
+                Item { Layout.fillWidth: true }
+            }
             Text {
                 visible: row.hint.length > 0 && !row.hintUnder
                 text: row.hint

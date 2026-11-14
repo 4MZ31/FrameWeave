@@ -138,6 +138,10 @@ Item {
         id: gamePresetsDialog
         dialogHost: host
     }
+    PushHudDialog {
+        id: hudDialog
+        dialogHost: host
+    }
 
     // --- small building blocks the design's dialogs use --------------------
 

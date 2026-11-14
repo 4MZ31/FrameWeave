@@ -205,7 +205,7 @@ jobs:
             Write-Host "$t exit $code"
             if ($code -ne 0) { $failed++ }
           }
-          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_benchmark_tests') {
+          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_benchmark_tests', 'veyra_push_hud_tests') {
             cmake --build $env:BUILD --target $t --parallel
             if ($LASTEXITCODE -ne 0) { Write-Host "::error::$t did not build"; $failed++; continue }
             $exe = Get-ChildItem $env:BUILD -Recurse -Filter "$t.exe" | Select-Object -First 1
@@ -233,6 +233,19 @@ jobs:
           Write-Host "veyra_nis_gpu_tests exit $code"
           if ($code -ne 0) { exit 1 }
 
+      - name: PushFPS comparison clips and HUD sampling on D3D12 (WARP when there is no GPU)
+        run: |
+          cmake --build $env:BUILD --target veyra_push_gpu_tests --parallel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $exe = Get-ChildItem $env:BUILD -Recurse -Filter 'veyra_push_gpu_tests.exe' | Select-Object -First 1
+          if (-not $exe) { Write-Host "::error::veyra_push_gpu_tests.exe not built"; exit 1 }
+          $env:PATH = "$env:DEPS\vcpkg\installed\x64-windows\bin;$env:QT_ROOT_DIR\bin;$env:PATH"
+          $env:VEYRA_PUSH_GPU_DEBUG = '1'
+          & $exe.FullName 2>&1 | Out-Host
+          $code = $LASTEXITCODE
+          Write-Host "veyra_push_gpu_tests exit $code"
+          if ($code -ne 0) { exit 1 }
+
       - name: QML component tests (PushFPS quick setup)
         run: |
           cmake --build $env:BUILD --target veyra_qml_quick_tests veyra_qml_easing_tests --parallel
@@ -253,7 +266,7 @@ jobs:
           $env:QML_DISABLE_DISK_CACHE = '1'
           Push-Location $stage
           $failed = 0
-          foreach ($t in 'tst_push_quick_setup', 'tst_push_picture_sound', 'tst_push_nis', 'tst_push_optimize', 'tst_push_presets', 'tst_push_appearance') {
+          foreach ($t in 'tst_push_quick_setup', 'tst_push_picture_sound', 'tst_push_nis', 'tst_push_optimize', 'tst_push_presets', 'tst_push_appearance', 'tst_push_hud') {
             & .\veyra_qml_quick_tests.exe -platform offscreen -input "qml-tests\$t.qml" -o "$t.txt,txt" 2>&1 | Out-Host
             $code = $LASTEXITCODE
             Get-Content "$t.txt" -ErrorAction SilentlyContinue | Out-Host

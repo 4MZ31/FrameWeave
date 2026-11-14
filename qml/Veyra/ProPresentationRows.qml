@@ -23,6 +23,7 @@ ColumnLayout {
     // card asks the driver again.
     VRow {
         label: qsTr("可变刷新")
+        help: qsTr("G-SYNC 或 FreeSync：显示器跟着画面刷新，而不是按固定频率。帧率不稳时也不撕裂、不卡顿")
         hint: veyra.vrrHint
         VSwitch {
             objectName: "presentation-vrr"
@@ -34,6 +35,7 @@ ColumnLayout {
     }
     VRow {
         label: qsTr("输出上限")
+        help: qsTr("每秒最多显示多少帧。补帧时把输出锁在目标帧率，画面的节奏更均匀")
         enabled: !veyra.presentationOwned
         hint: veyra.presentationStatus
         VSeg {

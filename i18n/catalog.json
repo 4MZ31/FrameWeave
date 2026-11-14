@@ -3095,6 +3095,23 @@
    "ru": "FXAA: самый быстрый, немного мягкий"
   },
   {
+   "zh": "G-SYNC 或 FreeSync：显示器跟着画面刷新，而不是按固定频率。帧率不稳时也不撕裂、不卡顿",
+   "src": "qml/ProPresentationRows.qml",
+   "zh-TW": "G-SYNC 或 FreeSync：顯示器跟著畫面更新，而不是按固定頻率。幀率不穩時也不撕裂、不卡頓",
+   "en": "G-SYNC or FreeSync: the monitor refreshes when a new frame arrives instead of at a fixed rate, so an uneven frame rate neither tears nor stutters",
+   "ja": "G-SYNC または FreeSync：モニターが固定の周期ではなく新しいフレームに合わせて更新します。フレームレートが不安定でもティアリングやカクつきが出ません",
+   "nl": "G-SYNC of FreeSync: de monitor ververst wanneer er een nieuw beeld is in plaats van met een vaste frequentie, dus een wisselende framerate scheurt en hapert niet",
+   "de": "G-SYNC oder FreeSync: Der Monitor aktualisiert, wenn ein neues Bild kommt, statt mit fester Frequenz; eine schwankende Bildrate reißt und ruckelt dann nicht",
+   "es": "G-SYNC o FreeSync: el monitor se actualiza cuando llega un fotograma nuevo en lugar de a una frecuencia fija, así una tasa irregular no produce cortes ni tirones",
+   "fr": "G-SYNC ou FreeSync : l’écran se rafraîchit à l’arrivée de chaque nouvelle image plutôt qu’à fréquence fixe ; une fréquence d’images irrégulière ne déchire ni ne saccade",
+   "it": "G-SYNC o FreeSync: il monitor si aggiorna quando arriva un nuovo fotogramma invece che a frequenza fissa, così un frame rate irregolare non strappa né scatta",
+   "pt-BR": "G-SYNC ou FreeSync: o monitor atualiza quando chega um novo quadro, e não em frequência fixa; assim uma taxa irregular não causa cortes nem engasgos",
+   "tr": "G-SYNC veya FreeSync: monitör sabit bir hızda değil, yeni kare geldiğinde yenilenir; böylece dengesiz kare hızı yırtılma ve takılma yapmaz",
+   "ar": "G-SYNC أو FreeSync: تُحدِّث الشاشة الصورة عند وصول إطار جديد بدلاً من معدل ثابت، فلا يحدث تمزق أو تقطّع عندما يكون معدل الإطارات غير منتظم",
+   "pl": "G-SYNC lub FreeSync: monitor odświeża obraz, gdy przychodzi nowa klatka, a nie ze stałą częstotliwością, więc nierówna liczba klatek nie rwie ani nie przycina",
+   "ru": "G-SYNC или FreeSync: монитор обновляет изображение по приходу нового кадра, а не с фиксированной частотой, поэтому неровная частота кадров не даёт разрывов и рывков"
+  },
+  {
    "zh": "GPU / 输入 / 显示资源",
    "src": "include/veyra/engine/BackendRecovery.h",
    "zh-TW": "GPU / 輸入 / 顯示資源",
@@ -3656,6 +3673,40 @@
    "ru": "HDR (10-битный) экспорт требует NVIDIA NVENC; этот GPU имеет только 8-битный системный кодер. Выключить HDR или экспортировать NVIDIA GPU"
   },
   {
+   "zh": "HUD 位置不对？",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "HUD 位置不對？",
+   "en": "HUD in the wrong place?",
+   "ja": "HUD の位置が合わない？",
+   "nl": "HUD op de verkeerde plek?",
+   "de": "HUD an der falschen Stelle?",
+   "es": "¿El HUD no está en su sitio?",
+   "fr": "HUD mal placé ?",
+   "it": "HUD nel posto sbagliato?",
+   "pt-BR": "HUD no lugar errado?",
+   "tr": "HUD yanlış yerde mi?",
+   "ar": "واجهة HUD في المكان الخطأ؟",
+   "pl": "HUD w złym miejscu?",
+   "ru": "HUD не на своём месте?"
+  },
+  {
+   "zh": "HUD 保护",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "HUD 保護",
+   "en": "HUD protection",
+   "ja": "HUD 保護",
+   "nl": "HUD-bescherming",
+   "de": "HUD-Schutz",
+   "es": "Protección del HUD",
+   "fr": "Protection du HUD",
+   "it": "Protezione HUD",
+   "pt-BR": "Proteção do HUD",
+   "tr": "HUD koruması",
+   "ar": "حماية HUD",
+   "pl": "Ochrona HUD",
+   "ru": "Защита HUD"
+  },
+  {
    "zh": "HUD 保护区域没有应用",
    "src": "qml/PushGamePresetsDialog.qml",
    "zh-TW": "HUD 保護區域沒有套用",
@@ -3671,6 +3722,23 @@
    "ar": "لم تُطبَّق مناطق الواجهة (HUD)",
    "pl": "Nie zastosowano obszarów HUD",
    "ru": "Области HUD не применены"
+  },
+  {
+   "zh": "HUD 识别失败",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "HUD 辨識失敗",
+   "en": "HUD detection failed",
+   "ja": "HUD の検出に失敗しました",
+   "nl": "HUD-herkenning mislukt",
+   "de": "HUD-Erkennung fehlgeschlagen",
+   "es": "Falló la detección del HUD",
+   "fr": "La détection du HUD a échoué",
+   "it": "Rilevamento HUD non riuscito",
+   "pt-BR": "Falha na detecção do HUD",
+   "tr": "HUD algılama başarısız",
+   "ar": "فشل اكتشاف HUD",
+   "pl": "Wykrywanie HUD nie powiodło się",
+   "ru": "Не удалось распознать HUD"
   },
   {
    "zh": "IP 或主机名，端口不是 47989 时写成 192.168.1.20:47989",
@@ -4470,6 +4538,23 @@
    "ar": "NVIDIA Image Scaling runs as a single pass; pick another upscaling algorithm first",
    "pl": "NVIDIA Obrazek Skalowanie działa jako jedno podanie; wybierz inny algorytm rozskalowania",
    "ru": "NVIDIA Масштабирование изображений выполняется как один проход; сначала выберите другой алгоритм масштабирования"
+  },
+  {
+   "zh": "NVIDIA Image Scaling 是一个开源的放大和锐化滤镜，任何品牌的显卡都能用。锐化太高会在边缘出现白边",
+   "src": "qml/SrStageEditor.qml",
+   "zh-TW": "NVIDIA Image Scaling 是一個開源的放大和銳化濾鏡，任何品牌的顯示卡都能用。銳化太高會在邊緣出現白邊",
+   "en": "NVIDIA Image Scaling is an open-source upscaling and sharpening filter that works on graphics cards of any brand. Too much sharpening draws white halos along edges",
+   "ja": "NVIDIA Image Scaling は、どのメーカーの GPU でも使えるオープンソースの拡大・シャープ化フィルターです。シャープを上げすぎると輪郭に白い縁が出ます",
+   "nl": "NVIDIA Image Scaling is een opensource-filter voor opschalen en verscherpen dat op videokaarten van elk merk werkt. Te veel verscherping geeft witte randen langs contouren",
+   "de": "NVIDIA Image Scaling ist ein Open-Source-Filter zum Hochskalieren und Schärfen, der auf Grafikkarten jeder Marke läuft. Zu viel Schärfe erzeugt weiße Säume an Kanten",
+   "es": "NVIDIA Image Scaling es un filtro de código abierto para escalar y enfocar que funciona en tarjetas gráficas de cualquier marca. Demasiado enfoque dibuja halos blancos en los bordes",
+   "fr": "NVIDIA Image Scaling est un filtre open source d’agrandissement et de netteté qui fonctionne sur les cartes graphiques de toutes marques. Trop de netteté crée des halos blancs sur les contours",
+   "it": "NVIDIA Image Scaling è un filtro open source di ingrandimento e nitidezza che funziona con schede video di qualsiasi marca. Troppa nitidezza crea aloni bianchi sui bordi",
+   "pt-BR": "NVIDIA Image Scaling é um filtro de código aberto de ampliação e nitidez que funciona em placas de vídeo de qualquer marca. Nitidez demais cria halos brancos nas bordas",
+   "tr": "NVIDIA Image Scaling, her marka ekran kartında çalışan açık kaynaklı bir büyütme ve keskinleştirme filtresidir. Çok fazla keskinlik kenarlarda beyaz haleler oluşturur",
+   "ar": "NVIDIA Image Scaling مرشح مفتوح المصدر للتكبير والتوضيح يعمل على بطاقات الرسوميات من أي شركة. الإفراط في التوضيح يُظهر هالات بيضاء على الحواف",
+   "pl": "NVIDIA Image Scaling to otwartoźródłowy filtr skalowania i wyostrzania działający na kartach graficznych każdej marki. Zbyt duże wyostrzenie daje białe obwódki na krawędziach",
+   "ru": "NVIDIA Image Scaling — фильтр увеличения и повышения резкости с открытым кодом, работающий на видеокартах любых производителей. Слишком высокая резкость даёт белые ореолы по краям"
   },
   {
    "zh": "NVIDIA RTX 补帧；倍率以运行库实际能力为准",
@@ -8739,6 +8824,23 @@
    "ru": "Хосты"
   },
   {
+   "zh": "主机原画 · %1 FPS",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "主機原始畫面 · %1 FPS",
+   "en": "Console · %1 FPS",
+   "ja": "ゲーム機の元映像 · %1 FPS",
+   "nl": "Console · %1 FPS",
+   "de": "Konsole · %1 FPS",
+   "es": "Consola · %1 FPS",
+   "fr": "Console · %1 FPS",
+   "it": "Console · %1 FPS",
+   "pt-BR": "Console · %1 FPS",
+   "tr": "Konsol · %1 FPS",
+   "ar": "الجهاز · %1 FPS",
+   "pl": "Konsola · %1 FPS",
+   "ru": "Консоль · %1 FPS"
+  },
+  {
    "zh": "主机同时出声",
    "src": "qml/PcSourceDialog.qml",
    "zh-TW": "主機同時出聲",
@@ -10728,6 +10830,23 @@
    "ru": "Стоп %1"
   },
   {
+   "zh": "停止对比片段",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "停止對比片段",
+   "en": "Stop comparison clip",
+   "ja": "比較クリップを停止",
+   "nl": "Vergelijkingsclip stoppen",
+   "de": "Vergleichsclip stoppen",
+   "es": "Detener clip comparativo",
+   "fr": "Arrêter le clip comparatif",
+   "it": "Ferma clip di confronto",
+   "pt-BR": "Parar clipe comparativo",
+   "tr": "Karşılaştırma klibini durdur",
+   "ar": "إيقاف مقطع المقارنة",
+   "pl": "Zatrzymaj klip porównawczy",
+   "ru": "Остановить сравнительный клип"
+  },
+  {
    "zh": "像素格式",
    "src": "qml/CaptureSourceDialog.qml",
    "zh-TW": "像素格式",
@@ -11204,6 +11323,23 @@
    "ru": "Все GPU"
   },
   {
+   "zh": "全部清除",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "全部清除",
+   "en": "Clear all",
+   "ja": "すべて消去",
+   "nl": "Alles wissen",
+   "de": "Alle löschen",
+   "es": "Borrar todo",
+   "fr": "Tout effacer",
+   "it": "Cancella tutto",
+   "pt-BR": "Limpar tudo",
+   "tr": "Tümünü temizle",
+   "ar": "مسح الكل",
+   "pl": "Wyczyść wszystko",
+   "ru": "Очистить всё"
+  },
+  {
    "zh": "全部肤色",
    "src": "qml/BeautyEditor.qml",
    "zh-TW": "全部膚色",
@@ -11355,6 +11491,23 @@
    "ar": "متابعة المطوّر",
    "pl": "Obserwuj autora",
    "ru": "Подписаться на автора"
+  },
+  {
+   "zh": "关键帧是一张完整的画面，其余的帧只记录变化。播放器和剪辑软件只能从关键帧开始解码",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "關鍵影格是一張完整的畫面，其餘的影格只記錄變化。播放器和剪輯軟體只能從關鍵影格開始解碼",
+   "en": "A keyframe is a complete picture; the frames in between only store what changed. Players and video editors can only start decoding at a keyframe",
+   "ja": "キーフレームは完全な 1 枚の画像で、その間のフレームは変化だけを記録します。プレーヤーや編集ソフトはキーフレームからしかデコードを始められません",
+   "nl": "Een keyframe is een volledig beeld; de frames ertussen bewaren alleen wat veranderde. Spelers en video-editors kunnen alleen bij een keyframe beginnen met decoderen",
+   "de": "Ein Keyframe ist ein vollständiges Bild; die Bilder dazwischen speichern nur die Änderungen. Player und Schnittprogramme können nur an einem Keyframe mit dem Dekodieren beginnen",
+   "es": "Un fotograma clave es una imagen completa; los fotogramas intermedios solo guardan lo que cambió. Los reproductores y editores solo pueden empezar a decodificar en un fotograma clave",
+   "fr": "Une image clé est une image complète ; les images intermédiaires n’enregistrent que les changements. Les lecteurs et logiciels de montage ne peuvent commencer le décodage qu’à une image clé",
+   "it": "Un fotogramma chiave è un’immagine completa; quelli intermedi memorizzano solo i cambiamenti. Lettori ed editor video possono iniziare a decodificare solo da un fotogramma chiave",
+   "pt-BR": "Um quadro-chave é uma imagem completa; os quadros intermediários só guardam o que mudou. Players e editores de vídeo só conseguem começar a decodificar em um quadro-chave",
+   "tr": "Anahtar kare tam bir resimdir; aradaki kareler yalnızca değişenleri saklar. Oynatıcılar ve video düzenleyiciler kod çözmeye yalnızca bir anahtar karede başlayabilir",
+   "ar": "الإطار المفتاحي صورة كاملة، أما الإطارات بينها فتحفظ التغييرات فقط. لا يستطيع المشغّل أو برنامج المونتاج بدء فك الترميز إلا من إطار مفتاحي",
+   "pl": "Klatka kluczowa to pełny obraz; klatki pomiędzy zapisują tylko zmiany. Odtwarzacze i edytory wideo mogą zacząć dekodowanie tylko od klatki kluczowej",
+   "ru": "Ключевой кадр — это полное изображение, а кадры между ними хранят только изменения. Плееры и видеоредакторы могут начать декодирование только с ключевого кадра"
   },
   {
    "zh": "关键帧间隔",
@@ -12138,6 +12291,23 @@
    "ar": "تقليل الحركة",
    "pl": "Ogranicz ruch",
    "ru": "Уменьшить анимацию"
+  },
+  {
+   "zh": "减少在显卡里排队等待的画面，从按下按键到画面反应更快。只在 NVIDIA 显卡上可用",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "減少在顯示卡裡排隊等待的畫面，從按下按鍵到畫面反應更快。只在 NVIDIA 顯示卡上可用",
+   "en": "Fewer frames wait in line on the graphics card, so the picture reacts sooner after you press a button. NVIDIA graphics cards only",
+   "ja": "GPU で順番待ちするフレームを減らし、ボタンを押してから画面が反応するまでを短くします。NVIDIA GPU のみ",
+   "nl": "Er wachten minder beelden in de rij op de videokaart, zodat het beeld sneller reageert nadat je op een knop drukt. Alleen NVIDIA-videokaarten",
+   "de": "Weniger Bilder warten auf der Grafikkarte in der Schlange, sodass das Bild nach einem Tastendruck schneller reagiert. Nur NVIDIA-Grafikkarten",
+   "es": "Menos fotogramas esperan en cola en la tarjeta gráfica, así la imagen reacciona antes después de pulsar un botón. Solo tarjetas NVIDIA",
+   "fr": "Moins d’images attendent dans la file de la carte graphique : l’image réagit plus vite après un appui sur un bouton. Cartes NVIDIA uniquement",
+   "it": "Meno fotogrammi in coda sulla scheda video, così l’immagine reagisce prima dopo la pressione di un tasto. Solo schede NVIDIA",
+   "pt-BR": "Menos quadros esperam na fila da placa de vídeo, então a imagem reage mais rápido depois de apertar um botão. Somente placas NVIDIA",
+   "tr": "Ekran kartında sırada bekleyen kare sayısı azalır; bir tuşa bastıktan sonra görüntü daha çabuk tepki verir. Yalnızca NVIDIA ekran kartları",
+   "ar": "تقل الإطارات المنتظرة في طابور بطاقة الرسوميات، فتستجيب الصورة أسرع بعد الضغط على زر. لبطاقات NVIDIA فقط",
+   "pl": "Mniej klatek czeka w kolejce na karcie graficznej, więc obraz reaguje szybciej po naciśnięciu przycisku. Tylko karty NVIDIA",
+   "ru": "Меньше кадров ждёт в очереди видеокарты, поэтому изображение быстрее реагирует на нажатие кнопки. Только видеокарты NVIDIA"
   },
   {
    "zh": "减少处理排队",
@@ -16305,6 +16475,23 @@
    "ru": "На хосте откройте веб-страницу Sunshine (https://host-IP:47990), перейдите на страницу PIN-кода, введите номер ниже и отправьте:"
   },
   {
+   "zh": "在你的游戏画面上自动识别 HUD，或手动拖动方框",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "在你的遊戲畫面上自動辨識 HUD，或手動拖曳方框",
+   "en": "Detect the HUD on your own game picture, or drag the boxes by hand",
+   "ja": "自分のゲーム画面で HUD を自動検出するか、枠を手でドラッグします",
+   "nl": "Herken de HUD op je eigen spelbeeld, of sleep de kaders met de hand",
+   "de": "Erkenne das HUD auf deinem eigenen Spielbild oder ziehe die Rahmen von Hand",
+   "es": "Detecta el HUD en la imagen de tu juego o arrastra los recuadros a mano",
+   "fr": "Détecter le HUD sur l’image de votre jeu, ou déplacer les cadres à la main",
+   "it": "Rileva l’HUD sull’immagine del tuo gioco o trascina i riquadri a mano",
+   "pt-BR": "Detecte o HUD na imagem do seu jogo ou arraste as caixas manualmente",
+   "tr": "HUD’yi kendi oyun görüntünde algıla veya kutuları elle sürükle",
+   "ar": "اكتشف HUD على صورة لعبتك، أو اسحب المربعات يدويًا",
+   "pl": "Wykryj HUD na obrazie własnej gry albo przeciągnij ramki ręcznie",
+   "ru": "Распознайте HUD на изображении своей игры или перетащите рамки вручную"
+  },
+  {
    "zh": "在内存中保留最近一段画面和声音，按 %1 保存到录制保存位置；会多占用一路硬件编码",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "在記憶體中保留最近一段畫面和聲音，按 %1 儲存到錄製儲存位置；會多占用一路硬體編碼",
@@ -16456,6 +16643,23 @@
    "ar": "رسم منطقة على الصورة الصحافة Esc لإلغاء.",
    "pl": "Przeciągnij region na obraz. Prasa Esc do odwołania.",
    "ru": "Drag a region on the picture. Press Esc to cancel."
+  },
+  {
+   "zh": "在画面上拖动可以画新方框（最多 4 个）。拖动方框可以移动，拖动四个角可以调整大小",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "在畫面上拖曳可以畫新方框（最多 4 個）。拖曳方框可以移動，拖曳四個角可以調整大小",
+   "en": "Drag on the picture to draw a new box (up to 4). Drag a box to move it, drag its corners to resize it",
+   "ja": "画面上をドラッグすると新しい枠を描けます（最大 4 個）。枠をドラッグすると移動、四隅をドラッグするとサイズ変更",
+   "nl": "Sleep over het beeld om een nieuw kader te tekenen (maximaal 4). Sleep een kader om het te verplaatsen, sleep de hoeken om het te vergroten of verkleinen",
+   "de": "Ziehe auf dem Bild, um einen neuen Rahmen zu zeichnen (bis zu 4). Ziehe einen Rahmen, um ihn zu verschieben, und seine Ecken, um die Größe zu ändern",
+   "es": "Arrastra sobre la imagen para dibujar un recuadro nuevo (hasta 4). Arrastra un recuadro para moverlo y sus esquinas para cambiar su tamaño",
+   "fr": "Faites glisser sur l’image pour dessiner un nouveau cadre (4 au maximum). Faites glisser un cadre pour le déplacer, et ses coins pour le redimensionner",
+   "it": "Trascina sull’immagine per disegnare un nuovo riquadro (fino a 4). Trascina un riquadro per spostarlo e i suoi angoli per ridimensionarlo",
+   "pt-BR": "Arraste sobre a imagem para desenhar uma nova caixa (até 4). Arraste uma caixa para movê-la e os cantos para redimensioná-la",
+   "tr": "Yeni kutu çizmek için görüntü üzerinde sürükle (en fazla 4). Taşımak için kutuyu, boyutlandırmak için köşelerini sürükle",
+   "ar": "اسحب على الصورة لرسم مربع جديد (حتى 4). اسحب المربع لتحريكه، واسحب زواياه لتغيير حجمه",
+   "pl": "Przeciągnij po obrazie, aby narysować nową ramkę (maks. 4). Przeciągnij ramkę, aby ją przesunąć, a jej rogi, aby zmienić rozmiar",
+   "ru": "Проведите по изображению, чтобы нарисовать новую рамку (до 4). Перетащите рамку, чтобы сдвинуть её, а углы — чтобы изменить размер"
   },
   {
    "zh": "在画面上按住左键拖动分割线：左边原画、右边增强。",
@@ -18872,6 +19076,40 @@
    "ru": "Создание кадров приостанавливается в режиме сравнения (сравнение может использовать только реальные кадры) и автоматически возобновляется, когда он выключен."
   },
   {
+   "zh": "对比片段",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "對比片段",
+   "en": "Comparison clip",
+   "ja": "比較クリップ",
+   "nl": "Vergelijkingsclip",
+   "de": "Vergleichsclip",
+   "es": "Clip comparativo",
+   "fr": "Clip comparatif",
+   "it": "Clip di confronto",
+   "pt-BR": "Clipe comparativo",
+   "tr": "Karşılaştırma klibi",
+   "ar": "مقطع مقارنة",
+   "pl": "Klip porównawczy",
+   "ru": "Сравнительный клип"
+  },
+  {
+   "zh": "对比片段里没有生成的帧，左右两边相同。请确认补帧正在运行",
+   "src": "src/ui/QmlPlayerBridge.cpp",
+   "zh-TW": "對比片段裡沒有生成的影格，左右兩邊相同。請確認補幀正在執行",
+   "en": "The comparison clip has no generated frames, so both halves are the same. Check that frame generation is running",
+   "ja": "比較クリップに生成フレームがなく、左右が同じになっています。フレーム生成が動作しているか確認してください",
+   "nl": "De vergelijkingsclip bevat geen gegenereerde beelden, dus beide helften zijn gelijk. Controleer of framegeneratie actief is",
+   "de": "Der Vergleichsclip enthält keine erzeugten Bilder, beide Hälften sind gleich. Prüfe, ob die Bildgenerierung läuft",
+   "es": "El clip comparativo no tiene fotogramas generados, así que ambas mitades son iguales. Comprueba que la generación de fotogramas esté funcionando",
+   "fr": "Le clip comparatif ne contient aucune image générée : les deux moitiés sont identiques. Vérifiez que la génération d’images est active",
+   "it": "La clip di confronto non contiene fotogrammi generati, quindi le due metà sono uguali. Controlla che la generazione di fotogrammi sia attiva",
+   "pt-BR": "O clipe comparativo não tem quadros gerados, então as duas metades são iguais. Verifique se a geração de quadros está funcionando",
+   "tr": "Karşılaştırma klibinde üretilmiş kare yok, iki yarı aynı. Kare üretiminin çalıştığını kontrol et",
+   "ar": "لا يحتوي مقطع المقارنة على إطارات مولَّدة، لذا النصفان متطابقان. تأكد من أن توليد الإطارات يعمل",
+   "pl": "Klip porównawczy nie ma wygenerowanych klatek, więc obie połowy są takie same. Sprawdź, czy generowanie klatek działa",
+   "ru": "В сравнительном клипе нет сгенерированных кадров, обе половины одинаковы. Проверьте, что генерация кадров работает"
+  },
+  {
    "zh": "对照底图",
    "src": "qml/ProDisplayPanel.qml",
    "zh-TW": "對照底圖",
@@ -19909,6 +20147,23 @@
    "ru": "Мелкий"
   },
   {
+   "zh": "小地图、血量和弹药等不动的部分保持主机原画，不补帧，所以不会糊。自动识别后可以拖动方框修正",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "小地圖、血量和彈藥等不動的部分保持主機原始畫面，不補幀，所以不會糊。自動辨識後可以拖曳方框修正",
+   "en": "Parts that stay put, such as the minimap, health and ammo, keep the console’s own pixels and are not interpolated, so they stay sharp. After automatic detection you can drag the boxes to correct them",
+   "ja": "ミニマップや体力、弾薬など動かない部分はゲーム機の元の画素のまま補間しないので、にじみません。自動検出の後で枠をドラッグして修正できます",
+   "nl": "Vaste delen zoals de minimap, gezondheid en munitie houden de eigen pixels van de console en worden niet geïnterpoleerd, dus ze blijven scherp. Na de automatische herkenning kun je de kaders verslepen om ze te corrigeren",
+   "de": "Feste Teile wie Minikarte, Gesundheit und Munition behalten die Pixel der Konsole und werden nicht interpoliert, sie bleiben also scharf. Nach der automatischen Erkennung kannst du die Rahmen zum Korrigieren verschieben",
+   "es": "Las partes que no se mueven, como el minimapa, la salud y la munición, conservan los píxeles de la consola y no se interpolan, así que se ven nítidas. Tras la detección automática puedes arrastrar los recuadros para corregirlos",
+   "fr": "Les éléments fixes comme la mini-carte, la santé et les munitions gardent les pixels de la console et ne sont pas interpolés : ils restent nets. Après la détection automatique, vous pouvez déplacer les cadres pour les corriger",
+   "it": "Le parti fisse come minimappa, salute e munizioni mantengono i pixel della console e non vengono interpolate, quindi restano nitide. Dopo il rilevamento automatico puoi trascinare i riquadri per correggerli",
+   "pt-BR": "Partes fixas como minimapa, vida e munição mantêm os pixels do console e não são interpoladas, então continuam nítidas. Depois da detecção automática, você pode arrastar as caixas para corrigir",
+   "tr": "Mini harita, can ve cephane gibi sabit kısımlar konsolun kendi piksellerini korur ve ara kare üretilmez; bu yüzden net kalır. Otomatik algılamadan sonra kutuları sürükleyerek düzeltebilirsin",
+   "ar": "الأجزاء الثابتة مثل الخريطة المصغّرة والصحة والذخيرة تبقى بوحدات بكسل الجهاز الأصلية ولا تُستكمل بإطارات، فتبقى واضحة. بعد الاكتشاف التلقائي يمكنك سحب المربعات لتصحيحها",
+   "pl": "Nieruchome elementy, takie jak minimapa, zdrowie i amunicja, zachowują piksele konsoli i nie są interpolowane, więc pozostają ostre. Po automatycznym wykryciu możesz przeciągnąć ramki, aby je poprawić",
+   "ru": "Неподвижные элементы — мини-карта, здоровье, патроны — сохраняют пиксели консоли и не интерполируются, поэтому остаются чёткими. После автоматического распознавания рамки можно поправить перетаскиванием"
+  },
+  {
    "zh": "小地图在左下，金钱和通缉等级在右上。位置按 GTA 系列推测，开始玩后请检查一下",
    "src": "qml/PushGamePresetsDialog.qml",
    "zh-TW": "小地圖在左下，金錢和通緝等級在右上。位置按 GTA 系列推測，開始玩後請檢查一下",
@@ -20640,6 +20895,23 @@
    "ru": "Выкл."
   },
   {
+   "zh": "已关闭 HUD 保护，整个画面都补帧",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "已關閉 HUD 保護，整個畫面都補幀",
+   "en": "HUD protection is off; the whole picture is interpolated",
+   "ja": "HUD 保護をオフにしました。画面全体を補間します",
+   "nl": "HUD-bescherming staat uit; het hele beeld wordt geïnterpoleerd",
+   "de": "HUD-Schutz ist aus; das ganze Bild wird interpoliert",
+   "es": "La protección del HUD está desactivada; se interpola toda la imagen",
+   "fr": "Protection du HUD désactivée : toute l’image est interpolée",
+   "it": "Protezione HUD disattivata: viene interpolata tutta l’immagine",
+   "pt-BR": "Proteção do HUD desligada; a imagem inteira é interpolada",
+   "tr": "HUD koruması kapalı; tüm görüntüye ara kare üretiliyor",
+   "ar": "تم إيقاف حماية HUD؛ تُستكمل الصورة كلها بالإطارات",
+   "pl": "Ochrona HUD wyłączona; interpolowany jest cały obraz",
+   "ru": "Защита HUD выключена; интерполируется всё изображение"
+  },
+  {
    "zh": "已关闭 · 参数保留但不生效",
    "src": "qml/ColourPanel.qml",
    "zh-TW": "已關閉 · 參數保留但不生效",
@@ -20845,7 +21117,7 @@
   },
   {
    "zh": "已取消",
-   "src": "src/media/DemuxSession.cpp",
+   "src": "qml/PushHudDialog.qml",
    "zh-TW": "已取消",
    "en": "Cancelled",
    "ja": "キャンセルしました",
@@ -21386,6 +21658,23 @@
    "ar": "تم تطبيق «%1»: %2 مناطق محمية في الواجهة. اضبطها بدقة في الوضع الاحترافي ← الجودة ← استبعاد من كل التأثيرات",
    "pl": "Zastosowano „%1”: chronione obszary HUD: %2. Dopracuj je w trybie Profesjonalnym → Jakość → Wyklucz ze wszystkich efektów",
    "ru": "Применено «%1»: защищено областей HUD: %2. Настройте их в профессиональном режиме → Качество → Исключить из всех эффектов"
+  },
+  {
+   "zh": "已应用：%1 个区域保持主机原画",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "已套用：%1 個區域保持主機原始畫面",
+   "en": "Applied: %1 areas keep the console’s own pixels",
+   "ja": "適用しました：%1 か所がゲーム機の元の画素のままです",
+   "nl": "Toegepast: %1 gebieden houden de eigen pixels van de console",
+   "de": "Angewendet: %1 Bereiche behalten die Pixel der Konsole",
+   "es": "Aplicado: %1 zonas conservan los píxeles de la consola",
+   "fr": "Appliqué : %1 zones gardent les pixels de la console",
+   "it": "Applicato: %1 aree mantengono i pixel della console",
+   "pt-BR": "Aplicado: %1 áreas mantêm os pixels do console",
+   "tr": "Uygulandı: %1 alan konsolun kendi piksellerini koruyor",
+   "ar": "تم التطبيق: %1 منطقة تحتفظ ببكسلات الجهاز الأصلية",
+   "pl": "Zastosowano: %1 obszary zachowują piksele konsoli",
+   "ru": "Применено: в %1 областях сохраняются пиксели консоли"
   },
   {
    "zh": "已开启",
@@ -22389,6 +22678,23 @@
    "ar": "Frame generation",
    "pl": "Generacja ramki",
    "ru": "Генерация кадров"
+  },
+  {
+   "zh": "帮助",
+   "src": "qml/VHelp.qml",
+   "zh-TW": "說明",
+   "en": "Help",
+   "ja": "ヘルプ",
+   "nl": "Help",
+   "de": "Hilfe",
+   "es": "Ayuda",
+   "fr": "Aide",
+   "it": "Aiuto",
+   "pt-BR": "Ajuda",
+   "tr": "Yardım",
+   "ar": "مساعدة",
+   "pl": "Pomoc",
+   "ru": "Справка"
   },
   {
    "zh": "平台或驱动初始化失败；请更新 NVIDIA 驱动或选择兼容运行库",
@@ -23870,6 +24176,23 @@
    "ru": "Невозможно записать текущий размер кадра {} × {}"
   },
   {
+   "zh": "当前画面格式不支持自动识别 HUD",
+   "src": "src/engine/PushHudSampler.cpp",
+   "zh-TW": "目前畫面格式不支援自動辨識 HUD",
+   "en": "The current picture format does not support automatic HUD detection",
+   "ja": "現在の映像形式は HUD の自動検出に対応していません",
+   "nl": "Het huidige beeldformaat ondersteunt geen automatische HUD-herkenning",
+   "de": "Das aktuelle Bildformat unterstützt keine automatische HUD-Erkennung",
+   "es": "El formato de imagen actual no admite la detección automática del HUD",
+   "fr": "Le format d’image actuel ne permet pas la détection automatique du HUD",
+   "it": "Il formato dell’immagine attuale non supporta il rilevamento automatico dell’HUD",
+   "pt-BR": "O formato de imagem atual não permite a detecção automática do HUD",
+   "tr": "Geçerli görüntü biçimi otomatik HUD algılamayı desteklemiyor",
+   "ar": "تنسيق الصورة الحالي لا يدعم الاكتشاف التلقائي لـ HUD",
+   "pl": "Bieżący format obrazu nie obsługuje automatycznego wykrywania HUD",
+   "ru": "Текущий формат изображения не поддерживает автоматическое распознавание HUD"
+  },
+  {
    "zh": "当前硬件或包不支持所选效果，请查看组件页",
    "src": "src/ui/QmlPlayerBridge_p.h",
    "zh-TW": "目前硬體或套件不支援所選效果，請查看元件頁",
@@ -24055,6 +24378,23 @@
    "ar": "سجل في %1",
    "pl": "Zapis w %1 s",
    "ru": "Запись в %1 с"
+  },
+  {
+   "zh": "录制 15 秒的左右对比视频：左边是主机原本的帧率，右边是 PushFPS",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "錄製 15 秒的左右對比影片：左邊是主機原本的幀率，右邊是 PushFPS",
+   "en": "Record a 15-second side-by-side video: the console’s own frame rate on the left, PushFPS on the right",
+   "ja": "15 秒の左右比較動画を録画します：左がゲーム機本来のフレームレート、右が PushFPS",
+   "nl": "Neem een video van 15 seconden naast elkaar op: links de eigen framerate van de console, rechts PushFPS",
+   "de": "Nimm ein 15-Sekunden-Video nebeneinander auf: links die eigene Bildrate der Konsole, rechts PushFPS",
+   "es": "Graba un vídeo comparativo de 15 segundos: a la izquierda la tasa de fotogramas original de la consola, a la derecha PushFPS",
+   "fr": "Enregistrer une vidéo comparative de 15 secondes : à gauche la fréquence d’images d’origine de la console, à droite PushFPS",
+   "it": "Registra un video affiancato di 15 secondi: a sinistra il frame rate originale della console, a destra PushFPS",
+   "pt-BR": "Grave um vídeo comparativo de 15 segundos: à esquerda a taxa de quadros original do console, à direita o PushFPS",
+   "tr": "15 saniyelik yan yana video kaydet: solda konsolun kendi kare hızı, sağda PushFPS",
+   "ar": "سجّل فيديو مقارنة جنبًا إلى جنب مدته 15 ثانية: على اليسار معدل إطارات الجهاز الأصلي، وعلى اليمين PushFPS",
+   "pl": "Nagraj 15-sekundowe wideo obok siebie: po lewej oryginalna liczba klatek konsoli, po prawej PushFPS",
+   "ru": "Записать 15-секундное видео бок о бок: слева родная частота кадров консоли, справа PushFPS"
   },
   {
    "zh": "录制保存位置",
@@ -25806,6 +26146,23 @@
    "ar": "This console cannot be found; it may have been removed from the account. Refresh the console list.",
    "pl": "Konsola ta może zostać usunięta z konta. Odśwież listę konsoli.",
    "ru": "Эта консоль не может быть найдена; она может быть удалена из учетной записи. Обновите список консолей."
+  },
+  {
+   "zh": "找到 %1 个 HUD 区域。请检查绿色方框，必要时拖动修正，然后点「应用」",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "找到 %1 個 HUD 區域。請檢查綠色方框，必要時拖曳修正，然後點「套用」",
+   "en": "Found %1 HUD areas. Check the green boxes, drag them to correct them if needed, then click Apply",
+   "ja": "HUD を %1 か所見つけました。緑の枠を確認し、必要ならドラッグで修正してから「適用」を押してください",
+   "nl": "%1 HUD-gebieden gevonden. Controleer de groene kaders, versleep ze zo nodig en klik dan op Toepassen",
+   "de": "%1 HUD-Bereiche gefunden. Prüfe die grünen Rahmen, verschiebe sie bei Bedarf und klicke dann auf Anwenden",
+   "es": "Se encontraron %1 zonas de HUD. Revisa los recuadros verdes, arrástralos para corregirlos si hace falta y pulsa Aplicar",
+   "fr": "%1 zones de HUD trouvées. Vérifiez les cadres verts, déplacez-les si nécessaire, puis cliquez sur Appliquer",
+   "it": "Trovate %1 aree HUD. Controlla i riquadri verdi, trascinali per correggerli se serve, poi fai clic su Applica",
+   "pt-BR": "%1 áreas de HUD encontradas. Confira as caixas verdes, arraste para corrigir se precisar e clique em Aplicar",
+   "tr": "%1 HUD alanı bulundu. Yeşil kutuları kontrol et, gerekirse sürükleyerek düzelt, sonra Uygula’ya tıkla",
+   "ar": "تم العثور على %1 منطقة HUD. تحقّق من المربعات الخضراء واسحبها لتصحيحها عند الحاجة، ثم انقر تطبيق",
+   "pl": "Znaleziono obszary HUD: %1. Sprawdź zielone ramki, w razie potrzeby przeciągnij je, a potem kliknij Zastosuj",
+   "ru": "Найдено областей HUD: %1. Проверьте зелёные рамки, при необходимости перетащите их и нажмите «Применить»"
   },
   {
    "zh": "把一个窗口或整块显示器作为片源",
@@ -28971,6 +29328,23 @@
    "ru": "Не удалось прочитать исходный файл"
   },
   {
+   "zh": "无法读取画面，HUD 识别已停止",
+   "src": "src/engine/PushHudSampler.cpp",
+   "zh-TW": "無法讀取畫面，HUD 辨識已停止",
+   "en": "Could not read the picture; HUD detection stopped",
+   "ja": "映像を読み取れないため、HUD の検出を停止しました",
+   "nl": "Kan het beeld niet lezen; HUD-herkenning gestopt",
+   "de": "Das Bild konnte nicht gelesen werden; HUD-Erkennung beendet",
+   "es": "No se pudo leer la imagen; se detuvo la detección del HUD",
+   "fr": "Impossible de lire l’image ; détection du HUD arrêtée",
+   "it": "Impossibile leggere l’immagine; rilevamento HUD interrotto",
+   "pt-BR": "Não foi possível ler a imagem; detecção do HUD interrompida",
+   "tr": "Görüntü okunamadı; HUD algılama durduruldu",
+   "ar": "تعذرت قراءة الصورة؛ توقف اكتشاف HUD",
+   "pl": "Nie można odczytać obrazu; wykrywanie HUD zatrzymane",
+   "ru": "Не удалось прочитать изображение; распознавание HUD остановлено"
+  },
+  {
    "zh": "无法读取远程游玩目录；原有配对文件不会被改动。",
    "src": "src/ui/bridge/RemotePlay.cpp",
    "zh-TW": "無法讀取遠程遊玩目錄；原有配對檔案不會被改動。",
@@ -29428,6 +29802,23 @@
    "ar": "The GPU driver hung at frame {} and was reset by the system (0x{:X}). This happens occasionally on RTX 40 GPUs with the community NR; turn NR off, lower the NR internal resolution or change the optical flow, then retry",
    "pl": "Sterownik GPU powiesił się na ramie {} i został zresetowany przez system (0x {:X}). Zdarza się to sporadycznie na RTX 40 GPU ze społecznością NR; wyłączyć NR, obniżyć rozdzielczość wewnętrzną NR lub zmienić przepływ optyczny, a następnie ponownie spróbować",
    "ru": "GPU Водитель висел на раме {} и был сброшен системой (0x {:X}). Иногда это происходит на RTX 40 графических процессорах с сообществом NR; выключите NR, уменьшите внутреннее разрешение NR или измените оптический поток, а затем повторите"
+  },
+  {
+   "zh": "显存不足，无法识别 HUD",
+   "src": "src/engine/PushHudSampler.cpp",
+   "zh-TW": "顯示記憶體不足，無法辨識 HUD",
+   "en": "Not enough video memory to detect the HUD",
+   "ja": "ビデオメモリーが足りず、HUD を検出できません",
+   "nl": "Onvoldoende videogeheugen om de HUD te herkennen",
+   "de": "Nicht genug Grafikspeicher für die HUD-Erkennung",
+   "es": "No hay memoria de vídeo suficiente para detectar el HUD",
+   "fr": "Mémoire vidéo insuffisante pour détecter le HUD",
+   "it": "Memoria video insufficiente per rilevare l’HUD",
+   "pt-BR": "Memória de vídeo insuficiente para detectar o HUD",
+   "tr": "HUD’yi algılamak için yeterli video belleği yok",
+   "ar": "لا توجد ذاكرة فيديو كافية لاكتشاف HUD",
+   "pl": "Za mało pamięci wideo, aby wykryć HUD",
+   "ru": "Недостаточно видеопамяти для распознавания HUD"
   },
   {
    "zh": "显存回收后重建失败，请重新打开片源",
@@ -30414,6 +30805,23 @@
    "ar": "في أكثر من 4 مناطق محمية، تحذف أولا",
    "pl": "Co najwyżej 4 chronione obszary; usuń jeden pierwszy",
    "ru": "не более 4 охраняемых территорий; сначала удалить"
+  },
+  {
+   "zh": "最多 4 个方框，请先删除一个",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "最多 4 個方框，請先刪除一個",
+   "en": "Up to 4 boxes; delete one first",
+   "ja": "枠は最大 4 個です。先に 1 つ削除してください",
+   "nl": "Maximaal 4 kaders; verwijder er eerst een",
+   "de": "Höchstens 4 Rahmen; lösche zuerst einen",
+   "es": "Hasta 4 recuadros; borra uno primero",
+   "fr": "4 cadres au maximum ; supprimez-en un d’abord",
+   "it": "Al massimo 4 riquadri; eliminane prima uno",
+   "pt-BR": "No máximo 4 caixas; exclua uma primeiro",
+   "tr": "En fazla 4 kutu; önce birini sil",
+   "ar": "الحد الأقصى 4 مربعات؛ احذف واحدًا أولاً",
+   "pl": "Maksymalnie 4 ramki; najpierw usuń jedną",
+   "ru": "Не более 4 рамок; сначала удалите одну"
   },
   {
    "zh": "最多人脸",
@@ -32745,6 +33153,23 @@
    "ru": "Запуск захвата экрана…"
   },
   {
+   "zh": "正在录制 %1 秒的对比片段：左边是主机原本的帧率，右边是 PushFPS",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "正在錄製 %1 秒的對比片段：左邊是主機原本的幀率，右邊是 PushFPS",
+   "en": "Recording a %1-second comparison clip: the console’s own frame rate on the left, PushFPS on the right",
+   "ja": "%1 秒の比較クリップを録画中：左がゲーム機本来のフレームレート、右が PushFPS",
+   "nl": "Vergelijkingsclip van %1 seconden wordt opgenomen: links de eigen framerate van de console, rechts PushFPS",
+   "de": "Vergleichsclip mit %1 Sekunden wird aufgenommen: links die eigene Bildrate der Konsole, rechts PushFPS",
+   "es": "Grabando un clip comparativo de %1 segundos: a la izquierda la tasa original de la consola, a la derecha PushFPS",
+   "fr": "Enregistrement d’un clip comparatif de %1 secondes : à gauche la fréquence d’origine de la console, à droite PushFPS",
+   "it": "Registrazione di una clip di confronto di %1 secondi: a sinistra il frame rate originale della console, a destra PushFPS",
+   "pt-BR": "Gravando um clipe comparativo de %1 segundos: à esquerda a taxa original do console, à direita o PushFPS",
+   "tr": "%1 saniyelik karşılaştırma klibi kaydediliyor: solda konsolun kendi kare hızı, sağda PushFPS",
+   "ar": "جارٍ تسجيل مقطع مقارنة مدته %1 ثانية: على اليسار معدل إطارات الجهاز الأصلي، وعلى اليمين PushFPS",
+   "pl": "Nagrywanie klipu porównawczego (%1 s): po lewej oryginalna liczba klatek konsoli, po prawej PushFPS",
+   "ru": "Запись сравнительного клипа на %1 с: слева родная частота кадров консоли, справа PushFPS"
+  },
+  {
    "zh": "正在恢复",
    "src": "src/ui/bridge/Preferences.cpp",
    "zh-TW": "正在恢復",
@@ -33134,6 +33559,57 @@
    "ar": "(أولى 30 دقيقة على الأكثر)",
    "pl": "Autoregulacja: analiza ścieżki audio (pierwsze 30 minut)...",
    "ru": "Автоматизация: анализ аудиодорожки (не более 30 минут)"
+  },
+  {
+   "zh": "正在获取画面…",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "正在取得畫面…",
+   "en": "Getting the picture…",
+   "ja": "映像を取得しています…",
+   "nl": "Beeld ophalen…",
+   "de": "Bild wird geholt…",
+   "es": "Obteniendo la imagen…",
+   "fr": "Récupération de l’image…",
+   "it": "Acquisizione dell’immagine…",
+   "pt-BR": "Obtendo a imagem…",
+   "tr": "Görüntü alınıyor…",
+   "ar": "جارٍ جلب الصورة…",
+   "pl": "Pobieranie obrazu…",
+   "ru": "Получение изображения…"
+  },
+  {
+   "zh": "正在观察画面 %1 / %2",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "正在觀察畫面 %1 / %2",
+   "en": "Watching the picture %1 / %2",
+   "ja": "映像を観察中 %1 / %2",
+   "nl": "Beeld bekijken %1 / %2",
+   "de": "Bild wird beobachtet %1 / %2",
+   "es": "Observando la imagen %1 / %2",
+   "fr": "Observation de l’image %1 / %2",
+   "it": "Osservazione dell’immagine %1 / %2",
+   "pt-BR": "Observando a imagem %1 / %2",
+   "tr": "Görüntü izleniyor %1 / %2",
+   "ar": "مراقبة الصورة %1 / %2",
+   "pl": "Obserwowanie obrazu %1 / %2",
+   "ru": "Анализ изображения %1 / %2"
+  },
+  {
+   "zh": "正在观察画面，大约 5 秒。请在游戏里转动镜头或走动",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "正在觀察畫面，大約 5 秒。請在遊戲裡轉動鏡頭或走動",
+   "en": "Watching the picture for about 5 seconds. Turn the camera or walk around in the game",
+   "ja": "約 5 秒間映像を観察します。ゲーム内でカメラを回すか歩き回ってください",
+   "nl": "Het beeld wordt ongeveer 5 seconden bekeken. Draai de camera of loop rond in het spel",
+   "de": "Das Bild wird etwa 5 Sekunden beobachtet. Dreh die Kamera oder lauf im Spiel herum",
+   "es": "Observando la imagen unos 5 segundos. Gira la cámara o camina en el juego",
+   "fr": "Observation de l’image pendant environ 5 secondes. Tournez la caméra ou déplacez-vous dans le jeu",
+   "it": "Osservo l’immagine per circa 5 secondi. Ruota la visuale o muoviti nel gioco",
+   "pt-BR": "Observando a imagem por cerca de 5 segundos. Gire a câmera ou ande pelo jogo",
+   "tr": "Görüntü yaklaşık 5 saniye izleniyor. Oyunda kamerayı çevir veya yürü",
+   "ar": "تتم مراقبة الصورة نحو 5 ثوانٍ. أدِر الكاميرا أو تحرّك في اللعبة",
+   "pl": "Obserwuję obraz przez około 5 sekund. Obróć kamerę albo chodź w grze",
+   "ru": "Изображение анализируется около 5 секунд. Поворачивайте камеру или ходите в игре"
   },
   {
    "zh": "正在读取主机列表…",
@@ -33765,6 +34241,23 @@
    "ru": "Каждый кадр · 640 px находит маленькие лица"
   },
   {
+   "zh": "每秒最多显示多少帧。补帧时把输出锁在目标帧率，画面的节奏更均匀",
+   "src": "qml/ProPresentationRows.qml",
+   "zh-TW": "每秒最多顯示多少幀。補幀時把輸出鎖在目標幀率，畫面的節奏更均勻",
+   "en": "The most frames shown per second. With frame generation it holds the output at the target frame rate, so motion is more even",
+   "ja": "1 秒に表示する最大フレーム数です。フレーム生成時は出力を目標フレームレートに固定し、動きのリズムが均一になります",
+   "nl": "Het maximale aantal beelden per seconde. Met framegeneratie houdt het de uitvoer op de doelframerate, zodat beweging gelijkmatiger is",
+   "de": "Die meisten Bilder pro Sekunde. Mit Bildgenerierung hält es die Ausgabe auf der Ziel-Bildrate, damit Bewegungen gleichmäßiger sind",
+   "es": "El máximo de fotogramas por segundo. Con generación de fotogramas mantiene la salida en la tasa objetivo, así el movimiento es más uniforme",
+   "fr": "Le nombre maximal d’images affichées par seconde. Avec la génération d’images, il maintient la sortie à la fréquence cible pour un mouvement plus régulier",
+   "it": "Il massimo di fotogrammi mostrati al secondo. Con la generazione di fotogrammi tiene l’uscita al frame rate obiettivo, così il movimento è più regolare",
+   "pt-BR": "O máximo de quadros exibidos por segundo. Com geração de quadros, mantém a saída na taxa alvo, deixando o movimento mais uniforme",
+   "tr": "Saniyede gösterilen en fazla kare. Kare üretimiyle çıkışı hedef kare hızında tutar; hareket daha düzenli olur",
+   "ar": "أقصى عدد من الإطارات المعروضة في الثانية. مع توليد الإطارات يُبقي الإخراج عند المعدل المستهدف فتصبح الحركة أكثر انتظامًا",
+   "pl": "Największa liczba klatek wyświetlanych na sekundę. Przy generowaniu klatek utrzymuje wyjście na docelowej liczbie klatek, więc ruch jest równiejszy",
+   "ru": "Наибольшее число кадров в секунду. При генерации кадров удерживает вывод на целевой частоте, и движение становится ровнее"
+  },
+  {
    "zh": "比较源画面与上一帧：没有明显变化的像素沿用上一帧输出，明显变化的位置直接用新结果。",
    "src": "qml/ProPage.qml",
    "zh-TW": "比較源畫面與上一幀：沒有明顯變化的像素沿用上一幀輸出，明顯變化的位置直接用新結果。",
@@ -33969,6 +34462,40 @@
    "ru": "Нет файлов, ожидающих экспорта; сначала нажмите Retry на неудавшиеся элементы"
   },
   {
+   "zh": "没有找到 HUD。可以在画面上拖动，手动画出方框",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "沒有找到 HUD。可以在畫面上拖曳，手動畫出方框",
+   "en": "No HUD found. You can drag on the picture to draw boxes by hand",
+   "ja": "HUD が見つかりませんでした。画面上をドラッグして手で枠を描けます",
+   "nl": "Geen HUD gevonden. Sleep over het beeld om zelf kaders te tekenen",
+   "de": "Kein HUD gefunden. Ziehe auf dem Bild, um Rahmen von Hand zu zeichnen",
+   "es": "No se encontró HUD. Puedes arrastrar sobre la imagen para dibujar recuadros a mano",
+   "fr": "Aucun HUD trouvé. Faites glisser sur l’image pour dessiner des cadres à la main",
+   "it": "Nessun HUD trovato. Puoi trascinare sull’immagine per disegnare i riquadri a mano",
+   "pt-BR": "Nenhum HUD encontrado. Arraste sobre a imagem para desenhar caixas manualmente",
+   "tr": "HUD bulunamadı. Görüntü üzerinde sürükleyerek elle kutu çizebilirsin",
+   "ar": "لم يُعثر على HUD. يمكنك السحب على الصورة لرسم المربعات يدويًا",
+   "pl": "Nie znaleziono HUD. Możesz przeciągnąć po obrazie, aby narysować ramki ręcznie",
+   "ru": "HUD не найден. Проведите по изображению, чтобы нарисовать рамки вручную"
+  },
+  {
+   "zh": "没有收到画面。请确认画面正在播放，并且 PushFPS 窗口没有最小化",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "沒有收到畫面。請確認畫面正在播放，並且 PushFPS 視窗沒有最小化",
+   "en": "No picture arrived. Check that the picture is playing and the PushFPS window is not minimised",
+   "ja": "映像が届きません。映像が再生中で、PushFPS のウィンドウが最小化されていないか確認してください",
+   "nl": "Er kwam geen beeld binnen. Controleer of het beeld speelt en het PushFPS-venster niet geminimaliseerd is",
+   "de": "Es kam kein Bild an. Prüfe, ob das Bild läuft und das PushFPS-Fenster nicht minimiert ist",
+   "es": "No llegó ninguna imagen. Comprueba que la imagen se esté reproduciendo y que la ventana de PushFPS no esté minimizada",
+   "fr": "Aucune image reçue. Vérifiez que l’image est en lecture et que la fenêtre de PushFPS n’est pas réduite",
+   "it": "Nessuna immagine ricevuta. Controlla che l’immagine sia in riproduzione e che la finestra di PushFPS non sia ridotta a icona",
+   "pt-BR": "Nenhuma imagem chegou. Verifique se a imagem está sendo reproduzida e se a janela do PushFPS não está minimizada",
+   "tr": "Görüntü gelmedi. Görüntünün oynatıldığını ve PushFPS penceresinin simge durumunda olmadığını kontrol et",
+   "ar": "لم تصل أي صورة. تأكد من تشغيل الصورة وأن نافذة PushFPS غير مصغّرة",
+   "pl": "Nie dotarł żaden obraz. Sprawdź, czy obraz jest odtwarzany, a okno PushFPS nie jest zminimalizowane",
+   "ru": "Изображение не поступает. Проверьте, что оно воспроизводится, а окно PushFPS не свёрнуто"
+  },
+  {
    "zh": "没有收到视频数据。通常是防火墙或端口转发没有放行 UDP 47998–48010。",
    "src": "src/source/MoonlightSessionSource.cpp",
    "zh-TW": "沒有收到影片資料。通常是防火墻或端口轉發沒有放行 UDP 47998–48010。",
@@ -33987,7 +34514,7 @@
   },
   {
    "zh": "没有正在播放的画面，无法录制",
-   "src": "src/ui/bridge/Recording.cpp",
+   "src": "src/ui/bridge/PushFps.cpp",
    "zh-TW": "沒有正在播放的畫面，無法錄製",
    "en": "Nothing is playing, so there is nothing to record",
    "ja": "再生中の映像がないため録画できません",
@@ -34020,6 +34547,23 @@
    "ru": "Ничего не играет, поэтому скриншот не может быть сделан."
   },
   {
+   "zh": "没有正在播放的画面，无法识别 HUD",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "沒有正在播放的畫面，無法辨識 HUD",
+   "en": "Nothing is playing, so the HUD cannot be detected",
+   "ja": "再生中の映像がないため、HUD を検出できません",
+   "nl": "Er speelt niets, dus de HUD kan niet worden herkend",
+   "de": "Es läuft nichts, daher kann das HUD nicht erkannt werden",
+   "es": "No se está reproduciendo nada, así que no se puede detectar el HUD",
+   "fr": "Rien n’est en lecture : impossible de détecter le HUD",
+   "it": "Non c’è nulla in riproduzione, quindi non è possibile rilevare l’HUD",
+   "pt-BR": "Nada está sendo reproduzido, então não é possível detectar o HUD",
+   "tr": "Oynatılan bir şey yok, HUD algılanamıyor",
+   "ar": "لا يوجد شيء قيد التشغيل، لذا لا يمكن اكتشاف HUD",
+   "pl": "Nic nie jest odtwarzane, więc nie można wykryć HUD",
+   "ru": "Ничего не воспроизводится, поэтому распознать HUD нельзя"
+  },
+  {
    "zh": "没有正在显示的字幕",
    "src": "src/ui/bridge/Subtitles.cpp",
    "zh-TW": "沒有正在顯示的字幕",
@@ -34035,6 +34579,23 @@
    "ar": "لا توجد ترجمة على الشاشة",
    "pl": "Brak napisów na ekranie",
    "ru": "Субтитров на экране нет"
+  },
+  {
+   "zh": "没有画面。连接采集卡并开始播放后，可以在你自己的游戏画面上调整方框",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "沒有畫面。連接擷取卡並開始播放後，可以在你自己的遊戲畫面上調整方框",
+   "en": "No picture. Connect a capture card and start playing to adjust the boxes on your own game picture",
+   "ja": "映像がありません。キャプチャーカードを接続して再生を始めると、自分のゲーム画面で枠を調整できます",
+   "nl": "Geen beeld. Sluit een capturekaart aan en start het afspelen om de kaders op je eigen spelbeeld aan te passen",
+   "de": "Kein Bild. Schließe eine Capture-Karte an und starte die Wiedergabe, um die Rahmen auf deinem eigenen Spielbild anzupassen",
+   "es": "Sin imagen. Conecta una capturadora y empieza a reproducir para ajustar los recuadros sobre la imagen de tu juego",
+   "fr": "Pas d’image. Branchez une carte d’acquisition et lancez la lecture pour ajuster les cadres sur l’image de votre jeu",
+   "it": "Nessuna immagine. Collega una scheda di acquisizione e avvia la riproduzione per regolare i riquadri sull’immagine del tuo gioco",
+   "pt-BR": "Sem imagem. Conecte uma placa de captura e comece a reproduzir para ajustar as caixas na imagem do seu jogo",
+   "tr": "Görüntü yok. Kutuları kendi oyun görüntünde ayarlamak için bir yakalama kartı bağla ve oynatmayı başlat",
+   "ar": "لا توجد صورة. وصّل بطاقة التقاط وابدأ التشغيل لضبط المربعات على صورة لعبتك",
+   "pl": "Brak obrazu. Podłącz kartę przechwytującą i zacznij odtwarzanie, aby dopasować ramki na obrazie własnej gry",
+   "ru": "Нет изображения. Подключите карту захвата и начните воспроизведение, чтобы настроить рамки на изображении своей игры"
   },
   {
    "zh": "没有真正生成帧",
@@ -34496,6 +35057,23 @@
    "ru": "Добавьте файлы, затем нажмите Начать экспорт"
   },
   {
+   "zh": "添加方框",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "新增方框",
+   "en": "Add box",
+   "ja": "枠を追加",
+   "nl": "Kader toevoegen",
+   "de": "Rahmen hinzufügen",
+   "es": "Añadir recuadro",
+   "fr": "Ajouter un cadre",
+   "it": "Aggiungi riquadro",
+   "pt-BR": "Adicionar caixa",
+   "tr": "Kutu ekle",
+   "ar": "إضافة مربع",
+   "pl": "Dodaj ramkę",
+   "ru": "Добавить рамку"
+  },
+  {
    "zh": "添加节点",
    "src": "qml/NodePage.qml",
    "zh-TW": "添加節點",
@@ -34851,6 +35429,23 @@
    "ar": "نمط اللعبة: تمرير فأر الخروج",
    "pl": "Tryb gry: wyjście z myszki",
    "ru": "Game mode: exit mouse passthrough"
+  },
+  {
+   "zh": "游戏自己每秒画出多少张新画面。主机总是输出 60 Hz 信号，30 FPS 的游戏每张画面会重复一次。PushFPS 根据它决定要生成几帧",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "遊戲自己每秒畫出多少張新畫面。主機總是輸出 60 Hz 訊號，30 FPS 的遊戲每張畫面會重複一次。PushFPS 根據它決定要生成幾幀",
+   "en": "How many new pictures the game itself draws per second. The console always sends a 60 Hz signal, so a 30 FPS game shows each picture twice. PushFPS uses this to decide how many frames to generate",
+   "ja": "ゲーム自体が 1 秒に描く新しい画像の数です。ゲーム機は常に 60 Hz の信号を出すので、30 FPS のゲームは各画像を 2 回ずつ表示します。PushFPS はこれをもとに生成するフレーム数を決めます",
+   "nl": "Hoeveel nieuwe beelden het spel zelf per seconde tekent. De console stuurt altijd een 60 Hz-signaal, dus een spel van 30 FPS toont elk beeld twee keer. PushFPS bepaalt hiermee hoeveel frames er gegenereerd worden",
+   "de": "Wie viele neue Bilder das Spiel selbst pro Sekunde zeichnet. Die Konsole sendet immer ein 60-Hz-Signal, ein 30-FPS-Spiel zeigt also jedes Bild zweimal. PushFPS entscheidet damit, wie viele Bilder erzeugt werden",
+   "es": "Cuántas imágenes nuevas dibuja el propio juego por segundo. La consola siempre envía una señal de 60 Hz, así que un juego a 30 FPS muestra cada imagen dos veces. PushFPS lo usa para decidir cuántos fotogramas generar",
+   "fr": "Le nombre de nouvelles images que le jeu dessine lui-même par seconde. La console envoie toujours un signal à 60 Hz : un jeu à 30 FPS affiche donc chaque image deux fois. PushFPS s’en sert pour choisir combien d’images générer",
+   "it": "Quante nuove immagini disegna il gioco stesso al secondo. La console invia sempre un segnale a 60 Hz, quindi un gioco a 30 FPS mostra ogni immagine due volte. PushFPS lo usa per decidere quanti fotogrammi generare",
+   "pt-BR": "Quantas imagens novas o próprio jogo desenha por segundo. O console sempre envia um sinal de 60 Hz, então um jogo a 30 FPS mostra cada imagem duas vezes. O PushFPS usa isso para decidir quantos quadros gerar",
+   "tr": "Oyunun kendisinin saniyede çizdiği yeni resim sayısı. Konsol her zaman 60 Hz sinyal gönderir; 30 FPS bir oyun her resmi iki kez gösterir. PushFPS kaç kare üreteceğine buna göre karar verir",
+   "ar": "عدد الصور الجديدة التي ترسمها اللعبة نفسها في الثانية. يرسل الجهاز دائمًا إشارة 60 هرتز، لذا تعرض لعبة 30 FPS كل صورة مرتين. يحدد PushFPS بناءً على ذلك عدد الإطارات التي يولّدها",
+   "pl": "Ile nowych obrazów sama gra rysuje na sekundę. Konsola zawsze wysyła sygnał 60 Hz, więc gra w 30 FPS pokazuje każdy obraz dwa razy. PushFPS na tej podstawie decyduje, ile klatek wygenerować",
+   "ru": "Сколько новых изображений сама игра рисует в секунду. Консоль всегда выдаёт сигнал 60 Гц, поэтому игра с 30 FPS показывает каждое изображение дважды. По этому значению PushFPS решает, сколько кадров генерировать"
   },
   {
    "zh": "游戏配置",
@@ -35499,6 +36094,23 @@
    "ru": "Активно: {} p / {} fps / {} / запрошенный {} Мбит/с · видео получено {:.1f} Мбит/с"
   },
   {
+   "zh": "用 AI 去掉采集卡压缩造成的色块和噪点，让细节更清楚。和补帧无关，可以单独开关",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "用 AI 去掉擷取卡壓縮造成的色塊和雜訊，讓細節更清楚。和補幀無關，可以單獨開關",
+   "en": "AI removes the blocks and noise that capture card compression leaves, so details look clearer. Separate from frame generation and can be switched on its own",
+   "ja": "キャプチャーカードの圧縮によるブロックノイズやノイズを AI で取り除き、細部をはっきりさせます。フレーム生成とは別に単独でオン・オフできます",
+   "nl": "AI verwijdert de blokjes en ruis van de compressie van de capturekaart, zodat details duidelijker worden. Staat los van framegeneratie en kan apart aan of uit",
+   "de": "KI entfernt Blöcke und Rauschen der Capture-Karten-Kompression, damit Details klarer wirken. Unabhängig von der Bildgenerierung und einzeln schaltbar",
+   "es": "La IA elimina los bloques y el ruido que deja la compresión de la capturadora, para que los detalles se vean más claros. Es independiente de la generación de fotogramas y se activa por separado",
+   "fr": "L’IA supprime les blocs et le bruit laissés par la compression de la carte d’acquisition, pour des détails plus nets. Indépendant de la génération d’images, activable séparément",
+   "it": "L’IA rimuove i blocchi e il rumore lasciati dalla compressione della scheda di acquisizione, così i dettagli sono più chiari. È indipendente dalla generazione di fotogrammi e si attiva a parte",
+   "pt-BR": "A IA remove os blocos e o ruído deixados pela compressão da placa de captura, deixando os detalhes mais claros. É independente da geração de quadros e pode ser ligada separadamente",
+   "tr": "Yapay zekâ yakalama kartı sıkıştırmasının bıraktığı blokları ve gürültüyü temizler, ayrıntılar daha net görünür. Kare üretiminden bağımsızdır, ayrıca açılıp kapatılabilir",
+   "ar": "يزيل الذكاء الاصطناعي التكتلات والتشويش الناتجة عن ضغط بطاقة الالتقاط، فتبدو التفاصيل أوضح. مستقل عن توليد الإطارات ويمكن تشغيله وحده",
+   "pl": "AI usuwa bloki i szum pozostawione przez kompresję karty przechwytującej, więc szczegóły są wyraźniejsze. Niezależne od generowania klatek, można je włączać osobno",
+   "ru": "ИИ убирает блоки и шум от сжатия карты захвата, чтобы детали выглядели чётче. Не зависит от генерации кадров и включается отдельно"
+  },
+  {
    "zh": "用你的 Xbox（微软）账号在微软的页面登录，软件看不到密码",
    "src": "qml/XboxSourceDialog.qml",
    "zh-TW": "用你的 Xbox（微軟）帳號在微軟的頁面登入，軟體看不到密碼",
@@ -35769,6 +36381,23 @@
    "ar": "توقفت الصورة. أُلغي التحسين واستُعيدت إعداداتك",
    "pl": "Obraz się zatrzymał. Optymalizację anulowano i przywrócono Twoje ustawienia",
    "ru": "Изображение остановилось. Оптимизация отменена, ваши настройки восстановлены"
+  },
+  {
+   "zh": "画面几乎没有动，分不出哪些是 HUD。请在游戏里转动镜头或移动，然后再试一次",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "畫面幾乎沒有動，分不出哪些是 HUD。請在遊戲裡轉動鏡頭或移動，然後再試一次",
+   "en": "The picture hardly moved, so the HUD could not be told apart. Turn the camera or move in the game, then try again",
+   "ja": "映像がほとんど動かず、HUD を見分けられませんでした。ゲーム内でカメラを回すか移動してから、もう一度お試しください",
+   "nl": "Het beeld bewoog nauwelijks, dus de HUD was niet te onderscheiden. Draai de camera of beweeg in het spel en probeer het opnieuw",
+   "de": "Das Bild hat sich kaum bewegt, daher ließ sich das HUD nicht unterscheiden. Dreh die Kamera oder beweg dich im Spiel und versuche es erneut",
+   "es": "La imagen apenas se movió, así que no se pudo distinguir el HUD. Gira la cámara o muévete en el juego y vuelve a intentarlo",
+   "fr": "L’image a à peine bougé : impossible de distinguer le HUD. Tournez la caméra ou déplacez-vous dans le jeu, puis réessayez",
+   "it": "L’immagine si è mossa appena, quindi non è stato possibile distinguere l’HUD. Ruota la visuale o muoviti nel gioco e riprova",
+   "pt-BR": "A imagem quase não se moveu, então não foi possível distinguir o HUD. Gire a câmera ou ande no jogo e tente de novo",
+   "tr": "Görüntü neredeyse hiç hareket etmedi, HUD ayırt edilemedi. Oyunda kamerayı çevir veya hareket et, sonra tekrar dene",
+   "ar": "لم تتحرك الصورة تقريبًا، فتعذّر تمييز HUD. أدِر الكاميرا أو تحرّك في اللعبة ثم حاول مرة أخرى",
+   "pl": "Obraz prawie się nie ruszał, więc nie dało się odróżnić HUD. Obróć kamerę lub porusz się w grze i spróbuj ponownie",
+   "ru": "Изображение почти не двигалось, поэтому HUD не удалось отличить. Поверните камеру или подвигайтесь в игре и попробуйте снова"
   },
   {
    "zh": "画面变化超过时丢弃历史；越高越不容易拖影",
@@ -36789,6 +37418,23 @@
    "ar": "التحكم في المعدل وإعداد المرمّز المسبق والفاصل بين الإطارات الرئيسية ومعدل بت الصوت والحاوية، مثل إعدادات الإخراج في OBS. عند الإيقاف تُستخدم الإعدادات القياسية",
    "pl": "Sterowanie przepływnością, preset kodera, odstęp klatek kluczowych, przepływność dźwięku i kontener, jak ustawienia wyjścia w OBS. Wyłączone używa ustawień standardowych",
    "ru": "Управление битрейтом, пресет кодировщика, интервал ключевых кадров, битрейт звука и контейнер, как настройки вывода в OBS. Выкл. — стандартные настройки"
+  },
+  {
+   "zh": "码率是视频每秒使用的数据量。码率控制决定编码器怎样分配这些数据：越多数据，画质越好，文件越大",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "位元速率是影片每秒使用的資料量。位元速率控制決定編碼器怎樣分配這些資料：資料越多，畫質越好，檔案越大",
+   "en": "Bitrate is how much data the video uses per second. Rate control decides how the encoder spends it: more data means better quality and a bigger file",
+   "ja": "ビットレートは動画が 1 秒に使うデータ量です。レート制御はエンコーダーがそれをどう配分するかを決めます。データが多いほど高画質で、ファイルも大きくなります",
+   "nl": "Bitrate is hoeveel data de video per seconde gebruikt. Bitratebeheer bepaalt hoe de encoder die verdeelt: meer data betekent betere kwaliteit en een groter bestand",
+   "de": "Die Bitrate ist die Datenmenge pro Sekunde Video. Die Ratensteuerung legt fest, wie der Encoder sie verteilt: mehr Daten bedeuten bessere Qualität und eine größere Datei",
+   "es": "La tasa de bits es la cantidad de datos que usa el vídeo por segundo. El control de tasa decide cómo los reparte el codificador: más datos, más calidad y archivo más grande",
+   "fr": "Le débit est la quantité de données utilisée par seconde de vidéo. Le contrôle du débit décide comment l’encodeur la répartit : plus de données, meilleure qualité et fichier plus gros",
+   "it": "Il bitrate è la quantità di dati che il video usa al secondo. Il controllo del bitrate decide come l’encoder li distribuisce: più dati significano qualità migliore e file più grande",
+   "pt-BR": "A taxa de bits é a quantidade de dados que o vídeo usa por segundo. O controle de taxa decide como o codificador a distribui: mais dados, mais qualidade e arquivo maior",
+   "tr": "Bit hızı, videonun saniyede kullandığı veri miktarıdır. Hız denetimi kodlayıcının bunu nasıl dağıtacağını belirler: daha fazla veri, daha iyi kalite ve daha büyük dosya demektir",
+   "ar": "معدل البت هو كمية البيانات التي يستخدمها الفيديو في الثانية. يحدد التحكم في المعدل كيف يوزّعها المرمِّز: بيانات أكثر تعني جودة أعلى وملفًا أكبر",
+   "pl": "Bitrate to ilość danych na sekundę wideo. Sterowanie bitrate decyduje, jak koder ją rozdziela: więcej danych to lepsza jakość i większy plik",
+   "ru": "Битрейт — объём данных на секунду видео. Управление битрейтом определяет, как кодер его распределяет: больше данных — лучше качество и больше файл"
   },
   {
    "zh": "硬件解码",
@@ -38372,6 +39018,23 @@
    "ru": "Кодер не удалось инициализировать; NVENC: {}; системный кодер: {}"
   },
   {
+   "zh": "编码器在每一帧上花多少功夫。越慢压缩得越好，同样的文件大小画质更高",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "編碼器在每一幀上花多少功夫。越慢壓縮得越好，同樣的檔案大小畫質更高",
+   "en": "How much effort the encoder spends on each frame. Slower compresses better, so the same file size gives higher quality",
+   "ja": "エンコーダーが 1 フレームにかける手間です。遅いほど圧縮効率が上がり、同じファイルサイズでも高画質になります",
+   "nl": "Hoeveel moeite de encoder per frame doet. Langzamer comprimeert beter, dus dezelfde bestandsgrootte geeft hogere kwaliteit",
+   "de": "Wie viel Aufwand der Encoder pro Bild betreibt. Langsamer komprimiert besser, dieselbe Dateigröße ergibt also höhere Qualität",
+   "es": "Cuánto esfuerzo dedica el codificador a cada fotograma. Más lento comprime mejor, así el mismo tamaño de archivo da más calidad",
+   "fr": "L’effort que l’encodeur consacre à chaque image. Plus lent compresse mieux : la même taille de fichier donne une meilleure qualité",
+   "it": "Quanto impegno mette l’encoder in ogni fotogramma. Più lento comprime meglio, quindi a parità di dimensione la qualità è più alta",
+   "pt-BR": "Quanto esforço o codificador dedica a cada quadro. Mais lento comprime melhor, então o mesmo tamanho de arquivo tem mais qualidade",
+   "tr": "Kodlayıcının her kareye harcadığı emek. Daha yavaş daha iyi sıkıştırır; aynı dosya boyutunda kalite daha yüksek olur",
+   "ar": "مقدار الجهد الذي يبذله المرمِّز في كل إطار. الأبطأ يضغط أفضل، فيعطي الحجم نفسه جودة أعلى",
+   "pl": "Ile wysiłku koder wkłada w każdą klatkę. Wolniej znaczy lepsza kompresja, więc ten sam rozmiar pliku daje wyższą jakość",
+   "ru": "Сколько усилий кодер тратит на каждый кадр. Медленнее — лучше сжатие, поэтому при том же размере файла качество выше"
+  },
+  {
    "zh": "编码器收尾失败，请查看编码器诊断",
    "src": "src/engine/VideoExportJob.cpp",
    "zh-TW": "編碼器收尾失敗，請查看編碼器診斷",
@@ -39409,6 +40072,23 @@
    "ru": "Автоматический: %1 (Z/X для точной настройки)"
   },
   {
+   "zh": "自动找出小地图和 HUD，让它们不补帧；方框可以手动修正",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "自動找出小地圖和 HUD，讓它們不補幀；方框可以手動修正",
+   "en": "Finds the minimap and HUD automatically and keeps them out of frame generation; you can correct the boxes by hand",
+   "ja": "ミニマップと HUD を自動で見つけ、フレーム生成の対象から外します。枠は手で修正できます",
+   "nl": "Vindt de minimap en HUD automatisch en houdt ze buiten framegeneratie; je kunt de kaders met de hand corrigeren",
+   "de": "Findet Minikarte und HUD automatisch und nimmt sie von der Bildgenerierung aus; die Rahmen lassen sich von Hand korrigieren",
+   "es": "Encuentra el minimapa y el HUD automáticamente y los deja fuera de la generación de fotogramas; puedes corregir los recuadros a mano",
+   "fr": "Trouve automatiquement la mini-carte et le HUD et les exclut de la génération d’images ; les cadres se corrigent à la main",
+   "it": "Trova automaticamente minimappa e HUD e li esclude dalla generazione di fotogrammi; puoi correggere i riquadri a mano",
+   "pt-BR": "Encontra o minimapa e o HUD automaticamente e os deixa fora da geração de quadros; dá para corrigir as caixas manualmente",
+   "tr": "Mini haritayı ve HUD’yi otomatik bulur ve kare üretiminin dışında tutar; kutuları elle düzeltebilirsin",
+   "ar": "يعثر تلقائيًا على الخريطة المصغّرة وHUD ويستثنيهما من توليد الإطارات؛ يمكنك تصحيح المربعات يدويًا",
+   "pl": "Automatycznie znajduje minimapę i HUD i wyłącza je z generowania klatek; ramki można poprawić ręcznie",
+   "ru": "Автоматически находит мини-карту и HUD и исключает их из генерации кадров; рамки можно поправить вручную"
+  },
+  {
    "zh": "自动按画面尺寸和帧率选择；数字为 Mbps，越高越清晰、文件也越大",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "自動依畫面尺寸和影格率選擇；數字為 Mbps，越高越清晰、檔案也越大",
@@ -39509,6 +40189,23 @@
    "ar": "Detect input automatically · Native BMD",
    "pl": "Wykrywanie wejścia automatycznie · Native BMD",
    "ru": "Обнаружение ввода автоматически · Native BMD"
+  },
+  {
+   "zh": "自动识别",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "自動辨識",
+   "en": "Detect automatically",
+   "ja": "自動検出",
+   "nl": "Automatisch herkennen",
+   "de": "Automatisch erkennen",
+   "es": "Detectar automáticamente",
+   "fr": "Détecter automatiquement",
+   "it": "Rileva automaticamente",
+   "pt-BR": "Detectar automaticamente",
+   "tr": "Otomatik algıla",
+   "ar": "اكتشاف تلقائي",
+   "pl": "Wykryj automatycznie",
+   "ru": "Распознать автоматически"
   },
   {
    "zh": "自动调控力度",
@@ -41143,6 +41840,23 @@
    "ru": "Генерация кадров может быть только в конце цепочки"
   },
   {
+   "zh": "补帧后每秒显示的画面数。生成的帧插在两张真实画面之间，让运动更顺滑；手柄的反应速度不会因此变快",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "補幀後每秒顯示的畫面數。生成的影格插在兩張真實畫面之間，讓動作更順暢；手把的反應速度不會因此變快",
+   "en": "Pictures shown per second after frame generation. Generated frames go between two real pictures to make motion smoother; the controller does not respond any faster",
+   "ja": "フレーム生成後に 1 秒間に表示する画像の数です。生成フレームを 2 枚の実際の画像の間に挟んで動きを滑らかにします。コントローラーの反応が速くなるわけではありません",
+   "nl": "Beelden per seconde na framegeneratie. Gegenereerde frames komen tussen twee echte beelden om beweging vloeiender te maken; de controller reageert er niet sneller door",
+   "de": "Bilder pro Sekunde nach der Bildgenerierung. Erzeugte Bilder kommen zwischen zwei echte Bilder und machen Bewegungen flüssiger; der Controller reagiert dadurch nicht schneller",
+   "es": "Imágenes por segundo tras la generación de fotogramas. Los fotogramas generados van entre dos imágenes reales para suavizar el movimiento; el mando no responde más rápido",
+   "fr": "Images affichées par seconde après la génération d’images. Les images générées s’insèrent entre deux vraies images pour fluidifier le mouvement ; la manette ne réagit pas plus vite",
+   "it": "Immagini mostrate al secondo dopo la generazione di fotogrammi. I fotogrammi generati vanno tra due immagini reali per rendere il movimento più fluido; il controller non risponde più velocemente",
+   "pt-BR": "Imagens exibidas por segundo após a geração de quadros. Os quadros gerados entram entre duas imagens reais para suavizar o movimento; o controle não responde mais rápido",
+   "tr": "Kare üretiminden sonra saniyede gösterilen resim sayısı. Üretilen kareler iki gerçek resmin arasına girer ve hareketi akıcılaştırır; kumanda daha hızlı tepki vermez",
+   "ar": "عدد الصور المعروضة في الثانية بعد توليد الإطارات. توضع الإطارات المولَّدة بين صورتين حقيقيتين لتنعيم الحركة؛ لا تصبح استجابة وحدة التحكم أسرع",
+   "pl": "Obrazy wyświetlane na sekundę po wygenerowaniu klatek. Wygenerowane klatki trafiają między dwa prawdziwe obrazy, aby ruch był płynniejszy; kontroler nie reaguje przez to szybciej",
+   "ru": "Изображений в секунду после генерации кадров. Сгенерированные кадры встают между двумя настоящими, делая движение плавнее; геймпад от этого быстрее не реагирует"
+  },
+  {
    "zh": "补帧后端切换未被接受，原设置保留",
    "src": "src/ui/bridge/FrameGeneration.cpp",
    "zh-TW": "補幀後端切換未被接受，原設定保留",
@@ -41362,6 +42076,23 @@
    "ar": "القص (بكسل)",
    "pl": "Przycięcie (piksele)",
    "ru": "Обрезка (пиксели)"
+  },
+  {
+   "zh": "观察画面几秒，找出不动的 HUD",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "觀察畫面幾秒，找出不動的 HUD",
+   "en": "Watches the picture for a few seconds to find the HUD that stays put",
+   "ja": "数秒間映像を観察し、動かない HUD を見つけます",
+   "nl": "Bekijkt het beeld enkele seconden om de vaste HUD te vinden",
+   "de": "Beobachtet das Bild einige Sekunden, um das feste HUD zu finden",
+   "es": "Observa la imagen unos segundos para encontrar el HUD que no se mueve",
+   "fr": "Observe l’image quelques secondes pour trouver le HUD fixe",
+   "it": "Osserva l’immagine per qualche secondo per trovare l’HUD fisso",
+   "pt-BR": "Observa a imagem por alguns segundos para encontrar o HUD fixo",
+   "tr": "Sabit HUD’yi bulmak için görüntüyü birkaç saniye izler",
+   "ar": "يراقب الصورة بضع ثوانٍ للعثور على HUD الثابت",
+   "pl": "Obserwuje obraz przez kilka sekund, aby znaleźć nieruchomy HUD",
+   "ru": "Несколько секунд анализирует изображение, чтобы найти неподвижный HUD"
   },
   {
    "zh": "视频",
@@ -42571,6 +43302,23 @@
    "ru": "Закончите спаривание и сначала введите действительный адрес хоста."
   },
   {
+   "zh": "请先开启补帧：对比片段把主机原本的帧率和补帧后的画面放在一起",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "請先開啟補幀：對比片段把主機原本的幀率和補幀後的畫面放在一起",
+   "en": "Turn on frame generation first: the comparison clip puts the console’s own frame rate next to the generated picture",
+   "ja": "先にフレーム生成をオンにしてください。比較クリップはゲーム機本来のフレームレートと生成後の映像を並べます",
+   "nl": "Zet eerst framegeneratie aan: de vergelijkingsclip zet de eigen framerate van de console naast het gegenereerde beeld",
+   "de": "Schalte zuerst die Bildgenerierung ein: Der Vergleichsclip stellt die eigene Bildrate der Konsole neben das erzeugte Bild",
+   "es": "Activa primero la generación de fotogramas: el clip comparativo pone la tasa original de la consola junto a la imagen generada",
+   "fr": "Activez d’abord la génération d’images : le clip comparatif place la fréquence d’origine de la console à côté de l’image générée",
+   "it": "Attiva prima la generazione di fotogrammi: la clip di confronto affianca il frame rate originale della console all’immagine generata",
+   "pt-BR": "Ative primeiro a geração de quadros: o clipe comparativo coloca a taxa original do console ao lado da imagem gerada",
+   "tr": "Önce kare üretimini aç: karşılaştırma klibi konsolun kendi kare hızını üretilmiş görüntünün yanına koyar",
+   "ar": "شغّل توليد الإطارات أولاً: يضع مقطع المقارنة معدل إطارات الجهاز الأصلي بجانب الصورة المولَّدة",
+   "pl": "Najpierw włącz generowanie klatek: klip porównawczy zestawia oryginalną liczbę klatek konsoli z wygenerowanym obrazem",
+   "ru": "Сначала включите генерацию кадров: сравнительный клип ставит родную частоту кадров консоли рядом со сгенерированным изображением"
+  },
+  {
    "zh": "请先打开视频，再在画面上绘制保护区域",
    "src": "src/ui/bridge/View.cpp",
    "zh-TW": "請先開啟影片，再在畫面上繪制保護區域",
@@ -42739,6 +43487,23 @@
    "ar": "إربطْ المجرىَ وa PC متحكم مَع a gyro أولاً. لا يستخدم جهاز التحكم PC",
    "pl": "Połącz najpierw strumień i kontroler PC z żyroskopem. Tryb View- only nie używa sterownika PC.",
    "ru": "Сначала соедините поток и контроллер PC с гироскопом. Режим просмотра не использует контроллер PC."
+  },
+  {
+   "zh": "请先连接采集卡并开始播放",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "請先連接擷取卡並開始播放",
+   "en": "Connect a capture card and start playing first",
+   "ja": "先にキャプチャーカードを接続して再生を始めてください",
+   "nl": "Sluit eerst een capturekaart aan en start het afspelen",
+   "de": "Schließe zuerst eine Capture-Karte an und starte die Wiedergabe",
+   "es": "Conecta primero una capturadora y empieza a reproducir",
+   "fr": "Branchez d’abord une carte d’acquisition et lancez la lecture",
+   "it": "Collega prima una scheda di acquisizione e avvia la riproduzione",
+   "pt-BR": "Conecte primeiro uma placa de captura e comece a reproduzir",
+   "tr": "Önce bir yakalama kartı bağla ve oynatmayı başlat",
+   "ar": "وصّل بطاقة التقاط أولاً وابدأ التشغيل",
+   "pl": "Najpierw podłącz kartę przechwytującą i zacznij odtwarzanie",
+   "ru": "Сначала подключите карту захвата и начните воспроизведение"
   },
   {
    "zh": "请先选择分辨率",
@@ -43368,6 +44133,23 @@
    "ar": "وضع التصحيح",
    "pl": "Tryb korekcji",
    "ru": "Режим коррекции"
+  },
+  {
+   "zh": "调整 HUD 区域",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "調整 HUD 區域",
+   "en": "Adjust HUD areas",
+   "ja": "HUD の範囲を調整",
+   "nl": "HUD-gebieden aanpassen",
+   "de": "HUD-Bereiche anpassen",
+   "es": "Ajustar zonas del HUD",
+   "fr": "Ajuster les zones du HUD",
+   "it": "Regola aree HUD",
+   "pt-BR": "Ajustar áreas do HUD",
+   "tr": "HUD alanlarını ayarla",
+   "ar": "ضبط مناطق HUD",
+   "pl": "Dostosuj obszary HUD",
+   "ru": "Настроить области HUD"
   },
   {
    "zh": "调整中",
@@ -44422,6 +45204,23 @@
    "ar": "العرض كـ SDR",
    "pl": "Pokaż jako SDR",
    "ru": "Показывать как SDR"
+  },
+  {
+   "zh": "转动镜头或走动，HUD 不动，其余画面在动",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "轉動鏡頭或走動，HUD 不動，其餘畫面在動",
+   "en": "Turn the camera or walk around: the HUD stays put while the rest moves",
+   "ja": "カメラを回すか歩き回ってください。HUD は動かず、ほかの部分が動きます",
+   "nl": "Draai de camera of loop rond: de HUD blijft staan terwijl de rest beweegt",
+   "de": "Dreh die Kamera oder lauf herum: Das HUD bleibt stehen, während sich der Rest bewegt",
+   "es": "Gira la cámara o camina: el HUD se queda quieto mientras el resto se mueve",
+   "fr": "Tournez la caméra ou déplacez-vous : le HUD reste fixe pendant que le reste bouge",
+   "it": "Ruota la visuale o muoviti: l’HUD resta fermo mentre il resto si muove",
+   "pt-BR": "Gire a câmera ou ande: o HUD fica parado enquanto o resto se move",
+   "tr": "Kamerayı çevir veya yürü: geri kalan hareket ederken HUD sabit kalır",
+   "ar": "أدِر الكاميرا أو تحرّك: يبقى HUD ثابتًا بينما يتحرك الباقي",
+   "pl": "Obróć kamerę albo chodź: HUD stoi w miejscu, a reszta się porusza",
+   "ru": "Поворачивайте камеру или ходите: HUD стоит на месте, а остальное движется"
   },
   {
    "zh": "转换为 ASS 文本字幕",
@@ -47788,6 +48587,23 @@
    "ar": "اكمل من اخر موقع عندما يعاد فتح نفس الملف",
    "pl": "Kontynuuj od ostatniej pozycji, gdy ten sam plik zostanie ponownie otwarty",
    "ru": "Продолжить с последней позиции, когда тот же файл снова открыт"
+  },
+  {
+   "zh": "重新获取画面",
+   "src": "qml/PushHudDialog.qml",
+   "zh-TW": "重新取得畫面",
+   "en": "Get a new picture",
+   "ja": "映像を取り直す",
+   "nl": "Nieuw beeld ophalen",
+   "de": "Neues Bild holen",
+   "es": "Obtener una imagen nueva",
+   "fr": "Récupérer une nouvelle image",
+   "it": "Acquisisci una nuova immagine",
+   "pt-BR": "Obter uma nova imagem",
+   "tr": "Yeni görüntü al",
+   "ar": "جلب صورة جديدة",
+   "pl": "Pobierz nowy obraz",
+   "ru": "Получить новое изображение"
   },
   {
    "zh": "重置",

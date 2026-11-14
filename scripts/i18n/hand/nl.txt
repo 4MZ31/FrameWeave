@@ -1316,3 +1316,51 @@
 1315|De GPU ondersteunt de gekozen geavanceerde coderingsinstellingen niet; er wordt opgenomen met de standaardinstellingen
 zh:轻|Licht
 zh:亮|Licht
+1316|G-SYNC of FreeSync: de monitor ververst wanneer er een nieuw beeld is in plaats van met een vaste frequentie, dus een wisselende framerate scheurt en hapert niet
+1317|HUD op de verkeerde plek?
+1318|HUD-bescherming
+1319|HUD-herkenning mislukt
+1320|NVIDIA Image Scaling is een opensource-filter voor opschalen en verscherpen dat op videokaarten van elk merk werkt. Te veel verscherping geeft witte randen langs contouren
+1321|Console · %1 FPS
+1322|Vergelijkingsclip stoppen
+1323|Alles wissen
+1324|Een keyframe is een volledig beeld; de frames ertussen bewaren alleen wat veranderde. Spelers en video-editors kunnen alleen bij een keyframe beginnen met decoderen
+1325|Er wachten minder beelden in de rij op de videokaart, zodat het beeld sneller reageert nadat je op een knop drukt. Alleen NVIDIA-videokaarten
+1326|Herken de HUD op je eigen spelbeeld, of sleep de kaders met de hand
+1327|Sleep over het beeld om een nieuw kader te tekenen (maximaal 4). Sleep een kader om het te verplaatsen, sleep de hoeken om het te vergroten of verkleinen
+1328|Vergelijkingsclip
+1329|De vergelijkingsclip bevat geen gegenereerde beelden, dus beide helften zijn gelijk. Controleer of framegeneratie actief is
+1330|Vaste delen zoals de minimap, gezondheid en munitie houden de eigen pixels van de console en worden niet geïnterpoleerd, dus ze blijven scherp. Na de automatische herkenning kun je de kaders verslepen om ze te corrigeren
+1331|HUD-bescherming staat uit; het hele beeld wordt geïnterpoleerd
+1332|Toegepast: %1 gebieden houden de eigen pixels van de console
+1333|Help
+1334|Het huidige beeldformaat ondersteunt geen automatische HUD-herkenning
+1335|Neem een video van 15 seconden naast elkaar op: links de eigen framerate van de console, rechts PushFPS
+1336|%1 HUD-gebieden gevonden. Controleer de groene kaders, versleep ze zo nodig en klik dan op Toepassen
+1337|Kan het beeld niet lezen; HUD-herkenning gestopt
+1338|Onvoldoende videogeheugen om de HUD te herkennen
+1339|Maximaal 4 kaders; verwijder er eerst een
+1340|Vergelijkingsclip van %1 seconden wordt opgenomen: links de eigen framerate van de console, rechts PushFPS
+1341|Beeld ophalen…
+1342|Beeld bekijken %1 / %2
+1343|Het beeld wordt ongeveer 5 seconden bekeken. Draai de camera of loop rond in het spel
+1344|Het maximale aantal beelden per seconde. Met framegeneratie houdt het de uitvoer op de doelframerate, zodat beweging gelijkmatiger is
+1345|Geen HUD gevonden. Sleep over het beeld om zelf kaders te tekenen
+1346|Er kwam geen beeld binnen. Controleer of het beeld speelt en het PushFPS-venster niet geminimaliseerd is
+1347|Er speelt niets, dus de HUD kan niet worden herkend
+1348|Geen beeld. Sluit een capturekaart aan en start het afspelen om de kaders op je eigen spelbeeld aan te passen
+1349|Kader toevoegen
+1350|Hoeveel nieuwe beelden het spel zelf per seconde tekent. De console stuurt altijd een 60 Hz-signaal, dus een spel van 30 FPS toont elk beeld twee keer. PushFPS bepaalt hiermee hoeveel frames er gegenereerd worden
+1351|AI verwijdert de blokjes en ruis van de compressie van de capturekaart, zodat details duidelijker worden. Staat los van framegeneratie en kan apart aan of uit
+1352|Het beeld bewoog nauwelijks, dus de HUD was niet te onderscheiden. Draai de camera of beweeg in het spel en probeer het opnieuw
+1353|Bitrate is hoeveel data de video per seconde gebruikt. Bitratebeheer bepaalt hoe de encoder die verdeelt: meer data betekent betere kwaliteit en een groter bestand
+1354|Hoeveel moeite de encoder per frame doet. Langzamer comprimeert beter, dus dezelfde bestandsgrootte geeft hogere kwaliteit
+1355|Vindt de minimap en HUD automatisch en houdt ze buiten framegeneratie; je kunt de kaders met de hand corrigeren
+1356|Automatisch herkennen
+1357|Beelden per seconde na framegeneratie. Gegenereerde frames komen tussen twee echte beelden om beweging vloeiender te maken; de controller reageert er niet sneller door
+1358|Bekijkt het beeld enkele seconden om de vaste HUD te vinden
+1359|Zet eerst framegeneratie aan: de vergelijkingsclip zet de eigen framerate van de console naast het gegenereerde beeld
+1360|Sluit eerst een capturekaart aan en start het afspelen
+1361|HUD-gebieden aanpassen
+1362|Draai de camera of loop rond: de HUD blijft staan terwijl de rest beweegt
+1363|Nieuw beeld ophalen

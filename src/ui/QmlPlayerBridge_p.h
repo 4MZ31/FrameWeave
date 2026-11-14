@@ -370,6 +370,9 @@ struct QmlPlayerBridge::Impl {
     // Live recording state published by the engine (see LiveRecorder.h).
     QVariantMap recordingState;
     uint64_t recordingSaved = 0;   // LiveRecorder's finished-file counter already announced
+    int compareGeneration = 0;     // PushFPS comparison clip whose timer may stop the recording
+    uint64_t hudPreviewRevision = 0; // PushFPS HUD detection: picture written for this run
+    QString hudPreviewPath;
     QVariantMap replayState;       // the instant replay buffer (#103)
     uint64_t replaySaved = 0;      // its saved-clip counter already announced
     QVariantList microphones;      // recording endpoints, {id, label}

@@ -1316,3 +1316,51 @@
 1315|Die GPU unterstützt die gewählten erweiterten Kodierungseinstellungen nicht; Aufnahme mit den Standardeinstellungen
 zh:轻|Leicht
 zh:亮|Licht
+1316|G-SYNC oder FreeSync: Der Monitor aktualisiert, wenn ein neues Bild kommt, statt mit fester Frequenz; eine schwankende Bildrate reißt und ruckelt dann nicht
+1317|HUD an der falschen Stelle?
+1318|HUD-Schutz
+1319|HUD-Erkennung fehlgeschlagen
+1320|NVIDIA Image Scaling ist ein Open-Source-Filter zum Hochskalieren und Schärfen, der auf Grafikkarten jeder Marke läuft. Zu viel Schärfe erzeugt weiße Säume an Kanten
+1321|Konsole · %1 FPS
+1322|Vergleichsclip stoppen
+1323|Alle löschen
+1324|Ein Keyframe ist ein vollständiges Bild; die Bilder dazwischen speichern nur die Änderungen. Player und Schnittprogramme können nur an einem Keyframe mit dem Dekodieren beginnen
+1325|Weniger Bilder warten auf der Grafikkarte in der Schlange, sodass das Bild nach einem Tastendruck schneller reagiert. Nur NVIDIA-Grafikkarten
+1326|Erkenne das HUD auf deinem eigenen Spielbild oder ziehe die Rahmen von Hand
+1327|Ziehe auf dem Bild, um einen neuen Rahmen zu zeichnen (bis zu 4). Ziehe einen Rahmen, um ihn zu verschieben, und seine Ecken, um die Größe zu ändern
+1328|Vergleichsclip
+1329|Der Vergleichsclip enthält keine erzeugten Bilder, beide Hälften sind gleich. Prüfe, ob die Bildgenerierung läuft
+1330|Feste Teile wie Minikarte, Gesundheit und Munition behalten die Pixel der Konsole und werden nicht interpoliert, sie bleiben also scharf. Nach der automatischen Erkennung kannst du die Rahmen zum Korrigieren verschieben
+1331|HUD-Schutz ist aus; das ganze Bild wird interpoliert
+1332|Angewendet: %1 Bereiche behalten die Pixel der Konsole
+1333|Hilfe
+1334|Das aktuelle Bildformat unterstützt keine automatische HUD-Erkennung
+1335|Nimm ein 15-Sekunden-Video nebeneinander auf: links die eigene Bildrate der Konsole, rechts PushFPS
+1336|%1 HUD-Bereiche gefunden. Prüfe die grünen Rahmen, verschiebe sie bei Bedarf und klicke dann auf Anwenden
+1337|Das Bild konnte nicht gelesen werden; HUD-Erkennung beendet
+1338|Nicht genug Grafikspeicher für die HUD-Erkennung
+1339|Höchstens 4 Rahmen; lösche zuerst einen
+1340|Vergleichsclip mit %1 Sekunden wird aufgenommen: links die eigene Bildrate der Konsole, rechts PushFPS
+1341|Bild wird geholt…
+1342|Bild wird beobachtet %1 / %2
+1343|Das Bild wird etwa 5 Sekunden beobachtet. Dreh die Kamera oder lauf im Spiel herum
+1344|Die meisten Bilder pro Sekunde. Mit Bildgenerierung hält es die Ausgabe auf der Ziel-Bildrate, damit Bewegungen gleichmäßiger sind
+1345|Kein HUD gefunden. Ziehe auf dem Bild, um Rahmen von Hand zu zeichnen
+1346|Es kam kein Bild an. Prüfe, ob das Bild läuft und das PushFPS-Fenster nicht minimiert ist
+1347|Es läuft nichts, daher kann das HUD nicht erkannt werden
+1348|Kein Bild. Schließe eine Capture-Karte an und starte die Wiedergabe, um die Rahmen auf deinem eigenen Spielbild anzupassen
+1349|Rahmen hinzufügen
+1350|Wie viele neue Bilder das Spiel selbst pro Sekunde zeichnet. Die Konsole sendet immer ein 60-Hz-Signal, ein 30-FPS-Spiel zeigt also jedes Bild zweimal. PushFPS entscheidet damit, wie viele Bilder erzeugt werden
+1351|KI entfernt Blöcke und Rauschen der Capture-Karten-Kompression, damit Details klarer wirken. Unabhängig von der Bildgenerierung und einzeln schaltbar
+1352|Das Bild hat sich kaum bewegt, daher ließ sich das HUD nicht unterscheiden. Dreh die Kamera oder beweg dich im Spiel und versuche es erneut
+1353|Die Bitrate ist die Datenmenge pro Sekunde Video. Die Ratensteuerung legt fest, wie der Encoder sie verteilt: mehr Daten bedeuten bessere Qualität und eine größere Datei
+1354|Wie viel Aufwand der Encoder pro Bild betreibt. Langsamer komprimiert besser, dieselbe Dateigröße ergibt also höhere Qualität
+1355|Findet Minikarte und HUD automatisch und nimmt sie von der Bildgenerierung aus; die Rahmen lassen sich von Hand korrigieren
+1356|Automatisch erkennen
+1357|Bilder pro Sekunde nach der Bildgenerierung. Erzeugte Bilder kommen zwischen zwei echte Bilder und machen Bewegungen flüssiger; der Controller reagiert dadurch nicht schneller
+1358|Beobachtet das Bild einige Sekunden, um das feste HUD zu finden
+1359|Schalte zuerst die Bildgenerierung ein: Der Vergleichsclip stellt die eigene Bildrate der Konsole neben das erzeugte Bild
+1360|Schließe zuerst eine Capture-Karte an und starte die Wiedergabe
+1361|HUD-Bereiche anpassen
+1362|Dreh die Kamera oder lauf herum: Das HUD bleibt stehen, während sich der Rest bewegt
+1363|Neues Bild holen
