@@ -1201,5 +1201,24 @@
 1200|=
 1201|=
 1202|=
+1203|ANR FG · Apex Compute · sperimentale
+1204|Pacchetto ANR (*.zip nvngx_dlssg.dll);;Tutti i file (*)
+1205|ANR è installato (%1 file). Riavvia PushFPS e scegli ANR come metodo di generazione dei fotogrammi
+1206|La generazione dei fotogrammi ANR è di Apex Compute e supporta schede GTX serie 16 e successive. Non può essere distribuita con PushFPS: scarica il pacchetto anr-fg dal GitHub di Apex e sceglilo qui
+1207|La generazione dei fotogrammi ANR è Apex Neural Rendering di Apex Compute
+1208|Generazione dei fotogrammi ANR, di Apex Compute
+1209|La base di PushFPS, di Likely7
+1210|Scarica ANR
+1211|Installa dal download…
+1212|Installa prima ANR di Apex in Impostazioni → Componenti e licenze
+1213|Installato. La generazione dei fotogrammi ANR è di Apex Compute; sceglila come metodo di generazione dei fotogrammi nella modalità Professionale
+1214|Impossibile creare una cartella temporanea
+1215|Impossibile copiare i file di ANR in %1
+1216|Impossibile estrarre il pacchetto ANR: %1
+1217|Aggiorna…
+1218|Non installato
+1219|Scarica e installa
+1220|Questo file non contiene il nvngx_dlssg.dll di ANR. Scegli il pacchetto anr-fg di Apex
+1221|Scegli il pacchetto ANR scaricato da Apex Compute
 zh:轻|Leggero
 zh:亮|Luce

@@ -972,6 +972,7 @@ Window {
         if (veyra.initialPage.length > 0)
             root.page = veyra.initialPage === "pro" && veyra.nodeMode === 1 ? "node" : veyra.initialPage
         if (root.test.tab === "tuning") homePage.showTuning()
+        else if (root.test.tab !== undefined && root.page === "set") settingsPage.section = root.test.tab  // PushFPS: settings section for screenshots
         else if (root.test.tab !== undefined) proPage.tab = root.test.tab
         if (root.testAspect > 0) root.fitToFilm(root.testAspect)
         if (root.test.dialog !== undefined) dialogs.open(root.test.dialog)

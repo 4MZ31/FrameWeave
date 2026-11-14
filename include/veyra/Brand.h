@@ -29,4 +29,12 @@ inline constexpr const char* kUpstreamUrl = "https://github.com/Likely7/Veyra-NR
 // The choice is usable once the user places ANR's files in runtime\experimental\anr. False would
 // hide it from every menu and report it unavailable.
 inline constexpr bool kAnrFrameGeneration = true;
+// ANR is made by Apex Compute (credited in About, the README and the components page). The
+// app links to their releases and installs the package a user downloaded from there into
+// runtime\experimental\anr on that user's PC; PushFPS itself never ships or mirrors it.
+inline constexpr const char* kAnrName = "Apex Neural Rendering (ANR)";
+inline constexpr const char* kAnrMaker = "Apex Compute";
+inline constexpr const char* kAnrUrl = "https://github.com/apex-compute/ANR";
+inline constexpr const char* kAnrReleasesUrl = "https://github.com/apex-compute/ANR/releases";
+inline constexpr const char* kApexUrl = "https://apexcompute.com";
 }

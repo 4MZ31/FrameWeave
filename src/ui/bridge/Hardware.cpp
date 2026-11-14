@@ -110,7 +110,10 @@ static QVariantMap scanEffectCapabilities() {
     // PushFPS: NVIDIA Image Scaling ships as shaders next to the program (no runtime DLL).
     add("sr6", H::CrossVendor, exists(runtime::shaderDirectory() / "NisScalerSdr.dxil") && exists(runtime::shaderDirectory() / "NisScalerPq.dxil") &&
         exists(runtime::shaderDirectory() / "NisColor.dxil"), QObject::tr("需要支持 DirectX 12 的硬件显卡"));
-    add("anr", H::CrossVendor, brand::kAnrFrameGeneration && ngx::AnrProvider::available(nr.wstring()), QObject::tr("需要支持 DirectX 12 的硬件显卡"));
+    // PushFPS: the usual reason ANR is unavailable is that its files are not installed yet.
+    add("anr", H::CrossVendor, brand::kAnrFrameGeneration && ngx::AnrProvider::available(nr.wstring()),
+        ngx::AnrProvider::available(nr.wstring()) ? QObject::tr("需要支持 DirectX 12 的硬件显卡")
+                                                  : QObject::tr("先在 设置 → 组件与许可 中安装 Apex 的 ANR"));
     add("dlss", H::Nvidia, exists(nr / "nvngx_dlssg.dll"), QObject::tr("需要 NVIDIA RTX 显卡"));
     add("vfg", H::Vfg, pipeline::VfgBackend::runtimeAvailable(nr.wstring()), QObject::tr("需要 NVIDIA RTX 30 / 40 / 50（30 系为实验兼容）"));
     add("xess", H::CrossVendor, exists(data / "intel/experimental/libxess_fg.dll") && exists(data / "intel/experimental/libxell.dll"), QObject::tr("需要支持 DirectX 12 的硬件显卡"));

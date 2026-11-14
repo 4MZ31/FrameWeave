@@ -1201,3 +1201,22 @@
 1200|简体中文
 1201|繁
 1202|繁體中文
+1203|ANR FG · Apex Compute · experimental
+1204|ANR package (*.zip nvngx_dlssg.dll);;All files (*)
+1205|ANR is installed (%1 files). Restart PushFPS, then pick ANR as the frame generation method
+1206|ANR frame generation is made by Apex Compute and supports GTX 16 series and newer graphics cards. It can't ship with PushFPS: download the anr-fg package from Apex's GitHub, then choose it here
+1207|ANR frame generation is Apex Neural Rendering by Apex Compute
+1208|ANR frame generation, by Apex Compute
+1209|What PushFPS is built on, by Likely7
+1210|Download ANR
+1211|Install from download…
+1212|Install Apex's ANR first in Settings → Components & licenses
+1213|Installed. ANR frame generation is made by Apex Compute; pick it as the frame generation method in Professional mode
+1214|Couldn't create a temporary folder
+1215|Couldn't copy the ANR files to %1
+1216|Couldn't unpack the ANR package: %1
+1217|Update…
+1218|Not installed
+1219|Get and install
+1220|There's no ANR nvngx_dlssg.dll in this file. Choose Apex's anr-fg package
+1221|Choose the ANR package you downloaded from Apex Compute

@@ -1201,5 +1201,24 @@
 1200|=
 1201|=
 1202|=
+1203|ANR FG · Apex Compute · eksperymentalne
+1204|Pakiet ANR (*.zip nvngx_dlssg.dll);;Wszystkie pliki (*)
+1205|ANR zainstalowano (%1 plików). Uruchom ponownie PushFPS i wybierz ANR jako metodę generowania klatek
+1206|Generowanie klatek ANR tworzy Apex Compute; działa na kartach GTX serii 16 i nowszych. Nie może być dołączone do PushFPS: pobierz pakiet anr-fg z GitHuba Apex i wybierz go tutaj
+1207|Generowanie klatek ANR to Apex Neural Rendering od Apex Compute
+1208|Generowanie klatek ANR, autor: Apex Compute
+1209|Podstawa PushFPS, autor: Likely7
+1210|Pobierz ANR
+1211|Zainstaluj z pobranego pliku…
+1212|Najpierw zainstaluj ANR od Apex w Ustawienia → Składniki i licencje
+1213|Zainstalowano. Generowanie klatek ANR tworzy Apex Compute; wybierz je jako metodę generowania klatek w trybie Profesjonalnym
+1214|Nie udało się utworzyć folderu tymczasowego
+1215|Nie udało się skopiować plików ANR do %1
+1216|Nie udało się rozpakować pakietu ANR: %1
+1217|Aktualizuj…
+1218|Nie zainstalowano
+1219|Pobierz i zainstaluj
+1220|Ten plik nie zawiera nvngx_dlssg.dll od ANR. Wybierz pakiet anr-fg od Apex
+1221|Wybierz pakiet ANR pobrany od Apex Compute
 zh:轻|Lekki
 zh:亮|Światło

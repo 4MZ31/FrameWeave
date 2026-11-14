@@ -7,6 +7,13 @@
 #include "../QmlPlayerBridge_p.h"
 #include "veyra/engine/PushBenchmarkProbe.h"
 #include "veyra/Brand.h"
+#include "veyra/RuntimePaths.h"
+#include "veyra/ngx/AnrProvider.h"
+#include <QDir>
+#include <QDirIterator>
+#include <QProcess>
+#include <QProcessEnvironment>
+#include <QTemporaryDir>
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QFile>
@@ -208,4 +215,92 @@ bool QmlPlayerBridge::pushExportTextFile(const QString& title, const QString& su
     emit notice(tr("已保存：%1").arg(QDir::toNativeSeparators(path)), false);
     return true;
 }
+
+// --- Apex Neural Rendering (ANR) ------------------------------------------------
+namespace {
+QString anrDirectory() { return QString::fromStdWString(ngx::AnrProvider::directory(runtime::localRuntimeDirectory().wstring())); }
+// The folder of the package that holds ANR's frame generation DLL (Apex ships it as
+// "...\Apex Neural Rendering FG\dlssg\nvngx_dlssg.dll"; the DLL's folder is self-contained).
+QString findAnrDll(const QString& root) {
+    QDirIterator it(root, {QStringLiteral("nvngx_dlssg.dll")}, QDir::Files, QDirIterator::Subdirectories);
+    QString best;
+    while (it.hasNext()) {
+        const QString path = it.next();
+        // Prefer ANR's own copy over any other nvngx_dlssg.dll a package might carry.
+        if (best.isEmpty() || path.contains(QStringLiteral("Apex"), Qt::CaseInsensitive)) best = path;
+    }
+    return best;
+}
+bool copyTree(const QString& from, const QString& to, int& files) {
+    QDir source(from);
+    if (!QDir().mkpath(to)) return false;
+    for (const QFileInfo& info : source.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot)) {
+        const QString target = QDir(to).filePath(info.fileName());
+        if (info.isDir()) { if (!copyTree(info.filePath(), target, files)) return false; continue; }
+        QFile::remove(target);
+        if (!QFile::copy(info.filePath(), target)) return false;
+        ++files;
+    }
+    return true;
+}
+}
+
+QVariantMap QmlPlayerBridge::pushAnrState() const {
+    const QString dir = anrDirectory();
+    return {{"installed", ngx::AnrProvider::available(runtime::localRuntimeDirectory().wstring())},
+            {"folder", QDir::toNativeSeparators(dir)}, {"name", QString::fromLatin1(brand::kAnrName)},
+            {"maker", QString::fromLatin1(brand::kAnrMaker)}, {"url", QString::fromLatin1(brand::kAnrUrl)}};
+}
+
+bool QmlPlayerBridge::pushInstallAnr() {
+    const QString picked = QFileDialog::getOpenFileName(nullptr, tr("选择从 Apex Compute 下载的 ANR 压缩包"),
+        QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
+        tr("ANR 安装包 (*.zip nvngx_dlssg.dll);;所有文件 (*)"));
+    if (picked.isEmpty()) return false;
+    QTemporaryDir staging;
+    QString root = QFileInfo(picked).absolutePath();
+    if (picked.endsWith(QStringLiteral(".zip"), Qt::CaseInsensitive)) {
+        if (!staging.isValid()) { emit notice(tr("无法创建临时文件夹"), true); return false; }
+        const QString tar = QDir(QProcessEnvironment::systemEnvironment().value(QStringLiteral("SystemRoot"), QStringLiteral("C:/Windows")))
+                                .filePath(QStringLiteral("System32/tar.exe"));
+        QProcess unzip;
+        unzip.start(tar, {QStringLiteral("-xf"), picked, QStringLiteral("-C"), staging.path()});
+        if (!unzip.waitForFinished(120000) || unzip.exitStatus() != QProcess::NormalExit || unzip.exitCode() != 0) {
+            emit notice(tr("无法解压 ANR 压缩包：%1").arg(QFileInfo(picked).fileName()), true);
+            return false;
+        }
+        root = staging.path();
+    }
+    const QString dll = findAnrDll(root);
+    if (dll.isEmpty()) { emit notice(tr("这个文件里没有 ANR 的 nvngx_dlssg.dll，请选择 Apex 的 anr-fg 安装包"), true); return false; }
+    int files = 0;
+    if (!copyTree(QFileInfo(dll).absolutePath(), anrDirectory(), files)) {
+        emit notice(tr("无法复制 ANR 文件到 %1").arg(QDir::toNativeSeparators(anrDirectory())), true);
+        return false;
+    }
+    refreshComponentList();
+    emit notice(tr("ANR 已安装（%1 个文件）。重新启动 PushFPS 后，可在补帧方式中选择 ANR").arg(files), false);
+    return true;
+}
+
+bool QmlPlayerBridge::pushOpenAnrFolder() {
+    const QString dir = anrDirectory();
+    QDir().mkpath(dir);
+    return QDesktopServices::openUrl(QUrl::fromLocalFile(dir));
+}
+
+QString QmlPlayerBridge::pushLinkUrl(const QString& key) const {
+    if (key == QLatin1String("repo")) return QString::fromLatin1(brand::kRepositoryUrl);
+    if (key == QLatin1String("veyra")) return QString::fromLatin1(brand::kUpstreamUrl);
+    if (key == QLatin1String("anr")) return QString::fromLatin1(brand::kAnrUrl);
+    if (key == QLatin1String("anrReleases")) return QString::fromLatin1(brand::kAnrReleasesUrl);
+    if (key == QLatin1String("apex")) return QString::fromLatin1(brand::kApexUrl);
+    return {};
+}
+
+bool QmlPlayerBridge::pushOpenLink(const QString& key) {
+    const QString url = pushLinkUrl(key);
+    return !url.isEmpty() && QDesktopServices::openUrl(QUrl(url));
+}
+
 }

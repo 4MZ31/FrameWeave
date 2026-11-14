@@ -770,6 +770,7 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
     // reference without anyone clicking. They go to QML as `vyTest`, never to the
     // bridge's saved settings: a test run must not rewrite the user's preferences.
     //   --tab <quality|fg|color|audio|display>   professional-page tab (tuning: home 画面与声音 open)
+    //                          with --page set: the settings section (look, comp, about, ...)
     //   --dialog <capture|ps5|screen|subtitle|audio|save|manage|tonode>
     //   --aspect <ratio>        cinema aspect, overriding the source's own
     //   --menu <source|preset>  professional-page popover menu open

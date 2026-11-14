@@ -16,6 +16,7 @@ VPage {
     signal requestPage(string page)
 
     property string section: "look"
+    property var anrState: ({ installed: false, folder: "" })
     property bool hdrAdvancedExpanded: false
     // The shortcut row waiting for a new key ("" = none).
     property string capturingKey: ""
@@ -1180,8 +1181,47 @@ VPage {
                     Layout.fillWidth: true
                     spacing: 12
                     visible: root.section === "comp"
-                    onVisibleChanged: if (visible) veyra.refreshComponentList()
+                    onVisibleChanged: if (visible) { veyra.refreshComponentList(); root.anrState = veyra.pushAnrState() }
                     VH1 { text: qsTr("组件与许可") }
+                    // PushFPS: Apex Neural Rendering. ANR may not be redistributed, so PushFPS links to
+                    // Apex's releases and installs the package the user downloaded on this PC.
+                    VGroup {
+                        objectName: "set-anr"
+                        VRow {
+                            label: "Apex Neural Rendering (ANR)"
+                            hint: root.anrState.installed
+                                  ? qsTr("已安装。ANR 补帧由 Apex Compute 制作，可在专业模式的补帧方式中选择")
+                                  : qsTr("ANR 补帧由 Apex Compute 制作，支持 GTX 16 系列及更新的显卡。它不能随 PushFPS 一起分发：从 Apex 的 GitHub 下载 anr-fg 压缩包，再在这里选择它")
+                            VTag {
+                                objectName: "set-anr-status"
+                                text: root.anrState.installed ? qsTr("已安装") : qsTr("未安装")
+                                kind: root.anrState.installed ? "ok" : ""
+                            }
+                        }
+                        VRow {
+                            label: qsTr("获取与安装")
+                            hint: String(root.anrState.folder || "")
+                            VButton {
+                                objectName: "set-anr-download"
+                                text: qsTr("下载 ANR")
+                                iconName: "external"
+                                onClicked: veyra.pushOpenLink("anrReleases")
+                            }
+                            VButton {
+                                objectName: "set-anr-install"
+                                primary: !root.anrState.installed
+                                text: root.anrState.installed ? qsTr("更新…") : qsTr("从下载安装…")
+                                onClicked: { veyra.pushInstallAnr(); root.anrState = veyra.pushAnrState() }
+                            }
+                            VButton {
+                                objectName: "set-anr-folder"
+                                ghost: true
+                                text: qsTr("打开文件夹")
+                                iconName: "folder"
+                                onClicked: veyra.pushOpenAnrFolder()
+                            }
+                        }
+                    }
                     Text {
                         Layout.fillWidth: true
                         text: qsTr("运行组件均为实验运行时，非 NVIDIA 官方合作或认证。详细哈希见 release-runtime-manifest.json。")
@@ -1237,6 +1277,13 @@ VPage {
                                 font.family: Theme.fontUi
                                 font.pixelSize: Theme.fsBody
                             }
+                            Text {
+                                objectName: "about-anr-credit"
+                                text: qsTr("ANR 补帧由 Apex Compute 的 Apex Neural Rendering 提供")
+                                color: Theme.t2
+                                font.family: Theme.fontUi
+                                font.pixelSize: Theme.fsBody
+                            }
                         }
                     }
                     // GPL-3.0 appropriate legal notices: the licence, no warranty, the right to
@@ -1271,6 +1318,26 @@ VPage {
                                 objectName: "about-open-license"
                                 text: qsTr("查看许可证")
                                 onClicked: veyra.openLicense()
+                            }
+                        }
+                        VRow {
+                            label: "Veyra"
+                            hint: qsTr("PushFPS 的基础，作者 Likely7")
+                            VButton {
+                                objectName: "about-open-veyra"
+                                text: qsTr("访问页面")
+                                iconName: "external"
+                                onClicked: veyra.pushOpenLink("veyra")
+                            }
+                        }
+                        VRow {
+                            label: "Apex Neural Rendering (ANR)"
+                            hint: qsTr("ANR 补帧，作者 Apex Compute")
+                            VButton {
+                                objectName: "about-open-anr"
+                                text: qsTr("访问页面")
+                                iconName: "external"
+                                onClicked: veyra.pushOpenLink("anr")
                             }
                         }
                         VRow {

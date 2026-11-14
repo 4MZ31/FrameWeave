@@ -20,6 +20,24 @@ Nothing changes on the console or in the game: you need a capture card and a gra
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-89F52A?style=flat-square)](LICENSE)
 [![Based on Veyra](https://img.shields.io/badge/based%20on-Veyra%20by%20Likely7-89F52A?style=flat-square)](https://github.com/Likely7/Veyra-NRVideo)
 
+<table>
+  <tr>
+    <td align="center" width="300">
+      <a href="https://github.com/Likely7/Veyra-NRVideo"><img src="assets/credits/veyra-logo.png" alt="Veyra" height="64"></a><br>
+      <sub>Built on <a href="https://github.com/Likely7/Veyra-NRVideo"><b>Veyra</b></a> by <a href="https://github.com/Likely7">Likely7</a></sub>
+    </td>
+    <td align="center" width="300">
+      <a href="https://github.com/apex-compute/ANR">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/apex-compute/ANR/main/assets/apex-logo-white.svg">
+          <img src="https://raw.githubusercontent.com/apex-compute/ANR/main/assets/apex-logo-black.svg" alt="Apex Compute" height="64">
+        </picture>
+      </a><br>
+      <sub>ANR frame generation by <a href="https://github.com/apex-compute/ANR"><b>Apex Neural Rendering</b></a> from <a href="https://apexcompute.com">Apex Compute</a></sub>
+    </td>
+  </tr>
+</table>
+
 <br>
 
 <img src="assets/screenshots/home.png" alt="PushFPS home screen: capture card, quick setup with console and game profiles" width="860">
@@ -191,7 +209,7 @@ enhancement on Radeon and on RTX 30 cards is an optional experimental extra (see
 | NVIDIA DLSS Frame Generation | RTX 40 (2×), RTX 50 (up to 6×) | 6× |
 | Intel XeSS Frame Generation (experimental) | DirectX 12 cards; Veyra tested it on NVIDIA | 4× |
 | AMD FSR Frame Generation | DirectX 12 cards (FSR 4 needs a Radeon RX 9000) | 2× |
-| ANR Frame Generation by Apex Compute (experimental, from Veyra 2.1.6) | DirectX 12 cards; needs ANR's own files in `runtime\experimental\anr`, which may not be redistributed | 6× |
+| [ANR Frame Generation](https://github.com/apex-compute/ANR) by Apex Compute (experimental) | GTX 16 and newer, RX 5000 and newer, Intel Arc (Apex's list); install it in *Settings → Components and licenses* | 6× |
 
 </details>
 
@@ -365,6 +383,23 @@ is not mirrored right-to-left yet.
 OLED screens) and *Light*. Text and controls keep a readable contrast in every mode (checked by an
 automated test); the picture itself is never changed.
 
+## ANR frame generation by Apex Compute
+
+[Apex Neural Rendering (ANR)](https://github.com/apex-compute/ANR) is frame generation made by
+[Apex Compute](https://apexcompute.com). Apex lists support for GeForce GTX 16 and newer, Radeon RX 5000 and
+newer and Intel Arc, so it is an option on graphics cards that DLSS Frame Generation does not cover. PushFPS
+runs it on your capture card picture, the same way Veyra 2.1.6 does.
+
+ANR is in beta and Apex does not allow it to be redistributed, so it is not inside PushFPS. To use it:
+
+1. Download the `anr-fg-addon` package (or `anr-fg-full`) from [ANR's releases](https://github.com/apex-compute/ANR/releases).
+2. In PushFPS open *Settings → Components and licenses* and click *Install from download…*, then choose the
+   `.zip` you downloaded. PushFPS copies ANR's files into its own folder on your PC; nothing is sent anywhere.
+3. Restart PushFPS and pick *ANR FG* as the frame generation method in Professional mode.
+
+ANR in games gets motion data from the game itself. From a capture card PushFPS has only the picture, so the
+motion is estimated, as with every method in PushFPS: results can differ from what ANR shows in games.
+
 ## Tune it for your setup
 
 | If you see | Try |
@@ -462,6 +497,11 @@ PushFPS is a modified version of **[Veyra](https://github.com/Likely7/Veyra-NRVi
 support and the frame generation integration is their work. If PushFPS helps you, consider
 [supporting Veyra's author](https://www.patreon.com/cw/Likely7).
 
+ANR frame generation is **[Apex Neural Rendering](https://github.com/apex-compute/ANR)** by
+**[Apex Compute](https://apexcompute.com)**. PushFPS contains Veyra's own ANR host code (GPL-3.0) and no ANR files;
+ANR is downloaded from Apex by the user. The Apex Compute logo above belongs to Apex Compute and is shown only to
+credit their work.
+
 - PushFPS and Veyra code: [GPL-3.0](LICENSE). Files written for PushFPS, including the OBS plugin, are
   GPL-3.0-or-later. What PushFPS changed, and where each release's source is: [NOTICE.md](NOTICE.md).
 - PushFPS.exe incorporates the NVIDIA DLSS SDK and NGX SDK under the NVIDIA RTX SDKs License, and uses the
@@ -474,7 +514,7 @@ support and the frame generation integration is their work. If PushFPS helps you
   [licenses/remoteplay](licenses/remoteplay).
 - Third-party components and their licenses: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-PushFPS is not affiliated with or endorsed by NVIDIA, AMD, Intel, Sony, Microsoft, Nintendo, the OBS Project
+PushFPS is not affiliated with or endorsed by Apex Compute, NVIDIA, AMD, Intel, Sony, Microsoft, Nintendo, the OBS Project
 or any game publisher. NVIDIA, RTX and DLSS are trademarks of NVIDIA Corporation. PlayStation is a trademark
 of Sony Interactive Entertainment. Xbox is a trademark of Microsoft. Nintendo Switch is a trademark of
 Nintendo. OBS Studio is a trademark of the OBS Project.

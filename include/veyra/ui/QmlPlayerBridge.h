@@ -1465,6 +1465,14 @@ public:
     Q_INVOKABLE bool pushShareToDiscord(const QString& path);
     Q_INVOKABLE QString pushImportTextFile(const QString& title);
     Q_INVOKABLE bool pushExportTextFile(const QString& title, const QString& suggestedName, const QString& text);
+    // Apex Neural Rendering: install the package the user downloaded from Apex Compute
+    // (a .zip, or its nvngx_dlssg.dll) into runtime\experimental\anr; nothing is downloaded.
+    Q_INVOKABLE QVariantMap pushAnrState() const;
+    Q_INVOKABLE bool pushInstallAnr();
+    Q_INVOKABLE bool pushOpenAnrFolder();
+    // Credits and links from Brand.h: "repo", "veyra", "anr", "anrReleases", "apex".
+    Q_INVOKABLE bool pushOpenLink(const QString& key);
+    Q_INVOKABLE QString pushLinkUrl(const QString& key) const;
     Q_INVOKABLE void copyDiagnostics();
     // Re-reads the runtime manifest (Settings → 组件与许可 calls it when shown).
     Q_INVOKABLE void refreshComponentList();

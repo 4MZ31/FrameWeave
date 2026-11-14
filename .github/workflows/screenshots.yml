@@ -99,7 +99,10 @@ jobs:
             @{ name = '25-lang-ar';        args = @('--page', 'home', '--lang', 'ar') },
             @{ name = '26-lang-es-pro';    args = @('--page', 'pro', '--tab', 'fg', '--lang', 'es') },
             @{ name = '27-lang-tr';        args = @('--page', 'set', '--lang', 'tr') },
-            @{ name = '28-lang-nl';        args = @('--page', 'home', '--lang', 'nl') }
+            @{ name = '28-lang-nl';        args = @('--page', 'home', '--lang', 'nl') },
+            @{ name = '29-settings-anr';   args = @('--page', 'set', '--tab', 'comp') },
+            @{ name = '30-settings-about'; args = @('--page', 'set', '--tab', 'about') },
+            @{ name = '31-light-about';    args = @('--page', 'set', '--tab', 'about', '--theme', 'light') }
           )
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"

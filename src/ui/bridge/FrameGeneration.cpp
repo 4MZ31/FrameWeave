@@ -17,7 +17,7 @@ QString QmlPlayerBridge::fgBackendName() const {
 }
 QVariantList QmlPlayerBridge::fgBackendChoices() const {
     QVariantList choices = {
-        QVariantMap{{"id","anr"},{"label",tr("ANR FG（极差质量） · 本地实验")},{"danger",true}},
+        QVariantMap{{"id","anr"},{"label",tr("ANR FG · Apex Compute · 实验")},{"danger",true}},
         QVariantMap{{"id","dlss"},{"label",tr("DLSS 帧生成")}},
         QVariantMap{{"id","xess"},{"label",tr("Intel XeSS · 实验")}},
         QVariantMap{{"id","fsr3"},{"label",tr("FSR 3.1 · 2X")}},

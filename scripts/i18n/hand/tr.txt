@@ -1201,5 +1201,24 @@
 1200|=
 1201|=
 1202|=
+1203|ANR FG · Apex Compute · deneysel
+1204|ANR paketi (*.zip nvngx_dlssg.dll);;Tüm dosyalar (*)
+1205|ANR kuruldu (%1 dosya). PushFPS’i yeniden başlatın, ardından kare oluşturma yöntemi olarak ANR’yi seçin
+1206|ANR kare oluşturma Apex Compute tarafından yapılmıştır ve GTX 16 serisi ve daha yeni ekran kartlarını destekler. PushFPS ile birlikte dağıtılamaz: Apex’in GitHub sayfasından anr-fg paketini indirin ve burada seçin
+1207|ANR kare oluşturma, Apex Compute’un Apex Neural Rendering teknolojisidir
+1208|ANR kare oluşturma, Apex Compute
+1209|PushFPS’in temeli, Likely7
+1210|ANR’yi indir
+1211|İndirilenden kur…
+1212|Önce Ayarlar → Bileşenler ve lisanslar bölümünden Apex’in ANR’sini kurun
+1213|Kurulu. ANR kare oluşturma Apex Compute tarafından yapılmıştır; Profesyonel modda kare oluşturma yöntemi olarak seçin
+1214|Geçici klasör oluşturulamadı
+1215|ANR dosyaları %1 konumuna kopyalanamadı
+1216|ANR paketi açılamadı: %1
+1217|Güncelle…
+1218|Kurulu değil
+1219|İndir ve kur
+1220|Bu dosyada ANR’nin nvngx_dlssg.dll dosyası yok. Apex’in anr-fg paketini seçin
+1221|Apex Compute’tan indirdiğiniz ANR paketini seçin
 zh:轻|Hafif
 zh:亮|Işık

@@ -1201,5 +1201,24 @@
 1200|=
 1201|=
 1202|=
+1203|ANR FG · Apex Compute · experimenteel
+1204|ANR-pakket (*.zip nvngx_dlssg.dll);;Alle bestanden (*)
+1205|ANR is geïnstalleerd (%1 bestanden). Start PushFPS opnieuw en kies ANR als methode voor framegeneratie
+1206|ANR-framegeneratie is gemaakt door Apex Compute en werkt op GTX 16-serie en nieuwere videokaarten. Het mag niet met PushFPS meegeleverd worden: download het anr-fg-pakket van Apex’ GitHub en kies het hier
+1207|ANR-framegeneratie is Apex Neural Rendering van Apex Compute
+1208|ANR-framegeneratie, door Apex Compute
+1209|Waar PushFPS op gebouwd is, door Likely7
+1210|ANR downloaden
+1211|Installeren uit download…
+1212|Installeer eerst ANR van Apex via Instellingen → Onderdelen en licenties
+1213|Geïnstalleerd. ANR-framegeneratie is gemaakt door Apex Compute; kies het als methode voor framegeneratie in Professionele modus
+1214|Kon geen tijdelijke map maken
+1215|Kon de ANR-bestanden niet naar %1 kopiëren
+1216|Kon het ANR-pakket niet uitpakken: %1
+1217|Bijwerken…
+1218|Niet geïnstalleerd
+1219|Downloaden en installeren
+1220|Dit bestand bevat geen nvngx_dlssg.dll van ANR. Kies het anr-fg-pakket van Apex
+1221|Kies het ANR-pakket dat je van Apex Compute hebt gedownload
 zh:轻|Licht
 zh:亮|Licht

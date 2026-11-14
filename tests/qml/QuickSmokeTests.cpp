@@ -135,6 +135,14 @@ QtObject {
     function pushCopyFile(path) { lastCopiedFile = path; return true }
     function pushOpenDiscord() { discordOpened++; return true }
     function pushShareToDiscord(path) { lastSharedFile = path; return true }
+    property bool anrInstalled: false
+    property int anrInstallCalls: 0
+    property string lastOpenedLink: ""
+    function pushAnrState() { return { installed: anrInstalled, folder: "C:/PushFPS/runtime/experimental/anr", name: "Apex Neural Rendering (ANR)", maker: "Apex Compute", url: "https://github.com/apex-compute/ANR" } }
+    function pushInstallAnr() { anrInstallCalls++; anrInstalled = true; return true }
+    function pushOpenAnrFolder() { return true }
+    function pushLinkUrl(key) { return ({ repo: "https://github.com/DosukaSOL/PushFPS", veyra: "https://github.com/Likely7/Veyra-NRVideo", anr: "https://github.com/apex-compute/ANR", anrReleases: "https://github.com/apex-compute/ANR/releases", apex: "https://apexcompute.com" })[key] || "" }
+    function pushOpenLink(key) { lastOpenedLink = key; return pushLinkUrl(key).length > 0 }
     function pushImportTextFile(title) { return importFileText }
     function pushExportTextFile(title, name, text) { lastExportText = text; return true }
     // PushFPS super-resolution editor (SrStageEditor): ids as QmlPlayerBridge::srBackendChoices.
