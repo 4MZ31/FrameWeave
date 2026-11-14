@@ -18,7 +18,7 @@ and edits would conflict on every merge.
    written in Chinese in `qsTr(...)` / `tr(...)` and translated in `i18n/catalog.json` (zh-TW, en, ja by hand). For nl, de, es, fr, it, pt-BR, tr, ar,
    pl, ru the short interface labels are hand-written in `scripts/i18n/hand/<lang>.txt` (line order of
    `hand/en.txt`; fix a word there, never in the catalog) and longer texts are machine-translated by the
-   `translate` workflow (`machine_translate.py` with a glossary, `merge_translations.py`, then
+   `translate` workflow (`machine_translate.py`, which corrects wrong-sense words and keeps English for half-translated output, `merge_translations.py`, then
    `apply_hand_translations.py`), which pushes the result to the `i18n-mt` branch.
    After changing or adding a string run `python3 -B scripts/i18n/extract.py`, fill the new entries, then
    `python3 -B scripts/i18n/extract.py --check` must report 0 missing and 0 placeholder problems.
