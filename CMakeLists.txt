@@ -923,7 +923,10 @@ if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avform
   target_link_libraries(veyra_nr_model_settings_tests PRIVATE veyra_engine)
   target_link_options(veyra_nr_model_settings_tests PRIVATE /STACK:33554432)
   # PushFPS sound profiles: filter responses, Off is bit-identical, no clipping, crossfade.
-  add_executable(veyra_sound_profile_tests tests/unit/SoundProfileTests.cpp src/sink/SoundProfile.cpp)
+  add_executable(veyra_push_benchmark_tests tests/unit/PushBenchmarkTests.cpp)
+target_compile_features(veyra_push_benchmark_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_benchmark_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_executable(veyra_sound_profile_tests tests/unit/SoundProfileTests.cpp src/sink/SoundProfile.cpp)
   target_compile_features(veyra_sound_profile_tests PRIVATE cxx_std_20)
   target_include_directories(veyra_sound_profile_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
   add_executable(veyra_audio_timeline_tests tests/integration/AudioTimelineTests.cpp)
@@ -1181,6 +1184,7 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
   # generated. Without this the library links but every signal is unresolved.
   # Keep bridge domains explicit: no source glob or duplicate runtime state.
   target_sources(veyra_qml_bridge PRIVATE
+    src/ui/bridge/PushFps.cpp
     src/ui/bridge/Hardware.cpp
     src/ui/bridge/Status.cpp
     src/ui/bridge/FrameGeneration.cpp

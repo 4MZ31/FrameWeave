@@ -835,6 +835,13 @@ Window {
         anchors.margins: 24
         goPage: p => root.goPage(p)
     }
+    // PushFPS: measured latency and frame rate over the picture (quick setup switch).
+    PushLatencyBadge {
+        z: 31
+        x: videoHost.x + 12
+        y: videoHost.y + 12
+        visible: wanted && stats.running === true && videoHost.width > 200 && root.page !== "home" && root.page !== "set"
+    }
 
     // RivaTuner, NVIDIA's overlay or GamePP started after Veyra (QmlPlayerBridge): RTSS's
     // OSD is kept out until a restart; the other two cannot be, and froze 2.0 in the field.
@@ -860,7 +867,7 @@ Window {
         function onNavigate(p) {
             // A dialog key opens the dialog; anything else is a page.
             if (p === "network" || p === "capture" || p === "ps5" || p === "moonlight" || p === "xbox" || p === "screen"
-                || p === "subtitle" || p === "audio" || p === "save" || p === "manage") {
+                || p === "subtitle" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games") {
                 dialogs.open(p)
                 return
             }

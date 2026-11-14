@@ -106,6 +106,37 @@ QtObject {
     signal recordingChanged()
     property var replayState: ({saved: 0, active: false, path: ""})
     signal replayChanged()
+    // PushFPS optimiser, game presets, latency readout and sharing (src/ui/bridge/PushFps.cpp).
+    property string fgBackendName: "dlss"
+    property var fgBackendChoices: [{id: "dlss", label: "DLSS"}]
+    property bool srEnabled: false
+    property string captureDeviceLabel: ""
+    property var exclusionState: ({enabled: false, feather: 6, regions: []})
+    property var liveStats: ({running: false})
+    property var benchmarkModel: null
+    property int benchmarkWindows: 0
+    property var lastRegions: null
+    property string lastCopiedText: ""
+    property string lastCopiedFile: ""
+    property int discordOpened: 0
+    property string lastSharedFile: ""
+    property string importFileText: ""
+    property string lastExportText: ""
+    signal pushShareFinished(bool ok, string message)
+    function pushLiveStats() { return liveStats }
+    function pushBenchmarkBegin() { benchmarkWindows++ }
+    function pushBenchmarkEnd() { return benchmarkModel ? benchmarkModel() : ({valid: false}) }
+    function pushSetExclusionRegions(regions, feather) {
+        lastRegions = regions
+        exclusionState = ({enabled: regions.length > 0, feather: feather, regions: regions})
+        return true
+    }
+    function pushCopyText(text) { lastCopiedText = text; return true }
+    function pushCopyFile(path) { lastCopiedFile = path; return true }
+    function pushOpenDiscord() { discordOpened++; return true }
+    function pushShareToDiscord(path) { lastSharedFile = path; return true }
+    function pushImportTextFile(title) { return importFileText }
+    function pushExportTextFile(title, name, text) { lastExportText = text; return true }
     // PushFPS super-resolution editor (SrStageEditor): ids as QmlPlayerBridge::srBackendChoices.
     property int videoSrQuality: 2
     property int dualSrQuality: 2

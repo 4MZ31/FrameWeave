@@ -3,6 +3,7 @@
 #include "veyra/diagnostics/EnhancementProcessingTime.h"
 #include "veyra/engine/FrameRateWindow.h"
 #include "veyra/engine/FrameLineage.h"
+#include "veyra/engine/PushBenchmarkProbe.h"
 #include <mutex>
 #include <memory>
 #include <cmath>
@@ -29,7 +30,8 @@ public:
     }
     // paceAt: when the Present call began (0 = now). The 1% low spaces presents
     // by that time, as RTSS and PresentMon do; rates count completions at now.
-    void presented(bool generated,int64_t now,int64_t paceAt=0){std::lock_guard lock(mutex_);presented_.complete(now);presentPace_.complete(paceAt>0&&paceAt<=now?paceAt:now);(generated?generatedPresented_:realPresented_).complete(now);}
+    void presented(bool generated,int64_t now,int64_t paceAt=0){std::lock_guard lock(mutex_);presented_.complete(now);presentPace_.complete(paceAt>0&&paceAt<=now?paceAt:now);(generated?generatedPresented_:realPresented_).complete(now);
+        pushBenchmarkProbe().present(generated,paceAt>0&&paceAt<=now?paceAt:now);} // PushFPS: Optimise for my PC
     void xess(uint64_t count,int64_t now){std::lock_guard lock(mutex_);for(uint64_t i=0;i<count;++i)xess_.complete(now);}
     void snapshot(diagnostics::FrameFlowMetrics& m,int64_t now)const{
         std::lock_guard lock(mutex_);m.validGeneratedFps=generated_.rate(now);m.presentSubmitFps=presented_.rate(now);
@@ -129,6 +131,7 @@ public:
     }
     void latency(int64_t begin,int64_t end){
         if(begin<=0||end<begin)return;
+        pushBenchmarkProbe().latency(double(end-begin)/10000); // PushFPS: Optimise for my PC
         std::lock_guard lock(mutex_);latency_.push_back({end,double(end-begin)/10000});
         while(latency_.size()>8192||(!latency_.empty()&&latency_.front().time<=end-10000000))latency_.pop_front();
     }

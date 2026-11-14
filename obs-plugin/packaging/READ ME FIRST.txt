@@ -23,6 +23,11 @@ Using it
   - Sound: add an "Application Audio Capture" source and pick PushFPS.exe.
   - PushFPS installed somewhere else: set "PushFPS.exe location" in the source's properties.
 
+Where it goes
+  %ProgramData%\obs-studio\plugins\pushfps-obs\pushfps-obs.dll for OBS Studio 33 and newer (the
+  plugin layout OBS 34 requires), plus a copy in bin\64bit for OBS Studio 28 to 32. OBS 33+ loads
+  the new one, so the Plugin Manager does not list PushFPS as Legacy.
+
 Uninstall
   Close OBS Studio and run:  Install-PushFPS-OBS.cmd -Uninstall
 

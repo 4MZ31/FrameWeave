@@ -3,6 +3,7 @@
 import QtQuick
 import QtQuick.Layouts
 import "EffectSupport.js" as Support
+import "PushCaptureCards.js" as Cards
 
 // PushFPS quick setup: the choices most console players make, above the detailed
 // controls. Every control here only sets existing settings (frame generation on/off,
@@ -15,6 +16,8 @@ VGroup {
     property bool compact: false
     // Home only: the first-run setup tip, until a capture card has been used once.
     property bool showSetupTip: false
+    // Set where the picture is already visible next to the quick setup (Professional mode).
+    property bool compactPro: false
     // Console games send their frames inside a 60 Hz signal: 30 FPS for most games
     // (GTA VI), 40 in some 120 Hz modes, 60 in performance modes. The player picks it
     // (设置 key pushGameFps); the multiplier is chosen from it, and the output cap holds
@@ -267,6 +270,65 @@ VGroup {
         }
     }
 
+    // PushFPS tools: measure this PC, or start from a game's preset.
+    RowLayout {
+        objectName: "pushfps-tools-row"
+        Layout.fillWidth: true
+        Layout.topMargin: 8
+        Layout.bottomMargin: 4
+        spacing: 8
+        VButton {
+            objectName: "pushfps-optimize"
+            primary: true
+            iconName: "zap"
+            text: qsTr("为我的电脑优化")
+            tip: qsTr("在实际画面上测试每种组合，自动选出最好的一种")
+            // The picture has to be on screen while it is measured (a hidden window presents differently).
+            onClicked: { if (veyra.hasSource && !quick.compactPro) veyra.navigate("pro"); veyra.navigate("optimize") }
+        }
+        VButton {
+            objectName: "pushfps-game-presets"
+            ghost: true
+            iconName: "gamepad"
+            text: qsTr("游戏预设")
+            tip: qsTr("GTA VI 等游戏的推荐设置，小地图和 HUD 保持清晰")
+            onClicked: veyra.navigate("games")
+        }
+        Item { Layout.fillWidth: true }
+    }
+
+    // The capture card in use, and whether it is on PushFPS's tested list.
+    VRow {
+        id: cardRow
+        objectName: "pushfps-card-row"
+        readonly property var card: Cards.find(veyra.captureDeviceLabel)
+        visible: String(veyra.captureDeviceLabel || "").length > 0
+        label: qsTr("采集卡")
+        hint: card && card.status === "tested" ? qsTr("PushFPS 已实测")
+            : card && card.status === "veyra" ? qsTr("Veyra 作者已实测")
+            : qsTr("还没有人报告这张卡的结果，欢迎在 GitHub 上分享")
+        hintBelow: true
+        RowLayout {
+            spacing: 6
+            Text {
+                text: veyra.captureDeviceLabel || ""
+                color: Theme.t1; font.family: Theme.fontUi; font.pixelSize: 12
+                elide: Text.ElideRight; Layout.maximumWidth: 180
+            }
+            VTag {
+                objectName: "pushfps-card-status"
+                kind: cardRow.card && cardRow.card.status !== "untested" ? "ok" : ""
+                text: cardRow.card && cardRow.card.status !== "untested" ? qsTr("已测试") : qsTr("未测试")
+            }
+            VButton {
+                visible: !(cardRow.card && cardRow.card.status === "tested")
+                ghost: true
+                text: qsTr("报告")
+                onClicked: Qt.openUrlExternally(Cards.reportUrl)
+            }
+        }
+    }
+
     VRow {
         objectName: "pushfps-console-row"
         label: qsTr("游戏主机")
@@ -374,6 +436,17 @@ VGroup {
             opacity: enabled ? 1 : 0.4
             checked: veyra.nrAnyEnabled
             onToggled: checked => quick.setEnhancement(checked)
+        }
+    }
+
+    VRow {
+        objectName: "pushfps-latency-overlay-row"
+        label: qsTr("在画面上显示延迟")
+        hint: qsTr("实测电脑处理延迟（采集卡画面到达到交给显示器）和帧率；采集卡、显示器和游戏的延迟另计")
+        VSwitch {
+            objectName: "pushfps-latency-overlay"
+            checked: veyra.preferences.pushLatencyOverlay === true
+            onToggled: checked => veyra.setPreference("pushLatencyOverlay", checked)
         }
     }
 

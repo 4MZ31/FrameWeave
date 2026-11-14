@@ -682,6 +682,22 @@ VPage {
                                 onPicked: id => veyra.setPreference("replaySeconds", Number(id))
                             }
                         }
+                        // PushFPS: where "Send to Discord" on a saved clip goes.
+                        VRow {
+                            objectName: "set-discord-webhook-row"
+                            label: qsTr("Discord Webhook")
+                            hint: String(veyra.preferences.pushDiscordWebhook || "").length > 0
+                                  ? qsTr("已设置：保存的片段可一键发送到这个频道（10 MB 以内）")
+                                  : qsTr("可选。在 Discord 频道 → 编辑频道 → 整合 → Webhook 中复制地址；不填时“分享到 Discord”会复制文件并打开 Discord")
+                            hintBelow: true
+                            DialogTextField {
+                                objectName: "set-discord-webhook"
+                                implicitWidth: 240
+                                placeholder: "https://discord.com/api/webhooks/…"
+                                text: String(veyra.preferences.pushDiscordWebhook || "")
+                                onEdited: t => veyra.setPreference("pushDiscordWebhook", t)
+                            }
+                        }
                     }
                     }
                     VGroup {

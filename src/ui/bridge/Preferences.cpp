@@ -6,6 +6,7 @@
 #include "veyra/sink/SoundProfile.h"
 #include "veyra/pipeline/NisSettings.h"
 #include <QJsonParseError>
+#include <QRegularExpression>
 #include "veyra/ngx/AnrProvider.h"
 
 namespace veyra::ui {
@@ -231,7 +232,9 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"replaySeconds", {15, 600}}};
     static const QStringList flags{"recordHevc", "recordAudio", "recordMic", "recordMicTrack", "replayEnabled", "subtitleEnabled", "subtitleBackground", "subtitleFit",
                                    "subtitleSecondLanguage", "audioForceStereo", "holdCompare",
-                                   "magewellLowLatency", "blackmagicNativeCapture", "captureShowAllFrameRates", "cinePillHidden", "exportStopsPlayback", "obsGameCapture", "autoResume", "fullscreenMemoryProtection", "prewarmEnhancement", "hdrFgCompatibility", "computeOnMonitorGpu", "deinterlace", "networkAutoReconnect"};
+                                   "magewellLowLatency", "blackmagicNativeCapture", "captureShowAllFrameRates", "cinePillHidden", "exportStopsPlayback", "obsGameCapture", "autoResume", "fullscreenMemoryProtection", "prewarmEnhancement", "hdrFgCompatibility", "computeOnMonitorGpu", "deinterlace", "networkAutoReconnect",
+                                   // PushFPS: on-screen latency readout.
+                                   "pushLatencyOverlay"};
     QVariant stored;
     if (ranges.contains(key)) {
         bool ok = false; const int n = value.toInt(&ok);
@@ -331,6 +334,25 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         QJsonParseError error{};
         const QJsonDocument doc = QJsonDocument::fromJson(v.toUtf8(), &error);
         if (error.error != QJsonParseError::NoError || !doc.isObject()) return false;
+        stored = v;
+    } else if (key == QLatin1String("pushGamePresets") || key == QLatin1String("pushBenchmark")) {
+        // PushFPS: the user's own game presets and the last "Optimise for my PC" result,
+        // JSON written by the interface; size-capped and parsed here like pushProfiles.
+        const QString v = value.toString();
+        if (v.size() > 131072) return false;
+        QJsonParseError error{};
+        const QJsonDocument doc = QJsonDocument::fromJson(v.toUtf8(), &error);
+        if (error.error != QJsonParseError::NoError || !(doc.isObject() || doc.isArray())) return false;
+        stored = v;
+    } else if (key == QLatin1String("pushDiscordWebhook")) {
+        // PushFPS: only a Discord webhook address is accepted, so a clip is never sent elsewhere.
+        const QString v = value.toString().trimmed();
+        static const QRegularExpression webhook(QStringLiteral(
+            "^https://(?:(?:ptb|canary)\\.)?discord(?:app)?\\.com/api/webhooks/\\d+/[A-Za-z0-9_\\-]+$"));
+        if (!v.isEmpty() && (v.size() > 300 || !webhook.match(v).hasMatch())) {
+            emit notice(tr("这不是 Discord Webhook 地址（https://discord.com/api/webhooks/…）"), true);
+            return false;
+        }
         stored = v;
     } else if (key == QLatin1String("rememberPosition") || key == QLatin1String("dockPinned")) {
         stored = value.toBool();

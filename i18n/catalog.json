@@ -617,6 +617,13 @@
    "ja": "1 分"
   },
   {
+   "zh": "1% 低帧 %1 FPS，不够稳",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "1% 低幀 %1 FPS，不夠穩",
+   "en": "1% low only %1 FPS, not steady enough",
+   "ja": "1% Low が %1 FPS で安定しない"
+  },
+  {
    "zh": "10 分钟",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "10 分鐘",
@@ -727,6 +734,13 @@
    "zh-TW": "8 位配對碼",
    "en": "8-digit pairing code",
    "ja": "8 桁のペアリングコード"
+  },
+  {
+   "zh": "AI 增强",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "AI 增強",
+   "en": "AI enhancement",
+   "ja": "AI 補正"
   },
   {
    "zh": "AI 画面增强",
@@ -1073,7 +1087,7 @@
   },
   {
    "zh": "DLSS 帧生成",
-   "src": "src/ui/bridge/FrameGeneration.cpp",
+   "src": "qml/PushOptimizeDialog.qml",
    "zh-TW": "DLSS 幀生成",
    "en": "DLSS Frame Generation",
    "ja": "DLSS フレーム生成"
@@ -1105,6 +1119,20 @@
    "zh-TW": "DXGI 為顯示器相容方式，無滑鼠指標；擷取顯示器時不顯示黃色邊框，PushFPS 自己也不會出現在截圖和錄影裡",
    "en": "DXGI is the display-compatible mode, without the mouse pointer. A display capture shows no yellow border, and PushFPS itself stays out of screenshots and recordings",
    "ja": "DXGI はディスプレイ互換モードで、マウスポインターは映りません。ディスプレイのキャプチャでは黄色い枠を表示せず、PushFPS 自身もスクリーンショットや録画に映りません"
+  },
+  {
+   "zh": "Discord Webhook 地址无效或已被删除",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "Discord Webhook 位址無效或已被刪除",
+   "en": "The Discord webhook address is invalid or was deleted",
+   "ja": "Discord Webhook のアドレスが無効か、削除されています"
+  },
+  {
+   "zh": "Discord 拒绝了文件：太大",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "Discord 拒絕了檔案：太大",
+   "en": "Discord rejected the file: too large",
+   "ja": "Discord がファイルを拒否しました：大きすぎます"
   },
   {
    "zh": "Dolby / DTS 位流",
@@ -1275,6 +1303,13 @@
    "ja": "GPU ステージ · 直近 1 秒平均"
   },
   {
+   "zh": "GTA VI 等游戏的推荐设置，小地图和 HUD 保持清晰",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "GTA VI 等遊戲的建議設定，小地圖和 HUD 保持清晰",
+   "en": "Recommended settings for games like GTA VI, with a sharp minimap and HUD",
+   "ja": "GTA VI などのおすすめ設定。ミニマップと HUD をくっきり保ちます"
+  },
+  {
    "zh": "HDMI 采集设备",
    "src": "qml/CineBar.qml",
    "zh-TW": "HDMI 擷取裝置",
@@ -1427,6 +1462,13 @@
    "zh-TW": "HDR（10bit）匯出需要 NVIDIA NVENC；當前顯示卡只有 8bit 系統編碼器。請關閉 HDR 或換 N 卡匯出",
    "en": "HDR (10-bit) export needs NVIDIA NVENC; this GPU only has an 8-bit system encoder. Turn HDR off or export on an NVIDIA GPU",
    "ja": "HDR（10bit）の書き出しには NVIDIA NVENC が必要です。この GPU には 8bit のシステムエンコーダーしかありません。HDR をオフにするか、NVIDIA GPU で書き出してください"
+  },
+  {
+   "zh": "HUD 保护区域没有应用",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "HUD 保護區域沒有套用",
+   "en": "The HUD areas were not applied",
+   "ja": "HUD 保護エリアを適用できませんでした"
   },
   {
    "zh": "IP 或主机名，端口不是 47989 时写成 192.168.1.20:47989",
@@ -2129,6 +2171,13 @@
    "ja": "PushFPS は Veyra をベースにしています。Veyra は無料のオープンソース。皆さんの支援が支えです"
   },
   {
+   "zh": "PushFPS 已实测",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "PushFPS 已實測",
+   "en": "Tested with PushFPS",
+   "ja": "PushFPS で動作確認済み"
+  },
+  {
    "zh": "PushFPS 是自由软件，是 Veyra 的修改版本，依据 GNU 通用公共许可证第 3 版（GPL-3.0）发布。你可以在该许可证的条款下使用、修改和再分发它。本软件不提供任何担保。",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "PushFPS 是自由軟體，是 Veyra 的修改版本，依據 GNU 通用公共授權條款第 3 版（GPL-3.0）發布。你可以在該授權條款下使用、修改和再散布它。本軟體不提供任何擔保。",
@@ -2141,6 +2190,20 @@
    "zh-TW": "PushFPS 本地診斷（複製前脫敏預覽；不會上傳）\n",
    "en": "PushFPS local diagnostics (redacted preview before copying; nothing is uploaded)\n",
    "ja": "PushFPS ローカル診断（コピー前に匿名化してプレビュー。アップロードはしません）\n"
+  },
+  {
+   "zh": "PushFPS 游戏预设 (*.pushfps)",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "PushFPS 遊戲預設 (*.pushfps)",
+   "en": "PushFPS game preset (*.pushfps)",
+   "ja": "PushFPS ゲームプリセット (*.pushfps)"
+  },
+  {
+   "zh": "PushFPS 游戏预设 (*.pushfps);;所有文件 (*)",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "PushFPS 遊戲預設 (*.pushfps);;所有檔案 (*)",
+   "en": "PushFPS game preset (*.pushfps);;All files (*)",
+   "ja": "PushFPS ゲームプリセット (*.pushfps);;すべてのファイル (*)"
   },
   {
    "zh": "PushFPS 绿",
@@ -2428,6 +2491,13 @@
    "zh-TW": "VFG 需要 NVIDIA RTX 30 / 40 / 50（30 系為實驗相容）",
    "en": "VFG requires NVIDIA RTX 30 / 40 / 50 (RTX 30 compatibility is experimental)",
    "ja": "VFG には NVIDIA RTX 30 / 40 / 50 が必要です（30 シリーズは実験的対応）"
+  },
+  {
+   "zh": "Veyra 作者已实测",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "Veyra 作者已實測",
+   "en": "Tested by Veyra's developer",
+   "ja": "Veyra の開発者が動作確認済み"
   },
   {
    "zh": "VobSub 需要同名 .idx 和 .sub 文件，请加载 .idx",
@@ -3067,6 +3137,20 @@
    "ja": "補正なし"
   },
   {
+   "zh": "不补帧",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "不補幀",
+   "en": "No frame generation",
+   "ja": "フレーム生成なし"
+  },
+  {
+   "zh": "不补帧（基准）",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "不補幀（基準）",
+   "en": "No frame generation (baseline)",
+   "ja": "フレーム生成なし（基準）"
+  },
+  {
    "zh": "不计时",
    "src": "qml/NodePage.qml",
    "zh-TW": "不計時",
@@ -3310,6 +3394,13 @@
    "zh-TW": "為主機遊戲選好影格率和畫面，其他細節在專業模式裡",
    "en": "Pick a frame rate and picture for console games. Everything else is in Professional mode.",
    "ja": "コンソールゲームのフレームレートと画質を選びます。その他の設定はプロモードにあります。"
+  },
+  {
+   "zh": "为我的电脑优化",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "為我的電腦最佳化",
+   "en": "Optimise for my PC",
+   "ja": "この PC に最適化"
   },
   {
    "zh": "主字幕",
@@ -3802,6 +3893,13 @@
    "ja": "リストから削除。ファイルは保持します"
   },
   {
+   "zh": "代码已复制",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "代碼已複製",
+   "en": "Code copied",
+   "ja": "コードをコピーしました"
+  },
+  {
    "zh": "以下轨道当前封装无法保留，导出时跳过",
    "src": "src/engine/ExportStreams.cpp",
    "zh-TW": "以下軌道當前封裝無法保留，匯出時跳過",
@@ -3998,6 +4096,13 @@
    "ja": "保存後に起動時の既定にする"
   },
   {
+   "zh": "保存失败",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "儲存失敗",
+   "en": "Could not save",
+   "ja": "保存できませんでした"
+  },
+  {
    "zh": "保存失败（目标文件可能已存在），播放已保留",
    "src": "src/engine/EngineController.cpp",
    "zh-TW": "儲存失敗（目標檔案可能已存在），播放已保留",
@@ -4026,11 +4131,32 @@
    "ja": "保存エラー。再生は続行しています。もう一度保存できます"
   },
   {
+   "zh": "保存当前设置为预设",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "將目前設定存為預設",
+   "en": "Save current settings as a preset",
+   "ja": "現在の設定をプリセットとして保存"
+  },
+  {
+   "zh": "保存文件",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "儲存檔案",
+   "en": "Save file",
+   "ja": "ファイルに保存"
+  },
+  {
    "zh": "保存最近的画面和声音（%1）",
    "src": "qml/ProPage.qml",
    "zh-TW": "儲存最近的畫面和聲音（%1）",
    "en": "Save the latest picture and sound (%1)",
    "ja": "直近の映像と音声を保存（%1）"
+  },
+  {
+   "zh": "保存游戏预设",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "儲存遊戲預設",
+   "en": "Save game preset",
+   "ja": "ゲームプリセットを保存"
   },
   {
    "zh": "保存的 BMD 制式不可用，请重新选择",
@@ -4075,6 +4201,13 @@
    "ja": "プリセットの保存に失敗しました：%1"
   },
   {
+   "zh": "保护 HUD",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "保護 HUD",
+   "en": "Protect the HUD",
+   "ja": "HUD を保護"
+  },
+  {
    "zh": "保护区域参数无效",
    "src": "src/engine/EffectChain.cpp",
    "zh-TW": "保護區域參數無效",
@@ -4108,6 +4241,13 @@
    "zh-TW": "保持畫面 = 顯示解碼器修補後的畫面，動作不中斷；只對網路影片與 MPEG-TS 生效",
    "en": "Keep picture = show the picture the decoder patched up, so motion carries on; only applies to network video and MPEG-TS",
    "ja": "映像を維持 = デコーダーが補修した映像をそのまま表示し、動きを止めません。ネットワーク動画と MPEG-TS にのみ適用されます"
+  },
+  {
+   "zh": "保留",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "保留",
+   "en": "Keep",
+   "ja": "このまま使う"
   },
   {
    "zh": "保留全部",
@@ -4234,6 +4374,13 @@
    "zh-TW": "先中斷擷取，再設定驅動",
    "en": "Disconnect capture before configuring the driver",
    "ja": "キャプチャを切断してからドライバーを設定"
+  },
+  {
+   "zh": "先连接采集卡并让游戏画面出现，再开始优化",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "請先連接擷取卡並讓遊戲畫面出現，再開始最佳化",
+   "en": "Connect your capture card and get the game picture on screen first, then start",
+   "ja": "キャプチャーカードを接続してゲーム画面を表示してから開始してください"
   },
   {
    "zh": "先选择一个捕获目标",
@@ -4734,6 +4881,13 @@
    "ja": "付属トラックの書き込み"
   },
   {
+   "zh": "准备：",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "準備：",
+   "en": "Preparing: ",
+   "ja": "準備中："
+  },
+  {
    "zh": "减少 NR 明暗改动；1 为保留原图亮度",
    "src": "qml/NrLayerEditor.qml",
    "zh-TW": "減少 NR 明暗改動；1 為保留原圖亮度",
@@ -4781,6 +4935,27 @@
    "zh-TW": "出錯了：%1",
    "en": "Something went wrong: %1",
    "ja": "エラーが発生しました：%1"
+  },
+  {
+   "zh": "分享",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "分享",
+   "en": "Share",
+   "ja": "共有"
+  },
+  {
+   "zh": "分享到 Discord",
+   "src": "qml/PushRecordingSaved.qml",
+   "zh-TW": "分享到 Discord",
+   "en": "Share to Discord",
+   "ja": "Discord で共有"
+  },
+  {
+   "zh": "分享这个预设",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "分享這個預設",
+   "en": "Share this preset",
+   "ja": "このプリセットを共有"
   },
   {
    "zh": "分屏",
@@ -5028,6 +5203,13 @@
    "ja": "削除「"
   },
   {
+   "zh": "删除「%1」",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "刪除「%1」",
+   "en": "Delete “%1”",
+   "ja": "「%1」を削除"
+  },
+  {
    "zh": "删除失败，请检查目录权限。",
    "src": "src/ui/bridge/RemotePlay.cpp",
    "zh-TW": "刪除失敗，請檢查目錄權限。",
@@ -5133,6 +5315,13 @@
    "ja": "ページを開く"
   },
   {
+   "zh": "剧情游戏和电影：整个画面都补帧",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "劇情遊戲和電影：整個畫面都補幀",
+   "en": "Story games and films: the whole picture gets frame generation",
+   "ja": "ストーリー重視のゲームや映画：画面全体をフレーム生成"
+  },
+  {
    "zh": "剪辑入点已超过源视频时长",
    "src": "src/engine/VideoExportJob.cpp",
    "zh-TW": "剪輯入點已超過源影片時長",
@@ -5217,11 +5406,25 @@
    "ja": "ファイルを読み込む…"
   },
   {
+   "zh": "动作 · HUD 在下方两角",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "動作 · HUD 在下方兩角",
+   "en": "Action · HUD in the bottom corners",
+   "ja": "アクション · HUD 下の両隅"
+  },
+  {
    "zh": "包含",
    "src": "qml/SavePresetDialog.qml",
    "zh-TW": "包含",
    "en": "Includes",
    "ja": "含む"
+  },
+  {
+   "zh": "包含游戏帧率、目标帧率和你在专业模式中画的全效果剔除区域",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "包含遊戲幀率、目標幀率和你在專業模式中畫的全效果剔除區域",
+   "en": "Includes the game frame rate, target frame rate and the “Exclude all effects” areas you drew in Professional mode",
+   "ja": "ゲームのフレームレート、目標フレームレート、プロモードで描いた「全エフェクト除外」エリアを含みます"
   },
   {
    "zh": "匹配显示器",
@@ -5693,6 +5896,20 @@
    "ja": "PS5 に要求する帯域幅です。本体が達成するとは限りません"
   },
   {
+   "zh": "发送到 Discord",
+   "src": "qml/PushRecordingSaved.qml",
+   "zh-TW": "傳送到 Discord",
+   "en": "Send to Discord",
+   "ja": "Discord に送信"
+  },
+  {
+   "zh": "发送到 Discord 失败（%1）",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "傳送到 Discord 失敗（%1）",
+   "en": "Could not send to Discord (%1)",
+   "ja": "Discord への送信に失敗しました（%1）"
+  },
+  {
    "zh": "取消",
    "src": "qml/CaptureSourceDialog.qml",
    "zh-TW": "取消",
@@ -5840,6 +6057,13 @@
    "ja": "開けるのはローカルファイルだけです"
   },
   {
+   "zh": "只达到 %1 FPS",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "只達到 %1 FPS",
+   "en": "Reached only %1 FPS",
+   "ja": "%1 FPS までしか出ません"
+  },
+  {
    "zh": "只连接明确选中的输入，默认不监听",
    "src": "qml/CaptureSourceDialog.qml",
    "zh-TW": "只連接明確選中的輸入，預設不監聽",
@@ -5910,6 +6134,27 @@
    "ja": "オプション · キャプチャカードの直接入力が無音の場合に使用"
   },
   {
+   "zh": "可选。在 Discord 频道 → 编辑频道 → 整合 → Webhook 中复制地址；不填时“分享到 Discord”会复制文件并打开 Discord",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "選填。在 Discord 頻道 → 編輯頻道 → 整合 → Webhook 中複製位址；不填時「分享到 Discord」會複製檔案並開啟 Discord",
+   "en": "Optional. Copy it in Discord under the channel → Edit channel → Integrations → Webhooks. Without one, “Share to Discord” copies the file and opens Discord",
+   "ja": "任意。Discord のチャンネル → チャンネルの編集 → 連携サービス → ウェブフック でアドレスをコピーします。未設定なら「Discord で共有」はファイルをコピーして Discord を開きます"
+  },
+  {
+   "zh": "右上角的小地图或指南针",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "右上角的小地圖或指南針",
+   "en": "Minimap or compass in the top right corner",
+   "ja": "右上のミニマップまたはコンパス"
+  },
+  {
+   "zh": "右下角的速度、挡位和小地图",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "右下角的速度、檔位和小地圖",
+   "en": "Speed, gear and minimap in the bottom right corner",
+   "ja": "右下に速度、ギア、ミニマップ"
+  },
+  {
    "zh": "右键空白添加 · 拖到连线上插入 · 拖远（上下超过一截）或按住 Alt 松手即断开 · 端口拖拽/点击连线 · 中键平移 · 滚轮缩放",
    "src": "qml/NodePage.qml",
    "zh-TW": "右鍵空白添加 · 拖到連線上插入 · 拖遠（上下超過一截）或按住 Alt 鬆手即斷開 · 端口拖拽/點擊連線 · 中鍵平移 · 滾輪縮放",
@@ -5964,6 +6209,13 @@
    "zh-TW": "同時柔化過大的亮度和顏色變化",
    "en": "Soften excessive lightness and color changes together",
    "ja": "過大な明度と色の変化を同時に抑えます"
+  },
+  {
+   "zh": "名称",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "名稱",
+   "en": "Name",
+   "ja": "名前"
   },
   {
    "zh": "名称 A → Z",
@@ -6379,6 +6631,20 @@
    "ja": "オリジナル保護の後に実行"
   },
   {
+   "zh": "在实际画面上测试每种组合，自动选出最好的一种",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "在實際畫面上測試每種組合，自動選出最好的一種",
+   "en": "Tests every combination on your real picture and picks the best one",
+   "ja": "実際の画面ですべての組み合わせを試し、最適なものを自動で選びます"
+  },
+  {
+   "zh": "在实际画面上逐一测试补帧方式、AI 画质增强和超分，选出最流畅、延迟最低的组合",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "在實際畫面上逐一測試補幀方式、AI 畫質增強和超解析，選出最流暢、延遲最低的組合",
+   "en": "Tests each frame generation method, AI enhancement and upscaler on your real picture and picks the smoothest, lowest-latency combination",
+   "ja": "実際の画面でフレーム生成方式、AI 補正、超解像を一つずつ試し、最も滑らかで遅延の少ない組み合わせを選びます"
+  },
+  {
    "zh": "在手机或浏览器打开 ",
    "src": "qml/XboxSourceDialog.qml",
    "zh-TW": "在手機或瀏覽器開啟 ",
@@ -6419,6 +6685,13 @@
    "zh-TW": "在畫面上按住左鍵拖曳分割線：左邊原畫、右邊增強。",
    "en": "Hold the left button on the picture and drag the divider: original on the left, enhanced on the right.",
    "ja": "映像上で左ボタンを押したまま分割線をドラッグ：左がオリジナル、右が補正後です。"
+  },
+  {
+   "zh": "在画面上显示延迟",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "在畫面上顯示延遲",
+   "en": "Show latency on screen",
+   "ja": "画面に遅延を表示"
   },
   {
    "zh": "在线",
@@ -6785,6 +7058,20 @@
    "ja": "新しい層としてコピー"
   },
   {
+   "zh": "复制代码",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "複製代碼",
+   "en": "Copy code",
+   "ja": "コードをコピー"
+  },
+  {
+   "zh": "复制代码发给朋友或贴到 Reddit / Discord；也可以保存为文件",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "複製代碼傳給朋友或貼到 Reddit / Discord；也可以存成檔案",
+   "en": "Copy the code to send to friends or post on Reddit / Discord, or save it as a file",
+   "ja": "コードをコピーして友達に送ったり Reddit / Discord に貼ったりできます。ファイルにも保存できます"
+  },
+  {
    "zh": "复制到 luts 目录失败",
    "src": "src/engine/ColorLut.cpp",
    "zh-TW": "複製到 luts 目錄失敗",
@@ -6811,6 +7098,13 @@
    "zh-TW": "複製字型附件",
    "en": "Copy font attachment",
    "ja": "フォント添付のコピー"
+  },
+  {
+   "zh": "复制文件",
+   "src": "qml/PushRecordingSaved.qml",
+   "zh-TW": "複製檔案",
+   "en": "Copy file",
+   "ja": "ファイルをコピー"
   },
   {
    "zh": "复制此层",
@@ -7310,6 +7604,13 @@
    "ja": "リアルタイムプレビュー。設定はすべてのファイルに適用"
   },
   {
+   "zh": "实测电脑处理延迟（采集卡画面到达到交给显示器）和帧率；采集卡、显示器和游戏的延迟另计",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "實測電腦處理延遲（擷取卡畫面到達到交給顯示器）和幀率；擷取卡、顯示器和遊戲的延遲另計",
+   "en": "Measured PC latency (capture card picture arriving to handing it to the display) and frame rate; the capture card, display and game add their own",
+   "ja": "PC の処理遅延（キャプチャー映像の到着からディスプレイへの受け渡しまで）とフレームレートを実測します。キャプチャーカード、ディスプレイ、ゲーム自体の遅延は別です"
+  },
+  {
    "zh": "实线：当前值 · 虚线：默认值；向外增加该项，并非越大越好。",
    "src": "qml/NrWebPad.qml",
    "zh-TW": "實線：目前值 · 虛線：預設值；向外增加該項，並非越大越好。",
@@ -7758,6 +8059,13 @@
    "ja": "コンテナー"
   },
   {
+   "zh": "射击 · HUD 在四个角",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "射擊 · HUD 在四個角",
+   "en": "Shooter · HUD in all four corners",
+   "ja": "シューター · HUD 四隅"
+  },
+  {
    "zh": "将保存的内容 · 当前正在使用的",
    "src": "qml/SavePresetDialog.qml",
    "zh-TW": "將儲存的內容 · 當前正在使用的",
@@ -7784,6 +8092,13 @@
    "zh-TW": "小",
    "en": "Small",
    "ja": "小"
+  },
+  {
+   "zh": "小地图在左下，金钱和通缉等级在右上。位置按 GTA 系列推测，开始玩后请检查一下",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "小地圖在左下，金錢和通緝等級在右上。位置按 GTA 系列推測，開始玩後請檢查一下",
+   "en": "Minimap bottom left, money and wanted level top right. Layout estimated from the GTA series; check it once you play",
+   "ja": "ミニマップは左下、所持金と手配度は右上。位置は GTA シリーズからの推定なので、プレイ開始後に確認してください"
   },
   {
    "zh": "尚无导出任务",
@@ -7975,6 +8290,20 @@
    "ja": "左 / 上 / 右 / 下、ソースのピクセル単位"
   },
   {
+   "zh": "左下角的圆形或方形小地图",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "左下角的圓形或方形小地圖",
+   "en": "Round or square minimap in the bottom left corner",
+   "ja": "左下の円形または四角形のミニマップ"
+  },
+  {
+   "zh": "左下角血量，右下角武器和弹药",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "左下角血量，右下角武器和彈藥",
+   "en": "Health bottom left, weapon and ammo bottom right",
+   "ja": "左下に体力、右下に武器と弾薬"
+  },
+  {
    "zh": "已从上次位置 %1 继续",
    "src": "src/ui/QmlPlayerBridge.cpp",
    "zh-TW": "已從上次位置 %1 繼續",
@@ -7994,6 +8323,13 @@
    "zh-TW": "已儲存",
    "en": "Saved",
    "ja": "保存済み"
+  },
+  {
+   "zh": "已保存「%1」（%2 个 HUD 区域）",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "已儲存「%1」（%2 個 HUD 區域）",
+   "en": "Saved “%1” (%2 HUD areas)",
+   "ja": "「%1」を保存しました（HUD エリア %2 個）"
   },
   {
    "zh": "已保存主机",
@@ -8022,6 +8358,13 @@
    "zh-TW": "已儲存顏色預設：%1",
    "en": "Color preset saved: %1",
    "ja": "カラープリセットを保存しました：%1"
+  },
+  {
+   "zh": "已保存：%1",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "已儲存：%1",
+   "en": "Saved: %1",
+   "ja": "保存しました：%1"
   },
   {
    "zh": "已停止",
@@ -8087,6 +8430,13 @@
    "ja": "削除しました。"
   },
   {
+   "zh": "已删除「%1」",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "已刪除「%1」",
+   "en": "Deleted “%1”",
+   "ja": "「%1」を削除しました"
+  },
+  {
    "zh": "已刷新显示器状态：系统 HDR %1 · 可变刷新 %2",
    "src": "src/ui/bridge/Status.cpp",
    "zh-TW": "已重新整理顯示器狀態：系統 HDR %1 · 可變更新 %2",
@@ -8113,6 +8463,13 @@
    "zh-TW": "已載入外部字幕：%1",
    "en": "External subtitles loaded: %1",
    "ja": "外部字幕を読み込みました：%1"
+  },
+  {
+   "zh": "已发送到 Discord：%1",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "已傳送到 Discord：%1",
+   "en": "Sent to Discord: %1",
+   "ja": "Discord に送信しました：%1"
   },
   {
    "zh": "已发送唤醒请求，等待 PS5 开机后再连接。",
@@ -8234,11 +8591,25 @@
    "ja": "プロモードで手動設定されています"
   },
   {
+   "zh": "已复制片段，在 Discord 中按 Ctrl+V 粘贴",
+   "src": "qml/PushRecordingSaved.qml",
+   "zh-TW": "已複製片段，在 Discord 中按 Ctrl+V 貼上",
+   "en": "Clip copied. Press Ctrl+V in Discord to paste it",
+   "ja": "クリップをコピーしました。Discord で Ctrl+V で貼り付けてください"
+  },
+  {
    "zh": "已复制调色参数",
    "src": "src/ui/bridge/Preferences.cpp",
    "zh-TW": "已複製調色參數",
    "en": "Color settings copied",
    "ja": "カラー設定をコピーしました"
+  },
+  {
+   "zh": "已复制，可粘贴到任何聊天或文件夹",
+   "src": "qml/PushRecordingSaved.qml",
+   "zh-TW": "已複製，可貼到任何聊天或資料夾",
+   "en": "Copied. Paste it into any chat or folder",
+   "ja": "コピーしました。チャットやフォルダーに貼り付けられます"
   },
   {
    "zh": "已套用该显示设备的 HDR 曲线配置",
@@ -8309,6 +8680,20 @@
    "zh-TW": "已匯出顏色預設",
    "en": "Color preset exported",
    "ja": "カラープリセットを書き出しました"
+  },
+  {
+   "zh": "已应用「%1」",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "已套用「%1」",
+   "en": "Applied “%1”",
+   "ja": "「%1」を適用しました"
+  },
+  {
+   "zh": "已应用「%1」，%2 个 HUD 区域受保护。可在专业模式 → 画质 → 全效果剔除 中微调",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "已套用「%1」，%2 個 HUD 區域受保護。可在專業模式 → 畫質 → 全效果剔除 中微調",
+   "en": "Applied “%1”: %2 HUD areas protected. Fine-tune them in Professional mode → Quality → Exclude all effects",
+   "ja": "「%1」を適用し、HUD エリア %2 個を保護しました。プロモード → 画質 → 全エフェクト除外 で調整できます"
   },
   {
    "zh": "已开启",
@@ -8423,11 +8808,25 @@
    "ja": "VB-CABLE はインストール済みです"
   },
   {
+   "zh": "已测试",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "已測試",
+   "en": "Tested",
+   "ja": "確認済み"
+  },
+  {
    "zh": "已添加 %1 项 · 列表共 %2 项",
    "src": "src/ui/PlaylistModel.cpp",
    "zh-TW": "已新增 %1 項 · 清單共 %2 項",
    "en": "Added %1 items · %2 total",
    "ja": "%1 件追加 · 合計 %2 件"
+  },
+  {
+   "zh": "已添加「%1」",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "已新增「%1」",
+   "en": "Added “%1”",
+   "ja": "「%1」を追加しました"
   },
   {
    "zh": "已清除影片记忆",
@@ -8556,6 +8955,13 @@
    "ja": "起動時の既定プリセットに設定しました"
   },
   {
+   "zh": "已设置：保存的片段可一键发送到这个频道（10 MB 以内）",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "已設定：儲存的片段可一鍵傳送到這個頻道（10 MB 以內）",
+   "en": "Set: saved clips go to this channel in one click (up to 10 MB)",
+   "ja": "設定済み：保存したクリップをワンクリックでこのチャンネルに送れます（10 MB まで）"
+  },
+  {
    "zh": "已请求",
    "src": "src/ui/bridge/FrameGeneration.cpp",
    "zh-TW": "已請求",
@@ -8668,6 +9074,13 @@
    "ja": "フレーム同期 · 既定はオフ"
   },
   {
+   "zh": "帧数不足，无法测量",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "幀數不足，無法測量",
+   "en": "Too few frames to measure",
+   "ja": "フレーム数が足りず測定できません"
+  },
+  {
    "zh": "帧率",
    "src": "qml/CaptureSourceDialog.qml",
    "zh-TW": "幀率",
@@ -8759,6 +9172,34 @@
    "ja": "下端からの距離"
   },
   {
+   "zh": "延迟 %1 ms",
+   "src": "qml/PushLatencyBadge.qml",
+   "zh-TW": "延遲 %1 ms",
+   "en": "Latency %1 ms",
+   "ja": "遅延 %1 ms"
+  },
+  {
+   "zh": "延迟 = 采集卡画面到达电脑到交给显示器的时间（电脑处理部分，不含采集卡、显示器和游戏本身）。1% 低帧越接近平均帧率越流畅。",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "延遲 = 擷取卡畫面到達電腦到交給顯示器的時間（電腦處理部分，不含擷取卡、顯示器和遊戲本身）。1% 低幀越接近平均幀率越流暢。",
+   "en": "Latency = time from the capture card picture reaching the PC to it being handed to the display (the PC part only; not the capture card, display or game). The closer the 1% low is to the average, the smoother.",
+   "ja": "遅延 = キャプチャー映像が PC に届いてからディスプレイに渡すまでの時間（PC の処理分のみ。キャプチャーカード、ディスプレイ、ゲーム自体は含みません）。1% Low が平均に近いほど滑らかです。"
+  },
+  {
+   "zh": "延迟 测量中",
+   "src": "qml/PushLatencyBadge.qml",
+   "zh-TW": "延遲 測量中",
+   "en": "Latency measuring",
+   "ja": "遅延 測定中"
+  },
+  {
+   "zh": "延迟增加太多（%1 ms）",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "延遲增加太多（%1 ms）",
+   "en": "Adds too much latency (%1 ms)",
+   "ja": "遅延が増えすぎます（%1 ms）"
+  },
+  {
    "zh": "开",
    "src": "qml/NvidiaLowLatencyEditor.qml",
    "zh-TW": "開",
@@ -8829,6 +9270,13 @@
    "ja": "ストリーミング開始"
   },
   {
+   "zh": "开始优化",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "開始最佳化",
+   "en": "Start",
+   "ja": "最適化を開始"
+  },
+  {
    "zh": "开始写入后按已写入量推算",
    "src": "src/ui/bridge/View.cpp",
    "zh-TW": "開始寫入後按已寫入量推算",
@@ -8883,6 +9331,20 @@
    "zh-TW": "開播自動選檔",
    "en": "Auto-select on playback",
    "ja": "再生時に自動選択"
+  },
+  {
+   "zh": "开放世界 · 小地图在右上",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "開放世界 · 小地圖在右上",
+   "en": "Open world · minimap top right",
+   "ja": "オープンワールド · ミニマップ右上"
+  },
+  {
+   "zh": "开放世界 · 小地图在左下",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "開放世界 · 小地圖在左下",
+   "en": "Open world · minimap bottom left",
+   "ja": "オープンワールド · ミニマップ左下"
   },
   {
    "zh": "开机",
@@ -9592,11 +10054,25 @@
    "ja": "既定に戻す"
   },
   {
+   "zh": "我的",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "我的",
+   "en": "mine",
+   "ja": "自分"
+  },
+  {
    "zh": "我的屏能到多少 nit；0 = 自动",
    "src": "qml/ProDisplayPanel.qml",
    "zh-TW": "我的屏能到多少 nit；0 = 自動",
    "en": "Display peak in nits; 0 = automatic",
    "ja": "ディスプレイのピーク輝度（nit）。0 = 自動"
+  },
+  {
+   "zh": "我的预设",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "我的預設",
+   "en": "My preset",
+   "ja": "自分のプリセット"
   },
   {
    "zh": "截图",
@@ -9837,6 +10313,13 @@
    "ja": "字幕デコーダーを開く"
   },
   {
+   "zh": "打开文件",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "開啟檔案",
+   "en": "Open file",
+   "ja": "ファイルを開く"
+  },
+  {
    "zh": "打开文件 / 导出页",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "開啟檔案 / 匯出頁",
@@ -9877,6 +10360,13 @@
    "zh-TW": "開啟時的預設頁面",
    "en": "Page shown at startup",
    "ja": "起動時に表示する画面"
+  },
+  {
+   "zh": "打开游戏预设",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "開啟遊戲預設",
+   "en": "Open game preset",
+   "ja": "ゲームプリセットを開く"
   },
   {
    "zh": "打开源代码页",
@@ -10094,6 +10584,13 @@
    "zh-TW": "抗閃爍檔位",
    "en": "Anti-flicker level",
    "ja": "ちらつき防止のレベル"
+  },
+  {
+   "zh": "报告",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "回報",
+   "en": "Report",
+   "ja": "報告"
   },
   {
    "zh": "抬升范围 (nit)",
@@ -10594,6 +11091,13 @@
    "ja": "値が大きいほどハイライトの変化が緩やかになります"
   },
   {
+   "zh": "整个画面补帧",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "整個畫面補幀",
+   "en": "Frame generation on the whole picture",
+   "ja": "画面全体をフレーム生成"
+  },
+  {
    "zh": "整体亮暗",
    "src": "qml/ProDisplayPanel.qml",
    "zh-TW": "整體亮暗",
@@ -10676,6 +11180,13 @@
    "zh-TW": "檔案不存在或已移動：%1",
    "en": "File missing or moved: %1",
    "ja": "ファイルが見つからないか移動されています：%1"
+  },
+  {
+   "zh": "文件不存在：%1",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "檔案不存在：%1",
+   "en": "File not found: %1",
+   "ja": "ファイルがありません：%1"
   },
   {
    "zh": "文件中没有可导出的视频轨道",
@@ -10816,6 +11327,13 @@
    "zh-TW": "無法為本次匯出預留唯一臨時檔案",
    "en": "Could not reserve a unique temporary file for this export",
    "ja": "今回の書き出し用の一時ファイルを確保できませんでした"
+  },
+  {
+   "zh": "无法保存文件：%1",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "無法儲存檔案：%1",
+   "en": "Could not save the file: %1",
+   "ja": "ファイルを保存できません：%1"
   },
   {
    "zh": "无法保存虚拟扬声器安装包",
@@ -11182,6 +11700,20 @@
    "ja": "ディスプレイの対応を検出できません（現在は NVIDIA GPU のみ）"
   },
   {
+   "zh": "无法测量",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "無法測量",
+   "en": "Could not measure",
+   "ja": "測定できません"
+  },
+  {
+   "zh": "无法测量基准画面：%1",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "無法測量基準畫面：%1",
+   "en": "Could not measure the baseline picture: %1",
+   "ja": "基準画面を測定できません：%1"
+  },
+  {
    "zh": "无法添加文件：%1",
    "src": "src/ui/bridge/Chain.cpp",
    "zh-TW": "無法添加檔案：%1",
@@ -11229,6 +11761,13 @@
    "zh-TW": "無法讀取匯入檔案",
    "en": "Could not read the imported file",
    "ja": "インポートしたファイルを読み取れません"
+  },
+  {
+   "zh": "无法读取文件：%1",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "無法讀取檔案：%1",
+   "en": "Could not read the file: %1",
+   "ja": "ファイルを読み込めません：%1"
   },
   {
    "zh": "无法读取源文件",
@@ -11798,6 +12337,13 @@
    "ja": "迫力ある低音。アクションシーン向け"
   },
   {
+   "zh": "最佳组合：%1。已应用。",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "最佳組合：%1。已套用。",
+   "en": "Best combination: %1. Applied.",
+   "ja": "最適な組み合わせ：%1。適用しました。"
+  },
+  {
    "zh": "最多 4 个保护区域，请先删除一个",
    "src": "src/ui/bridge/View.cpp",
    "zh-TW": "最多 4 個保護區域，請先刪除一個",
@@ -12041,6 +12587,13 @@
    "zh-TW": "未測",
    "en": "N/A",
    "ja": "未計測"
+  },
+  {
+   "zh": "未测试",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "未測試",
+   "en": "Not tested",
+   "ja": "未確認"
   },
   {
    "zh": "未测量",
@@ -12645,6 +13198,13 @@
    "ja": "外部字幕を読み込み中：%1"
   },
   {
+   "zh": "正在发送…",
+   "src": "qml/PushRecordingSaved.qml",
+   "zh-TW": "正在傳送…",
+   "en": "Sending…",
+   "ja": "送信中…"
+  },
+  {
    "zh": "正在取消…",
    "src": "src/ui/MoonlightModel.cpp",
    "zh-TW": "正在取消…",
@@ -12853,6 +13413,13 @@
    "zh-TW": "正在檢查主機…",
    "en": "Checking the host…",
    "ja": "ホストを確認中…"
+  },
+  {
+   "zh": "正在测量：",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "正在測量：",
+   "en": "Measuring: ",
+   "ja": "測定中："
   },
   {
    "zh": "正在登录 Xbox 串流服务…",
@@ -13121,6 +13688,20 @@
    "ja": "%1 フレームに 1 回再利用"
   },
   {
+   "zh": "每个游戏的推荐设置，并让小地图和 HUD 保持清晰（这些区域不补帧、不做画质效果）",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "每個遊戲的建議設定，並讓小地圖和 HUD 保持清晰（這些區域不補幀、不做畫質效果）",
+   "en": "Recommended settings per game, with a sharp minimap and HUD (those areas get no frame generation and no effects)",
+   "ja": "ゲームごとのおすすめ設定。ミニマップと HUD をくっきり保ちます（そのエリアはフレーム生成もエフェクトもなし）"
+  },
+  {
+   "zh": "每个角都有小元素",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "每個角都有小元素",
+   "en": "Small elements in every corner",
+   "ja": "各隅に小さな表示"
+  },
+  {
    "zh": "每帧识别 · 320 像素，最省；远处的小脸可能识别不到",
    "src": "qml/BeautyEditor.qml",
    "zh-TW": "每幀識別 · 320 像素，最省；遠處的小臉可能識別不到",
@@ -13147,6 +13728,13 @@
    "zh-TW": "比較源畫面與上一幀：沒有明顯變化的像素沿用上一幀輸出，明顯變化的位置直接用新結果。",
    "en": "Compares the source with the previous frame: pixels without a clear change reuse the previous output; clearly changed areas take the new result directly.",
    "ja": "ソースを前のフレームと比較し、目立った変化のないピクセルは前の出力を使い、変化した部分は新しい結果をそのまま使います。"
+  },
+  {
+   "zh": "没有一种补帧组合能稳定达到目标，已保留原来的设置。可降低目标帧率或关闭其他效果后再试",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "沒有一種補幀組合能穩定達到目標，已保留原來的設定。可降低目標幀率或關閉其他效果後再試",
+   "en": "No frame generation combination held its target steadily, so your settings were kept. Try a lower target or turn other effects off, then run it again",
+   "ja": "目標を安定して達成できる組み合わせがなかったため、元の設定のままです。目標フレームレートを下げるか他のエフェクトをオフにして再試行してください"
   },
   {
    "zh": "没有匹配的格式",
@@ -13247,6 +13835,13 @@
    "ja": "表示中の字幕はありません"
   },
   {
+   "zh": "没有真正生成帧",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "沒有真正生成幀",
+   "en": "Did not actually generate frames",
+   "ja": "実際にはフレームを生成していません"
+  },
+  {
    "zh": "没有读到字幕数据（请检查封装或压缩支持）",
    "src": "src/engine/Subtitles.cpp",
    "zh-TW": "未讀到字幕資料（請檢查封裝或壓縮支援）",
@@ -13273,6 +13868,13 @@
    "zh-TW": "沒有需要拼接的分段",
    "en": "No parts to join",
    "ja": "結合する分割がありません"
+  },
+  {
+   "zh": "没能启动",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "沒能啟動",
+   "en": "Did not start",
+   "ja": "起動しませんでした"
   },
   {
    "zh": "没能继续上次的 PC 串流，请在 PC 串流窗口里重新选择",
@@ -13324,6 +13926,20 @@
    "ja": "ライトグリーン"
   },
   {
+   "zh": "测试中请不要切换画面；可以继续玩",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "測試中請不要切換畫面；可以繼續玩",
+   "en": "Don't switch sources while it runs; you can keep playing",
+   "ja": "テスト中は画面を切り替えないでください。プレイは続けられます"
+  },
+  {
+   "zh": "测量中设置被改变",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "測量中設定被改變",
+   "en": "Settings changed during the measurement",
+   "ja": "測定中に設定が変更されました"
+  },
+  {
    "zh": "深黑底上的极轻渐变与抖动（防色带）",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "深黑底上的極輕漸變與抖動（防色帶）",
@@ -13350,6 +13966,13 @@
    "zh-TW": "添加",
    "en": "Add",
    "ja": "追加"
+  },
+  {
+   "zh": "添加别人的预设",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "新增別人的預設",
+   "en": "Add someone's preset",
+   "ja": "他の人のプリセットを追加"
   },
   {
    "zh": "添加当前文件",
@@ -13444,7 +14067,7 @@
   },
   {
    "zh": "游戏",
-   "src": "qml/ScreenSourceDialog.qml",
+   "src": "qml/PushGamePresetsDialog.qml",
    "zh-TW": "遊戲",
    "en": "Game",
    "ja": "ゲーム"
@@ -13483,6 +14106,13 @@
    "zh-TW": "遊戲幀率",
    "en": "Game frame rate",
    "ja": "ゲームのフレームレート"
+  },
+  {
+   "zh": "游戏帧率 · 目标",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "遊戲幀率 · 目標",
+   "en": "Game frame rate · target",
+   "ja": "ゲームのフレームレート · 目標"
   },
   {
    "zh": "游戏模式",
@@ -13539,6 +14169,13 @@
    "zh-TW": "遊戲設定檔",
    "en": "Game profile",
    "ja": "ゲームプロファイル"
+  },
+  {
+   "zh": "游戏预设",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "遊戲預設",
+   "en": "Game presets",
+   "ja": "ゲームプリセット"
   },
   {
    "zh": "源 %1 fps",
@@ -13679,6 +14316,13 @@
    "zh-TW": "點曲線",
    "en": "Point curve",
    "ja": "ポイントカーブ"
+  },
+  {
+   "zh": "片段有 %1 MB，Discord 默认只接收 10 MB 以内的文件。已复制到剪贴板，可在 Discord 中粘贴（会提示压缩或使用 Nitro）",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "片段有 %1 MB，Discord 預設只接受 10 MB 以內的檔案。已複製到剪貼簿，可在 Discord 中貼上（會提示壓縮或使用 Nitro）",
+   "en": "The clip is %1 MB and Discord takes 10 MB by default. It is on your clipboard: paste it in Discord (it will offer to compress it or use Nitro)",
+   "ja": "クリップは %1 MB です。Discord の既定の上限は 10 MB のため、クリップボードにコピーしました。Discord で貼り付けてください（圧縮または Nitro の案内が出ます）"
   },
   {
    "zh": "片源",
@@ -13828,6 +14472,13 @@
    "ja": "シネマティック"
   },
   {
+   "zh": "电影感 · 不保护 HUD",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "電影感 · 不保護 HUD",
+   "en": "Cinematic · no HUD protection",
+   "ja": "シネマティック · HUD 保護なし"
+  },
+  {
    "zh": "画圆形",
    "src": "qml/MaskEditor.qml",
    "zh-TW": "畫圓形",
@@ -13882,6 +14533,13 @@
    "zh-TW": "畫面偏灰、平淡的老片或轉製片：提高對比觀感。",
    "en": "Adds contrast to flat or faded transfers.",
    "ja": "平坦な映像のコントラスト感を高めます。"
+  },
+  {
+   "zh": "画面停止了，优化已取消，设置已恢复",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "畫面停止了，最佳化已取消，設定已還原",
+   "en": "The picture stopped. Optimising was cancelled and your settings restored",
+   "ja": "映像が止まったため最適化を中止し、設定を元に戻しました"
   },
   {
    "zh": "画面变化超过时丢弃历史；越高越不容易拖影",
@@ -14626,6 +15284,13 @@
    "ja": "粗い"
   },
   {
+   "zh": "粘贴 PUSHFPS1: 代码",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "貼上 PUSHFPS1: 代碼",
+   "en": "Paste a PUSHFPS1: code",
+   "ja": "PUSHFPS1: コードを貼り付け"
+  },
+  {
    "zh": "粘贴调色参数",
    "src": "qml/ColourPanel.qml",
    "zh-TW": "貼上調色參數",
@@ -14883,6 +15548,13 @@
    "zh-TW": "綠色",
    "en": "Green",
    "ja": "グリーン"
+  },
+  {
+   "zh": "绿色区域保持主机原画，不补帧，文字和小地图不会糊",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "綠色區域保持主機原畫，不補幀，文字和小地圖不會糊",
+   "en": "Green areas keep the console picture as it is, with no frame generation, so text and the minimap stay sharp",
+   "ja": "緑のエリアはゲーム機の映像のまま、フレーム生成なし。文字やミニマップがにじみません"
   },
   {
    "zh": "缓冲 %1 s",
@@ -16320,6 +16992,13 @@
    "ja": "ホストをストリーミング解像度に切り替える"
   },
   {
+   "zh": "让游戏画面通过采集卡显示出来，然后开始。PushFPS 会在实际画面上依次测试每种可用的组合（每种约 10 秒，共 1 到 2 分钟），测量真实帧率、1% 低帧和延迟，选出最好的一种。",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "讓遊戲畫面透過擷取卡顯示出來，然後開始。PushFPS 會在實際畫面上依序測試每種可用的組合（每種約 10 秒，共 1 到 2 分鐘），測量真實幀率、1% 低幀和延遲，選出最好的一種。",
+   "en": "Get the game on screen through your capture card, then start. PushFPS tests every available combination on your real picture (about 10 seconds each, 1 to 2 minutes in all), measures the real frame rate, 1% low and latency, and picks the best one.",
+   "ja": "キャプチャーカード経由でゲーム画面を表示してから開始します。PushFPS は使える組み合わせを実際の画面で順に試し（各約 10 秒、全体で 1〜2 分）、実際のフレームレート、1% Low、遅延を測って最適なものを選びます。"
+  },
+  {
    "zh": "记住上次大小",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "記住上次大小",
@@ -16600,6 +17279,13 @@
    "ja": "先にこのホストとペアリングしてください。"
   },
   {
+   "zh": "请先在 设置 → 播放 中填写 Discord Webhook 地址",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "請先在 設定 → 播放 中填寫 Discord Webhook 位址",
+   "en": "Add a Discord webhook address in Settings → Playback first",
+   "ja": "先に 設定 → 再生 で Discord Webhook のアドレスを入力してください"
+  },
+  {
    "zh": "请先完成配对，并填写有效主机地址。",
    "src": "src/ui/bridge/RemotePlay.cpp",
    "zh-TW": "請先完成配對，並填寫有效主機地址。",
@@ -16661,6 +17347,13 @@
    "zh-TW": "請先登入 Xbox 帳號。",
    "en": "Sign in to your Xbox account first.",
    "ja": "先に Xbox アカウントにサインインしてください。"
+  },
+  {
+   "zh": "请先输入名称",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "請先輸入名稱",
+   "en": "Enter a name first",
+   "ja": "先に名前を入力してください"
   },
   {
    "zh": "请先连接串流及带陀螺仪的电脑手柄。仅观看模式不使用电脑手柄。",
@@ -17053,6 +17746,13 @@
    "zh-TW": "資源不足",
    "en": "not enough resources",
    "ja": "リソースが不足しています"
+  },
+  {
+   "zh": "赛车 · 速度表在右下",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "賽車 · 速度表在右下",
+   "en": "Racing · speedometer bottom right",
+   "ja": "レース · スピードメーター右下"
   },
   {
    "zh": "赞助作者",
@@ -17832,6 +18532,13 @@
    "ja": "ホストがまだありません。ストリーミングしたい PC に Sunshine をインストールし（公式サイト app.lizardbyte.dev/Sunshine、本アプリには同梱していません）、"
   },
   {
+   "zh": "还没有人报告这张卡的结果，欢迎在 GitHub 上分享",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "還沒有人回報這張卡的結果，歡迎在 GitHub 上分享",
+   "en": "Nobody has reported this card yet; share your results on GitHub",
+   "ja": "このカードの報告はまだありません。GitHub で結果を共有してください"
+  },
+  {
    "zh": "还没有可以继续的片源",
    "src": "src/ui/bridge/View.cpp",
    "zh-TW": "還沒有可以繼續的片源",
@@ -17858,6 +18565,27 @@
    "zh-TW": "還沒有擷取記錄",
    "en": "No capture history yet",
    "ja": "キャプチャーの履歴はまだありません"
+  },
+  {
+   "zh": "这不是 Discord Webhook 地址（https://discord.com/api/webhooks/…）",
+   "src": "src/ui/bridge/Preferences.cpp",
+   "zh-TW": "這不是 Discord Webhook 位址（https://discord.com/api/webhooks/…）",
+   "en": "That isn't a Discord webhook address (https://discord.com/api/webhooks/…)",
+   "ja": "Discord Webhook のアドレスではありません（https://discord.com/api/webhooks/…）"
+  },
+  {
+   "zh": "这不是有效的 PushFPS 预设代码",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "這不是有效的 PushFPS 預設代碼",
+   "en": "That isn't a valid PushFPS preset code",
+   "ja": "有効な PushFPS プリセットコードではありません"
+  },
+  {
+   "zh": "这个名称已被内置预设使用",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "這個名稱已被內建預設使用",
+   "en": "A built-in preset already uses this name",
+   "ja": "この名前は組み込みプリセットで使われています"
   },
   {
    "zh": "这个微软账号还没有 Xbox 档案。请先在 xbox.com 用它登录一次，创建档案后再试。",
@@ -17928,6 +18656,13 @@
    "zh-TW": "這台主機還沒有和本機配對。點「配對」，在主機的 Sunshine 網頁裡輸入軟體給出的 PIN。",
    "en": "This host is not paired with this PC yet. Click Pair and enter the PIN the app shows in the host's Sunshine web page.",
    "ja": "このホストはまだこの PC とペアリングされていません。「ペアリング」を押し、ホストの Sunshine の Web ページでアプリに表示された PIN を入力してください。"
+  },
+  {
+   "zh": "这台电脑不支持此组合",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "這台電腦不支援此組合",
+   "en": "This PC can't run this combination",
+   "ja": "この PC ではこの組み合わせを使えません"
   },
   {
    "zh": "这台电脑和主机仍是配对状态，不需要重新配对。",
@@ -18418,6 +19153,13 @@
    "zh-TW": "擷取卡上游輸入連接失敗（0x{:08X}），請檢查驅動與輸入選擇。",
    "en": "Capture card upstream input connection failed (0x{:08X}). Check the driver and selected input.",
    "ja": "キャプチャカードの上流入力への接続に失敗しました（0x{:08X}）。ドライバーと入力の選択を確認してください。"
+  },
+  {
+   "zh": "采集卡丢帧 %1%",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "擷取卡掉幀 %1%",
+   "en": "Capture card dropped %1% of frames",
+   "ja": "キャプチャーカードのフレーム落ち %1%"
   },
   {
    "zh": "采集卡收到 64 行就开始传，整帧更早到达（官方：1080p60 约省 5 ms，4K60 约省 15 ms）。开关后点「连接」重新连接生效",
@@ -20301,6 +21043,13 @@
    "zh-TW": "（不建議使用）",
    "en": " (not recommended)",
    "ja": "（非推奨）"
+  },
+  {
+   "zh": "（分享）",
+   "src": "qml/PushGamePresetsDialog.qml",
+   "zh-TW": "（分享）",
+   "en": "(shared)",
+   "ja": "（共有）"
   },
   {
    "zh": "（加在 NR ",

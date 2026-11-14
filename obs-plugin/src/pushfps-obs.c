@@ -32,7 +32,7 @@
 OBS_DECLARE_MODULE()
 
 #define PLUGIN_NAME "pushfps-obs"
-#define PLUGIN_VERSION "1.0.0"
+#define PLUGIN_VERSION "1.1.0"
 #define SOURCE_ID "pushfps_source"
 #define PUSHFPS_EXE L"PushFPS.exe"
 #define DEFAULT_PATH L"%LOCALAPPDATA%\\Programs\\PushFPS\\PushFPS.exe"

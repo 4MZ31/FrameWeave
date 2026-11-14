@@ -1447,6 +1447,24 @@ public:
     // PushFPS sound profile curve: the filters' gain in dB at `hz` for a preset
     // (and the custom EQ gains), for the Audio tab's EQ preview.
     Q_INVOKABLE double soundResponseDb(int preset, const QVariantList& eq, double hz) const;
+    // --- PushFPS (src/ui/bridge/PushFps.cpp) --------------------------------
+    // Live numbers for the latency readout and "Optimise for my PC".
+    Q_INVOKABLE QVariantMap pushLiveStats() const;
+    // Measurement window over every Present (engine/PushBenchmarkProbe.h).
+    Q_INVOKABLE void pushBenchmarkBegin();
+    Q_INVOKABLE QVariantMap pushBenchmarkEnd();
+    // Game presets: the "Exclude all effects" regions, source-normalized
+    // [{left,top,right,bottom,ellipse}], at most four; an empty list turns them off.
+    Q_INVOKABLE bool pushSetExclusionRegions(const QVariantList& regions, double feather);
+    Q_INVOKABLE bool pushCopyText(const QString& text);
+    // Puts the file on the clipboard as a file (paste into Discord, Explorer, chats).
+    Q_INVOKABLE bool pushCopyFile(const QString& path);
+    Q_INVOKABLE bool pushOpenDiscord();
+    // Uploads a clip to the Discord webhook saved in pushDiscordWebhook; the result
+    // arrives as pushShareFinished. Larger files than Discord takes are refused here.
+    Q_INVOKABLE bool pushShareToDiscord(const QString& path);
+    Q_INVOKABLE QString pushImportTextFile(const QString& title);
+    Q_INVOKABLE bool pushExportTextFile(const QString& title, const QString& suggestedName, const QString& text);
     Q_INVOKABLE void copyDiagnostics();
     // Re-reads the runtime manifest (Settings → 组件与许可 calls it when shown).
     Q_INVOKABLE void refreshComponentList();
@@ -1464,6 +1482,7 @@ signals:
     void preferencesChanged();
     void recordingChanged();
     void replayChanged();
+    void pushShareFinished(bool ok, const QString& message);
     void microphoneDevicesChanged();
     void colourLibraryChanged();
     // Emitted only when the underlying snapshot actually changed, so QML

@@ -83,3 +83,6 @@ PushQuickSetup 1.0 PushQuickSetup.qml
 PushSoundProfile 1.0 PushSoundProfile.qml
 PushPicture 1.0 PushPicture.qml
 PushRecordingSaved 1.0 PushRecordingSaved.qml
+PushOptimizeDialog 1.0 PushOptimizeDialog.qml
+PushGamePresetsDialog 1.0 PushGamePresetsDialog.qml
+PushLatencyBadge 1.0 PushLatencyBadge.qml

@@ -205,12 +205,12 @@ jobs:
             Write-Host "$t exit $code"
             if ($code -ne 0) { $failed++ }
           }
-          cmake --build $env:BUILD --target veyra_sound_profile_tests --parallel
-          if ($LASTEXITCODE -ne 0) { Write-Host "::error::veyra_sound_profile_tests did not build"; $failed++ }
-          else {
-            $exe = Get-ChildItem $env:BUILD -Recurse -Filter 'veyra_sound_profile_tests.exe' | Select-Object -First 1
+          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_benchmark_tests') {
+            cmake --build $env:BUILD --target $t --parallel
+            if ($LASTEXITCODE -ne 0) { Write-Host "::error::$t did not build"; $failed++; continue }
+            $exe = Get-ChildItem $env:BUILD -Recurse -Filter "$t.exe" | Select-Object -First 1
             & $exe.FullName 2>&1 | Out-Host
-            Write-Host "veyra_sound_profile_tests exit $LASTEXITCODE"
+            Write-Host "$t exit $LASTEXITCODE"
             if ($LASTEXITCODE -ne 0) { $failed++ }
           }
           if ($failed) { exit 1 }
@@ -253,7 +253,7 @@ jobs:
           $env:QML_DISABLE_DISK_CACHE = '1'
           Push-Location $stage
           $failed = 0
-          foreach ($t in 'tst_push_quick_setup', 'tst_push_picture_sound', 'tst_push_nis') {
+          foreach ($t in 'tst_push_quick_setup', 'tst_push_picture_sound', 'tst_push_nis', 'tst_push_optimize', 'tst_push_presets') {
             & .\veyra_qml_quick_tests.exe -platform offscreen -input "qml-tests\$t.qml" -o "$t.txt,txt" 2>&1 | Out-Host
             $code = $LASTEXITCODE
             Get-Content "$t.txt" -ErrorAction SilentlyContinue | Out-Host
@@ -414,7 +414,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       OBS_HEADERS_TAG: 31.0.0
-      OBS_PLUGIN_VERSION: 1.0.0
+      OBS_PLUGIN_VERSION: 1.1.0
     steps:
       - uses: actions/checkout@v4
         with:
@@ -464,8 +464,9 @@ jobs:
       - name: Load test in real OBS Studio
         run: |
           $pkg = (Get-ChildItem D:\obs-pkg -Directory | Select-Object -First 1).FullName
-          ./obs-plugin/ci/obs-load-test.ps1 -PackageDir $pkg -StopWhen 'capture method' `
-            -Expect '\[pushfps-obs\] loaded version', '\[pushfps-obs\] source created',
+          # Latest OBS (33+) with only the new plugin layout: what OBS 34 will require.
+          ./obs-plugin/ci/obs-load-test.ps1 -PackageDir $pkg -NewLayoutOnly -StopWhen 'capture method' `
+            -Expect '\[pushfps-obs\] loaded version 1\.1\.0', '\[pushfps-obs\] source created',
                     '\[pushfps-obs\] capture method: game_capture', '\[pushfps-obs\] PushFPS is not running yet'
 
       - uses: actions/upload-artifact@v4

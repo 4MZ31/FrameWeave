@@ -1752,6 +1752,7 @@ VPage {
                         PushQuickSetup {
                             objectName: "list-pushfps-quick"
                             Layout.fillWidth: true
+                            compactPro: true
                         }
 
                         VAccordion {

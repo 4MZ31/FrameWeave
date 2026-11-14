@@ -8,7 +8,9 @@ param(
     [Parameter(Mandatory)] [string[]]$Expect,
     [string]$StopWhen = '',
     [int]$Seconds = 90,
-    [string]$LogDir = 'D:\obs-logs'
+    [string]$LogDir = 'D:\obs-logs',
+    # Remove the OBS 28-32 copy, so the run proves OBS loads the new (OBS 33+/34) layout.
+    [switch]$NewLayoutOnly
 )
 $ErrorActionPreference = 'Stop'
 
@@ -27,7 +29,10 @@ if (-not $obs) { throw 'obs64.exe not in the zip' }
 
 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PackageDir 'Install-PushFPS-OBS.ps1')
 if ($LASTEXITCODE -ne 0) { throw "plugin installer exit $LASTEXITCODE" }
-if (-not (Test-Path "$env:ProgramData\obs-studio\plugins\pushfps-obs\bin\64bit\pushfps-obs.dll")) { throw 'installer did not place the dll' }
+foreach ($d in "$env:ProgramData\obs-studio\plugins\pushfps-obs\pushfps-obs.dll", "$env:ProgramData\obs-studio\plugins\pushfps-obs\bin\64bit\pushfps-obs.dll") {
+    if (-not (Test-Path $d)) { throw "installer did not place $d" }
+}
+if ($NewLayoutOnly) { Remove-Item -Recurse -Force "$env:ProgramData\obs-studio\plugins\pushfps-obs\bin"; Write-Host 'Testing the OBS 33+ plugin layout only.' }
 
 $cfg = Join-Path $env:APPDATA 'obs-studio'
 New-Item -ItemType Directory -Force "$cfg\basic\scenes" | Out-Null

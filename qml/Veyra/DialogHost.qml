@@ -129,6 +129,16 @@ Item {
         dialogHost: host
     }
 
+    // --- PushFPS: Optimise for my PC, game presets ----------------------------
+    PushOptimizeDialog {
+        id: optimizeDialog
+        dialogHost: host
+    }
+    PushGamePresetsDialog {
+        id: gamePresetsDialog
+        dialogHost: host
+    }
+
     // --- small building blocks the design's dialogs use --------------------
 
 }

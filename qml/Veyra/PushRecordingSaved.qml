@@ -33,7 +33,15 @@ Rectangle {
     // A finished recording, or a saved instant-replay clip, brings up the card.
     property bool replay: false
     property real lastReplaySaved: -1
+    readonly property bool webhook: String(veyra.preferences.pushDiscordWebhook || "").length > 0
+    property bool sending: false
+    property string shareText: ""
+    Connections {
+        target: veyra
+        function onPushShareFinished(ok, message) { card.sending = false; card.shareText = message; if (card.on) hideTimer.restart() }
+    }
     function show(p, isReplay) {
+        card.shareText = ""
         card.path = p
         card.replay = isReplay
         card.on = true
@@ -118,6 +126,40 @@ Rectangle {
                 iconName: "folder"
                 onClicked: { card.on = false; veyra.openRecordingDirectory() }
             }
+        }
+        // Share to Discord: straight to the saved webhook when there is one (clips up to
+        // Discord's 10 MB), otherwise the file goes on the clipboard and Discord opens.
+        RowLayout {
+            spacing: 6
+            VButton {
+                objectName: "pushfps-recording-discord"
+                ghost: true
+                text: card.webhook ? qsTr("发送到 Discord") : qsTr("分享到 Discord")
+                iconName: "external"
+                enabled: !card.sending
+                onClicked: {
+                    hideTimer.stop()
+                    if (card.webhook) { card.sending = true; card.shareText = qsTr("正在发送…"); veyra.pushShareToDiscord(card.path) }
+                    else if (veyra.pushCopyFile(card.path)) { veyra.pushOpenDiscord(); card.shareText = qsTr("已复制片段，在 Discord 中按 Ctrl+V 粘贴") }
+                }
+            }
+            VButton {
+                objectName: "pushfps-recording-copy"
+                ghost: true
+                text: qsTr("复制文件")
+                iconName: "copy"
+                onClicked: { hideTimer.stop(); if (veyra.pushCopyFile(card.path)) card.shareText = qsTr("已复制，可粘贴到任何聊天或文件夹") }
+            }
+        }
+        Text {
+            objectName: "pushfps-recording-share-text"
+            Layout.fillWidth: true
+            visible: card.shareText.length > 0
+            text: card.shareText
+            color: Theme.t2
+            font.family: Theme.fontUi
+            font.pixelSize: Theme.fsHint
+            wrapMode: Text.WordWrap
         }
         Text {
             Layout.fillWidth: true
