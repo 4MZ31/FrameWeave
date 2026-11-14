@@ -4,6 +4,9 @@
 name: translate
 on:
   workflow_dispatch:
+  # A branch run starts when the translator itself changes (or this file is touched).
+  push:
+    paths: ['.github/workflows/translate.yml', 'scripts/i18n/machine_translate.py']
 permissions:
   contents: write
 jobs:
