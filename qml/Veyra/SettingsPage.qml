@@ -238,19 +238,41 @@ VPage {
                                 onPicked: id => veyra.setPreference("uiScale", Number(id))
                             }
                         }
+                        // PushFPS appearance: the design's dark grey, near-black, or light.
+                        VRow {
+                            label: qsTr("外观")
+                            hint: qsTr("默认为深灰；纯黑适合 OLED 屏幕；浅色在明亮环境中更易读")
+                            VSeg {
+                                objectName: "set-theme"
+                                options: [{ id: "default", label: qsTr("默认") }, { id: "black", label: qsTr("纯黑") }, { id: "light", label: qsTr("浅色") }]
+                                current: veyra.preferences.pushTheme || "default"
+                                onPicked: id => veyra.setPreference("pushTheme", id)
+                            }
+                        }
                         VRow {
                             label: qsTr("界面语言")
                             hint: qsTr("立即生效；日志保持中文，方便反馈问题")
                             VSelect {
                                 objectName: "set-language"
-                                implicitWidth: 170
+                                implicitWidth: 190
                                 // Each language is named in itself, so it can be found from any of them.
                                 options: [
                                     { id: "auto", label: qsTr("跟随系统") },
                                     { id: "zh-CN", label: qsTr("简体中文") },
                                     { id: "zh-TW", label: qsTr("繁體中文") },
                                     { id: "en", label: "English" },
-                                    { id: "ja", label: qsTr("日本語") }
+                                    { id: "ja", label: qsTr("日本語") },
+                                    // PushFPS: machine-translated (scripts/i18n/machine_translate.py).
+                                    { id: "nl", label: "Nederlands" },
+                                    { id: "de", label: "Deutsch" },
+                                    { id: "es", label: "Español" },
+                                    { id: "fr", label: "Français" },
+                                    { id: "it", label: "Italiano" },
+                                    { id: "pt-BR", label: "Português (Brasil)" },
+                                    { id: "tr", label: "Türkçe" },
+                                    { id: "pl", label: "Polski" },
+                                    { id: "ru", label: "Русский" },
+                                    { id: "ar", label: "العربية" }
                                 ]
                                 value: (options.find(o => o.id === (veyra.preferences.language || "auto")) || options[0]).label
                                 onPicked: id => veyra.setPreference("language", id)

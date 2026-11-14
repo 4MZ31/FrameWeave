@@ -90,7 +90,9 @@ std::unique_ptr<CatalogTranslator> load(const QString& code) {
     for (const auto value : doc.object().value(QStringLiteral("entries")).toArray()) {
         const auto e = value.toObject();
         const QString source = e.value(QStringLiteral("zh")).toString();
-        const QString translated = e.value(code).toString();
+        QString translated = e.value(code).toString();
+        // PushFPS languages fall back to English, never to the Chinese source.
+        if (translated.isEmpty() && code != QStringLiteral("zh-TW") && code != QStringLiteral("ja")) translated = e.value(QStringLiteral("en")).toString();
         if (source.isEmpty() || translated.isEmpty()) continue;
         const QString context = e.value(QStringLiteral("ctx")).toString();
         if (!context.isEmpty()) { t->exact.insert(source + QChar(0x4) + context, translated); continue; }
@@ -150,7 +152,7 @@ QString translatePieces(const CatalogTranslator& t, const QString& s, int depth)
             part.replace(trimmed, done);
         }
         // Full-width separators read oddly between Latin sentences.
-        const QString glue = sep == QStringLiteral("；") && currentCode == QStringLiteral("en") ? QStringLiteral("; ") : sep;
+        const QString glue = sep == QStringLiteral("；") && currentCode != QStringLiteral("zh-TW") && currentCode != QStringLiteral("ja") ? QStringLiteral("; ") : sep;
         return parts.join(glue);
     }
     return s;
@@ -159,7 +161,10 @@ QString translatePieces(const CatalogTranslator& t, const QString& s, int depth)
 } // namespace
 
 QString resolve(const QString& preference) {
-    static const QStringList known{QStringLiteral("zh-CN"), QStringLiteral("zh-TW"), QStringLiteral("en"), QStringLiteral("ja")};
+    static const QStringList known{QStringLiteral("zh-CN"), QStringLiteral("zh-TW"), QStringLiteral("en"), QStringLiteral("ja"),
+        // PushFPS: machine-translated languages; an entry they lack shows the English text.
+        QStringLiteral("nl"), QStringLiteral("de"), QStringLiteral("es"), QStringLiteral("fr"), QStringLiteral("it"),
+        QStringLiteral("pt-BR"), QStringLiteral("tr"), QStringLiteral("ar"), QStringLiteral("pl"), QStringLiteral("ru")};
     if (known.contains(preference)) return preference;
     const QLocale system = QLocale::system();
     if (system.language() == QLocale::Chinese) {
@@ -169,6 +174,19 @@ QString resolve(const QString& preference) {
         return traditional ? QStringLiteral("zh-TW") : QStringLiteral("zh-CN");
     }
     if (system.language() == QLocale::Japanese) return QStringLiteral("ja");
+    switch (system.language()) {
+    case QLocale::Dutch: return QStringLiteral("nl");
+    case QLocale::German: return QStringLiteral("de");
+    case QLocale::Spanish: return QStringLiteral("es");
+    case QLocale::French: return QStringLiteral("fr");
+    case QLocale::Italian: return QStringLiteral("it");
+    case QLocale::Portuguese: return QStringLiteral("pt-BR");
+    case QLocale::Turkish: return QStringLiteral("tr");
+    case QLocale::Arabic: return QStringLiteral("ar");
+    case QLocale::Polish: return QStringLiteral("pl");
+    case QLocale::Russian: return QStringLiteral("ru");
+    default: break;
+    }
     return QStringLiteral("en");
 }
 

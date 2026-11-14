@@ -344,6 +344,11 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         const QJsonDocument doc = QJsonDocument::fromJson(v.toUtf8(), &error);
         if (error.error != QJsonParseError::NoError || !(doc.isObject() || doc.isArray())) return false;
         stored = v;
+    } else if (key == QLatin1String("pushTheme")) {
+        // PushFPS appearance (Theme.qml mode).
+        const QString v = value.toString();
+        if (v != QLatin1String("default") && v != QLatin1String("black") && v != QLatin1String("light")) return false;
+        stored = v;
     } else if (key == QLatin1String("pushDiscordWebhook")) {
         // PushFPS: only a Discord webhook address is accepted, so a clip is never sent elsewhere.
         const QString v = value.toString().trimmed();
@@ -358,7 +363,9 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         stored = value.toBool();
     } else if (key == QLatin1String("language")) {
         const QString v = value.toString();
-        static const QStringList languages{"auto", "zh-CN", "zh-TW", "en", "ja"};
+        static const QStringList languages{"auto", "zh-CN", "zh-TW", "en", "ja",
+            // PushFPS: machine-translated languages (scripts/i18n/machine_translate.py).
+            "nl", "de", "es", "fr", "it", "pt-BR", "tr", "ar", "pl", "ru"};
         if (!languages.contains(v)) return false;
         stored = v;
     } else if (key == QLatin1String("monitorGpu")) {

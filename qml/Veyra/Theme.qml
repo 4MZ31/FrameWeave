@@ -7,29 +7,42 @@ pragma Singleton
 import QtQuick
 
 QtObject {
+    // PushFPS appearance (设置 → 外观, preference pushTheme; Main.qml binds it):
+    // "default" the design's dark grey, "black" near-black surfaces (OLED), "light"
+    // light surfaces with dark text. Every surface, text and accent below follows it;
+    // ink(a) replaces the design's white-at-alpha overlays so tracks, fills and
+    // hover states stay visible on light surfaces too. Contrast: t1/t2/t3 on card2
+    // are at least 4.5:1 in every mode.
+    property string mode: "default"
+    readonly property bool light: mode === "light"
+    readonly property bool black: mode === "black"
+    function ink(a) { return light ? Qt.rgba(0.07, 0.08, 0.06, Math.min(1, a * 1.15)) : Qt.rgba(1, 1, 1, a) }
+    // Text and icons drawn over the video picture or a dark chip stay white in every mode.
+    readonly property color onVideo: "#FFFFFF"
+
     // --- surfaces (app.css .vy) -------------------------------------------
-    readonly property color card: "#131317"
-    readonly property color card2: "#19191E"
-    readonly property color card3: "#24242A"
-    readonly property color popover: "#1B1B20"
-    readonly property color dialog: "#141418"
-    readonly property color stroke: Qt.rgba(1, 1, 1, 0.07)
-    readonly property color stroke2: Qt.rgba(1, 1, 1, 0.13)
+    readonly property color card: light ? "#FFFFFF" : black ? "#08080A" : "#131317"
+    readonly property color card2: light ? "#F3F5F0" : black ? "#0D0D10" : "#19191E"
+    readonly property color card3: light ? "#E4E7E0" : black ? "#17171B" : "#24242A"
+    readonly property color popover: light ? "#FFFFFF" : black ? "#101013" : "#1B1B20"
+    readonly property color dialog: light ? "#FFFFFF" : black ? "#0A0A0C" : "#141418"
+    readonly property color stroke: light ? Qt.rgba(0, 0, 0, 0.10) : Qt.rgba(1, 1, 1, black ? 0.08 : 0.07)
+    readonly property color stroke2: light ? Qt.rgba(0, 0, 0, 0.18) : Qt.rgba(1, 1, 1, black ? 0.14 : 0.13)
     // The app background: a radial gradient in the prototype, approximated here
     // with the three stops it interpolates between.
-    readonly property color bgOuter: "#070709"
-    readonly property color bgMid: "#0C0C10"
-    readonly property color bgInner: "#17171C"
+    readonly property color bgOuter: light ? "#DFE3DA" : black ? "#000000" : "#070709"
+    readonly property color bgMid: light ? "#E9ECE5" : black ? "#010102" : "#0C0C10"
+    readonly property color bgInner: light ? "#F4F6F1" : black ? "#050506" : "#17171C"
     readonly property color videoBlack: "#000000"
 
     // --- text -------------------------------------------------------------
-    readonly property color t1: "#F3F3F5"
-    readonly property color t2: Qt.rgba(0.953, 0.953, 0.961, 0.62)
+    readonly property color t1: light ? "#15171A" : "#F3F3F5"
+    readonly property color t2: light ? Qt.rgba(0.08, 0.09, 0.10, 0.74) : Qt.rgba(0.953, 0.953, 0.961, 0.62)
     // PushFPS: secondary text a little brighter than the design's .38, so hints
     // stay readable on the dark cards (contrast about 4.5:1 on card2).
-    readonly property color t3: Qt.rgba(0.953, 0.953, 0.961, 0.48)
+    readonly property color t3: light ? Qt.rgba(0.08, 0.09, 0.10, 0.62) : Qt.rgba(0.953, 0.953, 0.961, 0.48)
     // Row labels: between t1 and t2, so a label reads before its hint.
-    readonly property color tLabel: Qt.rgba(0.953, 0.953, 0.961, 0.88)
+    readonly property color tLabel: light ? Qt.rgba(0.08, 0.09, 0.10, 0.90) : Qt.rgba(0.953, 0.953, 0.961, 0.88)
     readonly property real fsHint: 11.5
 
     // --- accent and state -------------------------------------------------
@@ -38,19 +51,21 @@ QtObject {
     // existing settings files keep working; PushFPS draws it in its brand green.
     property string accentName: "orange"
     readonly property bool accentWhite: accentName === "white"
-    readonly property color accent: accentWhite ? "#F3F3F5" : "#89F52A"
-    readonly property color accentInk: accentWhite ? "#0B0B0E" : "#0D1A04"
-    readonly property color accentSoft: accentWhite ? Qt.rgba(1, 1, 1, 0.1) : Qt.rgba(0.537, 0.961, 0.165, 0.14)
-    readonly property color accentGlow: accentWhite ? Qt.rgba(1, 1, 1, 0.35) : Qt.rgba(0.537, 0.961, 0.165, 0.35)
+    // Light mode: a deeper green (and near-black for the white variant), since the
+    // brand green is too light for text and icons on white.
+    readonly property color accent: accentWhite ? (light ? "#15171A" : "#F3F3F5") : (light ? "#2F7A06" : "#89F52A")
+    readonly property color accentInk: accentWhite ? (light ? "#FFFFFF" : "#0B0B0E") : (light ? "#FFFFFF" : "#0D1A04")
+    readonly property color accentSoft: accentWhite ? ink(0.1) : (light ? Qt.rgba(0.184, 0.478, 0.024, 0.12) : Qt.rgba(0.537, 0.961, 0.165, 0.14))
+    readonly property color accentGlow: accentWhite ? ink(0.35) : (light ? Qt.rgba(0.184, 0.478, 0.024, 0.30) : Qt.rgba(0.537, 0.961, 0.165, 0.35))
     // 设置 → 背景渐变强度: 0 none, 1 light (the design default), 2 medium.
     property int backdropLevel: 1
-    readonly property color ok: "#3DDC84"
+    readonly property color ok: light ? "#17824A" : "#3DDC84"
     readonly property color okGlow: Qt.rgba(0.239, 0.863, 0.518, 0.16)
-    readonly property color warn: "#F5C84B"
+    readonly property color warn: light ? "#9A6200" : "#F5C84B"
     readonly property color warnGlow: Qt.rgba(0.961, 0.784, 0.294, 0.16)
-    readonly property color err: "#FF5D5D"
+    readonly property color err: light ? "#C62828" : "#FF5D5D"
     readonly property color errGlow: Qt.rgba(1, 0.365, 0.365, 0.16)
-    readonly property color exp: "#B79BFF"
+    readonly property color exp: light ? "#5B3FC4" : "#B79BFF"
     readonly property color expSoft: Qt.rgba(0.718, 0.608, 1.0, 0.14)
 
     // --- geometry (--r-win / --r-card / --r-ctl) --------------------------
@@ -116,7 +131,8 @@ QtObject {
     // Per interface language (Qt.uiLanguage, set by the bridge): Japanese kana and kanji
     // and Traditional characters read best in their own Windows UI fonts.
     readonly property string fontUi: Qt.uiLanguage === "ja" ? "Yu Gothic UI"
-                                   : Qt.uiLanguage === "zh-TW" ? "Microsoft JhengHei UI" : "Noto Sans SC"
+                                   : Qt.uiLanguage === "zh-TW" ? "Microsoft JhengHei UI"
+                                   : Qt.uiLanguage === "ar" ? "Segoe UI" : "Noto Sans SC"
     readonly property var axesDemiBold: ({ "wght": 600 })
     // 500: the design's .seek .peek time strip is `font: 500 11px/1 var(--f-mono)`.
     // Same reason as DemiBold - 600 lands on a thin instance, so the axis is set

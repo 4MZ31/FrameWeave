@@ -71,6 +71,8 @@ Window {
     Binding { target: Theme; property: "reduced"; value: veyra.reducedMotion || root.test.reducedMotion === true }
     Binding { target: Theme; property: "accentName"; value: veyra.preferences.accent || "orange" }
     Binding { target: Theme; property: "backdropLevel"; value: veyra.preferences.backdrop !== undefined ? veyra.preferences.backdrop : 1 }
+    // PushFPS appearance: default, black or light (设置 → 外观, or --theme for screenshots).
+    Binding { target: Theme; property: "mode"; value: root.test.theme !== undefined ? root.test.theme : (veyra.preferences.pushTheme || "default") }
 
     // Cinema geometry: the main window ends at the picture. The independent pill
     // can extend below it without leaving an opaque strip in this window.
