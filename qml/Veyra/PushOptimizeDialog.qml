@@ -47,7 +47,7 @@ DialogLayer {
     property var startStats: ({})
     property var gpuSamples: []
     property var original: null
-    property var baseline: null
+    property var baselineResult: null   // "baseline" is a FINAL property of Item in Qt 6.8
     property var best: null
     property int gameFps: 30
     property real refreshHz: 60
@@ -142,7 +142,7 @@ DialogLayer {
         opt.original = opt.saveOriginal()
         opt.refreshHz = Number(s.displayRefreshHz) > 0 ? Number(s.displayRefreshHz) : (veyra.displayRefreshHz > 0 ? veyra.displayRefreshHz : 60)
         opt.gameFps = opt.original.gameFps === 40 || opt.original.gameFps === 60 ? opt.original.gameFps : 30
-        opt.baseline = null
+        opt.baselineResult = null
         opt.best = null
         opt.applied = false
         opt.steps = [{ label: "", config: { backend: "", enhance: false, sr: 0, kind: "baseline" }, result: null }]
@@ -214,7 +214,7 @@ DialogLayer {
         else if (res.fps < target * 0.95) res.reason = qsTr("只达到 %1 FPS").arg(res.fps.toFixed(0))
         else if (res.low1 < target * 0.8) res.reason = qsTr("1% 低帧 %1 FPS，不够稳").arg(res.low1.toFixed(0))
         else if (res.dropRate > 0.01) res.reason = qsTr("采集卡丢帧 %1%").arg((res.dropRate * 100).toFixed(1))
-        else if (opt.baseline && opt.baseline.latency > 0 && res.latency > opt.baseline.latency + 60) res.reason = qsTr("延迟增加太多（%1 ms）").arg(res.latency.toFixed(0))
+        else if (opt.baselineResult && opt.baselineResult.latency > 0 && res.latency > opt.baselineResult.latency + 60) res.reason = qsTr("延迟增加太多（%1 ms）").arg(res.latency.toFixed(0))
         else res.ok = true
         return res
     }
@@ -240,7 +240,7 @@ DialogLayer {
         const add = (config) => { steps.push({ label: "", config: config, result: null }) }
         if (done.config.kind === "baseline") {
             if (!done.result.ok) { opt.abort(qsTr("无法测量基准画面：%1").arg(done.result.reason)); return }
-            opt.baseline = done.result
+            opt.baselineResult = done.result
             const content = Math.round(done.result.content || 0)
             if (content === 30 || content === 40 || content === 60) opt.gameFps = content
             const high = opt.highTarget()
@@ -300,7 +300,7 @@ DialogLayer {
             opt.phase = "done"
         } else {
             opt.restoreOriginal()
-            opt.failure = opt.baseline ? qsTr("没有一种补帧组合能稳定达到目标，已保留原来的设置。可降低目标帧率或关闭其他效果后再试")
+            opt.failure = opt.baselineResult ? qsTr("没有一种补帧组合能稳定达到目标，已保留原来的设置。可降低目标帧率或关闭其他效果后再试")
                                        : qsTr("无法测量")
             opt.phase = "failed"
         }
