@@ -145,7 +145,15 @@ like the original 30 FPS, plus a few milliseconds for the capture card and proce
 </tr>
 <tr>
 <td width="50%"><img src="assets/screenshots/picture-sound.png" alt="Home screen, picture and sound panel"><br><sub><b>Picture &amp; sound.</b> Picture styles, gamma, sharpness and sound profiles on the home screen.</sub></td>
-<td width="50%"></td>
+<td width="50%"><img src="assets/screenshots/appearance-light.png" alt="PushFPS home screen in light mode"><br><sub><b>Light mode.</b> Settings → Appearance.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="assets/screenshots/optimize.png" alt="Optimise for my PC dialog"><br><sub><b>Optimise for my PC.</b> Tests every combination on your real picture.</sub></td>
+<td width="50%"><img src="assets/screenshots/game-presets.png" alt="Game presets dialog with GTA VI"><br><sub><b>Game presets.</b> GTA VI and more, with the HUD kept sharp.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="assets/screenshots/appearance-black.png" alt="PushFPS home screen in black mode"><br><sub><b>Black mode.</b> Almost-black surfaces for OLED screens.</sub></td>
+<td width="50%"><img src="assets/screenshots/anr.png" alt="Settings, Apex Neural Rendering install card"><br><sub><b>ANR by Apex Compute.</b> Download from Apex, install in one click.</sub></td>
 </tr>
 </table>
 
