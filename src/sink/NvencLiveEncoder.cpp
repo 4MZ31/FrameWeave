@@ -104,17 +104,33 @@ bool NvencLiveEncoder::open(ID3D12Device* device,const Config& config,const std:
     }
     // Recording favours quality over latency, but B-frames would reorder the
     // output and make DTS differ from PTS; keep IPPP with a 2 s GOP.
+    static const GUID presets[7]={NV_ENC_PRESET_P1_GUID,NV_ENC_PRESET_P2_GUID,NV_ENC_PRESET_P3_GUID,NV_ENC_PRESET_P4_GUID,
+                                  NV_ENC_PRESET_P5_GUID,NV_ENC_PRESET_P6_GUID,NV_ENC_PRESET_P7_GUID};
+    const GUID presetGuid=presets[std::clamp(config.preset,1u,7u)-1];
     NV_ENC_PRESET_CONFIG preset{};preset.version=NV_ENC_PRESET_CONFIG_VER;preset.presetCfg.version=NV_ENC_CONFIG_VER;
-    if(!p.check(p.api.nvEncGetEncodePresetConfigEx(p.encoder,codec,NV_ENC_PRESET_P4_GUID,NV_ENC_TUNING_INFO_HIGH_QUALITY,&preset),"GetPreset"))return false;
+    if(!p.check(p.api.nvEncGetEncodePresetConfigEx(p.encoder,codec,presetGuid,NV_ENC_TUNING_INFO_HIGH_QUALITY,&preset),"GetPreset"))return false;
     auto& cfg=preset.presetCfg;
     const uint32_t fps=std::clamp(config.fps,1u,480u);
-    cfg.frameIntervalP=1;cfg.gopLength=fps*2;cfg.rcParams.enableLookahead=0;
+    cfg.frameIntervalP=1;cfg.gopLength=fps*std::clamp(config.keyframeSeconds,1u,10u);cfg.rcParams.enableLookahead=0;
     const uint32_t bits=std::clamp(config.bitrateMbps,1u,400u)*1000000u;
-    cfg.rcParams.rateControlMode=NV_ENC_PARAMS_RC_VBR;
-    cfg.rcParams.averageBitRate=bits;
-    cfg.rcParams.maxBitRate=bits+bits/2;
-    cfg.rcParams.vbvBufferSize=bits/2;
-    cfg.rcParams.vbvInitialDelay=cfg.rcParams.vbvBufferSize;
+    if(config.rateControl==0){
+        // CBR: the same bitrate every second (streaming-style files).
+        cfg.rcParams.rateControlMode=NV_ENC_PARAMS_RC_CBR;
+        cfg.rcParams.averageBitRate=bits;cfg.rcParams.maxBitRate=bits;
+    }else if(config.rateControl==2){
+        // Constant QP: fixed quality, the file size follows the picture.
+        const uint32_t qp=std::clamp(config.qp,1u,51u);
+        cfg.rcParams.rateControlMode=NV_ENC_PARAMS_RC_CONSTQP;
+        cfg.rcParams.constQP={qp,qp,qp};
+    }else{
+        cfg.rcParams.rateControlMode=NV_ENC_PARAMS_RC_VBR;
+        cfg.rcParams.averageBitRate=bits;
+        cfg.rcParams.maxBitRate=bits+bits/2;
+    }
+    if(config.rateControl!=2){
+        cfg.rcParams.vbvBufferSize=bits/2;
+        cfg.rcParams.vbvInitialDelay=cfg.rcParams.vbvBufferSize;
+    }
     if(config.hevc){
         auto& hevc=cfg.encodeCodecConfig.hevcConfig;
         hevc.idrPeriod=cfg.gopLength;hevc.repeatSPSPPS=1;
@@ -141,7 +157,7 @@ bool NvencLiveEncoder::open(ID3D12Device* device,const Config& config,const std:
         vui.colourMatrix=NV_ENC_VUI_MATRIX_COEFFS_BT709;
     }
     NV_ENC_INITIALIZE_PARAMS init{};init.version=NV_ENC_INITIALIZE_PARAMS_VER;
-    init.encodeGUID=codec;init.presetGUID=NV_ENC_PRESET_P4_GUID;init.tuningInfo=NV_ENC_TUNING_INFO_HIGH_QUALITY;
+    init.encodeGUID=codec;init.presetGUID=presetGuid;init.tuningInfo=NV_ENC_TUNING_INFO_HIGH_QUALITY;
     init.encodeWidth=config.width;init.encodeHeight=config.height;init.darWidth=config.width;init.darHeight=config.height;
     init.frameRateNum=fps;init.frameRateDen=1;init.enablePTD=1;init.encodeConfig=&cfg;
     init.maxEncodeWidth=config.width;init.maxEncodeHeight=config.height;init.bufferFormat=p.format;

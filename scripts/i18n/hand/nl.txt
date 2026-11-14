@@ -1297,5 +1297,22 @@
 1296|Deze pc kan deze combinatie niet draaien
 1297|Capturekaart liet %1% van de frames vallen
 1298|. Opnames houden het ook. Dolby / DTS-passthrough wordt niet beïnvloed
+1299|Geavanceerde coderingsinstellingen
+1300|Bitratebeheer, encoderpreset, keyframe-interval, audiobitrate en container, zoals de uitvoerinstellingen van OBS. Uit gebruikt de standaardinstellingen
+1301|VBR: bitrate volgt hoe druk het beeld is (standaard). CBR: elke seconde dezelfde bitrate, goed voor uploads. Constante kwaliteit: vaste kwaliteit, de bestandsgrootte volgt het beeld
+1302|Constante kwaliteit
+1303|Kwaliteitsniveau
+1304|1–51; lager is betere kwaliteit en een groter bestand; standaard is 22
+1305|Encoderpreset
+1306|Verder naar rechts is betere kwaliteit maar meer werk voor de GPU-encoder; standaard is 4. Verlaag het als opnames haperen
+1307|Keyframe-interval
+1308|Seconden; korter is makkelijker bewerken en spoelen, met iets grotere bestanden; standaard is 2
+1309|Audiobitrate
+1310|kbps per audiospoor; standaard is 192
+1311|MP4 speelt overal af (standaard). MKV past bij bewerkingssoftware; instant replays worden altijd als MP4 opgeslagen
+1312|Standaardinstellingen herstellen
+1313|Kan de GPU een combinatie niet gebruiken, dan schakelt de opname over op de standaardinstellingen en meldt dat
+1314|Herstellen
+1315|De GPU ondersteunt de gekozen geavanceerde coderingsinstellingen niet; er wordt opgenomen met de standaardinstellingen
 zh:轻|Licht
 zh:亮|Licht

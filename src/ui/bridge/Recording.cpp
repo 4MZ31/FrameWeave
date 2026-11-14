@@ -42,6 +42,16 @@ engine::RecordingSettings QmlPlayerBridge::recordingOptions() const {
     options.microphoneId = recordingMicrophoneId().toStdWString();
     options.microphoneTrack = recordingMicrophoneTrack();
     options.replaySeconds = uint32_t(replaySeconds());
+    // PushFPS advanced recording: only while 设置 → 录制 → 高级 is on; otherwise
+    // the standard encoding (the RecordingSettings defaults).
+    if (impl_->prefBool("recordAdvanced", false)) {
+        options.rateControl = uint32_t(std::clamp(impl_->prefInt("recordRateControl", 1), 0, 2));
+        options.quality = uint32_t(std::clamp(impl_->prefInt("recordQuality", 22), 1, 51));
+        options.preset = uint32_t(std::clamp(impl_->prefInt("recordPreset", 4), 1, 7));
+        options.keyframeSeconds = uint32_t(std::clamp(impl_->prefInt("recordKeyframe", 2), 1, 10));
+        options.audioKbps = uint32_t(std::clamp(impl_->prefInt("recordAudioKbps", 192), 64, 320));
+        options.matroska = impl_->prefInt("recordContainer", 0) == 1;
+    }
     // Tests only: a small memory cap shows what the cap does.
     if (const int mb = qEnvironmentVariableIntValue("VEYRA_TEST_REPLAY_MEMORY_MB"); mb > 0) options.replayMemoryBytes = uint64_t(mb) << 20;
     return options;

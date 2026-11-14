@@ -1297,5 +1297,22 @@
 1296|Dieser PC kann diese Kombination nicht ausführen
 1297|Capture-Karte hat %1% der Frames verworfen
 1298|. Aufnahmen behalten es ebenfalls. Dolby / DTS-Passthrough ist nicht betroffen
+1299|Erweiterte Kodierungseinstellungen
+1300|Ratensteuerung, Encoder-Preset, Keyframe-Intervall, Audio-Bitrate und Container, wie die Ausgabeeinstellungen von OBS. Aus verwendet die Standardeinstellungen
+1301|VBR: Bitrate folgt der Bildkomplexität (Standard). CBR: jede Sekunde dieselbe Bitrate, gut für Uploads. Konstante Qualität: feste Qualität, die Dateigröße folgt dem Bild
+1302|Konstante Qualität
+1303|Qualitätsstufe
+1304|1–51; niedriger ist bessere Qualität und eine größere Datei; Standard ist 22
+1305|Encoder-Preset
+1306|Weiter rechts ist bessere Qualität, aber mehr Arbeit für den GPU-Encoder; Standard ist 4. Senken, wenn Aufnahmen ruckeln
+1307|Keyframe-Intervall
+1308|Sekunden; kürzer ist leichter zu schneiden und zu spulen, mit etwas größeren Dateien; Standard ist 2
+1309|Audio-Bitrate
+1310|kbps pro Audiospur; Standard ist 192
+1311|MP4 läuft überall (Standard). MKV eignet sich für Schnittprogramme; Sofortwiederholungen werden immer als MP4 gespeichert
+1312|Standardeinstellungen wiederherstellen
+1313|Kann die GPU eine Kombination nicht nutzen, wechselt die Aufnahme auf die Standardeinstellungen und sagt Bescheid
+1314|Wiederherstellen
+1315|Die GPU unterstützt die gewählten erweiterten Kodierungseinstellungen nicht; Aufnahme mit den Standardeinstellungen
 zh:轻|Leicht
 zh:亮|Licht

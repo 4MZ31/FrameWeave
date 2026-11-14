@@ -1297,5 +1297,22 @@
 1296|Ce PC ne peut pas faire tourner cette combinaison
 1297|La carte d'acquisition a perdu %1% des images
 1298|. Les enregistrements le gardent aussi. Le passthrough Dolby / DTS n'est pas concerné
+1299|Réglages d'encodage avancés
+1300|Contrôle du débit, préréglage de l'encodeur, intervalle d'images clés, débit audio et conteneur, comme les réglages de sortie d'OBS. Désactivé utilise les réglages standard
+1301|VBR : le débit suit la complexité de l'image (standard). CBR : le même débit chaque seconde, adapté aux mises en ligne. Qualité constante : qualité fixe, la taille du fichier suit l'image
+1302|Qualité constante
+1303|Niveau de qualité
+1304|1–51 ; plus bas donne une meilleure qualité et un fichier plus gros ; le standard est 22
+1305|Préréglage de l'encodeur
+1306|Plus à droite donne une meilleure qualité mais plus de travail pour l'encodeur du GPU ; le standard est 4. Baissez-le si les enregistrements saccadent
+1307|Intervalle d'images clés
+1308|Secondes ; plus court facilite le montage et la navigation, avec des fichiers un peu plus gros ; le standard est 2
+1309|Débit audio
+1310|kbps par piste audio ; le standard est 192
+1311|MP4 se lit partout (standard). MKV convient aux logiciels de montage ; les replays instantanés sont toujours enregistrés en MP4
+1312|Rétablir les réglages standard
+1313|Si le GPU ne peut pas utiliser une combinaison, l'enregistrement passe aux réglages standard et vous prévient
+1314|Rétablir
+1315|Le GPU ne prend pas en charge les réglages d'encodage avancés choisis ; enregistrement avec les réglages standard
 zh:轻|Léger
 zh:亮|Lumière

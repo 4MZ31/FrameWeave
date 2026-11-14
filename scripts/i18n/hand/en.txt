@@ -1297,3 +1297,20 @@
 1296|This PC can't run this combination
 1297|Capture card dropped %1% of frames
 1298|. Recordings keep it too. Dolby / DTS passthrough is not affected
+1299|Advanced encoding settings
+1300|Rate control, encoder preset, keyframe interval, audio bitrate and container, like OBS output settings. Off uses the standard settings
+1301|VBR: bitrate follows how busy the picture is (standard). CBR: the same bitrate every second, good for uploads. Constant quality: fixed quality, the file size follows the picture
+1302|Constant quality
+1303|Quality level
+1304|1–51; lower is better quality and a bigger file; standard is 22
+1305|Encoder preset
+1306|Further right is better quality but more work for the GPU encoder; standard is 4. Lower it if recordings stutter
+1307|Keyframe interval
+1308|Seconds; shorter is easier to edit and seek, with slightly bigger files; standard is 2
+1309|Audio bitrate
+1310|kbps per audio track; standard is 192
+1311|MP4 plays everywhere (standard). MKV suits editing software; instant replays are always saved as MP4
+1312|Restore standard settings
+1313|If the GPU can't use a combination, the recording switches to the standard settings and tells you
+1314|Restore
+1315|The GPU doesn't support the chosen advanced encoding settings; recording with the standard ones

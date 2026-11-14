@@ -1582,6 +1582,23 @@
    "ru": "15 с"
   },
   {
+   "zh": "1–51，越小画质越好、文件越大；标准为 22",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "1–51，越小畫質越好、檔案越大；標準為 22",
+   "en": "1–51; lower is better quality and a bigger file; standard is 22",
+   "ja": "1–51。小さいほど高画質でファイルが大きくなります。標準は 22",
+   "nl": "1–51; lager is betere kwaliteit en een groter bestand; standaard is 22",
+   "de": "1–51; niedriger ist bessere Qualität und eine größere Datei; Standard ist 22",
+   "es": "1–51; más bajo es mejor calidad y un archivo más grande; el estándar es 22",
+   "fr": "1–51 ; plus bas donne une meilleure qualité et un fichier plus gros ; le standard est 22",
+   "it": "1–51; più basso è qualità migliore e file più grande; lo standard è 22",
+   "pt-BR": "1–51; menor é melhor qualidade e arquivo maior; o padrão é 22",
+   "tr": "1–51; düşük değer daha iyi kalite ve daha büyük dosya demektir; standart 22",
+   "ar": "1–51؛ الأقل يعني جودة أفضل وملفًا أكبر؛ القياسي 22",
+   "pl": "1–51; niżej to lepsza jakość i większy plik; standard to 22",
+   "ru": "1–51; меньше — лучше качество и больше файл; стандарт — 22"
+  },
+  {
    "zh": "2 分钟",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "2 分鐘",
@@ -3911,6 +3928,23 @@
    "ru": "MP4 не может сохранить этот кодек как есть; выберите MKV или исключите этот трек"
   },
   {
+   "zh": "MP4 兼容性最好（标准）。MKV 适合剪辑软件；即时回放始终保存为 MP4",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "MP4 相容性最好（標準）。MKV 適合剪輯軟體；即時重播一律儲存為 MP4",
+   "en": "MP4 plays everywhere (standard). MKV suits editing software; instant replays are always saved as MP4",
+   "ja": "MP4 はどこでも再生できます（標準）。MKV は編集ソフト向け。インスタントリプレイは常に MP4 で保存されます",
+   "nl": "MP4 speelt overal af (standaard). MKV past bij bewerkingssoftware; instant replays worden altijd als MP4 opgeslagen",
+   "de": "MP4 läuft überall (Standard). MKV eignet sich für Schnittprogramme; Sofortwiederholungen werden immer als MP4 gespeichert",
+   "es": "MP4 se reproduce en todas partes (estándar). MKV es para programas de edición; las repeticiones instantáneas siempre se guardan en MP4",
+   "fr": "MP4 se lit partout (standard). MKV convient aux logiciels de montage ; les replays instantanés sont toujours enregistrés en MP4",
+   "it": "MP4 si riproduce ovunque (standard). MKV è adatto ai programmi di montaggio; i replay istantanei sono sempre salvati in MP4",
+   "pt-BR": "MP4 toca em qualquer lugar (padrão). MKV serve para programas de edição; replays instantâneos são sempre salvos em MP4",
+   "tr": "MP4 her yerde oynatılır (standart). MKV düzenleme yazılımları için uygundur; anlık tekrarlar her zaman MP4 olarak kaydedilir",
+   "ar": "يعمل MP4 في كل مكان (قياسي). يناسب MKV برامج التحرير؛ تُحفظ الإعادة الفورية دائمًا بصيغة MP4",
+   "pl": "MP4 działa wszędzie (standard). MKV pasuje do programów do edycji; natychmiastowe powtórki zawsze zapisują się jako MP4",
+   "ru": "MP4 воспроизводится везде (стандарт). MKV подходит для программ монтажа; мгновенные повторы всегда сохраняются в MP4"
+  },
+  {
    "zh": "NGX 核心",
    "src": "include/veyra/engine/BackendRecovery.h",
    "zh-TW": "NGX 核心",
@@ -6036,6 +6070,23 @@
    "ru": "Сайт VB-Audio"
   },
   {
+   "zh": "VBR：按画面复杂度分配码率（标准）。CBR：每秒码率固定，适合要上传的视频。恒定质量：画质固定，文件大小随画面变化",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "VBR：依畫面複雜度分配碼率（標準）。CBR：每秒碼率固定，適合要上傳的影片。恆定品質：畫質固定，檔案大小隨畫面變化",
+   "en": "VBR: bitrate follows how busy the picture is (standard). CBR: the same bitrate every second, good for uploads. Constant quality: fixed quality, the file size follows the picture",
+   "ja": "VBR：画面の複雑さに応じてビットレートを配分（標準）。CBR：毎秒一定のビットレートで、アップロード向き。固定品質：画質が一定で、ファイルサイズは画面次第",
+   "nl": "VBR: bitrate volgt hoe druk het beeld is (standaard). CBR: elke seconde dezelfde bitrate, goed voor uploads. Constante kwaliteit: vaste kwaliteit, de bestandsgrootte volgt het beeld",
+   "de": "VBR: Bitrate folgt der Bildkomplexität (Standard). CBR: jede Sekunde dieselbe Bitrate, gut für Uploads. Konstante Qualität: feste Qualität, die Dateigröße folgt dem Bild",
+   "es": "VBR: la tasa sigue la complejidad de la imagen (estándar). CBR: la misma tasa cada segundo, buena para subir vídeos. Calidad constante: calidad fija, el tamaño del archivo depende de la imagen",
+   "fr": "VBR : le débit suit la complexité de l'image (standard). CBR : le même débit chaque seconde, adapté aux mises en ligne. Qualité constante : qualité fixe, la taille du fichier suit l'image",
+   "it": "VBR: il bitrate segue la complessità dell'immagine (standard). CBR: lo stesso bitrate ogni secondo, adatto ai caricamenti. Qualità costante: qualità fissa, la dimensione del file segue l'immagine",
+   "pt-BR": "VBR: a taxa acompanha a complexidade da imagem (padrão). CBR: a mesma taxa a cada segundo, bom para uploads. Qualidade constante: qualidade fixa, o tamanho do arquivo acompanha a imagem",
+   "tr": "VBR: bit hızı görüntünün karmaşıklığına göre değişir (standart). CBR: her saniye aynı bit hızı, yüklemeler için iyi. Sabit kalite: kalite sabit, dosya boyutu görüntüye göre değişir",
+   "ar": "VBR: يتبع المعدل تعقيد الصورة (قياسي). CBR: المعدل نفسه كل ثانية، مناسب للرفع. جودة ثابتة: جودة ثابتة وحجم الملف يتبع الصورة",
+   "pl": "VBR: przepływność zależy od złożoności obrazu (standard). CBR: ta sama przepływność co sekundę, dobra do wysyłania. Stała jakość: jakość stała, rozmiar pliku zależy od obrazu",
+   "ru": "VBR: битрейт зависит от сложности картинки (стандарт). CBR: одинаковый битрейт каждую секунду, удобно для загрузки. Постоянное качество: качество фиксировано, размер файла зависит от картинки"
+  },
+  {
    "zh": "VFG 中间帧约 %1 ms、其余每张约 %2 ms，当前负载约可稳定 %3X",
    "src": "src/ui/bridge/Status.cpp",
    "zh-TW": "VFG 中間影格約 %1 ms、其餘每張約 %2 ms，目前負載約可穩定 %3X",
@@ -6833,6 +6884,23 @@
    "ar": "[Native] {} · {}",
    "pl": "[Native] {} · {}",
    "ru": "[родной] {} · {}"
+  },
+  {
+   "zh": "kbps，每条音轨；标准为 192",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "kbps，每條音軌；標準為 192",
+   "en": "kbps per audio track; standard is 192",
+   "ja": "kbps（音声トラックごと）。標準は 192",
+   "nl": "kbps per audiospoor; standaard is 192",
+   "de": "kbps pro Audiospur; Standard ist 192",
+   "es": "kbps por pista de audio; el estándar es 192",
+   "fr": "kbps par piste audio ; le standard est 192",
+   "it": "kbps per traccia audio; lo standard è 192",
+   "pt-BR": "kbps por faixa de áudio; o padrão é 192",
+   "tr": "Ses parçası başına kbps; standart 192",
+   "ar": "kbps لكل مسار صوتي؛ القياسي 192",
+   "pl": "kbps na ścieżkę dźwiękową; standard to 192",
+   "ru": "кбит/с на звуковую дорожку; стандарт — 192"
   },
   {
    "zh": "scRGB 浮点",
@@ -11287,6 +11355,23 @@
    "ar": "متابعة المطوّر",
    "pl": "Obserwuj autora",
    "ru": "Подписаться на автора"
+  },
+  {
+   "zh": "关键帧间隔",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "關鍵影格間隔",
+   "en": "Keyframe interval",
+   "ja": "キーフレーム間隔",
+   "nl": "Keyframe-interval",
+   "de": "Keyframe-Intervall",
+   "es": "Intervalo de fotogramas clave",
+   "fr": "Intervalle d'images clés",
+   "it": "Intervallo dei fotogrammi chiave",
+   "pt-BR": "Intervalo de quadros-chave",
+   "tr": "Ana kare aralığı",
+   "ar": "الفاصل بين الإطارات الرئيسية",
+   "pl": "Odstęp klatek kluczowych",
+   "ru": "Интервал ключевых кадров"
   },
   {
    "zh": "关闭",
@@ -19722,6 +19807,23 @@
    "ru": "Контейнер"
   },
   {
+   "zh": "封装格式",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "封裝格式",
+   "en": "Container",
+   "ja": "コンテナー",
+   "nl": "Container",
+   "de": "Container",
+   "es": "Contenedor",
+   "fr": "Conteneur",
+   "it": "Contenitore",
+   "pt-BR": "Contêiner",
+   "tr": "Kapsayıcı",
+   "ar": "الحاوية",
+   "pl": "Kontener",
+   "ru": "Контейнер"
+  },
+  {
    "zh": "射击 · HUD 在四个角",
    "src": "qml/PushGamePresetsDialog.qml",
    "zh-TW": "射擊 · HUD 在四個角",
@@ -24533,6 +24635,23 @@
    "ru": "Общая сила изменений"
   },
   {
+   "zh": "恒定质量",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "恆定品質",
+   "en": "Constant quality",
+   "ja": "固定品質",
+   "nl": "Constante kwaliteit",
+   "de": "Konstante Qualität",
+   "es": "Calidad constante",
+   "fr": "Qualité constante",
+   "it": "Qualità costante",
+   "pt-BR": "Qualidade constante",
+   "tr": "Sabit kalite",
+   "ar": "جودة ثابتة",
+   "pl": "Stała jakość",
+   "ru": "Постоянное качество"
+  },
+  {
    "zh": "恒定质量：大小取决于画面，开始后按已写入量推算",
    "src": "src/ui/bridge/View.cpp",
    "zh-TW": "恒定品質：大小取決於畫面，開始後按已寫入量推算",
@@ -24550,6 +24669,23 @@
    "ru": "Постоянное качество: размер зависит от рисунка; оценивается из того, что было написано после начала работы."
   },
   {
+   "zh": "恢复",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "恢復",
+   "en": "Restore",
+   "ja": "戻す",
+   "nl": "Herstellen",
+   "de": "Wiederherstellen",
+   "es": "Restaurar",
+   "fr": "Rétablir",
+   "it": "Ripristina",
+   "pt-BR": "Restaurar",
+   "tr": "Geri yükle",
+   "ar": "استعادة",
+   "pl": "Przywróć",
+   "ru": "Вернуть"
+  },
+  {
    "zh": "恢复中",
    "src": "src/ui/bridge/Status.cpp",
    "zh-TW": "恢復中",
@@ -24565,6 +24701,23 @@
    "ar": "جارٍ الاسترداد",
    "pl": "Odzyskiwanie",
    "ru": "Восстановление"
+  },
+  {
+   "zh": "恢复标准设置",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "恢復標準設定",
+   "en": "Restore standard settings",
+   "ja": "標準設定に戻す",
+   "nl": "Standaardinstellingen herstellen",
+   "de": "Standardeinstellungen wiederherstellen",
+   "es": "Restaurar ajustes estándar",
+   "fr": "Rétablir les réglages standard",
+   "it": "Ripristina le impostazioni standard",
+   "pt-BR": "Restaurar configurações padrão",
+   "tr": "Standart ayarlara dön",
+   "ar": "استعادة الإعدادات القياسية",
+   "pl": "Przywróć ustawienia standardowe",
+   "ru": "Вернуть стандартные настройки"
   },
   {
    "zh": "恢复默认",
@@ -29139,6 +29292,40 @@
    "ar": "The GPU, driver or runtime does not support the selected feature",
    "pl": "GPU, sterownik lub runtime nie obsługuje wybranej funkcji",
    "ru": "GPU, драйвер или время выполнения не поддерживают выбранную функцию"
+  },
+  {
+   "zh": "显卡不支持所选的高级编码设置，已改用标准设置录制",
+   "src": "src/engine/LiveRecorder.cpp",
+   "zh-TW": "顯示卡不支援所選的進階編碼設定，已改用標準設定錄製",
+   "en": "The GPU doesn't support the chosen advanced encoding settings; recording with the standard ones",
+   "ja": "GPU が選択した詳細なエンコード設定に対応していないため、標準設定で録画しています",
+   "nl": "De GPU ondersteunt de gekozen geavanceerde coderingsinstellingen niet; er wordt opgenomen met de standaardinstellingen",
+   "de": "Die GPU unterstützt die gewählten erweiterten Kodierungseinstellungen nicht; Aufnahme mit den Standardeinstellungen",
+   "es": "La GPU no admite los ajustes de codificación avanzados elegidos; se graba con los estándar",
+   "fr": "Le GPU ne prend pas en charge les réglages d'encodage avancés choisis ; enregistrement avec les réglages standard",
+   "it": "La GPU non supporta le impostazioni di codifica avanzate scelte; si registra con quelle standard",
+   "pt-BR": "A GPU não aceita as configurações avançadas de codificação escolhidas; gravando com as padrão",
+   "tr": "GPU seçilen gelişmiş kodlama ayarlarını desteklemiyor; standart ayarlarla kaydediliyor",
+   "ar": "لا تدعم GPU إعدادات الترميز المتقدمة المختارة؛ يجري التسجيل بالإعدادات القياسية",
+   "pl": "GPU nie obsługuje wybranych zaawansowanych ustawień kodowania; nagrywanie z ustawieniami standardowymi",
+   "ru": "GPU не поддерживает выбранные расширенные настройки кодирования; запись идёт со стандартными"
+  },
+  {
+   "zh": "显卡不支持某个组合时，录制会自动改用标准设置并提示",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "顯示卡不支援某個組合時，錄製會自動改用標準設定並提示",
+   "en": "If the GPU can't use a combination, the recording switches to the standard settings and tells you",
+   "ja": "GPU が組み合わせに対応していない場合、録画は自動的に標準設定に切り替わり、お知らせします",
+   "nl": "Kan de GPU een combinatie niet gebruiken, dan schakelt de opname over op de standaardinstellingen en meldt dat",
+   "de": "Kann die GPU eine Kombination nicht nutzen, wechselt die Aufnahme auf die Standardeinstellungen und sagt Bescheid",
+   "es": "Si la GPU no puede usar una combinación, la grabación pasa a los ajustes estándar y te avisa",
+   "fr": "Si le GPU ne peut pas utiliser une combinaison, l'enregistrement passe aux réglages standard et vous prévient",
+   "it": "Se la GPU non supporta una combinazione, la registrazione passa alle impostazioni standard e te lo dice",
+   "pt-BR": "Se a GPU não aceitar uma combinação, a gravação passa para as configurações padrão e avisa você",
+   "tr": "GPU bir birleşimi kullanamazsa kayıt standart ayarlara geçer ve sizi bilgilendirir",
+   "ar": "إذا لم تدعم GPU تركيبة ما، ينتقل التسجيل إلى الإعدادات القياسية ويُعلمك",
+   "pl": "Jeśli GPU nie obsłuży kombinacji, nagranie przełączy się na ustawienia standardowe i da znać",
+   "ru": "Если GPU не поддерживает сочетание, запись переключится на стандартные настройки и сообщит об этом"
   },
   {
    "zh": "显卡在导出时被系统重置（第 {} 次），前面已保存，正在从 {:.1f} 秒接着导出",
@@ -36570,6 +36757,40 @@
    "ru": "Битрейт (Мбит/с)"
   },
   {
+   "zh": "码率控制",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "碼率控制",
+   "en": "Rate control",
+   "ja": "レート制御",
+   "nl": "Bitratebeheer",
+   "de": "Ratensteuerung",
+   "es": "Control de tasa",
+   "fr": "Contrôle du débit",
+   "it": "Controllo del bitrate",
+   "pt-BR": "Controle de taxa",
+   "tr": "Hız denetimi",
+   "ar": "التحكم في المعدل",
+   "pl": "Sterowanie przepływnością",
+   "ru": "Управление битрейтом"
+  },
+  {
+   "zh": "码率控制、编码预设、关键帧间隔、音频码率和封装格式，类似 OBS 的输出设置。关闭时使用标准设置",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "碼率控制、編碼預設、關鍵影格間隔、音訊碼率和封裝格式，類似 OBS 的輸出設定。關閉時使用標準設定",
+   "en": "Rate control, encoder preset, keyframe interval, audio bitrate and container, like OBS output settings. Off uses the standard settings",
+   "ja": "レート制御、エンコーダープリセット、キーフレーム間隔、音声ビットレート、コンテナー（OBS の出力設定のように）。オフのときは標準設定を使います",
+   "nl": "Bitratebeheer, encoderpreset, keyframe-interval, audiobitrate en container, zoals de uitvoerinstellingen van OBS. Uit gebruikt de standaardinstellingen",
+   "de": "Ratensteuerung, Encoder-Preset, Keyframe-Intervall, Audio-Bitrate und Container, wie die Ausgabeeinstellungen von OBS. Aus verwendet die Standardeinstellungen",
+   "es": "Control de tasa, preajuste del codificador, intervalo de fotogramas clave, tasa de bits de audio y contenedor, como los ajustes de salida de OBS. Desactivado usa los ajustes estándar",
+   "fr": "Contrôle du débit, préréglage de l'encodeur, intervalle d'images clés, débit audio et conteneur, comme les réglages de sortie d'OBS. Désactivé utilise les réglages standard",
+   "it": "Controllo del bitrate, preset dell'encoder, intervallo dei fotogrammi chiave, bitrate audio e contenitore, come le impostazioni di uscita di OBS. Disattivato usa le impostazioni standard",
+   "pt-BR": "Controle de taxa, predefinição do codificador, intervalo de quadros-chave, taxa de bits do áudio e contêiner, como as configurações de saída do OBS. Desligado usa as configurações padrão",
+   "tr": "Hız denetimi, kodlayıcı ön ayarı, ana kare aralığı, ses bit hızı ve kapsayıcı; OBS çıkış ayarları gibi. Kapalıyken standart ayarlar kullanılır",
+   "ar": "التحكم في المعدل وإعداد المرمّز المسبق والفاصل بين الإطارات الرئيسية ومعدل بت الصوت والحاوية، مثل إعدادات الإخراج في OBS. عند الإيقاف تُستخدم الإعدادات القياسية",
+   "pl": "Sterowanie przepływnością, preset kodera, odstęp klatek kluczowych, przepływność dźwięku i kontener, jak ustawienia wyjścia w OBS. Wyłączone używa ustawień standardowych",
+   "ru": "Управление битрейтом, пресет кодировщика, интервал ключевых кадров, битрейт звука и контейнер, как настройки вывода в OBS. Выкл. — стандартные настройки"
+  },
+  {
    "zh": "硬件解码",
    "src": "qml/StreamHud.qml",
    "zh-TW": "硬體解碼",
@@ -36772,6 +36993,23 @@
    "ar": "غير متصل بالإنترنت",
    "pl": "Offline",
    "ru": "Не в сети"
+  },
+  {
+   "zh": "秒；越短越方便剪辑和拖动，文件稍大；标准为 2",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "秒；越短越方便剪輯和拖動，檔案稍大；標準為 2",
+   "en": "Seconds; shorter is easier to edit and seek, with slightly bigger files; standard is 2",
+   "ja": "秒。短いほど編集やシークがしやすく、ファイルは少し大きくなります。標準は 2",
+   "nl": "Seconden; korter is makkelijker bewerken en spoelen, met iets grotere bestanden; standaard is 2",
+   "de": "Sekunden; kürzer ist leichter zu schneiden und zu spulen, mit etwas größeren Dateien; Standard ist 2",
+   "es": "Segundos; más corto facilita editar y saltar, con archivos algo mayores; el estándar es 2",
+   "fr": "Secondes ; plus court facilite le montage et la navigation, avec des fichiers un peu plus gros ; le standard est 2",
+   "it": "Secondi; più breve facilita montaggio e spostamenti, con file un po’ più grandi; lo standard è 2",
+   "pt-BR": "Segundos; mais curto facilita editar e avançar, com arquivos um pouco maiores; o padrão é 2",
+   "tr": "Saniye; kısa olması düzenlemeyi ve ileri sarmayı kolaylaştırır, dosya biraz büyür; standart 2",
+   "ar": "بالثواني؛ الأقصر أسهل في التحرير والتنقل مع ملفات أكبر قليلًا؛ القياسي 2",
+   "pl": "Sekundy; krótszy ułatwia edycję i przewijanie, pliki są nieco większe; standard to 2",
+   "ru": "Секунды; короче — проще монтировать и перематывать, файлы чуть больше; стандарт — 2"
   },
   {
    "zh": "程序启动时的页面、窗口和恢复行为。",
@@ -38166,6 +38404,23 @@
    "ar": "أعاد الشفرة رقماً غير معروف",
    "pl": "Enkoder zwrócił nieznany numer ramki",
    "ru": "Кодер вернул неизвестное число кадра"
+  },
+  {
+   "zh": "编码预设",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "編碼預設",
+   "en": "Encoder preset",
+   "ja": "エンコーダープリセット",
+   "nl": "Encoderpreset",
+   "de": "Encoder-Preset",
+   "es": "Preajuste del codificador",
+   "fr": "Préréglage de l'encodeur",
+   "it": "Preset dell'encoder",
+   "pt-BR": "Predefinição do codificador",
+   "tr": "Kodlayıcı ön ayarı",
+   "ar": "إعداد المرمّز المسبق",
+   "pl": "Preset kodera",
+   "ru": "Пресет кодировщика"
   },
   {
    "zh": "编辑",
@@ -43336,6 +43591,23 @@
    "ru": "Качество"
   },
   {
+   "zh": "质量等级",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "品質等級",
+   "en": "Quality level",
+   "ja": "品質レベル",
+   "nl": "Kwaliteitsniveau",
+   "de": "Qualitätsstufe",
+   "es": "Nivel de calidad",
+   "fr": "Niveau de qualité",
+   "it": "Livello di qualità",
+   "pt-BR": "Nível de qualidade",
+   "tr": "Kalite düzeyi",
+   "ar": "مستوى الجودة",
+   "pl": "Poziom jakości",
+   "ru": "Уровень качества"
+  },
+  {
    "zh": "质量策略",
    "src": "qml/ExportPage.qml",
    "zh-TW": "品質策略",
@@ -43742,6 +44014,23 @@
    "ar": "أصغر حجما أكثر حساسية؛ وأكثر تماسكا",
    "pl": "Mniejsze jest bardziej wrażliwe; większe uchwyty bardziej stabilne",
    "ru": "Меньшее более чувствительно; большее держится более устойчиво"
+  },
+  {
+   "zh": "越靠右画质越好，但显卡编码负担越重；标准为 4。录制卡顿时调低",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "越靠右畫質越好，但顯示卡編碼負擔越重；標準為 4。錄製卡頓時調低",
+   "en": "Further right is better quality but more work for the GPU encoder; standard is 4. Lower it if recordings stutter",
+   "ja": "右ほど高画質ですが GPU エンコーダーの負荷が増えます。標準は 4。録画がカクつくときは下げてください",
+   "nl": "Verder naar rechts is betere kwaliteit maar meer werk voor de GPU-encoder; standaard is 4. Verlaag het als opnames haperen",
+   "de": "Weiter rechts ist bessere Qualität, aber mehr Arbeit für den GPU-Encoder; Standard ist 4. Senken, wenn Aufnahmen ruckeln",
+   "es": "Más a la derecha es mejor calidad pero más carga para el codificador de la GPU; el estándar es 4. Bájalo si las grabaciones se entrecortan",
+   "fr": "Plus à droite donne une meilleure qualité mais plus de travail pour l'encodeur du GPU ; le standard est 4. Baissez-le si les enregistrements saccadent",
+   "it": "Più a destra è qualità migliore ma più lavoro per l'encoder della GPU; lo standard è 4. Abbassalo se le registrazioni scattano",
+   "pt-BR": "Mais à direita é melhor qualidade, mas mais trabalho para o codificador da GPU; o padrão é 4. Diminua se as gravações travarem",
+   "tr": "Sağa doğru kalite artar ama GPU kodlayıcısının yükü de artar; standart 4. Kayıtlar takılırsa düşürün",
+   "ar": "كلما اتجهت يمينًا زادت الجودة وزاد عمل مرمّز GPU؛ القياسي 4. اخفضه إذا تقطعت التسجيلات",
+   "pl": "Dalej w prawo to lepsza jakość, ale większe obciążenie kodera GPU; standard to 4. Obniż, jeśli nagrania się zacinają",
+   "ru": "Правее — лучше качество, но больше нагрузка на кодировщик GPU; стандарт — 4. Уменьшите, если запись дёргается"
   },
   {
    "zh": "越高越保留五官和发丝",
@@ -48742,6 +49031,23 @@
    "ru": "Прослушивание звука"
   },
   {
+   "zh": "音频码率",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "音訊碼率",
+   "en": "Audio bitrate",
+   "ja": "音声ビットレート",
+   "nl": "Audiobitrate",
+   "de": "Audio-Bitrate",
+   "es": "Tasa de bits de audio",
+   "fr": "Débit audio",
+   "it": "Bitrate audio",
+   "pt-BR": "Taxa de bits do áudio",
+   "tr": "Ses bit hızı",
+   "ar": "معدل بت الصوت",
+   "pl": "Przepływność dźwięku",
+   "ru": "Битрейт звука"
+  },
+  {
    "zh": "音频线程异常，请重新打开采集",
    "src": "src/sink/CaptureAudioSession.cpp",
    "zh-TW": "音訊執行緒異常，請重新開啟擷取",
@@ -50916,6 +51222,23 @@
    "ar": "مرّة عالية و متألقة فقط ويصل المصدر بالفعل إلى الحجم المستهدف، وبالتالي لم يركضوا؛ ويستخدم المعيار لإعادة الاستخدام بنفس الحجم.",
    "pl": "Wysoka bitrate i strumieniowanie tylko w wysokiej skali. Źródło osiąga już rozmiar docelowy, więc nie działają; używać Standard do przywrócenia w tym samym rozmiarze.",
    "ru": "Высокий битрейт и потоковая передача только высококлассная. Источник уже достигает целевого размера, поэтому они не запускались; используйте Standard для восстановления при том же размере."
+  },
+  {
+   "zh": "高级编码设置",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "進階編碼設定",
+   "en": "Advanced encoding settings",
+   "ja": "詳細なエンコード設定",
+   "nl": "Geavanceerde coderingsinstellingen",
+   "de": "Erweiterte Kodierungseinstellungen",
+   "es": "Ajustes de codificación avanzados",
+   "fr": "Réglages d'encodage avancés",
+   "it": "Impostazioni di codifica avanzate",
+   "pt-BR": "Configurações avançadas de codificação",
+   "tr": "Gelişmiş kodlama ayarları",
+   "ar": "إعدادات الترميز المتقدمة",
+   "pl": "Zaawansowane ustawienia kodowania",
+   "ru": "Расширенные настройки кодирования"
   },
   {
    "zh": "高级设置：技术参数",

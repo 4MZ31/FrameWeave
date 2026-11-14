@@ -1297,5 +1297,22 @@
 1296|Bu bilgisayar bu kombinasyonu çalıştıramıyor
 1297|Yakalama kartı karelerin %%1'ini düşürdü
 1298|. Kayıtlarda da korunur. Dolby / DTS geçişi etkilenmez
+1299|Gelişmiş kodlama ayarları
+1300|Hız denetimi, kodlayıcı ön ayarı, ana kare aralığı, ses bit hızı ve kapsayıcı; OBS çıkış ayarları gibi. Kapalıyken standart ayarlar kullanılır
+1301|VBR: bit hızı görüntünün karmaşıklığına göre değişir (standart). CBR: her saniye aynı bit hızı, yüklemeler için iyi. Sabit kalite: kalite sabit, dosya boyutu görüntüye göre değişir
+1302|Sabit kalite
+1303|Kalite düzeyi
+1304|1–51; düşük değer daha iyi kalite ve daha büyük dosya demektir; standart 22
+1305|Kodlayıcı ön ayarı
+1306|Sağa doğru kalite artar ama GPU kodlayıcısının yükü de artar; standart 4. Kayıtlar takılırsa düşürün
+1307|Ana kare aralığı
+1308|Saniye; kısa olması düzenlemeyi ve ileri sarmayı kolaylaştırır, dosya biraz büyür; standart 2
+1309|Ses bit hızı
+1310|Ses parçası başına kbps; standart 192
+1311|MP4 her yerde oynatılır (standart). MKV düzenleme yazılımları için uygundur; anlık tekrarlar her zaman MP4 olarak kaydedilir
+1312|Standart ayarlara dön
+1313|GPU bir birleşimi kullanamazsa kayıt standart ayarlara geçer ve sizi bilgilendirir
+1314|Geri yükle
+1315|GPU seçilen gelişmiş kodlama ayarlarını desteklemiyor; standart ayarlarla kaydediliyor
 zh:轻|Hafif
 zh:亮|Işık

@@ -96,9 +96,9 @@ uint64_t defaultReplayMemory(){
     const uint64_t total=GlobalMemoryStatusEx(&memory)?memory.ullTotalPhys:(uint64_t(8)<<30);
     return std::clamp<uint64_t>(total/8,uint64_t(512)<<20,uint64_t(4)<<30);
 }
-std::wstring uniqueFile(const std::wstring& directory,const std::wstring& base){
+std::wstring uniqueFile(const std::wstring& directory,const std::wstring& base,const wchar_t* extension=L".mp4"){
     for(unsigned attempt=0;;++attempt){
-        auto file=std::filesystem::path(directory)/(base+(attempt?std::format(L"-{}",attempt):L"")+L".mp4");
+        auto file=std::filesystem::path(directory)/(base+(attempt?std::format(L"-{}",attempt):L"")+extension);
         std::error_code code;
         if(!std::filesystem::exists(file,code))return file.wstring();
     }
@@ -281,6 +281,7 @@ struct AudioTrack {
         if(frame)av_frame_free(&frame);
     }
     int frameSize() const {return codec&&codec->frame_size>0?codec->frame_size:1024;}
+    int64_t bitRate=192000;           // PushFPS advanced recording: AAC bitrate
     bool open(){
         const AVCodec* encoder=avcodec_find_encoder(AV_CODEC_ID_AAC);
         if(!encoder)return false;
@@ -289,7 +290,7 @@ struct AudioTrack {
         codec->sample_fmt=AV_SAMPLE_FMT_FLTP;codec->sample_rate=kAudioRate;
         const AVChannelLayout stereo=AV_CHANNEL_LAYOUT_STEREO;
         av_channel_layout_copy(&codec->ch_layout,&stereo);
-        codec->bit_rate=192000;codec->time_base=AVRational{1,kAudioRate};
+        codec->bit_rate=bitRate;codec->time_base=AVRational{1,kAudioRate};
         // MP4 (recordings and saved replays) keeps the decoder configuration
         // in the sample description.
         codec->flags|=AV_CODEC_FLAG_GLOBAL_HEADER;
@@ -431,6 +432,9 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
     ComPtr<ID3D12Device> device;
     uint32_t width=0,height=0,hdrMode=0,fps=60,bitrateMbps=20,vendor=0;
     bool hevc=false,nvenc=false;
+    // PushFPS advanced recording (RecordingSettings).
+    uint32_t rateControl=1,quality=22,preset=4,keyframeSeconds=2,audioKbps=192;
+    bool matroska=false;
     bool sound=false,microphone=false,microphoneTrack=false; // what the sound tracks take
     std::atomic<bool> audio{false};             // the file (or buffer) has sound tracks
     std::wstring path;                          // a recording's file
@@ -673,8 +677,18 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         sink::NvencLiveEncoder encoder;
         sink::NvencLiveEncoder::Config config;
         config.width=width;config.height=height;config.hevc=hevc;config.hdr=hdrMode!=0;config.fps=fps;config.bitrateMbps=bitrateMbps;
+        config.rateControl=rateControl;config.qp=quality;config.preset=preset;config.keyframeSeconds=keyframeSeconds;
         std::vector<ID3D12Resource*> inputs;for(auto& slot:slots)inputs.push_back(slot.nv12.Get());
-        if(!encoder.open(device.Get(),config,inputs)){fail(L"NVENC 无法开始录制："+encoder.lastError());return;}
+        if(!encoder.open(device.Get(),config,inputs)){
+            // PushFPS: advanced settings this GPU refuses fall back to the standard ones.
+            const bool standard=config.rateControl==1&&config.preset==4&&config.keyframeSeconds==2;
+            if(standard){fail(L"NVENC 无法开始录制："+encoder.lastError());return;}
+            veyra::log::warn("live-recorder",std::format("advanced encoder settings refused ({}); using the standard ones",utf8(encoder.lastError())));
+            encoder.close();
+            config.rateControl=1;config.preset=4;config.keyframeSeconds=2;
+            if(!encoder.open(device.Get(),config,inputs)){fail(L"NVENC 无法开始录制："+encoder.lastError());return;}
+            setNote(L"显卡不支持所选的高级编码设置，已改用标准设置录制");
+        }
         publishHeaders(encoder.headers(),encoder.describe());
         veyra::log::info("live-recorder",std::format("encoder ready {} path={}",utf8(encoder.describe()),name()));
         for(;;){
@@ -713,7 +727,14 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         {
             auto encoder=sink::createMediaFoundationLiveEncoder();
             sink::EncoderConfig config;config.hevc=hevc;config.fpsNum=fps;config.fpsDen=1;config.bitrateMbps=bitrateMbps;
-            config.rateControl=sink::ExportRateControl::Vbr;config.adapterVendorId=vendor;config.drainTimeoutMs=kGpuWaitMs;
+            config.rateControl=sink::ExportRateControl(std::min(rateControl,2u));config.adapterVendorId=vendor;config.drainTimeoutMs=kGpuWaitMs;
+            // PushFPS advanced recording: encoder preset 1..7 onto Media Foundation's
+            // 0..100 speed/quality scale (4 is the standard 70); quality level 1..51
+            // onto its 1..100 quality (22 is the standard 75).
+            static constexpr uint32_t speed[7]={10,30,50,70,80,90,100};
+            config.qualityVsSpeed=speed[std::clamp(preset,1u,7u)-1];
+            config.constantQuality=uint32_t(std::clamp(119-int(quality)*2,1,100));
+            config.keyframeSeconds=keyframeSeconds;
             auto writer=[this](const uint8_t* bytes,size_t size,int64_t ptsUs,bool key){pushVideo(std::vector<uint8_t>(bytes,bytes+size),ptsUs,key);return true;};
             if(!encoder->openLive(width,height,config,writer)){fail(L"系统硬件编码器无法开始录制："+encoder->liveError());}
             else{
@@ -776,6 +797,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         auto add=[&](AudioLane* lane,AudioLane* mix,const char* label){
             auto& track=tracks[trackCount];
             track.lane=lane;track.mix=mix;track.name=label;
+            track.bitRate=int64_t(std::clamp(audioKbps,64u,320u))*1000;
             if(!track.open())return false;
             ++trackCount;return true;
         };
@@ -794,7 +816,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         }
     }
     bool openFile(std::vector<uint8_t> extradata){
-        if(avformat_alloc_output_context2(&mux,nullptr,"mp4",nullptr)<0||!mux){fail(L"无法创建录制封装器");return false;}
+        if(avformat_alloc_output_context2(&mux,nullptr,matroska?"matroska":"mp4",nullptr)<0||!mux){fail(L"无法创建录制封装器");return false;}
         videoStream=avformat_new_stream(mux,nullptr);
         if(!videoStream){fail(L"无法创建录制视频流");return false;}
         videoStream->time_base=AVRational{1,1000000};
@@ -812,14 +834,16 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         if(rc<0){fail(L"无法创建录制文件："+avError(rc));return false;}
         // Fragmented MP4: every fragment is playable on its own, so an
         // interrupted recording keeps what was written.
+        // MKV (PushFPS advanced recording) is readable up to the last cluster anyway.
         AVDictionary* options=nullptr;
-        av_dict_set(&options,"movflags","frag_keyframe+empty_moov+default_base_moof",0);
+        if(!matroska)av_dict_set(&options,"movflags","frag_keyframe+empty_moov+default_base_moof",0);
         rc=avformat_write_header(mux,&options);
         av_dict_free(&options);
         if(rc<0){fail(L"无法写入录制文件头："+avError(rc));return false;}
         headerWritten=true;
-        veyra::log::info("live-recorder",std::format("file open path={} extent={}x{} codec={} hdr={} fps={} bitrateMbps={} audio={} sound={} microphone={} tracks={}",
-            utf8(path),width,height,hevc?"HEVC":"H264",hdrMode,fps,bitrateMbps,audio.load(),sound,microphone?(microphoneTrack?"track":"mixed"):"off",trackCount));
+        veyra::log::info("live-recorder",std::format("file open path={} extent={}x{} codec={} hdr={} fps={} bitrateMbps={} audio={} sound={} microphone={} tracks={} rc={} quality={} preset={} keyframeS={} audioKbps={} container={}",
+            utf8(path),width,height,hevc?"HEVC":"H264",hdrMode,fps,bitrateMbps,audio.load(),sound,microphone?(microphoneTrack?"track":"mixed"):"off",trackCount,
+            rateControl,quality,preset,keyframeSeconds,audioKbps,matroska?"mkv":"mp4"));
         return true;
     }
     // The instant replay buffer takes what a file would: the encoder's
@@ -1038,7 +1062,9 @@ bool LiveRecorder::start(const RecordingSettings& settings,std::wstring& error){
         const auto& o=s.settings;
         const bool same=s.armed&&o.bitrateMbps==settings.bitrateMbps&&o.hevc==settings.hevc&&o.fpsLimit==settings.fpsLimit&&
             o.audio==settings.audio&&o.microphone==settings.microphone&&o.microphoneId==settings.microphoneId&&
-            o.microphoneTrack==settings.microphoneTrack&&o.replaySeconds==settings.replaySeconds&&o.replayMemoryBytes==settings.replayMemoryBytes;
+            o.microphoneTrack==settings.microphoneTrack&&o.replaySeconds==settings.replaySeconds&&o.replayMemoryBytes==settings.replayMemoryBytes&&
+            o.rateControl==settings.rateControl&&o.quality==settings.quality&&o.preset==settings.preset&&
+            o.keyframeSeconds==settings.keyframeSeconds&&o.audioKbps==settings.audioKbps;
         s.settings=settings;
         if(s.settings.replaySeconds==0)s.settings.replaySeconds=60;
         if(same)return true;
@@ -1262,13 +1288,17 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         segment->sound=s.settings.audio;
         segment->microphone=s.settings.microphone;
         segment->microphoneTrack=s.settings.microphoneTrack;
+        segment->rateControl=std::min(s.settings.rateControl,2u);segment->quality=std::clamp(s.settings.quality,1u,51u);
+        segment->preset=std::clamp(s.settings.preset,1u,7u);segment->keyframeSeconds=std::clamp(s.settings.keyframeSeconds,1u,10u);
+        segment->audioKbps=std::clamp(s.settings.audioKbps,64u,320u);
+        segment->matroska=s.settings.matroska&&!s.replayMode;
         segment->audio=segment->sound||segment->microphone;
         if(s.replayMode){
             const uint64_t cap=s.settings.replayMemoryBytes?s.settings.replayMemoryBytes:defaultReplayMemory();
             segment->replay=std::make_shared<ReplayBuffer>(int64_t(s.settings.replaySeconds)*1000000,size_t(cap));
         }else{
             const auto base=s.baseName+(s.nextNumber>1?std::format(L"-{}",s.nextNumber):L"");
-            segment->path=uniqueFile(s.settings.directory,base);
+            segment->path=uniqueFile(s.settings.directory,base,segment->matroska?L".mkv":L".mp4");
         }
         std::wstring reason;
         if(!segment->create(reason))return fail(reason);

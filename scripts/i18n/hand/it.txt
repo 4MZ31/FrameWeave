@@ -1297,5 +1297,22 @@
 1296|Questo PC non può eseguire questa combinazione
 1297|La scheda di acquisizione ha perso il %1% dei fotogrammi
 1298|. Anche le registrazioni lo mantengono. Il passthrough Dolby / DTS non è interessato
+1299|Impostazioni di codifica avanzate
+1300|Controllo del bitrate, preset dell'encoder, intervallo dei fotogrammi chiave, bitrate audio e contenitore, come le impostazioni di uscita di OBS. Disattivato usa le impostazioni standard
+1301|VBR: il bitrate segue la complessità dell'immagine (standard). CBR: lo stesso bitrate ogni secondo, adatto ai caricamenti. Qualità costante: qualità fissa, la dimensione del file segue l'immagine
+1302|Qualità costante
+1303|Livello di qualità
+1304|1–51; più basso è qualità migliore e file più grande; lo standard è 22
+1305|Preset dell'encoder
+1306|Più a destra è qualità migliore ma più lavoro per l'encoder della GPU; lo standard è 4. Abbassalo se le registrazioni scattano
+1307|Intervallo dei fotogrammi chiave
+1308|Secondi; più breve facilita montaggio e spostamenti, con file un po’ più grandi; lo standard è 2
+1309|Bitrate audio
+1310|kbps per traccia audio; lo standard è 192
+1311|MP4 si riproduce ovunque (standard). MKV è adatto ai programmi di montaggio; i replay istantanei sono sempre salvati in MP4
+1312|Ripristina le impostazioni standard
+1313|Se la GPU non supporta una combinazione, la registrazione passa alle impostazioni standard e te lo dice
+1314|Ripristina
+1315|La GPU non supporta le impostazioni di codifica avanzate scelte; si registra con quelle standard
 zh:轻|Leggero
 zh:亮|Luce

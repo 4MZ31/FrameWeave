@@ -20,6 +20,20 @@ VPage {
     property bool hdrAdvancedExpanded: false
     // The shortcut row waiting for a new key ("" = none).
     property string capturingKey: ""
+    // PushFPS (screenshots): scroll so the row with this objectName is at the top.
+    function scrollToObject(name) {
+        const find = (item) => {
+            if (!item) return null
+            if (item.objectName === name) return item
+            for (let i = 0; i < item.children.length; ++i) { const r = find(item.children[i]); if (r) return r }
+            return null
+        }
+        const target = find(body)
+        if (!target) return false
+        const y = target.mapToItem(body, 0, 0).y
+        settingsFlick.contentY = Math.max(0, Math.min(y - 12, settingsFlick.contentHeight - settingsFlick.height))
+        return true
+    }
     onSectionChanged: {
         capturingKey = ""
         if (section === "ps5") veyra.ps5Load()
@@ -135,6 +149,7 @@ VPage {
         clip: true
 
         Flickable {
+            id: settingsFlick
             anchors.fill: parent
             contentHeight: body.implicitHeight + 44
             clip: true
@@ -630,6 +645,105 @@ VPage {
                                 options: [{ id: "0", label: "H.264" }, { id: "1", label: "HEVC" }]
                                 current: veyra.recordingHevc ? "1" : "0"
                                 onPicked: id => veyra.setPreference("recordHevc", id === "1")
+                            }
+                        }
+                        // PushFPS advanced recording: encoder controls for people who want them,
+                        // like OBS's output settings. Off keeps the standard encoding above.
+                        VRow {
+                            label: qsTr("高级编码设置")
+                            hint: qsTr("码率控制、编码预设、关键帧间隔、音频码率和封装格式，类似 OBS 的输出设置。关闭时使用标准设置")
+                            VSwitch {
+                                objectName: "set-recadvanced"
+                                checked: !!veyra.preferences.recordAdvanced
+                                onToggled: v => veyra.setPreference("recordAdvanced", v)
+                            }
+                        }
+                        ColumnLayout {
+                            id: recAdvanced
+                            objectName: "set-recadvanced-group"
+                            Layout.fillWidth: true
+                            spacing: 0
+                            visible: !!veyra.preferences.recordAdvanced
+                            readonly property int rateControl: veyra.preferences.recordRateControl !== undefined ? veyra.preferences.recordRateControl : 1
+                            VRow {
+                                label: qsTr("码率控制")
+                                hint: qsTr("VBR：按画面复杂度分配码率（标准）。CBR：每秒码率固定，适合要上传的视频。恒定质量：画质固定，文件大小随画面变化")
+                                VSeg {
+                                    objectName: "set-recrate"
+                                    options: [{ id: "1", label: "VBR" }, { id: "0", label: "CBR" }, { id: "2", label: qsTr("恒定质量") }]
+                                    current: String(recAdvanced.rateControl)
+                                    onPicked: id => veyra.setPreference("recordRateControl", Number(id))
+                                }
+                            }
+                            VRow {
+                                visible: recAdvanced.rateControl === 2
+                                label: qsTr("质量等级")
+                                hint: qsTr("1–51，越小画质越好、文件越大；标准为 22")
+                                value: String(veyra.preferences.recordQuality !== undefined ? veyra.preferences.recordQuality : 22)
+                                VSlider {
+                                    objectName: "set-recquality"
+                                    implicitWidth: 140
+                                    valueFromModel: true
+                                    resettable: true; defaultValue: 22
+                                    from: 1; to: 51
+                                    value: veyra.preferences.recordQuality !== undefined ? veyra.preferences.recordQuality : 22
+                                    onMoved: value => veyra.setPreference("recordQuality", Math.round(value))
+                                }
+                            }
+                            VRow {
+                                label: qsTr("编码预设")
+                                hint: qsTr("越靠右画质越好，但显卡编码负担越重；标准为 4。录制卡顿时调低")
+                                VSeg {
+                                    objectName: "set-recpreset"
+                                    options: [{ id: "1", label: "1" }, { id: "2", label: "2" }, { id: "3", label: "3" }, { id: "4", label: "4" },
+                                              { id: "5", label: "5" }, { id: "6", label: "6" }, { id: "7", label: "7" }]
+                                    current: String(veyra.preferences.recordPreset !== undefined ? veyra.preferences.recordPreset : 4)
+                                    onPicked: id => veyra.setPreference("recordPreset", Number(id))
+                                }
+                            }
+                            VRow {
+                                label: qsTr("关键帧间隔")
+                                hint: qsTr("秒；越短越方便剪辑和拖动，文件稍大；标准为 2")
+                                VSeg {
+                                    objectName: "set-reckeyframe"
+                                    options: [{ id: "1", label: "1" }, { id: "2", label: "2" }, { id: "4", label: "4" }, { id: "10", label: "10" }]
+                                    current: String(veyra.preferences.recordKeyframe !== undefined ? veyra.preferences.recordKeyframe : 2)
+                                    onPicked: id => veyra.setPreference("recordKeyframe", Number(id))
+                                }
+                            }
+                            VRow {
+                                label: qsTr("音频码率")
+                                hint: qsTr("kbps，每条音轨；标准为 192")
+                                VSeg {
+                                    objectName: "set-recaudiokbps"
+                                    options: [{ id: "128", label: "128" }, { id: "160", label: "160" }, { id: "192", label: "192" }, { id: "256", label: "256" }, { id: "320", label: "320" }]
+                                    current: String(veyra.preferences.recordAudioKbps !== undefined ? veyra.preferences.recordAudioKbps : 192)
+                                    onPicked: id => veyra.setPreference("recordAudioKbps", Number(id))
+                                }
+                            }
+                            VRow {
+                                label: qsTr("封装格式")
+                                hint: qsTr("MP4 兼容性最好（标准）。MKV 适合剪辑软件；即时回放始终保存为 MP4")
+                                VSeg {
+                                    objectName: "set-reccontainer"
+                                    options: [{ id: "0", label: "MP4" }, { id: "1", label: "MKV" }]
+                                    current: String(veyra.preferences.recordContainer !== undefined ? veyra.preferences.recordContainer : 0)
+                                    onPicked: id => veyra.setPreference("recordContainer", Number(id))
+                                }
+                            }
+                            VRow {
+                                label: qsTr("恢复标准设置")
+                                hint: qsTr("显卡不支持某个组合时，录制会自动改用标准设置并提示")
+                                VButton {
+                                    objectName: "set-recadvanced-reset"
+                                    ghost: true
+                                    text: qsTr("恢复")
+                                    onClicked: {
+                                        veyra.setPreference("recordRateControl", 1); veyra.setPreference("recordQuality", 22)
+                                        veyra.setPreference("recordPreset", 4); veyra.setPreference("recordKeyframe", 2)
+                                        veyra.setPreference("recordAudioKbps", 192); veyra.setPreference("recordContainer", 0)
+                                    }
+                                }
                             }
                         }
                         VRow {

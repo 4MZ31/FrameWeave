@@ -102,7 +102,10 @@ jobs:
             @{ name = '28-lang-nl';        args = @('--page', 'home', '--lang', 'nl') },
             @{ name = '29-settings-anr';   args = @('--page', 'set', '--tab', 'comp') },
             @{ name = '30-settings-about'; args = @('--page', 'set', '--tab', 'about') },
-            @{ name = '31-light-about';    args = @('--page', 'set', '--tab', 'about', '--theme', 'light') }
+            @{ name = '31-light-about';    args = @('--page', 'set', '--tab', 'about', '--theme', 'light') },
+            @{ name = '32-settings-recording'; args = @('--page', 'set', '--tab', 'play', '--scroll-to', 'set-recbitrate') },
+            @{ name = '33-recording-advanced'; args = @('--page', 'set', '--tab', 'play', '--scroll-to', 'set-recadvanced', '--pref', 'recordAdvanced=true', '--pref', 'recordRateControl=2') },
+            @{ name = '34-recording-advanced-light'; args = @('--page', 'set', '--tab', 'play', '--scroll-to', 'set-recadvanced', '--theme', 'light', '--pref', 'recordAdvanced=true') }
           )
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"

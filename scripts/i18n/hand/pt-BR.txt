@@ -1297,5 +1297,22 @@
 1296|Este PC não consegue rodar esta combinação
 1297|A placa de captura perdeu %1% dos quadros
 1298|. As gravações também mantêm isso. O passthrough Dolby / DTS não é afetado
+1299|Configurações avançadas de codificação
+1300|Controle de taxa, predefinição do codificador, intervalo de quadros-chave, taxa de bits do áudio e contêiner, como as configurações de saída do OBS. Desligado usa as configurações padrão
+1301|VBR: a taxa acompanha a complexidade da imagem (padrão). CBR: a mesma taxa a cada segundo, bom para uploads. Qualidade constante: qualidade fixa, o tamanho do arquivo acompanha a imagem
+1302|Qualidade constante
+1303|Nível de qualidade
+1304|1–51; menor é melhor qualidade e arquivo maior; o padrão é 22
+1305|Predefinição do codificador
+1306|Mais à direita é melhor qualidade, mas mais trabalho para o codificador da GPU; o padrão é 4. Diminua se as gravações travarem
+1307|Intervalo de quadros-chave
+1308|Segundos; mais curto facilita editar e avançar, com arquivos um pouco maiores; o padrão é 2
+1309|Taxa de bits do áudio
+1310|kbps por faixa de áudio; o padrão é 192
+1311|MP4 toca em qualquer lugar (padrão). MKV serve para programas de edição; replays instantâneos são sempre salvos em MP4
+1312|Restaurar configurações padrão
+1313|Se a GPU não aceitar uma combinação, a gravação passa para as configurações padrão e avisa você
+1314|Restaurar
+1315|A GPU não aceita as configurações avançadas de codificação escolhidas; gravando com as padrão
 zh:轻|Leve
 zh:亮|Luz

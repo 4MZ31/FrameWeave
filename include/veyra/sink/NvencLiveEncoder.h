@@ -20,7 +20,13 @@ public:
         bool hevc=false;
         bool hdr=false;          // HEVC Main10 from P010 inputs, BT.2020 PQ signalling
         uint32_t fps=60;         // rate-control frame rate
-        uint32_t bitrateMbps=20; // VBR target
+        uint32_t bitrateMbps=20; // VBR/CBR target
+        // PushFPS advanced recording (设置 → 录制 → 高级). Defaults are the
+        // recorder's standard behaviour: VBR, preset P4, a 2 s keyframe interval.
+        uint32_t rateControl=1;  // sink::ExportRateControl: 0 CBR, 1 VBR, 2 constant QP
+        uint32_t qp=22;          // constant QP (1..51, lower is better)
+        uint32_t preset=4;       // NVENC P1 (fastest) .. P7 (best quality)
+        uint32_t keyframeSeconds=2;
     };
     struct Packet {
         std::vector<uint8_t> data;

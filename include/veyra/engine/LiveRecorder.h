@@ -41,6 +41,14 @@ struct RecordingSettings {
     bool microphone=false;       // record a microphone
     std::wstring microphoneId;   // its endpoint; empty: the default recording device
     bool microphoneTrack=false;  // on a track of its own instead of mixed into the sound
+    // PushFPS advanced recording (设置 → 录制 → 高级). The defaults are the
+    // standard recording; the interface only changes them when Advanced is on.
+    uint32_t rateControl=1;      // sink::ExportRateControl: 0 CBR, 1 VBR, 2 constant quality
+    uint32_t quality=22;         // constant quality level 1..51, lower is better (rateControl 2)
+    uint32_t preset=4;           // encoder speed/quality 1 (fastest) .. 7 (best)
+    uint32_t keyframeSeconds=2;  // keyframe interval
+    uint32_t audioKbps=192;      // AAC bitrate per track
+    bool matroska=false;         // MKV instead of fragmented MP4 (recordings; replays stay MP4)
     // Instant replay recorder only.
     uint32_t replaySeconds=60;   // how much the buffer keeps
     uint64_t replayMemoryBytes=0;// memory cap; 0: an eighth of the installed memory, 512 MB to 4 GB

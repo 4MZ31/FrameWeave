@@ -966,6 +966,14 @@ Window {
         veyra.updates.startAutomaticCheck()
         // --lang <code>: screenshots in another language (saved in that run's own --data-dir).
         if (root.test.lang !== undefined) veyra.setPreference("language", root.test.lang)
+        if (root.test.prefs !== undefined) {
+            for (const pair of root.test.prefs) {
+                const at = pair.indexOf("=")
+                if (at <= 0) continue
+                const raw = pair.slice(at + 1)
+                veyra.setPreference(pair.slice(0, at), raw === "true" ? true : raw === "false" ? false : (raw !== "" && !isNaN(Number(raw)) ? Number(raw) : raw))
+            }
+        }
         applyStartupSize()
         // Open on the configured page: the user's saved preference, or the
         // override a test passes on the command line.
@@ -978,8 +986,11 @@ Window {
         if (root.test.dialog !== undefined) dialogs.open(root.test.dialog)
         videoHost.syncRect()
         if (root.test.menu !== undefined) testMenuTimer.start()
+        if (root.test.scrollTo !== undefined) testScrollTimer.start()
         if (root.test.fullBar !== undefined) testFullTimer.start()
     }
+    // PushFPS (screenshots): --scroll-to <objectName> once the settings page is laid out.
+    Timer { id: testScrollTimer; interval: 1500; onTriggered: settingsPage.scrollToObject(root.test.scrollTo) }
     // The menu anchors on laid-out buttons, so it opens once the page has settled.
     // --full-bar shown|hidden: enter fullscreen with the control window held shown
     // or held hidden, for the present-timing comparison (G2.5).

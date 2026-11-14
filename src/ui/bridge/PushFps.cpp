@@ -167,7 +167,8 @@ bool QmlPlayerBridge::pushShareToDiscord(const QString& path) {
     QHttpPart part;
     part.setHeader(QNetworkRequest::ContentDispositionHeader,
                    QStringLiteral("form-data; name=\"files[0]\"; filename=\"%1\"").arg(info.fileName().replace(QLatin1Char('"'), QLatin1Char('_'))));
-    part.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("video/mp4"));
+    part.setHeader(QNetworkRequest::ContentTypeHeader, info.suffix().compare(QStringLiteral("mkv"), Qt::CaseInsensitive) == 0
+                       ? QStringLiteral("video/x-matroska") : QStringLiteral("video/mp4"));
     part.setBodyDevice(file);
     file->setParent(multi);
     multi->append(part);

@@ -206,6 +206,7 @@ private:
     bool hevc_=false;
     uint32_t bitrateMbps_=0;
     ExportRateControl rateControl_=ExportRateControl::Cq;
+    uint32_t keyframeSeconds_=2,qualityVsSpeed_=70,constantQuality_=75;
     uint32_t drainTimeoutMs_=10000;
     unsigned fpsNum_=1,fpsDen_=1;
     uint32_t width_=0,height_=0;
@@ -227,7 +228,7 @@ private:
 
 bool MfVideoEncoder::open(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& ring,EnhanceGraph& graph,const EncoderConfig& config,PacketWriter writer){
     ctx_=&ctx;ring_=&ring;graph_=&graph;writer_=std::move(writer);
-    hevc_=config.hevc;bitrateMbps_=config.bitrateMbps;rateControl_=config.rateControl;
+    hevc_=config.hevc;bitrateMbps_=config.bitrateMbps;rateControl_=config.rateControl;keyframeSeconds_=config.keyframeSeconds;qualityVsSpeed_=config.qualityVsSpeed;constantQuality_=config.constantQuality;
     drainTimeoutMs_=config.drainTimeoutMs?config.drainTimeoutMs:10000;
     fpsNum_=std::max(1u,config.fpsNum);fpsDen_=std::max(1u,config.fpsDen);
     width_=graph.workWidth();height_=graph.workHeight();
@@ -345,8 +346,8 @@ bool MfVideoEncoder::applyRateControl(){
     VARIANT value;VariantInit(&value);value.vt=VT_UI4;
     value.ulVal=0;set(kPropDefaultBPictureCount,value,"BPictureCount");
     value.ulVal=1;set(kPropLowLatencyMode,value,"LowLatencyMode");
-    value.ulVal=std::max(1u,fpsNum_*2);set(kPropGOPSize,value,"GOPSize");
-    value.ulVal=70;set(kPropQualityVsSpeed,value,"QualityVsSpeed");
+    value.ulVal=std::max(1u,fpsNum_*std::clamp(keyframeSeconds_,1u,10u));set(kPropGOPSize,value,"GOPSize");
+    value.ulVal=std::min(qualityVsSpeed_,100u);set(kPropQualityVsSpeed,value,"QualityVsSpeed");
     if(rateControl_==ExportRateControl::Cbr){
         const uint32_t bitsPerSecond=bitrateMbps_*1000000u;
         value.ulVal=bitsPerSecond;set(kPropMeanBitRate,value,"MeanBitRate");
@@ -367,7 +368,7 @@ bool MfVideoEncoder::applyRateControl(){
     }else{
         value.ulVal=uint32_t(eAVEncCommonRateControlMode_UnconstrainedVBR);
         set(kPropRateControlMode,value,"RateControlMode");
-        value.ulVal=75;set(kPropCommonQuality,value,"Quality");
+        value.ulVal=std::clamp(constantQuality_,1u,100u);set(kPropCommonQuality,value,"Quality");
     }
     return true;
 }
@@ -700,7 +701,7 @@ bool MfVideoEncoder::submitSample(IMFSample* sample){
 
 bool MfVideoEncoder::openLive(uint32_t width,uint32_t height,const EncoderConfig& config,PacketWriter writer){
     writer_=std::move(writer);liveTimestamps_=true;
-    hevc_=config.hevc;bitrateMbps_=config.bitrateMbps;rateControl_=config.rateControl;
+    hevc_=config.hevc;bitrateMbps_=config.bitrateMbps;rateControl_=config.rateControl;keyframeSeconds_=config.keyframeSeconds;qualityVsSpeed_=config.qualityVsSpeed;constantQuality_=config.constantQuality;
     drainTimeoutMs_=config.drainTimeoutMs?config.drainTimeoutMs:10000;
     fpsNum_=std::max(1u,config.fpsNum);fpsDen_=std::max(1u,config.fpsDen);
     width_=width;height_=height;

@@ -1297,5 +1297,22 @@
 1296|Este PC no puede ejecutar esta combinación
 1297|La capturadora perdió el %1% de los fotogramas
 1298|. Las grabaciones también lo mantienen. El paso directo Dolby / DTS no se ve afectado
+1299|Ajustes de codificación avanzados
+1300|Control de tasa, preajuste del codificador, intervalo de fotogramas clave, tasa de bits de audio y contenedor, como los ajustes de salida de OBS. Desactivado usa los ajustes estándar
+1301|VBR: la tasa sigue la complejidad de la imagen (estándar). CBR: la misma tasa cada segundo, buena para subir vídeos. Calidad constante: calidad fija, el tamaño del archivo depende de la imagen
+1302|Calidad constante
+1303|Nivel de calidad
+1304|1–51; más bajo es mejor calidad y un archivo más grande; el estándar es 22
+1305|Preajuste del codificador
+1306|Más a la derecha es mejor calidad pero más carga para el codificador de la GPU; el estándar es 4. Bájalo si las grabaciones se entrecortan
+1307|Intervalo de fotogramas clave
+1308|Segundos; más corto facilita editar y saltar, con archivos algo mayores; el estándar es 2
+1309|Tasa de bits de audio
+1310|kbps por pista de audio; el estándar es 192
+1311|MP4 se reproduce en todas partes (estándar). MKV es para programas de edición; las repeticiones instantáneas siempre se guardan en MP4
+1312|Restaurar ajustes estándar
+1313|Si la GPU no puede usar una combinación, la grabación pasa a los ajustes estándar y te avisa
+1314|Restaurar
+1315|La GPU no admite los ajustes de codificación avanzados elegidos; se graba con los estándar
 zh:轻|Suave
 zh:亮|Luz

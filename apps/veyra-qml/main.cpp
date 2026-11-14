@@ -777,6 +777,7 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
     //   --dock-pinned           dock open and held open
     //   --theme <default|black|light>  PushFPS appearance for this run (not saved)
     //   --lang <code>           interface language, written to that run's preferences (use with --data-dir)
+    //   --pref <key=value>      a preference for that run (repeatable; true/false/numbers/text, use with --data-dir)
     //   --tip <page>            the dock button's tooltip for that page shown (review)
     //   --size <W>x<H>          window size in device-independent pixels
     //   --reduced-motion        every animation at zero duration
@@ -823,6 +824,13 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
             ++i;  // handled before the bridge was created
         } else if (a == QLatin1String("--import-1.4.4-data") && hasValue) {
             ++i;  // handled before the bridge was created
+        } else if (a == QLatin1String("--scroll-to") && hasValue) {
+            testOptions.insert(QStringLiteral("scrollTo"), args.at(++i));  // PushFPS: settings row objectName
+        } else if (a == QLatin1String("--pref") && hasValue) {
+            // PushFPS: key=value preferences for a screenshot run (saved in its --data-dir).
+            QStringList prefs = testOptions.value(QStringLiteral("prefs")).toStringList();
+            prefs << args.at(++i);
+            testOptions.insert(QStringLiteral("prefs"), prefs);
         } else if (a == QLatin1String("--lang") && hasValue) {
             testOptions.insert(QStringLiteral("lang"), args.at(++i));  // PushFPS: screenshots per language
         } else if (a == QLatin1String("--theme") && hasValue) {

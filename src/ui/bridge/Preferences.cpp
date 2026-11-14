@@ -228,9 +228,18 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         // cap (0 keeps the presented rate).
         {"recordBitrateMbps", {0, 400}},
         {"recordFps", {0, 240}},
+        // PushFPS advanced recording (applied only while recordAdvanced is on):
+        // rate control 0 CBR / 1 VBR / 2 constant quality, quality level, encoder
+        // preset 1..7, keyframe interval in seconds, AAC kbps, container 0 MP4 / 1 MKV.
+        {"recordRateControl", {0, 2}},
+        {"recordQuality", {1, 51}},
+        {"recordPreset", {1, 7}},
+        {"recordKeyframe", {1, 10}},
+        {"recordAudioKbps", {64, 320}},
+        {"recordContainer", {0, 1}},
         // Instant replay (#103): seconds the buffer keeps.
         {"replaySeconds", {15, 600}}};
-    static const QStringList flags{"recordHevc", "recordAudio", "recordMic", "recordMicTrack", "replayEnabled", "subtitleEnabled", "subtitleBackground", "subtitleFit",
+    static const QStringList flags{"recordHevc", "recordAdvanced", "recordAudio", "recordMic", "recordMicTrack", "replayEnabled", "subtitleEnabled", "subtitleBackground", "subtitleFit",
                                    "subtitleSecondLanguage", "audioForceStereo", "holdCompare",
                                    "magewellLowLatency", "blackmagicNativeCapture", "captureShowAllFrameRates", "cinePillHidden", "exportStopsPlayback", "obsGameCapture", "autoResume", "fullscreenMemoryProtection", "prewarmEnhancement", "hdrFgCompatibility", "computeOnMonitorGpu", "deinterlace", "networkAutoReconnect",
                                    // PushFPS: on-screen latency readout.
@@ -396,7 +405,9 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
 void QmlPlayerBridge::applyPreference(const QString& key) {
     // The replay buffer re-arms with what a recording would use.
     static const QStringList replayKeys{"replayEnabled", "replaySeconds", "recordBitrateMbps", "recordFps", "recordHevc",
-                                        "recordAudio", "recordMic", "recordMicDevice", "recordMicTrack"};
+                                        "recordAudio", "recordMic", "recordMicDevice", "recordMicTrack",
+                                        // PushFPS advanced recording
+                                        "recordAdvanced", "recordRateControl", "recordQuality", "recordPreset", "recordKeyframe", "recordAudioKbps"};
     if (replayKeys.contains(key)) syncReplay();
     if(key==QLatin1String("hdrFgCompatibility")){
         impl_->presentation.hdrFgCompatibility=impl_->prefBool("hdrFgCompatibility",false);

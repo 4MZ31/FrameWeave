@@ -319,6 +319,10 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
 - **Share to Discord**: the card that appears after saving has **Share to Discord**. Without setup it copies
   the clip and opens Discord, so you paste it with Ctrl+V. With a Discord webhook in *Settings, Playback*
   it posts clips up to 10 MB straight to that channel.
+- **Advanced encoding settings** (*Settings, Playback*, off by default): rate control (VBR, CBR or constant
+  quality with a 1–51 level), encoder preset 1–7, keyframe interval, audio bitrate and MP4 or MKV, like OBS's
+  output settings. Off, recordings use the standard settings. If the graphics card can't use a combination,
+  the recording falls back to the standard settings and says so.
 
 ## Upscaling: NVIDIA Image Scaling and more
 

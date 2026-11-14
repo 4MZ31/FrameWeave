@@ -1297,5 +1297,22 @@
 1296|Ten PC nie obsłuży tej kombinacji
 1297|Karta przechwytująca utraciła %1% klatek
 1298|. Nagrania też to zachowują. Przekazywanie Dolby / DTS nie jest objęte
+1299|Zaawansowane ustawienia kodowania
+1300|Sterowanie przepływnością, preset kodera, odstęp klatek kluczowych, przepływność dźwięku i kontener, jak ustawienia wyjścia w OBS. Wyłączone używa ustawień standardowych
+1301|VBR: przepływność zależy od złożoności obrazu (standard). CBR: ta sama przepływność co sekundę, dobra do wysyłania. Stała jakość: jakość stała, rozmiar pliku zależy od obrazu
+1302|Stała jakość
+1303|Poziom jakości
+1304|1–51; niżej to lepsza jakość i większy plik; standard to 22
+1305|Preset kodera
+1306|Dalej w prawo to lepsza jakość, ale większe obciążenie kodera GPU; standard to 4. Obniż, jeśli nagrania się zacinają
+1307|Odstęp klatek kluczowych
+1308|Sekundy; krótszy ułatwia edycję i przewijanie, pliki są nieco większe; standard to 2
+1309|Przepływność dźwięku
+1310|kbps na ścieżkę dźwiękową; standard to 192
+1311|MP4 działa wszędzie (standard). MKV pasuje do programów do edycji; natychmiastowe powtórki zawsze zapisują się jako MP4
+1312|Przywróć ustawienia standardowe
+1313|Jeśli GPU nie obsłuży kombinacji, nagranie przełączy się na ustawienia standardowe i da znać
+1314|Przywróć
+1315|GPU nie obsługuje wybranych zaawansowanych ustawień kodowania; nagrywanie z ustawieniami standardowymi
 zh:轻|Lekki
 zh:亮|Światło

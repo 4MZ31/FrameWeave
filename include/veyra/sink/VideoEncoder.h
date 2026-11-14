@@ -62,6 +62,10 @@ struct EncoderConfig {
     // inside the playback loop and keeps this short so a slow GPU cannot
     // stall playback behind the recorder.
     uint32_t drainTimeoutMs=10000;
+    // PushFPS advanced recording; the defaults are what every encode used before.
+    uint32_t keyframeSeconds=2;   // keyframe (GOP) interval
+    uint32_t qualityVsSpeed=70;   // Media Foundation 0 (fastest) .. 100 (best)
+    uint32_t constantQuality=75;  // Media Foundation quality mode 1..100 (Cq)
 };
 
 class VideoEncoder {
