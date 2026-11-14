@@ -138,10 +138,10 @@ QtObject {
     property bool anrInstalled: false
     property int anrInstallCalls: 0
     property string lastOpenedLink: ""
-    function pushAnrState() { return { installed: anrInstalled, folder: "C:/PushFPS/runtime/experimental/anr", name: "Apex Neural Rendering (ANR)", maker: "Apex Compute", url: "https://github.com/apex-compute/ANR" } }
+    function pushAnrState() { return { installed: anrInstalled, folder: "C:/PushFPS/runtime/experimental/anr", name: "Apex Neural Rendering (ANR)", maker: "Apex Compute", url: "anr-url" } }
     function pushInstallAnr() { anrInstallCalls++; anrInstalled = true; return true }
     function pushOpenAnrFolder() { return true }
-    function pushLinkUrl(key) { return ({ repo: "https://github.com/DosukaSOL/PushFPS", veyra: "https://github.com/Likely7/Veyra-NRVideo", anr: "https://github.com/apex-compute/ANR", anrReleases: "https://github.com/apex-compute/ANR/releases", apex: "https://apexcompute.com" })[key] || "" }
+    function pushLinkUrl(key) { return ["repo", "veyra", "anr", "anrReleases", "apex"].indexOf(key) >= 0 ? "link-" + key : "" }
     function pushOpenLink(key) { lastOpenedLink = key; return pushLinkUrl(key).length > 0 }
     function pushImportTextFile(title) { return importFileText }
     function pushExportTextFile(title, name, text) { lastExportText = text; return true }
