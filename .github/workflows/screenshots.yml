@@ -81,7 +81,10 @@ jobs:
             @{ name = '8-pro-small';       args = @('--page', 'pro', '--tab', 'fg'); size = '1100x680' },
             @{ name = '9-cinema';          args = @('--page', 'min', '--dock-pinned') },
             @{ name = '10-picture-sound';  args = @('--page', 'home', '--tab', 'tuning') },
-            @{ name = '11-pro-audio';      args = @('--page', 'pro', '--tab', 'audio') }
+            @{ name = '11-pro-audio';      args = @('--page', 'pro', '--tab', 'audio') },
+            @{ name = '12-optimize';       args = @('--page', 'home', '--dialog', 'optimize') },
+            @{ name = '13-game-presets';   args = @('--page', 'home', '--dialog', 'games') },
+            @{ name = '14-settings-playback'; args = @('--page', 'set') }
           )
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"
