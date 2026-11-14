@@ -7,7 +7,7 @@
 // letters. Bahnschrift ships with Windows 10 and 11; elsewhere the UI font is used.
 import QtQuick
 
-Row {
+Text {
     id: mark
     objectName: "pushfps-wordmark"
     property string name: (typeof veyra !== "undefined" && veyra) ? veyra.appName : "PushFPS"
@@ -17,29 +17,16 @@ Row {
     readonly property string tail: split ? "FPS" : ""
     readonly property string family: Qt.fontFamilies().indexOf("Bahnschrift") >= 0 ? "Bahnschrift" : Theme.fontUi
     readonly property color headColor: Theme.light ? Theme.t1 : "#FFFFFF"
-    spacing: 0
+    readonly property color tailColor: Theme.brandGreen
+    // One run of text, so the slanted "h" and "F" keep normal spacing between them.
+    textFormat: Text.StyledText
+    text: tail.length > 0 ? head + "<font color=\"" + tailColor + "\">" + tail + "</font>" : head
+    color: headColor
+    font.family: family
+    font.pixelSize: pixelSize
+    font.weight: Font.Bold
+    font.italic: true
+    font.letterSpacing: -0.02 * pixelSize
     Accessible.role: Accessible.Heading
     Accessible.name: name
-
-    Text {
-        objectName: "pushfps-wordmark-push"
-        text: mark.head
-        color: mark.headColor
-        font.family: mark.family
-        font.pixelSize: mark.pixelSize
-        font.weight: Font.Bold
-        font.italic: true
-        font.letterSpacing: -0.02 * mark.pixelSize
-    }
-    Text {
-        objectName: "pushfps-wordmark-fps"
-        visible: mark.tail.length > 0
-        text: mark.tail
-        color: Theme.brandGreen
-        font.family: mark.family
-        font.pixelSize: mark.pixelSize
-        font.weight: Font.Bold
-        font.italic: true
-        font.letterSpacing: -0.02 * mark.pixelSize
-    }
 }

@@ -219,10 +219,11 @@ Item {
         function test_wordmark_colours() {
             compare(mark.head, "Push")
             compare(mark.tail, "FPS")
-            compare(String(findChild(mark, "pushfps-wordmark-fps").color), String(Theme.brandGreen))
-            compare(String(findChild(mark, "pushfps-wordmark-push").color), Theme.light ? String(Theme.t1) : "#ffffff")
+            compare(String(mark.tailColor), String(Theme.brandGreen))
+            compare(String(mark.color), Theme.light ? String(Theme.t1) : "#ffffff")
+            verify(mark.text.indexOf(String(Theme.brandGreen)) > 0 && mark.text.indexOf("FPS") > 0, mark.text)
             compare(otherMark.head, "Veyra")
-            verify(!findChild(otherMark, "pushfps-wordmark-fps").visible)
+            compare(otherMark.text, "Veyra", "a name without FPS is one colour")
         }
     }
 }
