@@ -1201,24 +1201,27 @@ VPage {
                         VRow {
                             label: qsTr("获取与安装")
                             hint: String(root.anrState.folder || "")
-                            VButton {
-                                objectName: "set-anr-download"
-                                text: qsTr("下载 ANR")
-                                iconName: "external"
-                                onClicked: veyra.pushOpenLink("anrReleases")
-                            }
-                            VButton {
-                                objectName: "set-anr-install"
-                                primary: !root.anrState.installed
-                                text: root.anrState.installed ? qsTr("更新…") : qsTr("从下载安装…")
-                                onClicked: { veyra.pushInstallAnr(); root.anrState = veyra.pushAnrState() }
-                            }
-                            VButton {
-                                objectName: "set-anr-folder"
-                                ghost: true
-                                text: qsTr("打开文件夹")
-                                iconName: "folder"
-                                onClicked: veyra.pushOpenAnrFolder()
+                            RowLayout {
+                                spacing: 6
+                                VButton {
+                                    objectName: "set-anr-download"
+                                    text: qsTr("下载 ANR")
+                                    iconName: "external"
+                                    onClicked: veyra.pushOpenLink("anrReleases")
+                                }
+                                VButton {
+                                    objectName: "set-anr-install"
+                                    primary: !root.anrState.installed
+                                    text: root.anrState.installed ? qsTr("更新…") : qsTr("从下载安装…")
+                                    onClicked: { veyra.pushInstallAnr(); root.anrState = veyra.pushAnrState() }
+                                }
+                                VButton {
+                                    objectName: "set-anr-folder"
+                                    ghost: true
+                                    text: qsTr("打开文件夹")
+                                    iconName: "folder"
+                                    onClicked: veyra.pushOpenAnrFolder()
+                                }
                             }
                         }
                     }

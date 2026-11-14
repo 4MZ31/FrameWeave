@@ -227,32 +227,41 @@ DialogLayer {
         }
         VRow {
             label: qsTr("添加别人的预设")
-            DialogTextField {
-                objectName: "pushfps-game-preset-code"
-                implicitWidth: 230
-                placeholder: qsTr("粘贴 PUSHFPS1: 代码")
-                onTyped: t => games.importText = t
-                onEdited: t => games.importText = t
-            }
-            VButton {
-                text: qsTr("添加"); ghost: true
-                onClicked: games.addImported(Presets.decode(games.importText, Qt.atob))
-            }
-            VButton {
-                text: qsTr("打开文件"); ghost: true
-                onClicked: { const t = veyra.pushImportTextFile(qsTr("打开游戏预设")); if (t.length > 0) games.addImported(Presets.decode(t, Qt.atob)) }
+            // A VRow's slot does not lay out several controls: they go in a row here.
+            RowLayout {
+                spacing: 6
+                DialogTextField {
+                    objectName: "pushfps-game-preset-code"
+                    implicitWidth: 200
+                    placeholder: qsTr("粘贴 PUSHFPS1: 代码")
+                    onTyped: t => games.importText = t
+                    onEdited: t => games.importText = t
+                }
+                VButton {
+                    objectName: "pushfps-game-preset-add"
+                    text: qsTr("添加"); ghost: true
+                    onClicked: games.addImported(Presets.decode(games.importText, Qt.atob))
+                }
+                VButton {
+                    objectName: "pushfps-game-preset-open"
+                    text: qsTr("打开文件"); ghost: true
+                    onClicked: { const t = veyra.pushImportTextFile(qsTr("打开游戏预设")); if (t.length > 0) games.addImported(Presets.decode(t, Qt.atob)) }
+                }
             }
         }
         VRow {
             label: qsTr("保存当前设置为预设")
             hint: qsTr("包含游戏帧率、目标帧率和你在专业模式中画的全效果剔除区域")
-            DialogTextField {
-                id: ownName
-                objectName: "pushfps-game-preset-name"
-                implicitWidth: 180
-                placeholder: qsTr("名称")
+            RowLayout {
+                spacing: 6
+                DialogTextField {
+                    id: ownName
+                    objectName: "pushfps-game-preset-name"
+                    implicitWidth: 180
+                    placeholder: qsTr("名称")
+                }
+                VButton { objectName: "pushfps-game-preset-save"; text: qsTr("保存"); ghost: true; onClicked: games.saveMine(ownName.text) }
             }
-            VButton { text: qsTr("保存"); ghost: true; onClicked: games.saveMine(ownName.text) }
         }
         VRow {
             visible: !!games.selected && games.selected.mine === true
