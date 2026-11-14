@@ -15,7 +15,9 @@ and edits would conflict on every merge.
    user sees says PushFPS. Product name and links live in `include/veyra/Brand.h`; use it instead of
    writing the name or URLs again.
 2. **Translations are keyed by the Simplified Chinese source string.** Every user-visible string is
-   written in Chinese in `qsTr(...)` / `tr(...)` and translated in `i18n/catalog.json` (zh-TW, en, ja).
+   written in Chinese in `qsTr(...)` / `tr(...)` and translated in `i18n/catalog.json` (zh-TW, en, ja by hand; nl, de, es, fr, it, pt-BR, tr, ar, pl, ru
+   machine-translated by `scripts/i18n/machine_translate.py`, the `translate` workflow, then merged with
+   `scripts/i18n/merge_translations.py`; a hand fix in the catalog is kept on the next run).
    After changing or adding a string run `python3 -B scripts/i18n/extract.py`, fill the new entries, then
    `python3 -B scripts/i18n/extract.py --check` must report 0 missing and 0 placeholder problems.
 3. **QML is loaded from disk next to the exe** (`qml/Veyra`), so new QML files need a line in

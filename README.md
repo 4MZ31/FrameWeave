@@ -93,6 +93,8 @@ everything Veyra does, PushFPS adds what console players need:
 | **Share clips** | Saved recordings and instant replays go to Discord in one click |
 | **OBS Studio plugin** | Your boosted picture as a source in OBS |
 | **Tested capture cards** | Which cards are known to work, shown in the app |
+| **14 languages** | English, 简体中文, 繁體中文, 日本語, Nederlands, Deutsch, Español, Français, Italiano, Português (Brasil), Türkçe, Polski, Русский, العربية |
+| **Light and black modes** | The default dark grey, an almost-black mode for OLED screens, and a light mode |
 
 ## How it works
 
@@ -346,6 +348,21 @@ Any card that Windows shows as a camera and that sends uncompressed 1080p60 or 4
 setup shows whether your card is on this list. Tested yours?
 [Send a capture card report](https://github.com/DosukaSOL/PushFPS/issues/new?template=capture-card-report.yml).
 
+## Languages and appearance
+
+**Settings → Language** has 14 languages: English, Simplified and Traditional Chinese, Japanese, Dutch,
+German, Spanish, French, Italian, Portuguese (Brazil), Turkish, Polish, Russian and Arabic. *Automatic*
+follows your Windows language.
+
+The ten newest (Dutch to Arabic) are machine-translated with [Argos Translate](https://github.com/argosopentech/argos-translate)
+and checked by script, not yet by native speakers. If a word reads wrong in your language, please open an issue
+or edit `i18n/catalog.json`: every string is listed there. Arabic text is shown correctly, but the layout
+is not mirrored right-to-left yet.
+
+**Settings → Appearance** switches between *Default* (dark grey), *Black* (almost-black surfaces, good on
+OLED screens) and *Light*. Text and controls keep a readable contrast in every mode (checked by an
+automated test); the picture itself is never changed.
+
 ## Tune it for your setup
 
 | If you see | Try |
@@ -404,6 +421,8 @@ In your user folder, next to Veyra's settings. Updating PushFPS keeps them.
 - [x] Latency readout on the picture
 - [x] Share clips to Discord
 - [x] Capture card list with tested status and a report form
+- [x] 14 interface languages, light and black appearance modes
+- [ ] Native-speaker review of the machine translations, right-to-left layout for Arabic
 - [ ] More tested capture cards and game presets, from player reports
 - [ ] macOS version
 
