@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   # A branch run starts when the translator itself changes (or this file is touched).
   push:
-    paths: ['.github/workflows/translate.yml', 'scripts/i18n/machine_translate.py']
+    paths: ['.github/workflows/translate.yml', 'scripts/i18n/machine_translate.py', 'scripts/i18n/hand/**']
 permissions:
   contents: write
 jobs:
@@ -31,7 +31,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with: { path: mt, pattern: 'mt-*', merge-multiple: true }
-      - run: python scripts/i18n/merge_translations.py i18n/catalog.json mt/*.json
+      - run: |
+          python scripts/i18n/merge_translations.py i18n/catalog.json mt/*.json
+          python -B scripts/i18n/apply_hand_translations.py
       - name: Push to the i18n-mt branch
         env: { GH_TOKEN: '${{ github.token }}' }
         run: |

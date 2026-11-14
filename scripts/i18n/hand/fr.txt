@@ -1,0 +1,1205 @@
+0|·  FEC récupérés
+1|·  débit
+2|·  décodage
+3|·  perdues
+4|·  demandes d'image clé
+5|·  en file
+6|·  reçues
+7|·  aller-retour
+8|·  non récupérés
+9|(ajouté après NR
+10|(4 calques max.)
+11|(6 calques max.)
+12|(déconseillé)
+13|/ 4 zones
+14|/ décodées
+15|can.
+16|fps  ·  perdues
+17|fps  ·  paquets
+18|images
+19|éléments
+20|calques à la suite
+21|ms (GPU, moyenne de la dernière seconde)
+22|ms (dernière seconde)
+23|ms / image
+24|nœuds ·
+25|part
+26|· contourné
+27|· contourné
+28|· étalonnage
+29|· défaut actuel
+30|· fichier actuel, environ
+31|· mixage
+32|· teinte
+33|· 4 calques max.)
+34|· nœud
+35|· désactivé
+36|· en pause
+37|· réinitialiser
+38|· restaurer
+39|· saturation
+40|· intensité
+41|· temporel 4x (expérimental)
+42|· temporel T2x (expérimental)
+43|· en attente
+44|→ Suggestion :
+45|(partagé)
+46|(appareil sans nom)
+47|+  Ajouter un calque NR
+48|+  Ajouter un calque beauté
+49|, saisissez le code de connexion ci-dessous :
+50|0 = suivre la source
+51|0 = pas d'atténuation des hautes lumières
+52|0 = aucune limite
+53|1 min
+54|10 min
+55|1080p · par défaut
+56|15 s
+57|2 éléments
+58|2 min
+59|30 s
+60|4 éléments
+61|5 éléments
+62|5 min
+63|6 éléments
+64|Code d'appairage à 8 chiffres
+65|; actuel :
+66|Amélioration IA
+67|Amélioration d'image par IA
+68|Flux optique AMD
+69|Performances AMD
+70|À propos
+71|Couleur d'accent
+72|Compte
+73|Connexion au compte · expérimental
+74|Flux accumulé · par défaut
+75|Flux accumulé+
+76|Actif
+77|Ajouter
+78|Ajoutez d'abord un nœud RTX Video HDR
+79|Ajoutez d'abord un nœud d'anticrénelage
+80|Ajouter le fichier actuel
+81|Ajouter des fichiers
+82|Ajouter des fichiers à la playlist
+83|Ajouter manuellement
+84|Ajouter un nœud
+85|Ajoutez ou déposez plusieurs vidéos
+86|Ajouter le préréglage de quelqu'un
+87|Ajoutez d'abord les fichiers à exporter
+88|Ajouter à la file d'export
+89|Ajustement
+90|Méthode d'ajustement
+91|Autorisation administrateur annulée
+92|Avancé : paramètres précis
+93|Aligner sur la fenêtre source
+94|Alipay
+95|Tous les GPU
+96|Toute la peau
+97|Autoriser le déchirement
+98|Calculer aussi sur ce GPU
+99|Jouer aussi le son sur l'hôte
+100|Toujours afficher
+101|Toujours la dernière étape
+102|Analyse…
+103|Anticrénelage
+104|Anticrénelage 2
+105|Niveau anti-scintillement
+106|Apparence
+107|S'applique à l'ouverture d'une vidéo
+108|Appliquer
+109|Appliquer un préréglage…
+110|Appliquer les réglages et reconnecter
+111|Extension de zone
+112|Format d'image
+113|Audio
+114|Écoute de l'audio
+115|Décalage audio
+116|Sortie audio pas encore ouverte
+117|Réglages audio
+118|Réglages audio…
+119|Synchronisation audio
+120|Pistes audio
+121|Synchronisation audio/vidéo
+122|Auto
+123|Auto (selon la charge)
+124|Auto (GPU dédié)
+125|Estimation auto
+126|Masque auto · expérimental
+127|Alignement auto
+128|Alignement auto sur la piste audio
+129|Alignement en cours
+130|Masquage auto
+131|Reconnexion auto
+132|Choix auto à la lecture
+133|Quantité de contrôle automatique
+134|Désentrelacement automatique
+135|Synchronisation d'écran automatique
+136|Suppression automatique
+137|Automatique ·
+138|Reprendre automatiquement au démarrage
+139|Disponible
+140|Moyenne
+141|Reculer / avancer de 5 secondes
+142|Retour à la liste
+143|Bandeau de fond
+144|Intensité du dégradé de fond
+145|Équilibre
+146|Équilibré
+147|Luminosité équilibrée
+148|Commandes de base
+149|Renfort des basses
+150|Beauté
+151|Beauté 2
+152|Beauté 3
+153|Beauté 4
+154|Beauté 5
+155|Beauté 6
+156|Calque beauté
+157|Préréglages beauté
+158|Avant amélioration
+159|Bilibili
+160|Débit
+161|Débit (Mbit/s)
+162|Bitstream d'abord
+163|Noir
+164|Noir et blanc
+165|Capture native Blackmagic
+166|Noirs
+167|Fusion
+168|Bleu
+169|Primaire bleue
+170|Lumineux
+171|Pièce éclairée
+172|Compensation pièce éclairée
+173|Luminosité
+174|Équilibre de luminosité
+175|Changement de luminosité
+176|Luminosité max.
+177|Luminosité min.
+178|Budget
+179|Mise en mémoire tampon
+180|Intégré
+181|Offrir un café à l'auteur
+182|Logiciel CPU
+183|Étalonner
+184|Étalonnage…
+185|Peut être enregistré
+186|Annuler
+187|Annuler le lot d'images
+188|Annulé · peut redémarrer
+189|Détection impossible
+190|Capture
+191|Carte d'acquisition
+192|Réglages de la carte d'acquisition
+193|Réglages de la carte d'acquisition…
+194|Carte d'acquisition ·
+195|Méthode de capture
+196|Cible de capture
+197|La chaîne est valide
+198|Tolérance au changement
+199|Les changements s'affichent ici en direct.
+200|Changer…
+201|Canaux
+202|Vérifier
+203|Vérifier et choisir
+204|Rechercher des mises à jour
+205|Vérification…
+206|Vérification… la lecture continue
+207|Choisir
+208|Choisissez d'abord une cible de capture
+209|Choisissez une fréquence d'images
+210|Choisissez un format de pixel
+211|Choisissez une résolution
+212|Choisissez d'abord une résolution
+213|Choisissez un dossier d'enregistrement…
+214|Choisissez au moins un élément
+215|Choisir le dossier d'export
+216|Choisir les images à traiter
+217|Choisir le dossier des captures d'écran
+218|Choisir le dossier des enregistrements
+219|Choisir les pistes
+220|Choisir…
+221|Appareil choisi (non connecté)
+222|Protection de la chrominance
+223|Cinéma
+224|Cinématique
+225|Cinématique · sans protection du HUD
+226|Cercle
+227|Clarté
+228|Effacer
+229|Effacer la mémoire du film
+230|Effacer la mémoire
+231|Vider l'attente
+232|Cliquez sur l'image
+233|Cliquez pour localiser
+234|Fermer
+235|Fermer la fenêtre
+236|Grossier
+237|Code copié
+238|Codec
+239|Réduire
+240|Couleur
+241|Changement de couleur
+242|Étalonnage des couleurs
+243|Préréglage de couleur exporté
+244|Préréglages de couleur
+245|Réglages de couleur
+246|Réglages de couleur copiés
+247|Couleur · instance
+248|Combiner contenu et pièce
+249|Groupes de la communauté
+250|Comparer
+251|Compatible
+252|Son de fin
+253|Composants et licences
+254|Compression nécessaire
+255|Confirmer l'installation
+256|Confirmer la désinstallation
+257|Connecter
+258|Connecter et démarrer
+259|Se connecter à cette entrée
+260|Connecté
+261|Connexion
+262|Connexion à la PS5…
+263|Console
+264|Conteneur
+265|Contenu : sombre et lumineux
+266|Contenu : ancien transfert plat
+267|Contenu : surtout sombre
+268|Contenu : standard
+269|Contenu : hautes lumières fortes
+270|Reprendre l'export
+271|Reprendre le dernier
+272|Contraste
+273|Manette
+274|La manette n'a pas de gyroscope
+275|La manette prend en charge le gyroscope
+276|Copier
+277|Copier comme nouveau calque
+278|Copier le code
+279|Copier les réglages de couleur
+280|Copier le fichier
+281|Copier le nœud
+282|Copier ce calque
+283|Copier · déplacer · réinitialiser · supprimer
+284|Copier · réinitialiser · supprimer
+285|Copiez, puis joignez à votre rapport
+286|Mode de correction
+287|Impossible de supprimer le préréglage
+288|Mesure impossible
+289|Ouverture impossible
+290|Impossible d'ouvrir le navigateur
+291|Impossible d'ouvrir le dossier de données
+292|Enregistrement impossible
+293|Impossible d'enregistrer le raccourci
+294|Impossible d'enregistrer le réglage du son
+295|Recadrage (pixels)
+296|Ctrl+Alt+Maj+S pour masquer
+297|Décalage actuel
+298|Réglages de lecture actuels
+299|La courbe est désactivée
+300|Courbe, mesures et conseils
+301|Courbes
+302|Personnalisé
+303|Égaliseur personnalisé
+304|Limite personnalisée
+305|Limite personnalisée (FPS)
+306|Ordre personnalisé
+307|Vitesse de lecture personnalisée
+308|Résolution personnalisée
+309|Personnalisé…
+310|Matériel D3D12VA
+311|DLSS Frame Generation
+312|Modèle DLSS
+313|Mode performance DLSS
+314|Traitement des images abîmées
+315|Sombre et lumineux
+316|Pièce sombre
+317|Changement à l'assombrissement
+318|Décodage
+319|Par défaut
+320|Taille de sous-titres par défaut
+321|Antibrume
+322|Supprimer
+323|Supprimer "
+324|Supprimer le nœud
+325|Supprimer ce profil de jeu
+326|Supprimer ce calque
+327|DengXian
+328|Protection des détails
+329|Niveau de détection
+330|Appareil
+331|Tampons de l'appareil
+332|Fréquence d'images de l'appareil (FPS)
+333|Appareil non connecté
+334|Propriétés de l'appareil
+335|Diagnostic
+336|Diagnostic copié
+337|N'a pas réellement généré d'images
+338|N'a pas démarré
+339|Désactivé
+340|Déconnecter
+341|Déconnecter la capture
+342|Affichage
+343|Mémoire d'affichage effacée
+344|Pic de l'écran
+345|Pic de l'écran (nit)
+346|Synchronisation d'écran
+347|Rafraîchissement variable actif
+348|Distance du bas
+349|Bitstream Dolby / DTS
+350|Ne pas garder
+351|Ne pas écouter l'audio
+352|Ne pas attendre
+353|Terminé
+354|Double super-résolution
+355|Douyin
+356|Télécharger —
+357|Brouillon non exécuté
+358|Dessiner un cercle
+359|Dessiner un rectangle
+360|Par défaut du pilote
+361|Entrée du pilote
+362|Réglages du pilote
+363|Déposez pour ajouter à la playlist
+364|Suppression des doublons désactivée
+365|Edge Aegis
+366|Edge Aegis (anti-gélatine)
+367|Adoucissement des bords
+368|Douceur des bords
+369|Seuil des bords
+370|Modifier
+371|Chaîne d'effets
+372|Effets
+373|Intégré
+374|Sous-titres intégrés
+375|Vide
+376|Activer la correction
+377|Activé
+378|Activé (HDR10)
+379|Encodé
+380|Point de terminaison ouvert
+381|Amélioré
+382|Amélioré (aperçu)
+383|Changement d'amélioration
+384|Préréglage d'amélioration
+385|Saisissez d'abord un nom
+386|Erreur
+387|Compensation estimée
+388|Chaque image · 512 px
+389|Exclure tous les effets
+390|Développer
+391|Expérimental
+392|Exporter
+393|Exporter
+394|Exporter "
+395|Exporter le préréglage de couleur
+396|Exporter le préréglage
+397|Exporter l'image actuelle
+398|Export en cours
+399|Exposition (EV)
+400|Externe
+401|Sous-titres externes
+402|F11 / Alt+Entrée marchent aussi
+403|FG désactivée
+404|Confiance du visage
+405|Détection des visages
+406|Visages uniquement
+407|Échec de l'activation
+408|Échec · cliquez pour réessayer
+409|Adoucissement (pixels)
+410|Fichier
+411|Remplir et recadrer
+412|À saisir quand la PS5 le demande
+413|Remplir l'écran
+414|Remplir la fenêtre
+415|Mémoire du film effacée
+416|Fin
+417|Terminé
+418|Ajuster
+419|Ajuster à la fenêtre
+420|Fixe
+421|Ancien transfert plat
+422|Retourner verticalement
+423|Suivre
+424|Suivre le niveau du tampon
+425|Suivre le système
+426|Suivre l'auteur
+427|Suivre l'écran
+428|Suivre le préréglage d'amélioration
+429|Suivre le défaut du système
+430|Police
+431|Taille de police
+432|Bruits de pas
+433|Forcer le PCM
+434|Forcer l'aperçu SDR
+435|Format et image
+436|Frame Gen
+437|Méthode de génération d'images
+438|Source de mouvement de la génération d'images
+439|Génération d'images en pause
+440|Fréquence d'images
+441|Fréquence d'images et cadence
+442|Limite de fréquence d'images
+443|Synchro d'images · désactivée par défaut
+444|Complet
+445|Préréglages complets
+446|Basses plus riches, pour l'action
+447|Plein écran
+448|Plein écran déverrouillé
+449|Flux optique GPU
+450|Priorité GPU
+451|Étapes GPU · moyenne sur 1 s
+452|Utilisation du GPU
+453|Moniteur d'utilisation du GPU
+454|Jeu
+455|FPS du jeu
+456|FPS du jeu · cible
+457|Mode jeu
+458|Mode jeu : ajuster l'image
+459|Nom du jeu
+460|Préréglages de jeux
+461|Profil de jeu
+462|GamePP
+463|Jeux et programmes ·
+464|Gamma
+465|Obtenir l'ID de compte
+466|Global
+467|Aller
+468|Vert
+469|Primaire verte
+470|Gyroscope
+471|Appareil de capture HDMI
+472|Courbe de luminosité HDR
+473|Métadonnées HDR
+474|Format de sortie HDR
+475|Demi-résolution
+476|Décodage matériel
+477|Décodage matériel uniquement
+478|Marge
+479|Masquer la barre de lecture
+480|Élevé
+481|Débit élevé
+482|Élevé+Faible
+483|Élevé+Moyen
+484|Conseils hautes lumières
+485|Protection des hautes lumières
+486|Début des hautes lumières (nit)
+487|Hautes lumières
+488|Rejet de l'historique
+489|Poids de l'historique
+490|Maintenez V pour voir l'original
+491|Maintenir pour l'original
+492|Maintenir pour voir l'original
+493|Accueil
+494|Hôte
+495|Hôte
+496|Adresse de l'hôte
+497|Hôtes
+498|Activer Smooth Motion
+499|Teinte
+500|Centre de teinte
+501|Protection de teinte
+502|Plage de teinte
+503|Image
+504|Correction d'image
+505|Statistiques d'échantillons d'image
+506|Images (*.png *.jpg *.jpeg)
+507|Importer
+508|Importer une LUT .cube
+509|Importer .cube…
+510|Importer .vpcolor…
+511|Importer un préréglage de couleur
+512|Importer un dossier
+513|Importer un dossier dans la playlist
+514|Importer un préréglage
+515|Entrée I
+516|Inactif :
+517|Comprend
+518|Entrée
+519|Couleur d'entrée (SDR / HDR)
+520|Original en entrée
+521|Plage d'entrée
+522|Entrée · flux optique
+523|Installer PushFPS Virtual Speaker
+524|Installé
+525|Installer…
+526|Replay instantané
+527|Replay instantané enregistré
+528|Instructions
+529|Intel XeSS · expérimental
+530|Dessin de l'interface
+531|Langue de l'interface
+532|Échelle de l'interface
+533|Résolution de traitement interne
+534|Mode d'édition non valide
+535|Touche non valide
+536|Garder
+537|Tout garder
+538|Garder l'image
+539|Streaming en réseau local
+540|Fichier LUT
+541|Le nom de la LUT est trop long
+542|Intensité de la LUT
+543|Grand
+544|Dernier
+545|Retard P95
+546|Mesure de la latence
+547|Plus tard
+548|Ancienne liste de formats
+549|Ancien choix de format
+550|Licence
+551|Éclaircir les scènes sombres
+552|Plage d'éclaircissement (nit)
+553|Déboucher les ombres
+554|Clair
+555|Vert clair
+556|Lissage léger
+557|Changement de clarté
+558|Conservation de la clarté
+559|Limitée
+560|Liste
+561|Mode liste
+562|Préréglages de liste
+563|Budget de charge
+564|Charger des sous-titres externes
+565|Charger des sous-titres externes…
+566|Charger un fichier…
+567|Charger la source
+568|Chargé
+569|Chargement
+570|Compression locale
+571|Structure locale
+572|Tonalité locale
+573|Verrouiller la barre de contrôle plein écran
+574|Journal
+575|Dossier des journaux indisponible
+576|Faible
+577|Reconstruction temporelle basse fréquence
+578|File à faible latence
+579|Luminance
+580|MP4 · MKV · images
+581|Magenta
+582|Mode faible latence Magewell
+583|Délai des sous-titres principaux
+584|Sous-titres principaux
+585|Les sous-titres principaux sont désactivés
+586|Gérer
+587|Gérer les préréglages
+588|Gérer les préréglages en mode Pro…
+589|Gérer les préréglages…
+590|Manuel
+591|Manuel 1/2 · réutiliser 1 image sur 2
+592|Manuel 1/3 · réutiliser 1 image sur 3
+593|Manuel 1/4 · réutiliser 1 image sur 4
+594|Décalage manuel
+595|Beaucoup de hautes lumières fortes
+596|Pic de mastering (nit)
+597|Comme l'écran
+598|Visages max.
+599|Agrandir
+600|Mesure :
+601|Moyen
+602|Moyen+Faible
+603|Mémoire et automatisation
+604|Fusionner dans l'entrée
+605|Méthode
+606|Microphone
+607|Micro sur sa propre piste
+608|Gris moyen
+609|Gris moyen (nit)
+610|Tons moyens
+611|Minimal
+612|Mode minimal
+613|Réduire
+614|Minimum
+615|Mélangeur
+616|Mode
+617|Paramètres du modèle
+618|Intensité du modèle
+619|Modifié : plus récent d'abord
+620|Modifié : plus ancien d'abord
+621|Compatibilité avec les surcouches de monitoring
+622|Plus de réglages de couleur
+623|Surtout sombre
+624|Qualité de l'estimation du mouvement
+625|Descendre
+626|Monter
+627|Multiplicateur
+628|Doit rester sous le maximum
+629|Muet
+630|Mon préréglage
+631|N/D
+632|Netteté NIS
+633|NR
+634|Réutilisation automatique de l'inférence NR
+635|Amélioration NR
+636|Zones protégées globales NR
+637|NR ne tourne pas
+638|Calque NR
+639|Calque NR 1
+640|Calque NR 2
+641|Calque NR 3
+642|Calque NR 4
+643|Source de mouvement NR
+644|Version de NR
+645|NR → SR · tous les calques
+646|NVIDIA Low Latency
+647|NVIDIA Low Latency · Activé
+648|NVIDIA NR uniquement
+649|Surcouche NVIDIA en jeu
+650|Nom
+651|Nom A → Z
+652|Nom Z → A
+653|Natif
+654|Pixels natifs
+655|Naturel
+656|Lissage naturel
+657|Négatif = son plus tôt
+658|Réseau
+659|Tampon réseau
+660|Protection des couleurs neutres
+661|Nom du nouveau préréglage
+662|Élément suivant
+663|Mode nuit
+664|Non
+665|Sans FG
+666|Sans LUT
+667|Aucun calque NR ajouté
+668|Sans limite
+669|Aucun appareil de capture détecté
+670|Pas encore d'historique de capture
+671|Aucun nœud de couleur
+672|Pas encore de préréglage de couleur
+673|Sans compensation
+674|Aucune manette détectée
+675|Aucun appareil choisi
+676|Aucun visage détecté
+677|Sans génération d'images
+678|Sans génération d'images (référence)
+679|Aucune fonction activée
+680|La courbe n'a pas de limite fixe
+681|Aucun format correspondant
+682|Aucune sortie
+683|Pas encore d'hôte appairé
+684|Aucune image à enregistrer
+685|Sans réduction
+686|Aucune source ouverte
+687|Pas encore de source à reprendre
+688|Aucun sous-titre à l'écran
+689|Aucune cible choisie
+690|Pas encore de mesure pour ce nœud
+691|Mode nœuds
+692|Préréglage de nœuds :
+693|Préréglages de nœuds
+694|Nœuds
+695|Aucun
+696|Normal
+697|Ce n'est pas un code d'appairage à 8 chiffres
+698|Non connecté
+699|Non activé
+700|Non chargé
+701|Non mesuré
+702|Non ouvert
+703|Non appairé
+704|Pas en lecture
+705|Non atteint
+706|Non exécuté
+707|Non défini
+708|Non connecté
+709|Non précisé
+710|Non pris en charge
+711|Non testée
+712|Non mesuré
+713|Compatibilité OBS Capture de jeu
+714|OK
+715|Désactivé
+716|Hors ligne
+717|Décalage
+718|Activé
+719|Sur votre téléphone ou navigateur, ouvrez
+720|Activé · 1 réutilisée toutes les
+721|Activé · automatique
+722|Activé · intensité
+723|En ligne
+724|En ligne · un jeu tourne
+725|Seuls les fichiers locaux peuvent être ouverts
+726|Ouvrir
+727|Ouvrir les réglages d'enregistrement de Windows
+728|Ouvrez une vidéo ou une image
+729|Ouvrir un fichier
+730|Ouvrir un fichier / page Export
+731|Ouvrir un fichier…
+732|Ouvrir le dossier
+733|Ouvrir un préréglage de jeu
+734|Ouvrir l'ancienne liste de formats
+735|Ouvrir une URL média
+736|Ouvrir une URL média…
+737|Ouvrir la page du code source
+738|Ouvrir une vidéo
+739|Monde ouvert · mini-carte en bas à gauche
+740|Monde ouvert · mini-carte en haut à droite
+741|Ouverture
+742|Ouverture de l'appareil de capture…
+743|Délai d'ouverture dépassé
+744|Flux optique
+745|Algorithme de flux optique
+746|Flux optique · estimation du mouvement
+747|Optimiser pour mon PC
+748|Options
+749|Orange
+750|Original
+751|Comparaison original / amélioré
+752|Restaurer le visage d'origine
+753|Original uniquement
+754|Son d'origine
+755|Autre console
+756|Sortie O
+757|Contour
+758|Sortie
+759|Sortie
+760|Limite de sortie
+761|Limite de sortie · inactive pour l'instant
+762|Limite de sortie · suivre l'écran
+763|Périphérique de sortie
+764|Périphérique de sortie et mixage
+765|Réglages de sortie
+766|Stabilisateur de sortie · anti-scintillement
+767|Sortie · audio
+768|Budget dépassé
+769|Luminosité globale
+770|Intensité globale du changement
+771|Intensité globale
+772|Streaming PC
+773|Streaming PC…
+774|PIN requis
+775|Console PS5
+776|Contrôle par manette PS5
+777|Contrôle par manette PS5 connecté
+778|Contrôle par manette PS5 arrêté
+779|Manette PS5
+780|Streaming PS5
+781|Streaming PS5…
+782|Compte PSN
+783|Page au démarrage
+784|Sélecteur de page
+785|Appairer
+786|Appairer (première fois)
+787|Appairer et enregistrer
+788|Appairé
+789|Appairage annulé
+790|L'appairage est nécessaire avant le réveil.
+791|Réglages d'appairage
+792|Appairer…
+793|Courbe paramétrique
+794|Noirs paramétriques
+795|Hautes lumières paramétriques
+796|Clairs paramétriques
+797|Ombres paramétriques
+798|Collez un code PUSHFPS1:
+799|Coller les réglages de couleur
+800|Page Patreon
+801|Patreon, WeChat et Alipay
+802|Mettre l'export en pause
+803|En pause
+804|Pic
+805|Luminosité de crête (nit)
+806|Limite de crête (nit)
+807|Performances
+808|Image
+809|Image et son
+810|Image d'une carte d'acquisition
+811|Style d'image
+812|Format de pixel
+813|Lecture / pause
+814|Lire le suivant à la fin
+815|Lecture
+816|Barre de lecture affichée
+817|Échec de la lecture
+818|Vitesse de lecture
+819|Lecture en cours
+820|Playlist
+821|Playlist · Importer un dossier
+822|Courbe à points
+823|Les valeurs positives retardent le son
+824|Préparation :
+825|Présentation
+826|Préréglage copié
+827|Préréglage supprimé
+828|Nom du préréglage
+829|Préréglage renommé
+830|Préréglage :
+831|Préréglages
+832|Préréglages et
+833|Appuyez sur la nouvelle touche…
+834|Aperçu
+835|Aperçu indisponible
+836|Élément précédent
+837|Mode Pro
+838|Traiter des images par lot…
+839|Ordre de traitement
+840|Échelle de traitement
+841|Temps de traitement
+842|Traitement ·
+843|Protéger les hautes lumières
+844|Protéger le HUD
+845|Punch
+846|Violet
+847|PushFPS Virtual Speaker
+848|Préréglage de couleur PushFPS (*.vpcolor)
+849|Préréglage de jeu PushFPS (*.pushfps)
+850|Vert PushFPS
+851|Préréglage PushFPS (*.vpreset)
+852|Qualité
+853|File
+854|Préréglages rapides
+855|Réglage rapide
+856|Quitter le jeu
+857|RTX 50 · original NVIDIA
+858|RTX Video SR · Débit élevé
+859|RTX Video SR · Standard
+860|RTX Video SR · Streaming
+861|RTX Video Super Resolution
+862|RX 7000 · RedDuke (expérimental)
+863|RX 9000 · lmxxf (expérimental)
+864|Contrôle du débit
+865|Lecture des pistes…
+866|Temps réel
+867|Reçues
+868|Réception d'images
+869|Récents
+870|Recommandé
+871|Reconnecter
+872|Reconnexion
+873|Enregistrer
+874|Enregistrer l'audio
+875|Enregistrer le micro
+876|Débit d'enregistrement
+877|Codec d'enregistrement
+878|Dossier des enregistrements
+879|FPS d'enregistrement
+880|Enregistrement sauvegardé
+881|Récupération
+882|Rectangle
+883|Rouge
+884|Primaire rouge
+885|Rétablir
+886|Réduire les animations
+887|Réduire la profondeur de la file de traitement
+888|Réduire le premier résultat à
+889|Base de référence
+890|Actualiser
+891|Actualiser les appareils
+892|Actualiser l'état de l'écran
+893|Relâchez pour revenir
+894|Mémoriser chaque film
+895|Mémoriser la dernière taille
+896|Mémoriser par écran
+897|Mémoriser la position de lecture
+898|Supprimer les images en double
+899|Retirer de la playlist ; garder le fichier
+900|Supprimer l'appairage
+901|Supprimer le défaut au démarrage
+902|Renommer · copier · supprimer
+903|Durée du replay
+904|Signaler
+905|Signaler un problème
+906|Demandé
+907|Débit demandé
+908|Nécessite AMD RX 7000 / 9000
+909|Nécessite AMD RX 9000
+910|Nécessite un GPU NVIDIA
+911|Réinitialiser
+912|Tout réinitialiser
+913|Réinitialiser le canal
+914|Réinitialiser l'égaliseur
+915|Réinitialiser le nœud
+916|Réinitialiser cette page
+917|Réinitialiser ce réglage
+918|Rétablir par défaut
+919|Résiduel
+920|Résolution
+921|Résolution et fréquence d'images
+922|Redémarrer
+923|Redémarrage nécessaire
+924|Zone de restauration
+925|Intensité de restauration
+926|Repris
+927|Mode de réutilisation
+928|Aller-retour
+929|En cours
+930|S'exécute après la restauration de l'original
+931|Interne au SDK
+932|Envoi au SDK
+933|Écran SDR, non converti
+934|Échantillonnage
+935|Saturation
+936|Saturation max.
+937|Saturation min.
+938|Enregistrer
+939|Enregistrer sous
+940|Enregistrer comme profil de jeu
+941|Enregistrer le fichier
+942|Enregistrer le préréglage de jeu
+943|Enregistrer le replay instantané
+944|Enregistrer le préréglage
+945|Délai d'enregistrement dépassé
+946|Enregistrer dans
+947|Enregistré
+948|Appareil enregistré (non connecté)
+949|Hôte enregistré
+950|Hôte enregistré
+951|Enregistrement…
+952|Scannez avec WeChat ou Alipay
+953|Analyse des dossiers…
+954|Planification réduite
+955|Attente de planification P95
+956|Capture d'écran
+957|Capture d'écran…
+958|Capture d'écran
+959|Dossier des captures d'écran
+960|Rechercher
+961|Recherche annulée
+962|Rechercher, p. ex. 1920 60 NV12
+963|Second algorithme SR
+964|Seconde cible SR
+965|Second niveau SR
+966|Échelle de la seconde passe
+967|Sous-titres secondaires (bilingues)
+968|Les sous-titres secondaires sont désactivés
+969|Choisir depuis la source
+970|Choisir l'entrée
+971|Envoyer sur Discord
+972|Envoi…
+973|Définir comme défaut au démarrage
+974|Régler à la main en mode Professionnel
+975|Réglages
+976|Luminosité des ombres
+977|Débouchage des ombres
+978|Débouchage des ombres (0,01 EV)
+979|Protection des ombres
+980|Teinte des ombres
+981|Ombres
+982|Ombres et hautes lumières
+983|Partager
+984|Partager ce préréglage
+985|Partager sur Discord
+986|Netteté
+987|Raccourci B
+988|Raccourcis
+989|Afficher toutes les fréquences disponibles
+990|Afficher en SDR
+991|Afficher le fichier actuel
+992|Afficher dans le dossier
+993|Afficher la latence à l'écran
+994|Afficher le masque
+995|Afficher le pointeur de la souris
+996|Afficher la barre de lecture
+997|Afficher les sous-titres
+998|Affichés au-dessus des sous-titres principaux
+999|Réduire après la SR à
+1000|Réduire automatiquement les longues lignes
+1001|Se connecter
+1002|Se déconnecter
+1003|PIN de connexion
+1004|Signal
+1005|Connecté
+1006|SimHei
+1007|SimSun
+1008|Taille : plus grand d'abord
+1009|Taille : plus petit d'abord
+1010|Éclaircissement de la peau
+1011|Peau uniquement
+1012|Plage de peau · avancé
+1013|Lissage de la peau
+1014|Valeur de peau
+1015|Peau · non vérifié
+1016|Images source sautées
+1017|Pas clavier des curseurs
+1018|Léger
+1019|Petit
+1020|Petits éléments dans chaque coin
+1021|Quantité de lissage
+1022|Zone de lissage
+1023|Rayon de lissage
+1024|Logiciel
+1025|Décodage logiciel
+1026|Trier
+1027|Profil sonore
+1028|Source
+1029|Code source
+1030|Conservation de la couleur source
+1031|Taille de la source
+1032|Divisé
+1033|Hautes lumières divisées
+1034|Tons moyens divisés
+1035|Ombres divisées
+1036|Intensité de stabilisation
+1037|Standard
+1038|Veille
+1039|Démarrer
+1040|Démarrer / arrêter l'enregistrement
+1041|Démarrer la capture
+1042|Démarrer l'export
+1043|Démarrer le streaming
+1044|Démarrage de la capture d'écran…
+1045|Démarrage et fenêtre
+1046|Tampon de démarrage
+1047|Défaut au démarrage
+1048|Préréglage par défaut au démarrage supprimé
+1049|Accumulation statique
+1050|Stéréo
+1051|Mixage stéréo
+1052|Arrêté
+1053|Streaming
+1054|Streaming (s'applique à la reconnexion)
+1055|Intensité
+1056|Intensité
+1057|Étirer pour remplir
+1058|Cadence stricte de génération d'images
+1059|Fort
+1060|Hautes lumières fortes
+1061|Style
+1062|Style · expérimental
+1063|Envoyer
+1064|Fréquence d'envoi
+1065|Réglages des sous-titres
+1066|Réglages des sous-titres…
+1067|Pistes de sous-titres
+1068|Police propre aux sous-titres
+1069|Sous-titres
+1070|Sous-titres : désactivés
+1071|Sous-titres : activés
+1072|Hôte Sunshine
+1073|Super-résolution
+1074|Source de mouvement de la super-résolution
+1075|Soutenir l'auteur
+1076|Revenir au mode liste ?
+1077|Passer en mode liste
+1078|Passer en mode nœuds
+1079|Passer en mode nœuds ?
+1080|Micro par défaut du système
+1081|S'applique après redémarrage
+1082|Cible
+1083|FPS cible
+1084|Lignes cibles
+1085|Taille cible
+1086|Température (relative)
+1087|Accumulation temporelle
+1088|Anti-scintillement temporel
+1089|Stabilité temporelle
+1090|Testée
+1091|Testée par le développeur de Veyra
+1092|Testée avec PushFPS
+1093|Texture
+1094|Texture conservée
+1095|Les zones du HUD n'ont pas été appliquées
+1096|La PS5 demande le PIN de connexion
+1097|La chaîne n'a pas de nœud de couleur
+1098|Le préréglage de couleur n'existe pas
+1099|La chaîne d'effets est pleine
+1100|Le fichier n'existe pas
+1101|Le fichier n'existe plus
+1102|Le préréglage doit avoir un nom
+1103|Le PIN de connexion doit contenir des chiffres.
+1104|La cible n'est plus valide
+1105|Fin
+1106|Résolution d'écran de ce PC
+1107|Ceci est un aperçu des sous-titres.
+1108|Ce mode n'a pas encore de préréglage.
+1109|Cette source n'a pas de sous-titres
+1110|Niveau
+1111|Temps
+1112|Teinte
+1113|Basculer Minimal / Pro
+1114|Trop peu d'images pour mesurer
+1115|Lissage du suivi
+1116|Essayez l'audio propre à l'appareil vidéo
+1117|Désactiver les rebonds et transitions
+1118|Type
+1119|Correction d'interface · non vérifiée
+1120|Ultra
+1121|Indisponible
+1122|Indisponible pour l'instant
+1123|Annuler
+1124|Annuler le dernier réglage
+1125|Désinstaller…
+1126|Inconnu
+1127|Configuration inconnue
+1128|Moteur de génération d'images inconnu
+1129|Inutilisé
+1130|Mettre à jour ou enregistrer comme profil de jeu
+1131|Mise à jour
+1132|Algorithme de mise à l'échelle
+1133|Utiliser le modèle performance
+1134|Données utilisateur
+1135|Utilisateurs en Chine continentale
+1136|Site de VB-Audio
+1137|VB-CABLE est déjà installé
+1138|Régulation automatique VFG
+1139|Qualité VFG
+1140|VSync
+1141|Valeur hors plage
+1142|Rafraîchissement variable
+1143|Rafraîchissement variable · actif
+1144|Version
+1145|Vibrance
+1146|Vidéo
+1147|Codec vidéo
+1148|Appareil d'entrée vidéo
+1149|Affichage
+1150|Voir la licence
+1151|Lecture seule
+1152|Voir la mise à jour
+1153|Visionnage
+1154|Visiter la page
+1155|Vif
+1156|Clarté des voix
+1157|Volume
+1158|Attendre l'image clé
+1159|En attente d'échantillons
+1160|En attente du signal
+1161|En attente d'export
+1162|En attente de présentation
+1163|En attente de présentation dans le processus
+1164|Réveiller
+1165|Réveil annulé
+1166|WeChat Pay
+1167|Faible
+1168|Web
+1169|Blanc
+1170|Halo blanc
+1171|Visage entier
+1172|Fenêtre
+1173|Fenêtre ou écran
+1174|Taille de fenêtre au démarrage
+1175|Utilisation du moteur GPU de Windows (
+1176|HDR Windows
+1177|Outil d'archive de Windows introuvable
+1178|Dans la plage
+1179|VB-CABLE Setup en cours…
+1180|X est la limite
+1181|Streaming Xbox
+1182|Streaming Xbox…
+1183|Jaune
+1184|Oui
+1185|Aucun mouvement
+1186|p. ex. Jeu du soir
+1187|gyroscope
+1188|aperçu en direct uniquement
+1189|les miens
+1190|sans gyroscope
+1191|aucun raccourci défini
+1192|pas encore disponible en mode nœuds
+1193|ressources insuffisantes
+1194|non utilisé pour le traitement HDR
+1195|non utilisé avec la taille NR automatique
+1196|scRGB float
+1197|☕ Offrez-moi un café · 5 $ US
+1198|=
+1199|=
+1200|=
+1201|=
+1202|=
+zh:轻|Léger
+zh:亮|Lumière

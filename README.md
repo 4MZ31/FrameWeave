@@ -339,7 +339,9 @@ the window.</sub>
 |---|---|
 | Elgato 4K X | Tested with PushFPS (RTX 5090, console games and videos) |
 | T911 4K60 | Tested by Veyra's developer (4K60 NV12, RTX 5070) |
-| Elgato HD60 X, 4K S, 4K Pro / 4K60 Pro | Not tested yet |
+| Elgato HD60 X | Tested with PushFPS |
+| Elgato 4K S | Tested with PushFPS |
+| Elgato 4K Pro / 4K60 Pro | Not tested yet |
 | AVerMedia Live Gamer 4K 2.1 (GC575), Live Gamer Ultra 2.1 (GC553G2) | Not tested yet |
 | Magewell USB Capture HDMI 4K Plus | Not tested yet (native low-latency mode from Veyra) |
 | Blackmagic DeckLink / UltraStudio | Not tested yet (Blackmagic's own interface from Veyra) |
