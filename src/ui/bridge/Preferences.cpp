@@ -251,8 +251,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    "introAnimation",
                                    // 设置 → 外观 → 启动音乐 and the music button (Main.qml); unset = on.
                                    "introMusic", "exclusionOverlay",
-                                   // PushFPS: on-screen latency readout.
-                                   "pushLatencyOverlay"};
+                                   // PushFPS: on-screen latency readout, fullscreen on connect, window on top.
+                                   "pushLatencyOverlay", "pushAutoFullscreen", "pushAlwaysOnTop"};
     QVariant stored;
     if (ranges.contains(key)) {
         bool ok = false; const int n = value.toInt(&ok);

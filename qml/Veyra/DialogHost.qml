@@ -142,6 +142,10 @@ Item {
         id: hudDialog
         dialogHost: host
     }
+    PushLatencyGuideDialog {
+        id: latencyGuideDialog
+        dialogHost: host
+    }
 
     // --- small building blocks the design's dialogs use --------------------
 

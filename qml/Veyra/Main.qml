@@ -910,7 +910,7 @@ Window {
         function onNavigate(p) {
             // A dialog key opens the dialog; anything else is a page.
             if (p === "network" || p === "capture" || p === "ps5" || p === "moonlight" || p === "xbox" || p === "screen"
-                || p === "subtitle" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud") {
+                || p === "subtitle" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud" || p === "latencyguide") {
                 dialogs.open(p)
                 return
             }
@@ -1087,6 +1087,24 @@ Window {
 
     // Startup music plays once, continuing after the intro or without it. Media-open
     // intent or the shared setting/button permanently stops it for this launch.
+    // PushFPS 连接后自动全屏 (pushAutoFullscreen): when a capture card or stream starts showing a
+    // picture, go fullscreen once. Leaving fullscreen is the player's choice and is not undone.
+    readonly property string pushLiveKind: veyra.sourceKind
+    onPushLiveKindChanged: {
+        const live = ["capture", "ps5", "moonlight", "xbox"].indexOf(pushLiveKind) >= 0
+        if (live && veyra.preferences.pushAutoFullscreen === true && !root.fullscreen && Object.keys(root.test).length === 0) {
+            veyra.logUi("ui-fullscreen", "automatic for " + pushLiveKind)
+            Qt.callLater(root.toggleFullscreen)
+        }
+    }
+    // PushFPS 窗口置顶 (pushAlwaysOnTop): keeps the player window above other windows, applied
+    // with Win32 SetWindowPos so the native video window is never recreated. Fullscreen and
+    // restore can reset the z-order, so it is applied again after every visibility change.
+    readonly property bool pushOnTop: veyra.preferences.pushAlwaysOnTop === true
+    function applyOnTop() { if (typeof veyra.pushSetAlwaysOnTop === "function") veyra.pushSetAlwaysOnTop(root, root.pushOnTop) }
+    onPushOnTopChanged: applyOnTop()
+    onVisibilityChanged: Qt.callLater(root.applyOnTop)
+
     // PushFPS: Veyra's startup music and dusk intro are Veyra's own identity (its music comes in Veyra's
     // runtime package for Veyra), so PushFPS keeps both off. The code stays for upstream merges.
     readonly property bool brandIntro: false

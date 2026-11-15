@@ -406,6 +406,16 @@ VPage {
                                 onToggled: v => veyra.setPreference("autoResume", v)
                             }
                         }
+                        // PushFPS: keep the player above other windows (Main.qml applyOnTop).
+                        VRow {
+                            label: qsTr("窗口置顶")
+                            hint: qsTr("PushFPS 窗口保持在其他窗口上面，适合边玩边看攻略或聊天")
+                            VSwitch {
+                                objectName: "set-always-on-top"
+                                checked: veyra.preferences.pushAlwaysOnTop === true
+                                onToggled: v => veyra.setPreference("pushAlwaysOnTop", v)
+                            }
+                        }
                         VRow {
                             label: qsTr("记住播放位置")
                             hint: qsTr("重新打开同一个文件时从上次位置继续")

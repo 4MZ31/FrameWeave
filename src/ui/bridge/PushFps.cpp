@@ -421,4 +421,18 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds) {
     return true;
 }
 
+
+// PushFPS 窗口置顶. HWND_TOPMOST through SetWindowPos changes only the z-order: Qt's own
+// WindowStaysOnTopHint can recreate the native window, which the video child window cannot follow.
+bool QmlPlayerBridge::pushSetAlwaysOnTop(QObject* window, bool onTop) {
+    auto* w = qobject_cast<QWindow*>(window);
+    if (!w) return false;
+    const auto hwnd = reinterpret_cast<HWND>(w->winId());
+    if (!hwnd) return false;
+    const BOOL ok = SetWindowPos(hwnd, onTop ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0,
+                                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+    if (!ok) veyra::log::warn("push-ontop", std::format("SetWindowPos failed error={}", GetLastError()));
+    return ok != FALSE;
+}
+
 }

@@ -191,7 +191,12 @@ VGroup {
         if (p.game === name) p.game = ""
         writeProfiles(p)
     }
-    readonly property string setupTip: {
+    // A capture card that takes 120 Hz (1080p/1440p on the 4K X, 4K S, HD60 X and similar) gets each
+    // frame in 8 ms instead of 17, and lets 40 FPS (120 Hz mode) games through; Switch 2 docked
+    // output tops out at 60 Hz at 4K, so the extra line is for PlayStation and Xbox.
+    readonly property string hz120Tip: qsTr("采集卡支持 120 Hz 时（如 1080p/1440p 下的 4K X、4K S、HD60 X），也可输出 120 Hz：每帧早约 8 毫秒到达，40 FPS 的 120 Hz 模式也能使用。")
+    readonly property string setupTip: quick.consoleTip + (quick.consoleId === "ps5" || quick.consoleId === "xbox" ? " " + quick.hz120Tip : "")
+    readonly property string consoleTip: {
         switch (quick.consoleId) {
         case "xbox": return qsTr("Xbox 请在 设置 → 常规 → 电视和显示选项 中选择 60 Hz。游戏没有 HDCP，可以直接采集。")
         case "switch2": return qsTr("Switch 2 请放在底座上，输出 60 Hz。游戏没有 HDCP，可以直接采集。")
@@ -423,8 +428,8 @@ VGroup {
     VRow {
         objectName: "pushfps-game-fps-row"
         label: qsTr("游戏帧率")
-        help: qsTr("游戏自己每秒画出多少张新画面。主机总是输出 60 Hz 信号，30 FPS 的游戏每张画面会重复一次。PushFPS 根据它决定要生成几帧")
-        hint: qsTr("大多数主机游戏为 30 FPS；性能模式选 60")
+        help: qsTr("游戏自己每秒画出多少张新画面。主机输出固定的 60 Hz 或 120 Hz 信号，30 FPS 的游戏在 60 Hz 下每张画面重复一次。PushFPS 去掉重复的画面，再根据游戏帧率决定要生成几帧")
+        hint: qsTr("大多数主机游戏为 30 FPS；120 Hz 模式的游戏常为 40；性能模式选 60")
         VSeg {
             objectName: "pushfps-game-fps"
             enabled: quick.fgPossible
@@ -476,10 +481,45 @@ VGroup {
         objectName: "pushfps-latency-overlay-row"
         label: qsTr("在画面上显示延迟")
         hint: qsTr("实测电脑处理延迟（采集卡画面到达到交给显示器）和帧率；采集卡、显示器和游戏的延迟另计")
+        RowLayout {
+            spacing: 8
+            VButton {
+                objectName: "pushfps-latency-guide-open"
+                ghost: true
+                text: qsTr("测量总延迟")
+                iconName: "gauge"
+                onClicked: veyra.navigate("latencyguide")
+            }
+            VSwitch {
+                objectName: "pushfps-latency-overlay"
+                checked: veyra.preferences.pushLatencyOverlay === true
+                onToggled: checked => veyra.setPreference("pushLatencyOverlay", checked)
+            }
+        }
+    }
+
+    // Plug and play: Veyra's 启动后自动继续上次内容 (autoResume: the last capture card with its
+    // settings, or the last stream) and PushFPS's fullscreen-on-connect (Main.qml).
+    VRow {
+        objectName: "pushfps-auto-connect-row"
+        visible: !quick.compact
+        label: qsTr("启动时自动连接")
+        hint: qsTr("打开 PushFPS 时直接连接上次的采集卡（沿用上次的设置）或串流")
         VSwitch {
-            objectName: "pushfps-latency-overlay"
-            checked: veyra.preferences.pushLatencyOverlay === true
-            onToggled: checked => veyra.setPreference("pushLatencyOverlay", checked)
+            objectName: "pushfps-auto-connect"
+            checked: !!veyra.preferences.autoResume
+            onToggled: v => veyra.setPreference("autoResume", v)
+        }
+    }
+    VRow {
+        objectName: "pushfps-auto-fullscreen-row"
+        visible: !quick.compact
+        label: qsTr("连接后自动全屏")
+        hint: qsTr("采集卡或串流画面出现时进入全屏；按 F11 或 Esc 退出")
+        VSwitch {
+            objectName: "pushfps-auto-fullscreen"
+            checked: veyra.preferences.pushAutoFullscreen === true
+            onToggled: v => veyra.setPreference("pushAutoFullscreen", v)
         }
     }
 
