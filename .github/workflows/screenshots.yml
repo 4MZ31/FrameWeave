@@ -117,7 +117,7 @@ jobs:
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"
             $size = if ($s.size) { $s.size } else { "${w}x${h}" }
-            $a = $s.args + @('--size', $size, '--data-dir', $data, '--reduced-motion')
+            $a = $s.args + @('--size', $size, '--data-dir', $data, '--reduced-motion', '--no-update-check')
             $p = Start-Process D:\pf\PushFPS.exe -ArgumentList $a -PassThru
             Start-Sleep -Seconds 14
             $p.Refresh()

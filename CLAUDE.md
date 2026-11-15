@@ -69,7 +69,7 @@ and edits would conflict on every merge.
 - `.github/workflows/build-windows.yml` is the build recipe (pinned, login-free dependencies). It builds
   `PushFPS.exe`, runs the GPU-free unit tests, checks the exe's Qt/FFmpeg imports against Veyra's runtime
   package, packages `packaging/make-release.ps1`, then installs with `packaging/Install-PushFPS.ps1` and
-  starts the program; QML errors at startup fail the build. FFmpeg (~40 min) is cached by vcpkg commit.
+  starts the program; QML errors at startup fail the build. FFmpeg (~25 min) and the static streaming libraries (~30 min) are kept in a vcpkg binary cache saved by every run (`vcpkg-bin-<commit>-v2-<run>`), so a run with an unchanged compiler restores them in seconds.
 - Releases: push a tag `vX.Y.Z` (stable numbers only: the in-app update checker ignores other tags). The
   workflow publishes it as a GitHub **pre-release**; mark it as the latest release only after a person has
   tested it with a real capture card and GPU, or when the owner asks for a full release (dispatch with

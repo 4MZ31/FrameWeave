@@ -18,7 +18,10 @@ Item {
     // Shown as a tooltip after a short hover (the full sentence when `sub` is cut short).
     property string tip: ""
     signal clicked()
-    implicitHeight: 56
+    // Narrow tiles (the Professional side panel): the name may take two lines and the
+    // second line moves into the tooltip.
+    readonly property bool compact: width > 0 && width < 230
+    implicitHeight: Math.max(52, textColumn.implicitHeight + 18)
     implicitWidth: 200
     Layout.fillWidth: true
     Layout.preferredWidth: 1
@@ -52,6 +55,7 @@ Item {
                 VIcon { anchors.centerIn: parent; name: tile.iconName; size: 16; color: tile.primary ? Theme.accentInk : Theme.t1 }
             }
             ColumnLayout {
+                id: textColumn
                 Layout.fillWidth: true
                 spacing: 1
                 Text {
@@ -62,12 +66,14 @@ Item {
                     font.family: Theme.fontUi
                     font.pixelSize: Theme.fsBody
                     font.weight: Font.DemiBold; font.variableAxes: Theme.axesDemiBold
+                    wrapMode: tile.compact ? Text.WordWrap : Text.NoWrap
+                    maximumLineCount: 2
                     elide: Text.ElideRight
                 }
                 Text {
                     objectName: "pushfps-tool-sub"
                     Layout.fillWidth: true
-                    visible: text.length > 0
+                    visible: text.length > 0 && !tile.compact
                     text: tile.sub
                     color: Theme.t3
                     font.family: Theme.fontUi
@@ -79,7 +85,7 @@ Item {
     }
     HoverHandler { id: hover; cursorShape: tile.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor }
     TapHandler { id: tap; enabled: tile.enabled; onTapped: tile.clicked() }
-    ToolTip.visible: tile.tip.length > 0 && hover.hovered
+    ToolTip.visible: (tile.tip.length > 0 || tile.compact) && hover.hovered
     ToolTip.delay: 600
-    ToolTip.text: tile.tip
+    ToolTip.text: tile.compact && tile.sub.length > 0 ? tile.sub + (tile.tip.length > 0 ? "\n" + tile.tip : "") : tile.tip
 }
