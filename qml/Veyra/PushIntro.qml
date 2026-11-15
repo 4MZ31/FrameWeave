@@ -202,13 +202,13 @@ Item {
             model: 11
             Rectangle {
                 required property int index
-                readonly property real z: ((index + (intro.ms / 520) % 1) / 11)
-                readonly property real depth: Math.pow(z, 2.3)
+                readonly property real near: ((index + (intro.ms / 520) % 1) / 11)   // 0 at the horizon, 1 at the viewer
+                readonly property real depth: Math.pow(near, 2.3)
                 x: 0; width: intro.width
                 y: intro.horizonY + (intro.height - intro.horizonY) * depth
                 height: 1 + depth * 4
                 color: "#FF4FB8"
-                opacity: intro.roadOn * z * 0.85
+                opacity: intro.roadOn * near * 0.85
             }
         }
         // The horizon line ignites on the big hit.
