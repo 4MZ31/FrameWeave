@@ -39,8 +39,20 @@ PushFPS is distributed in the hope that it will be useful, but **WITHOUT ANY WAR
 implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
-The PS5 Remote Play part (Chiaki) is also under the AGPL-3.0 with an OpenSSL exception; see
-[licenses/remoteplay](licenses/remoteplay). PushFPS release builds leave that part out.
+PushFPS release builds (from 2.4.0) include Veyra's streaming sources:
+
+- **PS5 Remote Play** compiles [chiaki-ng](https://github.com/streetpea/chiaki-ng) at
+  `0e16950165f06e5c3291537c2eeba6e852be7120` with Veyra's two patches (`scripts/remoteplay/patches`). That part
+  is also under the AGPL-3.0 with the upstream OpenSSL exception; see [licenses/remoteplay](licenses/remoteplay).
+- **PC streaming** compiles [moonlight-common-c](https://github.com/moonlight-stream/moonlight-common-c) (GPL-3.0)
+  at `f900dd4767759c7b9d0e93bcea666b55c69ea62f` with its pinned ENet and nanors (MIT).
+- **Xbox streaming** links [libdatachannel](https://github.com/paullouisageneau/libdatachannel) (MPL-2.0) and its
+  dependencies, built by vcpkg with Veyra's libjuice overlay (`scripts/xbox/vcpkg-overlay`).
+
+The static libraries (OpenSSL, Opus, SDL3, curl, json-c, libevent, miniupnpc, nanopb, Jerasure, gf-complete,
+libjuice, usrsctp, libsrtp, plog, nlohmann-json) come from vcpkg at the commit pinned in the build workflow. Each
+release attaches a *streaming-source* archive with the exact sources and recipes used; their notices are in
+[licenses](licenses) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Additional permission under GNU GPL version 3 section 7
 
