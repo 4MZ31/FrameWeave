@@ -608,5 +608,13 @@ jobs:
             { cat "packaging/release-notes/$TAG.md"; echo; cat notes.md; } > notes-full.md && mv notes-full.md notes.md
           fi
           # A manual run creates the tag on the commit it built; a tag push already has it.
-          gh release create "$TAG" dist/* -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "PushFPS $TAG" \
-            --notes-file notes.md "${KIND[@]}"
+          # Run again for a tag that already has a release (a pre-release promoted to a full release
+          # when the owner asks): replace its files and notes and change its kind instead of failing.
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist/* -R "$GITHUB_REPOSITORY" --clobber
+            if [ "$FULL_RELEASE" = "true" ]; then EDIT=(--prerelease=false --latest); else EDIT=(--prerelease); fi
+            gh release edit "$TAG" -R "$GITHUB_REPOSITORY" --title "PushFPS $TAG" --notes-file notes.md "${EDIT[@]}"
+          else
+            gh release create "$TAG" dist/* -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "PushFPS $TAG" \
+              --notes-file notes.md "${KIND[@]}"
+          fi
