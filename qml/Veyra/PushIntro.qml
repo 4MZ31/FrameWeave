@@ -124,7 +124,7 @@ Item {
     readonly property real logoW: mix(heroW * camera, artW, glide)
     readonly property real logoH: logoW / logoAspect
     readonly property real logoX: mix(width / 2 - heroW * camera / 2, artX, glide)
-    readonly property real logoY: mix(height * 0.4 - heroH * camera / 2, artY, glide)
+    readonly property real logoY: mix(height * 0.36 - heroH * camera / 2, artY, glide)
 
     focus: true
     Keys.onPressed: event => { intro.skip(); event.accepted = true }
@@ -176,7 +176,7 @@ Item {
         // City, rising from the horizon and drifting slowly.
         Image {
             source: "sunset-skyline.png"
-            width: intro.width * 1.3; height: width * 420 / 2400
+            width: intro.width * 1.3; height: width * 420 / 2400 * 0.72   // kept low, under the logo
             x: -intro.width * 0.15 - intro.ms * 0.012
             y: intro.horizonY - height + (1 - intro.cityUp) * intro.height * 0.1
             opacity: intro.cityUp
