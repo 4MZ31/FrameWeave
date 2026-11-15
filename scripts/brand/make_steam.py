@@ -74,7 +74,7 @@ def scene(w, h, horizon_frac=0.64):
 def logo_art():
     """The sunset-filled logo with its glow, as on the app's home page (transparent)."""
     m = ms.masks()
-    full = ms.filled(m["all"], ms.logo_scene(ms.LW * ms.S, ms.LH * ms.S))
+    full = ms.filled(m["all"], ms.letter_fill(ms.LW * ms.S, ms.LH * ms.S))
     pad = 140
     art = ms.glow(m["all"], pad)
     art.alpha_composite(full, (pad, pad))

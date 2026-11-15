@@ -30,7 +30,8 @@ SUN_TOP, SUN_BOTTOM = (255, 225, 120), (255, 52, 140)
 BUILDING_BACK, BUILDING_FRONT = (88, 26, 126), (28, 8, 56)
 WINDOWS = [(255, 120, 200), (120, 230, 255), (255, 210, 120)]
 STROKE = (255, 236, 248)
-GLOW_IN, GLOW_OUT = (255, 70, 160), (255, 140, 60)
+GLOW_IN, GLOW_OUT = (255, 70, 170), (150, 40, 190)
+OUTLINE = (24, 8, 46)
 
 
 def gradient(w, h, stops, y0=0, y1=None):
@@ -139,29 +140,6 @@ def palm(h, color=(20, 6, 40), lean=0.18, seed=3):
     return img
 
 
-def logo_scene(w, h):
-    """The picture inside the letters: sunset sky, sun, skyline, palms and the bay."""
-    horizon = int(h * 0.75)
-    img = gradient(w, h, SKY, 0, horizon)
-    water = gradient(w, h - horizon, [(0, (70, 20, 96)), (1, (14, 6, 34))])
-    img.alpha_composite(water, (0, horizon))
-    sd = sun(int(h * 0.5), glow=True)
-    img.alpha_composite(sd, (int(w * 0.36 - sd.width / 2), int(horizon - sd.height * 0.66)))
-    back = skyline(w, int(h * 0.24), 11, BUILDING_BACK, windows=False, density=1.2)
-    img.alpha_composite(back, (0, horizon - back.height))
-    front = skyline(w, int(h * 0.17), 23, BUILDING_FRONT, windows=True, max_frac=0.9)
-    img.alpha_composite(front, (0, horizon - front.height))
-    d = ImageDraw.Draw(img)                               # sun and city reflected in the bay
-    for i in range(18):
-        y = horizon + 4 + i * (h - horizon) / 18
-        half = w * (0.12 - i * 0.005)
-        d.rectangle((w * 0.5 - half, y, w * 0.5 + half, y + 2 + i * 0.3), fill=(255, 120, 150, 150 - i * 7))
-    for x0, hh, lean, seed in [(0.035, 0.55, 0.16, 3), (0.10, 0.42, -0.1, 5), (0.80, 0.5, -0.16, 7), (0.85, 0.38, 0.12, 9)]:
-        p = palm(int(h * hh), lean=lean, seed=seed)
-        img.alpha_composite(p, (int(w * x0 - p.width * 0.45), horizon + int(h * 0.06) - p.height))
-    return img
-
-
 def masks():
     """Logo alpha split into parts: "Push" (white), "FPS" + swoosh (green, left of the
     chevrons or above them) and the two chevrons."""
@@ -185,29 +163,62 @@ def masks():
     return out
 
 
+def letter_fill(w, h):
+    """The picture inside the letters, built to stay readable: a bright sunset gradient over the
+    letters' height, a soft sun, and the city and palms only as low silhouettes near the bottom
+    (the letters span about 39-80 % of the logo's height)."""
+    top, horizon, bottom = int(h * 0.36), int(h * 0.755), int(h * 0.82)
+    img = gradient(w, h, [(0.00, (200, 128, 255)), (0.32, (255, 96, 196)), (0.62, (255, 118, 96)),
+                          (0.86, (255, 186, 98)), (1.00, (255, 226, 150))], top, horizon)
+    sd = sun(int(h * 0.36), glow=False)
+    sd.putalpha(sd.split()[3].point(lambda v: int(v * 0.55)))
+    img.alpha_composite(sd, (int(w * 0.47 - sd.width / 2), int(horizon - sd.height * 0.62)))
+    city = skyline(w, int(h * 0.1), 23, (142, 46, 146), windows=False, max_frac=0.9, density=1.1)
+    img.alpha_composite(city, (0, horizon - city.height))
+    water = gradient(w, h - horizon, [(0, (170, 54, 140)), (1, (214, 84, 168))], 0, h - horizon)
+    img.alpha_composite(water, (0, horizon))
+    d = ImageDraw.Draw(img)
+    for i in range(5):                                    # the sun's reflection
+        y = horizon + 3 + i * (bottom - horizon) / 5
+        half = w * (0.07 - i * 0.008)
+        d.rectangle((w * 0.47 - half, y, w * 0.47 + half, y + 2 + i), fill=(255, 196, 120, 200 - i * 25))
+    for x0, hh, lean, seed in [(0.05, 0.30, 0.16, 3), (0.30, 0.24, -0.12, 5), (0.66, 0.27, 0.14, 7), (0.80, 0.22, -0.1, 9)]:
+        pl = palm(int(h * hh), color=(58, 14, 82), lean=lean, seed=seed)
+        img.alpha_composite(pl, (int(w * x0 - pl.width * 0.45), horizon + int(h * 0.03) - pl.height))
+    return img
+
+
 def filled(mask, scene, stroke=True):
+    """Letters cut from the scene, with a light inner rim and a dark outline around them so the
+    shapes read on any background."""
     m = mask.resize((LW * S, LH * S), Image.LANCZOS)
     art = scene.copy()
     art.putalpha(ImageChops.multiply(art.split()[3], m))
-    if stroke:
-        grown = m.filter(ImageFilter.MaxFilter(5))
-        edge = ImageChops.subtract(grown, m.filter(ImageFilter.MinFilter(5)))
-        line = Image.new("RGBA", art.size, STROKE + (0,))
-        line.putalpha(edge.point(lambda v: int(v * 0.85)))
-        art.alpha_composite(line)
-    return art
+    if not stroke:
+        return art
+    out = Image.new("RGBA", art.size, (0, 0, 0, 0))
+    dark = Image.new("RGBA", art.size, OUTLINE + (0,))
+    dark.putalpha(m.filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.GaussianBlur(1.2)))
+    out.alpha_composite(dark)
+    out.alpha_composite(art)
+    rim = ImageChops.subtract(m, m.filter(ImageFilter.MinFilter(5)))
+    line = Image.new("RGBA", art.size, STROKE + (0,))
+    line.putalpha(rim.point(lambda v: int(v * 0.9)))
+    out.alpha_composite(line)
+    return out
 
 
 def glow(mask, pad):
+    """A soft neon haze around the logo, kept dim so it never competes with the letters."""
     m = mask.resize((LW * S, LH * S), Image.LANCZOS)
     big = Image.new("L", (m.width + 2 * pad, m.height + 2 * pad), 0)
     big.paste(m, (pad, pad))
-    inner = big.filter(ImageFilter.GaussianBlur(pad * 0.18))
-    outer = big.filter(ImageFilter.GaussianBlur(pad * 0.45))
+    inner = big.filter(ImageFilter.GaussianBlur(pad * 0.16))
+    outer = big.filter(ImageFilter.GaussianBlur(pad * 0.42))
     img = Image.new("RGBA", big.size, GLOW_OUT + (0,))
-    img.putalpha(outer.point(lambda v: min(255, int(v * 1.6))))
+    img.putalpha(outer.point(lambda v: min(255, int(v * 0.9))))
     tin = Image.new("RGBA", big.size, GLOW_IN + (0,))
-    tin.putalpha(inner.point(lambda v: min(255, int(v * 1.4))))
+    tin.putalpha(inner.point(lambda v: min(255, int(v * 0.8))))
     img.alpha_composite(tin)
     return img
 
@@ -227,7 +238,7 @@ def road(w, h, lines=24):
 
 def main():
     m = masks()
-    scene = logo_scene(LW * S, LH * S)
+    scene = letter_fill(LW * S, LH * S)
     full = filled(m["all"], scene)
     pad = 140
     g = glow(m["all"], pad)
