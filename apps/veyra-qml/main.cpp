@@ -867,6 +867,9 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
             g_videoHiddenByProbe = g_videoProbe == VideoProbeMode::Hidden;
         } else if (a == QLatin1String("--reduced-motion")) {
             testOptions.insert(QStringLiteral("reducedMotion"), true);
+        } else if (a == QLatin1String("--intro-at") && hasValue) {
+            // PushFPS screenshots: the startup intro held at this moment (milliseconds).
+            testOptions.insert(QStringLiteral("introAt"), args.at(++i).toDouble());
         } else if (a == QLatin1String("--no-update-check")) {
             // PushFPS screenshots: no "new version" banner over the picture of a test build.
             testOptions.insert(QStringLiteral("noUpdateCheck"), true);

@@ -192,11 +192,19 @@ VPage {
                                 onPicked: id => veyra.setPreference("palette", id)
                             }
                         }
-                        // The dusk palette's intro (DuskIntro.qml); classic has none.
+                        // PushFPS Sunset City: the logo on the home page, the intro (PushIntro.qml) and the music.
                         VRow {
-                            visible: Theme.dusk
+                            label: qsTr("日落之城标志")
+                            hint: qsTr("首页的 PushFPS 标志里是霓虹日落下的城市；关闭后显示经典标志")
+                            VSwitch {
+                                objectName: "set-sunset"
+                                checked: veyra.preferences.pushSunset !== false
+                                onToggled: checked => veyra.setPreference("pushSunset", checked)
+                            }
+                        }
+                        VRow {
                             label: qsTr("启动动画")
-                            hint: qsTr("日落配色下打开软件时播放，单击或按任意键可跳过")
+                            hint: qsTr("打开 PushFPS 时播放约 3 秒的日落之城开场，单击或按任意键可跳过")
                             VSwitch {
                                 objectName: "set-intro"
                                 checked: veyra.preferences.introAnimation !== false
@@ -205,9 +213,8 @@ VPage {
                         }
                         // This saved switch controls future launches. The corner button
                         // stops only the current launch and leaves this preference intact.
-                        // PushFPS: Veyra's startup music is not played (Main.qml musicOn).
+                        // The startup music: the file Veyra's runtime package installs (Main.qml musicOn).
                         VRow {
-                            visible: false
                             label: qsTr("启动音乐")
                             hint: typeof vyMusic !== "undefined" && vyMusic.available
                                   ? qsTr("每次启动播放一次，动画结束后继续；此开关会保存，角落按钮仅停止本次")

@@ -1012,7 +1012,7 @@ Window {
         anchors.fill: parent
         z: 1000
         active: false
-        sourceComponent: DuskIntro {
+        sourceComponent: PushIntro {
             skipText: qsTr("单击或按任意键跳过")
             musicClock: () => { const s = vyMusic.position(); return s >= 0 ? s * 1000 : -1 }
             onFrame: target = root.introTarget()
@@ -1070,14 +1070,21 @@ Window {
         if (root.test.dialog !== undefined) dialogs.open(root.test.dialog)
         videoHost.syncRect()
         // Independent of animation, palette, reduced motion and initial page. Never restart.
-        if (root.musicOn && vyMusic.available && !veyra.hasSource && !veyra.openingSource) {
+        // PushFPS: not in screenshot and test runs (the corner music button would show in every picture).
+        if (root.musicOn && vyMusic.available && !veyra.hasSource && !veyra.openingSource && Object.keys(root.test).length === 0) {
             vyMusic.prepare(veyra.volume)
             vyMusic.play()
+        }
+        // --intro-at <ms>: the intro held at one moment, for screenshots.
+        if (root.test.introAt !== undefined) {
+            homePage.introHold = true
+            introLoader.active = true
+            if (introLoader.item) introLoader.item.ms = Math.max(1, Number(root.test.introAt))
         }
         if (root.test.menu !== undefined) testMenuTimer.start()
         if (root.test.scrollTo !== undefined) testScrollTimer.start()
         if (root.test.fullBar !== undefined) testFullTimer.start()
-        // PushFPS: no Veyra dusk intro (it shows Veyra's wordmark); see brandIntro.
+        // PushFPS: the Sunset City intro (PushIntro.qml), see brandIntro.
         if (root.brandIntro && veyra.preferences.introAnimation !== false
                 && !veyra.reducedMotion && root.page === "home" && Object.keys(root.test).length === 0) {
             homePage.introHold = true
@@ -1105,10 +1112,11 @@ Window {
     onPushOnTopChanged: applyOnTop()
     onVisibilityChanged: Qt.callLater(root.applyOnTop)
 
-    // PushFPS: Veyra's startup music and dusk intro are Veyra's own identity (its music comes in Veyra's
-    // runtime package for Veyra), so PushFPS keeps both off. The code stays for upstream merges.
-    readonly property bool brandIntro: false
-    readonly property bool musicOn: false
+    // PushFPS "Sunset City" intro (PushIntro.qml) and the startup music, each with its own switch in
+    // 设置 → 外观 (introAnimation, introMusic; unset = on). The music is the file Veyra's runtime
+    // package installs (media/startup-music.mp3); PushFPS never ships or copies it.
+    readonly property bool brandIntro: veyra.preferences.introAnimation !== false
+    readonly property bool musicOn: typeof vyMusic !== "undefined" && veyra.preferences.introMusic !== false
     readonly property bool musicSounding: typeof vyMusic !== "undefined" && (vyMusic.state === "loading" || vyMusic.state === "playing")
     function stopStartupMusicForSession() {
         if (typeof vyMusic === "undefined") return

@@ -26199,6 +26199,23 @@
    "ru": "Открытие GitHub Проблемы; диагностика была скопирована для вас"
   },
   {
+   "zh": "打开 PushFPS 时播放约 3 秒的日落之城开场，单击或按任意键可跳过",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "開啟 PushFPS 時播放約 3 秒的日落之城開場，按一下或按任意鍵可跳過",
+   "en": "Plays a 3-second Sunset City intro when PushFPS opens; click or press any key to skip",
+   "ja": "PushFPS を開くと約 3 秒のサンセットシティのオープニングを再生します。クリックか任意のキーでスキップできます",
+   "nl": "Speelt een intro van 3 seconden af wanneer PushFPS opent; klik of druk op een toets om over te slaan",
+   "de": "Spielt beim Öffnen von PushFPS ein 3 Sekunden langes Sunset-City-Intro; klicken oder eine Taste drücken zum Überspringen",
+   "es": "Reproduce una intro Sunset City de 3 segundos al abrir PushFPS; haz clic o pulsa una tecla para saltarla",
+   "fr": "Joue une intro Sunset City de 3 secondes à l'ouverture de PushFPS ; cliquez ou appuyez sur une touche pour la passer",
+   "it": "Riproduce un'intro Sunset City di 3 secondi all'apertura di PushFPS; fai clic o premi un tasto per saltarla",
+   "pt-BR": "Toca uma abertura Sunset City de 3 segundos ao abrir o PushFPS; clique ou pressione uma tecla para pular",
+   "tr": "PushFPS açılırken 3 saniyelik Sunset City açılışını oynatır; geçmek için tıklayın veya bir tuşa basın",
+   "ar": "يعرض مقدمة Sunset City لمدة 3 ثوانٍ عند فتح PushFPS؛ انقر أو اضغط أي مفتاح للتخطي",
+   "pl": "Odtwarza 3-sekundowe intro Sunset City przy otwarciu PushFPS; kliknij lub naciśnij klawisz, aby pominąć",
+   "ru": "Показывает 3-секундную заставку Sunset City при запуске PushFPS; щёлкните или нажмите любую клавишу, чтобы пропустить"
+  },
+  {
    "zh": "打开 PushFPS 时直接连接上次的采集卡（沿用上次的设置）或串流",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "開啟 PushFPS 時直接連接上次的擷取卡（沿用上次的設定）或串流",
@@ -30110,6 +30127,23 @@
    "ru": "Закат"
   },
   {
+   "zh": "日落之城标志",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "日落之城標誌",
+   "en": "Sunset City logo",
+   "ja": "サンセットシティのロゴ",
+   "nl": "Sunset City-logo",
+   "de": "Sunset-City-Logo",
+   "es": "Logo Sunset City",
+   "fr": "Logo Sunset City",
+   "it": "Logo Sunset City",
+   "pt-BR": "Logo Sunset City",
+   "tr": "Sunset City logosu",
+   "ar": "شعار Sunset City",
+   "pl": "Logo Sunset City",
+   "ru": "Логотип Sunset City"
+  },
+  {
    "zh": "日落天空的渐变强度，带抖动防色带",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "日落天空的漸層強度，帶抖動以防色帶",
@@ -30125,23 +30159,6 @@
    "ar": "خطوبة السماء المشمسة تتردّد",
    "pl": "Siła zachodniego nieba gradient, dished przeciwko banding",
    "ru": "Сила градиента заката неба, отклоняющегося от полос"
-  },
-  {
-   "zh": "日落配色下打开软件时播放，单击或按任意键可跳过",
-   "src": "qml/SettingsPage.qml",
-   "zh-TW": "日落配色下開啟軟體時播放，按一下或按任意鍵可略過",
-   "en": "Plays when the app starts in the Dusk color scheme; click or press any key to skip",
-   "ja": "日没の配色で起動したときに再生します。クリックまたは任意のキーでスキップできます",
-   "nl": "Speelt af wanneer de app begint in het Dusk kleurenschema; klik of druk op een toets om over te slaan",
-   "de": "Spielt, wenn die App im Dusk-Farbschema startet; Klicken oder Drücken einer beliebigen Taste zum Überspringen",
-   "es": "Juega cuando la aplicación comienza en el esquema de color Dusk; haga clic o pulse cualquier tecla para saltar",
-   "fr": "Joue lorsque l'application commence dans le schéma de couleur Dusk; cliquez ou appuyez sur n'importe quelle clé pour sauter",
-   "it": "Gioca quando l'applicazione inizia nella combinazione di colori Dusk; fare clic o premere qualsiasi tasto per saltare",
-   "pt-BR": "Toca quando o aplicativo começa no esquema de cores do crepúsculo; clique ou pressione qualquer tecla para pular",
-   "tr": "Uygulama Dusk renk programında başladığında Plays; atlamak veya atlamak için herhangi bir anahtara tıklayın",
-   "ar": "يعزف عندما يبدأ التطبيق في مخطط لون داسك نقر أو يضغط على أي مفتاح",
-   "pl": "Odtwarza, gdy aplikacja rozpoczyna się w systemie kolorów w Dusku; kliknij lub naciśnij dowolny klucz, aby pominąć",
-   "ru": "Играет, когда приложение начинается в цветовой схеме Dusk; нажмите или нажмите любой ключ, чтобы пропустить"
   },
   {
    "zh": "日落：深靛紫底、日落渐变强调色；经典：原来的黑灰配色",
@@ -52922,6 +52939,23 @@
    "ar": "البيت = الصفحة لاختيار مصدر (انقر الشعار في القمة أيضا يعود هنا)",
    "pl": "Strona główna = strona do wyboru źródła (kliknięcie logo na górze zwraca również tutaj)",
    "ru": "Home = страница для выбора источника (нажатие на логотип вверху также возвращается здесь)"
+  },
+  {
+   "zh": "首页的 PushFPS 标志里是霓虹日落下的城市；关闭后显示经典标志",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "首頁的 PushFPS 標誌裡是霓虹日落下的城市；關閉後顯示經典標誌",
+   "en": "The PushFPS logo on the home page is filled with a city under a neon sunset; off shows the classic logo",
+   "ja": "ホーム画面の PushFPS ロゴの中にネオンの夕焼けの街を表示します。オフにすると通常のロゴになります",
+   "nl": "Het PushFPS-logo op het startscherm is gevuld met een stad onder een neon zonsondergang; uit toont het klassieke logo",
+   "de": "Das PushFPS-Logo auf der Startseite zeigt eine Stadt unter einem Neon-Sonnenuntergang; aus zeigt das klassische Logo",
+   "es": "El logo de PushFPS en la pantalla de inicio muestra una ciudad bajo un atardecer de neón; desactivado muestra el logo clásico",
+   "fr": "Le logo PushFPS de l'accueil montre une ville sous un coucher de soleil néon ; désactivé, le logo classique s'affiche",
+   "it": "Il logo di PushFPS nella schermata iniziale mostra una città sotto un tramonto al neon; disattivato mostra il logo classico",
+   "pt-BR": "O logo do PushFPS na tela inicial mostra uma cidade sob um pôr do sol neon; desligado mostra o logo clássico",
+   "tr": "Ana ekrandaki PushFPS logosunun içinde neon gün batımında bir şehir görünür; kapalıyken klasik logo gösterilir",
+   "ar": "يُظهر شعار PushFPS في الصفحة الرئيسية مدينة تحت غروب نيون؛ عند الإيقاف يظهر الشعار الكلاسيكي",
+   "pl": "Logo PushFPS na ekranie głównym pokazuje miasto o neonowym zachodzie słońca; po wyłączeniu widać klasyczne logo",
+   "ru": "Логотип PushFPS на главном экране заполнен городом на фоне неонового заката; если выключить, будет классический логотип"
   },
   {
    "zh": "驱动拒绝所选采集格式（0x{:08X}），请重新选择。",

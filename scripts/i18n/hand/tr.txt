@@ -1408,3 +1408,4 @@ zh:亮|Işık
 1405|Yönetici hakları gerekli
 1406|Ses girişi
 1407|Sürücü profili kullanımda
+1408|Sunset City logosu

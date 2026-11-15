@@ -17,9 +17,18 @@
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preload" href="fonts/BarlowSemiCondensed-ExtraBoldItalic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/Barlow-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<script>
+  // Theme before the first paint: Sunset City by default, or the visitor's last choice.
+  (function () {
+    var t = "sunset";
+    try { var s = localStorage.getItem("pushfps-theme"); if (s === "classic" || s === "light" || s === "sunset") t = s; } catch (e) {}
+    document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<canvas id="sky" aria-hidden="true"></canvas>
 <canvas id="flow" aria-hidden="true"></canvas>
 <a class="skip" href="#main">Skip to content</a>
 
@@ -38,6 +47,17 @@
       </ul>
     </nav>
     <div class="nav-actions">
+      <div class="theme-switch" role="group" aria-label="Look">
+        <button type="button" data-theme-choice="sunset" aria-pressed="false" aria-label="Sunset City look" title="Sunset City">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15a7 7 0 0 1 14 0" /><path d="M2 15h20M5 18.5h14M8 22h8" /></svg>
+        </button>
+        <button type="button" data-theme-choice="classic" aria-pressed="false" aria-label="Dark look" title="Dark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z" /></svg>
+        </button>
+        <button type="button" data-theme-choice="light" aria-pressed="false" aria-label="Light look" title="Light">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" /></svg>
+        </button>
+      </div>
       <a class="btn ghost small" href="https://github.com/DosukaSOL/PushFPS">GitHub</a>
       <a class="btn small" href="#download">Download</a>
     </div>
@@ -50,7 +70,9 @@
 <section class="hero">
   <div class="wrap hero-grid">
     <div class="hero-copy">
-      <img class="hero-logo" src="assets/pushfps-logo-600.webp" srcset="assets/pushfps-logo-600.webp 600w, assets/pushfps-logo.webp 1200w" sizes="(max-width: 700px) 80vw, 420px" width="420" height="144" alt="PushFPS">
+      <img class="hero-logo logo-sunset" src="assets/sunset-logo-560.webp" srcset="assets/sunset-logo-560.webp 560w, assets/sunset-logo.webp 1100w" sizes="(max-width: 700px) 92vw, 470px" width="470" height="193" alt="PushFPS" loading="lazy">
+      <img class="hero-logo logo-classic" src="assets/pushfps-logo-600.webp" srcset="assets/pushfps-logo-600.webp 600w, assets/pushfps-logo.webp 1200w" sizes="(max-width: 700px) 80vw, 420px" width="420" height="144" alt="PushFPS" loading="lazy">
+      <img class="hero-logo logo-light" src="assets/pushfps-logo-light-600.webp" srcset="assets/pushfps-logo-light-600.webp 600w, assets/pushfps-logo-light.webp 1200w" sizes="(max-width: 700px) 80vw, 420px" width="420" height="144" alt="PushFPS" loading="lazy">
       <h1>Your console at 60 or 120&nbsp;FPS, straight from your capture card.</h1>
       <p class="lede">PushFPS reads the picture from your capture card and adds generated frames in real time on your PC. Nothing changes on the console or in the game. Free and open source, for Windows&nbsp;11.</p>
       <div class="cta-row">

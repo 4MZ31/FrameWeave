@@ -74,4 +74,4 @@ jobs:
           qmllint -I qml --unqualified disable qml/Veyra/PushQuickSetup.qml qml/Veyra/HomePage.qml \
             qml/Veyra/VRow.qml qml/Veyra/TopDock.qml qml/Veyra/VAccordion.qml \
             qml/Veyra/PushPicture.qml qml/Veyra/PushSoundProfile.qml qml/Veyra/PushRecordingSaved.qml \
-            qml/Veyra/PushHudDialog.qml qml/Veyra/VHelp.qml qml/Veyra/PushWordmark.qml qml/Veyra/PushLatencyGuideDialog.qml
+            qml/Veyra/PushHudDialog.qml qml/Veyra/VHelp.qml qml/Veyra/PushWordmark.qml qml/Veyra/PushLatencyGuideDialog.qml qml/Veyra/PushIntro.qml
