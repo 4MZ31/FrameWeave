@@ -117,7 +117,8 @@ jobs:
             @{ name = '43-intro-chevrons'; args = @('--page', 'home', '--intro-at', '700') },
             @{ name = '44-intro-sunset'; args = @('--page', 'home', '--intro-at', '2300') },
             @{ name = '45-intro-glide'; args = @('--page', 'home', '--intro-at', '3000') },
-            @{ name = '46-home-classic'; args = @('--page', 'home', '--pref', 'pushSunset=false') }
+            @{ name = '46-home-classic'; args = @('--page', 'home', '--pref', 'pushSunset=false') },
+            @{ name = '47-switch2-presets'; args = @('--page', 'home', '--dialog', 'games', '--pref', 'pushConsole=switch2') }
           )
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"

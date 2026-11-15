@@ -73,6 +73,9 @@ QtObject {
     property bool fgEnabled: false
     property int fgMultiplier: 1
     property var fgMultiplierChoices: [{id:"1"},{id:"2"},{id:"3"},{id:"4"}]
+    // PushFPS adaptive multiplier (QmlPlayerBridge::fgAdaptive) and duplicate removal (contentRate).
+    property bool fgAdaptive: false
+    property int contentRate: 0
     property int outputRateMode: 0
     property real outputCustomFps: 0
     property bool presentationOwned: false

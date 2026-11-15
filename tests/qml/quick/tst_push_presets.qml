@@ -28,7 +28,10 @@ Item {
             veyra.captureDeviceLabel = ""
             host.dialog = "games"
             games.protectHud = true
+            games.consoleFilter = ""
             games.selectedName = "GTA VI"
+            veyra.fgAdaptive = false; veyra.contentRate = 0
+            veyra.fgMultiplierChoices = [{id:"1"},{id:"2"},{id:"3"},{id:"4"}]
         }
         function cleanup() { init() }
 
@@ -110,6 +113,73 @@ Item {
             verify(games.messageError)
             verify(games.addImported(Presets.decode(games.shareCode(Presets.builtIn[0]), Qt.atob)))
             verify(games.all.some(p => p.name.indexOf("GTA VI ") === 0 && p.mine), "a shared copy of a built-in gets its own name")
+        }
+        // --- Switch and Switch 2 ---------------------------------------------------
+        function test_switch_library() {
+            const sw = Presets.builtIn.map(Presets.sanitize).filter(p => p.console === "switch")
+            const sw2 = Presets.builtIn.map(Presets.sanitize).filter(p => p.console === "switch2")
+            verify(sw.length >= 10, "Switch games: " + sw.length)
+            verify(sw2.length >= 8, "Switch 2 games: " + sw2.length)
+            for (const p of sw.concat(sw2)) {
+                compare(p.fps, 30, p.name)
+                verify(p.name.length <= Presets.kMaxName, p.name)
+                verify(games.noteFor(p).length > 20, p.name + " has a translated note")
+            }
+            const names = Presets.builtIn.map(p => p.name)
+            compare(new Set(names).size, names.length, "names are unique")
+            verify(sw.some(p => p.name === "Pokémon Legends: Arceus"))
+            verify(sw2.find(p => p.name === "Elden Ring").adaptive, "Elden Ring dips: adaptive")
+            verify(!sw.find(p => p.name === "Pokémon Legends: Arceus").adaptive)
+        }
+        function test_console_filter_follows_the_quick_setup() {
+            veyra.preferences = ({ pushGameFps: 30, pushConsole: "switch2" })
+            host.dialog = ""; wait(0); host.dialog = "games"; wait(0)
+            compare(games.consoleFilter, "switch2")
+            verify(games.listed.length > 0 && games.listed.every(p => p.console === "switch2"))
+            compare(games.selected.console, "switch2", "the first Switch 2 game is selected")
+            findChild(games, "pushfps-game-preset-console").picked("")
+            verify(games.listed.length === games.all.length)
+        }
+        function test_apply_a_steady_switch_game() {
+            games.selectedName = "Pokémon Legends: Arceus"
+            games.apply(games.selected)
+            compare(veyra.preferences.pushConsole, "switch")
+            compare(veyra.preferences.pushGameFps, 30)
+            compare(veyra.fgAdaptive, false)
+            compare(veyra.fgMultiplier, 4, "30 FPS to 120 on a 240 Hz screen")
+            compare(veyra.lastRegions.length, 0)
+        }
+        function test_apply_a_game_that_dips_turns_on_adaptive() {
+            games.selectedName = "Elden Ring"
+            games.apply(games.selected)
+            compare(veyra.preferences.pushConsole, "switch2")
+            verify(veyra.fgAdaptive, "adaptive on")
+            compare(veyra.contentRate, 1, "duplicate removal on, to measure the game's frame rate")
+            compare(veyra.fgMultiplier, 4, "ceiling: the largest offered multiplier (4X here) for a 120 FPS target")
+            compare(veyra.outputCustomFps, 120)
+            compare(veyra.lastRegions.length, 3, "HP bars, items and runes")
+            verify(games.noteFor(games.selected).indexOf(qsTr("帧率会波动，已开启自适应倍率。")) >= 0)
+        }
+        function test_adaptive_is_skipped_when_only_2x_exists() {
+            veyra.fgMultiplierChoices = [{id:"1"},{id:"2"}]
+            games.selectedName = "Elden Ring"
+            games.apply(games.selected)
+            compare(veyra.fgAdaptive, false)
+            compare(veyra.fgMultiplier, 2)
+        }
+        function test_adaptive_ceiling() {
+            compare(Presets.adaptiveCeiling([2, 3, 4, 6], 120), 6)
+            compare(Presets.adaptiveCeiling([2, 3, 4], 120), 4)
+            compare(Presets.adaptiveCeiling([2, 3, 4, 6], 60), 3)
+            compare(Presets.adaptiveCeiling([2, 3, 4, 5, 6, 7, 8], 144), 7)
+            compare(Presets.adaptiveCeiling([2], 120), 2)
+            compare(Presets.adaptiveCeiling([], 120), 0)
+        }
+        function test_share_code_keeps_console_and_adaptive() {
+            const back = Presets.decode(Presets.encode(Presets.builtIn.find(p => p.name === "Cyberpunk 2077"), Qt.btoa), Qt.atob)
+            compare(back.console, "switch2")
+            compare(back.adaptive, true)
+            compare(back.regions.length, 2)
         }
         function test_copy_button() {
             const b = findChild(games, "pushfps-game-preset-copy")

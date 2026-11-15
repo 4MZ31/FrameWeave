@@ -307,6 +307,44 @@ text and the minimap don't smear when the camera moves. **Adjust HUD areas** ope
 Professional mode, *Quality*, *Exclude all effects* has the same areas. **Save current settings as a preset** stores your own, including the areas you drew.
 **Copy code** gives a `PUSHFPS1:` code to share on Reddit or Discord; **Add** or **Open file** imports one.
 
+### Nintendo Switch and Switch 2
+
+Many Switch games stay at 30 FPS even on Switch 2 when they have no Switch 2 update, and several Switch 2 ports
+run at 30 FPS docked. The presets list has a filter for each console (it starts on the console you picked in the
+quick setup) and sets the console, the game's frame rate and the target in one click:
+
+- **Switch:** Hyrule Warriors: Age of Calamity, Pokémon Legends: Arceus, Zelda: Breath of the Wild (the original;
+  the Nintendo Switch 2 Edition runs at 60), Xenoblade Chronicles X: DE, Monster Hunter Rise, The Witcher 3,
+  DOOM Eternal, Batman: Arkham Knight, Kingdom Come: Deliverance, Shin Megami Tensei V: Vengeance,
+  Mario + Rabbids Sparks of Hope, Animal Crossing: New Horizons, Fire Emblem: Three Houses, Fire Emblem Engage,
+  Persona 5 Royal, Pokémon: Let's Go, Dragon Quest XI S, Astral Chain.
+- **Switch 2:** Cyberpunk 2077, Hogwarts Legacy, Final Fantasy VII Remake and Rebirth, Star Wars Outlaws,
+  Assassin's Creed Shadows, Elden Ring, Indiana Jones and the Great Circle, Persona 3 Reload, Lies of P.
+
+Frame rates come from public tests (Digital Foundry, the howsitrun.com database and Switch 2
+backward-compatibility reports). Games whose frame rate dips (Age of Calamity, Arkham Knight, Cyberpunk 2077,
+Star Wars Outlaws, Elden Ring) turn on the adaptive multiplier. HUD areas are set only where the layout is well
+known (Breath of the Wild, The Witcher 3, DOOM Eternal, Cyberpunk 2077, Elden Ring, Lies of P); for the others
+use **Adjust HUD areas** to find them automatically. Set the Switch to its dock, 60 Hz; games have no HDCP.
+
+## Adaptive multiplier
+
+Console games rarely hold one frame rate: a 30 FPS game dips to 25, a 40 FPS mode wanders between 35 and 45,
+Elden Ring on Switch 2 sits anywhere from 30 to 40. With a fixed multiplier the output follows every dip. Turn
+on **Adaptive multiplier** in the quick setup (or under frame generation in Professional mode) and the
+multiplier becomes a ceiling: PushFPS measures the game's frame rate from the capture card picture (automatic
+duplicate removal) and, for every pair of real frames, uses the multiplier whose output lands closest to the
+target (your output cap, or the monitor's refresh rate).
+
+At a 120 FPS target: 30 FPS → 4X, 40 FPS → 3X, 36 FPS → 3X (108), 33 FPS → 4X (132), 25 FPS → 5X with ANR or
+VFG, 4X with DLSS (which has no 5X). A change waits half a second so a game sitting on a boundary doesn't make
+it flicker. The quick setup shows what it is doing ("Now 3×: game 38 FPS → about 114 FPS").
+
+This is the same idea as NVIDIA's DLSS 4.5 Dynamic Multi Frame Generation, which switches between whole
+multipliers to reach the display's refresh rate; PushFPS bases it on the console's frame rate and it works
+with DLSS, ANR and NVIDIA VFG frame generation. FSR, AMD FRC and XeSS generate a fixed 2X or pace themselves,
+so the switch is not offered for them. A lower multiplier also means a little less delay.
+
 ## Automatic HUD detection
 
 Click **HUD protection** in the quick setup while your game is playing, then **Detect automatically** and

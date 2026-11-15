@@ -474,6 +474,11 @@ struct EnhancementSettings {
     // chosen one would miss its refresh or the budget (LivePresentationTiming.h).
     // A global control kept in shell preferences.
     bool vfgAutoRegulate=false;
+    // PushFPS "自适应倍率": the multiplier is a ceiling and each source pair uses the
+    // one whose output lands closest to the target (engine/PushAdaptiveFg.h). Changes
+    // only the per-pair multiplier, never the graph, so it is left out of the
+    // configuration comparisons below. A global control kept in shell preferences.
+    bool fgAdaptive=false;
     ContentRate content=ContentRate::Transport;
     AudioSyncMode audioSync=AudioSyncMode::Automatic;
     int32_t audioOffsetMs=0;
@@ -557,6 +562,7 @@ struct EnhancementSettings {
         auto active=activeVideoSettings();const auto target=other.activeVideoSettings();
         active.revision=target.revision;active.audioSync=target.audioSync;active.audioOffsetMs=target.audioOffsetMs;
         active.captureFlipVertical=target.captureFlipVertical;active.exportBitrateMbps=target.exportBitrateMbps;
+        active.fgAdaptive=target.fgAdaptive;
         return active==target;
     }
     bool sameVideoConfiguration(const EnhancementSettings& other) const {
@@ -570,6 +576,8 @@ struct EnhancementSettings {
         // Export-only fields: changing the bitrate must never invalidate the
         // running preview graph (the controller would otherwise rebuild it).
         video.exportBitrateMbps=target.exportBitrateMbps;
+        // PushFPS adaptive multiplier: chosen per pair inside the running graph.
+        video.fgAdaptive=target.fgAdaptive;
         // Colour grade: parameters are uniform-only (never a rebuild), but the
         // master switch changes the graph shape, so it stays in the comparison.
         const auto oldColor=video.color;const auto oldAdditional=video.additionalColors;

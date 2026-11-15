@@ -69,6 +69,8 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["latencyP95Ms"] = optionalNumber(flow.softwareLatencyP95Ms);
     m["latencySamples"] = QVariant::fromValue(qulonglong(flow.latencySamples));
     m["fgActive"] = s.fgActive;
+    // The multiplier the last pair used (adaptive mode, output cap or a reduced group).
+    m["fgMultiplierNow"] = s.previewFgMultiplier;
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;
     m["fgBudgetLimited"] = s.fgBudgetLimited;

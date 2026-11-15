@@ -1808,6 +1808,24 @@ VPage {
                                     onPicked: id => veyra.fgMultiplier = Number(id)
                                 }
                             }
+                            // PushFPS adaptive multiplier (EnhancementSettings::fgAdaptive): the multiplier
+                            // above becomes the ceiling. XeSS paces itself; 2X-only backends have nothing to adapt.
+                            VRow {
+                                objectName: "list-fg-adaptive-row"
+                                label: qsTr("自适应倍率")
+                                readonly property bool possible: !veyra.presentationOwned &&
+                                    (veyra.fgMultiplierChoices || []).some(o => parseInt(o.id) > 2)
+                                visible: possible
+                                hint: qsTr("倍率作为上限：按测得的游戏帧率，每对画面选择最接近目标帧率（输出上限或显示器刷新率）的倍率。需要开启自动去重")
+                                VSwitch {
+                                    objectName: "list-fg-adaptive"
+                                    checked: veyra.fgAdaptive
+                                    onToggled: checked => {
+                                        veyra.fgAdaptive = checked
+                                        if (checked && Number(veyra.contentRate) === 0) veyra.contentRate = 1
+                                    }
+                                }
+                            }
                             VRow {
                                 label: qsTr("DLSS 性能模式")
                                 visible: veyra.fgBackendName === "dlss"

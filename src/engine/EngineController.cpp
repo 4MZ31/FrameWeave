@@ -27,6 +27,7 @@
 #include "veyra/engine/ContentDedup.h"
 #include "veyra/engine/CapturePreviewClock.h"
 #include "veyra/engine/DisplayFgBudget.h"
+#include "veyra/engine/PushAdaptiveFg.h"
 #include "veyra/source/MediaFileSource.h"
 #include "veyra/source/CaptureCardSource.h"
 #include "veyra/source/DeckLinkCapture.h"
@@ -1181,6 +1182,9 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
             // Live output hint (DisplayFgBudget.h): a status-line suggestion only.
             // VEYRA_TEST_DISPLAY_HZ=<hz> replaces the measured refresh for it.
             DisplayFgBudgetGate displayFgGate;
+            // PushFPS adaptive frame generation (PushAdaptiveFg.h): per-pair multiplier
+            // from the measured content rate, the configured one being the ceiling.
+            PushAdaptiveFgGate pushAdaptiveGate;bool pushAdaptiveWas=false;int64_t nextPushAdaptiveLog=0;
             static const double displayFgTestHz=[]{wchar_t v[16]{};return GetEnvironmentVariableW(L"VEYRA_TEST_DISPLAY_HZ",v,16)?std::clamp(_wtof(v),0.0,1000.0):0.0;}();
             // Live graph FG presents on a smoothed anchor (LiveArrivalSmoother).
             // VEYRA_TEST_LEGACY_LIVE_PACING=1 restores the callback anchor, the
@@ -2402,9 +2406,32 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                 // that instead. Only ever lowers, never raises, the multiplier the
                 // user asked for; the present-time cap below stays as the residual
                 // after this integer rounding.
-                if(options.fg&&previewFgMultiplier>2&&presentationEffective.outputRate==OutputRateMode::Custom&&
+                // PushFPS: the rate of new pictures, not the transport. A 30 FPS game in a
+                // 60 Hz capture signal makes pairs 33 ms apart once duplicates are removed;
+                // dividing the cap by the 60 Hz transport ran 120 FPS targets at 2X (60 FPS).
+                // Unknown while dedup is still measuring (0): no reduction until then.
+                const double pushContentFps=isImage?0.0:dedupActive?contentDedup.contentFps():
+                    activeSource->info().averageFps*(halfRate?0.5:1.0);
+                const bool pushAdaptive=options.fg&&options.settings.fgAdaptive&&!isImage&&options.fgMultiplier>2&&
+                    !presentSinkFrameGeneration(options.settings.frameGenerationBackend);
+                if(pushAdaptive!=pushAdaptiveWas){pushAdaptiveGate.reset();pushAdaptiveWas=pushAdaptive;}
+                if(pushAdaptive){
+                    // Target: the output cap when one is set, otherwise the display refresh.
+                    const double refresh=displayFgTestHz>0?displayFgTestHz:presenter.displayRefreshHz();
+                    const double target=presentationEffective.outputRate==OutputRateMode::Custom&&std::isfinite(presentationEffective.customFps)&&
+                        presentationEffective.customFps>0?presentationEffective.customFps:refresh;
+                    if(pushContentFps>0.01&&target>0.01){
+                        bool changed=false;
+                        const auto now100=host100ns();
+                        previewFgMultiplier=pushAdaptiveGate.update(pushAdaptiveFgMultiplier(options.settings.frameGenerationBackend,options.fgMultiplier,pushContentFps,target),now100,&changed);
+                        if(changed||now100>=nextPushAdaptiveLog){nextPushAdaptiveLog=now100+50000000;
+                            veyra::log::info("push-adaptive-fg",std::format("revision={} backend={} ceiling={}X chosen={}X contentFps={:.2f} targetFps={:.2f} outputFps={:.2f} changed={}",
+                                options.settings.revision,frameGenerationBackendName(options.settings.frameGenerationBackend),options.fgMultiplier,previewFgMultiplier,pushContentFps,target,pushContentFps*previewFgMultiplier,changed));}
+                    }else if(pushAdaptiveGate.valid())previewFgMultiplier=pushAdaptiveGate.applied();
+                }
+                if(!pushAdaptive&&options.fg&&previewFgMultiplier>2&&presentationEffective.outputRate==OutputRateMode::Custom&&
                    !presentSinkFrameGeneration(options.settings.frameGenerationBackend)){
-                    const double sourceFps=activeSource->info().averageFps;
+                    const double sourceFps=pushContentFps;
                     const double cap=presentationEffective.customFps;
                     if(sourceFps>0.01&&std::isfinite(cap)&&cap>0.0){
                         const auto needed=unsigned(std::ceil(cap/sourceFps-1e-6));

@@ -22,6 +22,10 @@ Item {
             veyra.presets = []
             veyra.currentPresetName = "自定义"
             veyra.lastAppliedPreset = -1
+            veyra.fgAdaptive = false
+            veyra.contentRate = 0
+            veyra.fgMultiplierChoices = [{id:"1"},{id:"2"},{id:"3"},{id:"4"}]
+            veyra.liveStats = ({running: false})
         }
         function cleanup() { init() }
         function control(name) { const c = findChild(quick, name); verify(c !== null, name); return c }
@@ -126,9 +130,57 @@ Item {
             quick.applyGame("missing")
             compare(quick.activeGame, "")
         }
+        // --- adaptive multiplier -------------------------------------------------
+        function test_adaptive_makes_the_multiplier_a_ceiling() {
+            quick.applyTarget("60")
+            compare(veyra.fgMultiplier, 2)
+            control("pushfps-adaptive").toggled(true)
+            verify(veyra.fgAdaptive)
+            compare(veyra.contentRate, 1, "duplicate removal on: the game's frame rate is measured")
+            compare(veyra.fgMultiplier, 3, "60 FPS target: room for a dip to 20 FPS")
+            quick.applyTarget("120")
+            compare(veyra.fgMultiplier, 4, "the largest offered (4X) for 120 FPS")
+            compare(veyra.outputCustomFps, 120)
+            verify(quick.targetHint.length > 0)
+            control("pushfps-adaptive").toggled(false)
+            verify(!veyra.fgAdaptive)
+            compare(veyra.fgMultiplier, 4, "back to the fixed choice: 30 FPS x 4 = 120")
+            quick.applyTarget("60")
+            compare(veyra.fgMultiplier, 2)
+        }
+        function test_adaptive_keeps_a_chosen_duplicate_mode() {
+            veyra.contentRate = 5
+            quick.applyTarget("120")
+            quick.setAdaptive(true)
+            compare(veyra.contentRate, 5, "60->30 stays as chosen")
+        }
+        function test_adaptive_needs_more_than_2x() {
+            veyra.fgMultiplierChoices = [{id:"1"},{id:"2"}]
+            quick.applyTarget("60")
+            verify(!quick.adaptivePossible)
+            verify(!control("pushfps-adaptive").enabled)
+            veyra.fgAdaptive = true
+            verify(!quick.adaptive, "a stored on means nothing without a choice above 2X")
+        }
+        function test_adaptive_live_hint() {
+            quick.applyTarget("120")
+            quick.setAdaptive(true)
+            veyra.liveStats = ({running: true, fgMultiplierNow: 3, contentFps: 38})
+            quick.liveStats = veyra.pushLiveStats()
+            const row = control("pushfps-adaptive-row")
+            compare(row.hint, qsTr("现在 %1×：游戏 %2 FPS → 约 %3 FPS").arg(3).arg(38).arg(114))
+        }
+        function test_profiles_remember_adaptive() {
+            quick.applyTarget("120")
+            quick.setAdaptive(true)
+            verify(quick.saveGame("Elden"))
+            quick.setAdaptive(false)
+            quick.applyGame("Elden")
+            verify(veyra.fgAdaptive, "the game profile brings adaptive back")
+        }
         function test_rows_are_shown() {
             for (const n of ["pushfps-console-row", "pushfps-game-row", "pushfps-game-fps-row",
-                             "pushfps-target-row", "pushfps-enhance-row", "pushfps-low-latency-row"])
+                             "pushfps-target-row", "pushfps-adaptive-row", "pushfps-enhance-row", "pushfps-low-latency-row"])
                 verify(control(n).visible, n)
             verify(quick.height > 0)
         }
