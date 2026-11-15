@@ -505,7 +505,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       OBS_HEADERS_TAG: 31.0.0
-      OBS_PLUGIN_VERSION: 1.1.0
+      OBS_PLUGIN_VERSION: 1.2.0
     steps:
       - uses: actions/checkout@v4
         with:
@@ -557,7 +557,7 @@ jobs:
           $pkg = (Get-ChildItem D:\obs-pkg -Directory | Select-Object -First 1).FullName
           # Latest OBS (33+) with only the new plugin layout: what OBS 34 will require.
           ./obs-plugin/ci/obs-load-test.ps1 -PackageDir $pkg -NewLayoutOnly -StopWhen 'capture method' `
-            -Expect '\[pushfps-obs\] loaded version 1\.1\.0', '\[pushfps-obs\] source created',
+            -Expect '\[pushfps-obs\] loaded version 1\.2\.0', '\[pushfps-obs\] source created',
                     '\[pushfps-obs\] capture method: game_capture', '\[pushfps-obs\] PushFPS is not running yet'
 
       - uses: actions/upload-artifact@v4

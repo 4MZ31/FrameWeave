@@ -32,7 +32,7 @@
 OBS_DECLARE_MODULE()
 
 #define PLUGIN_NAME "pushfps-obs"
-#define PLUGIN_VERSION "1.1.0"
+#define PLUGIN_VERSION "1.2.0"
 #define SOURCE_ID "pushfps_source"
 #define PUSHFPS_EXE L"PushFPS.exe"
 #define DEFAULT_PATH L"%LOCALAPPDATA%\\Programs\\PushFPS\\PushFPS.exe"
@@ -53,6 +53,7 @@ struct pushfps_source {
 	bool autostart;
 	float since_scan;
 	bool logged_missing;
+	HWND last_window; /* graphics thread: checked before a full window scan */
 };
 
 /* ---------------------------------------------------------------- helpers -- */
@@ -139,6 +140,21 @@ static HWND find_pushfps_window(void)
 	struct window_search search = {0};
 	EnumWindows(find_window_proc, (LPARAM)&search);
 	return search.best;
+}
+
+/* The PushFPS window found last time when it is still there; otherwise a full scan.
+ * Called on the graphics thread every SCAN_INTERVAL: checking one window is far
+ * cheaper than opening every top-level window's process. */
+static HWND find_pushfps_window_cached(HWND *last)
+{
+	if (*last && IsWindow(*last) && IsWindowVisible(*last)) {
+		DWORD pid = 0;
+		GetWindowThreadProcessId(*last, &pid);
+		if (pid && is_pushfps_process(pid))
+			return *last;
+	}
+	*last = find_pushfps_window();
+	return *last;
 }
 
 /* Builds the encoded window string OBS's capture sources understand. */
@@ -306,7 +322,7 @@ static void ps_tick(void *data, float seconds)
 	ps->since_scan += seconds;
 	if (ps->since_scan >= SCAN_INTERVAL) {
 		ps->since_scan = 0.0f;
-		HWND hwnd = find_pushfps_window();
+		HWND hwnd = find_pushfps_window_cached(&ps->last_window);
 		char current[1024];
 		if (hwnd && window_string(hwnd, current, sizeof(current)) && strcmp(current, ps->window) != 0) {
 			strcpy_s(ps->window, sizeof(ps->window), current);
@@ -440,10 +456,26 @@ static struct obs_source_info pushfps_source_info = {
 
 /* ------------------------------------------------------------------ module -- */
 
+/* Tools > Open PushFPS uses the location set in a PushFPS source, if any. */
+static bool find_configured_path(void *param, obs_source_t *source)
+{
+	char *out = param;
+	if (strcmp(obs_source_get_unversioned_id(source), SOURCE_ID) != 0)
+		return true;
+	obs_data_t *settings = obs_source_get_settings(source);
+	const char *path = obs_data_get_string(settings, "exe_path");
+	if (path && *path)
+		strncpy_s(out, MAX_PATH * 4, path, _TRUNCATE);
+	obs_data_release(settings);
+	return out[0] == 0; /* stop at the first source with a location */
+}
+
 static void tools_open_pushfps(void *unused)
 {
 	UNUSED_PARAMETER(unused);
-	plog(LOG_INFO, "Tools > Open PushFPS: %s", launch_pushfps(""));
+	char path[MAX_PATH * 4] = {0};
+	obs_enum_sources(find_configured_path, path);
+	plog(LOG_INFO, "Tools > Open PushFPS: %s", launch_pushfps(path));
 }
 
 MODULE_EXPORT const char *obs_module_name(void)
