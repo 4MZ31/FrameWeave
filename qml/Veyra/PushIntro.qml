@@ -165,11 +165,11 @@ Item {
 
         // Sun, behind the city and the sea.
         Image {
-            readonly property real d: intro.heroW * 0.9
+            readonly property real d: Math.min(intro.heroW * 0.6, intro.horizonY * 0.7)
             source: "sunset-sun.png"
             width: d * 1.9; height: width          // the image has a glow margin of 0.45 D on every side
             x: intro.width / 2 - width / 2
-            y: intro.mix(intro.horizonY + d * 0.15, intro.horizonY - d * 0.62, intro.sunUp) - height / 2
+            y: intro.mix(intro.horizonY + d * 0.15, intro.horizonY - d * 0.3, intro.sunUp) - height / 2
             opacity: intro.sunUp > 0 ? 1 : 0
             smooth: true
         }
@@ -243,6 +243,14 @@ Item {
     }
 
     // --- the logo ----------------------------------------------------------------------------
+    // Dark haze behind the logo so the letters stay readable over the bright sunset scene.
+    Image {
+        source: "sunset-shade.png"
+        width: intro.logoW * 1.7; height: intro.logoH * 2.4
+        x: intro.logoX + intro.logoW / 2 - width / 2; y: intro.logoY + intro.logoH / 2 - height / 2
+        opacity: intro.scene * (0.35 + 0.6 * intro.warm)
+        smooth: true
+    }
     Image {
         // glow canvas: 1340x550 for 1200x410 art (70 px margin at this scale)
         source: "sunset-logo-glow.png"

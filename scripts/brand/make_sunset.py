@@ -262,6 +262,14 @@ def main():
     city.save(QML / "sunset-skyline.png", optimize=True)
     palm(900, seed=13, lean=0.2).save(QML / "sunset-palm.png", optimize=True)
     road(1800, 520).save(QML / "sunset-road.png", optimize=True)
+    # A dark haze the intro puts behind the logo over the bright scene (no shader effects in the
+    # software scene graph, so the radial falloff is baked).
+    yy, xx = np.mgrid[0:400, 0:800]
+    r = np.sqrt(((xx - 400) / 400) ** 2 + ((yy - 200) / 200) ** 2)
+    alpha = (np.clip(1 - r, 0, 1) ** 1.3 * 255).astype(np.uint8)
+    shade = Image.new("RGBA", (800, 400), (16, 5, 34, 0))
+    shade.putalpha(Image.fromarray(alpha, "L"))
+    shade.save(QML / "sunset-shade.png", optimize=True)
 
     if WEB.is_dir():
         home.resize((1100, int(home.height * 1100 / home.width)), Image.LANCZOS).save(WEB / "sunset-logo.webp", quality=90, method=6)

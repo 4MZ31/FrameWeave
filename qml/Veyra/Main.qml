@@ -1077,6 +1077,7 @@ Window {
         }
         // --intro-at <ms>: the intro held at one moment, for screenshots.
         if (root.test.introAt !== undefined) {
+            homePage.introHold = true
             introLoader.active = true
             if (introLoader.item) introLoader.item.ms = Math.max(1, Number(root.test.introAt))
         }
