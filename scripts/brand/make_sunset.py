@@ -253,12 +253,18 @@ def main():
     road(1800, 520).save(QML / "sunset-road.png", optimize=True)
 
     if WEB.is_dir():
-        web = home.resize((home.width * 600 // home.width * 2 // 2, int(home.height * 600 / home.width)), Image.LANCZOS)
         home.resize((1100, int(home.height * 1100 / home.width)), Image.LANCZOS).save(WEB / "sunset-logo.webp", quality=90, method=6)
         home.resize((560, int(home.height * 560 / home.width)), Image.LANCZOS).save(WEB / "sunset-logo-560.webp", quality=90, method=6)
         city.resize((1600, 280), Image.LANCZOS).save(WEB / "sunset-skyline.webp", quality=88, method=6)
         palm(600, seed=13, lean=0.2).save(WEB / "sunset-palm.webp", quality=90, method=6)
         sun(600).save(WEB / "sunset-sun.webp", quality=90, method=6)
+        # The plain logo for the site's light theme: "Push" in graphite instead of white.
+        light = LOGO.copy()
+        ink = Image.new("RGBA", LOGO.size, (22, 25, 30, 255))
+        light.paste(ink, (0, 0), m["push"].point(lambda v: 255 if v > 0 else 0))
+        light.putalpha(LOGO.split()[3])
+        light.resize((1200, int(LH * 1200 / LW)), Image.LANCZOS).save(WEB / "pushfps-logo-light.webp", quality=90, method=6)
+        light.resize((600, int(LH * 600 / LW)), Image.LANCZOS).save(WEB / "pushfps-logo-light-600.webp", quality=90, method=6)
     print("sunset art written")
 
 

@@ -6,6 +6,30 @@
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+  const theme = () => document.documentElement.getAttribute("data-theme") || "sunset";
+
+  // ---------------------------------------------------------------- looks
+  // Sunset City (default), Dark (the original graphite look) and Light. The choice is kept in
+  // localStorage when the browser allows it; the <head> script applies it before the first paint.
+  const THEME_COLORS = { sunset: "#150a28", classic: "#0e1013", light: "#f3f4f6" };
+  function startThemes() {
+    const buttons = $$("[data-theme-choice]");
+    const meta = document.querySelector('meta[name="theme-color"]');
+    const show = () => {
+      const t = theme();
+      buttons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themeChoice === t)));
+      if (meta) meta.setAttribute("content", THEME_COLORS[t] || THEME_COLORS.classic);
+    };
+    buttons.forEach((b) => b.addEventListener("click", () => {
+      const t = b.dataset.themeChoice;
+      if (t === theme()) return;
+      document.documentElement.setAttribute("data-theme", t);
+      try { localStorage.setItem("pushfps-theme", t); } catch (_) { /* private mode: this visit only */ }
+      show();
+      window.dispatchEvent(new CustomEvent("pushfps-theme", { detail: t }));
+    }));
+    show();
+  }
 
   // ---------------------------------------------------------------- background flow field
   // Faint streaks drift rightward along a slowly changing flow field, like motion vectors in a
@@ -32,6 +56,7 @@
       s.len = 14 + Math.random() * 46;
       s.green = Math.random() < 0.34;
       s.alpha = (s.green ? 0.06 : 0.035) + Math.random() * 0.07;
+      s.alphaLight = (s.green ? 0.16 : 0.07) + Math.random() * 0.1;
       s.width = Math.random() < 0.2 ? 1.6 : 1;
       s.trail = [];
       return s;
@@ -46,6 +71,7 @@
       streaks = Array.from({ length: count }, () => spawn({}, true));
     };
 
+    let light = theme() === "light";
     const step = (dt) => {
       ctx.clearRect(0, 0, w, h);
       ctx.lineCap = "round";
@@ -61,9 +87,9 @@
         if (s.trail.length < 4) continue;
         const tr = s.trail;
         const grad = ctx.createLinearGradient(tr[0], tr[1], tr[tr.length - 2], tr[tr.length - 1]);
-        const col = s.green ? "141,242,55" : "220,228,236";
+        const col = light ? (s.green ? "86,170,10" : "60,70,84") : (s.green ? "141,242,55" : "220,228,236");
         grad.addColorStop(0, `rgba(${col},0)`);
-        grad.addColorStop(1, `rgba(${col},${s.alpha})`);
+        grad.addColorStop(1, `rgba(${col},${light ? s.alphaLight : s.alpha})`);
         ctx.strokeStyle = grad;
         ctx.lineWidth = s.width;
         ctx.beginPath();
@@ -89,6 +115,8 @@
 
     const run = () => {
       cancelAnimationFrame(raf);
+      light = theme() === "light";
+      if (theme() === "sunset") { ctx.clearRect(0, 0, w, h); return; }   // the sky runs instead
       if (reduceMotion.matches) { still(); return; }
       last = performance.now();
       raf = requestAnimationFrame(loop);
@@ -102,6 +130,170 @@
       if (document.hidden) cancelAnimationFrame(raf); else run();
     });
     reduceMotion.addEventListener?.("change", run);
+    window.addEventListener("pushfps-theme", run);
+  }
+
+  // ---------------------------------------------------------------- Sunset City sky
+  // A neon dusk: stars, a striped sun setting behind the city, palms at the edges and a road grid
+  // rolling towards the viewer. The still parts are drawn once per resize into an offscreen
+  // canvas; each update (about 30 a second) only adds the grid and the twinkling stars. It dims
+  // as the page scrolls so text stays easy to read, pauses in background tabs and holds one still
+  // frame when the visitor prefers reduced motion.
+  function startSky() {
+    const canvas = $("#sky");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const load = (src) => { const im = new Image(); im.decoding = "async"; im.src = src; return im; };
+    const city = load("assets/sunset-skyline.webp");
+    const palm = load("assets/sunset-palm.webp");
+    let w = 0, h = 0, dpr = 1, horizon = 0, still = null, stars = [], raf = 0, last = 0, t = 0;
+
+    const paintStill = () => {
+      still = document.createElement("canvas");
+      still.width = canvas.width; still.height = canvas.height;
+      const g = still.getContext("2d");
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Sky: night at the top, magenta and coral towards the horizon.
+      const sky = g.createLinearGradient(0, 0, 0, horizon);
+      sky.addColorStop(0, "#0c0520");
+      sky.addColorStop(0.38, "#2a0b4d");
+      sky.addColorStop(0.68, "#7a1670");
+      sky.addColorStop(0.88, "#e23d82");
+      sky.addColorStop(1, "#ff8a50");
+      g.fillStyle = sky; g.fillRect(0, 0, w, horizon + 1);
+      // Sun: gold to pink, cut by stripes that widen towards the horizon.
+      const r = Math.min(w * 0.2, h * 0.24, 260);
+      const cx = w * 0.5, cy = horizon - r * 0.32;
+      const halo = g.createRadialGradient(cx, cy, r * 0.6, cx, cy, r * 2.4);
+      halo.addColorStop(0, "rgba(255,110,150,0.42)"); halo.addColorStop(1, "rgba(255,110,150,0)");
+      g.fillStyle = halo; g.fillRect(0, 0, w, horizon);
+      const sun = document.createElement("canvas");
+      sun.width = Math.ceil(r * 2 * dpr); sun.height = sun.width;
+      const sg = sun.getContext("2d");
+      sg.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const sf = sg.createLinearGradient(0, 0, 0, r * 2);
+      sf.addColorStop(0, "#ffe27a"); sf.addColorStop(0.55, "#ff8a5c"); sf.addColorStop(1, "#ff2f8e");
+      sg.fillStyle = sf; sg.beginPath(); sg.arc(r, r, r, 0, Math.PI * 2); sg.fill();
+      sg.globalCompositeOperation = "destination-out";
+      for (let i = 0; i < 7; i++) {
+        const y = r * (1.0 + i * 0.15), band = 2 + i * 1.7;
+        sg.fillRect(0, y, r * 2, band);
+      }
+      g.drawImage(sun, cx - r, cy - r, r * 2, r * 2);
+      // City along the horizon, repeated when the window is wider than the art.
+      if (city.complete && city.naturalWidth) {
+        const ch = Math.min(h * 0.2, 250), cw = ch * city.naturalWidth / city.naturalHeight;
+        for (let x = (w - cw) / 2 - Math.ceil((w - cw) / 2 / cw) * cw; x < w; x += cw) g.drawImage(city, x, horizon - ch + 1, cw, ch);
+      }
+      // Ground: dark violet, with a glow line on the horizon.
+      const ground = g.createLinearGradient(0, horizon, 0, h);
+      ground.addColorStop(0, "#2a0a3e"); ground.addColorStop(1, "#0b0418");
+      g.fillStyle = ground; g.fillRect(0, horizon, w, h - horizon);
+      const line = g.createLinearGradient(0, horizon - 6, 0, horizon + 10);
+      line.addColorStop(0, "rgba(255,140,200,0)"); line.addColorStop(0.4, "rgba(255,170,210,0.9)"); line.addColorStop(1, "rgba(255,140,200,0)");
+      g.fillStyle = line; g.fillRect(0, horizon - 6, w, 16);
+    };
+
+    // Shade behind the hero text (left column on wide screens, everything on phones), drawn after
+    // the palms so the scene keeps its colour where there is no text.
+    const paintShade = () => {
+      const g = still.getContext("2d");
+      if (w >= 900) {
+        const left = Math.max(0, (w - Math.min(1180, w - 48)) / 2);
+        const sh = g.createLinearGradient(left - 80, 0, left + Math.min(1180, w) * 0.62, 0);
+        sh.addColorStop(0, "rgba(21,10,40,0.0)");
+        sh.addColorStop(0.18, "rgba(21,10,40,0.58)");
+        sh.addColorStop(0.7, "rgba(21,10,40,0.42)");
+        sh.addColorStop(1, "rgba(21,10,40,0)");
+        g.fillStyle = sh; g.fillRect(0, 0, w, h);
+      } else {
+        g.fillStyle = "rgba(21,10,40,0.45)"; g.fillRect(0, 0, w, h);
+      }
+    };
+
+    const paintPalms = () => {
+      if (!(palm.complete && palm.naturalWidth)) return;
+      const g = still.getContext("2d");
+      const ph = Math.min(h * 0.62, 560, w * 0.75), pw = ph * palm.naturalWidth / palm.naturalHeight;
+      const base = horizon + h * 0.1;
+      g.drawImage(palm, -pw * 0.28, base - ph, pw, ph);
+      g.save(); g.translate(w, 0); g.scale(-1, 1);
+      g.drawImage(palm, -pw * 0.22, base - ph * 0.86, pw * 0.86, ph * 0.86);
+      g.restore();
+    };
+
+    const resize = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      w = window.innerWidth; h = window.innerHeight;
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      horizon = Math.round(h * (w < 700 ? 0.6 : 0.66));
+      stars = Array.from({ length: Math.round(Math.min(120, w * horizon / 9000)) }, () => ({
+        x: Math.random() * w, y: Math.random() * horizon * 0.62,
+        s: Math.random() < 0.15 ? 1.6 : 1, p: Math.random() * Math.PI * 2, f: 0.6 + Math.random() * 1.6,
+      }));
+      paintStill();
+      paintPalms();
+      paintShade();
+    };
+
+    const frame = () => {
+      ctx.drawImage(still, 0, 0, w, h);
+      // Stars twinkle.
+      for (const st of stars) {
+        const a = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(st.p + t * 0.001 * st.f));
+        ctx.fillStyle = `rgba(255,236,250,${a * (1 - st.y / horizon)})`;
+        ctx.fillRect(st.x, st.y, st.s, st.s);
+      }
+      // Road grid: lines fan out from the vanishing point; cross lines roll towards the viewer.
+      const vx = w * 0.5, depth = h - horizon;
+      ctx.lineWidth = 1.2;
+      for (let i = -16; i <= 16; i++) {
+        const xb = vx + i * w * 0.11;
+        const grd = ctx.createLinearGradient(0, horizon, 0, h);
+        grd.addColorStop(0, "rgba(255,79,168,0)"); grd.addColorStop(1, "rgba(255,79,168,0.55)");
+        ctx.strokeStyle = grd;
+        ctx.beginPath(); ctx.moveTo(vx + i * 4, horizon); ctx.lineTo(xb, h); ctx.stroke();
+      }
+      const n = 14, phase = (t * 0.00018) % 1;
+      for (let i = 0; i < n; i++) {
+        const p = (i + phase) / n;
+        const y = horizon + depth * Math.pow(p, 2.4);
+        ctx.fillStyle = `rgba(255,95,180,${0.12 + 0.5 * p})`;
+        ctx.fillRect(0, y, w, 0.8 + p * 1.8);
+      }
+    };
+
+    const loop = (now) => {
+      raf = requestAnimationFrame(loop);
+      const dt = now - last;
+      if (dt < 31) return;
+      last = now;
+      t += Math.min(dt, 60);
+      frame();
+    };
+
+    const run = () => {
+      cancelAnimationFrame(raf);
+      if (theme() !== "sunset" || document.hidden) return;
+      if (!w) resize();
+      if (reduceMotion.matches) { t = 4000; frame(); return; }
+      last = performance.now();
+      raf = requestAnimationFrame(loop);
+    };
+
+    // Text over the scene: dim it as the visitor scrolls past the hero.
+    const dim = () => { canvas.style.opacity = String(1 - Math.min(window.scrollY / (h * 1.1 || 1), 0.62)); };
+    window.addEventListener("scroll", dim, { passive: true });
+
+    for (const im of [city, palm]) im.addEventListener("load", () => { if (w) { paintStill(); paintPalms(); paintShade(); if (reduceMotion.matches && theme() === "sunset") frame(); } });
+    let rt = 0;
+    window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (theme() === "sunset") { resize(); run(); } else { w = 0; } }, 150); });
+    document.addEventListener("visibilitychange", run);
+    reduceMotion.addEventListener?.("change", run);
+    window.addEventListener("pushfps-theme", run);
+    dim();
+    run();
   }
 
   // ---------------------------------------------------------------- frame lab
@@ -121,8 +313,14 @@
     const note = $("#lab-note");
     const rateText = $("#push-rate");
     const css = getComputedStyle(document.documentElement);
-    const GREEN = css.getPropertyValue("--green").trim() || "#8df237";
-    const REAL = css.getPropertyValue("--real").trim() || "#f2f4f7";
+    let GREEN = css.getPropertyValue("--green").trim() || "#8df237";
+    let REAL = css.getPropertyValue("--real").trim() || "#f2f4f7";
+    window.addEventListener("pushfps-theme", () => {
+      const c = getComputedStyle(document.documentElement);
+      GREEN = c.getPropertyValue("--green").trim() || "#8df237";
+      REAL = c.getPropertyValue("--real").trim() || "#f2f4f7";
+      if (paused) drawAll();
+    });
 
     let target = 120, refresh = 60, paused = reduceMotion.matches, visible = true, raf = 0;
     let simTime = 0, lastNow = 0;
@@ -371,5 +569,5 @@
   }
 
   const ready = (fn) => (document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", fn) : fn());
-  ready(() => { startFlow(); startLab(); startTabs(); startGallery(); startNav(); loadRelease(); });
+  ready(() => { startThemes(); startSky(); startFlow(); startLab(); startTabs(); startGallery(); startNav(); loadRelease(); });
 })();
