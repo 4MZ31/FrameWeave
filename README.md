@@ -454,6 +454,12 @@ right-to-left yet.
 OLED screens) and *Light*. Text and controls keep a readable contrast in every mode (checked by an
 automated test); the picture itself is never changed.
 
+**Sunset City.** PushFPS opens with a three-second intro: a neon road out of the dark, the logo landing on the
+beat, the sky turning to sunset over a palm-lined city, and the logo gliding into place on the home page, where
+it stays filled with the sunset city. The music is the startup track that comes with Veyra's runtime package.
+Click or press any key to skip; *Settings → Appearance* has separate switches for the Sunset City logo, the
+intro and the music. All of the art is drawn by PushFPS itself (`scripts/brand/make_sunset.py`).
+
 ## ANR frame generation by Apex Compute
 
 [Apex Neural Rendering (ANR)](https://github.com/apex-compute/ANR) is frame generation made by
@@ -616,6 +622,8 @@ credit their work.
 - Third-party components and their licenses: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 PushFPS is not affiliated with or endorsed by Apex Compute, NVIDIA, AMD, Intel, Sony, Microsoft, Nintendo, the OBS Project
-or any game publisher. NVIDIA, RTX and DLSS are trademarks of NVIDIA Corporation. PlayStation is a trademark
+or any game publisher, including Rockstar Games; the Sunset City look is PushFPS's own artwork. The startup music
+belongs to Veyra's runtime package (a track its author has permission to distribute with Veyra); PushFPS plays it
+from there and does not include it. NVIDIA, RTX and DLSS are trademarks of NVIDIA Corporation. PlayStation is a trademark
 of Sony Interactive Entertainment. Xbox is a trademark of Microsoft. Nintendo Switch is a trademark of
 Nintendo. OBS Studio is a trademark of the OBS Project.
