@@ -213,7 +213,7 @@ never rehosts those files.
 |---|---|---|
 | **System** | Windows 11 64-bit with DirectX 12 | Latest Windows updates |
 | **Graphics card** | NVIDIA RTX 30 series (frame generation is experimental there) | NVIDIA RTX 40 or 50 series |
-| **Capture card** | Any card that shows up as a camera in Windows and sends 1080p at 60 FPS without compression | A card with 4K60 capture and passthrough |
+| **Capture card** | Any card that shows up as a camera in Windows and sends 1080p at 60 FPS without compression, or [stream instead](#no-capture-card-stream-instead) | A card with 4K60 capture and passthrough |
 | **Connection** | USB 3 port directly on the PC (no hub) | USB 3.2 Gen 2 or a PCIe card |
 | **Console** | Any console with HDMI out | Set to 60 Hz output |
 
