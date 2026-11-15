@@ -76,14 +76,33 @@ VGroup {
         const t = quick.currentTarget
         if (t === "60" || t === "120" || t === "monitor") quick.applyTarget(t)
     }
-    // Live: the multiplier the last frame pair used and the measured game frame rate.
+    // Live: the multiplier the last frame pair used, the measured game frame rate and, for
+    // Frame Pacing Repair, the share of real frames it re-timed over the last second.
     property var liveStats: ({})
+    property var lastPacing: null
+    property real pacingShare: -1
     Timer {
         interval: 1000; repeat: true
-        running: quick.adaptive && veyra.hasSource && veyra.fgEnabled && quick.visible
+        running: (quick.adaptive || quick.pacingOn) && veyra.hasSource && veyra.fgEnabled && quick.visible
         triggeredOnStart: true
-        onTriggered: quick.liveStats = veyra.pushLiveStats()
-        onRunningChanged: if (!running) quick.liveStats = ({})
+        onTriggered: {
+            const st = veyra.pushLiveStats()
+            const p = quick.lastPacing
+            if (p && st.pacingFrames > p.pacingFrames) quick.pacingShare = (st.pacingRepaired - p.pacingRepaired) / (st.pacingFrames - p.pacingFrames)
+            quick.lastPacing = { pacingFrames: Number(st.pacingFrames || 0), pacingRepaired: Number(st.pacingRepaired || 0) }
+            quick.liveStats = st
+        }
+        onRunningChanged: if (!running) { quick.liveStats = ({}); quick.lastPacing = null; quick.pacingShare = -1 }
+    }
+
+    // Frame Pacing Repair (EnhancementSettings::pacingRepair) and Live HUD Lock (::hudLock):
+    // both work on graph frame generation; XeSS paces and generates inside its presenter.
+    readonly property bool ownTechPossible: quick.fgPossible && !veyra.presentationOwned
+    readonly property bool pacingOn: quick.ownTechPossible && veyra.pacingRepair === true
+    function setPacingRepair(on) {
+        veyra.pacingRepair = on
+        // The repair re-times the frames duplicate removal finds.
+        if (on && Number(veyra.contentRate) === 0) veyra.contentRate = 1
     }
 
     function multiplierFor(fps, base) {
@@ -153,7 +172,7 @@ VGroup {
 
     function snapshot() {
         return { fps: quick.baseFps, target: quick.currentTarget, enhance: veyra.nrAnyEnabled === true,
-                 adaptive: veyra.fgAdaptive === true,
+                 adaptive: veyra.fgAdaptive === true, pacing: veyra.pacingRepair === true, hudLock: veyra.hudLock === true,
                  lowLatency: veyra.nvidiaLowLatencyAvailable === true && (veyra.nvidiaLowLatency ?? 0) > 0 }
     }
     function writeProfiles(p) {
@@ -169,6 +188,8 @@ VGroup {
             veyra.fgAdaptive = s.adaptive
             if (s.adaptive && Number(veyra.contentRate) === 0) veyra.contentRate = 1
         }
+        if (quick.ownTechPossible && typeof s.pacing === "boolean") quick.setPacingRepair(s.pacing)
+        if (quick.ownTechPossible && typeof s.hudLock === "boolean") veyra.hudLock = s.hudLock
         if (quick.fgPossible && ["off", "60", "120", "monitor"].indexOf(s.target) >= 0)
             quick.applyTarget(s.target, fps)
         if (quick.nrPossible && typeof s.enhance === "boolean" && s.enhance !== (veyra.nrAnyEnabled === true))
@@ -512,6 +533,39 @@ VGroup {
             opacity: enabled ? 1 : 0.4
             checked: quick.adaptive
             onToggled: checked => quick.setAdaptive(checked)
+        }
+    }
+
+    VRow {
+        objectName: "pushfps-pacing-row"
+        label: qsTr("帧节奏修复")
+        help: qsTr("很多锁 30 FPS 的主机游戏出帧并不均匀：有的画面停留 17 毫秒，有的停留 50 毫秒，即使帧率没错，画面也会顿挫。PushFPS 把每一帧放回均匀的位置再补帧，主机自己做不到这一点。每帧最多晚一次刷新显示")
+        hint: !quick.ownTechPossible ? (quick.fgPossible ? qsTr("XeSS 自己控制节奏，不能同时使用") : (Support.status(veyra, "frame-generation").reason || ""))
+            : quick.pacingOn && quick.pacingShare >= 0
+              ? (quick.pacingShare > 0.05 ? qsTr("正在修复：%1% 的画面重新对齐").arg(Math.round(quick.pacingShare * 100))
+                                          : qsTr("这款游戏的节奏已经均匀，无需修复"))
+              : qsTr("修复忽快忽慢的出帧（如 17/50 毫秒交替），让 30 FPS 游戏动起来更顺")
+        VSwitch {
+            objectName: "pushfps-pacing"
+            enabled: quick.ownTechPossible && veyra.fgEnabled
+            opacity: enabled ? 1 : 0.4
+            checked: quick.pacingOn
+            onToggled: checked => quick.setPacingRepair(checked)
+        }
+    }
+
+    VRow {
+        objectName: "pushfps-hudlock-row"
+        label: qsTr("实时 HUD 锁定")
+        help: qsTr("补出来的帧会把画面上静止的文字、准星和血条跟着背景一起拉动，看起来发糊或抖动。开启后 PushFPS 每一帧都会找出静止的 HUD 像素，补帧时直接用主机原来的像素，不需要画框")
+        hint: !quick.ownTechPossible ? (quick.fgPossible ? qsTr("XeSS 自己生成画面，不能同时使用") : (Support.status(veyra, "frame-generation").reason || ""))
+            : qsTr("每一帧自动找出 HUD，文字和准星在补出来的帧里保持清晰")
+        VSwitch {
+            objectName: "pushfps-hudlock"
+            enabled: quick.ownTechPossible && veyra.fgEnabled
+            opacity: enabled ? 1 : 0.4
+            checked: quick.ownTechPossible && veyra.hudLock === true
+            onToggled: checked => veyra.hudLock = checked
         }
     }
 

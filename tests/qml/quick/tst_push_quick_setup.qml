@@ -23,6 +23,9 @@ Item {
             veyra.currentPresetName = "自定义"
             veyra.lastAppliedPreset = -1
             veyra.fgAdaptive = false
+            veyra.pacingRepair = false
+            veyra.hudLock = false
+            veyra.presentationOwned = false
             veyra.contentRate = 0
             veyra.fgMultiplierChoices = [{id:"1"},{id:"2"},{id:"3"},{id:"4"}]
             veyra.liveStats = ({running: false})
@@ -178,9 +181,57 @@ Item {
             quick.applyGame("Elden")
             verify(veyra.fgAdaptive, "the game profile brings adaptive back")
         }
+        // --- Frame Pacing Repair and Live HUD Lock ----------------------------------
+        function test_pacing_repair_turns_on_duplicate_removal() {
+            quick.applyTarget("120")
+            control("pushfps-pacing").toggled(true)
+            verify(veyra.pacingRepair)
+            compare(veyra.contentRate, 1, "the repair re-times what duplicate removal finds")
+            control("pushfps-pacing").toggled(false)
+            verify(!veyra.pacingRepair)
+        }
+        function test_pacing_live_hint() {
+            quick.applyTarget("120")
+            quick.setPacingRepair(true)
+            const row = control("pushfps-pacing-row")
+            quick.lastPacing = { pacingFrames: 100, pacingRepaired: 50 }
+            veyra.liveStats = ({ running: true, pacingFrames: 130, pacingRepaired: 77 })
+            // One timer tick, as the real one does.
+            const st = veyra.pushLiveStats(), p = quick.lastPacing
+            quick.pacingShare = (st.pacingRepaired - p.pacingRepaired) / (st.pacingFrames - p.pacingFrames)
+            compare(row.hint, qsTr("正在修复：%1% 的画面重新对齐").arg(90))
+            quick.pacingShare = 0
+            compare(row.hint, qsTr("这款游戏的节奏已经均匀，无需修复"))
+        }
+        function test_hud_lock_switch() {
+            quick.applyTarget("120")
+            control("pushfps-hudlock").toggled(true)
+            verify(veyra.hudLock)
+            verify(control("pushfps-hudlock").checked)
+            control("pushfps-hudlock").toggled(false)
+            verify(!veyra.hudLock)
+        }
+        function test_own_tech_is_off_with_xess() {
+            quick.applyTarget("120")
+            veyra.presentationOwned = true
+            verify(!control("pushfps-pacing").enabled)
+            verify(!control("pushfps-hudlock").enabled)
+            compare(control("pushfps-pacing-row").hint, qsTr("XeSS 自己控制节奏，不能同时使用"))
+            veyra.presentationOwned = false
+        }
+        function test_profiles_remember_pacing_and_hud_lock() {
+            quick.applyTarget("120")
+            quick.setPacingRepair(true)
+            veyra.hudLock = true
+            verify(quick.saveGame("Bloodborne"))
+            quick.setPacingRepair(false)
+            veyra.hudLock = false
+            quick.applyGame("Bloodborne")
+            verify(veyra.pacingRepair && veyra.hudLock)
+        }
         function test_rows_are_shown() {
             for (const n of ["pushfps-console-row", "pushfps-game-row", "pushfps-game-fps-row",
-                             "pushfps-target-row", "pushfps-adaptive-row", "pushfps-enhance-row", "pushfps-low-latency-row"])
+                             "pushfps-target-row", "pushfps-adaptive-row", "pushfps-pacing-row", "pushfps-hudlock-row", "pushfps-enhance-row", "pushfps-low-latency-row"])
                 verify(control(n).visible, n)
             verify(quick.height > 0)
         }

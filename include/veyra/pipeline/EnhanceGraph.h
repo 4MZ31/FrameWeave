@@ -6,6 +6,8 @@
 #include "veyra/pipeline/ColorGradeInstance.h"
 #include "veyra/pipeline/AntiAliasPass.h"
 #include "veyra/pipeline/NisPass.h"
+#include "veyra/pipeline/PushHudLock.h"
+#include "veyra/pipeline/PushHudLock.h"
 #include "veyra/pipeline/BeautyPass.h"
 #include "veyra/beauty/FaceTracker.h"
 #include "veyra/pipeline/NrInstance.h"
@@ -158,6 +160,7 @@ struct EnhanceGraphDesc {
     bool fgMotionRefine=true;
     // DLSS-G performance mode (ngx/DlssgLite.h): DLSS frame generation only.
     bool dlssgLite=false;
+    bool hudLock=false; // PushFPS Live HUD Lock (PushHudLock.h), graph frame generation only
     engine::ContentRate contentRate=engine::ContentRate::Transport;
     engine::NrSettings model;
     engine::ResidualSettings residual;
@@ -1149,6 +1152,9 @@ private:
     std::unique_ptr<gfx::AmfFrcBackend> amfFrc_;
     std::unique_ptr<gfx::FsrSrBackend> fsrSrBackend_;
     std::unique_ptr<NisPass> nisPass_;  // PushFPS: NVIDIA Image Scaling SR
+    std::unique_ptr<PushHudLock> hudLock_;  // PushFPS: Live HUD Lock
+    bool initHudLock();
+    void composeHudLock(ID3D12GraphicsCommandList* list,unsigned generatedSlot,unsigned heldParity);
     // Double SR first passes on DLSS SR / FSR (the final pass keeps the members above).
     std::unique_ptr<ngx::DlssSrBackend> firstDlssSrBackend_;
     std::unique_ptr<gfx::FsrSrBackend> firstFsrSrBackend_;

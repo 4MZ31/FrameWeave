@@ -136,6 +136,8 @@ struct PlayerSnapshot {
     std::optional<double> submissionFps;
     std::optional<double> submissionLow1Fps; // 1% low of the presents, as an overlay reports it
     uint32_t flowPerf=0;int contentFps=0;
+    // PushFPS Frame Pacing Repair counters (PushPacingRepair.h): kept frames seen, re-timed.
+    uint64_t pacingFrames=0,pacingRepaired=0;
     uint64_t frames=0,generated=0;
     uint64_t captureReceived=0,captureDropped=0,nrEvaluated=0,nvofExecuted=0;
     uint64_t captureRateSkipped=0,processedCompleted=0;

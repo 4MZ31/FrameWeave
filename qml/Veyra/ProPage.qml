@@ -1827,6 +1827,31 @@ VPage {
                                 }
                             }
                             VRow {
+                                objectName: "list-fg-pacing-row"
+                                label: qsTr("帧节奏修复")
+                                visible: !veyra.presentationOwned
+                                hint: qsTr("把出帧不均匀的锁帧游戏重新对齐到均匀的时间，每帧最多晚一次刷新。需要开启自动去重")
+                                VSwitch {
+                                    objectName: "list-fg-pacing"
+                                    checked: veyra.pacingRepair
+                                    onToggled: checked => {
+                                        veyra.pacingRepair = checked
+                                        if (checked && Number(veyra.contentRate) === 0) veyra.contentRate = 1
+                                    }
+                                }
+                            }
+                            VRow {
+                                objectName: "list-fg-hudlock-row"
+                                label: qsTr("实时 HUD 锁定")
+                                visible: !veyra.presentationOwned
+                                hint: qsTr("每一帧找出静止且有边缘的像素（文字、准星、血条），补出来的帧在这些位置用真实帧的像素")
+                                VSwitch {
+                                    objectName: "list-fg-hudlock"
+                                    checked: veyra.hudLock
+                                    onToggled: checked => veyra.hudLock = checked
+                                }
+                            }
+                            VRow {
                                 label: qsTr("DLSS 性能模式")
                                 visible: veyra.fgBackendName === "dlss"
                                 enabled: veyra.dlssgLiteAvailable
