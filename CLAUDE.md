@@ -76,7 +76,11 @@ and edits would conflict on every merge.
 - Releases: push a tag `vX.Y.Z` (stable numbers only: the in-app update checker ignores other tags). The
   workflow publishes it as a GitHub **pre-release**; mark it as the latest release only after a person has
   tested it with a real capture card and GPU, or when the owner asks for a full release (dispatch with
-  `-f release_tag=vX.Y.Z -f full_release=true`). What's new goes in `packaging/release-notes/vX.Y.Z.md`. Builds without a tag are versioned `2.1.5-pushfps.<run>`.
+  `-f release_tag=vX.Y.Z -f full_release=true`).
+  The workflow token may only create the tag when the built commit's workflow files match `main` at release
+  time: don't push workflow changes while a release build runs. If the release step still fails (or saves a
+  draft), publish the same files without rebuilding: dispatch `release-from-run.yml` with the run's ID
+  (`scripts/release/publish.sh` writes the notes for both). What's new goes in `packaging/release-notes/vX.Y.Z.md`. Builds without a tag are versioned `2.1.5-pushfps.<run>`.
 - The upstream runtime package version is `UPSTREAM_TAG` in the workflow; its SHA-256 values are pinned into
   the installer at build time from Veyra's own `SHA256SUMS.txt`. Moving to a newer Veyra release means
   merging upstream and changing `UPSTREAM_TAG` together.
