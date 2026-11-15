@@ -1372,3 +1372,39 @@ zh:亮|Licht
 1369|Test elke combinatie, kiest de beste
 1370|Automatisch herkend, met de hand aan te passen
 1371|Vereist een spelend beeld
+1372|AMD FRC · video-tussenbeelden · 2X
+1373|NVIDIA G-SYNC instellen
+1374|Geen audio-invoer
+1375|Herstellen
+1376|Muziek stoppen voor deze sessie
+1377|Ander bureaublad
+1378|Klik of druk op een toets om over te slaan
+1379|Startanimatie
+1380|Verbinden bij starten
+1381|Startmuziek
+1382|Niet gecontroleerd
+1383|Venster en volledig scherm niet ingesteld
+1384|Venster en volledig scherm toegestaan
+1385|Geselecteerd
+1386|Dit profiel kan niet los worden gewijzigd
+1387|Origineel herstellen
+1388|Back-up komt niet overeen met het huidige profiel
+1389|Slow-motionsnelheid telefoon
+1390|Back-up kan niet worden opgeslagen of verwijderd
+1391|Schemering
+1392|Gebiedsranden tonen
+1393|Stuurprogrammaprofiel niet bevestigd
+1394|Audio lokaal beluisteren
+1395|Bureaublad %1
+1396|Bureaublad %1 · %2
+1397|Stuurprogrammaprofiel verwerken…
+1398|Totale vertraging meten
+1399|Kleurenschema
+1400|Beelden ertussen
+1401|Altijd bovenop
+1402|Klassiek
+1403|Volledig scherm bij verbinden
+1404|Selecteren
+1405|Beheerdersrechten vereist
+1406|Audio-invoer
+1407|Stuurprogrammaprofiel is in gebruik

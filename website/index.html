@@ -200,6 +200,10 @@
       <li><b>14 languages</b><span>English, Chinese, Japanese, Dutch, German, Spanish, French, Italian, Portuguese, Turkish, Polish, Russian, Arabic.</span></li>
       <li><b>Dark, black and light</b><span>An almost-black mode for OLED screens and a light mode.</span></li>
       <li><b>Help where you need it</b><span>A small ? beside settings that need explaining.</span></li>
+      <li><b>Plug and play</b><span>Connects to your capture card when PushFPS opens and goes fullscreen when the picture appears.</span></li>
+      <li><b>Measure total delay</b><span>A guided slow-motion phone test of the whole delay over your passthrough.</span></li>
+      <li><b>Two graphics cards</b><span>Run PushFPS on a second card, with a warning when frames have to cross between cards.</span></li>
+      <li><b>Always on top</b><span>Keep PushFPS above a guide or a chat window.</span></li>
     </ul>
   </div>
 </section>
@@ -234,7 +238,7 @@
           <tr><th scope="row">Graphics card</th><td data-label="Minimum">Any DirectX 12 card for 2× with AMD FSR; NVIDIA RTX 30 for NVIDIA's methods</td><td data-label="Recommended">NVIDIA RTX 40 or 50 series</td></tr>
           <tr><th scope="row">Capture card</th><td data-label="Minimum">Shows up as a camera in Windows, 1080p at 60&nbsp;FPS without compression, or stream instead</td><td data-label="Recommended">4K60 capture with HDMI passthrough</td></tr>
           <tr><th scope="row">Connection</th><td data-label="Minimum">USB 3 port directly on the PC</td><td data-label="Recommended">USB 3.2 Gen 2 or a PCIe card</td></tr>
-          <tr><th scope="row">Console</th><td data-label="Minimum">Any console with HDMI out</td><td data-label="Recommended">Set to 60&nbsp;Hz output</td></tr>
+          <tr><th scope="row">Console</th><td data-label="Minimum">Any console with HDMI out</td><td data-label="Recommended">60&nbsp;Hz output, or 120&nbsp;Hz if your capture card takes it</td></tr>
         </tbody>
       </table>
     </div>
@@ -248,7 +252,8 @@
           <tr><th scope="row">NVIDIA Frame Generation for games</th><td data-label="Graphics cards">RTX 40 (2×), RTX 50</td><td data-label="Up to">6×</td></tr>
           <tr><th scope="row">ANR by Apex Compute <em>experimental</em></th><td data-label="Graphics cards">GTX 16 and newer, Radeon RX 5000 and newer, Intel Arc (Apex's list)</td><td data-label="Up to">6×</td></tr>
           <tr><th scope="row">Intel XeSS Frame Generation <em>experimental</em></th><td data-label="Graphics cards">DirectX 12 cards</td><td data-label="Up to">4×</td></tr>
-          <tr><th scope="row">AMD FSR Frame Generation</th><td data-label="Graphics cards">DirectX 12 cards (FSR 4 needs a Radeon RX 9000)</td><td data-label="Up to">2×</td></tr>
+          <tr><th scope="row">AMD FSR Frame Generation</th><td data-label="Graphics cards">DirectX 12 cards (FSR 4 ML on a Radeon RX 9000, FSR 3.1 otherwise)</td><td data-label="Up to">2×</td></tr>
+          <tr><th scope="row">AMD FRC video interpolation</th><td data-label="Graphics cards">AMD graphics with a current AMD driver</td><td data-label="Up to">2×</td></tr>
         </tbody>
       </table>
     </div>
@@ -288,8 +293,8 @@
     <div class="faq">
       <details><summary>Is PushFPS really free?</summary><p>Yes. It's free and open source under the GPL-3.0, like Veyra. There are no accounts, ads or paid tiers.</p></details>
       <details><summary>Does it change my console or the game?</summary><p>No. PushFPS only processes the video coming out of the capture card. Nothing is installed on the console and the game isn't touched.</p></details>
-      <details><summary>Does it add input lag?</summary><p>A little. To place a frame between two real frames, PushFPS waits for the second one: up to one game frame, about 33&nbsp;ms at 30&nbsp;FPS, on top of your capture card's own delay. Motion looks smoother, but the game doesn't react faster. Turn on <em>Show latency on screen</em> to see PushFPS's part measured.</p></details>
-      <details><summary>Do I need an NVIDIA card?</summary><p>No. AMD FSR frame generation runs on any DirectX 12 card, and ANR by Apex Compute supports GTX 16 and newer, Radeon RX 5000 and newer and Intel Arc. NVIDIA RTX 40 and 50 cards get the most options, including up to 8× frame generation and AI picture enhancement.</p></details>
+      <details><summary>Does it add input lag?</summary><p>A little. To place a frame between two real frames, PushFPS waits for the second one: up to one game frame, about 33&nbsp;ms at 30&nbsp;FPS, on top of your capture card's own delay. Motion looks smoother, but the game doesn't react faster. Turn on <em>Show latency on screen</em> to see PushFPS's part measured, and use <em>Measure total delay</em> for the whole chain. If your capture card takes 120&nbsp;Hz, a 120&nbsp;Hz console output gets each frame to the PC about 8&nbsp;ms sooner.</p></details>
+      <details><summary>Do I need an NVIDIA card?</summary><p>No. AMD FSR frame generation runs on any DirectX 12 card, and ANR by Apex Compute supports GTX 16 and newer, Radeon RX 5000 and newer and Intel Arc. AMD cards also get AMD FRC through the AMD driver. NVIDIA RTX 40 and 50 cards get the most options, including up to 8× frame generation and AI picture enhancement.</p></details>
       <details><summary>Which capture cards work?</summary><p>Any card that Windows shows as a camera and that sends 1080p at 60&nbsp;FPS without compression. The Elgato 4K X, HD60 X and 4K S are tested. The app shows each card's status and has a report form for untested cards.</p></details>
       <details><summary>Can I use it without a capture card?</summary><p>Yes. PS5 streaming (Remote Play over your home network), PC streaming from a Sunshine host and Xbox streaming are built in. A capture card still gives the sharpest picture and the lowest delay.</p></details>
       <details><summary>Does it work with 60 FPS games?</summary><p>Yes. Set the game frame rate to 60 and pick 120&nbsp;FPS or <em>Match monitor</em>.</p></details>

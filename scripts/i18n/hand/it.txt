@@ -1372,3 +1372,39 @@ zh:亮|Luce
 1369|Prova ogni combinazione e sceglie la migliore
 1370|Rilevamento automatico, regolabile a mano
 1371|Serve un’immagine in riproduzione
+1372|AMD FRC · interpolazione video · 2X
+1373|Configura NVIDIA G-SYNC
+1374|Nessun ingresso audio
+1375|Ripara
+1376|Ferma la musica per questo avvio
+1377|Altro desktop
+1378|Fai clic o premi un tasto per saltare
+1379|Animazione di avvio
+1380|Connetti all'avvio
+1381|Musica di avvio
+1382|Non verificato
+1383|Finestra e schermo intero non configurati
+1384|Finestra e schermo intero consentiti
+1385|Selezionato
+1386|Questo profilo non si può modificare da solo
+1387|Ripristina originale
+1388|Il backup non corrisponde al profilo attuale
+1389|Rallentatore del telefono
+1390|Impossibile salvare o rimuovere il backup
+1391|Tramonto
+1392|Mostra i contorni delle aree
+1393|Profilo driver non confermato
+1394|Ascolto locale dell'audio
+1395|Desktop %1
+1396|Desktop %1 · %2
+1397|Elaborazione del profilo driver…
+1398|Misura il ritardo totale
+1399|Schema colori
+1400|Fotogrammi di differenza
+1401|Sempre in primo piano
+1402|Classico
+1403|Schermo intero alla connessione
+1404|Seleziona
+1405|Servono i diritti di amministratore
+1406|Ingresso audio
+1407|Il profilo driver è in uso

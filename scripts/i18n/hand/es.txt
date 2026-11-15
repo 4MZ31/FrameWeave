@@ -1372,3 +1372,39 @@ zh:亮|Luz
 1369|Prueba cada combinación y elige la mejor
 1370|Detección automática, ajustable a mano
 1371|Necesita una imagen en reproducción
+1372|AMD FRC · interpolación de vídeo · 2X
+1373|Configurar NVIDIA G-SYNC
+1374|Sin entrada de audio
+1375|Reparar
+1376|Detener la música en este inicio
+1377|Otro escritorio
+1378|Haz clic o pulsa una tecla para saltar
+1379|Animación de inicio
+1380|Conectar al iniciar
+1381|Música de inicio
+1382|Sin comprobar
+1383|Ventana y pantalla completa sin configurar
+1384|Ventana y pantalla completa permitidas
+1385|Seleccionado
+1386|Este perfil no se puede cambiar por separado
+1387|Restaurar original
+1388|La copia no coincide con el perfil actual
+1389|Cámara lenta del móvil
+1390|No se puede guardar ni quitar la copia
+1391|Atardecer
+1392|Mostrar contornos de zonas
+1393|Perfil del controlador sin confirmar
+1394|Escucha local del audio
+1395|Escritorio %1
+1396|Escritorio %1 · %2
+1397|Procesando el perfil del controlador…
+1398|Medir el retraso total
+1399|Esquema de color
+1400|Fotogramas de diferencia
+1401|Siempre visible
+1402|Clásico
+1403|Pantalla completa al conectar
+1404|Seleccionar
+1405|Se requieren permisos de administrador
+1406|Entrada de audio
+1407|El perfil del controlador está en uso

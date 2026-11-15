@@ -119,6 +119,8 @@ everything Veyra does, PushFPS adds what console players need:
 | **Tested capture cards** | Which cards are known to work, shown in the app |
 | **14 languages** | English, 简体中文, 繁體中文, 日本語, Nederlands, Deutsch, Español, Français, Italiano, Português (Brasil), Türkçe, Polski, Русский, العربية |
 | **Light and black modes** | The default dark grey, an almost-black mode for OLED screens, and a light mode |
+| **Plug and play** | Connects to your capture card when PushFPS opens and goes fullscreen when the picture appears (both optional) |
+| **Measure total delay** | A guided slow-motion phone test that shows the whole delay PushFPS adds over your capture card's passthrough |
 
 ## How it works
 
@@ -217,7 +219,7 @@ never rehosts those files.
 | **Graphics card** | NVIDIA RTX 30 series (frame generation is experimental there) | NVIDIA RTX 40 or 50 series |
 | **Capture card** | Any card that shows up as a camera in Windows and sends 1080p at 60 FPS without compression, or [stream instead](#no-capture-card-stream-instead) | A card with 4K60 capture and passthrough |
 | **Connection** | USB 3 port directly on the PC (no hub) | USB 3.2 Gen 2 or a PCIe card |
-| **Console** | Any console with HDMI out | Set to 60 Hz output |
+| **Console** | Any console with HDMI out | 60 Hz output, or 120 Hz if your capture card takes it |
 
 AMD Radeon cards can use FSR frame generation (2× only, so 60 FPS from a 30 FPS game). AI picture
 enhancement on Radeon and on RTX 30 cards is an optional experimental extra (see below).
@@ -230,7 +232,8 @@ enhancement on Radeon and on RTX 30 cards is an optional experimental extra (see
 | NVIDIA Video Frame Generation (VFG) | RTX 40, RTX 50 (RTX 30 experimental) | 8× |
 | NVIDIA DLSS Frame Generation | RTX 40 (2×), RTX 50 (up to 6×) | 6× |
 | Intel XeSS Frame Generation (experimental) | DirectX 12 cards; Veyra tested it on NVIDIA | 4× |
-| AMD FSR Frame Generation | DirectX 12 cards (FSR 4 needs a Radeon RX 9000) | 2× |
+| AMD FSR Frame Generation | DirectX 12 cards (FSR 4 ML preferred on a Radeon RX 9000, falls back to FSR 3.1) | 2× |
+| AMD FRC video frame interpolation | AMD graphics with a current AMD driver (uses the driver's AMF runtime) | 2× |
 | [ANR Frame Generation](https://github.com/apex-compute/ANR) by Apex Compute (experimental) | GTX 16 and newer, RX 5000 and newer, Intel Arc (Apex's list); install it in *Settings → Components and licenses* | 6× |
 
 </details>
@@ -491,6 +494,18 @@ Generated frames make motion look like 120 FPS, but your inputs still take effec
 
 For fast competitive games, use **Off** and play on the console's own display path.
 
+Ways to lower it:
+
+- **120 Hz output.** If your capture card takes 120 Hz (for example the Elgato 4K X, 4K S or HD60 X at 1080p or
+  1440p), set the console to 120 Hz: each frame reaches the PC about 8 ms sooner, and 40 FPS games in a 120 Hz
+  mode work too (pick 40 as the game frame rate).
+- **NVIDIA low latency** in the quick setup on NVIDIA graphics.
+- **One graphics card for everything.** With two graphics cards, connect the monitor to the one PushFPS
+  processes on; PushFPS warns when every frame has to be copied between cards.
+
+To see the whole delay, not just PushFPS's part, use **Measure total delay** next to the latency switch: film
+the capture card's passthrough screen and PushFPS side by side in slow motion and count the frames between them.
+
 ## FAQ
 
 **Does it work with games that already run at 60 FPS?**
@@ -533,6 +548,8 @@ In your user folder, next to Veyra's settings. Updating PushFPS keeps them.
 - [ ] Native-speaker review of the machine translations, right-to-left layout for Arabic
 - [ ] More tested capture cards and game presets, from player reports
 - [x] PS5 Remote Play, Moonlight and Xbox streaming in the release builds
+- [x] Veyra 2.1.9: AMD FRC frame generation, FSR 4 ML with FSR 3.1 fallback, local audio monitoring separate from recording, NVIDIA G-SYNC profile check and repair, processing on a second graphics card
+- [x] Plug and play (connect on start, fullscreen on connect), 120 Hz and 40 FPS guidance, total-delay guide, always on top
 - [ ] macOS and Linux versions. The engine is built on DirectX 12, Media Foundation and Windows-only GPU SDKs
   (about 100 000 lines), so this means a new engine on Metal or Vulkan, planned as its own project
 

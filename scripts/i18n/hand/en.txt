@@ -1370,3 +1370,39 @@
 1369|Tests every combination, keeps the best
 1370|Detected automatically, adjustable by hand
 1371|Needs a playing picture
+1372|AMD FRC · video frame interpolation · 2X
+1373|NVIDIA G-SYNC setup
+1374|No audio input
+1375|Repair
+1376|Stop music for this launch
+1377|Other desktop
+1378|Click or press any key to skip
+1379|Startup animation
+1380|Connect on start
+1381|Startup music
+1382|Not checked
+1383|Windowed and fullscreen not configured
+1384|Windowed and fullscreen allowed
+1385|Selected
+1386|This profile cannot be changed independently
+1387|Restore original
+1388|Backup does not match the current profile
+1389|Phone slow-motion rate
+1390|Cannot save or remove the backup
+1391|Dusk
+1392|Show region outlines
+1393|Driver profile not confirmed
+1394|Local audio monitoring
+1395|Desktop %1
+1396|Desktop %1 · %2
+1397|Processing driver profile…
+1398|Measure total delay
+1399|Color scheme
+1400|Frames between them
+1401|Always on top
+1402|Classic
+1403|Fullscreen on connect
+1404|Select
+1405|Administrator rights required
+1406|Audio input
+1407|Driver profile is in use

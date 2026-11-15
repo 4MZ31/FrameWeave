@@ -1372,3 +1372,39 @@ zh:亮|Licht
 1369|Testet jede Kombination, wählt die beste
 1370|Automatisch erkannt, von Hand anpassbar
 1371|Benötigt ein laufendes Bild
+1372|AMD FRC · Video-Zwischenbilder · 2X
+1373|NVIDIA G-SYNC einrichten
+1374|Kein Audioeingang
+1375|Reparieren
+1376|Musik für diesen Start stoppen
+1377|Anderer Desktop
+1378|Klicken oder beliebige Taste zum Überspringen
+1379|Startanimation
+1380|Beim Start verbinden
+1381|Startmusik
+1382|Nicht geprüft
+1383|Fenster und Vollbild nicht eingerichtet
+1384|Fenster und Vollbild erlaubt
+1385|Ausgewählt
+1386|Dieses Profil lässt sich nicht einzeln ändern
+1387|Original wiederherstellen
+1388|Sicherung passt nicht zum aktuellen Profil
+1389|Zeitlupenrate des Handys
+1390|Sicherung kann nicht gespeichert oder entfernt werden
+1391|Abenddämmerung
+1392|Bereichsrahmen zeigen
+1393|Treiberprofil nicht bestätigt
+1394|Lokales Mithören
+1395|Desktop %1
+1396|Desktop %1 · %2
+1397|Treiberprofil wird bearbeitet…
+1398|Gesamtverzögerung messen
+1399|Farbschema
+1400|Bilder dazwischen
+1401|Immer im Vordergrund
+1402|Klassisch
+1403|Vollbild beim Verbinden
+1404|Auswählen
+1405|Administratorrechte erforderlich
+1406|Audioeingang
+1407|Treiberprofil wird verwendet

@@ -1372,3 +1372,39 @@ zh:亮|Światło
 1369|Testuje każdą kombinację, wybiera najlepszą
 1370|Wykrywanie automatyczne, ręczna korekta
 1371|Wymaga odtwarzanego obrazu
+1372|AMD FRC · interpolacja klatek wideo · 2X
+1373|Konfiguracja NVIDIA G-SYNC
+1374|Brak wejścia audio
+1375|Napraw
+1376|Zatrzymaj muzykę w tym uruchomieniu
+1377|Inny pulpit
+1378|Kliknij lub naciśnij klawisz, aby pominąć
+1379|Animacja startowa
+1380|Połącz przy starcie
+1381|Muzyka startowa
+1382|Nie sprawdzono
+1383|Okno i pełny ekran nieskonfigurowane
+1384|Okno i pełny ekran dozwolone
+1385|Zaznaczony
+1386|Tego profilu nie można zmienić osobno
+1387|Przywróć oryginał
+1388|Kopia nie pasuje do bieżącego profilu
+1389|Zwolnione tempo telefonu
+1390|Nie można zapisać ani usunąć kopii
+1391|Zmierzch
+1392|Pokaż obrysy obszarów
+1393|Profil sterownika niepotwierdzony
+1394|Lokalny odsłuch dźwięku
+1395|Pulpit %1
+1396|Pulpit %1 · %2
+1397|Przetwarzanie profilu sterownika…
+1398|Zmierz całkowite opóźnienie
+1399|Schemat kolorów
+1400|Klatki różnicy
+1401|Zawsze na wierzchu
+1402|Klasyczny
+1403|Pełny ekran po połączeniu
+1404|Zaznacz
+1405|Wymagane uprawnienia administratora
+1406|Wejście audio
+1407|Profil sterownika jest używany
