@@ -106,6 +106,7 @@ everything Veyra does, PushFPS adds what console players need:
 | **Game presets** | GTA VI and other layouts in one click, with the minimap and HUD kept sharp. Save your own and share them as a code |
 | **Automatic HUD detection** | Watches your game for a few seconds and finds the minimap, health and ammo, so they are never interpolated. Correct the boxes by dragging them |
 | **Before/after comparison clips** | Records a split-screen clip: the console's own frame rate on the left, PushFPS on the right, with the frame rates labelled |
+| **No capture card needed** | PS5 Remote Play, Moonlight (stream another PC through Sunshine) and Xbox streaming, with the same frame generation, from Veyra |
 | **Help on hard settings** | A small **?** beside settings that need explaining; hover it for a short summary |
 | **Quick setup** | Console, game frame rate and target frame rate instead of hundreds of settings, with console and game profiles |
 | **Latency on screen** | The measured PC latency, frame rate and 1% low over the picture |
@@ -158,6 +159,14 @@ like the original 30 FPS, plus a few milliseconds for the capture card and proce
 <td width="50%"><img src="assets/screenshots/appearance-black.png" alt="PushFPS home screen in black mode"><br><sub><b>Black mode.</b> Almost-black surfaces for OLED screens.</sub></td>
 <td width="50%"><img src="assets/screenshots/anr.png" alt="Settings, Apex Neural Rendering install card"><br><sub><b>ANR by Apex Compute.</b> Download from Apex, install in one click.</sub></td>
 </tr>
+<tr>
+<td width="50%"><img src="assets/screenshots/hud-protection.png" alt="HUD protection dialog with automatic detection and the box editor"><br><sub><b>HUD protection.</b> Automatic detection, boxes you can correct by hand.</sub></td>
+<td width="50%"><img src="assets/screenshots/ps5-streaming.png" alt="PS5 streaming dialog"><br><sub><b>PS5 streaming.</b> No capture card needed: Remote Play over your home network.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="assets/screenshots/pc-streaming.png" alt="PC streaming dialog for Sunshine hosts"><br><sub><b>PC streaming.</b> Another PC through Sunshine (Moonlight protocol).</sub></td>
+<td width="50%"><img src="assets/screenshots/recording-advanced.png" alt="Advanced encoding settings"><br><sub><b>Advanced encoding.</b> Rate control, quality, preset, keyframes, MP4 or MKV.</sub></td>
+</tr>
 </table>
 
 <sub>Screenshots of the real app, taken automatically on a build machine without a graphics card, so
@@ -204,7 +213,7 @@ never rehosts those files.
 |---|---|---|
 | **System** | Windows 11 64-bit with DirectX 12 | Latest Windows updates |
 | **Graphics card** | NVIDIA RTX 30 series (frame generation is experimental there) | NVIDIA RTX 40 or 50 series |
-| **Capture card** | Any card that shows up as a camera in Windows and sends 1080p at 60 FPS without compression | A card with 4K60 capture and passthrough |
+| **Capture card** | Any card that shows up as a camera in Windows and sends 1080p at 60 FPS without compression, or [stream instead](#no-capture-card-stream-instead) | A card with 4K60 capture and passthrough |
 | **Connection** | USB 3 port directly on the PC (no hub) | USB 3.2 Gen 2 or a PCIe card |
 | **Console** | Any console with HDMI out | Set to 60 Hz output |
 
@@ -248,6 +257,20 @@ enhancement on Radeon and on RTX 30 cards is an optional experimental extra (see
 
 > [!TIP]
 > Close other apps that use the capture card (OBS, the card's own software) before connecting.
+
+## No capture card? Stream instead
+
+The home screen also offers three network sources, built on Veyra's streaming support. Frame generation,
+AI enhancement, HUD protection, recording and every other PushFPS feature work on them the same way.
+
+| Source | What it streams | What you need |
+|---|---|---|
+| **PS5 streaming** | Your own PS5 over your home network (Remote Play protocol, via [chiaki-ng](https://github.com/streetpea/chiaki-ng)) | Remote Play turned on on the PS5, a one-time registration with your PSN account ID and the PIN the PS5 shows. Your controller works through PushFPS |
+| **PC streaming** | Another computer running [Sunshine](https://github.com/LizardByte/Sunshine) (Moonlight protocol) | Sunshine on the other PC and a one-time pairing PIN |
+| **Xbox streaming** (experimental, unofficial) | Your own Xbox console over your home network | Remote features turned on on the Xbox and a Microsoft account sign-in |
+
+A wired network (or 5 GHz Wi-Fi) gives the most stable picture. Streams are compressed, so a capture card
+still gives the sharpest picture and the lowest latency.
 > Only one program can use a capture card at a time. To show PushFPS in OBS, use the
 > [OBS Studio plugin](#obs-studio-plugin) instead.
 
@@ -507,7 +530,9 @@ In your user folder, next to Veyra's settings. Updating PushFPS keeps them.
 - [x] Help marks (**?**) on settings that need explaining
 - [ ] Native-speaker review of the machine translations, right-to-left layout for Arabic
 - [ ] More tested capture cards and game presets, from player reports
-- [ ] macOS version
+- [x] PS5 Remote Play, Moonlight and Xbox streaming in the release builds
+- [ ] macOS and Linux versions. The engine is built on DirectX 12, Media Foundation and Windows-only GPU SDKs
+  (about 100 000 lines), so this means a new engine on Metal or Vulkan, planned as its own project
 
 ## Build from source
 
@@ -556,8 +581,11 @@ credit their work.
   these SDKs; see [NOTICE.md](NOTICE.md), which also lists what the installer leaves out for licensing reasons.
 - PushFPS comes with absolutely no warranty, as the GPL-3.0 states. The app shows the license and a link to
   this source under *Settings, About*.
-- The PS5 Remote Play part (Chiaki) is also under the AGPL-3.0 with an OpenSSL exception; see
-  [licenses/remoteplay](licenses/remoteplay).
+- Streaming: PS5 Remote Play uses [chiaki-ng](https://github.com/streetpea/chiaki-ng) (AGPL-3.0 with an OpenSSL
+  exception, [licenses/remoteplay](licenses/remoteplay)); PC streaming uses
+  [moonlight-common-c](https://github.com/moonlight-stream/moonlight-common-c) (GPL-3.0); Xbox streaming uses
+  [libdatachannel](https://github.com/paullouisageneau/libdatachannel) (MPL-2.0). Each release attaches a
+  *streaming-source* archive with the exact source of these libraries as built.
 - Third-party components and their licenses: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 PushFPS is not affiliated with or endorsed by Apex Compute, NVIDIA, AMD, Intel, Sony, Microsoft, Nintendo, the OBS Project

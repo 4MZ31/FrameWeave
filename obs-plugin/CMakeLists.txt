@@ -8,7 +8,7 @@
 #   cmake -S obs-plugin -B build-obs -A x64 -DOBS_SOURCE_DIR=<obs-studio checkout>
 #   cmake --build build-obs --config Release
 cmake_minimum_required(VERSION 3.24)
-project(pushfps_obs VERSION 1.1.0 LANGUAGES C RC)
+project(pushfps_obs VERSION 1.2.0 LANGUAGES C RC)
 
 if(NOT WIN32 OR NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
   message(FATAL_ERROR "PushFPS for OBS is Windows x64 only (PushFPS itself is Windows only).")

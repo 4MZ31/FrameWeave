@@ -1362,3 +1362,11 @@
 1361|Adjust HUD areas
 1362|Turn the camera or walk around: the HUD stays put while the rest moves
 1363|Get a new picture
+1364|A 15-second before/after video
+1365|GTA VI and more, HUD kept sharp
+1366|Theme
+1367|Not available while recording
+1368|Recording…
+1369|Tests every combination, keeps the best
+1370|Detected automatically, adjustable by hand
+1371|Needs a playing picture

@@ -1364,3 +1364,11 @@ zh:亮|Światło
 1361|Dostosuj obszary HUD
 1362|Obróć kamerę albo chodź: HUD stoi w miejscu, a reszta się porusza
 1363|Pobierz nowy obraz
+1364|Wideo przed/po, 15 s
+1365|GTA VI i inne, HUD pozostaje ostry
+1366|Motyw
+1367|Niedostępne podczas nagrywania
+1368|Nagrywanie…
+1369|Testuje każdą kombinację, wybiera najlepszą
+1370|Wykrywanie automatyczne, ręczna korekta
+1371|Wymaga odtwarzanego obrazu

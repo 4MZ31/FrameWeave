@@ -1364,3 +1364,11 @@ zh:亮|Licht
 1361|HUD-gebieden aanpassen
 1362|Draai de camera of loop rond: de HUD blijft staan terwijl de rest beweegt
 1363|Nieuw beeld ophalen
+1364|Voor/na-video van 15 seconden
+1365|GTA VI en meer, HUD blijft scherp
+1366|Thema
+1367|Niet beschikbaar tijdens opnemen
+1368|Opnemen…
+1369|Test elke combinatie, kiest de beste
+1370|Automatisch herkend, met de hand aan te passen
+1371|Vereist een spelend beeld

@@ -256,7 +256,7 @@ VPage {
                         }
                         // PushFPS appearance: the design's dark grey, near-black, or light.
                         VRow {
-                            label: qsTr("外观")
+                            label: qsTr("主题")
                             hint: qsTr("默认为深灰；纯黑适合 OLED 屏幕；浅色在明亮环境中更易读")
                             VSeg {
                                 objectName: "set-theme"

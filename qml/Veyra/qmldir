@@ -89,3 +89,4 @@ PushLatencyBadge 1.0 PushLatencyBadge.qml
 VHelp 1.0 VHelp.qml
 PushWordmark 1.0 PushWordmark.qml
 PushHudDialog 1.0 PushHudDialog.qml
+PushToolTile 1.0 PushToolTile.qml

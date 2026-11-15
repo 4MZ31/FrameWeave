@@ -109,12 +109,15 @@ jobs:
             @{ name = '35-hud-protection'; args = @('--page', 'home', '--dialog', 'hud') },
             @{ name = '36-hud-protection-light'; args = @('--page', 'home', '--dialog', 'hud', '--theme', 'light') },
             @{ name = '37-hud-protection-de'; args = @('--page', 'home', '--dialog', 'hud', '--lang', 'de') },
-            @{ name = '38-recording-help'; args = @('--page', 'set', '--tab', 'play', '--scroll-to', 'set-recadvanced', '--pref', 'recordAdvanced=true', '--pref', 'recordRateControl=2', '--lang', 'en') }
+            @{ name = '38-recording-help'; args = @('--page', 'set', '--tab', 'play', '--scroll-to', 'set-recadvanced', '--pref', 'recordAdvanced=true', '--pref', 'recordRateControl=2', '--lang', 'en') },
+            @{ name = '39-ps5-streaming'; args = @('--page', 'home', '--dialog', 'ps5') },
+            @{ name = '40-pc-streaming';  args = @('--page', 'home', '--dialog', 'moonlight') },
+            @{ name = '41-xbox-streaming'; args = @('--page', 'home', '--dialog', 'xbox') }
           )
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"
             $size = if ($s.size) { $s.size } else { "${w}x${h}" }
-            $a = $s.args + @('--size', $size, '--data-dir', $data, '--reduced-motion')
+            $a = $s.args + @('--size', $size, '--data-dir', $data, '--reduced-motion', '--no-update-check')
             $p = Start-Process D:\pf\PushFPS.exe -ArgumentList $a -PassThru
             Start-Sleep -Seconds 14
             $p.Refresh()

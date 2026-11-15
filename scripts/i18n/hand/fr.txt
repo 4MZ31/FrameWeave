@@ -1364,3 +1364,11 @@ zh:亮|Lumière
 1361|Ajuster les zones du HUD
 1362|Tournez la caméra ou déplacez-vous : le HUD reste fixe pendant que le reste bouge
 1363|Récupérer une nouvelle image
+1364|Vidéo avant/après de 15 s
+1365|GTA VI et plus, HUD net
+1366|Thème
+1367|Indisponible pendant l’enregistrement
+1368|Enregistrement…
+1369|Teste chaque combinaison, garde la meilleure
+1370|Détection automatique, ajustable à la main
+1371|Nécessite une image en lecture

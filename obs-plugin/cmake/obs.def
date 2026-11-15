@@ -30,3 +30,6 @@ EXPORTS
     obs_properties_add_path
     obs_property_list_add_int
     obs_property_set_long_description
+    obs_enum_sources
+    obs_source_get_unversioned_id
+    obs_source_get_settings

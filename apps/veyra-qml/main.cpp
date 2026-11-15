@@ -781,6 +781,7 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
     //   --tip <page>            the dock button's tooltip for that page shown (review)
     //   --size <W>x<H>          window size in device-independent pixels
     //   --reduced-motion        every animation at zero duration
+    //   --no-update-check       skip the automatic update check (screenshots)
     //   --slow-animations <N>   every animation N times slower (motion sampling)
     //   --full-bar <shown|hidden>  fullscreen with the control window held shown / hidden
     //   --full-debug            log every pointer movement the fullscreen controls see
@@ -856,6 +857,9 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
             g_videoHiddenByProbe = g_videoProbe == VideoProbeMode::Hidden;
         } else if (a == QLatin1String("--reduced-motion")) {
             testOptions.insert(QStringLiteral("reducedMotion"), true);
+        } else if (a == QLatin1String("--no-update-check")) {
+            // PushFPS screenshots: no "new version" banner over the picture of a test build.
+            testOptions.insert(QStringLiteral("noUpdateCheck"), true);
         } else if (a == QLatin1String("--slow-animations") && hasValue) {
             // Qt's own slow mode, the same one its debugging tools use: every
             // animation driven by the unified timer runs N times longer, so a

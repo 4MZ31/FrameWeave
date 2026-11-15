@@ -963,7 +963,7 @@ Window {
     }
     onClosing: if (!root.fullscreen && !root.maximized && !root.cinema) veyra.rememberWindowSize(root.width, root.height)
     Component.onCompleted: {
-        veyra.updates.startAutomaticCheck()
+        if (root.test.noUpdateCheck !== true) veyra.updates.startAutomaticCheck()
         // --lang <code>: screenshots in another language (saved in that run's own --data-dir).
         if (root.test.lang !== undefined) veyra.setPreference("language", root.test.lang)
         if (root.test.prefs !== undefined) {
