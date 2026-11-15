@@ -29,12 +29,7 @@ Nothing changes on the console or in the game: you need a capture card and a gra
       <sub>Built on <a href="https://github.com/Likely7/Veyra-NRVideo"><b>Veyra</b></a> by <a href="https://github.com/Likely7">Likely7</a></sub>
     </td>
     <td align="center" width="300">
-      <a href="https://github.com/apex-compute/ANR">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/apex-compute/ANR/main/assets/apex-logo-white.svg">
-          <img src="https://raw.githubusercontent.com/apex-compute/ANR/main/assets/apex-logo-black.svg" alt="Apex Compute" height="64">
-        </picture>
-      </a><br>
+      <a href="https://github.com/apex-compute/ANR"><b>Apex Neural Rendering (ANR)</b></a><br>
       <sub>ANR frame generation by <a href="https://github.com/apex-compute/ANR"><b>Apex Neural Rendering</b></a> from <a href="https://apexcompute.com">Apex Compute</a></sub>
     </td>
   </tr>
@@ -603,8 +598,7 @@ support and the frame generation integration is their work. If PushFPS helps you
 ANR frame generation is **[Apex Neural Rendering](https://github.com/apex-compute/ANR)** by
 **[Apex Compute](https://apexcompute.com)**. PushFPS contains Veyra's own ANR host code (GPL-3.0) and no ANR files;
 ANR is downloaded from Apex by the user. To update ANR, download Apex's newest `anr-fg` package and use *Install from download*
-again; PushFPS replaces the previous files. The Apex Compute logo above belongs to Apex Compute and is shown only to
-credit their work.
+again; PushFPS replaces the previous files.
 
 - PushFPS and Veyra code: [GPL-3.0](LICENSE). Files written for PushFPS, including the OBS plugin, are
   GPL-3.0-or-later. What PushFPS changed, and where each release's source is: [NOTICE.md](NOTICE.md).

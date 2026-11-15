@@ -275,7 +275,9 @@ dialog#lightbox[open] { animation: pop .2s ease; }
 .credit-cards { margin-top: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
 .credit-card { display: grid; grid-template-columns: 96px 1fr; gap: 22px; padding: 28px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--panel); }
 .credit-card img { width: 84px; height: auto; }
-.credit-card img.apex { width: 84px; margin-top: 20px; }
+/* A plain text mark for ANR (Apex Compute asked us not to use their logo). */
+.credit-mark { display: inline-grid; place-items: center; min-width: 46px; height: 28px; padding: 0 8px; border: 1px solid var(--line-2); border-radius: 7px; font: 800 italic 15px/1 var(--display); letter-spacing: .04em; color: var(--text); }
+.credit-mark.big { min-width: 84px; height: 44px; margin-top: 16px; font-size: 22px; }
 .credit-card h3 { font: 700 italic 23px/1.1 var(--display); margin-bottom: 10px; }
 .credit-card p { margin: 0 0 12px; color: var(--muted); font-size: 15.5px; }
 .credit-card .links { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 4px 0 0; font-weight: 500; }
@@ -440,6 +442,5 @@ html[data-theme="sunset"] #flow { display: none; }
 html[data-theme="sunset"] .theme-switch button[aria-pressed="true"] { background: linear-gradient(135deg, #ffc45c, #ff4fa8); color: #2b0418; }
 .theme-switch svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 @media (max-width: 560px) { .theme-switch button { width: 30px; } }
-html[data-theme="light"] img[src$="apex-logo-white.svg"] { filter: invert(1) brightness(.2); }
 html[data-theme="sunset"] .lede, html[data-theme="sunset"] .hero .fine { text-shadow: 0 1px 12px rgba(21, 10, 40, .9), 0 0 2px rgba(21, 10, 40, .8); color: #ecdcf2; }
 @media (max-width: 700px) { html[data-theme="sunset"] .hero-logo.logo-sunset { width: min(420px, 100% + 20px); margin: -14px 0 4px -14px; } }
