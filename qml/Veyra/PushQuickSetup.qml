@@ -278,45 +278,48 @@ VGroup {
         if (veyra.hasSource && !quick.compactPro) veyra.navigate("pro")
         veyra.navigate(dialog)
     }
-    Flow {
+    GridLayout {
         objectName: "pushfps-tools-row"
         Layout.fillWidth: true
         Layout.topMargin: 8
-        Layout.bottomMargin: 4
-        spacing: 8
-        VButton {
+        Layout.bottomMargin: 6
+        // Two equal columns; one in a very narrow panel.
+        columns: width >= 360 ? 2 : 1
+        columnSpacing: 8
+        rowSpacing: 8
+        PushToolTile {
             objectName: "pushfps-optimize"
             primary: true
             iconName: "zap"
             text: qsTr("为我的电脑优化")
+            sub: qsTr("测试每种组合，选出最好的")
             tip: qsTr("在实际画面上测试每种组合，自动选出最好的一种")
-            // The picture has to be on screen while it is measured (a hidden window presents differently).
             onClicked: quick.openOnPicture("optimize")
         }
-        VButton {
+        PushToolTile {
             objectName: "pushfps-game-presets"
-            ghost: true
             iconName: "gamepad"
             text: qsTr("游戏预设")
+            sub: qsTr("GTA VI 等，HUD 保持清晰")
             tip: qsTr("GTA VI 等游戏的推荐设置，小地图和 HUD 保持清晰")
             onClicked: veyra.navigate("games")
         }
-        VButton {
+        PushToolTile {
             objectName: "pushfps-hud"
-            ghost: true
             iconName: "scan"
             text: qsTr("HUD 保护")
+            sub: qsTr("自动识别，可手动修正")
             tip: qsTr("自动找出小地图和 HUD，让它们不补帧；方框可以手动修正")
             onClicked: quick.openOnPicture("hud")
         }
-        VButton {
+        PushToolTile {
             objectName: "pushfps-compare-clip"
-            ghost: true
             iconName: "split"
             text: quick.compareRecording ? qsTr("停止对比片段") : qsTr("对比片段")
+            sub: quick.compareRecording ? qsTr("正在录制…") : !veyra.hasSource ? qsTr("需要正在播放的画面")
+                 : veyra.recording ? qsTr("录制中不可用") : qsTr("15 秒的前后对比视频")
             tip: qsTr("录制 15 秒的左右对比视频：左边是主机原本的帧率，右边是 PushFPS")
             enabled: veyra.hasSource && (quick.compareRecording || !veyra.recording)
-            opacity: enabled ? 1 : 0.4
             onClicked: {
                 if (quick.compareRecording) veyra.stopRecording("compare-button")
                 else veyra.pushStartCompareClip(15)

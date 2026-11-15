@@ -1364,3 +1364,11 @@ zh:亮|Luz
 1361|Ajustar áreas do HUD
 1362|Gire a câmera ou ande: o HUD fica parado enquanto o resto se move
 1363|Obter uma nova imagem
+1364|Vídeo antes/depois de 15 s
+1365|GTA VI e mais, HUD nítido
+1366|Tema
+1367|Indisponível durante a gravação
+1368|Gravando…
+1369|Testa cada combinação e escolhe a melhor
+1370|Detecção automática, ajustável à mão
+1371|Precisa de uma imagem em reprodução

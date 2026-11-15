@@ -1364,3 +1364,11 @@ zh:亮|Işık
 1361|HUD alanlarını ayarla
 1362|Kamerayı çevir veya yürü: geri kalan hareket ederken HUD sabit kalır
 1363|Yeni görüntü al
+1364|15 saniyelik önce/sonra videosu
+1365|GTA VI ve dahası, HUD net kalır
+1366|Tema
+1367|Kayıt sırasında kullanılamaz
+1368|Kaydediliyor…
+1369|Her kombinasyonu dener, en iyisini seçer
+1370|Otomatik algılanır, elle ayarlanabilir
+1371|Oynatılan bir görüntü gerekir

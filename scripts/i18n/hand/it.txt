@@ -1364,3 +1364,11 @@ zh:亮|Luce
 1361|Regola aree HUD
 1362|Ruota la visuale o muoviti: l’HUD resta fermo mentre il resto si muove
 1363|Acquisisci una nuova immagine
+1364|Video prima/dopo di 15 s
+1365|GTA VI e altri, HUD nitido
+1366|Tema
+1367|Non disponibile durante la registrazione
+1368|Registrazione…
+1369|Prova ogni combinazione e sceglie la migliore
+1370|Rilevamento automatico, regolabile a mano
+1371|Serve un’immagine in riproduzione

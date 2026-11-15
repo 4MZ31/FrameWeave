@@ -1582,6 +1582,23 @@
    "ru": "15 с"
   },
   {
+   "zh": "15 秒的前后对比视频",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "15 秒的前後對比影片",
+   "en": "A 15-second before/after video",
+   "ja": "15 秒のビフォー・アフター動画",
+   "nl": "Voor/na-video van 15 seconden",
+   "de": "Vorher/Nachher-Video, 15 Sekunden",
+   "es": "Vídeo antes/después de 15 s",
+   "fr": "Vidéo avant/après de 15 s",
+   "it": "Video prima/dopo di 15 s",
+   "pt-BR": "Vídeo antes/depois de 15 s",
+   "tr": "15 saniyelik önce/sonra videosu",
+   "ar": "فيديو قبل/بعد مدته 15 ثانية",
+   "pl": "Wideo przed/po, 15 s",
+   "ru": "Видео «до/после», 15 с"
+  },
+  {
    "zh": "1–51，越小画质越好、文件越大；标准为 22",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "1–51，越小畫質越好、檔案越大；標準為 22",
@@ -3297,6 +3314,23 @@
    "ar": "إعدادات موصى بها لألعاب مثل GTA VI، مع خريطة مصغرة وواجهة (HUD) واضحتين",
    "pl": "Zalecane ustawienia dla gier takich jak GTA VI, z ostrą minimapą i HUD",
    "ru": "Рекомендуемые настройки для игр вроде GTA VI, с чёткой миникартой и HUD"
+  },
+  {
+   "zh": "GTA VI 等，HUD 保持清晰",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "GTA VI 等，HUD 保持清晰",
+   "en": "GTA VI and more, HUD kept sharp",
+   "ja": "GTA VI など、HUD はくっきり",
+   "nl": "GTA VI en meer, HUD blijft scherp",
+   "de": "GTA VI und mehr, HUD bleibt scharf",
+   "es": "GTA VI y más, HUD nítido",
+   "fr": "GTA VI et plus, HUD net",
+   "it": "GTA VI e altri, HUD nitido",
+   "pt-BR": "GTA VI e mais, HUD nítido",
+   "tr": "GTA VI ve dahası, HUD net kalır",
+   "ar": "GTA VI وغيرها، مع HUD واضح",
+   "pl": "GTA VI i inne, HUD pozostaje ostry",
+   "ru": "GTA VI и другие, HUD остаётся чётким"
   },
   {
    "zh": "HDMI 采集设备",
@@ -9264,6 +9298,23 @@
    "ar": "المضيف لم يكن مستعداً للتدفق منذ وقت طويل تأكد من تشغيله والشبكة تعمل.",
    "pl": "Host nie był gotowy do strumienia przez długi czas. Upewnij się, że jest włączony i sieć działa.",
    "ru": "Хозяин долго не был готов к стриму. Убедитесь, что он включен и сеть работает."
+  },
+  {
+   "zh": "主题",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "主題",
+   "en": "Theme",
+   "ja": "テーマ",
+   "nl": "Thema",
+   "de": "Design",
+   "es": "Tema",
+   "fr": "Thème",
+   "it": "Tema",
+   "pt-BR": "Tema",
+   "tr": "Tema",
+   "ar": "السمة",
+   "pl": "Motyw",
+   "ru": "Тема"
   },
   {
    "zh": "二次处理比例",
@@ -24397,6 +24448,23 @@
    "ru": "Записать 15-секундное видео бок о бок: слева родная частота кадров консоли, справа PushFPS"
   },
   {
+   "zh": "录制中不可用",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "錄製中無法使用",
+   "en": "Not available while recording",
+   "ja": "録画中は使用できません",
+   "nl": "Niet beschikbaar tijdens opnemen",
+   "de": "Während der Aufnahme nicht verfügbar",
+   "es": "No disponible mientras se graba",
+   "fr": "Indisponible pendant l’enregistrement",
+   "it": "Non disponibile durante la registrazione",
+   "pt-BR": "Indisponível durante a gravação",
+   "tr": "Kayıt sırasında kullanılamaz",
+   "ar": "غير متاح أثناء التسجيل",
+   "pl": "Niedostępne podczas nagrywania",
+   "ru": "Недоступно во время записи"
+  },
+  {
    "zh": "录制保存位置",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "錄製儲存位置",
@@ -33170,6 +33238,23 @@
    "ru": "Запись сравнительного клипа на %1 с: слева родная частота кадров консоли, справа PushFPS"
   },
   {
+   "zh": "正在录制…",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "正在錄製…",
+   "en": "Recording…",
+   "ja": "録画中…",
+   "nl": "Opnemen…",
+   "de": "Aufnahme läuft…",
+   "es": "Grabando…",
+   "fr": "Enregistrement…",
+   "it": "Registrazione…",
+   "pt-BR": "Gravando…",
+   "tr": "Kaydediliyor…",
+   "ar": "جارٍ التسجيل…",
+   "pl": "Nagrywanie…",
+   "ru": "Идёт запись…"
+  },
+  {
    "zh": "正在恢复",
    "src": "src/ui/bridge/Preferences.cpp",
    "zh-TW": "正在恢復",
@@ -34851,6 +34936,23 @@
    "ar": "لا تغيّر المصدر أثناء التشغيل؛ يمكنك مواصلة اللعب",
    "pl": "Nie zmieniaj źródła w trakcie; możesz dalej grać",
    "ru": "Не меняйте источник во время проверки; играть можно дальше"
+  },
+  {
+   "zh": "测试每种组合，选出最好的",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "測試每種組合，選出最好的",
+   "en": "Tests every combination, keeps the best",
+   "ja": "すべての組み合わせを試して最適なものを選択",
+   "nl": "Test elke combinatie, kiest de beste",
+   "de": "Testet jede Kombination, wählt die beste",
+   "es": "Prueba cada combinación y elige la mejor",
+   "fr": "Teste chaque combinaison, garde la meilleure",
+   "it": "Prova ogni combinazione e sceglie la migliore",
+   "pt-BR": "Testa cada combinação e escolhe a melhor",
+   "tr": "Her kombinasyonu dener, en iyisini seçer",
+   "ar": "يختبر كل تركيبة ويختار الأفضل",
+   "pl": "Testuje każdą kombinację, wybiera najlepszą",
+   "ru": "Проверяет все варианты, выбирает лучший"
   },
   {
    "zh": "测量中设置被改变",
@@ -40206,6 +40308,23 @@
    "ar": "اكتشاف تلقائي",
    "pl": "Wykryj automatycznie",
    "ru": "Распознать автоматически"
+  },
+  {
+   "zh": "自动识别，可手动修正",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "自動辨識，可手動修正",
+   "en": "Detected automatically, adjustable by hand",
+   "ja": "自動検出、手動で修正可能",
+   "nl": "Automatisch herkend, met de hand aan te passen",
+   "de": "Automatisch erkannt, von Hand anpassbar",
+   "es": "Detección automática, ajustable a mano",
+   "fr": "Détection automatique, ajustable à la main",
+   "it": "Rilevamento automatico, regolabile a mano",
+   "pt-BR": "Detecção automática, ajustável à mão",
+   "tr": "Otomatik algılanır, elle ayarlanabilir",
+   "ar": "اكتشاف تلقائي مع إمكانية التعديل يدويًا",
+   "pl": "Wykrywanie automatyczne, ręczna korekta",
+   "ru": "Распознаётся автоматически, можно поправить вручную"
   },
   {
    "zh": "自动调控力度",
@@ -49454,6 +49573,23 @@
    "ar": "يتطلب معدات GPU with DirectX 12 support",
    "pl": "Wymaga sprzętu GPU ze wsparciem DirectX 12",
    "ru": "Требуется оборудование GPU с поддержкой DirectX 12"
+  },
+  {
+   "zh": "需要正在播放的画面",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "需要正在播放的畫面",
+   "en": "Needs a playing picture",
+   "ja": "再生中の映像が必要です",
+   "nl": "Vereist een spelend beeld",
+   "de": "Benötigt ein laufendes Bild",
+   "es": "Necesita una imagen en reproducción",
+   "fr": "Nécessite une image en lecture",
+   "it": "Serve un’immagine in riproduzione",
+   "pt-BR": "Precisa de uma imagem em reprodução",
+   "tr": "Oynatılan bir görüntü gerekir",
+   "ar": "يتطلب صورة قيد التشغيل",
+   "pl": "Wymaga odtwarzanego obrazu",
+   "ru": "Нужно воспроизводимое изображение"
   },
   {
    "zh": "需要直接媒体地址，普通网页或需要网页登录的页面不能直接播放。直播流通常无法拖动进度。",
