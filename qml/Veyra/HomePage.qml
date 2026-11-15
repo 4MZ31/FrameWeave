@@ -87,7 +87,7 @@ VPage {
                 objectName: "home-sunset-logo"
                 visible: root.sunset
                 Layout.alignment: Qt.AlignHCenter
-                Layout.topMargin: -28
+                Layout.topMargin: -6
                 Layout.bottomMargin: -22
                 Layout.preferredWidth: Math.min(470, content.columnWidth)
                 Layout.preferredHeight: Layout.preferredWidth * 550 / 1340
