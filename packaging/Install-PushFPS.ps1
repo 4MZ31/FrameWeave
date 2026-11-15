@@ -207,6 +207,16 @@ if (-not $NoShortcuts) {
     }
 }
 
+# Windows keeps icons in a cache keyed by file path, so after an update the shortcuts and taskbar can keep
+# showing the previous version's icon. Ask Explorer to refresh it (per user, no admin rights, best effort).
+try {
+    $ie4 = Join-Path $env:WINDIR 'System32\ie4uinit.exe'
+    if (Test-Path $ie4) {
+        $p = Start-Process -FilePath $ie4 -ArgumentList '-show' -WindowStyle Hidden -PassThru -ErrorAction Stop
+        if (-not $p.WaitForExit(10000)) { $p.Kill() }
+    }
+} catch { }
+
 Step 'PushFPS is installed.'
 Info "Program: $target"
 Info "Remove it any time with: Install-PushFPS.cmd -Uninstall"
