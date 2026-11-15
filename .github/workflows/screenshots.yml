@@ -118,7 +118,11 @@ jobs:
             @{ name = '44-intro-sunset'; args = @('--page', 'home', '--intro-at', '2300') },
             @{ name = '45-intro-glide'; args = @('--page', 'home', '--intro-at', '3000') },
             @{ name = '46-home-classic'; args = @('--page', 'home', '--pref', 'pushSunset=false') },
-            @{ name = '47-switch2-presets'; args = @('--page', 'home', '--dialog', 'games', '--pref', 'pushConsole=switch2') }
+            @{ name = '47-switch2-presets'; args = @('--page', 'home', '--dialog', 'games', '--pref', 'pushConsole=switch2') },
+            # README screens in the PushFPS brand (the Sunset City logo is for the app and website only).
+            @{ name = '48-home-classic-light'; args = @('--page', 'home', '--dock-pinned', '--theme', 'light', '--pref', 'pushSunset=false') },
+            @{ name = '49-home-classic-black'; args = @('--page', 'home', '--dock-pinned', '--theme', 'black', '--pref', 'pushSunset=false') },
+            @{ name = '50-home-classic-pinned'; args = @('--page', 'home', '--dock-pinned', '--pref', 'pushSunset=false') }
           )
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"
