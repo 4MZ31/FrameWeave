@@ -112,7 +112,8 @@ jobs:
             @{ name = '38-recording-help'; args = @('--page', 'set', '--tab', 'play', '--scroll-to', 'set-recadvanced', '--pref', 'recordAdvanced=true', '--pref', 'recordRateControl=2', '--lang', 'en') },
             @{ name = '39-ps5-streaming'; args = @('--page', 'home', '--dialog', 'ps5') },
             @{ name = '40-pc-streaming';  args = @('--page', 'home', '--dialog', 'moonlight') },
-            @{ name = '41-xbox-streaming'; args = @('--page', 'home', '--dialog', 'xbox') }
+            @{ name = '41-xbox-streaming'; args = @('--page', 'home', '--dialog', 'xbox') },
+            @{ name = '42-latency-guide'; args = @('--page', 'home', '--dialog', 'latencyguide') }
           )
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"
