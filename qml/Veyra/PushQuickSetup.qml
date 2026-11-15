@@ -500,7 +500,8 @@ VGroup {
         objectName: "pushfps-adaptive-row"
         label: qsTr("自适应倍率")
         help: qsTr("很多主机游戏的帧率并不固定：30 FPS 的游戏会掉到 25，40 FPS 模式会在 35 到 45 之间波动。开启后 PushFPS 实时测量游戏帧率，每一对画面都选择最接近目标帧率的补帧倍率，类似 NVIDIA DLSS 4.5 的动态多帧生成")
-        hint: !quick.adaptivePossible ? qsTr("当前补帧方式只有 2×，无需自适应")
+        hint: !quick.fgPossible ? (Support.status(veyra, "frame-generation").reason || "")
+            : !quick.adaptivePossible ? qsTr("当前补帧方式只有 2×，无需自适应")
             : quick.adaptive && quick.liveStats.fgMultiplierNow > 1 && quick.liveStats.contentFps > 0
               ? qsTr("现在 %1×：游戏 %2 FPS → 约 %3 FPS").arg(quick.liveStats.fgMultiplierNow)
                     .arg(Math.round(quick.liveStats.contentFps)).arg(Math.round(quick.liveStats.contentFps * quick.liveStats.fgMultiplierNow))
