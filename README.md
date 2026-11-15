@@ -534,6 +534,11 @@ In your user folder, next to Veyra's settings. Updating PushFPS keeps them.
 - [ ] macOS and Linux versions. The engine is built on DirectX 12, Media Foundation and Windows-only GPU SDKs
   (about 100 000 lines), so this means a new engine on Metal or Vulkan, planned as its own project
 
+## Privacy
+
+PushFPS has no accounts, analytics or telemetry. It only connects to the internet for the update check (GitHub),
+when you share a clip to your own Discord webhook, and when you start a stream. Details in [PRIVACY.md](PRIVACY.md).
+
 ## Build from source
 
 Every push builds PushFPS on GitHub Actions ([build-windows.yml](.github/workflows/build-windows.yml)), and
@@ -566,11 +571,14 @@ Veyra keep merging cleanly. The PushFPS name and links live in
 PushFPS is a modified version of **[Veyra](https://github.com/Likely7/Veyra-NRVideo)** by
 **[Likely7](https://github.com/Likely7)**, forked on 2026-11-12. Nearly all of the engine, the capture
 support and the frame generation integration is their work. If PushFPS helps you, consider
-[supporting Veyra's author](https://www.patreon.com/cw/Likely7).
+[supporting Veyra's author](https://www.patreon.com/cw/Likely7). Likely7 is on
+[X](https://x.com/likely2002) and [YouTube](https://www.youtube.com/@Likely7Ai), with a
+[Veyra video tutorial in English](https://www.youtube.com/watch?v=ZJ42jzNAbik).
 
 ANR frame generation is **[Apex Neural Rendering](https://github.com/apex-compute/ANR)** by
 **[Apex Compute](https://apexcompute.com)**. PushFPS contains Veyra's own ANR host code (GPL-3.0) and no ANR files;
-ANR is downloaded from Apex by the user. The Apex Compute logo above belongs to Apex Compute and is shown only to
+ANR is downloaded from Apex by the user. To update ANR, download Apex's newest `anr-fg` package and use *Install from download*
+again; PushFPS replaces the previous files. The Apex Compute logo above belongs to Apex Compute and is shown only to
 credit their work.
 
 - PushFPS and Veyra code: [GPL-3.0](LICENSE). Files written for PushFPS, including the OBS plugin, are
