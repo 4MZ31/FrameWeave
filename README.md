@@ -159,6 +159,14 @@ like the original 30 FPS, plus a few milliseconds for the capture card and proce
 <td width="50%"><img src="assets/screenshots/appearance-black.png" alt="PushFPS home screen in black mode"><br><sub><b>Black mode.</b> Almost-black surfaces for OLED screens.</sub></td>
 <td width="50%"><img src="assets/screenshots/anr.png" alt="Settings, Apex Neural Rendering install card"><br><sub><b>ANR by Apex Compute.</b> Download from Apex, install in one click.</sub></td>
 </tr>
+<tr>
+<td width="50%"><img src="assets/screenshots/hud-protection.png" alt="HUD protection dialog with automatic detection and the box editor"><br><sub><b>HUD protection.</b> Automatic detection, boxes you can correct by hand.</sub></td>
+<td width="50%"><img src="assets/screenshots/ps5-streaming.png" alt="PS5 streaming dialog"><br><sub><b>PS5 streaming.</b> No capture card needed: Remote Play over your home network.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="assets/screenshots/pc-streaming.png" alt="PC streaming dialog for Sunshine hosts"><br><sub><b>PC streaming.</b> Another PC through Sunshine (Moonlight protocol).</sub></td>
+<td width="50%"><img src="assets/screenshots/recording-advanced.png" alt="Advanced encoding settings"><br><sub><b>Advanced encoding.</b> Rate control, quality, preset, keyframes, MP4 or MKV.</sub></td>
+</tr>
 </table>
 
 <sub>Screenshots of the real app, taken automatically on a build machine without a graphics card, so
