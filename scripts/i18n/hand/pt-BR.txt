@@ -1408,3 +1408,4 @@ zh:亮|Luz
 1405|Requer direitos de administrador
 1406|Entrada de áudio
 1407|O perfil do driver está em uso
+1408|Logo Sunset City

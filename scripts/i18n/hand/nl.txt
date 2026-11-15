@@ -1408,3 +1408,4 @@ zh:亮|Licht
 1405|Beheerdersrechten vereist
 1406|Audio-invoer
 1407|Stuurprogrammaprofiel is in gebruik
+1408|Sunset City-logo

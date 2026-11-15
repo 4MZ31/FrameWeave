@@ -1408,3 +1408,4 @@ zh:亮|Lumière
 1405|Droits d'administrateur requis
 1406|Entrée audio
 1407|Le profil du pilote est utilisé
+1408|Logo Sunset City

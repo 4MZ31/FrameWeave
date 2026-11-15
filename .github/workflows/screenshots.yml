@@ -113,7 +113,11 @@ jobs:
             @{ name = '39-ps5-streaming'; args = @('--page', 'home', '--dialog', 'ps5') },
             @{ name = '40-pc-streaming';  args = @('--page', 'home', '--dialog', 'moonlight') },
             @{ name = '41-xbox-streaming'; args = @('--page', 'home', '--dialog', 'xbox') },
-            @{ name = '42-latency-guide'; args = @('--page', 'home', '--dialog', 'latencyguide') }
+            @{ name = '42-latency-guide'; args = @('--page', 'home', '--dialog', 'latencyguide') },
+            @{ name = '43-intro-chevrons'; args = @('--page', 'home', '--intro-at', '700') },
+            @{ name = '44-intro-sunset'; args = @('--page', 'home', '--intro-at', '2300') },
+            @{ name = '45-intro-glide'; args = @('--page', 'home', '--intro-at', '3000') },
+            @{ name = '46-home-classic'; args = @('--page', 'home', '--pref', 'pushSunset=false') }
           )
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"

@@ -25,7 +25,9 @@ VPage {
     }
     // Veyra 2.1.9's startup intro hooks (Main.qml); PushFPS has no intro, so nothing is held.
     property bool introHold: false
-    readonly property Item wordmarkItem: null
+    readonly property Item wordmarkItem: root.sunset ? sunsetLogo : null
+    // 设置 → 外观 → 日落之城 (pushSunset, unset = on): the logo filled with a neon sunset city.
+    readonly property bool sunset: veyra.preferences.pushSunset !== false
 
     // PushFPS home, laid out for the console player: the capture card is the main
     // action, the other sources sit under it as smaller cards, then the quick setup,
@@ -78,8 +80,26 @@ VPage {
             width: content.columnWidth
             spacing: 0
 
+            // Sunset City logo (scripts/brand/make_sunset.py; its glow is baked into the image, 70/1340
+            // of the width on each side). The startup intro glides into exactly this rect.
+            Image {
+                id: sunsetLogo
+                objectName: "home-sunset-logo"
+                visible: root.sunset
+                Layout.alignment: Qt.AlignHCenter
+                Layout.topMargin: -28
+                Layout.bottomMargin: -22
+                Layout.preferredWidth: Math.min(470, content.columnWidth)
+                Layout.preferredHeight: Layout.preferredWidth * 550 / 1340
+                source: "sunset-logo.png"
+                sourceSize.width: 940
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                opacity: root.introHold ? 0 : 1
+            }
             Item {
                 id: mark
+                visible: !root.sunset
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: -40
                 Layout.bottomMargin: -40
@@ -126,6 +146,7 @@ VPage {
                 Layout.topMargin: 14
                 spacing: 6
                 PushWordmark {
+                    visible: !root.sunset
                     Layout.alignment: Qt.AlignHCenter
                     pixelSize: Theme.fsH1 + 8
                 }

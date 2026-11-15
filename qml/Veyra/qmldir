@@ -94,3 +94,4 @@ PushWordmark 1.0 PushWordmark.qml
 PushHudDialog 1.0 PushHudDialog.qml
 PushToolTile 1.0 PushToolTile.qml
 PushLatencyGuideDialog 1.0 PushLatencyGuideDialog.qml
+PushIntro 1.0 PushIntro.qml
