@@ -506,7 +506,7 @@ VPage {
                 id: protectionDraw
                 objectName: "pro-protection-draw"
                 anchors.fill: parent
-                enabled: veyra.protectionDrawShape.length > 0
+                enabled: false // Main.qml owns mask input on every page and in fullscreen.
                 visible: enabled
                 cursorShape: Qt.CrossCursor
                 preventStealing: true
@@ -1166,7 +1166,7 @@ VPage {
         width: quickOrbRow.implicitWidth + 24
         height: quickOrbRow.implicitHeight + 16
         radius: 18
-        color: Qt.rgba(22 / 255, 22 / 255, 26 / 255, 0.94)
+        color: Theme.shade(22, 22, 26, 0.94)
         border.width: 1
         border.color: Theme.stroke2
         RowLayout {

@@ -1,8 +1,15 @@
 // Design tokens, transcribed from the approved prototype's app.css.
 //
-// Every value here is copied from the prototype rather than chosen. That is the
-// point of this file: the interface has to match the approved design, so the
-// numbers live in one place that can be diffed against app.css.
+// Every classic value here is copied from the prototype rather than chosen. That
+// is the point of this file: the interface has to match the approved design, so
+// the numbers live in one place that can be diffed against app.css.
+//
+// 设置 → 外观 → 界面配色 adds a second palette, 日落 (dusk, the default since
+// 2026-11-14): the same depths tinted indigo-violet, a sunset accent that fills
+// switches, sliders, primary buttons and seek bars as a peach -> pink gradient
+// (VAccentFill.qml), and a twilight backdrop (tools/qt_probe/make-backdrop-dusk.py).
+// Its values are our own, chosen after sunset skies. "classic" keeps every value
+// of the prototype exactly.
 pragma Singleton
 import QtQuick
 
@@ -33,7 +40,20 @@ QtObject {
     readonly property color bgOuter: light ? "#DFE3DA" : black ? "#000000" : "#070709"
     readonly property color bgMid: light ? "#E9ECE5" : black ? "#010102" : "#0C0C10"
     readonly property color bgInner: light ? "#F4F6F1" : black ? "#050506" : "#17171C"
+    // Veyra 2.1.9 palette API, kept so upstream components work unchanged. PushFPS has
+    // its own appearance modes (above) instead of Veyra's dusk palette, so it is always
+    // "classic" here: shade() returns the colour as written, no accent gradient.
+    readonly property string paletteName: "classic"
+    readonly property bool dusk: false
     readonly property color videoBlack: "#000000"
+    // Dark neutrals some components still spell out (the cinema pill, the node
+    // canvas, the dock): exactly that colour in the classic palette, the same
+    // depth tinted indigo-violet in the dusk one.
+    function shade(r, g, b, a) {
+        const alpha = a === undefined ? 1 : a
+        return dusk ? Qt.rgba(Math.min(255, r + 2) / 255, Math.max(0, g - 1) / 255, Math.min(255, b + 14) / 255, alpha)
+                    : Qt.rgba(r / 255, g / 255, b / 255, alpha)
+    }
 
     // --- text -------------------------------------------------------------
     readonly property color t1: light ? "#15171A" : "#F3F3F5"
@@ -64,6 +84,14 @@ QtObject {
     readonly property color ok: light ? "#17824A" : "#3DDC84"
     readonly property color okGlow: Qt.rgba(0.239, 0.863, 0.518, 0.16)
     readonly property color warn: light ? "#9A6200" : "#F5C84B"
+    // Veyra 2.1.9 accent-gradient API (VAccentFill.qml): a plain fill in PushFPS.
+    readonly property bool accentGradient: false
+    readonly property color accentFrom: accent
+    readonly property color accentTo: accent
+    readonly property color accentFar: accent
+    readonly property string backdropImage: "backdrop" + (backdropLevel === 2 ? "-strong" : "") + ".png"
+    // PushFPS logo (the chevrons, scripts/brand/make_icon.py) in every mode.
+    readonly property string logoImage: "logo.png"
     readonly property color warnGlow: Qt.rgba(0.961, 0.784, 0.294, 0.16)
     readonly property color err: light ? "#C62828" : "#FF5D5D"
     readonly property color errGlow: Qt.rgba(1, 0.365, 0.365, 0.16)

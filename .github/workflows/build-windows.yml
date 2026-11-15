@@ -32,14 +32,17 @@ on:
 permissions:
   contents: read
 
-# One build at a time per branch: a second push waits and then reuses the FFmpeg cache.
+# One build at a time per branch and trigger: a second push waits and then reuses the FFmpeg cache.
+# Release dispatches get their own group, so a release never cancels (or is cancelled by) the push
+# build of the same commit; GitHub cancels an older *pending* run when a newer one queues in the same
+# group, and a cancelled push run makes the README build badge read "failing".
 concurrency:
-  group: build-windows-${{ github.ref }}
+  group: build-windows-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: false
 
 env:
   UPSTREAM_REPO: Likely7/Veyra-NRVideo
-  UPSTREAM_TAG: v2.1.6
+  UPSTREAM_TAG: v2.1.9
   VCPKG_COMMIT: 30ef65cad98f08e7197c9a1656fbd871bcb72f2d   # builtin-baseline in vcpkg.json: FFmpeg 9.0.1
   DLSS_TAG: v310.7.0
   NVCODEC_TAG: n13.0.19.0
@@ -47,6 +50,7 @@ env:
   XESS_TAG: v3.0.2
   FFX1_TAG: v1.1.4
   FFX2_TAG: v2.3.0
+  AMF_COMMIT: 57ee0cfb0e1a08d9041f77435653794c1b012be0   # AMD AMF SDK v1.5.3 (MIT headers only; runtime = AMD driver)
   # Streaming sources (PS5 Remote Play, Moonlight, Xbox), as Veyra builds them: pinned sources,
   # verified by scripts/remoteplay/verify-chiaki-stage.py and scripts/moonlight/verify-moonlight-stage.py.
   CHIAKI_COMMIT: 0e16950165f06e5c3291537c2eeba6e852be7120
@@ -117,6 +121,12 @@ jobs:
           GIT_LFS_SKIP_SMUDGE=1 git clone -q --depth 1 --branch "$FFX2_TAG" --filter=blob:none --sparse https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK.git ffx2
           git -C ffx2 sparse-checkout set Kits/FidelityFX/api/include Kits/FidelityFX/framegeneration/include Kits/FidelityFX/upscalers/include
           gh release download "$FFX1_TAG" -R GPUOpen-LibrariesAndSDKs/FidelityFX-SDK -p '*.zip' -O ffx1.zip && unzip -q ffx1.zip -d ffx1
+          # AMD AMF SDK public headers (MIT), for AMD FRC frame generation (Veyra 2.1.9). Only the headers:
+          # the AMF runtime (amfrt64.dll) comes with the user's AMD driver and is never shipped.
+          git init -q amf && git -C amf remote add origin https://github.com/GPUOpen-LibrariesAndSDKs/AMF.git
+          git -C amf fetch -q --depth 1 --filter=blob:none origin "$AMF_COMMIT"
+          git -C amf sparse-checkout set amf/public/include && git -C amf checkout -q FETCH_HEAD
+          test -f amf/amf/public/include/components/FRC.h
 
       # FidelityFX 1.1.4 ships source only. Build the optical flow + DX12 backend static libraries with the
       # static C runtime (/MT), as PushFPS links it; they land in sdk/bin/ffx_sdk where CMakeLists.txt looks.
@@ -234,7 +244,8 @@ jobs:
             "-DVEYRA_CUDA_DRIVER_INCLUDE_DIR=$env:DEPS\cudart-root\include" `
             "-DVEYRA_XESS_ROOT=$env:XESS_ROOT" `
             "-DVEYRA_FIDELITYFX_ROOT=$env:FFX1_ROOT" `
-            "-DVEYRA_FIDELITYFX2_ROOT=$env:DEPS\ffx2\Kits\FidelityFX"
+            "-DVEYRA_FIDELITYFX2_ROOT=$env:DEPS\ffx2\Kits\FidelityFX" `
+            "-DVEYRA_AMF_SDK_ROOT=$env:DEPS\amf\amf\public"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build PushFPS.exe
@@ -258,7 +269,7 @@ jobs:
             Write-Host "$t exit $code"
             if ($code -ne 0) { $failed++ }
           }
-          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_benchmark_tests', 'veyra_push_hud_tests') {
+          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_benchmark_tests', 'veyra_push_hud_tests', 'veyra_vrr_profile_tests') {
             cmake --build $env:BUILD --target $t --parallel
             if ($LASTEXITCODE -ne 0) { Write-Host "::error::$t did not build"; $failed++; continue }
             $exe = Get-ChildItem $env:BUILD -Recurse -Filter "$t.exe" | Select-Object -First 1

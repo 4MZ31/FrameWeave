@@ -6,6 +6,8 @@ import QtQuick.Shapes
 import QtQuick.Effects
 
 ColumnLayout {
+    id: presentationRows
+    readonly property var profileTools: ("nvidiaVrrProfile" in veyra) ? veyra.nvidiaVrrProfile : null
     Layout.fillWidth: true
     spacing: 0
     VRow {
@@ -33,6 +35,7 @@ ColumnLayout {
             onToggled: checked => veyra.variableRefresh = checked
         }
     }
+    NvidiaVrrProfileRow { backend: presentationRows.profileTools }
     VRow {
         label: qsTr("输出上限")
         help: qsTr("每秒最多显示多少帧。补帧时把输出锁在目标帧率，画面的节奏更均匀")

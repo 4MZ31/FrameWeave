@@ -23,6 +23,9 @@ VPage {
         interval: 450
         onTriggered: content.contentY = Math.max(0, Math.min(tuning.mapToItem(column, 0, 0).y - 24, content.contentHeight - content.height))
     }
+    // Veyra 2.1.9's startup intro hooks (Main.qml); PushFPS has no intro, so nothing is held.
+    property bool introHold: false
+    readonly property Item wordmarkItem: null
 
     // PushFPS home, laid out for the console player: the capture card is the main
     // action, the other sources sit under it as smaller cards, then the quick setup,
