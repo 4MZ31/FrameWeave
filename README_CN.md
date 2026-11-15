@@ -6,7 +6,7 @@
 
 # PushFPS
 
-[English](README.md) | 简体中文
+[English](README.md) | 简体中文 | [网站](https://dosukasol.github.io/PushFPS/)
 
 PushFPS 让 30 FPS 的主机游戏在电脑显示器上以 60 或 120 FPS 运行：从采集卡读取画面，在显卡上实时补帧。主机和游戏都不需要改动。
 

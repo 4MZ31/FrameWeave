@@ -14,6 +14,8 @@ Nothing changes on the console or in the game: you need a capture card and a gra
 [![Download for Windows](https://img.shields.io/badge/Download-Windows%2011-89F52A?style=for-the-badge&logo=windows&logoColor=0D1A04&labelColor=89F52A)](https://github.com/DosukaSOL/PushFPS/releases)
 &nbsp;
 [![OBS Studio plugin](https://img.shields.io/badge/OBS%20Studio-plugin-1b1b20?style=for-the-badge)](#obs-studio-plugin)
+&nbsp;
+[![Website](https://img.shields.io/badge/Website-dosukasol.github.io%2FPushFPS-1b1b20?style=for-the-badge)](https://dosukasol.github.io/PushFPS/)
 
 [![Latest release](https://img.shields.io/github/v/release/DosukaSOL/PushFPS?include_prereleases&style=flat-square&color=89F52A&label=release)](https://github.com/DosukaSOL/PushFPS/releases)
 [![Build](https://img.shields.io/github/actions/workflow/status/DosukaSOL/PushFPS/build-windows.yml?branch=main&style=flat-square&label=build)](https://github.com/DosukaSOL/PushFPS/actions/workflows/build-windows.yml)
