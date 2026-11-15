@@ -456,6 +456,8 @@ class QmlPlayerBridge : public QObject {
     Q_PROPERTY(bool dlssgLite READ dlssgLite WRITE setDlssgLite NOTIFY settingsChanged)
     // VFG 自动调控: EnhancementSettings::vfgAutoRegulate.
     Q_PROPERTY(bool vfgAutoRegulate READ vfgAutoRegulate WRITE setVfgAutoRegulate NOTIFY settingsChanged)
+    // PushFPS 自适应倍率: EnhancementSettings::fgAdaptive (engine/PushAdaptiveFg.h).
+    Q_PROPERTY(bool fgAdaptive READ fgAdaptive WRITE setFgAdaptive NOTIFY settingsChanged)
     Q_PROPERTY(bool dlssgLiteAvailable READ dlssgLiteAvailable CONSTANT)
     Q_PROPERTY(QString dlssgLiteHint READ dlssgLiteHint NOTIFY snapshotChanged)
     Q_PROPERTY(int contentRate READ contentRate WRITE setContentRate NOTIFY settingsChanged)
@@ -1146,6 +1148,8 @@ public:
     bool dlssgLite() const;
     void setDlssgLite(bool value);
     bool vfgAutoRegulate() const;
+    bool fgAdaptive() const;
+    void setFgAdaptive(bool value);
     void setVfgAutoRegulate(bool value);
     bool dlssgLiteAvailable() const;
     QString dlssgLiteHint() const;

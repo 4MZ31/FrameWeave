@@ -27,8 +27,13 @@ DialogLayer {
         } catch (e) { return [] }
     }
     readonly property var all: Presets.builtIn.map(Presets.sanitize).concat(games.mine.map(p => Object.assign({}, p, { mine: true })))
+    // Which games the list shows: every preset, or one Nintendo console's games (the
+    // console chosen in the quick setup picks the starting filter).
+    property string consoleFilter: ""
+    readonly property var listed: games.all.filter(p => games.consoleFilter === "" || p.console === games.consoleFilter)
     property string selectedName: "GTA VI"
-    readonly property var selected: games.all.find(p => p.name === games.selectedName) || games.all[0]
+    readonly property var selected: games.listed.find(p => p.name === games.selectedName) || games.listed[0] || games.all[0]
+    function consoleName(id) { return id === "switch" ? "Switch" : id === "switch2" ? "Switch 2" : "" }
     property bool protectHud: true
     property string importText: ""
     property string message: ""
@@ -38,6 +43,7 @@ DialogLayer {
     function labelFor(p) {
         if (!p) return ""
         if (p.mine) return p.name + " · " + qsTr("我的")
+        if (p.console === "switch" || p.console === "switch2") return p.name + " · " + games.consoleName(p.console)
         switch (p.id) {
         case "open-world-bl": return qsTr("开放世界 · 小地图在左下")
         case "open-world-tr": return qsTr("开放世界 · 小地图在右上")
@@ -48,8 +54,24 @@ DialogLayer {
         }
         return p.name
     }
+    // Switch and Switch 2 games: where the 30 FPS comes from, the adaptive multiplier when the
+    // game dips, and whether its HUD areas are set or left to the automatic detection.
+    function switchNote(p) {
+        let text
+        if (p.id === "ns-botw") text = qsTr("Switch 版 30 FPS（Switch 2 上也是）。Nintendo Switch 2 Edition 为 60 FPS，玩那个版本时请把游戏帧率选 60。")
+        else if (p.id === "ns-animal-crossing") text = qsTr("Switch 游戏，30 FPS；Nintendo Switch 2 Edition 也是 30 FPS。")
+        else if (p.id === "ns2-cyberpunk") text = qsTr("Switch 2 游戏：画质模式 30 FPS，性能模式最高 40 FPS。")
+        else if (p.id === "ns2-elden-ring") text = qsTr("Switch 2 游戏：上限 40 FPS，底座模式下多在 30–35 FPS。")
+        else text = p.console === "switch" ? qsTr("Switch 游戏，在 Switch 2 上也是 30 FPS（没有 Switch 2 更新）。")
+                                           : qsTr("Switch 2 游戏，底座模式 30 FPS。")
+        if (p.adaptive) text += " " + qsTr("帧率会波动，已开启自适应倍率。")
+        text += " " + (p.regions.length > 0 ? qsTr("HUD 位置按游戏推测，开始玩后请检查一下。")
+                                            : qsTr("没有预设 HUD 区域：需要时用「调整 HUD 区域」自动识别。"))
+        return text
+    }
     function noteFor(p) {
         if (!p) return ""
+        if (!p.mine && (p.console === "switch" || p.console === "switch2")) return games.switchNote(p)
         switch (p.mine ? "" : p.id) {
         case "gta6": return qsTr("小地图在左下，金钱和通缉等级在右上。位置按 GTA 系列推测，开始玩后请检查一下")
         case "open-world-bl": return qsTr("左下角的圆形或方形小地图")
@@ -72,18 +94,29 @@ DialogLayer {
         for (const m of offered) if (gameFps * m <= fps + 0.5) pick = m
         return pick
     }
+    function offered() { return (veyra.fgMultiplierChoices || []).map(o => parseInt(o.id)).filter(m => m >= 2) }
     function apply(p) {
         if (!p) return
         veyra.setPreference("pushGameFps", p.fps)
+        if (p.console) veyra.setPreference("pushConsole", p.console)
         const refresh = veyra.displayRefreshHz > 0 ? veyra.displayRefreshHz : 60
         let target = Presets.resolveTarget(p.target, refresh)
+        // A game whose frame rate dips gets the adaptive multiplier (when this frame
+        // generation offers more than 2X); it needs the measured game frame rate, so
+        // automatic duplicate removal goes on with it.
+        const adaptive = p.adaptive === true && games.offered().some(m => m > 2) && !veyra.presentationOwned
         if (Support.available(veyra, "frame-generation")) {
+            veyra.fgAdaptive = adaptive
+            if (adaptive && Number(veyra.contentRate) === 0) veyra.contentRate = 1
             if (target === "off") veyra.fgEnabled = false
             else {
                 let fps = games.targetFps(target, refresh)
-                let m = games.multiplierFor(fps, p.fps)
+                let m = adaptive ? Presets.adaptiveCeiling(games.offered(), fps) : games.multiplierFor(fps, p.fps)
                 // "auto" falls back to 60 when this frame generation cannot reach 120.
-                if (p.target === "auto" && target === "120" && p.fps * m + 0.5 < 120) { target = "60"; fps = 60; m = games.multiplierFor(60, p.fps) }
+                if (p.target === "auto" && target === "120" && p.fps * m + 0.5 < 120) {
+                    target = "60"; fps = 60
+                    m = adaptive ? Presets.adaptiveCeiling(games.offered(), 60) : games.multiplierFor(60, p.fps)
+                }
                 if (fps <= p.fps + 0.5 || m < 2) veyra.fgEnabled = false
                 else {
                     veyra.fgMultiplier = m
@@ -98,7 +131,7 @@ DialogLayer {
         if (!veyra.pushSetExclusionRegions(regions, p.feather)) { games.say(qsTr("HUD 保护区域没有应用"), true); return }
         games.say(regions.length > 0 ? qsTr("已应用「%1」，%2 个 HUD 区域受保护。可在专业模式 → 画质 → 全效果剔除 中微调").arg(games.labelFor(p)).arg(regions.length)
                                      : qsTr("已应用「%1」").arg(games.labelFor(p)), false)
-        veyra.logUi("push-presets", "apply " + p.name + " regions=" + regions.length + " target=" + target)
+        veyra.logUi("push-presets", "apply " + p.name + " regions=" + regions.length + " target=" + target + " adaptive=" + adaptive)
     }
 
     // --- your own ------------------------------------------------------------
@@ -109,6 +142,8 @@ DialogLayer {
                      : Math.abs(veyra.outputCustomFps - 120) < 0.5 ? "120" : Math.abs(veyra.outputCustomFps - 60) < 0.5 ? "60" : "auto"
         return Presets.sanitize({ name: name, fps: Number(veyra.preferences.pushGameFps || 30), target: target,
                                   feather: ex.feather !== undefined ? ex.feather : 6, regions: regions,
+                                  adaptive: veyra.fgEnabled && veyra.fgAdaptive === true,
+                                  console: String(veyra.preferences.pushConsole || ""),
                                   note: qsTr("我的预设") })
     }
     function saveMine(name) {
@@ -119,6 +154,7 @@ DialogLayer {
         list.push(p)
         list.sort((a, b) => a.name.localeCompare(b.name))
         if (!games.writeMine(list)) { games.say(qsTr("保存失败"), true); return false }
+        if (games.consoleFilter !== "" && games.consoleFilter !== p.console) games.consoleFilter = ""
         games.selectedName = p.name
         games.say(qsTr("已保存「%1」（%2 个 HUD 区域）").arg(p.name).arg(p.regions.length), false)
         return true
@@ -132,18 +168,26 @@ DialogLayer {
         list.push(p)
         list.sort((a, b) => a.name.localeCompare(b.name))
         if (!games.writeMine(list)) { games.say(qsTr("保存失败"), true); return false }
+        if (games.consoleFilter !== "" && games.consoleFilter !== p.console) games.consoleFilter = ""
         games.selectedName = name
         games.say(qsTr("已添加「%1」").arg(name), false)
         return true
     }
     function deleteMine(name) {
         games.writeMine(games.mine.filter(x => x.name !== name))
+        games.consoleFilter = ""
         games.selectedName = "GTA VI"
         games.say(qsTr("已删除「%1」").arg(name), false)
     }
     function shareCode(p) { return Presets.encode(p, Qt.btoa) }
 
-    onShownChanged: if (shown) { games.message = ""; games.importText = "" }
+    onShownChanged: if (shown) {
+        games.message = ""; games.importText = ""
+        const c = String(veyra.preferences.pushConsole || "")
+        games.consoleFilter = c === "switch" || c === "switch2" ? c : ""
+        if (games.consoleFilter !== "" && !games.listed.some(p => p.name === games.selectedName) && games.listed.length > 0)
+            games.selectedName = games.listed[0].name
+    }
     actions: [{ label: qsTr("关闭") }, { label: qsTr("应用"), primary: true }]
     onActionTriggered: label => {
         if (label === qsTr("应用")) games.apply(games.selected)
@@ -152,11 +196,23 @@ DialogLayer {
 
     DialogGroup {
         VRow {
+            label: qsTr("游戏主机")
+            VSeg {
+                objectName: "pushfps-game-preset-console"
+                options: [{ id: "", label: qsTr("全部") }, { id: "switch", label: "Switch" }, { id: "switch2", label: "Switch 2" }]
+                current: games.consoleFilter
+                onPicked: id => {
+                    games.consoleFilter = id
+                    if (!games.listed.some(p => p.name === games.selectedName) && games.listed.length > 0) games.selectedName = games.listed[0].name
+                }
+            }
+        }
+        VRow {
             label: qsTr("游戏")
             VSelect {
                 objectName: "pushfps-game-preset-select"
                 implicitWidth: 300
-                options: games.all.map(p => ({ id: p.name, label: games.labelFor(p) }))
+                options: games.listed.map(p => ({ id: p.name, label: games.labelFor(p) }))
                 value: games.labelFor(games.selected)
                 onPicked: id => games.selectedName = id
             }
@@ -217,7 +273,8 @@ DialogLayer {
         VRow {
             label: qsTr("游戏帧率 · 目标")
             value: games.selected ? games.selected.fps + " → " + (games.selected.target === "auto" ? qsTr("自动") : games.selected.target === "off" ? qsTr("不补帧")
-                                    : games.selected.target === "monitor" ? qsTr("跟随显示器") : games.selected.target + " FPS") : ""
+                                    : games.selected.target === "monitor" ? qsTr("跟随显示器") : games.selected.target + " FPS")
+                                    + (games.selected.adaptive ? " · " + qsTr("自适应倍率") : "") : ""
         }
     }
 

@@ -951,6 +951,10 @@ if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avform
   add_executable(veyra_push_benchmark_tests tests/unit/PushBenchmarkTests.cpp)
 target_compile_features(veyra_push_benchmark_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_benchmark_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS adaptive frame generation: per-pair multiplier choice and its hold.
+add_executable(veyra_push_adaptive_fg_tests tests/unit/PushAdaptiveFgTests.cpp)
+target_compile_features(veyra_push_adaptive_fg_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_adaptive_fg_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS automatic HUD detection on synthetic pictures.
 add_executable(veyra_push_hud_tests tests/unit/PushHudTests.cpp src/engine/PushHud.cpp)
 target_compile_features(veyra_push_hud_tests PRIVATE cxx_std_20)

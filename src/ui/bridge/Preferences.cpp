@@ -346,7 +346,7 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
     } else if (key == QLatin1String("pushConsole")) {
         // PushFPS quick setup: which console the profile is for.
         const QString v = value.toString();
-        static const QStringList consoles{"ps5", "ps5pro", "xbox", "switch2", "other"};
+        static const QStringList consoles{"ps5", "ps5pro", "xbox", "switch", "switch2", "other"};
         if (!consoles.contains(v)) return false;
         stored = v;
     } else if (key == QLatin1String("pushProfiles")) {

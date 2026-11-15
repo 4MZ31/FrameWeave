@@ -291,6 +291,10 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
             const bool on = p.value(QStringLiteral("vfgAutoRegulate")).toBool();
             if (s.vfgAutoRegulate != on) { s.vfgAutoRegulate = on; changed = true; }
         }
+        if (p.contains(QStringLiteral("fgAdaptive"))) {
+            const bool on = p.value(QStringLiteral("fgAdaptive")).toBool();
+            if (s.fgAdaptive != on) { s.fgAdaptive = on; changed = true; }
+        }
         if (!defaultFlowApplied && p.contains(QStringLiteral("contentRate"))) {
             const int rate = p.value(QStringLiteral("contentRate")).toInt();
             if(rate>=0&&rate<=int(engine::ContentRate::Capture60To30)){

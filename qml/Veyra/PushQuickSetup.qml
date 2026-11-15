@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import "EffectSupport.js" as Support
 import "PushCaptureCards.js" as Cards
+import "PushGamePresets.js" as Presets
 
 // PushFPS quick setup: the choices most console players make, above the detailed
 // controls. Every control here only sets existing settings (frame generation on/off,
@@ -61,6 +62,30 @@ VGroup {
 
     // The largest multiplier the current backend offers whose output stays at or
     // under the target; the smallest offered one when even that overshoots.
+    // Adaptive multiplier (EnhancementSettings::fgAdaptive): the multiplier becomes a
+    // ceiling and the engine picks, per frame pair, the one closest to the target from
+    // the game's measured frame rate. Only worth it when the backend offers more than 2X;
+    // XeSS paces its own presentation and keeps its fixed multiplier.
+    readonly property var offeredMultipliers: (veyra.fgMultiplierChoices || []).map(o => parseInt(o.id)).filter(m => m >= 2)
+    readonly property bool adaptivePossible: quick.fgPossible && !veyra.presentationOwned && quick.offeredMultipliers.some(m => m > 2)
+    readonly property bool adaptive: quick.adaptivePossible && veyra.fgAdaptive === true
+    function setAdaptive(on) {
+        veyra.fgAdaptive = on
+        // The game's frame rate is measured by automatic duplicate removal.
+        if (on && Number(veyra.contentRate) === 0) veyra.contentRate = 1
+        const t = quick.currentTarget
+        if (t === "60" || t === "120" || t === "monitor") quick.applyTarget(t)
+    }
+    // Live: the multiplier the last frame pair used and the measured game frame rate.
+    property var liveStats: ({})
+    Timer {
+        interval: 1000; repeat: true
+        running: quick.adaptive && veyra.hasSource && veyra.fgEnabled && quick.visible
+        triggeredOnStart: true
+        onTriggered: quick.liveStats = veyra.pushLiveStats()
+        onRunningChanged: if (!running) quick.liveStats = ({})
+    }
+
     function multiplierFor(fps, base) {
         const gameFps = base || quick.baseFps
         const offered = (veyra.fgMultiplierChoices || []).map(o => parseInt(o.id))
@@ -79,7 +104,7 @@ VGroup {
         if (id === "off") { veyra.fgEnabled = false; return }
         const fps = targetFps(id)
         if (fps <= gameFps + 0.5) { veyra.fgEnabled = false; return }
-        const m = multiplierFor(fps, gameFps)
+        const m = quick.adaptive ? Presets.adaptiveCeiling(quick.offeredMultipliers, fps) : multiplierFor(fps, gameFps)
         if (m < 2) return
         veyra.fgMultiplier = m
         // XeSS paces its own presentation (presentationOwned); the cap is then
@@ -108,7 +133,8 @@ VGroup {
     // preference (validated by the bridge); nothing here adds engine state.
     readonly property var consoles: [
         { id: "ps5", label: "PlayStation 5" }, { id: "ps5pro", label: "PS5 Pro" },
-        { id: "xbox", label: "Xbox Series X|S" }, { id: "switch2", label: "Nintendo Switch 2" },
+        { id: "xbox", label: "Xbox Series X|S" }, { id: "switch", label: "Nintendo Switch" },
+        { id: "switch2", label: "Nintendo Switch 2" },
         { id: "other", label: qsTr("其他主机") }
     ]
     readonly property string consoleId: {
@@ -127,6 +153,7 @@ VGroup {
 
     function snapshot() {
         return { fps: quick.baseFps, target: quick.currentTarget, enhance: veyra.nrAnyEnabled === true,
+                 adaptive: veyra.fgAdaptive === true,
                  lowLatency: veyra.nvidiaLowLatencyAvailable === true && (veyra.nvidiaLowLatency ?? 0) > 0 }
     }
     function writeProfiles(p) {
@@ -138,6 +165,10 @@ VGroup {
         if (!s) return
         const fps = s.fps === 40 || s.fps === 60 ? s.fps : 30
         veyra.setPreference("pushGameFps", fps)
+        if (typeof s.adaptive === "boolean" && quick.adaptivePossible) {
+            veyra.fgAdaptive = s.adaptive
+            if (s.adaptive && Number(veyra.contentRate) === 0) veyra.contentRate = 1
+        }
         if (quick.fgPossible && ["off", "60", "120", "monitor"].indexOf(s.target) >= 0)
             quick.applyTarget(s.target, fps)
         if (quick.nrPossible && typeof s.enhance === "boolean" && s.enhance !== (veyra.nrAnyEnabled === true))
@@ -200,6 +231,7 @@ VGroup {
         switch (quick.consoleId) {
         case "xbox": return qsTr("Xbox 请在 设置 → 常规 → 电视和显示选项 中选择 60 Hz。游戏没有 HDCP，可以直接采集。")
         case "switch2": return qsTr("Switch 2 请放在底座上，输出 60 Hz。游戏没有 HDCP，可以直接采集。")
+        case "switch": return qsTr("Switch 请放在底座上，输出 1080p 60 Hz。游戏没有 HDCP，可以直接采集。")
         case "other": return qsTr("主机请输出 60 Hz，并关闭 HDCP（如有此选项），否则采集画面可能为黑屏。")
         default: return qsTr("主机请输出 60 Hz。PlayStation 需在 设置 → 系统 → HDMI 中关闭 HDCP，否则采集画面为黑屏。")
         }
@@ -209,6 +241,8 @@ VGroup {
         if (!quick.fgPossible) return Support.status(veyra, "frame-generation").reason || ""
         if (quick.currentTarget === "") return qsTr("已在专业模式中手动设置")
         if (quick.currentTarget === "off") return qsTr("主机游戏保持原有帧率")
+        if (quick.adaptive) return qsTr("自适应：按游戏的实时帧率在 2× 到 %1× 之间选择，尽量接近 %2 FPS")
+            .arg(veyra.fgMultiplier).arg(Math.round(quick.targetFps(quick.currentTarget)))
         const m = veyra.fgMultiplier
         const reach = quick.baseFps * m
         const want = quick.targetFps(quick.currentTarget)
@@ -459,6 +493,24 @@ VGroup {
                    { id: "120", label: "120 FPS" }, { id: "monitor", label: qsTr("匹配显示器") }]
             current: quick.currentTarget
             onPicked: id => quick.applyTarget(id)
+        }
+    }
+
+    VRow {
+        objectName: "pushfps-adaptive-row"
+        label: qsTr("自适应倍率")
+        help: qsTr("很多主机游戏的帧率并不固定：30 FPS 的游戏会掉到 25，40 FPS 模式会在 35 到 45 之间波动。开启后 PushFPS 实时测量游戏帧率，每一对画面都选择最接近目标帧率的补帧倍率，类似 NVIDIA DLSS 4.5 的动态多帧生成")
+        hint: !quick.adaptivePossible ? qsTr("当前补帧方式只有 2×，无需自适应")
+            : quick.adaptive && quick.liveStats.fgMultiplierNow > 1 && quick.liveStats.contentFps > 0
+              ? qsTr("现在 %1×：游戏 %2 FPS → 约 %3 FPS").arg(quick.liveStats.fgMultiplierNow)
+                    .arg(Math.round(quick.liveStats.contentFps)).arg(Math.round(quick.liveStats.contentFps * quick.liveStats.fgMultiplierNow))
+              : qsTr("游戏帧率波动时自动调整倍率，输出尽量贴近目标")
+        VSwitch {
+            objectName: "pushfps-adaptive"
+            enabled: quick.adaptivePossible && veyra.fgEnabled
+            opacity: enabled ? 1 : 0.4
+            checked: quick.adaptive
+            onToggled: checked => quick.setAdaptive(checked)
         }
     }
 
