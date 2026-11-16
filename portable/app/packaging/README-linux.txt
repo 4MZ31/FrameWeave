@@ -19,7 +19,9 @@ Portable mode: create an empty file named portable.txt in this folder. Settings 
 then kept here, and deleting the folder removes everything.
 
 Needs: x86-64 Linux with glibc 2.31 or newer (Ubuntu 20.04+, Debian 11+, Fedora 33+...), OpenGL 3.3 or
-Vulkan, X11 or Wayland (through XWayland).
+Vulkan, X11 or Wayland (through XWayland). Desktop systems have the OpenGL libraries already; on a minimal
+install, "error while loading shared libraries: libOpenGL.so.0" means: sudo apt install libopengl0 libegl1
+(Fedora: sudo dnf install libglvnd-opengl libglvnd-egl).
 
 This is a preview: tested automatically (self-test, GPU check against the CPU reference, a clean
 Ubuntu container), not yet with every capture card. Reports are welcome:
