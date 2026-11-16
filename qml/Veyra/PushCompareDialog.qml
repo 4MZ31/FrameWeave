@@ -35,6 +35,15 @@ DialogLayer {
     readonly property string rightTag: "PushFPS · " + cmp.shownFps + " FPS"
 
     function layoutName(id) { return id === 1 ? qsTr("并排") : qsTr("分屏") }
+    // Where the preview puts each label (index 0 left, 1 right), as the clip does: split at
+    // the top corners of the picture, side by side centred in the black bar above each picture.
+    function tagX(index, tagWidth, previewWidth, sideBySide) {
+        if (sideBySide) return (index === 0 ? 0 : previewWidth / 2) + (previewWidth / 2 - tagWidth) / 2
+        return index === 0 ? 6 : previewWidth - tagWidth - 6
+    }
+    function tagY(tagHeight, previewHeight, sideBySide) {
+        return sideBySide ? (previewHeight / 4 - tagHeight) / 2 : 6
+    }
 
     // The layout drawn small, with the labels where the clip puts them.
     Rectangle {
@@ -88,14 +97,12 @@ DialogLayer {
             model: 2
             delegate: Rectangle {
                 required property int index
-                readonly property real halfX: index === 0 ? 0 : preview.width / 2
                 objectName: index === 0 ? "pushfps-compare-tag-left" : "pushfps-compare-tag-right"
                 width: tagText.implicitWidth + 10
                 height: tagText.implicitHeight + 4
                 // Split: top corners of the picture. Side by side: centred in the bar above each picture.
-                x: preview.sideBySide ? halfX + (preview.width / 2 - width) / 2
-                                      : (index === 0 ? 6 : preview.width - width - 6)
-                y: preview.sideBySide ? (preview.picTop - height) / 2 : 6
+                x: cmp.tagX(index, width, preview.width, preview.sideBySide)
+                y: cmp.tagY(height, preview.height, preview.sideBySide)
                 color: "#000000"
                 Text {
                     id: tagText

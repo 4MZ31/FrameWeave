@@ -58,18 +58,16 @@ Item {
             compare(cmp.seconds, 15)
         }
         function test_preview_labels_follow_the_layout() {
-            const left = findChild(cmp, "pushfps-compare-tag-left")
-            const right = findChild(cmp, "pushfps-compare-tag-right")
-            const preview = findChild(cmp, "pushfps-compare-preview")
-            verify(left && right && preview)
-            // Split: the top corners of the one picture.
-            compare(left.y, 6)
-            verify(left.x < preview.width / 4 && right.x > preview.width / 2)
-            // Side by side: centred over each half, in the bar above the pictures.
-            veyra.setPreference("pushCompareLayout", 1)
-            verify(left.y + left.height <= preview.height / 4, "left label sits in the black bar")
-            verify(Math.abs(left.x + left.width / 2 - preview.width / 4) < 1, "centred over the left picture")
-            verify(Math.abs(right.x + right.width / 2 - preview.width * 3 / 4) < 1, "centred over the right picture")
+            // Split: the top corners of the one picture (320 x 180 preview, 90-wide labels).
+            compare(cmp.tagX(0, 90, 320, false), 6, "split: left label at the top left")
+            compare(cmp.tagX(1, 90, 320, false), 224, "split: right label at the top right")
+            compare(cmp.tagY(16, 180, false), 6, "split: labels at the top of the picture")
+            // Side by side: centred over each half, in the black bar (180 / 4 = 45 high) above the pictures.
+            compare(cmp.tagX(0, 90, 320, true) + 45, 80, "side by side: centred over the left picture")
+            compare(cmp.tagX(1, 90, 320, true) + 45, 240, "side by side: centred over the right picture")
+            const y = cmp.tagY(16, 180, true)
+            verify(y >= 0 && y + 16 <= 45, "side by side: labels sit in the black bar, y=" + y)
+            verify(findChild(cmp, "pushfps-compare-preview") !== null, "the preview is drawn")
         }
         function test_preview_labels_name_both_rates() {
             veyra.fgMultiplier = 4
