@@ -2,6 +2,8 @@
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 #include "veyra/engine/LiveStream.h"
 
+#include <cerrno>
+
 #include <algorithm>
 #include <chrono>
 #include <condition_variable>
@@ -124,6 +126,11 @@ const char* stateName(State s) {
 
 namespace {
 std::string avText(int code) {
+    // Readable text for the network errors the platforms cause most; on Windows FFmpeg otherwise prints
+    // "Error number -138 occurred". 10053/10054/10060/10061 are the Winsock codes FFmpeg passes on there.
+    if (code == AVERROR(ETIMEDOUT) || code == -10060) return "timed out (server not reachable)";
+    if (code == AVERROR(ECONNREFUSED) || code == -10061) return "connection refused";
+    if (code == AVERROR(ECONNRESET) || code == AVERROR(EPIPE) || code == -10053 || code == -10054) return "connection closed by the server";
     char buffer[AV_ERROR_MAX_STRING_SIZE]{};
     av_strerror(code, buffer, sizeof(buffer));
     return buffer;
