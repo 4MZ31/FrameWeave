@@ -1409,3 +1409,17 @@ zh:亮|Licht
 1406|Audioeingang
 1407|Treiberprofil wird verwendet
 1408|Sunset-City-Logo
+1409|Streamschlüssel
+1410|Plattform
+1411|Server
+1412|Live gehen
+1413|Live
+1414|Stream beenden
+1415|Plattform hinzufügen
+1416|Spielton
+1417|Videobitrate
+1418|Eigener RTMP-Server
+1419|Streamschlüssel einfügen
+1420|Nicht gestartet
+1421|Verbindung fehlgeschlagen
+1422|Mikrofon

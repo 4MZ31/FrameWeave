@@ -80,6 +80,14 @@ VGroup {
     // Frame Pacing Repair, the share of real frames it re-timed over the last second.
     property var liveStats: ({})
     property var lastPacing: null
+    // Going live: polled while a stream runs (or every few seconds) for the tile.
+    property var liveStream: ({})
+    Timer {
+        interval: quick.liveStream.active ? 1000 : 3000; repeat: true
+        running: quick.visible && typeof veyra.pushStreamStatus === "function"
+        triggeredOnStart: true
+        onTriggered: quick.liveStream = veyra.pushStreamStatus() || ({})
+    }
     property real pacingShare: -1
     Timer {
         interval: 1000; repeat: true
@@ -339,6 +347,7 @@ VGroup {
         veyra.navigate(dialog)
     }
     GridLayout {
+        id: toolsGrid
         objectName: "pushfps-tools-row"
         Layout.fillWidth: true
         Layout.topMargin: 8
@@ -384,6 +393,19 @@ VGroup {
                 if (quick.compareRecording) veyra.stopRecording("compare-button")
                 else veyra.pushStartCompareClip(15)
             }
+        }
+        PushToolTile {
+            objectName: "pushfps-stream"
+            // Fifth tile: the whole row, so the grid stays even.
+            Layout.columnSpan: toolsGrid.columns
+            Layout.fillWidth: true
+            iconName: "cast"
+            readonly property var streamState: quick.liveStream
+            text: streamState.active ? qsTr("直播中") : qsTr("直播")
+            sub: streamState.active ? (streamState.live ? qsTr("%1 个平台").arg((streamState.outputs || []).filter(o => o.state === "live").length) : qsTr("正在连接平台…"))
+                             : qsTr("Twitch、YouTube、Kick、TikTok，可同时推")
+            tip: qsTr("把 PushFPS 的画面直接推到直播平台，可以同时推多个平台")
+            onClicked: veyra.navigate("stream")
         }
     }
 

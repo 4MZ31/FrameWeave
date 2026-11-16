@@ -1407,3 +1407,17 @@
 1406|Audio input
 1407|Driver profile is in use
 1408|Sunset City logo
+1409|Stream key
+1410|Platform
+1411|Server
+1412|Go live
+1413|Live
+1414|Stop stream
+1415|Add platform
+1416|Game sound
+1417|Video bitrate
+1418|Custom RTMP
+1419|Paste stream key
+1420|Not started
+1421|Connection failed
+1422|Microphone

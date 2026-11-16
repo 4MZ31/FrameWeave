@@ -341,6 +341,19 @@ jobs:
           Write-Host "veyra_push_gpu_tests exit $code"
           if ($code -ne 0) { exit 1 }
 
+      # Going live: two outputs at once (RTMP + RTMPS through Schannel) to a local MediaMTX, read back,
+      # server restart, a closed port, key redaction. Proves the FFmpeg build has rtmp/rtmps.
+      - name: Going-live tests (local RTMP/RTMPS server)
+        shell: bash
+        run: |
+          set -e
+          build=$(cygpath -u "$BUILD")
+          cmake --build "$build" --target veyra_live_stream_tests --parallel
+          exe=$(find "$build" -name veyra_live_stream_tests.exe | head -1)
+          test -n "$exe"
+          export PATH="$(cygpath -u "$DEPS")/vcpkg/installed/x64-windows/bin:$PATH"
+          bash tests/data/stream/run-live-stream-tests.sh "$exe" windows_amd64.zip mediamtx.exe
+
       - name: QML component tests (PushFPS quick setup)
         run: |
           cmake --build $env:BUILD --target veyra_qml_quick_tests veyra_qml_easing_tests --parallel
@@ -361,7 +374,7 @@ jobs:
           $env:QML_DISABLE_DISK_CACHE = '1'
           Push-Location $stage
           $failed = 0
-          foreach ($t in 'tst_push_quick_setup', 'tst_push_picture_sound', 'tst_push_nis', 'tst_push_optimize', 'tst_push_presets', 'tst_push_appearance', 'tst_push_hud', 'tst_push_plug_and_play', 'tst_push_intro') {
+          foreach ($t in 'tst_push_quick_setup', 'tst_push_picture_sound', 'tst_push_nis', 'tst_push_optimize', 'tst_push_presets', 'tst_push_appearance', 'tst_push_hud', 'tst_push_plug_and_play', 'tst_push_intro', 'tst_push_stream') {
             & .\veyra_qml_quick_tests.exe -platform offscreen -input "qml-tests\$t.qml" -o "$t.txt,txt" 2>&1 | Out-Host
             $code = $LASTEXITCODE
             Get-Content "$t.txt" -ErrorAction SilentlyContinue | Out-Host

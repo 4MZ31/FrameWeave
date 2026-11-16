@@ -1244,6 +1244,7 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
   # Keep bridge domains explicit: no source glob or duplicate runtime state.
   target_sources(veyra_qml_bridge PRIVATE
     src/ui/bridge/PushFps.cpp
+    src/ui/bridge/PushStream.cpp
     src/ui/NvidiaVrrProfileController.cpp
     include/veyra/ui/NvidiaVrrProfileController.h
     src/ui/bridge/Hardware.cpp
@@ -1593,7 +1594,7 @@ add_executable(veyra_sr_reconstruction_tests tests/integration/SrReconstructionT
   target_link_libraries(veyra_repair_fg_tests PRIVATE veyra_pipeline veyra_sinks veyra_nvof)
 
   # Headless quality-core runner (Playbook R3.3): the phase5 gate's quality
-  add_library(veyra_engine STATIC src/engine/EngineController.cpp src/engine/EngineWatchdog.cpp src/engine/PreviewGpuSession.cpp src/engine/EngineControllerImage.cpp src/engine/PosterFrame.cpp src/engine/EffectChain.cpp src/engine/PresetLibrary.cpp src/ui/PlayerUiFacade.cpp src/engine/TiledImageProcessor.cpp src/engine/PresetStore.cpp src/engine/VideoPresenter.cpp src/engine/DisplayStateService.cpp src/engine/VideoExportJob.cpp src/engine/ExportStreams.cpp src/engine/ExportQueue.cpp src/engine/ExportJobManager.cpp src/engine/Subtitles.cpp src/engine/FgCompatibilityProbe.cpp src/engine/LiveRecorder.cpp src/engine/ReplayBuffer.cpp src/engine/MicrophoneCapture.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp)
+  add_library(veyra_engine STATIC src/engine/EngineController.cpp src/engine/EngineWatchdog.cpp src/engine/PreviewGpuSession.cpp src/engine/EngineControllerImage.cpp src/engine/PosterFrame.cpp src/engine/EffectChain.cpp src/engine/PresetLibrary.cpp src/ui/PlayerUiFacade.cpp src/engine/TiledImageProcessor.cpp src/engine/PresetStore.cpp src/engine/VideoPresenter.cpp src/engine/DisplayStateService.cpp src/engine/VideoExportJob.cpp src/engine/ExportStreams.cpp src/engine/ExportQueue.cpp src/engine/ExportJobManager.cpp src/engine/Subtitles.cpp src/engine/FgCompatibilityProbe.cpp src/engine/LiveRecorder.cpp src/engine/ReplayBuffer.cpp src/engine/MicrophoneCapture.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp src/engine/LiveStream.cpp)
   target_sources(veyra_pipeline PRIVATE src/guidance/AmdOpticalFlow.cpp
     src/guidance/GpuDisOpticalFlow.cpp third_party/gpu-dis/src/gpu/native_strict_dis_provider.cpp)
   target_include_directories(veyra_pipeline PRIVATE third_party/gpu-dis/src/gpu)
@@ -1612,6 +1613,12 @@ add_executable(veyra_sr_reconstruction_tests tests/integration/SrReconstructionT
   target_compile_options(veyra_engine PRIVATE /utf-8)
   target_compile_definitions(veyra_engine PUBLIC VEYRA_PROJECT_ROOT="${CMAKE_CURRENT_SOURCE_DIR}" VEYRA_SHADER_DIR="${CMAKE_BINARY_DIR}/shaders")
   target_link_libraries(veyra_engine PUBLIC veyra_pipeline veyra_sources veyra_sinks veyra_ngx veyra_nvof)
+  # PushFPS going live: RTMP/RTMPS outputs against a local MediaMTX (tests/data/stream/run-live-stream-tests.sh).
+  add_executable(veyra_live_stream_tests tests/integration/LiveStreamTests.cpp src/engine/LiveStream.cpp)
+  target_compile_features(veyra_live_stream_tests PRIVATE cxx_std_20)
+  target_compile_options(veyra_live_stream_tests PRIVATE /utf-8)
+  target_include_directories(veyra_live_stream_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${FFMPEG_INCLUDE_DIRS})
+  target_link_libraries(veyra_live_stream_tests PRIVATE ${FFMPEG_LIBRARIES})
   add_executable(veyra_vfg_export_probe tests/integration/VfgExportProbe.cpp)
   target_compile_features(veyra_vfg_export_probe PRIVATE cxx_std_20)
   target_compile_options(veyra_vfg_export_probe PRIVATE /utf-8)

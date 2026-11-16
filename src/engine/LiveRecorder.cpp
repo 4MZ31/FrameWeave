@@ -443,6 +443,8 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
     std::atomic<bool> audio{false};             // the file (or buffer) has sound tracks
     std::wstring path;                          // a recording's file
     std::shared_ptr<ReplayBuffer> replay;       // the instant replay buffer instead of a file
+    std::vector<stream::Target> streamTargets;  // going live instead of a file
+    std::shared_ptr<stream::Outputs> outputs;   // writer thread creates it; status() reads it
 
     // Engine thread: conversion into the slots.
     pipeline::ComputePass convert;
@@ -521,7 +523,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
     std::wstring encoderText() const {std::lock_guard lock(textMutex);return encoderName;}
     std::wstring noteText() const {std::lock_guard lock(textMutex);return note;}
     void setNote(std::wstring text){std::lock_guard lock(textMutex);note=std::move(text);}
-    std::string name() const {return replay?std::string("replay buffer"):utf8(path);}
+    std::string name() const {return replay?std::string("replay buffer"):!streamTargets.empty()?std::string("live stream"):utf8(path);}
 
     void fail(const std::wstring& reason){
         {std::lock_guard lock(textMutex);if(error.empty())error=reason;}
@@ -873,6 +875,21 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
             width,height,hevc?"HEVC":"H264",hdrMode,fps,bitrateMbps,double(replay->keepUs())/1e6,sound,microphone?(microphoneTrack?"track":"mixed"):"off",trackCount));
         return true;
     }
+    // Going live: the sound tracks as for a file, then one connection per target. Only the first
+    // sound track goes out (FLV carries one); stream mode mixes the microphone into it.
+    bool openStream(std::vector<uint8_t> extradata){
+        openSound();
+        outputs=std::make_shared<stream::Outputs>([](const std::string& line){veyra::log::info("live-stream",line);});
+        stream::VideoFormat format;
+        format.width=int(width);format.height=int(height);format.fps=int(fps);format.hevc=hevc;
+        format.extradata=std::move(extradata);format.bitRate=int64_t(bitrateMbps)*1000000;
+        std::string reason;
+        if(!outputs->start(streamTargets,format,trackCount?tracks[0].parameters.get():nullptr,reason)){fail(L"无法开始直播："+wide(reason));return false;}
+        std::string names;
+        for(const auto& t:streamTargets)names+=(names.empty()?"":", ")+t.name+" "+stream::redact(t.url);
+        veyra::log::info("live-recorder",std::format("live stream open extent={}x{} fps={} bitrateMbps={} audio={} targets=[{}]",width,height,fps,bitrateMbps,trackCount>0,names));
+        return true;
+    }
     bool writeVideo(const VideoPacket& packet,int64_t durationUs){
         AVPacket* out=av_packet_alloc();
         if(!out||av_new_packet(out,int(packet.data.size()))<0){av_packet_free(&out);return false;}
@@ -897,6 +914,11 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         for(unsigned i=0;i<trackCount;++i){
             auto& track=tracks[i];
             const bool ok=track.encode(final,limit,[&](AVPacket* packet){
+                if(outputs){
+                    if(i==0)outputs->pushAudio(std::make_shared<const std::vector<uint8_t>>(packet->data,packet->data+packet->size),
+                                               packet->pts*1000000/kAudioRate,std::max<int64_t>(1,packet->duration)*1000000/kAudioRate);
+                    return true;
+                }
                 if(replay){
                     replay->pushAudio(i,{std::make_shared<const std::vector<uint8_t>>(packet->data,packet->data+packet->size),packet->pts,packet->duration,false});
                     return true;
@@ -916,7 +938,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
             outCv.wait(lock,[&]{return headersReady||encoderDone;});
             if(headersReady)extradata=headers;
         }
-        bool ok=!extradata.empty()&&(replay?openReplay(std::move(extradata)):openFile(std::move(extradata)));
+        bool ok=!extradata.empty()&&(replay?openReplay(std::move(extradata)):!streamTargets.empty()?openStream(std::move(extradata)):openFile(std::move(extradata)));
         std::optional<VideoPacket> held;
         const int64_t frameUs=1000000/std::max(1u,fps);
         while(ok){
@@ -929,6 +951,11 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
             }
             for(auto& packet:batch){
                 backlogBytes-=packet.data.size();
+                if(outputs){
+                    ++videoWritten;writtenUs=packet.ptsUs;
+                    outputs->pushVideo(std::make_shared<const std::vector<uint8_t>>(std::move(packet.data)),packet.ptsUs,frameUs,packet.key);
+                    continue;
+                }
                 if(replay){
                     if(!originSet){replay->setOrigin(t0Us.load());originSet=true;}
                     ++videoWritten;writtenUs=packet.ptsUs;
@@ -939,12 +966,18 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
                 held=std::move(packet);
             }
             if(ok&&audio)ok=processAudio(false,0);
-            if(!ok){fail(replay?L"即时回放写入失败":L"写入录制文件失败（磁盘已满或没有写入权限？）");break;}
+            if(!ok){fail(replay?L"即时回放写入失败":outputs?L"直播的声音编码失败":L"写入录制文件失败（磁盘已满或没有写入权限？）");break;}
             if(ended)break;
         }
         // Drop what can no longer be written.
         {std::lock_guard lock(outMutex);for(auto& packet:videoPackets)backlogBytes-=packet.data.size();videoPackets.clear();}
-        if(replay){
+        if(outputs){
+            outputs->stop();
+            std::string summary;
+            for(const auto& t:outputs->status())
+                summary+=std::format(" [{} {} sent={}B frames={} dropped={} reconnects={}{}]",t.name,stream::stateName(t.state),t.bytesSent,t.framesSent,t.framesDropped,t.reconnects,t.error.empty()?"":" error="+t.error);
+            veyra::log::info("live-recorder",std::format("live stream closed videoFrames={} dropped={}{}",videoWritten.load(),dropped.load(),summary));
+        }else if(replay){
             int64_t end=endUs.load();
             if(videoWritten.load())end=std::max(end,writtenUs.load()+frameUs);
             if(ok&&audio&&videoWritten.load())ok=processAudio(true,end);
@@ -986,6 +1019,8 @@ struct ReplaySave {
 struct LiveRecorder::State {
     mutable std::mutex m;
     bool replayMode=false;
+    bool streamMode=false;                  // going live (Mode::Stream)
+    std::vector<stream::TargetStatus> lastStreams; // the outputs of the last stream segment
     RecordingSettings settings;
     bool armed=false;
     std::shared_ptr<Segment> current,pendingCapture;
@@ -1011,6 +1046,7 @@ struct LiveRecorder::State {
         sink::removeRecordingAudioSink(segment.get());
         detachMicrophone(segment.get());
         if(!why.empty()&&segment->noteText().empty())segment->setNote(why);
+        if(segment->outputs)lastStreams=segment->outputs->status();
         if(const auto name=segment->encoderText();!name.empty())encoder=name;
         segment->finish(sink::recordingClockUs());
         framesBase+=segment->frames.load();droppedBase+=segment->dropped.load();generatedBase+=segment->generated.load();
@@ -1021,7 +1057,7 @@ struct LiveRecorder::State {
     void reap(){
         if(current&&current->failed.load()){
             failed=true;error=current->errorText();
-            if(replayMode){
+            if(replayMode||streamMode){
                 // The buffer stays armed; the next picture tries again a little later.
                 retryAfterUs=sink::recordingClockUs()+kReplayRetryUs;
                 veyra::log::warn("live-recorder",std::format("replay buffer stopped on error, retrying in 5 s: {}",utf8(error)));
@@ -1036,7 +1072,7 @@ struct LiveRecorder::State {
             auto& segment=*it;
             if(!segment->done()){++it;continue;}
             segment->join();
-            if(!replayMode&&segment->videoWritten.load()){path=segment->path;++saved;}
+            if(!replayMode&&!streamMode&&segment->videoWritten.load()){path=segment->path;++saved;}
             if(segment->failed.load()&&error.empty()){failed=true;error=segment->errorText();}
             if(const auto text=segment->noteText();!text.empty())note=text;
             it=finishing.erase(it);
@@ -1063,6 +1099,7 @@ struct LiveRecorder::State {
 };
 
 LiveRecorder::LiveRecorder(bool replay):s_(std::make_unique<State>()){s_->replayMode=replay;}
+LiveRecorder::LiveRecorder(Mode mode):s_(std::make_unique<State>()){s_->replayMode=mode==Mode::Replay;s_->streamMode=mode==Mode::Stream;}
 LiveRecorder::~LiveRecorder(){waitIdle(8000);}
 
 bool LiveRecorder::start(const RecordingSettings& settings,std::wstring& error){
@@ -1070,6 +1107,21 @@ bool LiveRecorder::start(const RecordingSettings& settings,std::wstring& error){
     auto& s=*s_;
     std::lock_guard lock(s.m);
     s.reap();
+    if(s.streamMode){
+        if(settings.streams.empty()){error=L"没有可用的直播目标";return false;}
+        for(const auto& t:settings.streams)
+            if(!stream::validServer(t.url)){error=L"直播地址无效："+wide(t.name);return false;}
+        // Started again with other settings: the next picture opens new connections with them.
+        if(s.current){s.retire(s.current,{});s.current.reset();}
+        s.settings=settings;
+        s.armed=true;s.failed=false;s.error.clear();s.note.clear();s.encoder.clear();s.framesBase=s.droppedBase=0;
+        s.firstFrameUs=0;s.nextDueUs=0;s.retryAfterUs=0;s.lastStreams.clear();++s.started;
+        std::string names;
+        for(const auto& t:settings.streams)names+=(names.empty()?"":", ")+t.name+" "+stream::redact(t.url);
+        veyra::log::info("live-recorder",std::format("live stream armed bitrateMbps={} fpsLimit={} audio={} microphone={} targets=[{}]",
+            settings.bitrateMbps,settings.fpsLimit,settings.audio,settings.microphone,names));
+        return true;
+    }
     if(s.replayMode){
         // Armed again with other settings: the next picture starts a new
         // stretch with them; the current one stays saveable meanwhile.
@@ -1121,7 +1173,7 @@ void LiveRecorder::stop(const std::wstring& note){
     else if(!note.empty())s.note=note;
     // A replay buffer turned off lets go of its memory (a save in progress keeps its clip).
     if(s.replayMode)s.frozen.reset();
-    veyra::log::info("live-recorder",std::format("{} requested note={}",s.replayMode?"replay buffer stop":"stop",utf8(note)));
+    veyra::log::info("live-recorder",std::format("{} requested note={}",s.replayMode?"replay buffer stop":s.streamMode?"live stream stop":"stop",utf8(note)));
 }
 
 bool LiveRecorder::active() const{std::lock_guard lock(s_->m);return s_->armed;}
@@ -1148,6 +1200,12 @@ RecordingStatus LiveRecorder::status() const{
         const auto mic=microphoneStatus();
         if(!mic.open)out.microphoneError=mic.error;
         out.microphoneName=mic.device;
+    }
+    if(s.streamMode){
+        out.streams=s.current&&s.current->outputs?s.current->outputs->status():s.lastStreams;
+        out.path.clear();
+        out.seconds=s.armed&&s.firstFrameUs?double(sink::recordingClockUs()-s.firstFrameUs)/1e6:s.lastSeconds;
+        return out;
     }
     if(s.replayMode){
         out.saving=s.save!=nullptr;
@@ -1213,7 +1271,7 @@ void LiveRecorder::setPresentRateHint(double fps){if(std::isfinite(fps)&&fps>0)s
 
 void LiveRecorder::sessionEnded(const std::wstring& note){
     auto& s=*s_;
-    if(!s.replayMode){stop(note);return;}
+    if(!s.replayMode&&!s.streamMode){stop(note);return;}
     // The buffer belongs to the device that ends; the next session starts a
     // new stretch, and this one stays saveable until then.
     std::lock_guard lock(s.m);
@@ -1262,7 +1320,7 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
     if(s.current&&s.current->failed.load())s.reap();
     if(!s.armed)return false;
     const int64_t now=sink::recordingClockUs();
-    if(s.replayMode&&!s.current&&now<s.retryAfterUs)return false;
+    if((s.replayMode||s.streamMode)&&!s.current&&now<s.retryAfterUs)return false;
     if(s.settings.fpsLimit){
         const int64_t interval=1000000/int64_t(s.settings.fpsLimit);
         if(s.nextDueUs&&now+interval/4<s.nextDueUs)return false;
@@ -1270,22 +1328,22 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
     }
     if(s.current&&!s.current->matches(frame)){
         s.reap();
-        if(!s.replayMode&&s.finishing.size()>=2){
+        if(!s.replayMode&&!s.streamMode&&s.finishing.size()>=2){
             s.armed=false;s.failed=true;s.error=L"录制文件仍在保存，已停止录制以避免积压";
             s.retire(s.current,{});s.current.reset();return false;
         }
         veyra::log::info("live-recorder",std::format("picture changed {}x{} hdr={} -> {}x{} hdr={}; continuing in a new {}",
             s.current->width,s.current->height,s.current->hdrMode,frame.width,frame.height,frame.hdrMode,s.replayMode?"replay buffer":"file"));
-        s.retire(s.current,s.replayMode?std::wstring{}:L"画面尺寸或 HDR 模式变化，已接着写入新文件");s.current.reset();
+        s.retire(s.current,(s.replayMode||s.streamMode)?std::wstring{}:L"画面尺寸或 HDR 模式变化，已接着写入新文件");s.current.reset();
     }
     if(!s.current){
         // Rapid source/settings changes must not create an unbounded number
         // of encoder workers while the previous segments are draining.
         s.reap();
-        if(s.replayMode&&s.finishing.size()>=2)return false;
+        if((s.replayMode||s.streamMode)&&s.finishing.size()>=2)return false;
         auto fail=[&](const std::wstring& reason){
             s.failed=true;s.error=reason;
-            if(s.replayMode)s.retryAfterUs=now+kReplayRetryUs;else s.armed=false;
+            if(s.replayMode||s.streamMode)s.retryAfterUs=now+kReplayRetryUs;else s.armed=false;
             veyra::log::error("live-recorder",std::format("cannot {}: {}",s.replayMode?"buffer replay":"record",utf8(reason)));
             return false;
         };
@@ -1293,6 +1351,8 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         if(FAILED(frame.texture->GetDevice(IID_PPV_ARGS(&segment->device))))return fail(L"无法获取当前显卡");
         segment->vendor=adapterVendor(segment->device.Get());
         segment->nvenc=segment->vendor==0x10DE&&GetEnvironmentVariableW(L"VEYRA_TEST_FORCE_MF_ENCODER",nullptr,0)==0;
+        if(frame.hdrMode&&s.streamMode)return fail(L"直播需要 SDR 画面：请关闭 HDR 输出后再开播");
+        if(s.streamMode&&(frame.width>4096||frame.height>4096))return fail(std::format(L"当前画面尺寸 {}×{} 太大，无法直播",frame.width,frame.height));
         if(frame.hdrMode&&!segment->nvenc)return fail(L"HDR 画面录制需要 NVIDIA 显卡（HEVC 10bit）；请关闭 HDR 输出后再录制");
         if(frame.width<16||frame.height<16||(frame.width&1)||(frame.height&1))
             return fail(std::format(L"当前画面尺寸 {}×{} 无法录制",frame.width,frame.height));
@@ -1301,7 +1361,7 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         segment->hevc=s.settings.hevc||frame.hdrMode!=0||frame.width>4096||frame.height>4096;
         const double hint=s.presentFps.load();
         segment->fps=s.settings.fpsLimit?s.settings.fpsLimit:uint32_t(std::clamp<long>(std::lround(hint>1?hint:60.0),10,480));
-        segment->bitrateMbps=s.settings.bitrateMbps?s.settings.bitrateMbps:autoBitrateMbps(frame.width,frame.height,segment->fps,segment->hevc);
+        segment->bitrateMbps=s.settings.bitrateMbps?s.settings.bitrateMbps:s.streamMode?6u:autoBitrateMbps(frame.width,frame.height,segment->fps,segment->hevc);
         segment->sound=s.settings.audio;
         segment->microphone=s.settings.microphone;
         segment->microphoneTrack=s.settings.microphoneTrack;
@@ -1312,7 +1372,14 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         segment->compareClip=s.settings.compare&&!s.replayMode;
         segment->compareLabels=s.settings.compareLabels;
         segment->audio=segment->sound||segment->microphone;
-        if(s.replayMode){
+        if(s.streamMode){
+            // Platforms take H.264 + AAC at a constant bitrate with a keyframe every 2 s (OBS's
+            // rtmp-services recommendations); the microphone is mixed into the one sound track.
+            segment->hevc=false;segment->rateControl=0;segment->keyframeSeconds=2;
+            segment->microphoneTrack=false;segment->matroska=false;segment->compareClip=false;
+            segment->audioKbps=std::clamp(s.settings.audioKbps,64u,320u);
+            segment->streamTargets=s.settings.streams;
+        }else if(s.replayMode){
             const uint64_t cap=s.settings.replayMemoryBytes?s.settings.replayMemoryBytes:defaultReplayMemory();
             segment->replay=std::make_shared<ReplayBuffer>(int64_t(s.settings.replaySeconds)*1000000,size_t(cap));
         }else{
@@ -1325,7 +1392,7 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         if(segment->sound)sink::addRecordingAudioSink(segment);
         if(segment->microphone)attachMicrophone(segment,s.settings.microphoneId);
         veyra::log::info("live-recorder",std::format("{} {} path={} extent={}x{} hdr={} codec={} fps={} bitrateMbps={} encoder={} audio={} microphone={}",
-            s.replayMode?"replay buffer":"file",s.files,segment->name(),segment->width,segment->height,segment->hdrMode,segment->hevc?"HEVC":"H264",segment->fps,segment->bitrateMbps,
+            s.replayMode?"replay buffer":s.streamMode?"live stream":"file",s.files,segment->name(),segment->width,segment->height,segment->hdrMode,segment->hevc?"HEVC":"H264",segment->fps,segment->bitrateMbps,
             segment->nvenc?"NVENC":"MediaFoundation",segment->sound,segment->microphone?(segment->microphoneTrack?"track":"mixed"):"off"));
     }
     if(!s.current->capture(list,frame,now))return false;

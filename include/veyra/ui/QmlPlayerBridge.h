@@ -1493,6 +1493,16 @@ public:
     Q_INVOKABLE bool pushOpenAnrFolder();
     // Credits and links from Brand.h: "repo", "veyra", "anr", "anrReleases", "apex".
     Q_INVOKABLE bool pushOpenLink(const QString& key);
+    // PushFPS going live (src/ui/bridge/PushStream.cpp, engine/LiveStream.h): the outputs are in the
+    // pref streamTargets; their stream keys are stored encrypted with Windows DPAPI under the output's
+    // id and never shown again or logged. pushStreamStatus() polls the connections.
+    Q_INVOKABLE QVariantList pushStreamPlatforms() const;
+    Q_INVOKABLE bool pushSetStreamKey(const QString& id, const QString& key);
+    Q_INVOKABLE bool pushHasStreamKey(const QString& id) const;
+    Q_INVOKABLE void pushForgetStreamKey(const QString& id);
+    Q_INVOKABLE bool pushStartStream();
+    Q_INVOKABLE void pushStopStream();
+    Q_INVOKABLE QVariantMap pushStreamStatus() const;
     Q_INVOKABLE QString pushLinkUrl(const QString& key) const;
     // PushFPS automatic HUD detection (engine/PushHudSampler.h): samples=1 only
     // takes a fresh picture for the box editor. pushHudDetection() polls it.

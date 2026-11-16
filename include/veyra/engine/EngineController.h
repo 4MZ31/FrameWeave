@@ -282,6 +282,11 @@ public:
     bool setReplay(bool enabled,const RecordingSettings& options,std::wstring& error);
     bool saveReplay(const std::wstring& directory,std::wstring& error);
     RecordingStatus replaySnapshot()const;
+    // PushFPS going live (LiveRecorder::Mode::Stream): the presented picture and sound to RTMP/RTMPS
+    // servers, several at once from one encode. Stays on across source changes until stopped.
+    bool requestStreaming(const RecordingSettings& options,std::wstring& error);
+    void stopStreaming();
+    RecordingStatus streamingSnapshot()const;
     // PushFPS automatic HUD detection (PushHudSampler.h): samples presented
     // real frames while it runs; hudDetection() polls it. Any thread.
     void startHudDetection(uint32_t samples,uint32_t intervalMs){hud_->start(samples,intervalMs);}
@@ -330,8 +335,11 @@ private:
     std::unique_ptr<LiveRecorder> replay_=std::make_unique<LiveRecorder>(true);
     // PushFPS automatic HUD detection reads presented frames the same way.
     std::unique_ptr<PushHudSampler> hud_=std::make_unique<PushHudSampler>();
+    // PushFPS going live: a third recorder in stream mode.
+    std::unique_ptr<LiveRecorder> stream_=std::make_unique<LiveRecorder>(LiveRecorder::Mode::Stream);
     PresentCaptureFanout recordings_{*recorder_,*replay_};
-    PresentCaptureFanout captures_{recordings_,*hud_};
+    PresentCaptureFanout liveOutputs_{recordings_,*stream_};
+    PresentCaptureFanout captures_{liveOutputs_,*hud_};
     // Declared before worker_: it outlives the engine thread's presenters.
     DisplayStateService displayStates_;
     std::thread worker_;
