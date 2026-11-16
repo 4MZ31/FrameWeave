@@ -470,6 +470,15 @@ void testCompareBadges(Gpu& gpu, bool hdr) {
     check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
 }
 
+void testCompareSkipRule() {
+    // Real frames are never skipped by the rule (only when no slot is free at all).
+    check(!engine::compareSkipsFrame(false, 0, true) && !engine::compareSkipsFrame(false, 1, false), "skip rule: real frames kept");
+    // Generated frames leave the last free slot for the next real frame, and give way when the disk is behind.
+    check(engine::compareSkipsFrame(true, 1, false) && engine::compareSkipsFrame(true, 0, false), "skip rule: generated frames leave one slot free");
+    check(engine::compareSkipsFrame(true, 6, true), "skip rule: generated frames skipped while the disk is behind");
+    check(!engine::compareSkipsFrame(true, 2, false), "skip rule: generated frames recorded while two slots are free");
+}
+
 void testLabelScale() {
     engine::RecordingLabel l{8, 4, std::vector<uint8_t>(32, 0)};
     for (int yy = 0; yy < 4; ++yy) for (int x = 4; x < 8; ++x) l.luma[size_t(yy) * 8 + x] = 255;
@@ -662,6 +671,7 @@ int main() {
     testCompareSideBySide(gpu, false);
     testCompareSideBySide(gpu, true);
     testLabelScale();
+    testCompareSkipRule();
     testCompareRaw(gpu, false, engine::CompareLayout::Split);
     testCompareRaw(gpu, true, engine::CompareLayout::Split);
     testCompareRaw(gpu, false, engine::CompareLayout::SideBySide);

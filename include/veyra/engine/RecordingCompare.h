@@ -65,6 +65,14 @@ struct RecordingRawFrame {
 
 enum class CompareLayout : uint32_t { Split = 0, SideBySide = 1 };
 
+// Comparison clips, when the recorder falls behind (all encoder slots busy, or the disk behind):
+// whether to skip this frame. The console side moves only on real frames, so generated frames are
+// skipped first and one slot stays free for the next real frame; a real frame is skipped only when
+// no slot is free at all (the caller finds that out by trying to take one).
+inline bool compareSkipsFrame(bool generated, unsigned freeSlots, bool diskBehind) {
+    return generated && (diskBehind || freeSlots < 2);
+}
+
 class RecordingCompare {
 public:
     RecordingCompare();

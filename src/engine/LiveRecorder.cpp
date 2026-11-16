@@ -471,6 +471,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
     std::atomic<int64_t> t0Us{0};               // recording clock of the first frame
     int64_t lastPtsUs=-1;
     std::atomic<uint64_t> frames{0},dropped{0};
+    std::atomic<uint64_t> droppedReal{0}; // comparison clips: real frames that could not be recorded
 
     // Encoder thread.
     std::thread encoderThread;
@@ -601,10 +602,20 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
     bool capture(ID3D12GraphicsCommandList* list,const PresentCapture::Frame& frame,int64_t nowUs){
         if(closing.load()||!encoderReady.load())return false;
         if(backlogBytes.load()>=kBacklogFailBytes){fail(L"磁盘写入跟不上录制，已停止录制（请换更快的磁盘或降低码率）");return false;}
-        if(backlogBytes.load()>=kBacklogSkipBytes){++dropped;return false;}
+        // PushFPS comparison clips: the console side moves only on real frames, so when the
+        // encoder or the disk falls behind, generated frames are skipped first and one slot stays
+        // free for the next real frame. Skipping real frames instead could line up with their
+        // steady rhythm and freeze the console side for seconds (field report 2026-11-16).
+        const bool keepReal=compare&&!frame.generated;
+        const bool diskBehind=backlogBytes.load()>=kBacklogSkipBytes;
+        if(compare){
+            unsigned freeSlots=0;
+            for(unsigned i=0;i<kSlots;++i)if(slots[i].state.load()==0)++freeSlots;
+            if(compareSkipsFrame(frame.generated,freeSlots,diskBehind)){++dropped;return false;}
+        }else if(diskBehind){++dropped;return false;}
         int index=-1;
         for(unsigned i=0;i<kSlots;++i){int expected=0;if(slots[i].state.compare_exchange_strong(expected,1)){index=int(i);break;}}
-        if(index<0){++dropped;return false;}
+        if(index<0){++dropped;if(keepReal)++droppedReal;return false;}
         auto& slot=slots[size_t(index)];
         if(!t0Us.load())t0Us=nowUs;
         int64_t pts=nowUs-t0Us.load();
@@ -1018,8 +1029,9 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
                 if(finished.ok)veyra::log::info("live-recorder",std::format("file finalized path={} videoPackets={} audioPackets={} ms={:.0f}",utf8(path),finished.videoPackets,finished.audioPackets,ms));
                 else veyra::log::warn("live-recorder",std::format("file kept fragmented path={} reason={} ms={:.0f}",utf8(path),finished.error,ms));
             }
-            veyra::log::info("live-recorder",std::format("file closed path={} videoFrames={} seconds={:.2f} originUs={} audio={} audioGaps={} audioOverflow={} microphoneGaps={} microphoneOverflow={} dropped={} ok={}",
-                utf8(path),videoWritten.load(),double(end)/1e6,t0Us.load(),audio.load(),soundLane.gaps.load(),soundLane.overflow.load(),micLane.gaps.load(),micLane.overflow.load(),dropped.load(),ok));
+            veyra::log::info("live-recorder",std::format("file closed path={} videoFrames={} seconds={:.2f} originUs={} audio={} audioGaps={} audioOverflow={} microphoneGaps={} microphoneOverflow={} dropped={} ok={}{}",
+                utf8(path),videoWritten.load(),double(end)/1e6,t0Us.load(),audio.load(),soundLane.gaps.load(),soundLane.overflow.load(),micLane.gaps.load(),micLane.overflow.load(),dropped.load(),ok,
+                compare?std::format(" compare real={} generated={} rawConsole={} droppedReal={}",compare->realFrames(),compare->generatedFrames(),compare->rawFrames(),droppedReal.load()):std::string{}));
         }
         releaseMux();
         writerFinished=true;
