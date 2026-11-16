@@ -154,7 +154,11 @@ static bool readBack(const std::string& url, int& videoPackets, int& audioPacket
     AVFormatContext* in = nullptr;
     AVDictionary* o = nullptr;
     av_dict_set(&o, "rw_timeout", "8000000", 0);
-    if (avformat_open_input(&in, url.c_str(), nullptr, &o) < 0) { av_dict_free(&o); return false; }
+    if (const int r = avformat_open_input(&in, url.c_str(), nullptr, &o); r < 0) {
+        av_dict_free(&o);
+        std::printf("  read back %s: open failed (%d)\n", url.c_str(), r);
+        return false;
+    }
     av_dict_free(&o);
     avformat_find_stream_info(in, nullptr);
     int v = -1, a = -1;
@@ -164,14 +168,25 @@ static bool readBack(const std::string& url, int& videoPackets, int& audioPacket
     }
     AVPacket* p = av_packet_alloc();
     const auto until = std::chrono::steady_clock::now() + 3s;
-    while (std::chrono::steady_clock::now() < until && av_read_frame(in, p) >= 0) {
+    int ret = 0;
+    while (std::chrono::steady_clock::now() < until && (ret = av_read_frame(in, p)) >= 0) {
         if (p->stream_index == v) ++videoPackets;
         if (p->stream_index == a) ++audioPackets;
         av_packet_unref(p);
     }
+    std::printf("  read back %s: %d video and %d audio packets (last read %d)\n", url.c_str(), videoPackets, audioPackets, ret);
     av_packet_free(&p);
     avformat_close_input(&in);
     return v >= 0 && a >= 0 && videoPackets > 20 && audioPackets > 20;
+}
+
+// The server only lists a path once media arrives (outputs start at a keyframe), so retry for a while.
+static bool readBackSoon(const std::string& url, int& videoPackets, int& audioPackets) {
+    for (int attempt = 0; attempt < 6; ++attempt) {
+        if (readBack(url, videoPackets, audioPackets)) return true;
+        std::this_thread::sleep_for(1s);
+    }
+    return false;
 }
 
 static const char* name(State s) { return stateName(s); }
@@ -231,12 +246,15 @@ static void testLive(const std::string& exe, const std::string& config, const st
         }
         return false;
     };
-    check(waitFor(0, State::Live, 15s), std::string("RTMP output live (state ") + name(stateOf(0)) + ")");
-    check(waitFor(1, State::Live, 15s), std::string("RTMPS output live (state ") + name(stateOf(1)) + ")");
-    std::this_thread::sleep_for(1s);
+    bool ok = waitFor(0, State::Live, 15s);
+    check(ok, std::string("RTMP output live (state ") + name(stateOf(0)) + ")");
+    ok = waitFor(1, State::Live, 15s);
+    check(ok, std::string("RTMPS output live (state ") + name(stateOf(1)) + ")");
     int v = 0, a = 0;
-    check(readBack("rtmp://127.0.0.1:1935/live/" + secret, v, a), "RTMP stream reads back with H.264 and AAC (" + std::to_string(v) + " video, " + std::to_string(a) + " audio)");
-    check(readBack("rtmp://127.0.0.1:1935/live/two", v, a), "RTMPS stream reads back with H.264 and AAC (" + std::to_string(v) + " video, " + std::to_string(a) + " audio)");
+    ok = readBackSoon("rtmp://127.0.0.1:1935/live/" + secret, v, a);
+    check(ok, "RTMP stream reads back with H.264 and AAC (" + std::to_string(v) + " video, " + std::to_string(a) + " audio)");
+    ok = readBackSoon("rtmp://127.0.0.1:1935/live/two", v, a);
+    check(ok, "RTMPS stream reads back with H.264 and AAC (" + std::to_string(v) + " video, " + std::to_string(a) + " audio)");
     const auto st = out.status();
     check(st[0].bytesSent > 10000 && st[0].framesSent > 30, "bytes and frames counted");
     check(st[2].state == State::Connecting || st[2].state == State::Reconnecting, std::string("closed port keeps retrying (") + name(st[2].state) + ")");
@@ -251,11 +269,13 @@ static void testLive(const std::string& exe, const std::string& config, const st
 
     // The server goes away and comes back.
     server.kill();
-    check(waitFor(0, State::Reconnecting, 20s), std::string("server gone: reconnecting (") + name(stateOf(0)) + ")");
+    ok = waitFor(0, State::Reconnecting, 20s);
+    check(ok, std::string("server gone: reconnecting (") + name(stateOf(0)) + ")");
     check(server.start(), "MediaMTX restarted");
-    check(waitFor(0, State::Live, 40s), std::string("server back: live again (") + name(stateOf(0)) + ")");
-    std::this_thread::sleep_for(1s);
-    check(readBack("rtmp://127.0.0.1:1935/live/" + secret, v, a), "after the reconnect the stream reads back (" + std::to_string(v) + " video)");
+    ok = waitFor(0, State::Live, 40s);
+    check(ok, std::string("server back: live again (") + name(stateOf(0)) + ")");
+    ok = readBackSoon("rtmp://127.0.0.1:1935/live/" + secret, v, a);
+    check(ok, "after the reconnect the stream reads back (" + std::to_string(v) + " video, " + std::to_string(a) + " audio)");
     check(out.status()[0].reconnects >= 1, "reconnect counted");
 
     const auto t = std::chrono::steady_clock::now();

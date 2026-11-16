@@ -283,7 +283,10 @@ jobs:
           mkdir -p /tmp/t && ditto -x -k PushFPS-$PORTABLE_VERSION-macos-universal.zip /tmp/t
           # Make sure nothing still points at the Qt install on this machine.
           if [ -n "$QT_ROOT_DIR" ]; then ! otool -L /tmp/t/PushFPS.app/Contents/MacOS/PushFPS | grep -q "$QT_ROOT_DIR"; fi
-          /tmp/t/PushFPS.app/Contents/MacOS/PushFPS --selftest 5 --source testpattern
+          # This checks the packaged bundle (Qt frameworks, plugins, shaders, QML), not speed: the 120 FPS
+          # self-test already ran on the build. Shared macOS runners sometimes stall for a moment under load,
+          # so the bundle is checked at 60 FPS, where a stall cannot decide the result.
+          /tmp/t/PushFPS.app/Contents/MacOS/PushFPS --selftest 5 --source testpattern --target 60
 
       - name: Screenshots
         continue-on-error: true

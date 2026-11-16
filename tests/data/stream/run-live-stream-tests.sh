@@ -10,7 +10,7 @@ cd "$work"
 asset=mediamtx_${version}_${suffix}
 curl -fsSL -o "$asset" "https://github.com/bluenviron/mediamtx/releases/download/${version}/${asset}"
 curl -fsSL -o checksums.sha256 "https://github.com/bluenviron/mediamtx/releases/download/${version}/checksums.sha256"
-grep " ${asset}\$" checksums.sha256 | sha256sum -c -
+grep -E "[ *]${asset}\$" checksums.sha256 | sed "s#\*# #" | sha256sum -c -
 case "$asset" in *.zip) unzip -q "$asset" ;; *) tar -xzf "$asset" ;; esac
 openssl req -x509 -newkey rsa:2048 -nodes -keyout server.key -out server.crt -days 2 -subj "/CN=127.0.0.1" 2>/dev/null
 cp "$here/mediamtx.yml" .
