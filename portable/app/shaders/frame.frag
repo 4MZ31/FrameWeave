@@ -26,13 +26,14 @@ layout(std140, binding = 0) uniform buf {
 
 layout(binding = 1) uniform sampler2D texA;
 layout(binding = 2) uniform sampler2D texB;
-layout(binding = 3) uniform sampler2D fieldF;   // A -> B, 16-bit fixed point (1/16 px) in RGBA8
+layout(binding = 3) uniform sampler2D fieldF;   // A -> B: per block two texels (x hi, x lo), (y hi, y lo), 1/16 px
 layout(binding = 4) uniform sampler2D fieldK;   // B -> A
 layout(binding = 5) uniform sampler2D hudMask;
 
 vec2 fetchVector(sampler2D f, ivec2 ij) {
-    vec4 c = floor(texelFetch(f, ij, 0) * 255.0 + 0.5);
-    return vec2(c.r * 256.0 + c.g - 32768.0, c.b * 256.0 + c.a - 32768.0) / 16.0;
+    vec4 x = floor(texelFetch(f, ivec2(ij.x * 2, ij.y), 0) * 255.0 + 0.5);
+    vec4 y = floor(texelFetch(f, ivec2(ij.x * 2 + 1, ij.y), 0) * 255.0 + 0.5);
+    return vec2(x.r * 256.0 + x.g - 32768.0, y.r * 256.0 + y.g - 32768.0) / 16.0;
 }
 
 // Bilinear between block centres, clamped (MotionField::sample).

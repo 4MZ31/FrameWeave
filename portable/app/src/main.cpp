@@ -227,15 +227,20 @@ int gpucheck(QGuiApplication& app, const QString& savePath) {
         const auto api = view.rendererInterface()->graphicsApi();
         const double match = psnr(shot, ref, 4), againstA = psnr(shot, ia.convertToFormat(QImage::Format_RGB32), 4);
         const double refVsA = psnr(ref, ia.convertToFormat(QImage::Format_RGB32), 4);
+        // Diagnostics for a mismatch: an upside-down grab, or the shader showing frame B.
+        const double flipped = psnr(shot.mirrored(false, true), ref, 4);
+        const double againstB = psnr(shot, ib.convertToFormat(QImage::Format_RGB32), 4);
         if (!savePath.isEmpty()) {
             shot.save(savePath);
             ref.save(QFileInfo(savePath).absolutePath() + QStringLiteral("/gpucheck-cpu.png"));
         }
         const bool software = api == QSGRendererInterface::Software;
         code = !software && match > 38.0 && match > againstA + 3.0 ? 0 : 4;
-        print(QStringLiteral("GPU CHECK RESULT\ngraphics api: %1\nGPU vs CPU reference: %2 dB\nGPU vs real frame A: %3 dB (CPU reference vs A: %4 dB)\nresult: %5")
+        print(QStringLiteral("GPU CHECK RESULT\ngraphics api: %1\nGPU vs CPU reference: %2 dB\nGPU vs real frame A: %3 dB (CPU reference vs A: %4 dB)\n"
+                             "diagnostics: upside down vs reference %6 dB, GPU vs real frame B %7 dB\nresult: %5")
                   .arg(int(api)).arg(match, 0, 'f', 1).arg(againstA, 0, 'f', 1).arg(refVsA, 0, 'f', 1)
-                  .arg(code == 0 ? QStringLiteral("PASS") : (software ? QStringLiteral("FAIL (software renderer, no shaders)") : QStringLiteral("FAIL (mismatch)"))));
+                  .arg(code == 0 ? QStringLiteral("PASS") : (software ? QStringLiteral("FAIL (software renderer, no shaders)") : QStringLiteral("FAIL (mismatch)")))
+                  .arg(flipped, 0, 'f', 1).arg(againstB, 0, 'f', 1));
         app.exit(code);
     });
     return app.exec();

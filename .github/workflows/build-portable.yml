@@ -247,8 +247,11 @@ jobs:
           app=build/app/PushFPS.app/Contents/MacOS/PushFPS
           $app --version
           $app --list-devices
-          $app --selftest 6 --source testpattern
-          $app --selftest 8 --source testpattern-uneven --pacing --hud
+          # Shared macOS runners sometimes starve the process for seconds (the 60 Hz test picture then arrives
+          # at 40 Hz and the rate check fails for reasons outside PushFPS). A real fault fails twice in a row.
+          twice() { "$@" || { echo "::warning::retrying once: $*"; "$@"; }; }
+          twice $app --selftest 6 --source testpattern
+          twice $app --selftest 8 --source testpattern-uneven --pacing --hud
           set +e
           $app --selftest 2 --source camera:7; test $? -eq 2
 

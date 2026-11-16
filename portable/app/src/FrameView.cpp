@@ -100,19 +100,19 @@ public:
     QSGGeometry geometry_;
 };
 
-// Motion field as RGBA8: x and y as 16-bit fixed point (1/16 px, offset 32768), high byte first.
+// Motion field, two opaque texels per block: (x high, x low, 0) then (y high, y low, 0), each a 16-bit fixed
+// point value (1/16 px, offset 32768). Alpha stays 255 because Qt Quick premultiplies image textures by
+// alpha on upload; data in the alpha channel (an earlier layout) was destroyed by that.
 QImage fieldImage(const MotionField& f) {
-    QImage img(f.blocksX, f.blocksY, QImage::Format_RGBA8888);
+    QImage img(f.blocksX * 2, f.blocksY, QImage::Format_RGB32);
+    auto enc = [](float v) { return int(std::clamp(std::lround((std::isfinite(v) ? v : 0.f) * 16.0f) + 32768L, 0L, 65535L)); };
     for (int j = 0; j < f.blocksY; ++j) {
-        uchar* row = img.scanLine(j);
+        auto* row = reinterpret_cast<QRgb*>(img.scanLine(j));
         for (int i = 0; i < f.blocksX; ++i) {
             const size_t k = size_t(j) * size_t(f.blocksX) + size_t(i);
-            auto enc = [](float v) { return int(std::clamp(std::lround(v * 16.0f) + 32768L, 0L, 65535L)); };
             const int x = enc(f.vx[k]), y = enc(f.vy[k]);
-            row[i * 4 + 0] = uchar(x >> 8);
-            row[i * 4 + 1] = uchar(x & 255);
-            row[i * 4 + 2] = uchar(y >> 8);
-            row[i * 4 + 3] = uchar(y & 255);
+            row[i * 2 + 0] = qRgb(x >> 8, x & 255, 0);
+            row[i * 2 + 1] = qRgb(y >> 8, y & 255, 0);
         }
     }
     return img;
