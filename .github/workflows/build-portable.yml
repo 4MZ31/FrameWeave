@@ -21,6 +21,10 @@ on:
     paths:
       - 'portable/**'
       - 'include/veyra/engine/PushPacingRepair.h'
+      - 'include/veyra/engine/LiveStream.h'
+      - 'src/engine/LiveStream.cpp'
+      - 'tests/integration/LiveStreamTests.cpp'
+      - 'tests/data/stream/**'
       - 'i18n/catalog.json'
       - '.github/workflows/build-portable.yml'
   pull_request:
@@ -78,6 +82,15 @@ jobs:
           cmake -S portable -B build-tsan -G Ninja -DPUSHFPS_PORTABLE_APP=OFF -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_CXX_FLAGS=-fsanitize=thread -O1"
           cmake --build build-tsan
           TSAN_OPTIONS=halt_on_error=1 ./build-tsan/core/pushfps_portable_core_tests
+
+      # Going live (engine/LiveStream.cpp, shared with the Windows build): two outputs at once over RTMP
+      # and RTMPS to a local MediaMTX server, read back, server restart, a closed port, key redaction.
+      - name: Going-live tests (local RTMP/RTMPS server)
+        run: |
+          sudo apt-get install -y --no-install-recommends libavformat-dev libavcodec-dev libavutil-dev pkg-config openssl
+          g++ -std=c++20 -O2 -Wall -Wextra -Iinclude src/engine/LiveStream.cpp tests/integration/LiveStreamTests.cpp \
+            $(pkg-config --cflags --libs libavformat libavcodec libavutil) -pthread -o build-core/live_stream_tests
+          bash tests/data/stream/run-live-stream-tests.sh $PWD/build-core/live_stream_tests linux_amd64.tar.gz
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4.5.0
@@ -248,12 +261,9 @@ jobs:
           set -e
           version=$(sed -nE 's/.*project\(pushfps_portable VERSION ([0-9.]+).*/\1/p' portable/CMakeLists.txt)
           echo "PORTABLE_VERSION=$version" >> $GITHUB_ENV
-          mkdir -p icon.iconset
-          for s in 16 32 128 256 512; do
-            sips -z $s $s portable/app/qml/icon.png --out icon.iconset/icon_${s}x${s}.png >/dev/null
-            sips -z $((s*2)) $((s*2)) portable/app/qml/icon.png --out icon.iconset/icon_${s}x${s}@2x.png >/dev/null
-          done
-          iconutil -c icns icon.iconset -o build/app/PushFPS.app/Contents/Resources/PushFPS.icns
+          python3 -m pip install --quiet --break-system-packages pillow 2>/dev/null || python3 -m pip install --quiet pillow
+          mkdir -p build/app/PushFPS.app/Contents/Resources
+          python3 -c "from PIL import Image; Image.open('portable/app/qml/icon.png').convert('RGBA').save('build/app/PushFPS.app/Contents/Resources/PushFPS.icns', sizes=[(16,16),(32,32),(64,64),(128,128),(256,256),(512,512),(1024,1024)])"
           macdeployqt build/app/PushFPS.app -qmldir=portable/app/qml -always-overwrite
           # Ad-hoc signature (required to run on Apple Silicon); not notarised.
           codesign --force --deep --sign - build/app/PushFPS.app

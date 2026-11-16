@@ -50,8 +50,10 @@ qt_add_qml_module(pushfps_portable
     qml/icon.png)
 
 # Interpolation shader. texelFetch needs GLSL ES 3.0 / GLSL 3.3 at least.
+# BATCHABLE: Qt Quick's renderer asks for the batchable variant of a material's vertex shader.
 qt_add_shaders(pushfps_portable "pushfps_shaders"
   PREFIX "/"
+  BATCHABLE
   GLSL "300 es,330"
   HLSL 50
   MSL 12
