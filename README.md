@@ -108,7 +108,7 @@ everything Veyra does, PushFPS adds what console players need:
 | **Adaptive multiplier** | Follows the game when its frame rate drops, so the output stays even |
 | **Game presets** | GTA VI and other layouts in one click, with the minimap and HUD kept sharp. Save your own and share them as a code |
 | **Automatic HUD detection** | Watches your game for a few seconds and finds the minimap, health and ammo, so they are never interpolated. Correct the boxes by dragging them |
-| **Before/after comparison clips** | Records a split-screen clip: the console's own frame rate on the left, PushFPS on the right, with the frame rates labelled |
+| **Before/after comparison clips** | Records a clip with the console's own frame rate on the left and PushFPS on the right, split screen or side by side, 10 to 60 seconds, each side labelled with its frame rate |
 | **No capture card needed** | PS5 Remote Play, Moonlight (stream another PC through Sunshine) and Xbox streaming, with the same frame generation, from Veyra |
 | **Help on hard settings** | A small **?** beside settings that need explaining; hover it for a short summary |
 | **Quick setup** | Console, game frame rate and target frame rate instead of hundreds of settings, with console and game profiles |
@@ -407,13 +407,19 @@ every frame generation method; it does not change any setting until you click **
 
 ## Before/after comparison clips
 
-**Comparison clip** in the quick setup records a 15-second split-screen video into your recordings folder
-(`PushFPS-compare-….mp4`). The left half holds each real frame from the console until the next one arrives,
-so it moves at the game's own frame rate; the right half is every frame PushFPS shows, generated ones
-included. Both halves are labelled with their frame rate (for example *Console · 30 FPS* and *PushFPS ·
-60 FPS*), with a thin line between them. It uses your recording settings and the card that appears afterwards
-can share it to Discord. Frame generation has to be on; click the button again to stop early. HDR clips are
-split without the labels.
+**Comparison clip** in the quick setup opens a small dialog: pick the layout and the length (10, 15, 30 or 60
+seconds), then **Start recording**. The clip goes into your recordings folder (`PushFPS-compare-….mp4`).
+
+- **Split**: one picture cut down the middle. The left half holds each real frame from the console until the
+  next one arrives, so it moves at the game's own frame rate; the right half is every frame PushFPS shows,
+  generated ones included.
+- **Side by side**: the whole picture twice, each at half size: the console's frame rate on the left,
+  PushFPS on the right, on a black background.
+
+Each side is labelled with its frame rate at the top (for example *Console · 30 FPS* and *PushFPS · 120 FPS*),
+in SDR and HDR. Frame generation has to be on, using any method except XeSS (XeSS makes its frames as they
+are shown, after the recorder has read the picture). Click the tile again to stop early. The card that appears
+afterwards can share the clip to Discord.
 
 ## Profiles
 
@@ -457,6 +463,11 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
   quality with a 1–51 level), encoder preset 1–7, keyframe interval, audio bitrate and MP4 or MKV, like OBS's
   output settings. Off, recordings use the standard settings. If the graphics card can't use a combination,
   the recording falls back to the standard settings and says so.
+- **Standard settings**: about 37 Mbps for 1080p at 60 FPS, 66 Mbps at 1440p and 150 Mbps at 4K (H.264,
+  less with HEVC), with room for fast motion. Pick a fixed bitrate under *Settings, Playback* for smaller files.
+- **Works in video editors**: a finished MP4 recording is rewritten as a standard MP4 (no re-encoding), so it
+  opens in Vegas Pro, Premiere Pro, DaVinci Resolve and others. While recording it is kept in a crash-safe
+  format, so a crash or power cut still keeps what was recorded.
 
 ## Go live: Twitch, YouTube, Kick and TikTok
 
