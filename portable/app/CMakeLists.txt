@@ -22,6 +22,13 @@ set_target_properties(pushfps_portable PROPERTIES
   MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
   MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION})
 target_compile_definitions(pushfps_portable PRIVATE PUSHFPS_PORTABLE_VERSION="${PROJECT_VERSION}")
+if(APPLE)
+  # App Nap off while PushFPS runs (src/MacActivity.mm; OBJCXX is enabled in ../CMakeLists.txt).
+  target_sources(pushfps_portable PRIVATE src/MacActivity.mm src/MacActivity.h)
+  set_source_files_properties(src/MacActivity.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  target_link_libraries(pushfps_portable PRIVATE "-framework Foundation")
+  target_compile_definitions(pushfps_portable PRIVATE PUSHFPS_MAC_ACTIVITY=1)
+endif()
 # The QML type registration (generated) includes FrameView.h by name.
 target_include_directories(pushfps_portable PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 

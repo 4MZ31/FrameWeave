@@ -3,6 +3,9 @@
 # the repository root, which stays Veyra's D3D12 engine.
 cmake_minimum_required(VERSION 3.21)
 project(pushfps_portable VERSION 0.1.0 LANGUAGES CXX)
+if(APPLE)
+  enable_language(OBJCXX)
+endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

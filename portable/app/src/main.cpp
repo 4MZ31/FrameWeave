@@ -10,6 +10,7 @@
 //   PushFPS --gpucheck [--save <png>] draws a known generated frame on the GPU and compares it with the
 //                                    CPU reference; exit 0 match, 4 mismatch or no GPU renderer
 //   PushFPS --screenshot <png> [--page home|player|settings] [--lang <code>]
+#include "MacActivity.h"
 #include "AppController.h"
 #include "FrameView.h"
 #include "Settings.h"
@@ -253,6 +254,9 @@ int main(int argc, char** argv) {
     QCoreApplication::setApplicationName(QStringLiteral("PushFPS"));
     QCoreApplication::setApplicationVersion(QStringLiteral(PUSHFPS_PORTABLE_VERSION));
     QGuiApplication app(argc, argv);
+#ifdef PUSHFPS_MAC_ACTIVITY
+    keepTimingPrecise();
+#endif
     app.setWindowIcon(QIcon(QStringLiteral(":/qt/qml/PushFPS/qml/icon.png")));
 
     QCommandLineParser cli;
