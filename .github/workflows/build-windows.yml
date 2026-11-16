@@ -387,7 +387,7 @@ jobs:
           $env:QML_DISABLE_DISK_CACHE = '1'
           Push-Location $stage
           $failed = 0
-          foreach ($t in 'tst_push_quick_setup', 'tst_push_picture_sound', 'tst_push_nis', 'tst_push_optimize', 'tst_push_presets', 'tst_push_appearance', 'tst_push_hud', 'tst_push_plug_and_play', 'tst_push_intro', 'tst_push_stream', 'tst_push_ps5_pairing', 'tst_push_compare', 'tst_push_studio') {
+          foreach ($t in 'tst_push_quick_setup', 'tst_push_picture_sound', 'tst_push_nis', 'tst_push_optimize', 'tst_push_presets', 'tst_push_appearance', 'tst_push_hud', 'tst_push_plug_and_play', 'tst_push_intro', 'tst_push_stream', 'tst_push_ps5_pairing', 'tst_push_compare', 'tst_push_studio', 'tst_push_watch') {
             & .\veyra_qml_quick_tests.exe -platform offscreen -input "qml-tests\$t.qml" -o "$t.txt,txt" 2>&1 | Out-Host
             $code = $LASTEXITCODE
             Get-Content "$t.txt" -ErrorAction SilentlyContinue | Out-Host
@@ -512,7 +512,7 @@ jobs:
           Write-Host "PushFPS started and loaded its interface with no QML errors."
           # Every main page and the capture dialog, each in a fresh profile: no QML errors either.
           $pages = @(@('--page', 'pro', '--tab', 'fg'), @('--page', 'pro', '--tab', 'quality'), @('--page', 'pro', '--tab', 'display'),
-                     @('--page', 'set'), @('--page', 'min'), @('--page', 'exp'), @('--page', 'live'), @('--page', 'home', '--dialog', 'capture'))
+                     @('--page', 'set'), @('--page', 'min'), @('--page', 'exp'), @('--page', 'live'), @('--page', 'watch'), @('--page', 'home', '--dialog', 'capture'))
           $i = 0
           foreach ($pa in $pages) {
             $i++
@@ -708,6 +708,7 @@ jobs:
           sparse-checkout: |
             packaging/release-notes
             scripts/release
+            docs
             .github/workflows
       - uses: actions/download-artifact@v4
         with:

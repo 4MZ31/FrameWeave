@@ -61,7 +61,7 @@ void QmlPlayerBridge::setInitialPage(const QString& value) {
 QString QmlPlayerBridge::currentPage() const { return impl_->currentPage; }
 void QmlPlayerBridge::setCurrentPage(const QString& value) {
     impl_->currentPage = value;
-    static const QStringList remembered{"home", "min", "pro", "node", "set", "exp", "live"};
+    static const QStringList remembered{"home", "min", "pro", "node", "set", "exp", "live", "watch"};
     if (remembered.contains(value) && impl_->prefString("lastPage") != value) {
         impl_->prefs["lastPage"] = value == QLatin1String("node") ? QStringLiteral("pro") : value;
         impl_->savePrefs();
@@ -396,7 +396,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         const QJsonDocument doc = QJsonDocument::fromJson(v.toUtf8(), &error);
         if (error.error != QJsonParseError::NoError || !doc.isObject()) return false;
         stored = v;
-    } else if (key == QLatin1String("pushGamePresets") || key == QLatin1String("pushBenchmark") || key == QLatin1String("pushLowestLatency")) {
+    } else if (key == QLatin1String("pushGamePresets") || key == QLatin1String("pushBenchmark") || key == QLatin1String("pushLowestLatency") ||
+               key == QLatin1String("studioScenes")) {
         // PushFPS: the user's own game presets, the last "Optimise for my PC" result and the settings
         // the one-tap lowest latency switch restores; JSON written by the interface, size-capped and
         // parsed here like pushProfiles.

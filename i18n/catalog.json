@@ -1378,6 +1378,23 @@
    "ru": "%1 Пункты"
   },
   {
+   "zh": "%1× 补帧",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "%1× 補幀",
+   "en": "%1× frame generation",
+   "ja": "%1× フレーム生成",
+   "nl": "%1× framegeneratie",
+   "de": "%1×-Frame-Generierung",
+   "es": "Generación de fotogramas %1×",
+   "fr": "Génération d'images %1×",
+   "it": "Generazione fotogrammi %1×",
+   "pt-BR": "Geração de quadros %1×",
+   "tr": "%1× kare oluşturma",
+   "ar": "توليد إطارات %1×",
+   "pl": "Generowanie klatek %1×",
+   "ru": "Генерация кадров %1×"
+  },
+  {
    "zh": "%1：请填写平台给你的服务器地址",
    "src": "src/ui/bridge/PushStream.cpp",
    "zh-TW": "%1：請填寫平台給你的伺服器位址",
@@ -1633,6 +1650,23 @@
    "ru": "1% low всего %1 FPS, недостаточно стабильно"
   },
   {
+   "zh": "1. 选择要播放的内容",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "1. 選擇要播放的內容",
+   "en": "1. Pick what to play",
+   "ja": "1. 再生するものを選ぶ",
+   "nl": "1. Kies wat je afspeelt",
+   "de": "1. Wähle, was abgespielt wird",
+   "es": "1. Elige qué reproducir",
+   "fr": "1. Choisissez quoi lire",
+   "it": "1. Scegli cosa riprodurre",
+   "pt-BR": "1. Escolha o que reproduzir",
+   "tr": "1. Oynatılacak içeriği seçin",
+   "ar": "1. اختر ما تريد تشغيله",
+   "pl": "1. Wybierz, co odtworzyć",
+   "ru": "1. Выберите, что воспроизвести"
+  },
+  {
    "zh": "10 分钟",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "10 分鐘",
@@ -1767,6 +1801,23 @@
    "ar": "2. Back in PushFPS, choose \"PushFPS virtual speaker\" under \"Audio input\", then connect the capture. Set the audio output to your real headphones or speakers for audio in sync with the picture.\n\nOptional rename: in the Windows Sound \"Playback\" tab, open the properties of CABLE Input and rename it \"PushFPS capture audio\" under \"General\".",
    "pl": "2. Powrót w PushFPS, wybierz \"PushFPS wirtualny głośnik\" pod \"Wejście audio\", a następnie podłącz przechwytywanie. Ustaw wyjście audio na prawdziwe słuchawki lub głośniki audio w synchronizacji ze zdjęciem.\n\nOpcjonalnie zmienić nazwę: w zakładce Windows Dźwięk \"Playback\", otworzyć właściwości CABLE Input i zmienić nazwę \"PushFPS przechwycić audio\" pod \"Ogólne\".",
    "ru": "2.Назад в PushFPS выберите «PushFPS виртуальный динамик» под «Ввод аудио», затем подключите захват. Установите аудиовыход на ваши настоящие наушники или динамики для аудио синхронизации с картинкой.\n\nФакультативное переименование: во вкладке Windows Sound «Playback» откройте свойства CABLE Input и переименуйте его в «PushFPS capture audio» под «General»."
+  },
+  {
+   "zh": "2. 让画面更好",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "2. 讓畫面更好",
+   "en": "2. Make it look better",
+   "ja": "2. 映像を良くする",
+   "nl": "2. Maak het beeld beter",
+   "de": "2. Mach das Bild besser",
+   "es": "2. Mejora la imagen",
+   "fr": "2. Améliorez l'image",
+   "it": "2. Migliora l'immagine",
+   "pt-BR": "2. Melhore a imagem",
+   "tr": "2. Görüntüyü iyileştirin",
+   "ar": "2. حسّن الصورة",
+   "pl": "2. Popraw obraz",
+   "ru": "2. Улучшите картинку"
   },
   {
    "zh": "203 = 中性；调高整体变亮，峰值不变",
@@ -6427,6 +6478,23 @@
    "ru": "SDR sources have no HDR luminance metadata. Choose a preset manually; it applies to HDR output."
   },
   {
+   "zh": "SDR 转 HDR",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "SDR 轉 HDR",
+   "en": "SDR to HDR",
+   "ja": "SDR を HDR に",
+   "nl": "SDR naar HDR",
+   "de": "SDR zu HDR",
+   "es": "SDR a HDR",
+   "fr": "SDR vers HDR",
+   "it": "Da SDR a HDR",
+   "pt-BR": "SDR para HDR",
+   "tr": "SDR'den HDR'ye",
+   "ar": "من SDR إلى HDR",
+   "pl": "SDR na HDR",
+   "ru": "SDR в HDR"
+  },
+  {
    "zh": "SDR显示未转换",
    "src": "qml/NodePage.qml",
    "zh-TW": "SDR顯示未轉換",
@@ -7547,6 +7615,23 @@
    "ar": "XeSS uses zero motion by default; FSR still computes its own optical flow",
    "pl": "XeSS domyślnie używa zerowego ruchu; FSR nadal oblicza swój własny przepływ optyczny",
    "ru": "XeSS использует нулевое движение по умолчанию; FSR все еще вычисляет свой собственный оптический поток"
+  },
+  {
+   "zh": "YouTube 或网页视频：先在浏览器里播放，再在这里选浏览器窗口。浏览器窗口变黑时，请在浏览器设置里关闭硬件加速（受版权保护的视频可能仍然是黑的）",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "YouTube 或網頁影片：先在瀏覽器裡播放，再在這裡選瀏覽器視窗。瀏覽器視窗變黑時，請在瀏覽器設定裡關閉硬體加速（受版權保護的影片可能仍然是黑的）",
+   "en": "YouTube or web video: play it in your browser first, then pick the browser window here. If the window shows black, turn off hardware acceleration in the browser settings (copy-protected videos may stay black)",
+   "ja": "YouTube や Web 動画：まずブラウザーで再生し、ここでブラウザーのウィンドウを選びます。黒く映る場合はブラウザー設定でハードウェアアクセラレーションをオフにしてください（著作権保護された動画は黒いままのことがあります）",
+   "nl": "YouTube of webvideo: speel hem eerst af in je browser en kies hier het browservenster. Is het venster zwart, zet dan hardwareversnelling uit in de browserinstellingen (beveiligde video's kunnen zwart blijven)",
+   "de": "YouTube oder Web-Video: zuerst im Browser abspielen, dann hier das Browserfenster wählen. Ist das Fenster schwarz, schalte in den Browsereinstellungen die Hardwarebeschleunigung aus (kopiergeschützte Videos können schwarz bleiben)",
+   "es": "YouTube o vídeo web: reprodúcelo primero en el navegador y luego elige aquí la ventana del navegador. Si la ventana se ve negra, desactiva la aceleración por hardware en los ajustes del navegador (los vídeos protegidos pueden seguir en negro)",
+   "fr": "YouTube ou vidéo web : lancez-la d'abord dans votre navigateur, puis choisissez ici la fenêtre du navigateur. Si la fenêtre est noire, désactivez l'accélération matérielle dans les réglages du navigateur (les vidéos protégées peuvent rester noires)",
+   "it": "YouTube o video web: riproducilo prima nel browser, poi scegli qui la finestra del browser. Se la finestra è nera, disattiva l'accelerazione hardware nelle impostazioni del browser (i video protetti possono restare neri)",
+   "pt-BR": "YouTube ou vídeo da web: reproduza primeiro no navegador e escolha aqui a janela do navegador. Se a janela ficar preta, desative a aceleração de hardware nas configurações do navegador (vídeos protegidos podem continuar pretos)",
+   "tr": "YouTube veya web videosu: önce tarayıcıda oynatın, sonra burada tarayıcı penceresini seçin. Pencere siyah görünürse tarayıcı ayarlarında donanım hızlandırmayı kapatın (korumalı videolar siyah kalabilir)",
+   "ar": "YouTube أو فيديو الويب: شغّله أولًا في المتصفح ثم اختر نافذة المتصفح هنا. إذا ظهرت النافذة سوداء فأوقف تسريع الأجهزة في إعدادات المتصفح (قد تبقى الفيديوهات المحمية سوداء)",
+   "pl": "YouTube lub wideo z sieci: najpierw odtwórz je w przeglądarce, potem wybierz tu okno przeglądarki. Jeśli okno jest czarne, wyłącz akcelerację sprzętową w ustawieniach przeglądarki (chronione filmy mogą pozostać czarne)",
+   "ru": "YouTube или видео в браузере: сначала запустите его в браузере, затем выберите здесь окно браузера. Если окно чёрное, отключите аппаратное ускорение в настройках браузера (защищённые видео могут остаться чёрными)"
   },
   {
    "zh": "Z / X 微调 50 ms，Shift 为 1 s；正值 = 字幕推后",
@@ -11714,6 +11799,23 @@
    "ru": "Изменено: сначала старые"
   },
   {
+   "zh": "倍数",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "倍數",
+   "en": "Multiplier",
+   "ja": "倍率",
+   "nl": "Vermenigvuldiger",
+   "de": "Faktor",
+   "es": "Multiplicador",
+   "fr": "Multiplicateur",
+   "it": "Moltiplicatore",
+   "pt-BR": "Multiplicador",
+   "tr": "Çarpan",
+   "ar": "المضاعف",
+   "pl": "Mnożnik",
+   "ru": "Множитель"
+  },
+  {
    "zh": "倍率",
    "src": "qml/NodePage.qml",
    "zh-TW": "倍率",
@@ -11814,6 +11916,23 @@
    "ar": "عالٍ",
    "pl": "Wysoki",
    "ru": "Высокое"
+  },
+  {
+   "zh": "停止",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "停止",
+   "en": "Stop",
+   "ja": "停止",
+   "nl": "Stoppen",
+   "de": "Stopp",
+   "es": "Detener",
+   "fr": "Arrêter",
+   "it": "Interrompi",
+   "pt-BR": "Parar",
+   "tr": "Durdur",
+   "ar": "إيقاف",
+   "pl": "Zatrzymaj",
+   "ru": "Стоп"
   },
   {
    "zh": "停止 %1",
@@ -13891,6 +14010,23 @@
    "ru": "Перейти в режим списка"
   },
   {
+   "zh": "切换到此场景时静音游戏声音",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "切換到此場景時靜音遊戲聲音",
+   "en": "Mute game sound while this scene is on",
+   "ja": "このシーンの間はゲーム音をミュート",
+   "nl": "Gamegeluid dempen in deze scène",
+   "de": "Spielton in dieser Szene stummschalten",
+   "es": "Silenciar el sonido del juego en esta escena",
+   "fr": "Couper le son du jeu pendant cette scène",
+   "it": "Silenzia l'audio del gioco in questa scena",
+   "pt-BR": "Silenciar o som do jogo nesta cena",
+   "tr": "Bu sahnede oyun sesini kapat",
+   "ar": "كتم صوت اللعبة أثناء هذا المشهد",
+   "pl": "Wycisz dźwięk gry w tej scenie",
+   "ru": "Заглушать звук игры в этой сцене"
+  },
+  {
    "zh": "切换到节点模式",
    "src": "qml/ProPage.qml",
    "zh-TW": "切換到節點模式",
@@ -14554,6 +14690,23 @@
    "ru": "Нет свободного места рядом с копией"
   },
   {
+   "zh": "副标题",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "副標題",
+   "en": "Subtitle",
+   "ja": "サブタイトル",
+   "nl": "Ondertitel",
+   "de": "Untertitel",
+   "es": "Subtítulo",
+   "fr": "Sous-titre",
+   "it": "Sottotitolo",
+   "pt-BR": "Subtítulo",
+   "tr": "Alt başlık",
+   "ar": "العنوان الفرعي",
+   "pl": "Podtytuł",
+   "ru": "Подзаголовок"
+  },
+  {
    "zh": "加入导出",
    "src": "qml/PushRecordingSaved.qml",
    "zh-TW": "加入匯出",
@@ -14977,6 +15130,23 @@
    "ar": "طابور الإطار الواحد وملء الشاشة مفعّلان؛ الشاشة لا تدعم التحديث المتغير، لذا تبقى المزامنة كما هي لتجنب التمزق.",
    "pl": "Kolejka jednej klatki i pełny ekran są włączone; ekran nie ma zmiennego odświeżania, więc synchronizacja zostaje bez zmian, by uniknąć rozrywania.",
    "ru": "Очередь из одного кадра и полный экран включены; экран не поддерживает переменную частоту, поэтому синхронизация не меняется, чтобы избежать разрывов."
+  },
+  {
+   "zh": "即将开始",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "即將開始",
+   "en": "Starting soon",
+   "ja": "まもなく開始",
+   "nl": "Begint zo",
+   "de": "Gleich geht's los",
+   "es": "Empezamos pronto",
+   "fr": "Ça commence bientôt",
+   "it": "Tra poco si inizia",
+   "pt-BR": "Começando em breve",
+   "tr": "Birazdan başlıyor",
+   "ar": "سنبدأ قريبًا",
+   "pl": "Zaraz zaczynamy",
+   "ru": "Скоро начнём"
   },
   {
    "zh": "即时回放",
@@ -15487,6 +15657,23 @@
    "ar": "يزيل الطنين واهتزاز المكتب وصوت المروحة تحت 80 Hz",
    "pl": "Usuwa brum, stuknięcia w biurko i dudnienie wentylatora poniżej 80 Hz",
    "ru": "Убирает гул, стуки по столу и шум вентилятора ниже 80 Гц"
+  },
+  {
+   "zh": "去掉网络视频的色块和噪点",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "去掉網路影片的色塊和噪點",
+   "en": "Removes blocks and noise from online video",
+   "ja": "ネット動画のブロックノイズを除去",
+   "nl": "Verwijdert blokjes en ruis uit online video",
+   "de": "Entfernt Blöcke und Rauschen aus Online-Videos",
+   "es": "Elimina bloques y ruido del vídeo en línea",
+   "fr": "Supprime les blocs et le bruit des vidéos en ligne",
+   "it": "Rimuove blocchi e rumore dai video online",
+   "pt-BR": "Remove blocos e ruído de vídeos online",
+   "tr": "Çevrimiçi videodaki blokları ve gürültüyü giderir",
+   "ar": "يزيل التكتل والتشويش من فيديو الإنترنت",
+   "pl": "Usuwa bloki i szum z filmów online",
+   "ru": "Убирает блоки и шум в онлайн-видео"
   },
   {
    "zh": "去朦胧",
@@ -16594,6 +16781,23 @@
    "ru": "Необязательно. Скопируйте это в Discord под каналом Редактировать канал → Интеграции → Webhooks. Без него «Поделиться на Discord» копирует файл и открывает Discord."
   },
   {
+   "zh": "右上",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "右上",
+   "en": "Top right",
+   "ja": "右上",
+   "nl": "Rechtsboven",
+   "de": "Oben rechts",
+   "es": "Arriba derecha",
+   "fr": "En haut à droite",
+   "it": "In alto a destra",
+   "pt-BR": "Superior direito",
+   "tr": "Sağ üst",
+   "ar": "أعلى اليمين",
+   "pl": "Prawy górny",
+   "ru": "Справа вверху"
+  },
+  {
    "zh": "右上角的小地图或指南针",
    "src": "qml/PushGamePresetsDialog.qml",
    "zh-TW": "右上角的小地圖或指南針",
@@ -16609,6 +16813,23 @@
    "ar": "خريطة مصغرة أو بوصلة في الزاوية العلوية اليمنى",
    "pl": "Minimapa lub kompas w prawym górnym rogu",
    "ru": "Миникарта или компас в правом верхнем углу"
+  },
+  {
+   "zh": "右下",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "右下",
+   "en": "Bottom right",
+   "ja": "右下",
+   "nl": "Rechtsonder",
+   "de": "Unten rechts",
+   "es": "Abajo derecha",
+   "fr": "En bas à droite",
+   "it": "In basso a destra",
+   "pt-BR": "Inferior direito",
+   "tr": "Sağ alt",
+   "ar": "أسفل اليمين",
+   "pl": "Prawy dolny",
+   "ru": "Справа внизу"
   },
   {
    "zh": "右下角的速度、挡位和小地图",
@@ -17512,6 +17733,23 @@
    "ru": "Изображение больше, чем позволяет текстура GPU; оно нуждается в обработке плиткой."
   },
   {
+   "zh": "图卡场景",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "圖卡場景",
+   "en": "Card scene",
+   "ja": "カードシーン",
+   "nl": "Kaartscène",
+   "de": "Kartenszene",
+   "es": "Escena de tarjeta",
+   "fr": "Scène carton",
+   "it": "Scena cartello",
+   "pt-BR": "Cena de cartão",
+   "tr": "Kart sahnesi",
+   "ar": "مشهد بطاقة",
+   "pl": "Scena planszy",
+   "ru": "Сцена-заставка"
+  },
+  {
    "zh": "图形字幕数据无效或超出缓存上限",
    "src": "src/engine/Subtitles.cpp",
    "zh-TW": "圖形字幕資料無效或超出快取上限",
@@ -17544,6 +17782,23 @@
    "ar": "صورة",
    "pl": "Obraz",
    "ru": "Изображение"
+  },
+  {
+   "zh": "图片 (*.png *.jpg *.jpeg *.webp *.bmp)",
+   "src": "src/ui/bridge/PushStudio.cpp",
+   "zh-TW": "圖片 (*.png *.jpg *.jpeg *.webp *.bmp)",
+   "en": "Images (*.png *.jpg *.jpeg *.webp *.bmp)",
+   "ja": "画像 (*.png *.jpg *.jpeg *.webp *.bmp)",
+   "nl": "Afbeeldingen (*.png *.jpg *.jpeg *.webp *.bmp)",
+   "de": "Bilder (*.png *.jpg *.jpeg *.webp *.bmp)",
+   "es": "Imágenes (*.png *.jpg *.jpeg *.webp *.bmp)",
+   "fr": "Images (*.png *.jpg *.jpeg *.webp *.bmp)",
+   "it": "Immagini (*.png *.jpg *.jpeg *.webp *.bmp)",
+   "pt-BR": "Imagens (*.png *.jpg *.jpeg *.webp *.bmp)",
+   "tr": "Resimler (*.png *.jpg *.jpeg *.webp *.bmp)",
+   "ar": "الصور (*.png *.jpg *.jpeg *.webp *.bmp)",
+   "pl": "Obrazy (*.png *.jpg *.jpeg *.webp *.bmp)",
+   "ru": "Изображения (*.png *.jpg *.jpeg *.webp *.bmp)"
   },
   {
    "zh": "图片 (*.png *.jpg *.jpeg)",
@@ -17920,6 +18175,23 @@
    "ru": "Проверяет каждый способ генерации кадров, ИИ-улучшение и масштабирование на вашем реальном изображении и выбирает самую плавную комбинацию с наименьшей задержкой"
   },
   {
+   "zh": "在左边选择一个窗口、屏幕或视频文件，然后开始播放",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "在左邊選擇一個視窗、螢幕或影片檔，然後開始播放",
+   "en": "Pick a window, a screen or a video file on the left, then start",
+   "ja": "左でウィンドウ、画面、動画ファイルを選んで再生を開始してください",
+   "nl": "Kies links een venster, scherm of videobestand en start",
+   "de": "Wähle links ein Fenster, einen Bildschirm oder eine Videodatei und starte",
+   "es": "Elige a la izquierda una ventana, una pantalla o un archivo de vídeo y empieza",
+   "fr": "Choisissez à gauche une fenêtre, un écran ou un fichier vidéo, puis lancez",
+   "it": "Scegli a sinistra una finestra, uno schermo o un file video, poi avvia",
+   "pt-BR": "Escolha à esquerda uma janela, uma tela ou um arquivo de vídeo e comece",
+   "tr": "Soldan bir pencere, ekran veya video dosyası seçip başlatın",
+   "ar": "اختر من اليسار نافذة أو شاشة أو ملف فيديو ثم ابدأ",
+   "pl": "Wybierz po lewej okno, ekran lub plik wideo i zacznij",
+   "ru": "Выберите слева окно, экран или видеофайл и начните"
+  },
+  {
    "zh": "在手机或浏览器打开 ",
    "src": "qml/XboxSourceDialog.qml",
    "zh-TW": "在手機或瀏覽器開啟 ",
@@ -18173,6 +18445,40 @@
    "ar": "شكل العنوان خاطئ",
    "pl": "Format adresu jest nieprawidłowy.",
    "ru": "Формат адреса неправильный."
+  },
+  {
+   "zh": "场景",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "場景",
+   "en": "Scenes",
+   "ja": "シーン",
+   "nl": "Scènes",
+   "de": "Szenen",
+   "es": "Escenas",
+   "fr": "Scènes",
+   "it": "Scene",
+   "pt-BR": "Cenas",
+   "tr": "Sahneler",
+   "ar": "المشاهد",
+   "pl": "Sceny",
+   "ru": "Сцены"
+  },
+  {
+   "zh": "场景只改变录制和直播的画面；你自己看到的仍是游戏",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "場景只改變錄製和直播的畫面；你自己看到的仍是遊戲",
+   "en": "Scenes change only what recordings and streams show; you still see the game",
+   "ja": "シーンが変えるのは録画と配信の映像だけで、自分の画面はゲームのままです",
+   "nl": "Scènes veranderen alleen wat opnames en streams tonen; jij ziet nog steeds de game",
+   "de": "Szenen ändern nur, was Aufnahmen und Streams zeigen; du siehst weiter das Spiel",
+   "es": "Las escenas solo cambian lo que muestran las grabaciones y transmisiones; tú sigues viendo el juego",
+   "fr": "Les scènes ne changent que ce que montrent les enregistrements et les diffusions ; vous voyez toujours le jeu",
+   "it": "Le scene cambiano solo ciò che mostrano registrazioni e dirette; tu continui a vedere il gioco",
+   "pt-BR": "As cenas só mudam o que gravações e transmissões mostram; você continua vendo o jogo",
+   "tr": "Sahneler yalnızca kayıt ve yayınlarda görüneni değiştirir; siz oyunu görmeye devam edersiniz",
+   "ar": "المشاهد تغيّر ما تعرضه التسجيلات والبث فقط؛ أنت ما زلت ترى اللعبة",
+   "pl": "Sceny zmieniają tylko to, co pokazują nagrania i transmisje; ty nadal widzisz grę",
+   "ru": "Сцены меняют только то, что видно в записях и трансляциях; вы по-прежнему видите игру"
   },
   {
    "zh": "均衡",
@@ -22221,6 +22527,40 @@
    "ru": "Левый / верхний / правый / нижний в исходных пикселях"
   },
   {
+   "zh": "左上",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "左上",
+   "en": "Top left",
+   "ja": "左上",
+   "nl": "Linksboven",
+   "de": "Oben links",
+   "es": "Arriba izquierda",
+   "fr": "En haut à gauche",
+   "it": "In alto a sinistra",
+   "pt-BR": "Superior esquerdo",
+   "tr": "Sol üst",
+   "ar": "أعلى اليسار",
+   "pl": "Lewy górny",
+   "ru": "Слева вверху"
+  },
+  {
+   "zh": "左下",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "左下",
+   "en": "Bottom left",
+   "ja": "左下",
+   "nl": "Linksonder",
+   "de": "Unten links",
+   "es": "Abajo izquierda",
+   "fr": "En bas à gauche",
+   "it": "In basso a sinistra",
+   "pt-BR": "Inferior esquerdo",
+   "tr": "Sol alt",
+   "ar": "أسفل اليسار",
+   "pl": "Lewy dolny",
+   "ru": "Слева внизу"
+  },
+  {
    "zh": "左下角的圆形或方形小地图",
    "src": "qml/PushGamePresetsDialog.qml",
    "zh-TW": "左下角的圓形或方形小地圖",
@@ -25026,6 +25366,23 @@
    "ru": "Начать захват"
   },
   {
+   "zh": "开始播放",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "開始播放",
+   "en": "Start",
+   "ja": "再生を開始",
+   "nl": "Starten",
+   "de": "Starten",
+   "es": "Empezar",
+   "fr": "Démarrer",
+   "it": "Avvia",
+   "pt-BR": "Iniciar",
+   "tr": "Başlat",
+   "ar": "ابدأ",
+   "pl": "Rozpocznij",
+   "ru": "Начать"
+  },
+  {
    "zh": "开始播放前先攒够的秒数；“跟随缓冲档”按上面的缓冲档位决定。下次打开网络视频生效",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "開始播放前先累積足夠的秒數；「跟隨緩衝檔」依上方的緩衝檔位決定。下次開啟網路影片生效",
@@ -27253,6 +27610,23 @@
    "ru": "Вернуть по умолчанию"
   },
   {
+   "zh": "感谢观看",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "感謝觀看",
+   "en": "Thanks for watching",
+   "ja": "ご視聴ありがとう",
+   "nl": "Bedankt voor het kijken",
+   "de": "Danke fürs Zuschauen",
+   "es": "Gracias por ver",
+   "fr": "Merci d'avoir regardé",
+   "it": "Grazie per la visione",
+   "pt-BR": "Obrigado por assistir",
+   "tr": "İzlediğiniz için teşekkürler",
+   "ar": "شكرًا للمشاهدة",
+   "pl": "Dzięki za oglądanie",
+   "ru": "Спасибо за просмотр"
+  },
+  {
    "zh": "我的",
    "src": "qml/PushGamePresetsDialog.qml",
    "zh-TW": "我的",
@@ -28137,6 +28511,23 @@
    "ru": "Выберите один раз, когда фильм открывается; запоминаемые настройки фильма имеют приоритет"
   },
   {
+   "zh": "打开电脑上的视频文件，补帧和画面增强同样生效",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "打開電腦上的影片檔，補幀和畫面增強同樣生效",
+   "en": "Open a video file on your PC; frame generation and picture enhancement work the same",
+   "ja": "PC の動画ファイルを開きます。フレーム生成と画質補正も同じように効きます",
+   "nl": "Open een videobestand op je pc; framegeneratie en beeldverbetering werken net zo",
+   "de": "Öffne eine Videodatei auf dem PC; Frame-Generierung und Bildverbesserung wirken genauso",
+   "es": "Abre un archivo de vídeo de tu PC; la generación de fotogramas y la mejora funcionan igual",
+   "fr": "Ouvrez un fichier vidéo de votre PC ; la génération d'images et l'amélioration fonctionnent de la même façon",
+   "it": "Apri un file video del PC; generazione di fotogrammi e miglioramento funzionano allo stesso modo",
+   "pt-BR": "Abra um arquivo de vídeo do PC; a geração de quadros e o aprimoramento funcionam igual",
+   "tr": "PC'deki bir video dosyasını açın; kare oluşturma ve görüntü iyileştirme aynı şekilde çalışır",
+   "ar": "افتح ملف فيديو من حاسوبك؛ يعمل توليد الإطارات وتحسين الصورة بالطريقة نفسها",
+   "pl": "Otwórz plik wideo z komputera; generowanie klatek i ulepszanie obrazu działają tak samo",
+   "ru": "Откройте видеофайл на ПК; генерация кадров и улучшение работают так же"
+  },
+  {
    "zh": "打开目录",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "開啟目錄",
@@ -28237,6 +28628,23 @@
    "ar": "افتح فيديو أو صورة",
    "pl": "Otwórz film lub obraz",
    "ru": "Откройте видео или изображение"
+  },
+  {
+   "zh": "打开视频文件",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "打開影片檔",
+   "en": "Open video file",
+   "ja": "動画ファイルを開く",
+   "nl": "Videobestand openen",
+   "de": "Videodatei öffnen",
+   "es": "Abrir archivo de vídeo",
+   "fr": "Ouvrir un fichier vidéo",
+   "it": "Apri file video",
+   "pt-BR": "Abrir arquivo de vídeo",
+   "tr": "Video dosyası aç",
+   "ar": "فتح ملف فيديو",
+   "pl": "Otwórz plik wideo",
+   "ru": "Открыть видеофайл"
   },
   {
    "zh": "打开超时",
@@ -28528,6 +28936,23 @@
    "ru": "Сохраните эти настройки для игры и переключайтесь на них одним щелчком"
   },
   {
+   "zh": "把普通视频转换成 HDR，在 HDR 显示器上更明亮、颜色更丰富。需要 Windows HDR 开启",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "把普通影片轉換成 HDR，在 HDR 顯示器上更明亮、顏色更豐富。需要 Windows HDR 開啟",
+   "en": "Turns ordinary video into HDR: brighter with richer colour on an HDR monitor. Needs Windows HDR on",
+   "ja": "通常の動画を HDR に変換し、HDR モニターでより明るく鮮やかにします。Windows の HDR オンが必要です",
+   "nl": "Zet gewone video om naar HDR: helderder en met rijkere kleuren op een HDR-monitor. Windows HDR moet aan staan",
+   "de": "Macht aus normalem Video HDR: heller und farbiger auf einem HDR-Monitor. Windows-HDR muss an sein",
+   "es": "Convierte vídeo normal en HDR: más brillo y color en un monitor HDR. Requiere HDR de Windows activado",
+   "fr": "Transforme une vidéo ordinaire en HDR : plus lumineuse et plus colorée sur un écran HDR. Le HDR de Windows doit être activé",
+   "it": "Trasforma i video normali in HDR: più luminosi e colorati su un monitor HDR. Serve l'HDR di Windows attivo",
+   "pt-BR": "Converte vídeo comum em HDR: mais brilho e cor em um monitor HDR. Exige o HDR do Windows ativado",
+   "tr": "Normal videoyu HDR'ye dönüştürür: HDR monitörde daha parlak ve canlı. Windows HDR açık olmalı",
+   "ar": "يحوّل الفيديو العادي إلى HDR: أكثر سطوعًا وألوانًا على شاشة HDR. يتطلب تفعيل HDR في Windows",
+   "pl": "Zamienia zwykłe wideo na HDR: jaśniej i bardziej kolorowo na monitorze HDR. Wymaga włączonego HDR w Windows",
+   "ru": "Превращает обычное видео в HDR: ярче и насыщеннее на HDR-мониторе. Нужен включённый HDR в Windows"
+  },
+  {
    "zh": "把电脑手柄当作主机上的 Xbox 手柄（1 号）",
    "src": "qml/PcSourceDialog.qml",
    "zh-TW": "把電腦手把當作主機上的 Xbox 手把（1 號）",
@@ -28815,6 +29240,23 @@
    "ar": "السحب من أجل إعادة تشكيل الفريق",
    "pl": "Przeciągnij, aby zmienić rozmiar panelu ustawień · kliknij dwukrotnie, aby zresetować",
    "ru": "Перетащите для изменения размера панели настроек · дважды щелкните для сброса"
+  },
+  {
+   "zh": "按 F11 全屏观看。更多设置在专业模式里",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "按 F11 全螢幕觀看。更多設定在專業模式裡",
+   "en": "Press F11 to watch fullscreen. More settings are in Pro mode",
+   "ja": "F11 でフルスクリーン表示。詳しい設定はプロモードにあります",
+   "nl": "Druk op F11 voor volledig scherm. Meer instellingen in Pro-modus",
+   "de": "F11 für Vollbild. Mehr Einstellungen im Pro-Modus",
+   "es": "Pulsa F11 para pantalla completa. Más ajustes en el modo Pro",
+   "fr": "Appuyez sur F11 pour le plein écran. Plus de réglages en mode Pro",
+   "it": "Premi F11 per lo schermo intero. Altre impostazioni in modalità Pro",
+   "pt-BR": "Pressione F11 para tela cheia. Mais configurações no modo Pro",
+   "tr": "Tam ekran için F11. Daha fazla ayar Pro modda",
+   "ar": "اضغط F11 للمشاهدة بملء الشاشة. المزيد من الإعدادات في الوضع الاحترافي",
+   "pl": "Naciśnij F11, by oglądać na pełnym ekranie. Więcej ustawień w trybie Pro",
+   "ru": "Нажмите F11 для полного экрана. Больше настроек в режиме Pro"
   },
   {
    "zh": "按下新按键…",
@@ -29872,6 +30314,23 @@
    "ru": "Название не может быть пустым, длиннее 48 символов или таким же, как другой предустановленный"
   },
   {
+   "zh": "放大到屏幕分辨率",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "放大到螢幕解析度",
+   "en": "Upscales to your screen resolution",
+   "ja": "画面の解像度まで拡大",
+   "nl": "Schaalt op naar je schermresolutie",
+   "de": "Skaliert auf die Bildschirmauflösung",
+   "es": "Escala a la resolución de tu pantalla",
+   "fr": "Met à l'échelle de votre écran",
+   "it": "Scala alla risoluzione dello schermo",
+   "pt-BR": "Amplia para a resolução da tela",
+   "tr": "Ekran çözünürlüğüne büyütür",
+   "ar": "يكبّر إلى دقة شاشتك",
+   "pl": "Skaluje do rozdzielczości ekranu",
+   "ru": "Масштабирует до разрешения экрана"
+  },
+  {
    "zh": "效果",
    "src": "qml/ColourPanel.qml",
    "zh-TW": "效果",
@@ -29974,6 +30433,23 @@
    "ru": "Более высокие значения дают более мягкий переход"
   },
   {
+   "zh": "整个屏幕",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "整個螢幕",
+   "en": "Whole screen",
+   "ja": "画面全体",
+   "nl": "Heel scherm",
+   "de": "Ganzer Bildschirm",
+   "es": "Pantalla completa",
+   "fr": "Écran entier",
+   "it": "Schermo intero",
+   "pt-BR": "Tela inteira",
+   "tr": "Tüm ekran",
+   "ar": "الشاشة كاملة",
+   "pl": "Cały ekran",
+   "ru": "Весь экран"
+  },
+  {
    "zh": "整个画面补帧",
    "src": "qml/PushGamePresetsDialog.qml",
    "zh-TW": "整個畫面補幀",
@@ -30057,6 +30533,23 @@
    "ar": "توازن السطوع",
    "pl": "Balans jasności",
    "ru": "Баланс яркости"
+  },
+  {
+   "zh": "整块显示器的画面，适合全屏播放的视频。PushFPS 请放在另一块屏幕上",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "整塊顯示器的畫面，適合全螢幕播放的影片。PushFPS 請放在另一塊螢幕上",
+   "en": "A whole monitor, for videos playing fullscreen. Put PushFPS on another screen",
+   "ja": "モニター全体の映像。フルスクリーン再生の動画向けです。PushFPS は別の画面に置いてください",
+   "nl": "Een heel scherm, voor video's die schermvullend spelen. Zet PushFPS op een ander scherm",
+   "de": "Ein ganzer Monitor, für Videos im Vollbild. Lege PushFPS auf einen anderen Bildschirm",
+   "es": "Un monitor entero, para vídeos a pantalla completa. Pon PushFPS en otra pantalla",
+   "fr": "Un écran entier, pour les vidéos en plein écran. Placez PushFPS sur un autre écran",
+   "it": "Un intero monitor, per i video a schermo intero. Metti PushFPS su un altro schermo",
+   "pt-BR": "Um monitor inteiro, para vídeos em tela cheia. Coloque o PushFPS em outra tela",
+   "tr": "Tüm bir monitör, tam ekran oynayan videolar için. PushFPS'i başka bir ekrana koyun",
+   "ar": "شاشة كاملة للفيديوهات المعروضة بملء الشاشة. ضع PushFPS على شاشة أخرى",
+   "pl": "Cały monitor, do filmów na pełnym ekranie. Umieść PushFPS na innym ekranie",
+   "ru": "Весь монитор — для видео на весь экран. Разместите PushFPS на другом экране"
   },
   {
    "zh": "整套设置无效，未应用任何字段",
@@ -30431,6 +30924,23 @@
    "ar": "إعادة اتصال تلقائية",
    "pl": "Łącz ponownie automatycznie",
    "ru": "Автопереподключение"
+  },
+  {
+   "zh": "新场景",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "新場景",
+   "en": "New scene",
+   "ja": "新しいシーン",
+   "nl": "Nieuwe scène",
+   "de": "Neue Szene",
+   "es": "Escena nueva",
+   "fr": "Nouvelle scène",
+   "it": "Nuova scena",
+   "pt-BR": "Nova cena",
+   "tr": "Yeni sahne",
+   "ar": "مشهد جديد",
+   "pl": "Nowa scena",
+   "ru": "Новая сцена"
   },
   {
    "zh": "新预设名称",
@@ -33357,6 +33867,40 @@
    "ru": "Обновить или сохранить как игровой профиль"
   },
   {
+   "zh": "更流畅",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "更流暢",
+   "en": "Smoother",
+   "ja": "より滑らかに",
+   "nl": "Vloeiender",
+   "de": "Flüssiger",
+   "es": "Más fluido",
+   "fr": "Plus fluide",
+   "it": "Più fluido",
+   "pt-BR": "Mais fluido",
+   "tr": "Daha akıcı",
+   "ar": "أكثر سلاسة",
+   "pl": "Płynniej",
+   "ru": "Плавнее"
+  },
+  {
+   "zh": "更清晰",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "更清晰",
+   "en": "Sharper",
+   "ja": "より鮮明に",
+   "nl": "Scherper",
+   "de": "Schärfer",
+   "es": "Más nítido",
+   "fr": "Plus net",
+   "it": "Più nitido",
+   "pt-BR": "Mais nítido",
+   "tr": "Daha net",
+   "ar": "أوضح",
+   "pl": "Ostrzej",
+   "ru": "Чётче"
+  },
+  {
    "zh": "更饱满的低频，适合动作场面",
    "src": "qml/PushSoundProfile.qml",
    "zh-TW": "更飽滿的低頻，適合動作場面",
@@ -34987,6 +35531,23 @@
    "ar": "قياسي",
    "pl": "Standardowy",
    "ru": "Стандарт"
+  },
+  {
+   "zh": "标题",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "標題",
+   "en": "Title",
+   "ja": "タイトル",
+   "nl": "Titel",
+   "de": "Titel",
+   "es": "Título",
+   "fr": "Titre",
+   "it": "Titolo",
+   "pt-BR": "Título",
+   "tr": "Başlık",
+   "ar": "العنوان",
+   "pl": "Tytuł",
+   "ru": "Заголовок"
   },
   {
    "zh": "校准",
@@ -39528,6 +40089,23 @@
    "ru": "Активно: {} p / {} fps / {} / запрошенный {} Мбит/с · видео получено {:.1f} Мбит/с"
   },
   {
+   "zh": "用 AI 去掉压缩造成的色块和噪点，适合网络视频。更耗 GPU",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "用 AI 去掉壓縮造成的色塊和噪點，適合網路影片。更耗 GPU",
+   "en": "AI removes compression blocks and noise, good for online video. Uses more GPU",
+   "ja": "AI で圧縮によるブロックとノイズを除去。ネット動画向け。GPU 負荷が増えます",
+   "nl": "AI verwijdert compressieblokjes en ruis, goed voor online video. Gebruikt meer GPU",
+   "de": "KI entfernt Kompressionsblöcke und Rauschen, gut für Online-Videos. Braucht mehr GPU",
+   "es": "La IA elimina bloques de compresión y ruido, ideal para vídeo en línea. Usa más GPU",
+   "fr": "L'IA supprime les blocs de compression et le bruit, idéal pour les vidéos en ligne. Sollicite davantage le GPU",
+   "it": "L'IA rimuove blocchi di compressione e rumore, ottimo per i video online. Usa più GPU",
+   "pt-BR": "A IA remove blocos de compressão e ruído, ótimo para vídeo online. Usa mais GPU",
+   "tr": "Yapay zekâ sıkıştırma bloklarını ve gürültüyü giderir; çevrimiçi video için iyi. Daha fazla GPU kullanır",
+   "ar": "يزيل الذكاء الاصطناعي تكتل الضغط والتشويش، مناسب لفيديو الإنترنت. يستهلك GPU أكثر",
+   "pl": "AI usuwa bloki kompresji i szum, dobre do filmów online. Zużywa więcej GPU",
+   "ru": "ИИ убирает блоки сжатия и шум — хорошо для онлайн-видео. Нагружает GPU сильнее"
+  },
+  {
    "zh": "用 AI 去掉采集卡压缩造成的色块和噪点，让细节更清楚。和补帧无关，可以单独开关",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "用 AI 去掉擷取卡壓縮造成的色塊和雜訊，讓細節更清楚。和補幀無關，可以單獨開關",
@@ -39917,6 +40495,23 @@
    "ar": "الصورة تعزف في النافذة الرئيسية",
    "pl": "Obraz gra w głównym oknie",
    "ru": "Картина играет в главном окне"
+  },
+  {
+   "zh": "画面场景",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "畫面場景",
+   "en": "Game scene",
+   "ja": "映像シーン",
+   "nl": "Beeldscène",
+   "de": "Bildszene",
+   "es": "Escena de imagen",
+   "fr": "Scène image",
+   "it": "Scena immagine",
+   "pt-BR": "Cena de imagem",
+   "tr": "Görüntü sahnesi",
+   "ar": "مشهد الصورة",
+   "pl": "Scena obrazu",
+   "ru": "Сцена с картинкой"
   },
   {
    "zh": "画面对比 · 补帧暂停",
@@ -41413,6 +42008,23 @@
    "ar": "بالثواني؛ الأقصر أسهل في التحرير والتنقل مع ملفات أكبر قليلًا؛ القياسي 2",
    "pl": "Sekundy; krótszy ułatwia edycję i przewijanie, pliki są nieco większe; standard to 2",
    "ru": "Секунды; короче — проще монтировать и перематывать, файлы чуть больше; стандарт — 2"
+  },
+  {
+   "zh": "移除图片",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "移除圖片",
+   "en": "Remove picture",
+   "ja": "画像を削除",
+   "nl": "Afbeelding verwijderen",
+   "de": "Bild entfernen",
+   "es": "Quitar imagen",
+   "fr": "Retirer l'image",
+   "it": "Rimuovi immagine",
+   "pt-BR": "Remover imagem",
+   "tr": "Resmi kaldır",
+   "ar": "إزالة الصورة",
+   "pl": "Usuń obraz",
+   "ru": "Убрать изображение"
   },
   {
    "zh": "程序启动时的页面、窗口和恢复行为。",
@@ -43013,6 +43625,23 @@
    "ru": "Изменить"
   },
   {
+   "zh": "编辑场景",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "編輯場景",
+   "en": "Edit scene",
+   "ja": "シーンを編集",
+   "nl": "Scène bewerken",
+   "de": "Szene bearbeiten",
+   "es": "Editar escena",
+   "fr": "Modifier la scène",
+   "it": "Modifica scena",
+   "pt-BR": "Editar cena",
+   "tr": "Sahneyi düzenle",
+   "ar": "تعديل المشهد",
+   "pl": "Edytuj scenę",
+   "ru": "Изменить сцену"
+  },
+  {
    "zh": "缺少此字幕格式的解码器",
    "src": "src/engine/Subtitles.cpp",
    "zh-TW": "缺少此字幕格式的解碼器",
@@ -43606,6 +44235,23 @@
    "ar": "قيمة البشرة",
    "pl": "Wartość skóry",
    "ru": "Значение кожи"
+  },
+  {
+   "zh": "背景图片",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "背景圖片",
+   "en": "Background picture",
+   "ja": "背景画像",
+   "nl": "Achtergrondafbeelding",
+   "de": "Hintergrundbild",
+   "es": "Imagen de fondo",
+   "fr": "Image d'arrière-plan",
+   "it": "Immagine di sfondo",
+   "pt-BR": "Imagem de fundo",
+   "tr": "Arka plan resmi",
+   "ar": "صورة الخلفية",
+   "pl": "Obraz tła",
+   "ru": "Фоновое изображение"
   },
   {
    "zh": "背景条",
@@ -46039,6 +46685,23 @@
    "ru": "Узел генерации кадров фиксируется перед выходом и не может перемещаться в середину цепи даже при отключении"
   },
   {
+   "zh": "补帧让动作更顺滑",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "補幀讓動作更順滑",
+   "en": "Frame generation makes motion smoother",
+   "ja": "フレーム生成で動きを滑らかに",
+   "nl": "Framegeneratie maakt beweging vloeiender",
+   "de": "Frame-Generierung macht Bewegung flüssiger",
+   "es": "La generación de fotogramas suaviza el movimiento",
+   "fr": "La génération d'images rend le mouvement plus fluide",
+   "it": "La generazione di fotogrammi rende il movimento più fluido",
+   "pt-BR": "A geração de quadros deixa o movimento mais suave",
+   "tr": "Kare oluşturma hareketi akıcılaştırır",
+   "ar": "توليد الإطارات يجعل الحركة أكثر سلاسة",
+   "pl": "Generowanie klatek wygładza ruch",
+   "ru": "Генерация кадров делает движение плавнее"
+  },
+  {
    "zh": "补帧路径固定 HDR10；需要 Windows HDR 开启",
    "src": "qml/ProDisplayPanel.qml",
    "zh-TW": "補幀路徑固定 HDR10；需要 Windows HDR 開啟",
@@ -46088,6 +46751,23 @@
    "ar": "The frame generation choice was not accepted; previous setting kept. Check the multiplier and backend capability",
    "pl": "Wybór generatora ramek nie został zaakceptowany; poprzednie ustawienie zostało zachowane. Sprawdź mnożnik i funkcję backend",
    "ru": "Выбор поколения кадров не был принят; предыдущая настройка сохранена. Проверьте множитель и возможность backend"
+  },
+  {
+   "zh": "补帧：在视频的帧之间生成新帧，24 或 30 FPS 的视频看起来像 60 或 120 FPS",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "補幀：在影片的幀之間生成新幀，24 或 30 FPS 的影片看起來像 60 或 120 FPS",
+   "en": "Frame generation: new frames between the video's own, so 24 or 30 FPS video looks like 60 or 120 FPS",
+   "ja": "フレーム生成：動画のフレーム間に新しいフレームを作り、24 や 30 FPS の動画を 60 や 120 FPS のように見せます",
+   "nl": "Framegeneratie: nieuwe frames tussen die van de video, zodat 24 of 30 FPS eruitziet als 60 of 120 FPS",
+   "de": "Frame-Generierung: neue Bilder zwischen den Bildern des Videos, damit 24 oder 30 FPS wie 60 oder 120 FPS aussehen",
+   "es": "Generación de fotogramas: nuevos fotogramas entre los del vídeo, para que 24 o 30 FPS parezcan 60 o 120 FPS",
+   "fr": "Génération d'images : de nouvelles images entre celles de la vidéo, pour que 24 ou 30 FPS ressemblent à 60 ou 120 FPS",
+   "it": "Generazione di fotogrammi: nuovi fotogrammi tra quelli del video, così 24 o 30 FPS sembrano 60 o 120 FPS",
+   "pt-BR": "Geração de quadros: novos quadros entre os do vídeo, para que 24 ou 30 FPS pareçam 60 ou 120 FPS",
+   "tr": "Kare oluşturma: videonun kareleri arasına yeni kareler ekler; 24 veya 30 FPS video 60 veya 120 FPS gibi görünür",
+   "ar": "توليد الإطارات: إطارات جديدة بين إطارات الفيديو، فيبدو فيديو 24 أو 30 FPS كأنه 60 أو 120 FPS",
+   "pl": "Generowanie klatek: nowe klatki między klatkami filmu, by 24 lub 30 FPS wyglądało jak 60 lub 120 FPS",
+   "ru": "Генерация кадров: новые кадры между кадрами видео, и 24 или 30 FPS выглядят как 60 или 120 FPS"
   },
   {
    "zh": "裁剪范围超出画面",
@@ -46345,8 +47025,25 @@
    "ru": "Возобновить положение видео или снова открыть последнее устройство захвата и настройки"
   },
   {
+   "zh": "视频播放模式",
+   "src": "qml/TopDock.qml",
+   "zh-TW": "影片播放模式",
+   "en": "Video playback mode",
+   "ja": "動画再生モード",
+   "nl": "Videomodus",
+   "de": "Videowiedergabe-Modus",
+   "es": "Modo reproducción de vídeo",
+   "fr": "Mode lecture vidéo",
+   "it": "Modalità riproduzione video",
+   "pt-BR": "Modo reprodução de vídeo",
+   "tr": "Video oynatma modu",
+   "ar": "وضع تشغيل الفيديو",
+   "pl": "Tryb odtwarzania wideo",
+   "ru": "Режим видео"
+  },
+  {
    "zh": "视频文件",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "qml/WatchPage.qml",
    "zh-TW": "影片檔案",
    "en": "Video files",
    "ja": "動画ファイル",
@@ -46566,6 +47263,40 @@
    "ru": "Не удалось прочесть первый видеокадр"
   },
   {
+   "zh": "角标图片",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "角標圖片",
+   "en": "Corner picture",
+   "ja": "コーナー画像",
+   "nl": "Hoekafbeelding",
+   "de": "Eckbild",
+   "es": "Imagen de esquina",
+   "fr": "Image d'angle",
+   "it": "Immagine angolare",
+   "pt-BR": "Imagem de canto",
+   "tr": "Köşe resmi",
+   "ar": "صورة الزاوية",
+   "pl": "Obraz w rogu",
+   "ru": "Картинка в углу"
+  },
+  {
+   "zh": "角标文字（例如频道名）",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "角標文字（例如頻道名）",
+   "en": "Corner text (e.g. your channel name)",
+   "ja": "コーナーの文字（チャンネル名など）",
+   "nl": "Hoektekst (bijv. je kanaalnaam)",
+   "de": "Ecktext (z. B. dein Kanalname)",
+   "es": "Texto de esquina (p. ej., el nombre de tu canal)",
+   "fr": "Texte d'angle (par ex. le nom de votre chaîne)",
+   "it": "Testo angolare (es. il nome del canale)",
+   "pt-BR": "Texto de canto (ex.: nome do seu canal)",
+   "tr": "Köşe metni (ör. kanal adınız)",
+   "ar": "نص الزاوية (مثل اسم قناتك)",
+   "pl": "Tekst w rogu (np. nazwa kanału)",
+   "ru": "Текст в углу (например, название канала)"
+  },
+  {
    "zh": "解码",
    "src": "qml/Ps5SourceDialog.qml",
    "zh-TW": "解碼",
@@ -46666,6 +47397,23 @@
    "ar": "اعرض صورة اللعبة عبر بطاقة الالتقاط ثم ابدأ. يختبر PushFPS كل طريقة لتوليد الإطارات يستطيع هذا الحاسوب تشغيلها على صورتك الحقيقية (نحو 10 ثوانٍ لكل منها، من دقيقة إلى 3 دقائق إجمالًا)، ويقيس المعدل الحقيقي وأدنى 1% والتأخير، ويختار الأفضل للهدف الذي تختاره.",
    "pl": "Wyświetl obraz gry przez kartę przechwytującą i zacznij. PushFPS testuje każdą metodę generowania klatek, którą ten PC potrafi uruchomić, na prawdziwym obrazie (około 10 sekund każda, łącznie 1–3 minuty), mierzy rzeczywistą liczbę klatek, 1% low i opóźnienie, i wybiera najlepszą dla wybranego celu.",
    "ru": "Выведите изображение игры через карту захвата и начните. PushFPS проверяет каждый метод генерации кадров, доступный этому ПК, на реальной картинке (примерно 10 секунд каждый, всего 1–3 минуты), измеряет реальную частоту, 1% low и задержку и выбирает лучший для выбранной цели."
+  },
+  {
+   "zh": "让电脑上的任何视频更流畅、更清晰：浏览器里的 YouTube、视频软件或本地文件",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "讓電腦上的任何影片更流暢、更清晰：瀏覽器裡的 YouTube、影片軟體或本機檔案",
+   "en": "Make any video on your PC smoother and sharper: YouTube in your browser, video apps or files",
+   "ja": "PC 上のあらゆる動画を滑らかで鮮明に：ブラウザーの YouTube、動画アプリ、ファイル",
+   "nl": "Maak elke video op je pc vloeiender en scherper: YouTube in je browser, video-apps of bestanden",
+   "de": "Mach jedes Video auf dem PC flüssiger und schärfer: YouTube im Browser, Video-Apps oder Dateien",
+   "es": "Haz cualquier vídeo de tu PC más fluido y nítido: YouTube en el navegador, apps de vídeo o archivos",
+   "fr": "Rendez n'importe quelle vidéo de votre PC plus fluide et plus nette : YouTube dans le navigateur, applis vidéo ou fichiers",
+   "it": "Rendi ogni video del PC più fluido e nitido: YouTube nel browser, app video o file",
+   "pt-BR": "Deixe qualquer vídeo do PC mais fluido e nítido: YouTube no navegador, apps de vídeo ou arquivos",
+   "tr": "PC'nizdeki her videoyu daha akıcı ve net yapın: tarayıcıda YouTube, video uygulamaları veya dosyalar",
+   "ar": "اجعل أي فيديو على حاسوبك أكثر سلاسة ووضوحًا: YouTube في المتصفح أو تطبيقات الفيديو أو الملفات",
+   "pl": "Spraw, by każde wideo na PC było płynniejsze i ostrzejsze: YouTube w przeglądarce, aplikacje wideo lub pliki",
+   "ru": "Сделайте любое видео на ПК плавнее и чётче: YouTube в браузере, видеоприложения или файлы"
   },
   {
    "zh": "记住上次大小",
@@ -48876,6 +49624,23 @@
    "ar": "الدقة الفائقة",
    "pl": "Superrozdzielczość",
    "ru": "Суперразрешение"
+  },
+  {
+   "zh": "超分辨率：把低分辨率视频放大到屏幕分辨率，边缘和文字更锐利",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "超解析度：把低解析度影片放大到螢幕解析度，邊緣和文字更銳利",
+   "en": "Super resolution: upscales low-resolution video to your screen, with sharper edges and text",
+   "ja": "超解像：低解像度の動画を画面の解像度まで拡大し、輪郭と文字をくっきりさせます",
+   "nl": "Superresolutie: schaalt video met lage resolutie op naar je scherm, met scherpere randen en tekst",
+   "de": "Super-Resolution: skaliert Videos niedriger Auflösung auf deinen Bildschirm, mit schärferen Kanten und Texten",
+   "es": "Superresolución: escala vídeo de baja resolución a tu pantalla, con bordes y texto más nítidos",
+   "fr": "Super-résolution : met à l'échelle les vidéos basse résolution pour votre écran, avec des bords et du texte plus nets",
+   "it": "Super risoluzione: scala i video a bassa risoluzione al tuo schermo, con bordi e testo più nitidi",
+   "pt-BR": "Super-resolução: amplia vídeos de baixa resolução para a tela, com bordas e texto mais nítidos",
+   "tr": "Süper çözünürlük: düşük çözünürlüklü videoyu ekranınıza büyütür; kenarlar ve metin daha net",
+   "ar": "الدقة الفائقة: تكبّر الفيديو منخفض الدقة إلى شاشتك بحواف ونصوص أوضح",
+   "pl": "Superrozdzielczość: skaluje wideo o niskiej rozdzielczości do ekranu, z ostrzejszymi krawędziami i tekstem",
+   "ru": "Суперразрешение: масштабирует видео низкого разрешения до экрана, края и текст чётче"
   },
   {
    "zh": "超分运动来源",
@@ -51683,6 +52448,23 @@
    "ru": "Выберите папку для сохранения…"
   },
   {
+   "zh": "选择图片",
+   "src": "src/ui/bridge/PushStudio.cpp",
+   "zh-TW": "選擇圖片",
+   "en": "Choose picture",
+   "ja": "画像を選ぶ",
+   "nl": "Afbeelding kiezen",
+   "de": "Bild wählen",
+   "es": "Elegir imagen",
+   "fr": "Choisir une image",
+   "it": "Scegli immagine",
+   "pt-BR": "Escolher imagem",
+   "tr": "Resim seç",
+   "ar": "اختر صورة",
+   "pl": "Wybierz obraz",
+   "ru": "Выбрать изображение"
+  },
+  {
    "zh": "选择导出目录",
    "src": "src/ui/bridge/Recording.cpp",
    "zh-TW": "選擇匯出目錄",
@@ -53789,6 +54571,23 @@
    "ar": "يشترط AMD GPU (أجر تشغيلي من AMD برنامج تعريف)",
    "pl": "Wymaga AMD GPU (czas biegania AMF od sterownika AMD)",
    "ru": "AMD GPU (время выполнения AMF от драйвера AMD)"
+  },
+  {
+   "zh": "需要 HDR 显示器并开启 Windows HDR",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "需要 HDR 顯示器並開啟 Windows HDR",
+   "en": "Needs an HDR monitor with Windows HDR on",
+   "ja": "HDR モニターと Windows の HDR オンが必要です",
+   "nl": "Vereist een HDR-monitor met Windows HDR aan",
+   "de": "Braucht einen HDR-Monitor mit Windows-HDR an",
+   "es": "Requiere un monitor HDR con HDR de Windows activado",
+   "fr": "Nécessite un écran HDR avec le HDR de Windows activé",
+   "it": "Serve un monitor HDR con l'HDR di Windows attivo",
+   "pt-BR": "Exige um monitor HDR com o HDR do Windows ativado",
+   "tr": "HDR monitör ve açık Windows HDR gerekir",
+   "ar": "يتطلب شاشة HDR مع تفعيل HDR في Windows",
+   "pl": "Wymaga monitora HDR z włączonym HDR w Windows",
+   "ru": "Нужен HDR-монитор и включённый HDR в Windows"
   },
   {
    "zh": "需要 NVIDIA RTX 30 / 40 / 50（30 系为实验兼容）",
@@ -56288,6 +57087,23 @@
    "ar": "يُظهر شعار PushFPS في الصفحة الرئيسية مدينة تحت غروب نيون؛ عند الإيقاف يظهر الشعار الكلاسيكي",
    "pl": "Logo PushFPS na ekranie głównym pokazuje miasto o neonowym zachodzie słońca; po wyłączeniu widać klasyczne logo",
    "ru": "Логотип PushFPS на главном экране заполнен городом на фоне неонового заката; если выключить, будет классический логотип"
+  },
+  {
+   "zh": "马上回来",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "馬上回來",
+   "en": "Be right back",
+   "ja": "すぐ戻ります",
+   "nl": "Zo terug",
+   "de": "Gleich zurück",
+   "es": "Ahora vuelvo",
+   "fr": "Je reviens vite",
+   "it": "Torno subito",
+   "pt-BR": "Já volto",
+   "tr": "Hemen dönüyorum",
+   "ar": "سأعود حالًا",
+   "pl": "Zaraz wracam",
+   "ru": "Скоро вернусь"
   },
   {
    "zh": "驱动拒绝所选采集格式（0x{:08X}），请重新选择。",

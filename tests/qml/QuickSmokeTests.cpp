@@ -228,6 +228,26 @@ QtObject {
     function takeScreenshot() { screenshots++ }
     property string sourceTitle: ""
     property string sourceKind: ""
+    // PushFPS streaming mode scenes and video playback mode (tst_push_studio.qml, tst_push_watch.qml).
+    property var lastScene: null
+    property int sceneCalls: 0
+    function pushSetStreamScene(scene) { lastScene = scene; sceneCalls++; return true }
+    property string pickedImage: ""
+    function pushPickImage() { return pickedImage }
+    property var screenOptions: ({kind: 0, passthrough: false, method: 0, fps: 0, cursor: true, left: 0, top: 0, right: 0, bottom: 0, fill: false})
+    property var screenTargets: [{id: "w1", label: "Browser - YouTube"}]
+    property string screenTargetId: "w1"
+    property string screenTargetLabel: "Browser - YouTube"
+    function setScreenOption(key, value) { const o = Object.assign({}, screenOptions); o[key] = value; screenOptions = o; return true }
+    property int screenStarts: 0
+    function startScreenCapture() { screenStarts++; hasSource = true; return true }
+    property int targetRefreshes: 0
+    function refreshCaptureTargets() { targetRefreshes++ }
+    property int fileDialogs: 0
+    function openFileDialog() { fileDialogs++ }
+    property int playbackStops: 0
+    function stopPlayback() { playbackStops++; hasSource = false }
+    property bool videoHdr: false
     function stopRecording(source) { recordingStops++; recording = false }
     // PushFPS super-resolution editor (SrStageEditor): ids as QmlPlayerBridge::srBackendChoices.
     property int videoSrQuality: 2

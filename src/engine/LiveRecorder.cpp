@@ -3,6 +3,7 @@
 #include "veyra/Brand.h"
 #include "veyra/engine/MicrophoneCapture.h"
 #include "veyra/engine/PushAudioMix.h"
+#include "veyra/engine/PushStreamOverlay.h"
 #include "veyra/engine/ReplayBuffer.h"
 #include "veyra/pipeline/GpuPassUtils.h"
 #include "veyra/sink/MfLiveEncoder.h"
@@ -446,6 +447,11 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
     RecordingLabelRenderer compareLabels;
     CompareLayout compareLayout=CompareLayout::Split;
     std::unique_ptr<RecordingCompare> compare;
+    // PushFPS streaming mode scenes (PushStreamOverlay.h): the scene picture blended onto every frame
+    // (not on comparison clips). A replaced one stays alive until the frames that used it are done.
+    std::unique_ptr<FrameOverlay> overlay;
+    uint64_t overlayVersion=0,overlayFrames=0;
+    std::vector<std::pair<std::unique_ptr<FrameOverlay>,uint64_t>> retiredOverlays;
     std::atomic<uint64_t> generated{0};         // comparison: generated frames recorded
     bool sound=false,microphone=false,microphoneTrack=false; // what the sound tracks take
     std::atomic<bool> audio{false};             // the file (or buffer) has sound tracks
@@ -642,6 +648,25 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         convert.bind(list,constants,pipeline::gpuHandleOf(convert,UINT(index)).ptr,pipeline::gpuHandleOf(convert,kSlots).ptr);
         list->Dispatch((frameWidth+15)/16,(frameHeight+15)/16,1);
         states.uavBarrier(list,y.Get());states.uavBarrier(list,uv.Get());
+        if(!compare){
+            ++overlayFrames;
+            const uint64_t version=pushStreamOverlayVersion();
+            if(version!=overlayVersion){
+                overlayVersion=version;
+                uint64_t got=0;
+                const auto image=pushStreamOverlay(got);
+                if(overlay)retiredOverlays.emplace_back(std::move(overlay),overlayFrames);
+                if(image){
+                    auto next=std::make_unique<FrameOverlay>();
+                    if(next->create(device.Get(),frameWidth,frameHeight,hdrMode!=0,*image))overlay=std::move(next);
+                    else veyra::log::warn("live-recorder","scene overlay could not be prepared; recording without it");
+                }
+                veyra::log::info("live-recorder",std::format("scene overlay {} {}x{}",overlay?"on":"off",image?image->width:0,image?image->height:0));
+            }
+            // Every slot has been reused at least twice since: the frames that used them are finished.
+            std::erase_if(retiredOverlays,[&](const auto& r){return overlayFrames>r.second+2*kSlots;});
+            if(overlay)overlay->apply(list,states,y.Get(),uv.Get());
+        }
         if(compare){
             const RecordingRawFrame raw{frame.raw,frame.rawSdrInHdr};
             compare->compose(list,states,y.Get(),uv.Get(),frame.generated,frame.raw?&raw:nullptr,unsigned(index));

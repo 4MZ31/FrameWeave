@@ -19,6 +19,7 @@
 #include "veyra/engine/PushHudSampler.h"
 #include "veyra/pipeline/PushHudLock.h"
 #include "veyra/engine/RecordingCompare.h"
+#include "veyra/engine/PushStreamOverlay.h"
 #include "veyra/pipeline/GpuPassUtils.h"
 
 #include <d3d12sdklayers.h>
@@ -447,6 +448,70 @@ void testCompareVertical(Gpu& gpu, bool hdr) {
     check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
 }
 
+// Streaming mode scenes (PushStreamOverlay.h): a transparent overlay with an opaque white corner box
+// keeps the picture elsewhere; an opaque card replaces the whole picture.
+void testStreamOverlay(Gpu& gpu, bool hdr) {
+    constexpr uint32_t W = 128, H = 64;
+    const std::string tag = hdr ? "scene overlay HDR" : "scene overlay";
+    auto* device = gpu.device.Get();
+    const auto yFormat = hdr ? DXGI_FORMAT_R16_UNORM : DXGI_FORMAT_R8_UNORM;
+    const auto uvFormat = hdr ? DXGI_FORMAT_R16G16_UNORM : DXGI_FORMAT_R8G8_UNORM;
+    const uint32_t bpp = hdr ? 2 : 1;
+    Plane y{pipeline::makeTexture(device, W, H, yFormat, true), yFormat, W, H, bpp};
+    Plane uv{pipeline::makeTexture(device, W / 2, H / 2, uvFormat, true), uvFormat, W / 2, H / 2, bpp * 2};
+    const auto code = [&](uint32_t v8, uint32_t v10) { return hdr ? v10 << 6 : v8; };
+    const auto plane = [&](uint32_t value, uint32_t w, uint32_t h, uint32_t channels) {
+        std::vector<uint8_t> out(size_t(w) * h * channels * bpp);
+        for (size_t i = 0; i < size_t(w) * h * channels; ++i) {
+            if (hdr) { const uint16_t v = uint16_t(value); std::memcpy(out.data() + i * 2, &v, 2); } else out[i] = uint8_t(value);
+        }
+        return out;
+    };
+    const auto read = [&](const std::vector<uint8_t>& b, size_t i) { return hdr ? int(word(b, i)) : int(b[i]); };
+    // Overlay: transparent, with an opaque white 16 x 16 box at the top left. Drawn at half size to
+    // check that it is scaled to the frame.
+    engine::PushOverlayImage halfSize{W / 2, H / 2, {}, std::vector<uint8_t>(size_t(W / 2) * (H / 2) * 4, 0)};
+    for (uint32_t yy = 0; yy < 8; ++yy)
+        for (uint32_t x = 0; x < 8; ++x) { uint8_t* p = &halfSize.rgba[(size_t(yy) * (W / 2) + x) * 4]; p[0] = p[1] = p[2] = p[3] = 255; }
+    engine::FrameOverlay overlay;
+    check(overlay.create(device, W, H, hdr, halfSize), tag + ": created (scaled to the frame)");
+    pipeline::StateTracker states;
+    const auto run = [&](engine::FrameOverlay& o, std::vector<uint8_t>& py, std::vector<uint8_t>& puv) {
+        if (!gpu.begin()) return false;
+        auto a = recordFill(gpu, y, plane(code(100, 400), W, H, 1), states.get(y.texture.Get()), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        states.set(y.texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        auto b = recordFill(gpu, uv, plane(code(90, 300), W / 2, H / 2, 2), states.get(uv.texture.Get()), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        states.set(uv.texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        o.apply(gpu.list.Get(), states, y.texture.Get(), uv.texture.Get());
+        auto ry = recordRead(gpu, y, states.get(y.texture.Get()));
+        auto ruv = recordRead(gpu, uv, states.get(uv.texture.Get()));
+        if (!gpu.submitAndWait()) return false;
+        py = mapRead(y, ry.Get()); puv = mapRead(uv, ruv.Get());
+        return py.size() == size_t(W) * H * bpp;
+    };
+    std::vector<uint8_t> py, puv;
+    check(run(overlay, py, puv), tag + ": runs");
+    check(read(py, size_t(4) * W + 4) == int(code(235, 573)), tag + ": the box is white (203 nits in HDR)");
+    check(read(py, size_t(40) * W + 90) == int(code(100, 400)), tag + ": the picture is kept where the overlay is clear");
+    check(read(puv, (size_t(20) * (W / 2) + 40) * 2) == int(code(90, 300)), tag + ": chroma kept where clear");
+    check(read(puv, (size_t(2) * (W / 2) + 2) * 2) == int(code(128, 512)), tag + ": white box chroma neutral");
+    // A card: opaque black everywhere.
+    engine::PushOverlayImage card{W, H, {}, std::vector<uint8_t>(size_t(W) * H * 4, 0)};
+    for (size_t i = 0; i < size_t(W) * H; ++i) card.rgba[i * 4 + 3] = 255;
+    engine::FrameOverlay cardOverlay;
+    check(cardOverlay.create(device, W, H, hdr, card), tag + ": card created");
+    check(run(cardOverlay, py, puv), tag + ": card runs");
+    check(read(py, size_t(40) * W + 90) == int(code(16, 64)) && read(py, 0) == int(code(16, 64)), tag + ": a card replaces the whole picture");
+    // Process-wide publication.
+    const auto before = engine::pushStreamOverlayVersion();
+    engine::setPushStreamOverlay(std::make_shared<engine::PushOverlayImage>(card));
+    uint64_t version = 0;
+    check(engine::pushStreamOverlay(version) != nullptr && version == before + 1, tag + ": published with a new version");
+    engine::setPushStreamOverlay(nullptr);
+    check(engine::pushStreamOverlay(version) == nullptr, tag + ": cleared");
+    check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
+}
+
 // The console side from the raw picture (linear BT.709, float RGBA, here half the recorded size):
 // no enhancement, only scaled and coded like the recorder's own conversion.
 void testCompareRaw(Gpu& gpu, bool hdr, engine::CompareLayout layout) {
@@ -758,6 +823,8 @@ int main() {
     testCompareSideBySide(gpu, true);
     testCompareVertical(gpu, false);
     testCompareVertical(gpu, true);
+    testStreamOverlay(gpu, false);
+    testStreamOverlay(gpu, true);
     testLabelScale();
     testCompareSkipRule();
     testCompareRaw(gpu, false, engine::CompareLayout::Split);

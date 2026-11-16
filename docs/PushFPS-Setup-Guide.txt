@@ -1,4 +1,4 @@
-PushFPS 3.0 setup guide: the best settings to start from
+PushFPS 3.1 setup guide: the best settings to start from
 ==========================================================
 
 PushFPS is built on Veyra by Likely7. This guide is also on the website:
@@ -94,6 +94,9 @@ Nintendo Switch 2
   - Docked, 60 Hz output. TV resolution 1080p, or 4K if your capture card captures 4K60.
   - HDR: see section 5.
   - Switch games are not HDCP protected.
+
+Videos on your PC (YouTube in a browser, video apps, files): use Video playback mode (the play
+button in the top bar). Pick the window, switch on Smoother and Sharper, press F11.
 
 No capture card? Streaming sources work too (PS5 Remote Play, Moonlight from a Sunshine PC, Xbox).
 For PS5 Remote Play pick 1080p 60 FPS with H.265 (the default for new pairings).

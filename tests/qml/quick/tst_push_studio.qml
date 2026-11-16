@@ -30,6 +30,7 @@ Item {
             veyra.volume = 1; veyra.muted = false
             veyra.streamState = ({active: false, live: false, outputs: []})
             veyra.streamStarts = 0
+            studio.activeScene = "game"
             root.navigated = []
             host.dialog = ""
         }
@@ -129,6 +130,46 @@ Item {
             studio.lastTick = Date.now() - 500
             studio.poll()
             verify(studio.gamePeak < -3 && studio.gamePeak > -100, "falls off instead of dropping to silence")
+        }
+        function test_scenes_switch_the_output_and_mute_the_game_on_cards() {
+            compare(studio.scenes.length, 4, "game, starting soon, be right back, thanks for watching")
+            veyra.setPreference("mixGameMuted", false)
+            studio.activate("brb")
+            compare(veyra.lastScene.type, "card")
+            compare(studio.activeScene, "brb")
+            compare(veyra.preferences.mixGameMuted, true, "a card mutes the game")
+            verify(findChild(studio, "studio-scene-brb").active)
+            studio.activate("soon")
+            compare(veyra.preferences.mixGameMuted, true)
+            studio.activate("game")
+            compare(veyra.lastScene.type, "game")
+            compare(veyra.preferences.mixGameMuted, false, "back to the game: the mute from before")
+        }
+        function test_scenes_add_edit_remove() {
+            studio.addScene("card")
+            compare(studio.scenes.length, 5)
+            const id = studio.editingScene
+            verify(id.length > 0, "the new scene opens in the editor")
+            verify(findChild(studio, "studio-scene-editor").visible)
+            studio.updateScene(id, { title: "Back in 5", subtitle: "Grab a drink" })
+            compare(studio.sceneById(id).title, "Back in 5")
+            studio.activate(id)
+            const calls = veyra.sceneCalls
+            studio.updateScene(id, { subtitle: "Soon" })
+            wait(20)
+            verify(veyra.sceneCalls > calls, "editing the live scene redraws it")
+            verify(studio.removeScene(id))
+            compare(studio.activeScene, "game", "removing the live scene goes back to the game")
+            verify(!studio.removeScene("game"), "the only game scene stays")
+            studio.addScene("game")
+            const g = studio.editingScene
+            veyra.pickedImage = "C:/logo.png"
+            studio.updateScene(g, { overlayImage: veyra.pickedImage, overlayText: "@me", corner: "bl" })
+            studio.activate(g)
+            compare(veyra.lastScene.overlayText, "@me")
+            compare(veyra.lastScene.corner, "bl")
+            verify(studio.removeScene(g))
+            studio.editingScene = ""
         }
         function test_mic_filters_dialog() {
             host.dialog = "micfilters"
