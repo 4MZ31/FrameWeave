@@ -1,9 +1,9 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/pushfps-logo.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/pushfps-logo-light.png">
-  <img src="assets/pushfps-logo.png" alt="PushFPS" width="480">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/pushfps-logo-animated-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="assets/pushfps-logo-animated-light.png">
+  <img src="assets/pushfps-logo-animated-dark.png" alt="PushFPS: the logo slides in with a trail of generated frames while a counter climbs from 30 to 120 FPS" width="480">
 </picture>
 
 ### Play 30 FPS console games at 60 or 120 FPS on your PC monitor.
