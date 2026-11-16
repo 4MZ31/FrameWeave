@@ -22,6 +22,8 @@ set_target_properties(pushfps_portable PROPERTIES
   MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
   MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION})
 target_compile_definitions(pushfps_portable PRIVATE PUSHFPS_PORTABLE_VERSION="${PROJECT_VERSION}")
+# The QML type registration (generated) includes FrameView.h by name.
+target_include_directories(pushfps_portable PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(pushfps_portable
