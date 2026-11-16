@@ -16,12 +16,12 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import "StudioLayout.js" as Layout
+import "StudioLayout.js" as StudioGeometry
 
 VPage {
     id: studio
     signal requestPage(string page)
-    readonly property var geometry: Layout.calculate(width, height)
+    readonly property var geometry: StudioGeometry.calculate(width, height)
     readonly property bool compact: geometry.compact
     readonly property rect videoViewport: Qt.rect(geometry.video.x, geometry.video.y, geometry.video.width, geometry.video.height)
 
@@ -49,10 +49,10 @@ VPage {
         studio.lastTick = now
         const l = veyra.pushStudioLevels() || ({})
         studio.levels = l
-        studio.gameRms = Layout.fall(studio.gameRms, Number(l.gameRmsDb ?? -100), dt, 24)
-        studio.gamePeak = Layout.fall(studio.gamePeak, Number(l.gamePeakDb ?? -100), dt, 24)
-        studio.micRms = Layout.fall(studio.micRms, Number(l.micRmsDb ?? -100), dt, 24)
-        studio.micPeak = Layout.fall(studio.micPeak, Number(l.micPeakDb ?? -100), dt, 24)
+        studio.gameRms = StudioGeometry.fall(studio.gameRms, Number(l.gameRmsDb ?? -100), dt, 24)
+        studio.gamePeak = StudioGeometry.fall(studio.gamePeak, Number(l.gamePeakDb ?? -100), dt, 24)
+        studio.micRms = StudioGeometry.fall(studio.micRms, Number(l.micRmsDb ?? -100), dt, 24)
+        studio.micPeak = StudioGeometry.fall(studio.micPeak, Number(l.micPeakDb ?? -100), dt, 24)
     }
     function pollSlow() {
         studio.stream = veyra.pushStreamStatus() || ({})
@@ -119,7 +119,7 @@ VPage {
             Text {
                 id: liveText
                 x: 20; anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("直播中 %1").arg(Layout.duration(studio.stream.seconds))
+                text: qsTr("直播中 %1").arg(StudioGeometry.duration(studio.stream.seconds))
                 color: Theme.t1; font.family: Theme.fontUi; font.pixelSize: 12
                 font.weight: Font.DemiBold; font.variableAxes: Theme.axesDemiBold
             }
@@ -133,7 +133,7 @@ VPage {
             Text {
                 id: recText
                 x: 20; anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("录制 %1").arg(Layout.duration(veyra.recordingState.seconds))
+                text: qsTr("录制 %1").arg(StudioGeometry.duration(veyra.recordingState.seconds))
                 color: Theme.t1; font.family: Theme.fontUi; font.pixelSize: 12
             }
         }
@@ -433,13 +433,13 @@ VPage {
         StatusText {
             objectName: "studio-status-live"
             color: studio.live ? Theme.t1 : Theme.t3
-            text: studio.live ? qsTr("直播 %1 · %2 Mbps · 丢帧 %3").arg(Layout.duration(studio.stream.seconds))
+            text: studio.live ? qsTr("直播 %1 · %2 Mbps · 丢帧 %3").arg(StudioGeometry.duration(studio.stream.seconds))
                                     .arg((studio.streamKbps / 1000).toFixed(1)).arg(Number(studio.stream.dropped || 0))
                               : qsTr("直播 未开始")
         }
         StatusText {
             color: studio.recordingNow ? Theme.t1 : Theme.t3
-            text: studio.recordingNow ? qsTr("录制 %1 · 丢帧 %2").arg(Layout.duration(veyra.recordingState.seconds)).arg(Number(veyra.recordingState.dropped || 0))
+            text: studio.recordingNow ? qsTr("录制 %1 · 丢帧 %2").arg(StudioGeometry.duration(veyra.recordingState.seconds)).arg(Number(veyra.recordingState.dropped || 0))
                                       : qsTr("录制 未开始")
         }
         StatusText {

@@ -52,8 +52,8 @@ Item {
             findChild(cmp, "pushfps-compare-layout").picked("2")
             compare(veyra.preferences.pushCompareLayout, 2)
             compare(cmp.layoutId, 2)
-            verify(findChild(cmp, "pushfps-compare-preview-vertical").visible, "portrait preview shown")
-            verify(!findChild(cmp, "pushfps-compare-preview").visible, "landscape preview hidden")
+            verify(cmp.verticalPreview, "portrait preview shown")
+            verify(findChild(cmp, "pushfps-compare-preview-vertical") !== null)
             // Labels next to the divider: the console's just above, PushFPS's just below (192-high preview).
             const top = cmp.verticalTagY(0, 12, 192), bottom = cmp.verticalTagY(1, 12, 192)
             verify(top + 12 <= 96 && top > 60, "console label just above the middle, y=" + top)

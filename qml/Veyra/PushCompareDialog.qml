@@ -39,6 +39,8 @@ DialogLayer {
     readonly property string leftTag: qsTr("主机原画 · %1 FPS").arg(cmp.gameFps)
     readonly property string rightTag: "PushFPS · " + cmp.shownFps + " FPS"
 
+    // The preview drawn: portrait for the vertical layout, landscape for the others.
+    readonly property bool verticalPreview: cmp.layoutId === 2
     function layoutName(id) { return id === 2 ? qsTr("竖屏") : id === 1 ? qsTr("并排") : qsTr("分屏") }
     function layoutHint(id) {
         return id === 2 ? qsTr("竖屏 9:16，适合 TikTok、Shorts 和 Reels：上面是原帧率，下面是 PushFPS，各占半屏（取画面中间部分）")
@@ -73,7 +75,7 @@ DialogLayer {
         border.width: 1
         border.color: Theme.stroke
         clip: true
-        visible: cmp.layoutId !== 2
+        visible: !cmp.verticalPreview
         readonly property bool sideBySide: cmp.layoutId === 1
         readonly property real picW: sideBySide ? width / 2 : width / 2
         readonly property real picH: sideBySide ? height / 2 : height
@@ -141,7 +143,7 @@ DialogLayer {
     Rectangle {
         id: portrait
         objectName: "pushfps-compare-preview-vertical"
-        visible: cmp.layoutId === 2
+        visible: cmp.verticalPreview
         Layout.alignment: Qt.AlignHCenter
         Layout.bottomMargin: 12
         implicitWidth: 108

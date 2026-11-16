@@ -7,7 +7,7 @@ import QtQuick
 import QtQuick.Window
 import QtTest
 import Veyra
-import "../qml/Veyra/StudioLayout.js" as Layout
+import "../qml/Veyra/StudioLayout.js" as StudioGeometry
 Item {
     id: root
     width: 1400; height: 900
@@ -36,26 +36,26 @@ Item {
         function control(item, name) { const c = findChild(item, name); verify(c !== null, name); return c }
 
         function test_layout_like_obs() {
-            const g = Layout.calculate(1400, 900)
+            const g = StudioGeometry.calculate(1400, 900)
             verify(!g.compact)
             verify(g.left.x < g.preview.x && g.preview.x + g.preview.width < g.right.x, "features | preview | controls")
             verify(g.mixer.y >= g.preview.y + g.preview.height && g.status.y >= g.mixer.y + g.mixer.height, "mixer and status bar below")
             compare(g.mixer.width, 1400 - 24, "mixer spans the window")
             verify(g.video.y > g.preview.y && g.video.height < g.preview.height, "the picture sits under the preview header")
-            const small = Layout.calculate(900, 600)
+            const small = StudioGeometry.calculate(900, 600)
             verify(small.compact && small.left.width === 0, "narrow window: no feature column")
             verify(small.preview.width > 300)
             compare(studio.videoViewport.width, g.video.width)
         }
         function test_meter_scale_and_fall() {
-            compare(Layout.meterPosition(0), 1)
-            compare(Layout.meterPosition(-60), 0)
-            compare(Layout.meterPosition(-30), 0.5)
-            compare(Layout.meterPosition(-200), 0)
-            compare(Layout.fall(-10, -40, 0.5, 24), -22, "falls 24 dB/s")
-            compare(Layout.fall(-30, -6, 0.05, 24), -6, "rises at once")
-            compare(Layout.duration(3725), "1:02:05")
-            compare(Layout.duration(65), "1:05")
+            compare(StudioGeometry.meterPosition(0), 1)
+            compare(StudioGeometry.meterPosition(-60), 0)
+            compare(StudioGeometry.meterPosition(-30), 0.5)
+            compare(StudioGeometry.meterPosition(-200), 0)
+            compare(StudioGeometry.fall(-10, -40, 0.5, 24), -22, "falls 24 dB/s")
+            compare(StudioGeometry.fall(-30, -6, 0.05, 24), -6, "rises at once")
+            compare(StudioGeometry.duration(3725), "1:02:05")
+            compare(StudioGeometry.duration(65), "1:05")
         }
         function test_game_fader_and_mute() {
             const game = control(studio, "mixer-game")

@@ -4,7 +4,7 @@
 // Studio's: green below -20 dBFS, yellow to -9, red above. The bar is the RMS level, the thin line
 // the peak, held for a second; both on a -60..0 dB scale (StudioLayout.meterPosition).
 import QtQuick
-import "StudioLayout.js" as Layout
+import "StudioLayout.js" as StudioGeometry
 
 Item {
     id: meter
@@ -29,7 +29,7 @@ Item {
     // The level: the same zones, lit up to the RMS level.
     Item {
         objectName: "meter-level"
-        width: parent.width * Layout.meterPosition(meter.rmsDb)
+        width: parent.width * StudioGeometry.meterPosition(meter.rmsDb)
         height: parent.height
         clip: true
         visible: meter.active
@@ -43,14 +43,14 @@ Item {
     // Peak, and the held peak.
     Rectangle {
         visible: meter.active && meter.peakDb > -60
-        x: Math.max(0, meter.width * Layout.meterPosition(meter.peakDb) - 2)
+        x: Math.max(0, meter.width * StudioGeometry.meterPosition(meter.peakDb) - 2)
         width: 2; height: parent.height
         color: meter.peakDb > -9 ? Theme.err : Theme.t1
         opacity: 0.85
     }
     Rectangle {
         visible: meter.active && meter.holdDb > -60
-        x: Math.max(0, meter.width * Layout.meterPosition(meter.holdDb) - 2)
+        x: Math.max(0, meter.width * StudioGeometry.meterPosition(meter.holdDb) - 2)
         width: 2; height: parent.height
         color: meter.holdDb > -9 ? Theme.err : meter.holdDb > -20 ? Theme.warn : Theme.ok
     }
