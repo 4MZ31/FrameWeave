@@ -46,7 +46,7 @@ Rectangle {
                     label: qsTr("便携模式")
                     hint: app.portable ? qsTr("已开启：设置和截图保存在程序旁边的文件夹里")
                                        : qsTr("在程序旁边放一个名为 portable.txt 的文件，设置和截图就会保存在那里，删除文件夹即可彻底移除")
-                    Text { text: app.portable ? qsTr("开启") : qsTr("关闭"); color: app.portable ? Theme.accent : Theme.t3; font.pixelSize: Theme.fsBody; font.family: Theme.fontUi }
+                    Text { text: app.portable ? qsTr("开") : qsTr("关"); color: app.portable ? Theme.accent : Theme.t3; font.pixelSize: Theme.fsBody; font.family: Theme.fontUi }
                 }
             }
             Card {

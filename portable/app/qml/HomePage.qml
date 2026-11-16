@@ -137,7 +137,7 @@ Rectangle {
                                                : qsTr("补出来的帧夹在两张真实画面之间，画面会晚一张真实画面显示")
                     Segmented {
                         objectName: "home-target"
-                        options: [qsTr("关闭"), "60 FPS", "120 FPS", qsTr("匹配显示器")]
+                        options: [qsTr("关"), "60 FPS", "120 FPS", qsTr("匹配显示器")]
                         currentIndex: app.targetMode
                         onPicked: index => app.targetMode = index
                     }
