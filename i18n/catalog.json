@@ -24261,6 +24261,23 @@
    "ru": "Добавляет слишком большую задержку (%1 мс)"
   },
   {
+   "zh": "延迟最低，但补帧画面可能偶尔跳帧",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "延遲最低，但補幀畫面可能偶爾跳幀",
+   "en": "Lowest delay, but frame generation can now and then skip a frame",
+   "ja": "遅延は最小ですが、生成フレームがときどき飛ぶことがあります",
+   "nl": "Laagste vertraging, maar framegeneratie kan af en toe een frame overslaan",
+   "de": "Geringste Verzögerung, aber die Frame-Generierung kann ab und zu ein Bild auslassen",
+   "es": "El menor retraso, pero la generación de fotogramas puede saltarse alguno de vez en cuando",
+   "fr": "Délai minimal, mais la génération d'images peut parfois sauter une image",
+   "it": "Ritardo minimo, ma la generazione di fotogrammi può saltarne uno ogni tanto",
+   "pt-BR": "Menor atraso, mas a geração de quadros pode pular um quadro de vez em quando",
+   "tr": "En düşük gecikme, ama kare üretimi ara sıra bir kare atlayabilir",
+   "ar": "أقل تأخير، لكن توليد الإطارات قد يتخطى إطارًا أحيانًا",
+   "pl": "Najmniejsze opóźnienie, ale generowanie klatek może czasem pominąć klatkę",
+   "ru": "Минимальная задержка, но генерация кадров иногда может пропустить кадр"
+  },
+  {
    "zh": "开",
    "src": "qml/NvidiaLowLatencyEditor.qml",
    "zh-TW": "開",
@@ -36553,6 +36570,23 @@
    "ru": "Находит HUD в каждом кадре, чтобы текст и прицелы оставались чёткими в сгенерированных кадрах"
   },
   {
+   "zh": "每一帧都完整显示；没有可变刷新时最多多等一次屏幕刷新",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "每一幀都完整顯示；沒有可變刷新時最多多等一次螢幕刷新",
+   "en": "Every frame is shown; without variable refresh it can wait up to one screen refresh",
+   "ja": "すべてのフレームを表示。可変リフレッシュがない場合は最大で画面 1 回分待ちます",
+   "nl": "Elk frame wordt getoond; zonder variabele verversing kan het tot één schermverversing wachten",
+   "de": "Jedes Bild wird gezeigt; ohne variable Bildwiederholung kann es bis zu einen Refresh warten",
+   "es": "Se muestra cada fotograma; sin refresco variable puede esperar hasta un refresco de pantalla",
+   "fr": "Chaque image est affichée ; sans rafraîchissement variable, l'attente peut aller jusqu'à un rafraîchissement",
+   "it": "Ogni fotogramma viene mostrato; senza aggiornamento variabile può attendere fino a un aggiornamento",
+   "pt-BR": "Todo quadro é exibido; sem atualização variável pode esperar até uma atualização da tela",
+   "tr": "Her kare gösterilir; değişken yenileme yoksa en fazla bir ekran yenilemesi bekleyebilir",
+   "ar": "يظهر كل إطار؛ بدون التحديث المتغير قد ينتظر حتى تحديث شاشة واحد",
+   "pl": "Każda klatka jest pokazana; bez zmiennego odświeżania może czekać do jednego odświeżenia",
+   "ru": "Показывается каждый кадр; без переменной частоты возможна задержка до одного обновления экрана"
+  },
+  {
    "zh": "每个游戏的推荐设置，并让小地图和 HUD 保持清晰（这些区域不补帧、不做画质效果）",
    "src": "qml/PushGamePresetsDialog.qml",
    "zh-TW": "每個遊戲的建議設定，並讓小地圖和 HUD 保持清晰（這些區域不補幀、不做畫質效果）",
@@ -37282,6 +37316,23 @@
    "ar": "Smooth",
    "pl": "Gładko",
    "ru": "гладкий"
+  },
+  {
+   "zh": "流畅帧同步",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "流暢幀同步",
+   "en": "Smooth frame pacing",
+   "ja": "なめらかなフレーム同期",
+   "nl": "Vloeiende framepacing",
+   "de": "Flüssige Bildausgabe",
+   "es": "Ritmo de fotogramas fluido",
+   "fr": "Cadence d'images fluide",
+   "it": "Ritmo dei fotogrammi fluido",
+   "pt-BR": "Ritmo de quadros suave",
+   "tr": "Akıcı kare zamanlaması",
+   "ar": "توقيت إطارات سلس",
+   "pl": "Płynne tempo klatek",
+   "ru": "Плавная подача кадров"
   },
   {
    "zh": "浅绿色",
@@ -40903,6 +40954,23 @@
    "ar": "خوارزمية SR الثانية",
    "pl": "Drugi algorytm SR",
    "ru": "Второй алгоритм SR"
+  },
+  {
+   "zh": "等屏幕刷新再显示每一帧，并把输出限制在屏幕刷新率：补出来的每一帧都完整显示，玩起来和录像一样流畅。屏幕支持 G-SYNC/FreeSync 时会请求可变刷新，几乎不增加延迟",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "等螢幕刷新再顯示每一幀，並把輸出限制在螢幕刷新率：補出來的每一幀都完整顯示，玩起來和錄影一樣流暢。螢幕支援 G-SYNC/FreeSync 時會請求可變刷新，幾乎不增加延遲",
+   "en": "Shows each frame at a screen refresh and caps the output at the refresh rate, so every generated frame is shown and playing looks as smooth as a recording. On a G-SYNC/FreeSync screen it asks for variable refresh, which adds almost no delay",
+   "ja": "画面のリフレッシュに合わせて各フレームを表示し、出力をリフレッシュレートに制限します。生成したフレームがすべて表示され、録画と同じなめらかさで遊べます。G-SYNC/FreeSync 対応画面では可変リフレッシュを要求し、遅延はほとんど増えません",
+   "nl": "Toont elk frame bij een schermverversing en beperkt de uitvoer tot de verversingssnelheid, zodat elk gegenereerd frame wordt getoond en spelen net zo vloeiend oogt als een opname. Op een G-SYNC/FreeSync-scherm wordt variabele verversing gevraagd, wat bijna geen vertraging toevoegt",
+   "de": "Zeigt jedes Bild zu einem Bildschirm-Refresh und begrenzt die Ausgabe auf die Bildwiederholrate, sodass jedes erzeugte Bild gezeigt wird und das Spielen so flüssig aussieht wie eine Aufnahme. Auf einem G-SYNC/FreeSync-Bildschirm wird variable Bildwiederholung angefordert, das kostet kaum Verzögerung",
+   "es": "Muestra cada fotograma en un refresco de pantalla y limita la salida a la frecuencia de refresco, así se ve cada fotograma generado y jugar se ve tan fluido como una grabación. En una pantalla G-SYNC/FreeSync pide refresco variable, que casi no añade retraso",
+   "fr": "Affiche chaque image à un rafraîchissement de l'écran et limite la sortie à la fréquence de rafraîchissement : chaque image générée est affichée et le jeu est aussi fluide qu'un enregistrement. Sur un écran G-SYNC/FreeSync, le rafraîchissement variable est demandé, ce qui n'ajoute presque pas de délai",
+   "it": "Mostra ogni fotogramma a un aggiornamento dello schermo e limita l'uscita alla frequenza di aggiornamento: ogni fotogramma generato viene mostrato e il gioco appare fluido come una registrazione. Su uno schermo G-SYNC/FreeSync richiede l'aggiornamento variabile, che non aggiunge quasi ritardo",
+   "pt-BR": "Mostra cada quadro em uma atualização da tela e limita a saída à taxa de atualização: todo quadro gerado é exibido e jogar fica tão suave quanto uma gravação. Em uma tela G-SYNC/FreeSync pede atualização variável, que quase não adiciona atraso",
+   "tr": "Her kareyi bir ekran yenilemesinde gösterir ve çıkışı yenileme hızıyla sınırlar; üretilen her kare gösterilir ve oyun kayıt kadar akıcı görünür. G-SYNC/FreeSync ekranda değişken yenileme ister, bu neredeyse hiç gecikme eklemez",
+   "ar": "يعرض كل إطار عند تحديث الشاشة ويحدّ الإخراج بمعدل التحديث، فيظهر كل إطار مُولَّد ويبدو اللعب سلسًا مثل التسجيل. على شاشة G-SYNC/FreeSync يطلب التحديث المتغير، وهو لا يضيف تأخيرًا يُذكر",
+   "pl": "Wyświetla każdą klatkę przy odświeżeniu ekranu i ogranicza wyjście do częstotliwości odświeżania, więc każda wygenerowana klatka jest pokazana, a gra wygląda tak płynnie jak nagranie. Na ekranie G-SYNC/FreeSync prosi o zmienne odświeżanie, co prawie nie dodaje opóźnienia",
+   "ru": "Показывает каждый кадр при обновлении экрана и ограничивает вывод частотой обновления, поэтому каждый сгенерированный кадр отображается, а игра выглядит так же плавно, как запись. На экране с G-SYNC/FreeSync запрашивается переменная частота, что почти не добавляет задержки"
   },
   {
    "zh": "等待 PS5 登录 PIN 超时，请重新连接。",

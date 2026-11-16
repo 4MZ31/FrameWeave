@@ -1427,3 +1427,4 @@ zh:亮|Luz
 1424|Lado a lado
 1425|Iniciar gravação
 1426|Duração
+1427|Ritmo de quadros suave

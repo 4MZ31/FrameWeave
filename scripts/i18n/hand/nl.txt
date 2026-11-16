@@ -1427,3 +1427,4 @@ zh:亮|Licht
 1424|Naast elkaar
 1425|Opname starten
 1426|Lengte
+1427|Vloeiende framepacing

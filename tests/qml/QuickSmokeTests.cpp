@@ -79,6 +79,8 @@ QtObject {
     property bool hudLock: false
     property int contentRate: 0
     property int outputRateMode: 0
+    property int displaySync: 2
+    property bool variableRefresh: false
     property real outputCustomFps: 0
     property bool presentationOwned: false
     property real displayRefreshHz: 240

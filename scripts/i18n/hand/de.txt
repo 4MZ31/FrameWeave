@@ -1427,3 +1427,4 @@ zh:亮|Licht
 1424|Nebeneinander
 1425|Aufnahme starten
 1426|Länge
+1427|Flüssige Bildausgabe

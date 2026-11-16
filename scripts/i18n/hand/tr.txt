@@ -1427,3 +1427,4 @@ zh:亮|Işık
 1424|Yan yana
 1425|Kaydı başlat
 1426|Süre
+1427|Akıcı kare zamanlaması

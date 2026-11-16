@@ -356,6 +356,27 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
             pr.customFps = std::clamp(saved.value(QStringLiteral("customFps"), 60.0).toDouble(), 1.0, 1000.0);
             pr.variableRefresh = saved.value(QStringLiteral("vrr")).toBool();
         }
+        // PushFPS 2.9.7: smooth frame pacing becomes the default, once. With frame generation the
+        // output runs near the refresh rate, and Automatic's Present(0,0) replaces a frame not
+        // shown yet, so a generated frame is skipped and the next refresh repeats one (live play
+        // looked rougher than recordings: field report 2026-11-16). V-Sync + a variable refresh
+        // request + an output cap at the display shows every frame once. Only a display sync
+        // still on its Automatic default is changed; the quick setup switch turns it back off.
+        if (!impl_->prefs.contains(QStringLiteral("pushSmoothPacing"))) {
+            const bool apply = pr.display == engine::DisplaySync::Automatic;
+            if (apply) {
+                pr.display = engine::DisplaySync::Vsync;
+                pr.variableRefresh = true;
+                if (pr.outputRate == engine::OutputRateMode::Off) pr.outputRate = engine::OutputRateMode::FollowDisplay;
+                impl_->prefs[QStringLiteral("presentation")] = QVariantMap{
+                    {"lowQueue", pr.enabled}, {"nvidiaLowLatency", int(pr.nvidiaLowLatency)}, {"display", int(pr.display)},
+                    {"outputRate", int(pr.outputRate)}, {"customFps", pr.customFps}, {"vrr", pr.variableRefresh}};
+            }
+            impl_->prefs[QStringLiteral("pushSmoothPacing")] = apply;
+            if (!impl_->savePrefs()) veyra::log::warn("ui-prefs", "smooth frame pacing default not saved");
+            veyra::log::info("ui-presentation", std::format("smooth frame pacing default applied={} display={} outputRate={} variableRefresh={}",
+                apply, int(pr.display), int(pr.outputRate), pr.variableRefresh));
+        }
         if (pr.valid()) impl_->engine.requestPresentation(pr);
         impl_->aspectMode = std::clamp(impl_->prefs.value(QStringLiteral("aspect")).toInt(), 0, 6);
     }

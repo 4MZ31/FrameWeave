@@ -1425,3 +1425,4 @@
 1424|Side by side
 1425|Start recording
 1426|Length
+1427|Smooth frame pacing

@@ -241,9 +241,26 @@ Item {
         }
         function test_rows_are_shown() {
             for (const n of ["pushfps-console-row", "pushfps-game-row", "pushfps-game-fps-row",
-                             "pushfps-target-row", "pushfps-adaptive-row", "pushfps-pacing-row", "pushfps-hudlock-row", "pushfps-enhance-row", "pushfps-low-latency-row"])
+                             "pushfps-target-row", "pushfps-adaptive-row", "pushfps-pacing-row", "pushfps-hudlock-row", "pushfps-enhance-row", "pushfps-smooth-row", "pushfps-low-latency-row"])
                 verify(control(n).visible, n)
             verify(quick.height > 0)
+        }
+        function test_smooth_frame_pacing() {
+            veyra.displaySync = 2; veyra.variableRefresh = false; veyra.outputRateMode = 0
+            const sw = findChild(quick, "pushfps-smooth")
+            verify(sw, "smooth frame pacing switch exists")
+            verify(!sw.checked, "off while display sync is Automatic")
+            sw.toggled(true)
+            compare(veyra.displaySync, 1, "on: V-Sync")
+            compare(veyra.variableRefresh, true, "on: variable refresh requested")
+            compare(veyra.outputRateMode, 1, "on: output capped at the display")
+            compare(veyra.preferences.pushSmoothPacing, true)
+            verify(sw.checked)
+            sw.toggled(false)
+            compare(veyra.displaySync, 2, "off: back to Automatic")
+            compare(veyra.variableRefresh, false)
+            compare(veyra.outputRateMode, 0, "off: no output cap")
+            compare(veyra.preferences.pushSmoothPacing, false)
         }
     }
 }

@@ -8,10 +8,19 @@ import "PushGamePresets.js" as Presets
 
 // PushFPS quick setup: the choices most console players make, above the detailed
 // controls. Every control here only sets existing settings (frame generation on/off,
-// multiplier, output cap, NR layers, NVIDIA low latency), so Professional mode always
+// multiplier, output cap, NR layers, NVIDIA low latency, display sync), so Professional mode always
 // shows exactly what was chosen and nothing here adds engine state.
 VGroup {
     id: quick
+    // Smooth frame pacing (row pushfps-smooth): V-Sync + variable refresh request + output capped at
+    // the display (OutputRateMode FollowDisplay); off returns to Automatic, no cap, no VRR request.
+    readonly property bool smoothPacing: veyra.displaySync === 1 && veyra.outputRateMode === 1
+    function setSmoothPacing(on) {
+        veyra.displaySync = on ? 1 : 2
+        veyra.variableRefresh = on
+        veyra.outputRateMode = on ? 1 : 0
+        veyra.setPreference("pushSmoothPacing", on)
+    }
     objectName: "pushfps-quick-setup"
     // Home shows the short form: no low-latency row and no intro line.
     property bool compact: false
@@ -660,6 +669,24 @@ VGroup {
             objectName: "pushfps-auto-fullscreen"
             checked: veyra.preferences.pushAutoFullscreen === true
             onToggled: v => veyra.setPreference("pushAutoFullscreen", v)
+        }
+    }
+
+    // Smooth frame pacing: every frame waits for a refresh (V-Sync; variable refresh where the monitor
+    // has it) and the output is capped at the refresh rate, so each generated frame is shown once.
+    // Off: Veyra's Automatic, Present(0,0): the newest frame replaces one not shown yet (lowest
+    // latency, but frame generation output can skip a frame and repeat the next).
+    VRow {
+        objectName: "pushfps-smooth-row"
+        visible: !quick.compact
+        label: qsTr("流畅帧同步")
+        help: qsTr("等屏幕刷新再显示每一帧，并把输出限制在屏幕刷新率：补出来的每一帧都完整显示，玩起来和录像一样流畅。屏幕支持 G-SYNC/FreeSync 时会请求可变刷新，几乎不增加延迟")
+        hint: quick.smoothPacing ? qsTr("每一帧都完整显示；没有可变刷新时最多多等一次屏幕刷新")
+                                 : qsTr("延迟最低，但补帧画面可能偶尔跳帧")
+        VSwitch {
+            objectName: "pushfps-smooth"
+            checked: quick.smoothPacing
+            onToggled: checked => quick.setSmoothPacing(checked)
         }
     }
 
