@@ -479,6 +479,12 @@ struct EnhancementSettings {
     // only the per-pair multiplier, never the graph, so it is left out of the
     // configuration comparisons below. A global control kept in shell preferences.
     bool fgAdaptive=false;
+    // PushFPS "帧节奏修复" (PushPacingRepair.h): even times for a locked game whose
+    // frames arrive unevenly (17/50 ms). Re-times frames on the engine thread only.
+    bool pacingRepair=false;
+    // PushFPS "实时 HUD 锁定": a per-pixel HUD mask found every frame, kept out of
+    // frame generation (pipeline/PushHudLock.h).
+    bool hudLock=false;
     ContentRate content=ContentRate::Transport;
     AudioSyncMode audioSync=AudioSyncMode::Automatic;
     int32_t audioOffsetMs=0;
@@ -562,7 +568,7 @@ struct EnhancementSettings {
         auto active=activeVideoSettings();const auto target=other.activeVideoSettings();
         active.revision=target.revision;active.audioSync=target.audioSync;active.audioOffsetMs=target.audioOffsetMs;
         active.captureFlipVertical=target.captureFlipVertical;active.exportBitrateMbps=target.exportBitrateMbps;
-        active.fgAdaptive=target.fgAdaptive;
+        active.fgAdaptive=target.fgAdaptive;active.pacingRepair=target.pacingRepair;
         return active==target;
     }
     bool sameVideoConfiguration(const EnhancementSettings& other) const {
@@ -578,6 +584,7 @@ struct EnhancementSettings {
         video.exportBitrateMbps=target.exportBitrateMbps;
         // PushFPS adaptive multiplier: chosen per pair inside the running graph.
         video.fgAdaptive=target.fgAdaptive;
+        video.pacingRepair=target.pacingRepair;
         // Colour grade: parameters are uniform-only (never a rebuild), but the
         // master switch changes the graph shape, so it stays in the comparison.
         const auto oldColor=video.color;const auto oldAdditional=video.additionalColors;

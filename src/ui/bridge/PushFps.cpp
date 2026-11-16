@@ -71,6 +71,9 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["fgActive"] = s.fgActive;
     // The multiplier the last pair used (adaptive mode, output cap or a reduced group).
     m["fgMultiplierNow"] = s.previewFgMultiplier;
+    // Frame Pacing Repair: kept frames seen and re-timed since the source opened.
+    m["pacingFrames"] = QVariant::fromValue(qulonglong(s.pacingFrames));
+    m["pacingRepaired"] = QVariant::fromValue(qulonglong(s.pacingRepaired));
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;
     m["fgBudgetLimited"] = s.fgBudgetLimited;

@@ -319,6 +319,9 @@ add_dependencies(veyra_shader_rgb_to_linear veyra_shader_yuy2_to_linear)
 # ScaleBlit: working frame -> swapchain backbuffer (Phase 6 present path).
 veyra_add_compute_shader(veyra_shader_scale_blit ScaleBlit)
 veyra_add_compute_shader(veyra_shader_effect_exclusion EffectExclusion)
+# PushFPS Live HUD Lock: per-pixel stillness state and the generated-frame compose.
+veyra_add_compute_shader(veyra_shader_push_hud_lock_update PushHudLockUpdate)
+veyra_add_compute_shader(veyra_shader_push_hud_lock_compose PushHudLockCompose)
 # Nv12Upload: byte buffer -> luma/chroma planes (copy-free upload path).
 veyra_add_compute_shader(veyra_shader_nv12_upload Nv12Upload)
 # PresentBlit: fullscreen-triangle pixel blit onto flip-model back buffers.
@@ -408,6 +411,7 @@ add_library(veyra_pipeline STATIC
   src/pipeline/ColorDetailPass.cpp
   src/pipeline/AntiAliasPass.cpp
   src/pipeline/NisPass.cpp
+  src/pipeline/PushHudLock.cpp
   src/pipeline/SmaaLookupTables.cpp
   src/pipeline/NrInstance.cpp
   src/pipeline/AmdHipPreflight.cpp
@@ -528,6 +532,7 @@ add_executable(veyra_push_gpu_tests tests/integration/PushGpuTests.cpp src/engin
 target_compile_features(veyra_push_gpu_tests PRIVATE cxx_std_20)
 target_compile_options(veyra_push_gpu_tests PRIVATE /utf-8)
 target_link_libraries(veyra_push_gpu_tests PRIVATE veyra_pipeline)
+add_dependencies(veyra_push_gpu_tests veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose)
 
 add_executable(veyra_pipeline_tests
   tests/unit/PipelineContractTests.cpp
@@ -722,7 +727,7 @@ if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avform
 
   # veyra_sources: product input sources (Playbook R3/R7). MediaFileSource
   # composes veyra_media; no second decode implementation exists.
-  add_dependencies(veyra_pipeline veyra_shader_effect_exclusion veyra_shader_sr_resolve veyra_shader_nr_downsample veyra_shader_nr_residual veyra_shader_nr_temporal veyra_shader_nr_hold veyra_shader_nr_reuse_compose veyra_shader_nr_reuse_warp veyra_shader_flow_adapt veyra_shader_flow_refine veyra_shader_flow_fill veyra_shader_flow_claim veyra_shader_vfg_shot_change)
+  add_dependencies(veyra_pipeline veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_effect_exclusion veyra_shader_sr_resolve veyra_shader_nr_downsample veyra_shader_nr_residual veyra_shader_nr_temporal veyra_shader_nr_hold veyra_shader_nr_reuse_compose veyra_shader_nr_reuse_warp veyra_shader_flow_adapt veyra_shader_flow_refine veyra_shader_flow_fill veyra_shader_flow_claim veyra_shader_vfg_shot_change)
   add_library(veyra_sources STATIC
     src/source/NativeCaptureSink.cpp
     src/source/MediaFileSource.cpp
@@ -951,6 +956,10 @@ if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avform
   add_executable(veyra_push_benchmark_tests tests/unit/PushBenchmarkTests.cpp)
 target_compile_features(veyra_push_benchmark_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_benchmark_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS Frame Pacing Repair on synthetic capture streams.
+add_executable(veyra_push_pacing_repair_tests tests/unit/PushPacingRepairTests.cpp)
+target_compile_features(veyra_push_pacing_repair_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_pacing_repair_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS adaptive frame generation: per-pair multiplier choice and its hold.
 add_executable(veyra_push_adaptive_fg_tests tests/unit/PushAdaptiveFgTests.cpp)
 target_compile_features(veyra_push_adaptive_fg_tests PRIVATE cxx_std_20)

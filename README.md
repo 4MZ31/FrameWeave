@@ -345,6 +345,30 @@ multipliers to reach the display's refresh rate; PushFPS bases it on the console
 with DLSS, ANR and NVIDIA VFG frame generation. FSR, AMD FRC and XeSS generate a fixed 2X or pace themselves,
 so the switch is not offered for them. A lower multiplier also means a little less delay.
 
+## Frame Pacing Repair
+
+Many console games locked to 30 FPS don't deliver their frames evenly. Instead of every frame staying on screen
+for two 60 Hz refreshes, some stay for one and others for three (17 ms, then 50 ms). The game simulated them 33 ms
+apart, so the motion judders even though the frame rate is right, and frame generation keeps that judder. The
+console can't fix it: the picture it sends is already uneven.
+
+**Frame Pacing Repair** (quick setup, or frame generation in Professional mode) puts every real frame back on an
+even grid before frames are generated. It fits a line through the arrival times of the last frames, so a 17/50 ms
+game becomes 33/33. It only acts on what it can explain as uneven delivery of a locked frame rate. A stall
+restarts it, and a game whose frame rate genuinely varies keeps its own timing. A frame is shown at most one
+capture refresh later; for the common 17/50 ms pattern about half a refresh. The quick setup shows how much of the
+picture it is re-timing. It needs automatic duplicate removal, which it turns on.
+
+## Live HUD Lock
+
+Frame generation interpolates every pixel between two real frames, so still text, crosshairs and health bars get
+dragged along with the moving background and smear or wobble. HUD protection fixes this with boxes. **Live HUD
+Lock** finds those pixels itself, on every frame, on the graphics card. A pixel that has stayed the same for
+about a second and has an edge (text, a crosshair, a bar) is taken from the real frame in the generated frames,
+and released the moment it moves. A still pixel looks the same in the real frame, so locking one that isn't HUD
+(a still wall) changes nothing visible. Works with DLSS, ANR, NVIDIA VFG, FSR and AMD FRC frame generation; XeSS
+generates inside its own presenter, so it can't be combined.
+
 ## Automatic HUD detection
 
 Click **HUD protection** in the quick setup while your game is playing, then **Detect automatically** and

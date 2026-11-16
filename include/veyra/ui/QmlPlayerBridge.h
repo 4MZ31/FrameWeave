@@ -458,6 +458,9 @@ class QmlPlayerBridge : public QObject {
     Q_PROPERTY(bool vfgAutoRegulate READ vfgAutoRegulate WRITE setVfgAutoRegulate NOTIFY settingsChanged)
     // PushFPS 自适应倍率: EnhancementSettings::fgAdaptive (engine/PushAdaptiveFg.h).
     Q_PROPERTY(bool fgAdaptive READ fgAdaptive WRITE setFgAdaptive NOTIFY settingsChanged)
+    // PushFPS 帧节奏修复 (engine/PushPacingRepair.h) and 实时 HUD 锁定 (pipeline/PushHudLock.h).
+    Q_PROPERTY(bool pacingRepair READ pacingRepair WRITE setPacingRepair NOTIFY settingsChanged)
+    Q_PROPERTY(bool hudLock READ hudLock WRITE setHudLock NOTIFY settingsChanged)
     Q_PROPERTY(bool dlssgLiteAvailable READ dlssgLiteAvailable CONSTANT)
     Q_PROPERTY(QString dlssgLiteHint READ dlssgLiteHint NOTIFY snapshotChanged)
     Q_PROPERTY(int contentRate READ contentRate WRITE setContentRate NOTIFY settingsChanged)
@@ -1150,6 +1153,10 @@ public:
     bool vfgAutoRegulate() const;
     bool fgAdaptive() const;
     void setFgAdaptive(bool value);
+    bool pacingRepair() const;
+    void setPacingRepair(bool value);
+    bool hudLock() const;
+    void setHudLock(bool value);
     void setVfgAutoRegulate(bool value);
     bool dlssgLiteAvailable() const;
     QString dlssgLiteHint() const;

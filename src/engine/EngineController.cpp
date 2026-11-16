@@ -28,6 +28,7 @@
 #include "veyra/engine/CapturePreviewClock.h"
 #include "veyra/engine/DisplayFgBudget.h"
 #include "veyra/engine/PushAdaptiveFg.h"
+#include "veyra/engine/PushPacingRepair.h"
 #include "veyra/source/MediaFileSource.h"
 #include "veyra/source/CaptureCardSource.h"
 #include "veyra/source/DeckLinkCapture.h"
@@ -1154,6 +1155,9 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
             // VEYRA_TEST_CONTENT_DEDUP_LEGACY=1 restores the report-only content modes
             // for A/B runs.
             ContentDedup contentDedup;uint64_t dedupRevision=0;
+            // PushFPS Frame Pacing Repair (PushPacingRepair.h): even times for the kept frames
+            // of a locked game whose frames the console shows unevenly.
+            PushPacingRepair pacingRepair;int64_t pacingLastPts=0;bool pacingHaveLast=false;int64_t nextPacingLog=0;
             ContentDedup::Stats dedupLogged{};
             static const bool legacyCadence=GetEnvironmentVariableW(L"VEYRA_TEST_CONTENT_DEDUP_LEGACY",nullptr,0)>0;
             const auto dedupContent=[](ContentRate content){return content!=ContentRate::Transport&&content!=ContentRate::Capture60To30;};
@@ -2239,8 +2243,23 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                         pkt.sequence,pkt.pts.to100ns(),decision.keep,decision.reason,pictured?picture.id:0,picture.repeat,picture.over,picture.max8,decision.contentPts,decision.interval/1e4,dedupUs));
                     if(!decision.keep){std::lock_guard lock(mutex_);++snapshot_.captureRateSkipped;continue;}
                     dedupHoldInterval100ns=decision.holdInterval;
-                    pkt.pts={decision.contentPts,10000000};
-                    if(decision.interval>0)pkt.duration={decision.interval,10000000};
+                    int64_t contentPts=decision.contentPts,contentInterval=decision.interval;
+                    // Frame generation shows a real frame one content interval after it
+                    // arrives, which is the room the repair uses; without it there is none.
+                    if(options.settings.pacingRepair&&options.fg&&!presentSinkFrameGeneration(options.settings.frameGenerationBackend)){
+                        const bool restart=boundary||decision.holdInterval>0;
+                        const auto repaired=pacingRepair.apply(pkt.pts.to100ns(),contentPts,capturePeriod,restart);
+                        contentPts=repaired.pts;
+                        if(pacingHaveLast&&!restart&&contentPts>pacingLastPts)contentInterval=contentPts-pacingLastPts;
+                        const auto now100=host100ns();
+                        if(now100>=nextPacingLog){nextPacingLog=now100+50000000;const auto& st=pacingRepair.stats();
+                            veyra::log::info("push-pacing-repair",std::format("revision={} frames={} repaired={} restarts={} variable={} maxLateMs={:.2f} maxEarlyMs={:.2f} contentFps={:.2f}",
+                                options.settings.revision,st.frames,st.repaired,st.restarts,st.variable,st.maxLate/1e4,st.maxEarly/1e4,contentDedup.contentFps()));}
+                        {std::lock_guard lock(mutex_);snapshot_.pacingFrames=pacingRepair.stats().frames;snapshot_.pacingRepaired=pacingRepair.stats().repaired;}
+                    }else pacingRepair.reset();
+                    pacingLastPts=contentPts;pacingHaveLast=true;
+                    pkt.pts={contentPts,10000000};
+                    if(contentInterval>0)pkt.duration={contentInterval,10000000};
                 }else if(halfRate&&!rereadCached){
                     // 60->30: every second sample on the effective capture clock.
                     // Only a number the capture callback already computed is used, so the

@@ -258,6 +258,28 @@ void QmlPlayerBridge::setFgAdaptive(bool value) {
     if (!impl_->savePrefs()) veyra::log::warn("ui-prefs", "adaptive multiplier not saved");
     emit settingsChanged();
 }
+// PushFPS Frame Pacing Repair: re-times frames on the engine thread, never a rebuild.
+bool QmlPlayerBridge::pacingRepair() const { return settings().pacingRepair; }
+void QmlPlayerBridge::setPacingRepair(bool value) {
+    auto s = settings();
+    if (s.pacingRepair == value) return;
+    s.pacingRepair = value;
+    if (!impl_->commit(std::move(s))) { emit notice(tr("引擎未接受帧节奏修复，原设置保留"), true); return; }
+    impl_->prefs[QStringLiteral("pacingRepair")] = value;
+    if (!impl_->savePrefs()) veyra::log::warn("ui-prefs", "pacing repair not saved");
+    emit settingsChanged();
+}
+// PushFPS Live HUD Lock: a mask pass in the graph, so switching it rebuilds the graph.
+bool QmlPlayerBridge::hudLock() const { return settings().hudLock; }
+void QmlPlayerBridge::setHudLock(bool value) {
+    auto s = settings();
+    if (s.hudLock == value) return;
+    s.hudLock = value;
+    if (!impl_->commit(std::move(s))) { emit notice(tr("引擎未接受实时 HUD 锁定，原设置保留"), true); return; }
+    impl_->prefs[QStringLiteral("hudLock")] = value;
+    if (!impl_->savePrefs()) veyra::log::warn("ui-prefs", "HUD lock not saved");
+    emit settingsChanged();
+}
 bool QmlPlayerBridge::dlssgLiteAvailable() const {
     static const bool present = ngx::dlssgLiteRuntimePresent(runtime::localRuntimeDirectory());
     return present;

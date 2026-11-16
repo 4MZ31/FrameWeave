@@ -12,7 +12,12 @@
 //  - PushHudSampler (automatic HUD detection): copies only real frames, one at
 //    a time, at the interval; finds a static HUD box on a moving picture end to
 //    end; refuses a format it cannot read.
+//  - PushHudLock (Live HUD Lock): after a second of a still HUD over a moving
+//    picture, a generated frame takes the HUD pixels from the held real frame
+//    and keeps its own everywhere else; a HUD that disappears is released on
+//    that frame; a reset starts over.
 #include "veyra/engine/PushHudSampler.h"
+#include "veyra/pipeline/PushHudLock.h"
 #include "veyra/engine/RecordingCompare.h"
 #include "veyra/pipeline/GpuPassUtils.h"
 
@@ -319,6 +324,90 @@ void testHudSampler(Gpu& gpu) {
     const auto failed = sampler.status();
     check(failed.failed && !failed.error.empty() && !failed.running, "hud: an unsupported format fails with a reason");
 }
+void testHudLock(Gpu& gpu) {
+    constexpr uint32_t W = 256, H = 144;
+    constexpr DXGI_FORMAT F = DXGI_FORMAT_R8G8B8A8_UNORM;
+    auto* device = gpu.device.Get();
+    Plane real[2]{{pipeline::makeTexture(device, W, H, F, true), F, W, H, 4}, {pipeline::makeTexture(device, W, H, F, true), F, W, H, 4}};
+    Plane generated{pipeline::makeTexture(device, W, H, F, true), F, W, H, 4};
+    check(real[0].texture && real[1].texture && generated.texture, "hud lock: textures created");
+    pipeline::PushHudLock lock;
+    check(lock.initialize(device, W, H, F, 0), "hud lock: created");
+    pipeline::DescriptorStager stager;
+    check(stager.initialize(device, 64), "hud lock: staging heap");
+    ID3D12Resource* reals[2] = {real[0].texture.Get(), real[1].texture.Get()};
+    ID3D12Resource* gens[1] = {generated.texture.Get()};
+    lock.createViews(device, stager, reals, gens, 1);
+    // HUD: x 20..100, y 10..40, high-contrast stripes that never move. Everything else moves.
+    auto hudAt = [](uint32_t x, uint32_t y) { return x >= 20 && x < 100 && y >= 10 && y < 40; };
+    auto picture = [&](int shift, bool hud) {
+        std::vector<uint8_t> px(size_t(W) * H * 4);
+        for (uint32_t y = 0; y < H; ++y)
+            for (uint32_t x = 0; x < W; ++x) {
+                uint8_t v;
+                if (hud && hudAt(x, y)) v = ((x / 3) % 2) ? 230 : 25;
+                else {
+                    uint32_t h = uint32_t(int(x) + shift) * 374761393u + uint32_t(int(y) + shift / 3) * 668265263u;
+                    h = (h ^ (h >> 13)) * 1274126177u;
+                    v = uint8_t(40 + (h >> 25));
+                }
+                uint8_t* p = px.data() + (size_t(y) * W + x) * 4;
+                p[0] = p[1] = p[2] = v; p[3] = 255;
+            }
+        return px;
+    };
+    pipeline::StateTracker states;
+    std::vector<uint8_t> last;
+    auto realFrame = [&](int i, bool hud, bool reset) {
+        const unsigned parity = unsigned(i) & 1u;
+        gpu.begin();
+        last = picture(i * 5, hud);
+        auto up = recordFill(gpu, real[parity], last, states.get(real[parity].texture.Get()), D3D12_RESOURCE_STATE_COMMON);
+        states.set(real[parity].texture.Get(), D3D12_RESOURCE_STATE_COMMON);
+        const bool ok = lock.update(gpu.list.Get(), states, parity, reset);
+        return ok && gpu.submitAndWait();
+    };
+    auto generatedFrame = [&](unsigned held, std::vector<uint8_t>& out) {
+        gpu.begin();
+        auto up = recordFill(gpu, generated, std::vector<uint8_t>(size_t(W) * H * 4, 128), states.get(generated.texture.Get()), D3D12_RESOURCE_STATE_COMMON);
+        states.set(generated.texture.Get(), D3D12_RESOURCE_STATE_COMMON);
+        const bool ok = lock.compose(gpu.list.Get(), states, 0, held);
+        auto rb = recordRead(gpu, generated, states.get(generated.texture.Get()));
+        if (!ok || !gpu.submitAndWait()) return false;
+        out = mapRead(generated, rb.Get());
+        return true;
+    };
+    bool ran = true;
+    int i = 0;
+    for (; i < 60; ++i) ran = ran && realFrame(i, true, i == 0);
+    check(ran, "hud lock: 60 real frames update the state");
+    std::vector<uint8_t> out;
+    check(generatedFrame(unsigned(i - 1) & 1u, out), "hud lock: a generated frame is composed");
+    int hudHeld = 0, hudTotal = 0, bgKept = 0, bgTotal = 0;
+    for (uint32_t y = 0; y < H; ++y)
+        for (uint32_t x = 0; x < W; ++x) {
+            const size_t k = (size_t(y) * W + x) * 4;
+            if (hudAt(x, y)) { ++hudTotal; hudHeld += out[k] == last[k]; }
+            else if (x >= 110 || y >= 50) { ++bgTotal; bgKept += out[k] == 128; }
+        }
+    std::printf("INFO hud lock: HUD pixels from the real frame %d/%d, moving pixels kept %d/%d\n", hudHeld, hudTotal, bgKept, bgTotal);
+    check(hudHeld >= hudTotal * 95 / 100, "hud lock: the HUD comes from the held real frame");
+    check(bgKept == bgTotal, "hud lock: the moving picture keeps the generated pixels");
+    // The HUD goes away (a menu closes): released on that very frame.
+    check(realFrame(i, false, false), "hud lock: a frame without the HUD runs");
+    check(generatedFrame(unsigned(i) & 1u, out), "hud lock: composed after the HUD went away");
+    int released = 0;
+    for (uint32_t y = 12; y < 38; ++y) for (uint32_t x = 22; x < 98; ++x) released += out[(size_t(y) * W + x) * 4] == 128;
+    check(released >= 26 * 76 * 95 / 100, "hud lock: a HUD that moves or disappears is released at once (" + std::to_string(released) + "/1976)");
+    // A reset starts over: nothing is locked right after it.
+    ++i;
+    check(realFrame(i, true, true), "hud lock: reset runs");
+    check(generatedFrame(unsigned(i) & 1u, out), "hud lock: composed after a reset");
+    int afterReset = 0;
+    for (size_t k = 0; k < out.size(); k += 4) afterReset += out[k] != 128;
+    check(afterReset == 0, "hud lock: nothing is locked right after a reset");
+    check(!gpu.debugErrors(), "hud lock: no D3D12 debug errors");
+}
 } // namespace
 
 int main() {
@@ -327,6 +416,7 @@ int main() {
     std::printf("INFO adapter %s debug=%d\n", gpu.adapter.c_str(), gpu.debug ? 1 : 0);
     testCompare(gpu);
     testHudSampler(gpu);
+    testHudLock(gpu);
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "OK", failures);
     return failures ? 1 : 0;
 }
