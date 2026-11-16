@@ -176,9 +176,9 @@ QtObject {
     property int streamStops: 0
     function pushStreamPlatforms() {
         return [
-            {id: "twitch", name: "Twitch", servers: [{name: "Auto", url: "rtmp://live.twitch.tv/app"}], maxVideoKbps: 6000, maxAudioKbps: 320, needsRtmps: false, keyPage: "dashboard.twitch.tv"},
-            {id: "youtube", name: "YouTube", servers: [{name: "Primary (RTMPS)", url: "rtmps://a.rtmps.youtube.com:443/live2"}], maxVideoKbps: 51000, maxAudioKbps: 160, needsRtmps: false, keyPage: "studio.youtube.com"},
-            {id: "kick", name: "Kick", servers: [{name: "Default", url: "rtmps://kick.example:443/app"}], maxVideoKbps: 8000, maxAudioKbps: 160, needsRtmps: true, keyPage: "kick.com"},
+            {id: "twitch", name: "Twitch", servers: [{name: "Auto", url: "twitch-auto"}], maxVideoKbps: 6000, maxAudioKbps: 320, needsRtmps: false, keyPage: "dashboard.twitch.tv"},
+            {id: "youtube", name: "YouTube", servers: [{name: "Primary (RTMPS)", url: "youtube-primary"}], maxVideoKbps: 51000, maxAudioKbps: 160, needsRtmps: false, keyPage: "studio.youtube.com"},
+            {id: "kick", name: "Kick", servers: [{name: "Default", url: "kick-default"}], maxVideoKbps: 8000, maxAudioKbps: 160, needsRtmps: true, keyPage: "kick.com"},
             {id: "tiktok", name: "TikTok", servers: [], maxVideoKbps: 6000, maxAudioKbps: 160, needsRtmps: false, keyPage: "tiktok.com"},
             {id: "custom", name: "Custom", servers: [], maxVideoKbps: 50000, maxAudioKbps: 320, needsRtmps: false, keyPage: ""}
         ]
