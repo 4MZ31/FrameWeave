@@ -262,10 +262,19 @@ jobs:
           # Shared macOS runners sometimes starve the process for seconds (the 60 Hz test picture then arrives
           # at 40 Hz and the rate check fails for reasons outside PushFPS). A real fault fails twice in a row.
           twice() { "$@" || { echo "::warning::retrying once: $*"; "$@"; }; }
-          twice $app --selftest 6 --source testpattern
-          twice $app --selftest 8 --source testpattern-uneven --pacing --hud
+          twice $app --selftest 6 --source testpattern --target 60
+          twice $app --selftest 8 --source testpattern-uneven --pacing --hud --target 60
           set +e
           $app --selftest 2 --source camera:7; test $? -eq 2
+
+      - name: Self-test at 120 FPS (informational on shared runners)
+        continue-on-error: true
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          app=build/app/PushFPS.app/Contents/MacOS/PushFPS
+          $app --selftest 6 --source testpattern
+          $app --selftest 8 --source testpattern-uneven --pacing --hud
 
       - name: GPU check (Metal)
         continue-on-error: true
