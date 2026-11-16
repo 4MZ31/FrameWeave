@@ -1329,3 +1329,21 @@ ANR协作者于2026-11-13T15:49:32Z在Issue9明确禁止Beta第三方再分发�
 生成assets/veyra-wordmark-sun.gif替换README.md/README_CN.md顶部引用，480×364、133帧、6.28秒循环、3441610字节，SHA256 7e87d95d4366f6dd319fdee3c2e55b06ce151cc42afda4251bf03e5974cef75d。原入场倒放再正放，首帧完整字标停留1秒；采用全画布透明清除，每帧至少91089个透明像素。初次Pillow delta编码在全透明帧写入重复文件头，被逐帧/时长校验拦截；改用其帧编码器逐张写完整画布并显式disposal=2后，133帧全部像素与时序一致通过，不带底色、不留残影。GIF只有二值透明，边缘按alpha128量化；深浅背景实际解码预览已检查。旧有背景GIF在Git历史中保留，当前树移除；作者/零起点教程/双码各220及远端并发的Trending/下载数改动保持。
 
 执行命令：py -3.11 -X utf8 -B -I reports任务目录/prepare.py、capture.py、encode.py、verify.py；git diff --check及main快进/推送nrvideo main。脚本/命令参数/CAPTURE.json/ENCODE.json/深浅底预览/独立FFmpeg解码与远端逐字节验证FINAL.json统一在E:/项目/Veyra/reports/codex-readme-wordmark-transparent-20261115；私有app/profile在tests同名、缓存tmp同名、日志logs同名。仅文档展示资产，不重编译或改Release包/标签，不关机。
+
+## 2026-11-16 更新13群二维码
+
+用户提供13群新码并要求替换。隔离分支codex/community-group13-20261116基于8a690f5；原PNG直接复制到docs/images/community/group-13-20261116.png，360×544、67186字节，SHA256 4034bbef9ad68d535ce1f3a43ef28caad4d5a66bac8094df60250b42f2486b6f。PNG校验及原图逐字节一致通过；普通OpenCV解码未成功，改用QRCodeDetectorAruco对原图解码成功，无需修改图片。群号/图片原标注有效期同步为13群、2026-11-23前。
+
+更新README.md/README_CN.md、docs/RELEASE_SUPPORT.md与2.1.9更新说明；双码各220、赞助原图、透明Logo、作者主页及零起点教程保持。对应同步当前2.1.9应用与源码两个Release正文，群码链接固定到本次提交的新原图；仅更换群码/群号/有效期，保留源码ZIP原含12群图的事实描述，不改标签或已发布下载文件。GitHub连接器负责读取，缺少Release修改接口的部分用gh api PATCH body字段，更新前备份并核对正文，更新后检查完整正文和资产ID/大小/摘要保持。
+
+命令：py -3.11 -X utf8 -B -I reports任务目录/prepare.py、releases.py及verify.py，git diff --check、main快进并push nrvideo main。原正文、具体PATCH JSON、元数据与前后证据/远端README/双码实际可访问性记录在E:/项目/Veyra/reports/codex-community-group13-20261116/及FINAL.json；其他产物不新建、不重打包、不关机。
+
+## 2026-11-16 Elgato 4K X：自动识别 HDR 信号源（Claude，未提交）
+
+用户 4K X + P010 时“自动”保持 SDR，需手动选 HDR·PQ。原因：4K X 不支持厂商属性集（720/721/722），驱动也不声明 PQ。实机核查（USB\VID_0FD9&PID_009B）：只有 UVC 视频与 UAC 音频接口，没有 HID 接口，因此 Elgato 官方 HID 协议不适用；厂商控制在 UVC 扩展单元 {961073C7-49F7-44F2-AB42-E940405940C2}（拓扑节点 3）。
+
+改动：`readElgato4kxHdrPacket`（`src/source/ElgatoHdrControl.cpp`）按 Nitlink f39b909（MIT）的邮箱协议读取信号源 HDR InfoFrame；`configure` 在非 MK.2、厂商属性读不到有效包时改走该路径，之后沿用原有 InfoFrame 校验与自动 PQ/HLG 逻辑。每次连接只查询一次；首个写入被拒即停止。手动选择、MK.2 与其它采集卡路径不变。
+
+验证：本机无项目依赖，未构建应用或 `veyra_capture_color_tests`。用 MSVC 14.50 /W4 单独编译 `ElgatoHdrControl.cpp`+`Log.cpp`+`ElgatoHdrCases.h`：34/34 通过（新增 4 项邮箱用例）。真实 4K X 上 `configure` 返回成功，应答 37 字节 A1/22、校验通过、内容全零（当时信号源为 SDR）→ 保持 SDR。**HDR 信号源下的真实应答未验证**，应用内整体流程未验证。未提交、未 push。
+
+补充（同日，HDR 信号源实测）：用户确认主机输出 HDR 后复测，真实应答为 `A1 22 00 00 87 01 1A 02 00…00 99`：InfoFrame 头后直接是载荷，**没有 InfoFrame 校验字节**（EOTF 在第 3 字节），原严格解析因此判无效、保持 SDR。修正：`readElgato4kxHdrPacket` 复制时补回校验字节恢复标准布局（完整性已由邮箱校验和覆盖）；测试夹具改为真实布局。重编后 34/34，/W4 无警告；真实 4K X：`InfoFrame valid=true eotf=2`，`configure` 得到 PQ、hdrPath=1。该信号源的静态元数据全零（peak/MaxCLL=0），元数据字段偏移与 HLG 未能实测。应用仍未构建，未提交。
