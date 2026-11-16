@@ -410,14 +410,14 @@ every frame generation method; it does not change any setting until you click **
 **Comparison clip** in the quick setup opens a small dialog: pick the layout and the length (10, 15, 30 or 60
 seconds), then **Start recording** (the same two choices are under *Settings, Playback*). The clip goes into your recordings folder (`PushFPS-compare-….mp4`).
 
-- **Split**: one picture cut down the middle. The left half holds each real frame from the console until the
-  next one arrives, so it moves at the game's own frame rate; the right half is every frame PushFPS shows,
-  generated ones included.
-- **Side by side**: the whole picture twice, each at half size: the console's frame rate on the left,
-  PushFPS on the right, on a black background.
+- **Split**: one picture cut down the middle. The left half is the raw console picture, each real frame held
+  until the next one arrives, so it moves at the game's own frame rate; the right half is every frame PushFPS
+  shows, with frame generation and AI picture enhancement.
+- **Side by side**: the whole picture twice, each at half size: the raw console picture on the left, PushFPS
+  on the right, on a black background.
 
-Each side is labelled with its frame rate at the top (for example *Console · 30 FPS* and *PushFPS · 120 FPS*),
-in SDR and HDR. Frame generation has to be on, using any method except XeSS (XeSS makes its frames as they
+The console side has no AI enhancement, upscaling or colour changes, so the clip shows exactly what PushFPS adds.
+Each side has a badge at the top: *Console · 30 FPS* and the PushFPS logo with its frame rate, in SDR and HDR. Frame generation has to be on, using any method except XeSS (XeSS makes its frames as they
 are shown, after the recorder has read the picture). Click the tile again to stop early. The card that appears
 afterwards can share the clip to Discord.
 
