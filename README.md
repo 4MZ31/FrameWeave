@@ -102,7 +102,8 @@ everything Veyra does, PushFPS adds what console players need:
 | Feature | What it does |
 |---|---|
 | **Optimise for my PC** | Tests every frame generation method your PC has, AI enhancement and the upscalers on your real game picture, measures frame rate, 1% low, latency and jitter, and keeps the best combination for your goal (balanced, lowest latency, smoothest or best picture), up to 144 or 240 Hz |
-| **Streaming mode** | An OBS-style page: preview, PushFPS features, go live and record controls, an audio mixer for game sound, microphone and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
+| **Streaming mode** | An OBS-style page: preview, PushFPS features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards), go live and record controls, an audio mixer for game sound, microphone and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
+| **Video playback mode** | Frame generation, super resolution, AI enhancement and SDR to HDR on any video on your PC: a browser window with YouTube, a video app, a screen or a file |
 | **Lowest latency in one tap** | Every latency setting that costs no picture quality, switched on together; off restores your previous settings |
 | **Go live** | Stream the boosted picture straight to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or any RTMP server, to several platforms at once from one encode. Stream keys are stored encrypted |
 | **Frame Pacing Repair** | Evens out the uneven frame timing many 30 FPS console games have before frames are generated |
@@ -512,9 +513,26 @@ features built in:
 - **Audio mixer** across the bottom, like OBS's: *Game sound* and *Microphone* faders with level meters and
   mute, for what recordings and streams take, and *Monitor* (what you hear yourself). Choose whether the
   microphone goes into recordings, streams or both.
+- **Scenes**, like OBS's, switched with one click or **Ctrl+1** to **Ctrl+9**:
+  - *game scenes* show the picture, optionally with a corner picture (your logo) or a text tag;
+  - *card scenes* (*Starting soon*, *Be right back*, *Thanks for watching*, or your own with a background
+    picture) replace the game in recordings and streams and mute the game sound.
+  Scenes change only what recordings and streams show; you keep seeing the game.
 - **Microphone filters** (the sliders button on the microphone): rumble filter, 5-band equaliser with voice
   presets, noise gate and compressor, then a -1 dB limiter that is always on.
 - **Status bar**: live time, bitrate and dropped frames, recording time, processing latency and the encoder.
+
+## Video playback mode
+
+**Video playback mode** (the play button in the top bar) puts PushFPS's tools on any video on your PC:
+- pick a **window** (a browser playing YouTube, a video app), a **whole screen** or a **video file**;
+- switch on **Smoother** (frame generation: 24 or 30 FPS video looks like 60 or 120 FPS), **Sharper**
+  (super resolution to your screen), **AI picture enhancement** (removes compression blocks and noise) and
+  **SDR to HDR** (on an HDR monitor with Windows HDR on);
+- press F11 to watch fullscreen.
+
+If a browser window captures black, turn off hardware acceleration in the browser's settings; copy-protected
+streams may stay black.
 
 ## Go live: Twitch, YouTube, Kick and TikTok
 

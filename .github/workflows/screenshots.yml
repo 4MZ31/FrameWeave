@@ -126,7 +126,12 @@ jobs:
             # Going live (2.9.0): three outputs, the way a multistream setup looks before going live. Start-Process
             # does not escape quotes, so the JSON carries \" for the Windows command line.
             @{ name = '51-go-live'; args = @('--page', 'home', '--dialog', 'stream', '--lang', 'en', '--pref', ('streamTargets=' + '[{"id":"o1","platform":"twitch","name":"","server":"","enabled":true},{"id":"o2","platform":"youtube","name":"","server":"","enabled":true},{"id":"o3","platform":"kick","name":"","server":"","enabled":false}]'.Replace('"', '\"'))) },
-            @{ name = '52-optimize-goals'; args = @('--page', 'home', '--dialog', 'optimize', '--lang', 'en', '--pref', 'pushOptimizeGoal=balanced') }
+            @{ name = '52-optimize-goals'; args = @('--page', 'home', '--dialog', 'optimize', '--lang', 'en', '--pref', 'pushOptimizeGoal=balanced') },
+            # PushFPS 3.0/3.1 modes: streaming mode (classic and sunset), video playback mode, the comparison dialog's vertical layout.
+            @{ name = '60-streaming-mode'; args = @('--page', 'live', '--lang', 'en', '--pref', 'pushSunset=false') },
+            @{ name = '61-video-playback'; args = @('--page', 'watch', '--lang', 'en', '--pref', 'pushSunset=false') },
+            @{ name = '62-compare-vertical'; args = @('--page', 'home', '--dialog', 'compare', '--lang', 'en', '--pref', 'pushCompareLayout=2', '--pref', 'pushSunset=false') },
+            @{ name = '63-streaming-mode-sunset'; args = @('--page', 'live', '--lang', 'en') }
           )
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"
