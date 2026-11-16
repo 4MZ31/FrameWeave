@@ -42,6 +42,7 @@ permissions:
   contents: write
 
 env:
+  RELEASE_TAG: ${{ inputs.release_tag }}
   QT_VERSION: '6.8.3'
   LINUXDEPLOY_TAG: '1-alpha-20251107-1'
   LINUXDEPLOY_QT_TAG: '1-alpha-20250213-1'
@@ -149,6 +150,8 @@ jobs:
         run: |
           set -e
           version=$(grep -oP 'project\(pushfps_portable VERSION \K[0-9.]+' portable/CMakeLists.txt)
+          # Packages attached to a release carry the release's number, like the Windows zip.
+          tag="$RELEASE_TAG"; if [ -n "$tag" ]; then version=${tag#v}; fi
           echo "PORTABLE_VERSION=$version" >> $GITHUB_ENV
           DESTDIR=$PWD/AppDir cmake --install build
           mkdir -p AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/256x256/apps
@@ -204,7 +207,7 @@ jobs:
         run: |
           sha256sum PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz > PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz.sha256
           sha256sum PushFPS-$PORTABLE_VERSION-linux-x86_64.AppImage > PushFPS-$PORTABLE_VERSION-linux-x86_64.AppImage.sha256
-          gh release upload "${{ inputs.release_tag }}" --clobber \
+          gh release upload "$RELEASE_TAG" --clobber \
             PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz.sha256 \
             PushFPS-$PORTABLE_VERSION-linux-x86_64.AppImage PushFPS-$PORTABLE_VERSION-linux-x86_64.AppImage.sha256
 
@@ -263,6 +266,7 @@ jobs:
         run: |
           set -e
           version=$(sed -nE 's/.*project\(pushfps_portable VERSION ([0-9.]+).*/\1/p' portable/CMakeLists.txt)
+          tag="$RELEASE_TAG"; if [ -n "$tag" ]; then version=${tag#v}; fi
           echo "PORTABLE_VERSION=$version" >> $GITHUB_ENV
           python3 -m pip install --quiet --break-system-packages pillow 2>/dev/null || python3 -m pip install --quiet pillow
           mkdir -p build/app/PushFPS.app/Contents/Resources
@@ -328,4 +332,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           shasum -a 256 PushFPS-$PORTABLE_VERSION-macos-universal.zip > PushFPS-$PORTABLE_VERSION-macos-universal.zip.sha256
-          gh release upload "${{ inputs.release_tag }}" --clobber PushFPS-$PORTABLE_VERSION-macos-universal.zip PushFPS-$PORTABLE_VERSION-macos-universal.zip.sha256
+          gh release upload "$RELEASE_TAG" --clobber PushFPS-$PORTABLE_VERSION-macos-universal.zip PushFPS-$PORTABLE_VERSION-macos-universal.zip.sha256
