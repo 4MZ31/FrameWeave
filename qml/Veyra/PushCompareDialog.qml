@@ -98,12 +98,16 @@ DialogLayer {
             delegate: Rectangle {
                 required property int index
                 objectName: index === 0 ? "pushfps-compare-tag-left" : "pushfps-compare-tag-right"
-                width: tagText.implicitWidth + 10
-                height: tagText.implicitHeight + 4
+                // The clip's badges in small: dark pills, the PushFPS one outlined in logo green.
+                width: tagText.implicitWidth + 16
+                height: tagText.implicitHeight + 6
+                radius: height / 2
+                border.width: 1
+                border.color: index === 1 ? "#8df237" : "#4dffffff"
                 // Split: top corners of the picture. Side by side: centred in the bar above each picture.
                 x: cmp.tagX(index, width, preview.width, preview.sideBySide)
                 y: cmp.tagY(height, preview.height, preview.sideBySide)
-                color: "#000000"
+                color: "#d60e0f12"
                 Text {
                     id: tagText
                     anchors.centerIn: parent

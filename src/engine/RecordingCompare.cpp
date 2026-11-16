@@ -4,17 +4,37 @@
 #include "veyra/pipeline/GpuPassUtils.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 
 namespace veyra::engine {
 namespace {
 constexpr uint32_t kPitchAlign = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;          // 256
 constexpr uint64_t kPlacementAlign = D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;  // 512
+constexpr UINT kRawSlots = 8;   // one raw-frame descriptor per recorder frame slot (LiveRecorder kSlots = 6)
+constexpr UINT kMaxOverlays = 2;
 uint32_t alignPitch(uint32_t bytes) { return (bytes + kPitchAlign - 1) / kPitchAlign * kPitchAlign; }
 uint64_t alignOffset(uint64_t at) { return (at + kPlacementAlign - 1) / kPlacementAlign * kPlacementAlign; }
 uint8_t limited(uint8_t full) { return uint8_t(16 + (uint32_t(full) * 219 + 127) / 255); }
 // 10-bit PQ code: 64 (black) .. 573 (203 nits, BT.2408 reference white), as RgbToNv12.hlsl codes it.
 uint32_t hdrLuma(uint8_t full) { return 64 + (uint32_t(full) * (573 - 64) + 127) / 255; }
+void bindConstants(const pipeline::ComputePass& pass, ID3D12GraphicsCommandList* list, const uint32_t (&values)[8], UINT srvSlot, UINT uavSlot) {
+    float bits[8];
+    std::memcpy(bits, values, sizeof(bits));
+    pass.bind(list, bits, pipeline::gpuHandleOf(pass, srvSlot).ptr, pipeline::gpuHandleOf(pass, uavSlot).ptr);
+}
+bool hasRgba(const RecordingLabel& l) { return l.width >= 2 && l.height >= 2 && l.rgba.size() >= size_t(l.width) * l.height * 4; }
+bool hasLuma(const RecordingLabel& l) { return l.width >= 2 && l.height >= 2 && l.luma.size() >= size_t(l.width) * l.height; }
+// A colour label as grey levels over black, for when blending is unavailable.
+RecordingLabel lumaOf(const RecordingLabel& l) {
+    RecordingLabel out{l.width, l.height, std::vector<uint8_t>(size_t(l.width) * l.height), {}};
+    for (size_t i = 0; i < out.luma.size(); ++i) {
+        const uint8_t* p = &l.rgba[i * 4];
+        const uint32_t grey = (uint32_t(p[0]) * 54 + uint32_t(p[1]) * 183 + uint32_t(p[2]) * 19) >> 8;
+        out.luma[i] = uint8_t((grey * p[3] + 127) / 255);
+    }
+    return out;
+}
 } // namespace
 
 // Side by side: copies of the current frame, the compute pass and its descriptors
@@ -27,33 +47,67 @@ struct RecordingCompare::SideBySide {
     ID3D12Resource* boundY = nullptr;
     ID3D12Resource* boundUv = nullptr;
 };
+// Raw console picture -> the held planes (heap slots 0..7: the raw frame per recorder slot; 8-9: held y and uv).
+struct RecordingCompare::Raw {
+    pipeline::ComputePass pass;
+    pipeline::DescriptorStager stager;
+    ID3D12Device* device = nullptr;
+};
+// Colour labels blended in (per label i: slot 3i overlay, 3i+1 background y, 3i+2 background uv; 6-7: the recorder's y and uv).
+struct RecordingCompare::Blend {
+    pipeline::ComputePass pass;
+    pipeline::DescriptorStager stager;
+    ID3D12Device* device = nullptr;
+    Microsoft::WRL::ComPtr<ID3D12Resource> upload;
+    Microsoft::WRL::ComPtr<ID3D12Resource> overlay[kMaxOverlays], bgY[kMaxOverlays], bgUv[kMaxOverlays];
+    bool uploaded = false;
+    ID3D12Resource* boundY = nullptr;
+    ID3D12Resource* boundUv = nullptr;
+};
 
 RecordingCompare::RecordingCompare() = default;
 RecordingCompare::~RecordingCompare() = default;
 
 RecordingLabel scaleRecordingLabel(const RecordingLabel& label, uint32_t width, uint32_t height) {
     RecordingLabel out;
-    if (!width || !height || !label.width || !label.height || label.luma.size() < size_t(label.width) * label.height) return out;
+    const bool luma = hasLuma(label), rgba = hasRgba(label);
+    if (!width || !height || (!luma && !rgba)) return out;
     out.width = width; out.height = height;
-    out.luma.resize(size_t(width) * height);
+    if (luma) out.luma.resize(size_t(width) * height);
+    if (rgba) out.rgba.resize(size_t(width) * height * 4);
     // Area average: each output pixel covers sx x sy source pixels (partial ones weighted).
     const double sx = double(label.width) / width, sy = double(label.height) / height;
     for (uint32_t y = 0; y < height; ++y) {
         const double y0 = y * sy, y1 = std::min(double(label.height), y0 + sy);
         for (uint32_t x = 0; x < width; ++x) {
             const double x0 = x * sx, x1 = std::min(double(label.width), x0 + sx);
-            double sum = 0, area = 0;
+            double grey = 0, area = 0, alpha = 0, r = 0, g = 0, b = 0;
             for (uint32_t yy = uint32_t(y0); yy < label.height && double(yy) < y1; ++yy) {
                 const double hy = std::min(y1, yy + 1.0) - std::max(y0, double(yy));
                 if (hy <= 0) continue;
                 for (uint32_t xx = uint32_t(x0); xx < label.width && double(xx) < x1; ++xx) {
                     const double wx = std::min(x1, xx + 1.0) - std::max(x0, double(xx));
                     if (wx <= 0) continue;
-                    sum += wx * hy * label.luma[size_t(yy) * label.width + xx];
-                    area += wx * hy;
+                    const double w = wx * hy;
+                    const size_t at = size_t(yy) * label.width + xx;
+                    area += w;
+                    if (luma) grey += w * label.luma[at];
+                    if (rgba) {
+                        const uint8_t* p = &label.rgba[at * 4];
+                        const double a = w * p[3];
+                        alpha += a; r += a * p[0]; g += a * p[1]; b += a * p[2];
+                    }
                 }
             }
-            out.luma[size_t(y) * width + x] = uint8_t(std::clamp(area > 0 ? sum / area + 0.5 : 0.0, 0.0, 255.0));
+            const size_t to = size_t(y) * width + x;
+            const auto byte = [](double v) { return uint8_t(std::clamp(v + 0.5, 0.0, 255.0)); };
+            if (luma) out.luma[to] = byte(area > 0 ? grey / area : 0.0);
+            if (rgba) {
+                uint8_t* p = &out.rgba[to * 4];
+                if (alpha > 0) { p[0] = byte(r / alpha); p[1] = byte(g / alpha); p[2] = byte(b / alpha); }
+                else p[0] = p[1] = p[2] = 0;
+                p[3] = byte(area > 0 ? alpha / area : 0.0);
+            }
         }
     }
     return out;
@@ -63,30 +117,31 @@ bool RecordingCompare::create(ID3D12Device* device, uint32_t width, uint32_t hei
                               const RecordingLabel& right, std::wstring& reason, CompareLayout layout) {
     width_ = width; height_ = height; hdr_ = hdr; layout_ = layout;
     split_ = (width / 2) & ~1u;
-    holdValid_ = false; generated_ = real_ = 0; patches_.clear(); upload_.Reset(); sideBySide_.reset();
+    holdValid_ = rawHold_ = false; generated_ = real_ = rawFrames_ = 0;
+    patches_.clear(); overlays_.clear(); upload_.Reset(); sideBySide_.reset(); raw_.reset(); blend_.reset();
     const bool sbs = layout == CompareLayout::SideBySide;
     pictureW_ = sbs ? split_ : 0;
     pictureH_ = sbs ? (height / 2) & ~1u : 0;
     top_ = sbs ? ((height - pictureH_) / 2) & ~1u : 0;
     rightX_ = sbs ? width - pictureW_ : 0;
-    holdY_ = pipeline::makeTexture(device, width, height, hdr ? DXGI_FORMAT_R16_UNORM : DXGI_FORMAT_R8_UNORM, true);
-    holdUv_ = pipeline::makeTexture(device, width / 2, height / 2, hdr ? DXGI_FORMAT_R16G16_UNORM : DXGI_FORMAT_R8G8_UNORM, true); // same flags as y and uv (CopyResource)
+    const DXGI_FORMAT yFormat = hdr ? DXGI_FORMAT_R16_UNORM : DXGI_FORMAT_R8_UNORM;
+    const DXGI_FORMAT uvFormat = hdr ? DXGI_FORMAT_R16G16_UNORM : DXGI_FORMAT_R8G8_UNORM;
+    holdY_ = pipeline::makeTexture(device, width, height, yFormat, true);
+    holdUv_ = pipeline::makeTexture(device, width / 2, height / 2, uvFormat, true); // same flags as y and uv (CopyResource)
     if (!holdY_ || !holdUv_) { reason = L"录制显存分配失败"; return false; }
+    D3D12_SHADER_RESOURCE_VIEW_DESC view{};
+    view.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    view.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    view.Texture2D.MipLevels = 1;
     if (sbs) {
         auto side = std::make_unique<SideBySide>();
         side->device = device;
-        const DXGI_FORMAT yFormat = hdr ? DXGI_FORMAT_R16_UNORM : DXGI_FORMAT_R8_UNORM;
-        const DXGI_FORMAT uvFormat = hdr ? DXGI_FORMAT_R16G16_UNORM : DXGI_FORMAT_R8G8_UNORM;
         side->curY = pipeline::makeTexture(device, width, height, yFormat, true);
         side->curUv = pipeline::makeTexture(device, width / 2, height / 2, uvFormat, true);
         std::vector<uint8_t> shader;
         if (!side->curY || !side->curUv) { reason = L"录制显存分配失败"; return false; }
         if (!side->pass.loadShader("PushCompareSideBySide.dxil", shader) || !side->pass.create(device, shader, 6, 4, 2) ||
             !side->stager.initialize(device, 4)) { reason = L"对比片段着色器加载失败"; return false; }
-        D3D12_SHADER_RESOURCE_VIEW_DESC view{};
-        view.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-        view.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-        view.Texture2D.MipLevels = 1;
         ID3D12Resource* const sources[4] = {side->curY.Get(), side->curUv.Get(), holdY_.Get(), holdUv_.Get()};
         for (UINT i = 0; i < 4; ++i) {
             view.Format = (i & 1) ? uvFormat : yFormat;
@@ -94,15 +149,23 @@ bool RecordingCompare::create(ID3D12Device* device, uint32_t width, uint32_t hei
         }
         sideBySide_ = std::move(side);
     }
+    {
+        // The raw console picture. Optional: without it the console side is the held real frame.
+        auto raw = std::make_unique<Raw>();
+        raw->device = device;
+        std::vector<uint8_t> shader;
+        if (raw->pass.loadShader("PushCompareRaw.dxil", shader) && raw->pass.create(device, shader, kRawSlots + 2, 1, 2, 8, 0, true) &&
+            raw->stager.initialize(device, kRawSlots)) {
+            pipeline::makeUav(device, holdY_.Get(), yFormat, pipeline::cpuHandleOf(raw->pass, kRawSlots));
+            pipeline::makeUav(device, holdUv_.Get(), uvFormat, pipeline::cpuHandleOf(raw->pass, kRawSlots + 1));
+            raw_ = std::move(raw);
+        }
+    }
 
     // Divider (4 pixels, white) and the two labels, each scaled down when it does not fit.
     // Split: labels at the top corners of the picture. Side by side: centred in the black bar
-    // above each picture (on the picture's top edge when the bar is too thin for text).
-    struct Source { uint32_t x, y, w, h; const RecordingLabel* label; };
-    std::vector<Source> sources;
+    // above each picture (on the picture's top edge when the bar is too thin).
     const uint32_t divider = 4;
-    if (sbs) sources.push_back({split_ - divider / 2, top_, divider, pictureH_, nullptr});
-    else sources.push_back({split_ - divider / 2, 0, divider, height & ~1u, nullptr});
     const uint32_t margin = std::max<uint32_t>(8, height / 36) & ~1u;
     const bool inBar = sbs && top_ >= 24;
     const uint32_t barMargin = std::max<uint32_t>(2, top_ / 8) & ~1u;
@@ -116,7 +179,7 @@ bool RecordingCompare::create(ID3D12Device* device, uint32_t width, uint32_t hei
     }
     RecordingLabel fitted[2];
     const auto fit = [&](const RecordingLabel& l, RecordingLabel& scaled) -> const RecordingLabel* {
-        if (l.width < 2 || l.height < 2 || l.luma.size() < size_t(l.width) * l.height) return nullptr;
+        if (!hasRgba(l) && !hasLuma(l)) return nullptr;
         if ((l.width & ~1u) <= maxW && (l.height & ~1u) <= maxH) return &l;
         const double f = std::min(double(maxW) / l.width, double(maxH) / l.height);
         const uint32_t w = uint32_t(l.width * f), h = uint32_t(l.height * f);
@@ -125,6 +188,8 @@ bool RecordingCompare::create(ID3D12Device* device, uint32_t width, uint32_t hei
         return &scaled;
     };
     const RecordingLabel* labels[2] = {fit(left, fitted[0]), fit(right, fitted[1])};
+    struct Place { uint32_t x, y, w, h; const RecordingLabel* label; };
+    std::vector<Place> places;
     for (int side = 0; side < 2; ++side) {
         const auto* l = labels[side];
         if (!l) continue;
@@ -138,8 +203,71 @@ bool RecordingCompare::create(ID3D12Device* device, uint32_t width, uint32_t hei
             x = side ? (width - margin - w) & ~1u : margin;
             y = margin;
         }
-        sources.push_back({x, y, w, h, l});
+        places.push_back({x, y, w, h, l});
     }
+
+    // Colour labels: blended in by a compute pass. If it cannot load they are copied as grey levels.
+    std::vector<RecordingLabel> greyed;
+    greyed.reserve(2);
+    std::vector<Place> blended;
+    for (auto& p : places)
+        if (hasRgba(*p.label)) blended.push_back(p);
+    if (!blended.empty()) {
+        auto b = std::make_unique<Blend>();
+        b->device = device;
+        std::vector<uint8_t> shader;
+        bool ok = b->pass.loadShader("PushCompareOverlay.dxil", shader) && b->pass.create(device, shader, kMaxOverlays * 3 + 2, 3, 2) &&
+                  b->stager.initialize(device, kMaxOverlays * 3);
+        uint64_t at = 0;
+        std::vector<Overlay> overlays;
+        for (size_t i = 0; ok && i < blended.size(); ++i) {
+            const auto& p = blended[i];
+            Overlay o{p.x, p.y, p.w, p.h};
+            o.pitch = alignPitch(p.w * 4); o.offset = alignOffset(at); at = o.offset + uint64_t(o.pitch) * p.h;
+            b->overlay[i] = pipeline::makeTexture(device, p.w, p.h, DXGI_FORMAT_R8G8B8A8_UNORM, false);
+            b->bgY[i] = pipeline::makeTexture(device, p.w, p.h, yFormat, false);
+            b->bgUv[i] = pipeline::makeTexture(device, p.w / 2, p.h / 2, uvFormat, false);
+            ok = b->overlay[i] && b->bgY[i] && b->bgUv[i];
+            overlays.push_back(o);
+        }
+        if (ok) {
+            D3D12_HEAP_PROPERTIES hp{}; hp.Type = D3D12_HEAP_TYPE_UPLOAD;
+            D3D12_RESOURCE_DESC bd{}; bd.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER; bd.Width = std::max<uint64_t>(at, 256); bd.Height = 1;
+            bd.DepthOrArraySize = 1; bd.MipLevels = 1; bd.SampleDesc.Count = 1; bd.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+            uint8_t* mapped = nullptr;
+            const D3D12_RANGE none{0, 0};
+            ok = SUCCEEDED(device->CreateCommittedResource(&hp, D3D12_HEAP_FLAG_NONE, &bd, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&b->upload))) &&
+                 SUCCEEDED(b->upload->Map(0, &none, reinterpret_cast<void**>(&mapped))) && mapped;
+            for (size_t i = 0; ok && i < blended.size(); ++i) {
+                const auto& p = blended[i];
+                for (uint32_t row = 0; row < p.h; ++row)
+                    std::memcpy(mapped + overlays[i].offset + uint64_t(overlays[i].pitch) * row, &p.label->rgba[size_t(row) * p.label->width * 4], size_t(p.w) * 4);
+            }
+            if (mapped) b->upload->Unmap(0, nullptr);
+        }
+        if (ok) {
+            for (size_t i = 0; i < blended.size(); ++i) {
+                view.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+                b->stager.stageSrv(b->overlay[i].Get(), &view, b->pass.heap.Get(), UINT(i * 3));
+                view.Format = yFormat;
+                b->stager.stageSrv(b->bgY[i].Get(), &view, b->pass.heap.Get(), UINT(i * 3 + 1));
+                view.Format = uvFormat;
+                b->stager.stageSrv(b->bgUv[i].Get(), &view, b->pass.heap.Get(), UINT(i * 3 + 2));
+            }
+            overlays_ = std::move(overlays);
+            blend_ = std::move(b);
+        } else {
+            for (auto& p : places)
+                if (hasRgba(*p.label)) { greyed.push_back(lumaOf(*p.label)); p.label = &greyed.back(); }
+        }
+    }
+
+    struct Source { uint32_t x, y, w, h; const RecordingLabel* label; };
+    std::vector<Source> sources;
+    if (sbs) sources.push_back({split_ - divider / 2, top_, divider, pictureH_, nullptr});
+    else sources.push_back({split_ - divider / 2, 0, divider, height & ~1u, nullptr});
+    for (const auto& p : places)
+        if (!(blend_ && hasRgba(*p.label))) sources.push_back({p.x, p.y, p.w, p.h, p.label});
 
     // SDR: limited-range 8-bit (white 235, black 16, neutral chroma 128).
     // HDR: P010 (10-bit code in the top bits), PQ: white 573 = 203 nits, black 64, chroma 512.
@@ -155,7 +283,7 @@ bool RecordingCompare::create(ID3D12Device* device, uint32_t width, uint32_t hei
     D3D12_RESOURCE_DESC bd{}; bd.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER; bd.Width = std::max<uint64_t>(at, 256); bd.Height = 1;
     bd.DepthOrArraySize = 1; bd.MipLevels = 1; bd.SampleDesc.Count = 1; bd.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
     if (FAILED(device->CreateCommittedResource(&hp, D3D12_HEAP_FLAG_NONE, &bd, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&upload_)))) {
-        patches_.clear(); return true; // the split still works without the overlay
+        patches_.clear(); return true; // the layout still works without the divider
     }
     uint8_t* mapped = nullptr;
     const D3D12_RANGE none{0, 0};
@@ -184,18 +312,94 @@ bool RecordingCompare::create(ID3D12Device* device, uint32_t width, uint32_t hei
     return true;
 }
 
-void RecordingCompare::compose(ID3D12GraphicsCommandList* list, pipeline::StateTracker& states, ID3D12Resource* y, ID3D12Resource* uv, bool generated) {
+void RecordingCompare::rawPass(ID3D12GraphicsCommandList* list, pipeline::StateTracker& states, const RecordingRawFrame& raw, unsigned slot) {
+    auto& r = *raw_;
+    const auto desc = raw.texture->GetDesc();
+    D3D12_SHADER_RESOURCE_VIEW_DESC view{};
+    view.Format = desc.Format;
+    view.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    view.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    view.Texture2D.MipLevels = 1;
+    const UINT at = slot % kRawSlots;
+    r.stager.stageSrv(raw.texture, &view, r.pass.heap.Get(), at);
+    states.transition(list, raw.texture, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    states.transition(list, holdY_.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    states.transition(list, holdUv_.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    const uint32_t constants[8] = {width_, height_, hdr_ ? 1u : 0u, raw.sdrInHdr ? 1u : 0u, 0, 0, 0, 0};
+    bindConstants(r.pass, list, constants, at, kRawSlots);
+    list->Dispatch((width_ + 15) / 16, (height_ + 15) / 16, 1);
+    states.uavBarrier(list, holdY_.Get());
+    states.uavBarrier(list, holdUv_.Get());
+    states.transition(list, raw.texture, D3D12_RESOURCE_STATE_COMMON);
+}
+
+void RecordingCompare::blend(ID3D12GraphicsCommandList* list, pipeline::StateTracker& states, ID3D12Resource* y, ID3D12Resource* uv) {
+    auto& b = *blend_;
+    if (!b.uploaded) {
+        for (size_t i = 0; i < overlays_.size(); ++i) {
+            const auto& o = overlays_[i];
+            states.transition(list, b.overlay[i].Get(), D3D12_RESOURCE_STATE_COPY_DEST);
+            D3D12_TEXTURE_COPY_LOCATION from{}, to{};
+            from.pResource = b.upload.Get(); from.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+            from.PlacedFootprint.Offset = o.offset;
+            from.PlacedFootprint.Footprint = {DXGI_FORMAT_R8G8B8A8_UNORM, o.width, o.height, 1, o.pitch};
+            to.pResource = b.overlay[i].Get(); to.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+            list->CopyTextureRegion(&to, 0, 0, 0, &from, nullptr);
+            states.transition(list, b.overlay[i].Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        }
+        b.uploaded = true;
+    }
+    if (b.boundY != y || b.boundUv != uv) {
+        pipeline::makeUav(b.device, y, hdr_ ? DXGI_FORMAT_R16_UNORM : DXGI_FORMAT_R8_UNORM, pipeline::cpuHandleOf(b.pass, kMaxOverlays * 3));
+        pipeline::makeUav(b.device, uv, hdr_ ? DXGI_FORMAT_R16G16_UNORM : DXGI_FORMAT_R8G8_UNORM, pipeline::cpuHandleOf(b.pass, kMaxOverlays * 3 + 1));
+        b.boundY = y; b.boundUv = uv;
+    }
+    for (size_t i = 0; i < overlays_.size(); ++i) {
+        const auto& o = overlays_[i];
+        // The picture under the label, read by the blend (a UAV is never read here).
+        states.transition(list, y, D3D12_RESOURCE_STATE_COPY_SOURCE);
+        states.transition(list, uv, D3D12_RESOURCE_STATE_COPY_SOURCE);
+        states.transition(list, b.bgY[i].Get(), D3D12_RESOURCE_STATE_COPY_DEST);
+        states.transition(list, b.bgUv[i].Get(), D3D12_RESOURCE_STATE_COPY_DEST);
+        D3D12_TEXTURE_COPY_LOCATION from{}, to{};
+        from.Type = to.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+        from.pResource = y; to.pResource = b.bgY[i].Get();
+        const D3D12_BOX yBox{o.x, o.y, 0, o.x + o.width, o.y + o.height, 1};
+        list->CopyTextureRegion(&to, 0, 0, 0, &from, &yBox);
+        from.pResource = uv; to.pResource = b.bgUv[i].Get();
+        const D3D12_BOX uvBox{o.x / 2, o.y / 2, 0, (o.x + o.width) / 2, (o.y + o.height) / 2, 1};
+        list->CopyTextureRegion(&to, 0, 0, 0, &from, &uvBox);
+        states.transition(list, b.bgY[i].Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        states.transition(list, b.bgUv[i].Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        states.transition(list, y, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        states.transition(list, uv, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        const uint32_t constants[8] = {o.x, o.y, o.width, o.height, hdr_ ? 1u : 0u, 0, 0, 0};
+        bindConstants(b.pass, list, constants, UINT(i * 3), kMaxOverlays * 3);
+        list->Dispatch((o.width + 15) / 16, (o.height + 15) / 16, 1);
+        states.uavBarrier(list, y);
+        states.uavBarrier(list, uv);
+    }
+}
+
+void RecordingCompare::compose(ID3D12GraphicsCommandList* list, pipeline::StateTracker& states, ID3D12Resource* y, ID3D12Resource* uv, bool generated,
+                               const RecordingRawFrame* raw, unsigned slot) {
     if (!list || !y || !uv || !holdY_) return;
+    if (generated) ++generated_; else ++real_;
+    const auto copy = [&](ID3D12Resource* to, ID3D12Resource* from) {
+        states.transition(list, from, D3D12_RESOURCE_STATE_COPY_SOURCE);
+        states.transition(list, to, D3D12_RESOURCE_STATE_COPY_DEST);
+        list->CopyResource(to, from);
+    };
+    // The console side: the raw picture of a real frame when there is one, else the real frame itself.
+    if (!generated && raw && raw->texture && raw_) {
+        rawPass(list, states, *raw, slot);
+        holdValid_ = true; rawHold_ = true; ++rawFrames_;
+    } else if (!generated || !holdValid_) {
+        copy(holdY_.Get(), y); copy(holdUv_.Get(), uv);
+        holdValid_ = true; rawHold_ = false;
+    }
     if (sideBySide_) {
         auto& side = *sideBySide_;
-        if (generated) ++generated_; else ++real_;
-        const auto copy = [&](ID3D12Resource* to, ID3D12Resource* from) {
-            states.transition(list, from, D3D12_RESOURCE_STATE_COPY_SOURCE);
-            states.transition(list, to, D3D12_RESOURCE_STATE_COPY_DEST);
-            list->CopyResource(to, from);
-        };
-        // A real frame (or the first frame of all) becomes the held left picture.
-        if (!generated || !holdValid_) { copy(holdY_.Get(), y); copy(holdUv_.Get(), uv); holdValid_ = true; }
         copy(side.curY.Get(), y); copy(side.curUv.Get(), uv);
         if (side.boundY != y || side.boundUv != uv) {
             // UAVs go straight into the visible heap (safe, GpuPassUtils.h driver note).
@@ -208,54 +412,44 @@ void RecordingCompare::compose(ID3D12GraphicsCommandList* list, pipeline::StateT
         states.transition(list, y, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         states.transition(list, uv, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         const uint32_t constants[8] = {width_, height_, pictureW_, pictureH_, top_, rightX_, hdr_ ? 1u : 0u, 0};
-        float bits[8];
-        std::memcpy(bits, constants, sizeof(bits));
-        side.pass.bind(list, bits, pipeline::gpuHandleOf(side.pass, 0).ptr, pipeline::gpuHandleOf(side.pass, 4).ptr);
+        bindConstants(side.pass, list, constants, 0, 4);
         list->Dispatch((width_ + 15) / 16, (height_ + 15) / 16, 1);
         states.uavBarrier(list, y);
         states.uavBarrier(list, uv);
-    } else if (!generated) {
-        ++real_;
-        states.transition(list, y, D3D12_RESOURCE_STATE_COPY_SOURCE);
-        states.transition(list, uv, D3D12_RESOURCE_STATE_COPY_SOURCE);
-        states.transition(list, holdY_.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
-        states.transition(list, holdUv_.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
-        list->CopyResource(holdY_.Get(), y);
-        list->CopyResource(holdUv_.Get(), uv);
-        holdValid_ = true;
-    } else {
-        ++generated_;
-        if (holdValid_ && split_) {
-            states.transition(list, y, D3D12_RESOURCE_STATE_COPY_DEST);
-            states.transition(list, uv, D3D12_RESOURCE_STATE_COPY_DEST);
-            states.transition(list, holdY_.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE);
-            states.transition(list, holdUv_.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE);
+    } else if (split_ && (generated || rawHold_)) {
+        // Split: the left half shows the console side. A real frame without a raw picture is
+        // already the console picture, whole.
+        states.transition(list, y, D3D12_RESOURCE_STATE_COPY_DEST);
+        states.transition(list, uv, D3D12_RESOURCE_STATE_COPY_DEST);
+        states.transition(list, holdY_.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE);
+        states.transition(list, holdUv_.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE);
+        D3D12_TEXTURE_COPY_LOCATION from{}, to{};
+        from.Type = to.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+        from.pResource = holdY_.Get(); to.pResource = y;
+        const D3D12_BOX yBox{0, 0, 0, split_, height_, 1};
+        list->CopyTextureRegion(&to, 0, 0, 0, &from, &yBox);
+        from.pResource = holdUv_.Get(); to.pResource = uv;
+        const D3D12_BOX uvBox{0, 0, 0, split_ / 2, height_ / 2, 1};
+        list->CopyTextureRegion(&to, 0, 0, 0, &from, &uvBox);
+    }
+    if (!patches_.empty() && upload_) {
+        states.transition(list, y, D3D12_RESOURCE_STATE_COPY_DEST);
+        states.transition(list, uv, D3D12_RESOURCE_STATE_COPY_DEST);
+        for (const auto& p : patches_) {
             D3D12_TEXTURE_COPY_LOCATION from{}, to{};
-            from.Type = to.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-            from.pResource = holdY_.Get(); to.pResource = y;
-            const D3D12_BOX yBox{0, 0, 0, split_, height_, 1};
-            list->CopyTextureRegion(&to, 0, 0, 0, &from, &yBox);
-            from.pResource = holdUv_.Get(); to.pResource = uv;
-            const D3D12_BOX uvBox{0, 0, 0, split_ / 2, height_ / 2, 1};
-            list->CopyTextureRegion(&to, 0, 0, 0, &from, &uvBox);
+            from.pResource = upload_.Get(); from.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+            to.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX; to.SubresourceIndex = 0;
+            from.PlacedFootprint.Offset = p.yOffset;
+            from.PlacedFootprint.Footprint = {hdr_ ? DXGI_FORMAT_R16_UNORM : DXGI_FORMAT_R8_UNORM, p.width, p.height, 1, p.yPitch};
+            to.pResource = y;
+            list->CopyTextureRegion(&to, p.x, p.y, 0, &from, nullptr);
+            from.PlacedFootprint.Offset = p.uvOffset;
+            from.PlacedFootprint.Footprint = {hdr_ ? DXGI_FORMAT_R16G16_UNORM : DXGI_FORMAT_R8G8_UNORM, p.width / 2, p.height / 2, 1, p.uvPitch};
+            to.pResource = uv;
+            list->CopyTextureRegion(&to, p.x / 2, p.y / 2, 0, &from, nullptr);
         }
     }
-    if (patches_.empty() || !upload_) return;
-    states.transition(list, y, D3D12_RESOURCE_STATE_COPY_DEST);
-    states.transition(list, uv, D3D12_RESOURCE_STATE_COPY_DEST);
-    for (const auto& p : patches_) {
-        D3D12_TEXTURE_COPY_LOCATION from{}, to{};
-        from.pResource = upload_.Get(); from.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-        to.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX; to.SubresourceIndex = 0;
-        from.PlacedFootprint.Offset = p.yOffset;
-        from.PlacedFootprint.Footprint = {hdr_ ? DXGI_FORMAT_R16_UNORM : DXGI_FORMAT_R8_UNORM, p.width, p.height, 1, p.yPitch};
-        to.pResource = y;
-        list->CopyTextureRegion(&to, p.x, p.y, 0, &from, nullptr);
-        from.PlacedFootprint.Offset = p.uvOffset;
-        from.PlacedFootprint.Footprint = {hdr_ ? DXGI_FORMAT_R16G16_UNORM : DXGI_FORMAT_R8G8_UNORM, p.width / 2, p.height / 2, 1, p.uvPitch};
-        to.pResource = uv;
-        list->CopyTextureRegion(&to, p.x / 2, p.y / 2, 0, &from, nullptr);
-    }
+    if (blend_ && !overlays_.empty()) blend(list, states, y, uv);
 }
 
 } // namespace veyra::engine

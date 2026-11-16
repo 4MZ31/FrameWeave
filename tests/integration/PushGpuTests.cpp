@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -360,6 +361,115 @@ void testCompareSideBySide(Gpu& gpu, bool hdr) {
     check(!gpu.debugErrors(), std::string(tag) + ": no D3D12 debug errors");
 }
 
+// The console side from the raw picture (linear BT.709, float RGBA, here half the recorded size):
+// no enhancement, only scaled and coded like the recorder's own conversion.
+void testCompareRaw(Gpu& gpu, bool hdr, engine::CompareLayout layout) {
+    constexpr uint32_t W = 256, H = 144;
+    const bool sbs = layout == engine::CompareLayout::SideBySide;
+    const std::string tag = std::string("raw console ") + (sbs ? "side by side" : "split") + (hdr ? " HDR" : "");
+    auto* device = gpu.device.Get();
+    const auto yFormat = hdr ? DXGI_FORMAT_R16_UNORM : DXGI_FORMAT_R8_UNORM;
+    const auto uvFormat = hdr ? DXGI_FORMAT_R16G16_UNORM : DXGI_FORMAT_R8G8_UNORM;
+    const uint32_t bpp = hdr ? 2 : 1;
+    Plane y{pipeline::makeTexture(device, W, H, yFormat, true), yFormat, W, H, bpp};
+    Plane uv{pipeline::makeTexture(device, W / 2, H / 2, uvFormat, true), uvFormat, W / 2, H / 2, bpp * 2};
+    Plane raw{pipeline::makeTexture(device, W / 2, H / 2, DXGI_FORMAT_R32G32B32A32_FLOAT, false), DXGI_FORMAT_R32G32B32A32_FLOAT, W / 2, H / 2, 16};
+    check(y.texture && uv.texture && raw.texture, tag + ": textures created");
+    engine::RecordingLabel nothing{};
+    engine::RecordingCompare compare;
+    std::wstring reason;
+    check(compare.create(device, W, H, hdr, nothing, nothing, reason, layout), tag + ": created");
+    check(compare.rawAvailable(), tag + ": raw pass loaded");
+    // Raw: linear grey. SDR 0.5 -> sRGB 0.7354 -> code 177. HDR 1.0 (80 nits) -> PQ 0.4859 -> code 490.
+    const float grey = hdr ? 1.0f : 0.5f;
+    std::vector<uint8_t> rawData(size_t(raw.w) * raw.h * 16);
+    for (size_t i = 0; i < size_t(raw.w) * raw.h; ++i) {
+        const float px[4] = {grey, grey, grey, 1.0f};
+        std::memcpy(rawData.data() + i * 16, px, 16);
+    }
+    if (!gpu.begin()) return;
+    auto rawUpload = recordFill(gpu, raw, rawData, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COMMON);
+    check(gpu.submitAndWait(), tag + ": raw picture uploaded");
+    const auto words16 = [&](uint32_t value, size_t count) { return words(std::vector<uint16_t>(count, uint16_t(value))); };
+    const auto plane = [&](uint32_t v8, uint32_t v10, size_t count) { return hdr ? words16(v10 << 6, count) : std::vector<uint8_t>(count, uint8_t(v8)); };
+    const auto read = [&](const std::vector<uint8_t>& bytes, size_t index) { return hdr ? int(word(bytes, index)) : int(bytes[index]); };
+    const int rawCode = hdr ? (490 << 6) : 177, tolerance = hdr ? 64 : 1;
+    pipeline::StateTracker states;
+    std::vector<uint8_t> py, puv;
+    const engine::RecordingRawFrame frame{raw.texture.Get(), false};
+    // A real frame with its raw picture: the enhanced picture is a flat 200 (8-bit) / 800 (10-bit).
+    if (!gpu.begin()) return;
+    auto a = recordFill(gpu, y, plane(200, 800, W * H), states.get(y.texture.Get()), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    states.set(y.texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    auto b = recordFill(gpu, uv, plane(150, 600, W / 2 * H / 2 * 2), states.get(uv.texture.Get()), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    states.set(uv.texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    compare.compose(gpu.list.Get(), states, y.texture.Get(), uv.texture.Get(), false, &frame, 3);
+    auto ry = recordRead(gpu, y, states.get(y.texture.Get()));
+    auto ruv = recordRead(gpu, uv, states.get(uv.texture.Get()));
+    check(gpu.submitAndWait(), tag + ": real frame with raw picture runs");
+    py = mapRead(y, ry.Get()); puv = mapRead(uv, ruv.Get());
+    const auto Y = [&](uint32_t x, uint32_t yy) { return read(py, size_t(yy) * W + x); };
+    const auto U = [&](uint32_t x, uint32_t yy) { return read(puv, (size_t(yy) * (W / 2) + x) * 2); };
+    const uint32_t lx = 10, ly = sbs ? 60 : 60, rx = sbs ? 138 : 200;
+    std::printf("INFO %s left=%d right=%d\n", tag.c_str(), Y(lx, ly), Y(rx, ly));
+    check(std::abs(Y(lx, ly) - rawCode) <= tolerance, tag + ": console side is the raw picture, also on a real frame");
+    check(Y(rx, ly) == int(hdr ? (800 << 6) : 200), tag + ": PushFPS side is the enhanced picture");
+    check(std::abs(U(lx / 2, ly / 2) - int(hdr ? (512 << 6) : 128)) <= tolerance, tag + ": raw grey has neutral chroma");
+    check(compare.rawHold() && compare.rawFrames() == 1, tag + ": counts the raw frame");
+    // A generated frame: the console side keeps the raw picture.
+    check(composeFrame(gpu, compare, states, y, uv, plane(90, 300, W * H), plane(150, 600, W / 2 * H / 2 * 2), true, py, puv), tag + ": generated frame runs");
+    check(std::abs(Y(lx, ly) - rawCode) <= tolerance, tag + ": console side holds the raw picture");
+    check(Y(rx, ly) == int(hdr ? (300 << 6) : 90), tag + ": PushFPS side shows the generated frame");
+    // A real frame without a raw picture falls back to the held real frame.
+    check(composeFrame(gpu, compare, states, y, uv, plane(60, 200, W * H), plane(150, 600, W / 2 * H / 2 * 2), false, py, puv), tag + ": real frame without raw runs");
+    check(Y(lx, ly) == int(hdr ? (200 << 6) : 60) && !compare.rawHold(), tag + ": without a raw picture the real frame is the console side");
+    check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
+}
+
+// Colour labels: straight-alpha RGBA blended onto the picture.
+void testCompareBadges(Gpu& gpu, bool hdr) {
+    constexpr uint32_t W = 256, H = 144;
+    const std::string tag = std::string("badges") + (hdr ? " HDR" : "");
+    auto* device = gpu.device.Get();
+    const auto yFormat = hdr ? DXGI_FORMAT_R16_UNORM : DXGI_FORMAT_R8_UNORM;
+    const auto uvFormat = hdr ? DXGI_FORMAT_R16G16_UNORM : DXGI_FORMAT_R8G8_UNORM;
+    const uint32_t bpp = hdr ? 2 : 1;
+    Plane y{pipeline::makeTexture(device, W, H, yFormat, true), yFormat, W, H, bpp};
+    Plane uv{pipeline::makeTexture(device, W / 2, H / 2, uvFormat, true), uvFormat, W / 2, H / 2, bpp * 2};
+    // Left: 8x4, left half opaque white, right half transparent. Right: 8x4 black at 50 %.
+    engine::RecordingLabel left{8, 4, {}, std::vector<uint8_t>(8 * 4 * 4, 0)}, right{8, 4, {}, std::vector<uint8_t>(8 * 4 * 4, 0)};
+    for (uint32_t yy = 0; yy < 4; ++yy)
+        for (uint32_t x = 0; x < 8; ++x) {
+            uint8_t* l = &left.rgba[(yy * 8 + x) * 4];
+            if (x < 4) l[0] = l[1] = l[2] = l[3] = 255;
+            right.rgba[(yy * 8 + x) * 4 + 3] = 128;
+        }
+    engine::RecordingCompare compare;
+    std::wstring reason;
+    check(compare.create(device, W, H, hdr, left, right, reason), tag + ": created");
+    check(compare.overlays().size() == 2 && compare.patches().size() == 1, tag + ": both badges blended, the divider copied");
+    pipeline::StateTracker states;
+    std::vector<uint8_t> py, puv;
+    const auto plane = [&](uint32_t v8, uint32_t v10, size_t count) {
+        return hdr ? words(std::vector<uint16_t>(count, uint16_t(v10 << 6))) : std::vector<uint8_t>(count, uint8_t(v8));
+    };
+    check(composeFrame(gpu, compare, states, y, uv, plane(50, 300, W * H), plane(100, 400, W / 2 * H / 2 * 2), false, py, puv), tag + ": frame runs");
+    const auto read = [&](const std::vector<uint8_t>& bytes, size_t index) { return hdr ? int(word(bytes, index)) : int(bytes[index]); };
+    const auto Y = [&](uint32_t x, uint32_t yy) { return read(py, size_t(yy) * W + x); };
+    const auto U = [&](uint32_t x, uint32_t yy) { return read(puv, (size_t(yy) * (W / 2) + x) * 2); };
+    const int tol = hdr ? 64 : 1;
+    std::printf("INFO %s white=%d clear=%d half=%d\n", tag.c_str(), Y(9, 9), Y(13, 9), Y(242, 9));
+    check(std::abs(Y(9, 9) - int(hdr ? (573 << 6) : 235)) <= tol, tag + ": opaque white badge pixel");
+    check(Y(13, 9) == int(hdr ? (300 << 6) : 50), tag + ": transparent badge pixel leaves the picture");
+    // 50 % black over the picture: halfway between the picture and black.
+    const int halfway = hdr ? int(std::lround((300 - (300 - 64) * 128.0 / 255.0))) << 6 : int(std::lround(50 - (50 - 16) * 128.0 / 255.0));
+    check(std::abs(Y(242, 9) - halfway) <= tol, tag + ": half-transparent badge pixel is blended");
+    check(std::abs(U(4, 4) - int(hdr ? (512 << 6) : 128)) <= tol, tag + ": white badge has neutral chroma");
+    check(U(6, 4) == int(hdr ? (400 << 6) : 100), tag + ": chroma under a transparent badge pixel is kept");
+    check(Y(30, 60) == int(hdr ? (300 << 6) : 50), tag + ": picture outside the badges unchanged");
+    check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
+}
+
 void testLabelScale() {
     engine::RecordingLabel l{8, 4, std::vector<uint8_t>(32, 0)};
     for (int yy = 0; yy < 4; ++yy) for (int x = 4; x < 8; ++x) l.luma[size_t(yy) * 8 + x] = 255;
@@ -368,6 +478,9 @@ void testLabelScale() {
     const auto t = engine::scaleRecordingLabel(l, 3, 3);
     check(t.luma.size() == 9 && t.luma[1] == 128, "label scale: partial pixels are weighted");
     check(engine::scaleRecordingLabel(l, 0, 3).luma.empty(), "label scale: empty size gives no label");
+    engine::RecordingLabel c{2, 2, {}, {255, 0, 0, 255, 0, 0, 255, 0, 255, 0, 0, 255, 0, 0, 255, 0}};
+    const auto one = engine::scaleRecordingLabel(c, 1, 1);
+    check(one.rgba.size() == 4 && one.rgba[0] == 255 && one.rgba[2] == 0 && one.rgba[3] == 128, "label scale: colour weighted by alpha");
 }
 
 void testHudSampler(Gpu& gpu) {
@@ -549,6 +662,11 @@ int main() {
     testCompareSideBySide(gpu, false);
     testCompareSideBySide(gpu, true);
     testLabelScale();
+    testCompareRaw(gpu, false, engine::CompareLayout::Split);
+    testCompareRaw(gpu, true, engine::CompareLayout::Split);
+    testCompareRaw(gpu, false, engine::CompareLayout::SideBySide);
+    testCompareBadges(gpu, false);
+    testCompareBadges(gpu, true);
     testHudSampler(gpu);
     testHudLock(gpu);
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "OK", failures);

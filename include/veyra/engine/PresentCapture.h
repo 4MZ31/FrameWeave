@@ -19,7 +19,15 @@ public:
         uint32_t hdrMode=0;              // 0 SDR, 1 scRGB (linear BT.709), 2 HDR10 (PQ BT.2020)
         float ditherStep=0;              // graph output dither step (RgbToNv12 reserved.y)
         bool generated=false;
+        // PushFPS comparison clips: the raw console picture of a real frame (the graph's
+        // untouched linear BT.709 copy of the input, float RGBA at the source size; COMMON on
+        // entry, must be left in COMMON), null when not kept. rawSdrInHdr: an SDR source shown
+        // in HDR (RTX Video HDR), as the presenter's comparison view scales it.
+        ID3D12Resource* raw=nullptr;
+        bool rawSdrInHdr=false;
     };
+    // Whether the next frames should carry `raw` (the graph keeps it only when asked).
+    virtual bool wantsRawFrames() const { return false; }
     virtual ~PresentCapture()=default;
     // true: commands were recorded into `list`; submitted() or discarded() follows.
     virtual bool record(ID3D12GraphicsCommandList* list,const Frame& frame)=0;
@@ -42,6 +50,7 @@ public:
     // Each one acts only on what it recorded itself.
     void submitted(ID3D12Fence* fence,uint64_t value) override {first_.submitted(fence,value);second_.submitted(fence,value);}
     void discarded() override {first_.discarded();second_.discarded();}
+    bool wantsRawFrames() const override {return first_.wantsRawFrames()||second_.wantsRawFrames();}
 private:
     PresentCapture& first_;
     PresentCapture& second_;

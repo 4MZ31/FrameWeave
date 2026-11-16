@@ -588,8 +588,9 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
             }
             compare=std::make_unique<RecordingCompare>();
             if(!compare->create(device.Get(),width,height,hdr,left,right,reason,compareLayout))return false;
-            veyra::log::info("live-recorder",std::format("comparison clip layout={} extent={}x{} hdr={} overlays={} labels={}x{} / {}x{}",
-                compareLayout==CompareLayout::SideBySide?"side-by-side":"split",width,height,hdr,compare->patches().size(),left.width,left.height,right.width,right.height));
+            veyra::log::info("live-recorder",std::format("comparison clip layout={} extent={}x{} hdr={} copied={} blended={} rawConsole={} labels={}x{} / {}x{}",
+                compareLayout==CompareLayout::SideBySide?"side-by-side":"split",width,height,hdr,compare->patches().size(),compare->overlays().size(),
+                compare->rawAvailable(),left.width,left.height,right.width,right.height));
         }
         encoderThread=std::thread([this]{encoderMain();});
         writerThread=std::thread([this]{writerMain();});
@@ -625,7 +626,11 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         convert.bind(list,constants,pipeline::gpuHandleOf(convert,UINT(index)).ptr,pipeline::gpuHandleOf(convert,kSlots).ptr);
         list->Dispatch((width+15)/16,(height+15)/16,1);
         states.uavBarrier(list,y.Get());states.uavBarrier(list,uv.Get());
-        if(compare){compare->compose(list,states,y.Get(),uv.Get(),frame.generated);if(frame.generated)++generated;}
+        if(compare){
+            const RecordingRawFrame raw{frame.raw,frame.rawSdrInHdr};
+            compare->compose(list,states,y.Get(),uv.Get(),frame.generated,frame.raw?&raw:nullptr,unsigned(index));
+            if(frame.generated)++generated;
+        }
         states.transition(list,y.Get(),D3D12_RESOURCE_STATE_COPY_SOURCE);
         states.transition(list,uv.Get(),D3D12_RESOURCE_STATE_COPY_SOURCE);
         std::swap(source.Transition.StateBefore,source.Transition.StateAfter);
@@ -1193,6 +1198,7 @@ void LiveRecorder::stop(const std::wstring& note){
 }
 
 bool LiveRecorder::active() const{std::lock_guard lock(s_->m);return s_->armed;}
+bool LiveRecorder::wantsRawFrames() const{std::lock_guard lock(s_->m);return s_->armed&&s_->settings.compare&&!s_->replayMode&&!s_->streamMode;}
 
 RecordingStatus LiveRecorder::status() const{
     auto& s=*s_;

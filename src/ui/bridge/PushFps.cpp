@@ -35,6 +35,12 @@
 #include <QFontMetrics>
 #include <QImage>
 #include <QPainter>
+#include <QPen>
+#include <QColor>
+#include <QCoreApplication>
+#include <QFontMetricsF>
+#include <cstring>
+#include <cmath>
 #include <QTimer>
 
 namespace veyra::ui {
@@ -422,32 +428,97 @@ QVariantMap QmlPlayerBridge::pushHudDetection() {
 
 // --- PushFPS before/after comparison clips ------------------------------------
 namespace {
-// A label as grey levels: white bold text on a black box, sized for the picture height.
-veyra::engine::RecordingLabel drawCompareLabel(const QString& text, uint32_t pictureHeight) {
-    QFont font(QStringLiteral("Segoe UI"));
-    font.setPixelSize(std::max(12, int(pictureHeight / 27)));
-    font.setBold(true);
-    const QFontMetrics metrics(font);
-    const int pad = std::max(4, font.pixelSize() / 2);
-    int w = metrics.horizontalAdvance(text) + pad * 2, h = metrics.height() + pad;
-    w += w & 1; h += h & 1;
-    QImage image(w, h, QImage::Format_RGB32);
-    image.fill(Qt::black);
-    {
-        QPainter painter(&image);
-        painter.setRenderHint(QPainter::TextAntialiasing);
-        painter.setFont(font);
-        painter.setPen(Qt::white);
-        painter.drawText(image.rect(), Qt::AlignCenter, text);
-    }
+// The comparison clip's two badges, drawn here (UI thread) as straight-alpha RGBA and blended
+// onto the video by the recorder (engine/RecordingCompare.h). Both are dark translucent pills:
+//  - console side: a grey dot, the word "Console" and its frame rate;
+//  - PushFPS side: the PushFPS logo (qml/Veyra/pushfps-badge-logo.png) and its frame rate,
+//    with a logo-green outline and "FPS" in logo green.
+// Sized for the picture height; the recorder scales them when the recorded size differs.
+constexpr QRgb kBadgeGreen = 0xff8df237; // the logo green (Brand rule)
+QFont badgeFont(int pixels, int weight) {
+    QFont font(QStringLiteral("Bahnschrift"));
+    font.setStyleHint(QFont::SansSerif);
+    font.setPixelSize(std::max(8, pixels));
+    font.setWeight(QFont::Weight(weight));
+    return font;
+}
+veyra::engine::RecordingLabel labelOf(const QImage& painted) {
+    const QImage image = painted.convertToFormat(QImage::Format_RGBA8888); // straight alpha, R G B A bytes
     veyra::engine::RecordingLabel label;
-    label.width = uint32_t(w); label.height = uint32_t(h);
-    label.luma.resize(size_t(w) * size_t(h));
-    for (int y = 0; y < h; ++y) {
-        const auto* row = reinterpret_cast<const QRgb*>(image.constScanLine(y));
-        for (int x = 0; x < w; ++x) label.luma[size_t(y) * size_t(w) + size_t(x)] = uint8_t(qGray(row[x]));
-    }
+    label.width = uint32_t(image.width()); label.height = uint32_t(image.height());
+    label.rgba.resize(size_t(image.width()) * image.height() * 4);
+    for (int y = 0; y < image.height(); ++y)
+        std::memcpy(label.rgba.data() + size_t(y) * image.width() * 4, image.constScanLine(y), size_t(image.width()) * 4);
     return label;
+}
+veyra::engine::RecordingLabel drawCompareBadge(bool pushFps, const QString& word, int fps, uint32_t pictureHeight) {
+    const int text = std::max(14, int(pictureHeight / 30));             // 36 px at 1080p
+    const int height = int(std::lround(text * 1.9)) & ~1;
+    const int pad = int(std::lround(text * 0.8));
+    const int gap = int(std::lround(text * 0.55));
+    const qreal outline = std::max<qreal>(1.5, pictureHeight / 540.0);
+    const QFont label = badgeFont(text, QFont::Medium), number = badgeFont(text, QFont::Bold), unit = badgeFont(int(text * 0.72), QFont::DemiBold);
+    const QString value = QString::number(fps), fpsText = QStringLiteral("FPS");
+    const QFontMetricsF ml(label), mn(number), mu(unit);
+    // The left part: the logo, or a dot and the word.
+    QImage logo;
+    if (pushFps) {
+        logo = QImage(QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("qml/Veyra/pushfps-badge-logo.png")));
+        if (!logo.isNull()) logo = logo.scaledToHeight(int(std::lround(text * 1.55)), Qt::SmoothTransformation);
+    }
+    const qreal dot = text * 0.42;
+    qreal leftWidth;
+    if (pushFps && !logo.isNull()) leftWidth = logo.width();
+    else if (pushFps) leftWidth = QFontMetricsF(badgeFont(text, QFont::Bold)).horizontalAdvance(QStringLiteral("PushFPS"));
+    else leftWidth = dot + gap * 0.7 + ml.horizontalAdvance(word);
+    const qreal valueWidth = mn.horizontalAdvance(value) + text * 0.18 + mu.horizontalAdvance(fpsText);
+    int width = int(std::ceil(pad + leftWidth + gap + outline + gap + valueWidth + pad));
+    width += width & 1;
+
+    QImage image(width, height, QImage::Format_RGBA8888_Premultiplied);
+    image.fill(Qt::transparent);
+    QPainter painter(&image);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
+    const QRectF pill(outline / 2, outline / 2, width - outline, height - outline);
+    painter.setBrush(pushFps ? QColor(10, 14, 8, 214) : QColor(14, 15, 18, 204));
+    painter.setPen(QPen(pushFps ? QColor::fromRgba(kBadgeGreen) : QColor(255, 255, 255, 76), outline));
+    painter.drawRoundedRect(pill, pill.height() / 2, pill.height() / 2);
+    const qreal mid = height / 2.0;
+    qreal x = pad;
+    if (pushFps && !logo.isNull()) {
+        painter.drawImage(QPointF(x, mid - logo.height() / 2.0), logo);
+    } else if (pushFps) {
+        const QFont bold = badgeFont(text, QFont::Bold);
+        const QFontMetricsF mb(bold);
+        painter.setFont(bold);
+        const qreal base = mid + (mb.ascent() - mb.descent()) / 2;
+        painter.setPen(QColor(245, 245, 245));
+        painter.drawText(QPointF(x, base), QStringLiteral("Push"));
+        painter.setPen(QColor::fromRgba(kBadgeGreen));
+        painter.drawText(QPointF(x + mb.horizontalAdvance(QStringLiteral("Push")), base), fpsText);
+    } else {
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(QColor(154, 160, 166));
+        painter.drawEllipse(QPointF(x + dot / 2, mid), dot / 2, dot / 2);
+        painter.setFont(label);
+        painter.setPen(QColor(205, 208, 214));
+        painter.drawText(QPointF(x + dot + gap * 0.7, mid + (ml.ascent() - ml.descent()) / 2), word);
+    }
+    x += leftWidth + gap;
+    // A thin divider between the name and the frame rate.
+    painter.setPen(QPen(pushFps ? QColor(141, 242, 55, 110) : QColor(255, 255, 255, 60), outline));
+    painter.drawLine(QPointF(x, height * 0.28), QPointF(x, height * 0.72));
+    x += outline + gap;
+    const qreal base = mid + (mn.ascent() - mn.descent()) / 2;
+    painter.setFont(number);
+    painter.setPen(QColor(255, 255, 255));
+    painter.drawText(QPointF(x, base), value);
+    x += mn.horizontalAdvance(value) + text * 0.18;
+    painter.setFont(unit);
+    painter.setPen(pushFps ? QColor::fromRgba(kBadgeGreen) : QColor(185, 189, 196));
+    painter.drawText(QPointF(x, base), fpsText);
+    painter.end();
+    return labelOf(image);
 }
 }
 
@@ -473,10 +544,10 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
         ? int(std::lround(*s.submissionFps)) : gameFps * std::max(2, int(s.applied.multiplier));
     const QString leftText = tr("主机原画 · %1 FPS").arg(gameFps);
     const QString rightText = QStringLiteral("%1 · %2 FPS").arg(QString::fromLatin1(brand::kProductName)).arg(shownFps);
-    // Drawn here (UI thread) for the expected picture height; the recorder only copies them.
+    // Drawn here (UI thread) for the expected picture height; the recorder blends them in.
     const auto out = s.metrics.resolution.output;
     const uint32_t height = out.height > 0 ? uint32_t(out.height) : 1080;
-    const auto left = drawCompareLabel(leftText, height), right = drawCompareLabel(rightText, height);
+    const auto left = drawCompareBadge(false, tr("主机原画"), gameFps, height), right = drawCompareBadge(true, {}, shownFps, height);
     // Labels are sized for the picture height; a recorded file of another height (the picture
     // changed size, or the expected height was not known yet) gets them scaled to match.
     options.compareLabels = [left, right, height](uint32_t, uint32_t recorded, engine::RecordingLabel& l, engine::RecordingLabel& r) {

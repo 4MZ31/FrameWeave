@@ -371,7 +371,10 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
     struct CaptureGuard{PresentCapture* capture;bool& recorded;~CaptureGuard(){if(recorded&&capture)capture->discarded();}} captureGuard{capture_,captureRecorded};
     if(capture_){
         const uint32_t hdrMode=graph.hdrOutput()?(graph.hdr10Output()?2u:1u):0u;
-        captureRecorded=capture_->record(list,{source,graph.outputFormat(),graph.workWidth(),graph.workHeight(),hdrMode,graph.outputDitherStep(),generated});
+        PresentCapture::Frame captured{source,graph.outputFormat(),graph.workWidth(),graph.workHeight(),hdrMode,graph.outputDitherStep(),generated};
+        // PushFPS comparison clips: the raw console picture of this real frame, when kept.
+        if(!generated&&referencesValid){captured.raw=graph.sourceReference(slot);captured.rawSdrInHdr=graph.videoHdrActive();}
+        captureRecorded=capture_->record(list,captured);
     }
     // Interpolation region for the XeSS present-sink FG backend.
     // It must follow the PresentBlit view mapping (contain * zoom, view

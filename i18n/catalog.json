@@ -9538,6 +9538,23 @@
    "ru": "Хосты"
   },
   {
+   "zh": "主机原画",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "主機原始畫面",
+   "en": "Console",
+   "ja": "ゲーム機の元映像",
+   "nl": "Console",
+   "de": "Konsole",
+   "es": "Consola",
+   "fr": "Console",
+   "it": "Console",
+   "pt-BR": "Console",
+   "tr": "Konsol",
+   "ar": "جهاز الألعاب",
+   "pl": "Konsola",
+   "ru": "Консоль"
+  },
+  {
    "zh": "主机原画 · %1 FPS",
    "src": "qml/PushCompareDialog.qml",
    "zh-TW": "主機原始畫面 · %1 FPS",
