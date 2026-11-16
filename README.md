@@ -102,13 +102,15 @@ everything Veyra does, PushFPS adds what console players need:
 | Feature | What it does |
 |---|---|
 | **Optimise for my PC** | Tests every frame generation method your PC has, AI enhancement and the upscalers on your real game picture, measures frame rate, 1% low, latency and jitter, and keeps the best combination for your goal (balanced, lowest latency, smoothest or best picture), up to 144 or 240 Hz |
+| **Streaming mode** | An OBS-style page: preview, PushFPS features, go live and record controls, an audio mixer for game sound, microphone and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
+| **Lowest latency in one tap** | Every latency setting that costs no picture quality, switched on together; off restores your previous settings |
 | **Go live** | Stream the boosted picture straight to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or any RTMP server, to several platforms at once from one encode. Stream keys are stored encrypted |
 | **Frame Pacing Repair** | Evens out the uneven frame timing many 30 FPS console games have before frames are generated |
 | **Live HUD Lock** | Finds still text, crosshairs and bars on every frame and keeps them sharp in generated frames, no boxes needed |
 | **Adaptive multiplier** | Follows the game when its frame rate drops, so the output stays even |
 | **Game presets** | GTA VI and other layouts in one click, with the minimap and HUD kept sharp. Save your own and share them as a code |
 | **Automatic HUD detection** | Watches your game for a few seconds and finds the minimap, health and ammo, so they are never interpolated. Correct the boxes by dragging them |
-| **Before/after comparison clips** | Records a clip with the console's own frame rate on the left and PushFPS on the right, split screen or side by side, 10 to 60 seconds, each side labelled with its frame rate |
+| **Before/after comparison clips** | Records a clip with the console's own frame rate on the left and PushFPS on the right, split screen, side by side or vertical 9:16 for TikTok, Shorts and Reels, 10 to 60 seconds, each side labelled with its frame rate |
 | **No capture card needed** | PS5 Remote Play, Moonlight (stream another PC through Sunshine) and Xbox streaming, with the same frame generation, from Veyra |
 | **Help on hard settings** | A small **?** beside settings that need explaining; hover it for a short summary |
 | **Quick setup** | Console, game frame rate and target frame rate instead of hundreds of settings, with console and game profiles |
@@ -272,6 +274,11 @@ enhancement on Radeon and on RTX 30 cards is an optional experimental extra (see
 
 > [!TIP]
 > Close other apps that use the capture card (OBS, the card's own software) before connecting.
+
+> [!TIP]
+> **Setup guide:** the recommended settings to start from, how to tune them, console and Windows settings,
+> and when to use HDR: [on the website](https://dosukasol.github.io/PushFPS/#guide) or as
+> [PushFPS-Setup-Guide.txt](docs/PushFPS-Setup-Guide.txt) (also attached to every release).
 
 ## No capture card? Stream instead
 

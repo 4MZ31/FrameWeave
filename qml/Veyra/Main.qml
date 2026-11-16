@@ -1123,7 +1123,7 @@ Window {
     onVisibilityChanged: Qt.callLater(root.applyOnTop)
 
     // PushFPS "Sunset City" intro (PushIntro.qml) and the startup music, each with its own switch in
-    // 设置 → 外观 (introAnimation unset = on; introMusic unset = off, PushFPS default since 2.9.8). The music is the file Veyra's runtime
+    // 设置 → 外观 (introAnimation unset = on; introMusic unset = off, PushFPS default since 3.0.0). The music is the file Veyra's runtime
     // package installs (media/startup-music.mp3); PushFPS never ships or copies it.
     readonly property bool brandIntro: veyra.preferences.introAnimation !== false
     readonly property bool musicOn: typeof vyMusic !== "undefined" && veyra.preferences.introMusic === true

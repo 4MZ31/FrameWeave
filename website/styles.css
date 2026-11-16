@@ -348,6 +348,37 @@ dialog#lightbox[open] { animation: pop .2s ease; }
   .methods td:last-child { font-size: 17px; }
 }
 
+/* Setup guide */
+.guide-note { color: var(--muted); font-size: 16px; max-width: 52em; margin: 14px 0 0; }
+.guide-steps b { color: var(--text); font-weight: 600; }
+.tune tbody th { width: 34%; }
+.hdr td { color: var(--muted); }
+.hdr td:last-child { color: var(--muted); }
+.chip { display: inline-flex; align-items: center; justify-content: center; min-width: 46px; height: 26px; padding: 0 10px; border-radius: 999px; font: 600 13px/1 var(--body); border: 1px solid var(--line-2); color: var(--text); background: var(--ink-2); white-space: nowrap; }
+.chip.on { color: var(--green-ink); background: var(--green); border-color: var(--green); }
+.chip.off { color: var(--text); background: transparent; border-color: var(--line-2); }
+.console-tabs { margin-top: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(var(--panel-rgb), .7); overflow: hidden; }
+.ctabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; border-bottom: 1px solid var(--line); background: rgba(var(--tint-rgb), .02); }
+.ctabs button { border: 0; background: none; color: var(--muted); font: 600 15px var(--body); padding: 9px 16px; border-radius: 9px; cursor: pointer; }
+.ctabs button[aria-selected="true"] { background: var(--panel-2); color: var(--text); box-shadow: inset 0 -2px 0 var(--accent-text); }
+.ctabs button:hover { color: var(--text); }
+.cpanel { padding: 6px 20px 10px; }
+.setlist { list-style: none; margin: 0; padding: 0; }
+.setlist li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 18px; padding: 13px 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 15.5px; }
+.setlist li:last-child { border-bottom: 0; }
+.setlist li b { color: var(--text); font-weight: 600; }
+.setlist small { grid-column: 1 / -1; color: var(--faint); font-size: 13.5px; }
+.wingrid { margin-top: 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; }
+.wingrid li:nth-last-child(2):nth-child(odd) { border-bottom: 0; }
+.hdr-chain { margin: 22px 0 0; }
+.hdr-chain svg { width: 100%; max-width: 760px; height: auto; display: block; }
+.hc-node rect { fill: var(--panel); stroke: var(--line-2); stroke-width: 1.5; }
+.hc-node text { fill: var(--text); font: 700 italic 17px var(--display); text-anchor: middle; }
+.hc-node .hc-sub { fill: var(--accent-text); font: 600 13px var(--body); }
+.hc-link { stroke: var(--accent-text); stroke-width: 2.5; stroke-dasharray: 4 5; fill: none; }
+@media (max-width: 900px) { .wingrid { grid-template-columns: 1fr; } .wingrid li:nth-last-child(2):nth-child(odd) { border-bottom: 1px solid var(--line); } }
+@media (max-width: 560px) { .cpanel { padding: 4px 14px 8px; } .ctabs button { padding: 8px 11px; font-size: 14px; } .tune tbody th { width: auto; } .hdr-chain { overflow-x: auto; } .hdr-chain svg { min-width: 560px; } }
+
 /* ------------------------------------------------------------------ themes
    html[data-theme] is set before the first paint by the small script in <head>:
    "sunset" (Sunset City, the default for now), "classic" (graphite and logo green) or "light". */
