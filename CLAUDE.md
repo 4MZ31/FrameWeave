@@ -78,10 +78,13 @@ and edits would conflict on every merge.
   `PushFPS.exe`, runs the GPU-free unit tests, checks the exe's Qt/FFmpeg imports against Veyra's runtime
   package, packages `packaging/make-release.ps1`, then installs with `packaging/Install-PushFPS.ps1` and
   starts the program; QML errors at startup fail the build. FFmpeg (~25 min) and the static streaming libraries (~30 min) are kept in a vcpkg binary cache saved by every run (`vcpkg-bin-<commit>-v2-<run>`), so a run with an unchanged compiler restores them in seconds.
-- Releases: push a tag `vX.Y.Z` (stable numbers only: the in-app update checker ignores other tags). The
-  workflow publishes it as a GitHub **pre-release**; mark it as the latest release only after a person has
-  tested it with a real capture card and GPU, or when the owner asks for a full release (dispatch with
-  `-f release_tag=vX.Y.Z -f full_release=true`).
+- Releases: push a tag `vX.Y.Z` or dispatch with `-f release_tag=vX.Y.Z` (stable numbers only: the
+  in-app update checker ignores other tags). **Every release is a full (latest) release, never a
+  pre-release** (the owner's standing instruction, November 2026); `full_release` defaults to true. The
+  release notes still say honestly what was tested on real hardware and what only in CI. The release
+  attaches `SHA256SUMS.txt` (every file) and `PushFPS-<version>-components.txt` (pinned components).
+  The Linux and macOS packages are attached afterwards by dispatching `build-portable.yml` with
+  `-f release_tag=vX.Y.Z`.
   The workflow token may only create the tag when the built commit's workflow files match `main` at release
   time: don't push workflow changes while a release build runs. If the release step still fails (or saves a
   draft), publish the same files without rebuilding: dispatch `release-from-run.yml` with the run's ID

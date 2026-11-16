@@ -211,6 +211,16 @@ Item {
             control("pushfps-hudlock").toggled(false)
             verify(!veyra.hudLock)
         }
+        function test_hud_lock_reports_what_runs() {
+            quick.applyTarget("120")
+            veyra.hudLock = true
+            quick.liveStats = ({ hudLockState: 2 })
+            compare(control("pushfps-hudlock-row").hint, qsTr("实时 HUD 锁定没能在这台电脑上启动，补帧照常运行（原因见日志）"))
+            quick.liveStats = ({ hudLockState: 1 })
+            compare(control("pushfps-hudlock-row").hint, qsTr("正在运行：文字和准星在补出来的帧里保持清晰"))
+            veyra.hudLock = false
+            quick.liveStats = ({})
+        }
         function test_own_tech_is_off_with_xess() {
             quick.applyTarget("120")
             veyra.presentationOwned = true

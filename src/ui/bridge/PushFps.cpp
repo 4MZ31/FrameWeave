@@ -5,10 +5,12 @@
 // settings paths - the latency readout and "Optimise for my PC" measurements,
 // game-preset HUD regions, and sharing clips (clipboard, Discord).
 #include "../QmlPlayerBridge_p.h"
+#include "veyra/engine/PushArchivePaths.h"
 #include "veyra/engine/PushBenchmarkProbe.h"
 #include "veyra/Brand.h"
 #include "veyra/RuntimePaths.h"
 #include "veyra/ngx/AnrProvider.h"
+#include <QCryptographicHash>
 #include <QDir>
 #include <QDirIterator>
 #include <QProcess>
@@ -73,6 +75,7 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["fgMultiplierNow"] = s.previewFgMultiplier;
     // Frame Pacing Repair: kept frames seen and re-timed since the source opened.
     m["pacingFrames"] = QVariant::fromValue(qulonglong(s.pacingFrames));
+    m["hudLockState"] = s.hudLockState;
     m["pacingRepaired"] = QVariant::fromValue(qulonglong(s.pacingRepaired));
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;
@@ -242,17 +245,29 @@ QString findAnrDll(const QString& root) {
     }
     return best;
 }
-bool copyTree(const QString& from, const QString& to, int& files) {
+// Copies a folder tree for the ANR add-on: links are never followed, programs and scripts are left
+// out (engine/PushArchivePaths.h), and the file count and size are capped.
+bool copyTree(const QString& from, const QString& to, int& files, int& skipped, qint64& bytes) {
     QDir source(from);
     if (!QDir().mkpath(to)) return false;
-    for (const QFileInfo& info : source.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot)) {
+    for (const QFileInfo& info : source.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::System | QDir::Hidden)) {
+        if (info.isSymLink() || info.isJunction() || !engine::archive::safeEntry(info.fileName().toStdString())) { ++skipped; continue; }
         const QString target = QDir(to).filePath(info.fileName());
-        if (info.isDir()) { if (!copyTree(info.filePath(), target, files)) return false; continue; }
+        if (info.isDir()) { if (!copyTree(info.filePath(), target, files, skipped, bytes)) return false; continue; }
+        if (!info.isFile() || !engine::archive::copiedType(info.fileName().toStdString())) { ++skipped; continue; }
+        bytes += info.size();
+        if (++files > engine::archive::kMaxFiles || bytes > engine::archive::kMaxBytes) return false;
         QFile::remove(target);
         if (!QFile::copy(info.filePath(), target)) return false;
-        ++files;
     }
     return true;
+}
+QString sha256Of(const QString& path) {
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly)) return {};
+    QCryptographicHash h(QCryptographicHash::Sha256);
+    if (!h.addData(&f)) return {};
+    return QString::fromLatin1(h.result().toHex());
 }
 }
 
@@ -274,6 +289,26 @@ bool QmlPlayerBridge::pushInstallAnr() {
         if (!staging.isValid()) { emit notice(tr("无法创建临时文件夹"), true); return false; }
         const QString tar = QDir(QProcessEnvironment::systemEnvironment().value(QStringLiteral("SystemRoot"), QStringLiteral("C:/Windows")))
                                 .filePath(QStringLiteral("System32/tar.exe"));
+        // Look at every entry first: nothing that would land outside the staging folder is extracted.
+        QProcess list;
+        list.start(tar, {QStringLiteral("-tf"), picked});
+        if (!list.waitForFinished(60000) || list.exitStatus() != QProcess::NormalExit || list.exitCode() != 0) {
+            emit notice(tr("无法解压 ANR 压缩包：%1").arg(QFileInfo(picked).fileName()), true);
+            return false;
+        }
+        const QStringList entries = QString::fromUtf8(list.readAllStandardOutput()).split(QLatin1Char('\n'), Qt::SkipEmptyParts);
+        if (entries.isEmpty() || entries.size() > engine::archive::kMaxFiles * 2) {
+            emit notice(tr("ANR 压缩包的内容不对，已停止安装"), true);
+            return false;
+        }
+        for (const QString& raw : entries) {
+            const QString entry = raw.trimmed();
+            if (!engine::archive::safeEntry(entry.toStdString())) {
+                veyra::log::warn("anr-install", std::format("refused archive entry: {}", entry.toStdString()));
+                emit notice(tr("ANR 压缩包里有指向安装文件夹以外的路径，为了安全已停止安装"), true);
+                return false;
+            }
+        }
         QProcess unzip;
         unzip.start(tar, {QStringLiteral("-xf"), picked, QStringLiteral("-C"), staging.path()});
         if (!unzip.waitForFinished(120000) || unzip.exitStatus() != QProcess::NormalExit || unzip.exitCode() != 0) {
@@ -284,13 +319,40 @@ bool QmlPlayerBridge::pushInstallAnr() {
     }
     const QString dll = findAnrDll(root);
     if (dll.isEmpty()) { emit notice(tr("这个文件里没有 ANR 的 nvngx_dlssg.dll，请选择 Apex 的 anr-fg 安装包"), true); return false; }
-    int files = 0;
-    if (!copyTree(QFileInfo(dll).absolutePath(), anrDirectory(), files)) {
-        emit notice(tr("无法复制 ANR 文件到 %1").arg(QDir::toNativeSeparators(anrDirectory())), true);
+    // Install into a new folder next to the old one, then swap: a failed copy leaves the previous
+    // installation as it was.
+    const QString target = anrDirectory();
+    const QString fresh = target + QStringLiteral(".new"), previous = target + QStringLiteral(".old");
+    QDir(fresh).removeRecursively();
+    QDir(previous).removeRecursively();
+    int files = 0, skipped = 0;
+    qint64 bytes = 0;
+    if (!copyTree(QFileInfo(dll).absolutePath(), fresh, files, skipped, bytes) || !QFileInfo::exists(QDir(fresh).filePath(QStringLiteral("nvngx_dlssg.dll")))) {
+        QDir(fresh).removeRecursively();
+        emit notice(tr("无法复制 ANR 文件到 %1").arg(QDir::toNativeSeparators(target)), true);
         return false;
     }
+    const bool hadOld = QFileInfo::exists(target);
+    if (hadOld && !QDir().rename(target, previous)) {
+        QDir(fresh).removeRecursively();
+        emit notice(tr("ANR 文件正在使用中，请关闭画面后再安装"), true);
+        return false;
+    }
+    if (!QDir().rename(fresh, target)) {
+        if (hadOld) QDir().rename(previous, target);
+        QDir(fresh).removeRecursively();
+        emit notice(tr("无法复制 ANR 文件到 %1").arg(QDir::toNativeSeparators(target)), true);
+        return false;
+    }
+    QDir(previous).removeRecursively();
+    // What was installed, for the log and the user (ANR has no published checksums to compare with).
+    const QString hash = sha256Of(QDir(target).filePath(QStringLiteral("nvngx_dlssg.dll")));
+    veyra::log::info("anr-install", std::format("installed files={} skipped={} bytes={} nvngx_dlssg.dll sha256={} from={}",
+                                                files, skipped, bytes, hash.toStdString(), QFileInfo(picked).fileName().toStdString()));
     refreshComponentList();
-    emit notice(tr("ANR 已安装（%1 个文件）。重新启动 PushFPS 后，可在补帧方式中选择 ANR").arg(files), false);
+    emit notice(tr("ANR 已安装（%1 个文件）。重新启动 PushFPS 后，可在补帧方式中选择 ANR").arg(files)
+                + (skipped > 0 ? tr("；没有复制 %1 个程序或脚本文件").arg(skipped) : QString())
+                + QStringLiteral(" · SHA-256 ") + hash.left(16), false);
     return true;
 }
 

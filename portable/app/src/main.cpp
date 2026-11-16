@@ -34,8 +34,11 @@
 #include <QTimer>
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstdio>
+#include <thread>
+#include <vector>
 
 using namespace pushfps;
 using namespace veyra::portable;
@@ -119,8 +122,10 @@ int selftest(QGuiApplication& app, double seconds, const QString& sourceSpec, in
         print(QStringLiteral("unknown --source %1").arg(sourceSpec));
         return 1;
     }
-    int picks = 0, generated = 0, checked = 0;
+    int picks = 0, generated = 0;
+    std::atomic<int> checked{0};
     QImage sample;
+    std::vector<std::thread> references;  // the CPU reference runs beside the display, not in it
     QTimer display;
     display.setTimerType(Qt::PreciseTimer);
     display.setInterval(8);
@@ -130,19 +135,24 @@ int selftest(QGuiApplication& app, double seconds, const QString& sourceSpec, in
         ++picks;
         if (!p.generated()) return;
         ++generated;
-        // Now and then run the CPU reference on what the display would draw.
-        if (generated % 97 == 1) {
-            Bgra out;
-            if (interpolate(*p.a, *p.b, p.fields->forward, p.fields->backward, p.fields->hudMask.get(), p.t, out, 2)) {
-                ++checked;
-                if (!saveFrame.isEmpty() && sample.isNull()) sample = imageFromBgra(out);
-            }
+        // Three times per run, the CPU reference on what the display would draw (on its own thread, so
+        // the display timing stays real).
+        if ((generated == 40 || generated == 240 || generated == 440) && references.size() < 3) {
+            const bool keep = references.empty() && !saveFrame.isEmpty();
+            references.emplace_back([p, keep, &checked, &sample] {
+                Bgra out;
+                if (interpolate(*p.a, *p.b, p.fields->forward, p.fields->backward, p.fields->hudMask.get(), p.t, out, 1)) {
+                    ++checked;
+                    if (keep) sample = imageFromBgra(out);
+                }
+            });
         }
     });
     display.start();
     QTimer::singleShot(int(seconds * 1000), &app, &QCoreApplication::quit);
     app.exec();
     display.stop();
+    for (auto& t : references) t.join();
     const EngineStats st = engine->stats();
     const qint64 read = source.framesRead();
     source.stop();
@@ -157,7 +167,7 @@ int selftest(QGuiApplication& app, double seconds, const QString& sourceSpec, in
         const double wantOut = target > 0 ? target : 120.0;
         if (std::abs(st.transportFps - 60) > 6 || std::abs(st.contentFps - 30) > 4) { code = 1; verdict = QStringLiteral("FAIL (rates)"); }
         else if (st.outputFps < wantOut * 0.85) { code = 1; verdict = QStringLiteral("FAIL (output %1 < %2)").arg(st.outputFps, 0, 'f', 1).arg(wantOut * 0.85, 0, 'f', 1); }
-        else if (generated == 0 || checked == 0) { code = 1; verdict = QStringLiteral("FAIL (no generated frames)"); }
+        else if (generated == 0 || checked.load() == 0) { code = 1; verdict = QStringLiteral("FAIL (no generated frames)"); }
         else if (lateShare > 0.1) { code = 1; verdict = QStringLiteral("FAIL (motion late for %1% of pairs)").arg(lateShare * 100, 0, 'f', 0); }
     }
     QString r;
@@ -168,7 +178,7 @@ int selftest(QGuiApplication& app, double seconds, const QString& sourceSpec, in
     o << "frames read: " << read << ", duplicates removed: " << qulonglong(st.duplicates) << ", real frames: " << qulonglong(st.kept) << "\n";
     o << QStringLiteral("signal %1 fps, game %2 fps, output %3 fps\n").arg(st.transportFps, 0, 'f', 1).arg(st.contentFps, 0, 'f', 1).arg(st.outputFps, 0, 'f', 1);
     o << QStringLiteral("delay %1 ms, latency %2 ms, motion estimation %3 ms per pair\n").arg(st.delayMs, 0, 'f', 1).arg(st.latencyMs, 0, 'f', 1).arg(st.estimateMs, 0, 'f', 1);
-    o << "picks: " << picks << ", generated: " << generated << ", CPU reference runs: " << checked << ", scene cuts: " << qulonglong(st.sceneCuts)
+    o << "picks: " << picks << ", generated: " << generated << ", CPU reference runs: " << checked.load() << ", scene cuts: " << qulonglong(st.sceneCuts)
       << ", late motion: " << qulonglong(st.lateFields) << ", pacing repaired: " << qulonglong(st.pacingRepaired) << "\n";
     o << "result: " << verdict;
     print(r);

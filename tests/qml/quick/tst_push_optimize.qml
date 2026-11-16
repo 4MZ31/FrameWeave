@@ -19,6 +19,7 @@ Item {
     // A PC: VFG reaches 120 FPS with 18 ms, DLSS 120 with 24 ms, FSR only 60; AI
     // enhancement costs too much at 120; nothing generates under "broken".
     property string broken: ""
+    property real vfgLatency: 18
     property int confirmFailures: 0
     function model() {
         const b = veyra.fgEnabled ? veyra.fgBackendName : ""
@@ -27,7 +28,7 @@ Item {
         if (!b) return Object.assign(base, { fps: 60, low1Fps: 58, latencyMeanMs: 12 })
         const want = 30 * m
         let fps = want, latency = 20
-        if (b === "vfg") latency = 18
+        if (b === "vfg") latency = root.vfgLatency
         if (b === "dlss") latency = 24
         if (b === "fsr3") fps = Math.min(want, 60)
         if (veyra.nrAnyEnabled) fps = want * 0.8
@@ -44,7 +45,10 @@ Item {
             veyra.outputRateMode = 0; veyra.outputCustomFps = 0; veyra.nrAnyEnabled = false; veyra.srEnabled = false
             veyra.displayRefreshHz = 144
             veyra.fgBackendChoices = [{ id: "dlss", label: "DLSS" }, { id: "fsr3", label: "FSR 3" }, { id: "vfg", label: "VFG" },
-                                      { id: "anr", label: "ANR", danger: true }, { id: "xess", label: "XeSS" }]
+                                      { id: "anr", label: "ANR", danger: true }, { id: "xess", label: "XeSS" },
+                                      { id: "amdfrc", label: "AMD FRC", disabled: true, note: "needs an AMD GPU" }]
+            veyra.fgMultiplierChoices = [{id:"1"},{id:"2"},{id:"3"},{id:"4"}]
+            root.vfgLatency = 18
             veyra.liveStats = ({ running: true, settled: true, contentFps: 30, displayRefreshHz: 144, sourceHeight: 2160,
                                  captureReceived: 1000, captureDropped: 0, backendWarning: "" })
             veyra.benchmarkModel = root.model
@@ -75,7 +79,14 @@ Item {
             const kinds = opt.steps.map(s => s.config.kind)
             compare(kinds[0], "baseline")
             verify(kinds.indexOf("enhance") > 0 && kinds[kinds.length - 1] === "confirm", kinds.join(","))
-            verify(!opt.steps.some(s => s.config.backend === "anr" || s.config.backend === "xess"), "ANR and XeSS are not auto-picked")
+            // Every available method is measured (audit item), the unavailable one is listed with its reason.
+            verify(opt.steps.some(s => s.config.backend === "anr"), "ANR measured")
+            verify(opt.steps.some(s => s.config.backend === "xess"), "XeSS measured")
+            verify(!opt.steps.some(s => s.config.backend === "amdfrc"), "AMD FRC not available here")
+            verify(opt.skipped.some(x => x.label === "AMD FRC" && x.reason === "needs an AMD GPU"), "skip reason shown")
+            // 144 Hz: no whole multiplier of 30 reaches 144, so 120 is the top target and that is said.
+            verify(!opt.steps.some(s => s.config.target === "monitor"), "no unreachable 144 FPS target")
+            verify(opt.skipped.some(x => x.reason.indexOf("144") >= 0), "the 144 Hz limit is explained")
             const fsr = opt.steps.find(s => s.config.backend === "fsr3")
             verify(fsr && !fsr.result.ok && fsr.result.reason.length > 0, "FSR at 60 FPS fails the 120 target")
             const record = JSON.parse(veyra.preferences.pushBenchmark)
@@ -109,6 +120,32 @@ Item {
             veyra.liveStats = ({ running: false })
             tryCompare(opt, "phase", "failed", 5000)
             verify(!veyra.fgEnabled, "settings restored")
+        }
+        function test_240hz_screen_is_tested_at_240() {
+            veyra.displayRefreshHz = 240
+            veyra.liveStats = Object.assign({}, veyra.liveStats, { displayRefreshHz: 240 })
+            veyra.fgMultiplierChoices = [{id:"1"},{id:"2"},{id:"3"},{id:"4"},{id:"6"},{id:"8"}]
+            opt.start()
+            tryCompare(opt, "phase", "done", 20000)
+            verify(opt.steps.some(s => s.config.target === "monitor" && s.config.multiplier === 8), "8X at 240 Hz measured")
+            compare(opt.best.config.target, "monitor", "240 FPS held on the model PC")
+            compare(veyra.fgMultiplier, 8)
+        }
+        function test_lowest_latency_goal() {
+            root.vfgLatency = 30
+            veyra.preferences = ({ pushGameFps: 30, pushOptimizeGoal: "latency" })
+            opt.start()
+            tryCompare(opt, "phase", "done", 20000)
+            verify(opt.best.config.backend !== "vfg", "the 30 ms method loses on latency")
+            verify(opt.best.result.latency <= 20.5, "lowest measured latency wins (" + opt.best.result.latency + ")")
+            compare(JSON.parse(veyra.preferences.pushBenchmark).goal, "latency")
+        }
+        function test_balanced_goal_keeps_quality_at_equal_rate() {
+            root.vfgLatency = 30
+            veyra.preferences = ({ pushGameFps: 30, pushOptimizeGoal: "balanced" })
+            opt.start()
+            tryCompare(opt, "phase", "done", 20000)
+            compare(opt.best.config.backend, "vfg", "same 120 FPS: the better picture method, latency only breaks ties")
         }
         function test_detects_a_60_fps_game() {
             veyra.liveStats = Object.assign({}, veyra.liveStats, { contentFps: 60 })

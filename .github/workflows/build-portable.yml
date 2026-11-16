@@ -196,7 +196,7 @@ jobs:
             PushFPS-$PORTABLE_VERSION-linux-x86_64.AppImage PushFPS-$PORTABLE_VERSION-linux-x86_64.AppImage.sha256
 
   macos:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 

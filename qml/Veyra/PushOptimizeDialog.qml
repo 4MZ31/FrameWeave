@@ -5,8 +5,11 @@
 // the best one. Every number comes from the engine's own Present and latency
 // records through a measurement window (engine/PushBenchmarkProbe.h):
 //   1. baseline without effects: content frame rate (30/40/60) and base latency;
-//   2. each available frame generation method at the highest target the screen
-//      shows (120 FPS on 120 Hz+, else the refresh rate or 60), then 60 if needed;
+//   2. every frame generation method this PC can run (from the engine's own
+//      capability list, with the reason for each one it skips) at the highest
+//      targets the screen shows: the refresh itself on 144-240 Hz screens when a
+//      whole multiplier reaches it, 120 FPS on 120 Hz+, else the refresh or 60;
+//      then 60 if nothing held;
 //   3. AI enhancement on top of the best one, then the upscalers when the screen
 //      is larger than the capture;
 //   4. the winner measured again to confirm it.
@@ -15,7 +18,9 @@
 // frames and added no more than 60 ms latency over the baseline. Each one runs
 // after its settings are applied and frames come out with them, plus a warm-up,
 // then a 6-second window. Nothing is estimated; a method that cannot run is shown
-// as such.
+// as such. The winner follows the chosen goal (balanced, lowest latency,
+// smoothest motion, best picture) from the measured numbers; the only fixed
+// assumption is the picture-quality order of the methods, shown as such.
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Window
@@ -53,8 +58,15 @@ DialogLayer {
     property real refreshHz: 60
     property bool applied: false
 
-    readonly property var qualityRank: ({ vfg: 5, dlss: 4, fsr4: 3, fsr3: 2 })
-    readonly property var backendLabel: ({ vfg: "NVIDIA VFG", dlss: qsTr("DLSS 帧生成"), fsr4: "FSR 4", fsr3: "FSR 3.1" })
+    // Picture-quality order of the methods: a heuristic (not measured), used only as a tie-breaker in
+    // "balanced" and as the main key in "best picture".
+    readonly property var qualityRank: ({ vfg: 6, dlss: 5, anr: 4, fsr4: 3, xess: 2, fsr3: 2, amdfrc: 1 })
+    readonly property var backendLabel: ({ vfg: "NVIDIA VFG", dlss: qsTr("DLSS 帧生成"), anr: "ANR", fsr4: "FSR 4", xess: "XeSS", fsr3: "FSR 3.1", amdfrc: "AMD FRC" })
+    // Goal (preference pushOptimizeGoal): balanced | latency | smooth | picture.
+    property string goal: ["balanced", "latency", "smooth", "picture"].indexOf(String(veyra.preferences.pushOptimizeGoal)) >= 0
+                          ? String(veyra.preferences.pushOptimizeGoal) : "balanced"
+    // Methods and targets not tested, with the reason (shown under the results).
+    property var skipped: []
 
     function now() { return Date.now() / 1000 }
     function stats() { return veyra.pushLiveStats() || {} }
@@ -123,16 +135,30 @@ DialogLayer {
         else if (c.sr) s += " · " + qsTr("RTX 视频超分")
         return s
     }
+    // Every method the engine reports as available on this PC, best picture first.
     function backends() {
         return (veyra.fgBackendChoices || [])
-            .filter(o => !o.disabled && !o.danger && opt.qualityRank[o.id] !== undefined)
-            .map(o => o.id).sort((a, b) => opt.qualityRank[b] - opt.qualityRank[a]).slice(0, 4)
+            .filter(o => !o.disabled)
+            .map(o => o.id).sort((a, b) => (opt.qualityRank[b] || 0) - (opt.qualityRank[a] || 0))
     }
-    function highTarget() {
-        if (opt.refreshHz >= 119) return "120"
-        if (opt.refreshHz > 61) return "monitor"
-        return "60"
+    // Methods the engine reports as unavailable, with its reason.
+    function unavailable() {
+        return (veyra.fgBackendChoices || []).filter(o => o.disabled)
+            .map(o => ({ label: opt.backendLabel[o.id] || o.label || o.id, reason: String(o.note || "") || qsTr("这台电脑不能运行") }))
     }
+    // A whole multiplier lands within 5 % of the refresh (30 FPS: 180 Hz = 6X, 240 Hz = 8X).
+    function monitorReachable() {
+        const offered = (veyra.fgMultiplierChoices || []).map(o => parseInt(o.id)).filter(m => m >= 2)
+        return offered.some(m => Math.abs(opt.gameFps * m - opt.refreshHz) <= opt.refreshHz * 0.05)
+    }
+    // The targets tested first, highest first.
+    function highTargets() {
+        if (opt.refreshHz > 125) return opt.monitorReachable() ? ["monitor", "120"] : ["120"]
+        if (opt.refreshHz >= 119) return ["120"]
+        if (opt.refreshHz > 61) return ["monitor"]
+        return ["60"]
+    }
+    function highTarget() { return opt.highTargets()[0] }
 
     // --- run -----------------------------------------------------------------
     function start() {
@@ -218,10 +244,18 @@ DialogLayer {
         else res.ok = true
         return res
     }
+    // Ranks passing configurations by the chosen goal. Every term except the quality order is measured.
     function score(step) {
         const c = step.config, r = step.result
-        return Math.min(opt.targetFps(c.target), opt.refreshHz) * 1000 + (opt.qualityRank[c.backend] || 0) * 20
-             + (c.enhance ? 12 : 0) + (c.sr === 2 ? 6 : c.sr === 6 ? 4 : 0) - r.latency / 10
+        const fps = Math.min(r.fps || 0, opt.refreshHz + 0.5)
+        const rank = opt.qualityRank[c.backend] || 0
+        const extras = (c.enhance ? 12 : 0) + (c.sr === 2 ? 6 : c.sr === 6 ? 4 : 0)
+        switch (opt.goal) {
+        case "latency": return -r.latency * 100 + fps / 10 + rank
+        case "smooth": return fps * 1000 + (r.low1 || 0) * 10 - (r.jitter || 0) * 50 - r.latency / 10 + rank
+        case "picture": return rank * 1000 + extras * 40 + fps / 10 - r.latency / 100
+        default: return Math.min(opt.targetFps(c.target), opt.refreshHz) * 1000 + rank * 20 + extras - r.latency / 10
+        }
     }
     function finishStep(result) {
         runner.stop()
@@ -243,9 +277,14 @@ DialogLayer {
             opt.baselineResult = done.result
             const content = Math.round(done.result.content || 0)
             if (content === 30 || content === 40 || content === 60) opt.gameFps = content
-            const high = opt.highTarget()
-            for (const b of opt.backends())
-                if (opt.targetFps(high) > opt.gameFps + 0.5) add({ backend: b, target: high, enhance: false, sr: 0, kind: "fg-high" })
+            const skipped = opt.unavailable()
+            if (opt.refreshHz > 125 && !opt.monitorReachable())
+                skipped.push({ label: qsTr("%1 FPS").arg(Math.round(opt.refreshHz)),
+                               reason: qsTr("%1 FPS 的游戏只能按整数倍补帧，没有一种倍数能达到 %2 Hz，最高测试 120 FPS").arg(opt.gameFps).arg(Math.round(opt.refreshHz)) })
+            opt.skipped = skipped
+            for (const high of opt.highTargets())
+                for (const b of opt.backends())
+                    if (opt.targetFps(high) > opt.gameFps + 0.5) add({ backend: b, target: high, enhance: false, sr: 0, kind: "fg-high" })
             if (steps.length === 1) for (const b of opt.backends())
                 if (60 > opt.gameFps + 0.5) add({ backend: b, target: "60", enhance: false, sr: 0, kind: "fg-low" })
         } else if (done.config.kind === "fg-high" && opt.pending().length === 0 && !opt.passed().some(s => s.config.kind === "fg-high")) {
@@ -304,11 +343,14 @@ DialogLayer {
                                        : qsTr("无法测量")
             opt.phase = "failed"
         }
-        const record = { v: 1, at: new Date().toISOString(), refreshHz: opt.refreshHz, gameFps: opt.gameFps,
+        const record = { v: 2, at: new Date().toISOString(), refreshHz: opt.refreshHz, gameFps: opt.gameFps, goal: opt.goal,
                          best: winner ? opt.describe(winner.config) : "",
+                         skipped: opt.skipped,
                          steps: opt.steps.map(s => ({ label: s.label, ok: !!(s.result && s.result.ok), reason: s.result ? s.result.reason : "",
                                                       fps: s.result ? +(s.result.fps || 0).toFixed(1) : 0, low1: s.result ? +(s.result.low1 || 0).toFixed(1) : 0,
-                                                      latency: s.result ? +(s.result.latency || 0).toFixed(1) : 0 })) }
+                                                      latency: s.result ? +(s.result.latency || 0).toFixed(1) : 0,
+                                                      latencyP95: s.result ? +(s.result.latencyP95 || 0).toFixed(1) : 0,
+                                                      jitter: s.result ? +(s.result.jitter || 0).toFixed(2) : 0 })) }
         veyra.setPreference("pushBenchmark", JSON.stringify(record))
         veyra.logUi("push-optimize", "done best=" + record.best)
     }
@@ -344,8 +386,21 @@ DialogLayer {
             Text {
                 Layout.fillWidth: true
                 visible: opt.phase === "idle"
-                text: qsTr("让游戏画面通过采集卡显示出来，然后开始。PushFPS 会在实际画面上依次测试每种可用的组合（每种约 10 秒，共 1 到 2 分钟），测量真实帧率、1% 低帧和延迟，选出最好的一种。")
+                text: qsTr("让游戏画面通过采集卡显示出来，然后开始。PushFPS 会在实际画面上依次测试这台电脑能运行的每种补帧方式（每种约 10 秒，共 1 到 3 分钟），测量真实帧率、1% 低帧和延迟，按你选的目标选出最好的一种。")
                 color: Theme.t2; font.family: Theme.fontUi; font.pixelSize: 13; wrapMode: Text.WordWrap
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                visible: opt.phase === "idle"
+                spacing: 10
+                Text { text: qsTr("目标"); color: Theme.t1; font.family: Theme.fontUi; font.pixelSize: 13 }
+                VSeg {
+                    objectName: "pushfps-optimize-goal"
+                    options: [{ id: "balanced", label: qsTr("均衡") }, { id: "latency", label: qsTr("最低延迟") },
+                              { id: "smooth", label: qsTr("最流畅") }, { id: "picture", label: qsTr("最佳画质") }]
+                    current: opt.goal
+                    onPicked: id => veyra.setPreference("pushOptimizeGoal", id)
+                }
             }
             Text {
                 Layout.fillWidth: true
@@ -405,10 +460,24 @@ DialogLayer {
                     }
                 }
             }
+            Repeater {
+                model: opt.phase !== "idle" ? opt.skipped : []
+                delegate: RowLayout {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    spacing: 8
+                    VIcon { name: "minus"; size: 14; color: Theme.t3 }
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("未测试：%1（%2）").arg(modelData.label).arg(modelData.reason)
+                        color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 11; wrapMode: Text.WordWrap
+                    }
+                }
+            }
             Text {
                 Layout.fillWidth: true
                 visible: opt.phase !== "idle"
-                text: qsTr("延迟 = 采集卡画面到达电脑到交给显示器的时间（电脑处理部分，不含采集卡、显示器和游戏本身）。1% 低帧越接近平均帧率越流畅。")
+                text: qsTr("ms = 电脑处理延迟：采集卡画面到达电脑到交给显示器的时间，不含采集卡、显示器、手柄和游戏本身，不是从按键到画面的总延迟。1% 低帧越接近平均帧率越流畅。补帧方式的画质顺序是经验值，不是测量结果。")
                 color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 11; wrapMode: Text.WordWrap
             }
         }

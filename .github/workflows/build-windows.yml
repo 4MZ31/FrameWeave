@@ -26,10 +26,10 @@ on:
         required: false
         default: ''
       full_release:
-        description: 'Publish as a full (latest) release instead of a pre-release. Only when the owner asks for it.'
+        description: 'Publish as a full (latest) release (the owner''s standing choice, November 2026). Untick only for a one-off pre-release.'
         type: boolean
         required: false
-        default: false
+        default: true
 
 permissions:
   contents: read
@@ -300,7 +300,7 @@ jobs:
             Write-Host "$t exit $code"
             if ($code -ne 0) { $failed++ }
           }
-          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_benchmark_tests', 'veyra_push_hud_tests', 'veyra_push_adaptive_fg_tests', 'veyra_push_pacing_repair_tests', 'veyra_vrr_profile_tests') {
+          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_benchmark_tests', 'veyra_push_hud_tests', 'veyra_push_adaptive_fg_tests', 'veyra_push_pacing_repair_tests', 'veyra_push_archive_paths_tests', 'veyra_vrr_profile_tests') {
             cmake --build $env:BUILD --target $t --parallel
             if ($LASTEXITCODE -ne 0) { Write-Host "::error::$t did not build"; $failed++; continue }
             $exe = Get-ChildItem $env:BUILD -Recurse -Filter "$t.exe" | Select-Object -First 1
@@ -663,9 +663,9 @@ jobs:
           path: D:\obs-logs
           if-no-files-found: ignore
 
-  # Publishes a tagged build as a GitHub pre-release. It stays a pre-release (which the in-app update
-  # checker ignores) until someone has tested it on real hardware and marks it as the latest release,
-  # unless the owner asks for a full release (workflow input full_release).
+  # Publishes a tagged build as a full (latest) GitHub release: the owner asked (November 2026) that
+  # every new build is released as a full release, never a pre-release. A manual run can still untick
+  # full_release for a one-off pre-release.
   release:
     if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
     needs: [build, obs-plugin]
@@ -675,13 +675,14 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       TAG: ${{ inputs.release_tag || github.ref_name }}
-      FULL_RELEASE: ${{ inputs.full_release && 'true' || 'false' }}
+      FULL_RELEASE: ${{ (github.event_name == 'workflow_dispatch' && !inputs.full_release) && 'false' || 'true' }}
     steps:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
             packaging/release-notes
             scripts/release
+            .github/workflows
       - uses: actions/download-artifact@v4
         with:
           path: dist

@@ -19,7 +19,7 @@ struct Engine::Pacing {
 
 namespace {
 
-constexpr size_t kMaxFrames = 6;
+constexpr size_t kMaxFrames = 10;  // ~300 ms of real frames at 30 FPS: enough for the delay plus slack
 constexpr int64_t kMs = 1000000;
 
 // Median interval of a list of increasing times, 0 if fewer than 3.
@@ -269,8 +269,12 @@ Pick Engine::pick(int64_t displayNs) {
         // Without Frame Pacing Repair the next frame can come as late as the longest recent interval;
         // with it, frames sit on an even grid but may be shown up to one capture refresh after arrival.
         const double spacing = s_.pacingRepair ? interval + transport : std::max(interval, maxInterval(keptTimes_, 8));
-        const double budget = s_.estimateBudgetMs > 0 ? s_.estimateBudgetMs : std::clamp(estimateMsAvg_ * 1.5 + 2.0, 4.0, 40.0);
-        const double target = spacing + budget * double(kMs);
+        // Headroom: motion estimation (1.5x its average plus 4 ms of capture-arrival jitter), and one
+        // display refresh, because pick() is asked for the moment the picture will be seen, which is
+        // ahead of now.
+        const double budget = s_.estimateBudgetMs > 0 ? s_.estimateBudgetMs : std::clamp(estimateMsAvg_ * 1.5 + 4.0, 6.0, 40.0);
+        const double refresh = displayHz_ > 0 ? 1e9 / displayHz_ : 0.0;
+        const double target = spacing + budget * double(kMs) + refresh;
         if (delayNs_ <= 0) delayNs_ = target;
         delayNs_ += std::clamp(target - delayNs_, -0.25 * double(kMs), 0.25 * double(kMs));
         const int64_t tau = displayNs - int64_t(delayNs_);

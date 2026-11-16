@@ -960,6 +960,10 @@ target_include_directories(veyra_push_benchmark_tests PRIVATE ${CMAKE_CURRENT_SO
 add_executable(veyra_push_pacing_repair_tests tests/unit/PushPacingRepairTests.cpp)
 target_compile_features(veyra_push_pacing_repair_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_pacing_repair_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS ANR add-on installer: archive entry and file type checks.
+add_executable(veyra_push_archive_paths_tests tests/unit/PushArchivePathsTests.cpp)
+target_compile_features(veyra_push_archive_paths_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_archive_paths_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS adaptive frame generation: per-pair multiplier choice and its hold.
 add_executable(veyra_push_adaptive_fg_tests tests/unit/PushAdaptiveFgTests.cpp)
 target_compile_features(veyra_push_adaptive_fg_tests PRIVATE cxx_std_20)

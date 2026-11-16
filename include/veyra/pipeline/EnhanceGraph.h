@@ -741,6 +741,10 @@ public:
     // XeSS generates in the present sink; FSR and DLSSG generate in the graph.
     // All backends consume the same guidance motion texture.
     bool presentSinkFg() const { return xessEnabled(); }
+    // PushFPS Live HUD Lock as it actually runs: 0 not asked for, 1 running, 2 asked for but its pass
+    // could not be created (frame generation runs without it), 3 asked for but this frame generation
+    // has no graph frames to lock (off, or XeSS generating inside its presenter).
+    int hudLockState() const { if(!desc_.hudLock)return 0; if(hudLock_)return 1; if(!fgEnabled_||presentSinkFg())return 3; return 2; }
     // AMD FSR upscaling replaces the SR stage; it is a FidelityFX effect, not
     // an NGX feature, so it also works on non-NVIDIA adapters.
     // Double SR may run FSR in either pass; each pass is its own FidelityFX context.
