@@ -72,7 +72,7 @@ static void testUrls() {
 
 // ---- local server -------------------------------------------------------------------------------
 
-struct Server {
+struct MediaMtx {
     std::string exe, config;
 #ifdef _WIN32
     PROCESS_INFORMATION pi{};
@@ -113,7 +113,7 @@ struct Server {
         }
 #endif
     }
-    ~Server() { kill(); }
+    ~MediaMtx() { kill(); }
 };
 
 struct Fixture {
@@ -180,7 +180,7 @@ static void testLive(const std::string& exe, const std::string& config, const st
     Fixture fx;
     check(fx.load(fixturePath), "fixture loaded (H.264 + AAC)");
     if (!fx.video) return;
-    Server server{exe, config};
+    MediaMtx server{exe, config};
     check(server.start(), "MediaMTX started");
 
     std::vector<std::string> logLines;
