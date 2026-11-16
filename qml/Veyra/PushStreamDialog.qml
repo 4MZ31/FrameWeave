@@ -71,7 +71,8 @@ DialogLayer {
         onTriggered: live.status = veyra.pushStreamStatus() || ({})
     }
 
-    foot: qsTr("服务器列表和推荐设置来自 OBS Studio。每个平台各自上传一份，需要的上传带宽约为 %1 Mbps").arg(Number(((live.bitrate + 0.2) * Math.max(1, live.enabledCount)).toFixed(1)))
+    // The upload note sits in the body, where it wraps; the footer row cut it off at "about 12.4 ...".
+    readonly property string uploadNote: qsTr("服务器列表和推荐设置来自 OBS Studio。每个平台各自上传一份，需要的上传带宽约为 %1 Mbps").arg(Number(((live.bitrate + 0.2) * Math.max(1, live.enabledCount)).toFixed(1)))
     actions: live.streaming ? [{ label: qsTr("关闭") }, { label: qsTr("停止直播"), primary: true }]
                             : [{ label: qsTr("关闭") }, { label: qsTr("开播"), primary: true }]
     onActionTriggered: label => {
@@ -264,5 +265,13 @@ DialogLayer {
                 onToggled: checked => veyra.setPreference("streamMic", checked)
             }
         }
+    }
+    Text {
+        objectName: "pushfps-stream-upload-note"
+        Layout.fillWidth: true
+        text: live.uploadNote
+        color: Theme.t3
+        font.family: Theme.fontUi; font.pixelSize: 12
+        wrapMode: Text.WordWrap
     }
 }

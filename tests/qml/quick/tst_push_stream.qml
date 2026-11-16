@@ -56,7 +56,8 @@ Item {
             for (const t of live.targets) veyra.pushSetStreamKey(t.id, "k-" + t.id)
             live.update(2, { enabled: false })
             compare(live.enabledCount, 2)
-            verify(live.foot.indexOf("12.4") >= 0, live.foot)   // (6 + 0.2) Mbps for each of two outputs
+            verify(live.uploadNote.indexOf("12.4") >= 0, live.uploadNote)
+            compare(findChild(live, "pushfps-stream-upload-note").wrapMode, Text.WordWrap)   // (6 + 0.2) Mbps for each of two outputs
             live.actionTriggered(live.actions[1].label)
             compare(veyra.streamStarts, 1)
             verify(live.streaming)
