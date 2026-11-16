@@ -22,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Publish this build as a pre-release with this tag (vX.Y.Z, e.g. v2.1.5). Leave empty for a test build.'
+        description: 'Publish this build as a release with this tag (vX.Y.Z, e.g. v2.1.5). Leave empty for a test build.'
         required: false
         default: ''
       full_release:
