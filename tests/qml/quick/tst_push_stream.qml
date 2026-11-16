@@ -9,7 +9,7 @@ import Veyra
 Item {
     id: root
     width: 900; height: 1400
-    Item { id: host; anchors.fill: parent; property string dialog: ""; function close() { dialog = "" } }
+    Item { id: host; anchors.fill: parent; property string dialog: ""; property real motionScale: 1; function close() { dialog = "" } }
     PushStreamDialog { id: live; dialogHost: host }
     PushQuickSetup { id: quick; width: 560; y: 900 }
 
