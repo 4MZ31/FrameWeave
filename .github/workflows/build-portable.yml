@@ -190,17 +190,24 @@ jobs:
 
       - name: Publish screenshots
         if: github.event_name != 'pull_request'
+        continue-on-error: true
         run: |
           set -e
           git config --global user.name github-actions
           git config --global user.email github-actions@users.noreply.github.com
           git clone --depth 1 --branch screenshots-portable https://x-access-token:${{ github.token }}@github.com/${{ github.repository }} pub 2>/dev/null || {
             mkdir pub && cd pub && git init -q -b screenshots-portable && git remote add origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }} && cd ..; }
-          cp shots/*.png pub/
           cd pub
-          git add *.png
-          git commit -q -m "Linux screenshots from ${GITHUB_SHA::8}" || exit 0
-          for i in 1 2 3; do git pull -q --rebase origin screenshots-portable 2>/dev/null; git push -q origin HEAD:screenshots-portable && break; sleep 5; done
+          # Another run may have pushed the same file names meanwhile: start again from its commit each time.
+          for i in 1 2 3; do
+            if git fetch -q origin screenshots-portable 2>/dev/null; then git reset -q --hard FETCH_HEAD; fi
+            cp ../shots/*.png .
+            git add *.png
+            git commit -q -m "Linux screenshots from ${GITHUB_SHA::8}" || exit 0
+            if git push -q origin HEAD:screenshots-portable; then exit 0; fi
+            sleep 5
+          done
+          echo "::warning::screenshots not published"
 
       - name: Attach to release
         if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
