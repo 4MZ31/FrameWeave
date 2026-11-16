@@ -25,6 +25,8 @@ VPage {
     }
     // Veyra 2.1.9's startup intro hooks (Main.qml); PushFPS has no intro, so nothing is held.
     property bool introHold: false
+    // Space kept free under a pinned dock (Main.qml), so it never covers the logo.
+    property real topInset: 0
     readonly property Item wordmarkItem: root.sunset ? sunsetLogo : null
     // 设置 → 外观 → 日落之城 (pushSunset, unset = on): the logo filled with a neon sunset city.
     readonly property bool sunset: veyra.preferences.pushSunset !== false
@@ -40,7 +42,7 @@ VPage {
         readonly property real columnWidthMax: 600
         readonly property real columnWidth: Math.min(columnWidthMax, width - 48)
         contentWidth: width
-        contentHeight: Math.max(height, column.implicitHeight + 48)
+        contentHeight: Math.max(height, column.implicitHeight + 48 + root.topInset)
         interactive: contentHeight > height + 1
         boundsBehavior: Flickable.StopAtBounds
         clip: true
@@ -76,7 +78,7 @@ VPage {
         ColumnLayout {
             id: column
             x: Math.round((content.width - width) / 2)
-            y: Math.max(24, Math.round((content.height - implicitHeight) / 2))
+            y: Math.max(24 + root.topInset, Math.round((content.height - implicitHeight) / 2))
             width: content.columnWidth
             spacing: 0
 

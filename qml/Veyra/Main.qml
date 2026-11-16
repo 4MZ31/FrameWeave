@@ -267,7 +267,7 @@ Window {
         visible: !root.fullscreen || root.page === "home" || root.page === "set" || root.quickPanelShown
         // Each page is shown while current or while sinking out; the sinking one
         // takes no input (.page.leave { pointer-events: none }).
-        HomePage { id: homePage; pageId: "home"; home: pages; onRequestPage: p => root.goPage(p); onRequestSponsor: root.showSponsor() }
+        HomePage { id: homePage; pageId: "home"; home: pages; topInset: dock.pinned && !homePage.sunset ? 40 : 0; onRequestPage: p => root.goPage(p); onRequestSponsor: root.showSponsor() }
         MinimalPage {
             id: minPage
             pageId: "min"
