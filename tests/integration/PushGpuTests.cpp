@@ -470,11 +470,11 @@ void testStreamOverlay(Gpu& gpu, bool hdr) {
     const auto read = [&](const std::vector<uint8_t>& b, size_t i) { return hdr ? int(word(b, i)) : int(b[i]); };
     // Overlay: transparent, with an opaque white 16 x 16 box at the top left. Drawn at half size to
     // check that it is scaled to the frame.
-    engine::PushOverlayImage small{W / 2, H / 2, {}, std::vector<uint8_t>(size_t(W / 2) * (H / 2) * 4, 0)};
+    engine::PushOverlayImage halfSize{W / 2, H / 2, {}, std::vector<uint8_t>(size_t(W / 2) * (H / 2) * 4, 0)};
     for (uint32_t yy = 0; yy < 8; ++yy)
-        for (uint32_t x = 0; x < 8; ++x) { uint8_t* p = &small.rgba[(size_t(yy) * (W / 2) + x) * 4]; p[0] = p[1] = p[2] = p[3] = 255; }
+        for (uint32_t x = 0; x < 8; ++x) { uint8_t* p = &halfSize.rgba[(size_t(yy) * (W / 2) + x) * 4]; p[0] = p[1] = p[2] = p[3] = 255; }
     engine::FrameOverlay overlay;
-    check(overlay.create(device, W, H, hdr, small), tag + ": created (scaled to the frame)");
+    check(overlay.create(device, W, H, hdr, halfSize), tag + ": created (scaled to the frame)");
     pipeline::StateTracker states;
     const auto run = [&](engine::FrameOverlay& o, std::vector<uint8_t>& py, std::vector<uint8_t>& puv) {
         if (!gpu.begin()) return false;
