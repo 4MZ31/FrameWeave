@@ -707,6 +707,31 @@ VPage {
                                 onPicked: id => veyra.setPreference("recordFps", Number(id))
                             }
                         }
+                        // PushFPS comparison clip: the same choices as its dialog (PushCompareDialog.qml).
+                        VRow {
+                            label: qsTr("对比片段")
+                            hint: Number(veyra.preferences.pushCompareLayout || 0) === 1
+                                  ? qsTr("完整画面并排两份：左边是原帧率，右边是 PushFPS")
+                                  : qsTr("同一个画面从中间分开：左半边是原帧率，右半边是 PushFPS")
+                            RowLayout {
+                                spacing: 8
+                                VSeg {
+                                    objectName: "set-compare-layout"
+                                    options: [{ id: "0", label: qsTr("分屏") }, { id: "1", label: qsTr("并排") }]
+                                    current: String(Number(veyra.preferences.pushCompareLayout || 0) === 1 ? 1 : 0)
+                                    onPicked: id => veyra.setPreference("pushCompareLayout", Number(id))
+                                }
+                                VSeg {
+                                    objectName: "set-compare-length"
+                                    options: [10, 15, 30, 60].map(n => ({ id: String(n), label: qsTr("%1 秒").arg(n) }))
+                                    current: {
+                                        const n = Number(veyra.preferences.pushCompareSeconds || 15)
+                                        return String([10, 15, 30, 60].indexOf(n) >= 0 ? n : 15)
+                                    }
+                                    onPicked: id => veyra.setPreference("pushCompareSeconds", Number(id))
+                                }
+                            }
+                        }
                         VRow {
                             label: qsTr("录制编码")
                             hint: qsTr("HDR 画面固定使用 HEVC 10bit；宽或高超过 4096 时自动使用 HEVC")

@@ -75,6 +75,19 @@ Item {
             compare(cmp.rightTag, "PushFPS · 120 FPS")
             veyra.fgMultiplier = 1
         }
+        function test_tile_opens_the_dialog_with_nothing_playing() {
+            veyra.hasSource = false
+            const tile = findChild(quick, "pushfps-compare-clip")
+            verify(tile.enabled, "the layout and length can be chosen before the capture card runs")
+            const opened = []
+            const onOpen = p => opened.push(p)
+            veyra.navigate.connect(onOpen)
+            tile.clicked()
+            veyra.navigate.disconnect(onOpen)
+            compare(opened.join(","), "compare")
+            compare(veyra.compareStarts, 0)
+            veyra.hasSource = true
+        }
         function test_tile_shows_the_choice() {
             veyra.setPreference("pushCompareLayout", 1)
             veyra.setPreference("pushCompareSeconds", 60)

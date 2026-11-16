@@ -408,7 +408,7 @@ every frame generation method; it does not change any setting until you click **
 ## Before/after comparison clips
 
 **Comparison clip** in the quick setup opens a small dialog: pick the layout and the length (10, 15, 30 or 60
-seconds), then **Start recording**. The clip goes into your recordings folder (`PushFPS-compare-….mp4`).
+seconds), then **Start recording** (the same two choices are under *Settings, Playback*). The clip goes into your recordings folder (`PushFPS-compare-….mp4`).
 
 - **Split**: one picture cut down the middle. The left half holds each real frame from the console until the
   next one arrives, so it moves at the game's own frame rate; the right half is every frame PushFPS shows,
