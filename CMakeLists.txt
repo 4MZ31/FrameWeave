@@ -322,6 +322,8 @@ veyra_add_compute_shader(veyra_shader_effect_exclusion EffectExclusion)
 # PushFPS Live HUD Lock: per-pixel stillness state and the generated-frame compose.
 veyra_add_compute_shader(veyra_shader_push_hud_lock_update PushHudLockUpdate)
 veyra_add_compute_shader(veyra_shader_push_hud_lock_compose PushHudLockCompose)
+# PushFPS comparison clip, side-by-side layout (engine/RecordingCompare.cpp).
+veyra_add_compute_shader(veyra_shader_push_compare_sbs PushCompareSideBySide)
 # Nv12Upload: byte buffer -> luma/chroma planes (copy-free upload path).
 veyra_add_compute_shader(veyra_shader_nv12_upload Nv12Upload)
 # PresentBlit: fullscreen-triangle pixel blit onto flip-model back buffers.
@@ -532,7 +534,7 @@ add_executable(veyra_push_gpu_tests tests/integration/PushGpuTests.cpp src/engin
 target_compile_features(veyra_push_gpu_tests PRIVATE cxx_std_20)
 target_compile_options(veyra_push_gpu_tests PRIVATE /utf-8)
 target_link_libraries(veyra_push_gpu_tests PRIVATE veyra_pipeline)
-add_dependencies(veyra_push_gpu_tests veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose)
+add_dependencies(veyra_push_gpu_tests veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs)
 
 add_executable(veyra_pipeline_tests
   tests/unit/PipelineContractTests.cpp
@@ -727,7 +729,7 @@ if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avform
 
   # veyra_sources: product input sources (Playbook R3/R7). MediaFileSource
   # composes veyra_media; no second decode implementation exists.
-  add_dependencies(veyra_pipeline veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_effect_exclusion veyra_shader_sr_resolve veyra_shader_nr_downsample veyra_shader_nr_residual veyra_shader_nr_temporal veyra_shader_nr_hold veyra_shader_nr_reuse_compose veyra_shader_nr_reuse_warp veyra_shader_flow_adapt veyra_shader_flow_refine veyra_shader_flow_fill veyra_shader_flow_claim veyra_shader_vfg_shot_change)
+  add_dependencies(veyra_pipeline veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_effect_exclusion veyra_shader_sr_resolve veyra_shader_nr_downsample veyra_shader_nr_residual veyra_shader_nr_temporal veyra_shader_nr_hold veyra_shader_nr_reuse_compose veyra_shader_nr_reuse_warp veyra_shader_flow_adapt veyra_shader_flow_refine veyra_shader_flow_fill veyra_shader_flow_claim veyra_shader_vfg_shot_change)
   add_library(veyra_sources STATIC
     src/source/NativeCaptureSink.cpp
     src/source/MediaFileSource.cpp
@@ -1594,7 +1596,7 @@ add_executable(veyra_sr_reconstruction_tests tests/integration/SrReconstructionT
   target_link_libraries(veyra_repair_fg_tests PRIVATE veyra_pipeline veyra_sinks veyra_nvof)
 
   # Headless quality-core runner (Playbook R3.3): the phase5 gate's quality
-  add_library(veyra_engine STATIC src/engine/EngineController.cpp src/engine/EngineWatchdog.cpp src/engine/PreviewGpuSession.cpp src/engine/EngineControllerImage.cpp src/engine/PosterFrame.cpp src/engine/EffectChain.cpp src/engine/PresetLibrary.cpp src/ui/PlayerUiFacade.cpp src/engine/TiledImageProcessor.cpp src/engine/PresetStore.cpp src/engine/VideoPresenter.cpp src/engine/DisplayStateService.cpp src/engine/VideoExportJob.cpp src/engine/ExportStreams.cpp src/engine/ExportQueue.cpp src/engine/ExportJobManager.cpp src/engine/Subtitles.cpp src/engine/FgCompatibilityProbe.cpp src/engine/LiveRecorder.cpp src/engine/ReplayBuffer.cpp src/engine/MicrophoneCapture.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp src/engine/LiveStream.cpp)
+  add_library(veyra_engine STATIC src/engine/EngineController.cpp src/engine/EngineWatchdog.cpp src/engine/PreviewGpuSession.cpp src/engine/EngineControllerImage.cpp src/engine/PosterFrame.cpp src/engine/EffectChain.cpp src/engine/PresetLibrary.cpp src/ui/PlayerUiFacade.cpp src/engine/TiledImageProcessor.cpp src/engine/PresetStore.cpp src/engine/VideoPresenter.cpp src/engine/DisplayStateService.cpp src/engine/VideoExportJob.cpp src/engine/ExportStreams.cpp src/engine/ExportQueue.cpp src/engine/ExportJobManager.cpp src/engine/Subtitles.cpp src/engine/FgCompatibilityProbe.cpp src/engine/LiveRecorder.cpp src/engine/ReplayBuffer.cpp src/engine/MicrophoneCapture.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp src/engine/LiveStream.cpp src/engine/Mp4Finalize.cpp)
   target_sources(veyra_pipeline PRIVATE src/guidance/AmdOpticalFlow.cpp
     src/guidance/GpuDisOpticalFlow.cpp third_party/gpu-dis/src/gpu/native_strict_dis_provider.cpp)
   target_include_directories(veyra_pipeline PRIVATE third_party/gpu-dis/src/gpu)
@@ -1619,6 +1621,12 @@ add_executable(veyra_sr_reconstruction_tests tests/integration/SrReconstructionT
   target_compile_options(veyra_live_stream_tests PRIVATE /utf-8)
   target_include_directories(veyra_live_stream_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${FFMPEG_INCLUDE_DIRS})
   target_link_libraries(veyra_live_stream_tests PRIVATE ${FFMPEG_LIBRARIES})
+  # PushFPS: finished recordings become standard MP4 files (editors such as Vegas Pro refuse fragmented ones).
+  add_executable(veyra_mp4_finalize_tests tests/unit/Mp4FinalizeTests.cpp src/engine/Mp4Finalize.cpp)
+  target_compile_features(veyra_mp4_finalize_tests PRIVATE cxx_std_20)
+  target_compile_options(veyra_mp4_finalize_tests PRIVATE /utf-8)
+  target_include_directories(veyra_mp4_finalize_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${FFMPEG_INCLUDE_DIRS})
+  target_link_libraries(veyra_mp4_finalize_tests PRIVATE ${FFMPEG_LIBRARIES})
   add_executable(veyra_vfg_export_probe tests/integration/VfgExportProbe.cpp)
   target_compile_features(veyra_vfg_export_probe PRIVATE cxx_std_20)
   target_compile_options(veyra_vfg_export_probe PRIVATE /utf-8)

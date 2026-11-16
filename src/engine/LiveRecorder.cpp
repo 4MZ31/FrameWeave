@@ -1,4 +1,5 @@
 #include "veyra/engine/LiveRecorder.h"
+#include "veyra/engine/Mp4Finalize.h"
 #include "veyra/Brand.h"
 #include "veyra/engine/MicrophoneCapture.h"
 #include "veyra/engine/ReplayBuffer.h"
@@ -76,10 +77,14 @@ std::wstring fileStamp(){
     swprintf_s(buffer,L"%04d-%02d-%02d-%02d%02d%02d",local.tm_year+1900,local.tm_mon+1,local.tm_mday,local.tm_hour,local.tm_min,local.tm_sec);
     return buffer;
 }
-// About 0.15 bit per pixel for H.264 at the recorded rate; HEVC needs ~2/3 of it.
+// PushFPS: about 0.3 bit per pixel for H.264 (HEVC ~2/3 of it), so fast game motion
+// stays sharp (0.15 was soft: field report 2026-11-16). Frames above 60 per second
+// count half: generated frames sit between two real ones and cost the encoder less.
+// 1080p60 ~37 Mbps, 1080p120 ~56, 1440p60 ~66, 4K60 ~149 (H.264).
 uint32_t autoBitrateMbps(uint32_t width,uint32_t height,uint32_t fps,bool hevc){
-    const double mbps=double(width)*height*fps*0.15*(hevc?0.65:1.0)/1e6;
-    return uint32_t(std::clamp<long>(std::lround(mbps),hevc?5:6,hevc?120:150));
+    const double rate=std::min(fps,60u)+std::max(int(fps)-60,0)*0.5;
+    const double mbps=double(width)*height*rate*0.3*(hevc?0.65:1.0)/1e6;
+    return uint32_t(std::clamp<long>(std::lround(mbps),hevc?8:10,160));
 }
 uint32_t adapterVendor(ID3D12Device* device){
     ComPtr<IDXGIFactory4> factory;
@@ -437,6 +442,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
     bool matroska=false;
     bool compareClip=false;                     // RecordingCompare: split comparison picture
     RecordingLabelRenderer compareLabels;
+    CompareLayout compareLayout=CompareLayout::Split;
     std::unique_ptr<RecordingCompare> compare;
     std::atomic<uint64_t> generated{0};         // comparison: generated frames recorded
     bool sound=false,microphone=false,microphoneTrack=false; // what the sound tracks take
@@ -581,7 +587,9 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
                 catch(...){left={};right={};veyra::log::warn("live-recorder","comparison labels could not be drawn; recording without them");}
             }
             compare=std::make_unique<RecordingCompare>();
-            if(!compare->create(device.Get(),width,height,hdr,left,right,reason))return false;
+            if(!compare->create(device.Get(),width,height,hdr,left,right,reason,compareLayout))return false;
+            veyra::log::info("live-recorder",std::format("comparison clip layout={} extent={}x{} hdr={} overlays={} labels={}x{} / {}x{}",
+                compareLayout==CompareLayout::SideBySide?"side-by-side":"split",width,height,hdr,compare->patches().size(),left.width,left.height,right.width,right.height));
         }
         encoderThread=std::thread([this]{encoderMain();});
         writerThread=std::thread([this]{writerMain();});
@@ -996,6 +1004,14 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
             if(!videoWritten.load()){
                 std::error_code code;std::filesystem::remove(path,code);
                 setNote(L"没有录到画面，未保存文件");
+            }else if(ok&&!matroska){
+                // PushFPS: rewrite the fragmented MP4 as a standard one that editors such as
+                // Vegas Pro open (Mp4Finalize.h); on any problem the fragmented file stays.
+                const auto started=std::chrono::steady_clock::now();
+                const auto finished=finalizeMp4(std::filesystem::path(path));
+                const double ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-started).count();
+                if(finished.ok)veyra::log::info("live-recorder",std::format("file finalized path={} videoPackets={} audioPackets={} ms={:.0f}",utf8(path),finished.videoPackets,finished.audioPackets,ms));
+                else veyra::log::warn("live-recorder",std::format("file kept fragmented path={} reason={} ms={:.0f}",utf8(path),finished.error,ms));
             }
             veyra::log::info("live-recorder",std::format("file closed path={} videoFrames={} seconds={:.2f} originUs={} audio={} audioGaps={} audioOverflow={} microphoneGaps={} microphoneOverflow={} dropped={} ok={}",
                 utf8(path),videoWritten.load(),double(end)/1e6,t0Us.load(),audio.load(),soundLane.gaps.load(),soundLane.overflow.load(),micLane.gaps.load(),micLane.overflow.load(),dropped.load(),ok));
@@ -1371,6 +1387,7 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         segment->matroska=s.settings.matroska&&!s.replayMode;
         segment->compareClip=s.settings.compare&&!s.replayMode;
         segment->compareLabels=s.settings.compareLabels;
+        segment->compareLayout=s.settings.compareLayout;
         segment->audio=segment->sound||segment->microphone;
         if(s.streamMode){
             // Platforms take H.264 + AAC at a constant bitrate with a keyframe every 2 s (OBS's

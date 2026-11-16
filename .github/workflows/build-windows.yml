@@ -354,6 +354,19 @@ jobs:
           export PATH="$(cygpath -u "$DEPS")/vcpkg/installed/x64-windows/bin:$PATH"
           bash tests/data/stream/run-live-stream-tests.sh "$exe" windows_amd64.zip mediamtx.exe
 
+      # Finished recordings are rewritten as standard MP4 (Vegas Pro and other editors refuse fragmented files).
+      - name: Recording MP4 finishing test
+        run: |
+          cmake --build $env:BUILD --target veyra_mp4_finalize_tests --parallel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $exe = Get-ChildItem $env:BUILD -Recurse -Filter 'veyra_mp4_finalize_tests.exe' | Select-Object -First 1
+          if (-not $exe) { Write-Host "::error::veyra_mp4_finalize_tests.exe not built"; exit 1 }
+          $env:PATH = "$env:DEPS\vcpkg\installed\x64-windows\bin;$env:PATH"
+          & $exe.FullName 2>&1 | Out-Host
+          $code = $LASTEXITCODE
+          Write-Host "veyra_mp4_finalize_tests exit $code"
+          if ($code -ne 0) { exit 1 }
+
       - name: QML component tests (PushFPS quick setup)
         run: |
           cmake --build $env:BUILD --target veyra_qml_quick_tests veyra_qml_easing_tests --parallel
@@ -374,7 +387,7 @@ jobs:
           $env:QML_DISABLE_DISK_CACHE = '1'
           Push-Location $stage
           $failed = 0
-          foreach ($t in 'tst_push_quick_setup', 'tst_push_picture_sound', 'tst_push_nis', 'tst_push_optimize', 'tst_push_presets', 'tst_push_appearance', 'tst_push_hud', 'tst_push_plug_and_play', 'tst_push_intro', 'tst_push_stream', 'tst_push_ps5_pairing') {
+          foreach ($t in 'tst_push_quick_setup', 'tst_push_picture_sound', 'tst_push_nis', 'tst_push_optimize', 'tst_push_presets', 'tst_push_appearance', 'tst_push_hud', 'tst_push_plug_and_play', 'tst_push_intro', 'tst_push_stream', 'tst_push_ps5_pairing', 'tst_push_compare') {
             & .\veyra_qml_quick_tests.exe -platform offscreen -input "qml-tests\$t.qml" -o "$t.txt,txt" 2>&1 | Out-Host
             $code = $LASTEXITCODE
             Get-Content "$t.txt" -ErrorAction SilentlyContinue | Out-Host

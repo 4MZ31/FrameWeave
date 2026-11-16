@@ -123,11 +123,19 @@ bool NvencLiveEncoder::open(ID3D12Device* device,const Config& config,const std:
         cfg.rcParams.rateControlMode=NV_ENC_PARAMS_RC_CONSTQP;
         cfg.rcParams.constQP={qp,qp,qp};
     }else{
+        // Files (the standard recording): peaks up to twice the average and a one-second
+        // buffer, so keyframes and fast motion get the bits they need instead of turning soft
+        // (the half-second buffer at 1.5x starved them: field report 2026-11-16). Spatial AQ
+        // gives flat areas (sky, dark scenes) enough bits to avoid blocking.
         cfg.rcParams.rateControlMode=NV_ENC_PARAMS_RC_VBR;
         cfg.rcParams.averageBitRate=bits;
-        cfg.rcParams.maxBitRate=bits+bits/2;
+        cfg.rcParams.maxBitRate=uint32_t(std::min<uint64_t>(uint64_t(bits)*2,800000000ull));
+        cfg.rcParams.vbvBufferSize=bits;
+        cfg.rcParams.vbvInitialDelay=bits;
+        cfg.rcParams.enableAQ=1;
     }
-    if(config.rateControl!=2){
+    if(config.rateControl==0){
+        // CBR (going live, CBR files): unchanged, a half-second buffer as before.
         cfg.rcParams.vbvBufferSize=bits/2;
         cfg.rcParams.vbvInitialDelay=cfg.rcParams.vbvBufferSize;
     }
