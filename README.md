@@ -405,6 +405,15 @@ If the picture hardly moved during detection (a menu, a paused game), PushFPS ca
 asks you to try again while moving. The detection reads a few presented frames on the GPU and works with
 every frame generation method; it does not change any setting until you click **Apply**.
 
+## Smooth frame pacing
+
+**Smooth frame pacing** in the quick setup (on by default) makes live play look like a recording:
+- every frame is shown at a screen refresh (V-Sync);
+- variable refresh (G-SYNC/FreeSync) is requested where your screen has it;
+- the output is capped at your refresh rate.
+
+Every generated frame is shown once. With variable refresh it adds almost no delay; without it a frame can wait up to one refresh. Turn it off for the lowest-latency mode, where a frame can now and then be skipped. For the best result, turn on G-SYNC/FreeSync in your graphics driver and play in fullscreen (F11).
+
 ## Before/after comparison clips
 
 **Comparison clip** in the quick setup opens a small dialog: pick the layout and the length (10, 15, 30 or 60
