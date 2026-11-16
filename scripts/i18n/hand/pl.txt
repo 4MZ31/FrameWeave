@@ -1423,3 +1423,7 @@ zh:亮|Światło
 1420|Nie rozpoczęto
 1421|Połączenie nieudane
 1422|Mikrofon
+1423|Układ
+1424|Obok siebie
+1425|Rozpocznij nagrywanie
+1426|Długość

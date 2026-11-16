@@ -189,9 +189,13 @@ Item {
             compare(list.join(","), "pro,hud", "the picture is shown before it is sampled")
             const clip = findChild(quick, "pushfps-compare-clip")
             verify(clip.enabled)
+            const opened = []
+            const onOpen = p => opened.push(p)
+            veyra.navigate.connect(onOpen)
             clip.clicked()
-            compare(veyra.compareStarts, 1)
-            compare(veyra.compareSeconds, 15)
+            veyra.navigate.disconnect(onOpen)
+            compare(opened.join(","), "compare", "the tile opens the comparison dialog (layout and length)")
+            compare(veyra.compareStarts, 0, "nothing records before the dialog's start button")
             veyra.recording = true
             veyra.recordingState = ({ saved: 0, active: true, path: "", compare: true })
             compare(clip.text, qsTr("停止对比片段"))

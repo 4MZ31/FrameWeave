@@ -1421,3 +1421,7 @@
 1420|Not started
 1421|Connection failed
 1422|Microphone
+1423|Layout
+1424|Side by side
+1425|Start recording
+1426|Length

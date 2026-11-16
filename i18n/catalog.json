@@ -1328,7 +1328,7 @@
   },
   {
    "zh": "%1 秒",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushCompareDialog.qml",
    "zh-TW": "%1 秒",
    "en": "%1 s",
    "ja": "%1 秒",
@@ -1699,23 +1699,6 @@
    "ar": "15 ثانية",
    "pl": "15 s",
    "ru": "15 с"
-  },
-  {
-   "zh": "15 秒的前后对比视频",
-   "src": "qml/PushQuickSetup.qml",
-   "zh-TW": "15 秒的前後對比影片",
-   "en": "A 15-second before/after video",
-   "ja": "15 秒のビフォー・アフター動画",
-   "nl": "Voor/na-video van 15 seconden",
-   "de": "Vorher/Nachher-Video, 15 Sekunden",
-   "es": "Vídeo antes/después de 15 s",
-   "fr": "Vidéo avant/après de 15 s",
-   "it": "Video prima/dopo di 15 s",
-   "pt-BR": "Vídeo antes/depois de 15 s",
-   "tr": "15 saniyelik önce/sonra videosu",
-   "ar": "فيديو قبل/بعد مدته 15 ثانية",
-   "pl": "Wideo przed/po, 15 s",
-   "ru": "Видео «до/после», 15 с"
   },
   {
    "zh": "1–51，越小画质越好、文件越大；标准为 22",
@@ -7515,6 +7498,23 @@
    "ru": "XeSS сам создаёт кадры, вместе использовать нельзя"
   },
   {
+   "zh": "XeSS 补帧的画面在显示时才生成，录不进对比片段。请换用其他补帧方式后再录",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "XeSS 補幀的畫面在顯示時才生成，錄不進對比片段。請改用其他補幀方式後再錄",
+   "en": "XeSS frame generation makes its frames only as they are shown, so they cannot go into a comparison clip. Switch to another frame generation method, then record",
+   "ja": "XeSS のフレーム生成は表示の時点でフレームを作るため、比較クリップに録画できません。別のフレーム生成方式に切り替えてから録画してください",
+   "nl": "XeSS-framegeneratie maakt zijn frames pas bij het weergeven, dus ze kunnen niet in een vergelijkingsclip. Kies een andere framegeneratiemethode en neem dan op",
+   "de": "XeSS-Frame-Generierung erzeugt ihre Bilder erst bei der Anzeige, daher können sie nicht in einen Vergleichsclip. Wechsle zu einer anderen Frame-Generierung und nimm dann auf",
+   "es": "La generación de fotogramas XeSS crea sus fotogramas solo al mostrarlos, así que no pueden entrar en un clip comparativo. Cambia a otro método de generación de fotogramas y graba",
+   "fr": "La génération d'images XeSS ne crée ses images qu'à l'affichage : elles ne peuvent pas entrer dans un clip comparatif. Choisissez une autre méthode de génération d'images, puis enregistrez",
+   "it": "La generazione di fotogrammi XeSS crea i fotogrammi solo quando vengono mostrati, quindi non possono entrare in una clip di confronto. Passa a un altro metodo di generazione e registra",
+   "pt-BR": "A geração de quadros XeSS cria os quadros só na exibição, então eles não entram em um clipe comparativo. Mude para outro método de geração de quadros e grave",
+   "tr": "XeSS kare üretimi kareleri yalnızca gösterilirken oluşturur, bu yüzden karşılaştırma klibine kaydedilemez. Başka bir kare üretimi yöntemine geçip kaydedin",
+   "ar": "يُنشئ توليد الإطارات XeSS إطاراته عند العرض فقط، لذا لا يمكن تسجيلها في مقطع المقارنة. بدّل إلى طريقة توليد إطارات أخرى ثم سجّل",
+   "pl": "Generowanie klatek XeSS tworzy klatki dopiero przy wyświetlaniu, więc nie trafią do klipu porównawczego. Przełącz na inną metodę generowania klatek i nagraj",
+   "ru": "Генерация кадров XeSS создаёт кадры только при показе, поэтому их нельзя записать в сравнительный клип. Выберите другой способ генерации кадров и запишите снова"
+  },
+  {
    "zh": "XeSS 默认零运动；FSR 仍有自身的光流计算",
    "src": "qml/NodePage.qml",
    "zh-TW": "XeSS 預設零運動；FSR 仍有自身的光流計算",
@@ -8773,6 +8773,23 @@
    "ru": "Оба режима сохраняют свои настройки и предустановки полностью отдельными; переключение обратно в список восстанавливает собственные настройки списка."
   },
   {
+   "zh": "两边上方都标有各自的帧率。视频保存在录制文件夹里，可直接导入剪辑软件",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "兩邊上方都標有各自的幀率。影片儲存在錄製資料夾裡，可直接匯入剪輯軟體",
+   "en": "Each side is labelled with its frame rate at the top. The video is saved in the recordings folder and opens straight in video editors",
+   "ja": "両側の上部にそれぞれのフレームレートが表示されます。動画は録画フォルダーに保存され、編集ソフトにそのまま読み込めます",
+   "nl": "Elke kant krijgt bovenaan zijn framerate. De video wordt in de opnamemap opgeslagen en opent direct in videobewerkers",
+   "de": "Jede Seite trägt oben ihre Bildrate. Das Video wird im Aufnahmeordner gespeichert und lässt sich direkt in Schnittprogrammen öffnen",
+   "es": "Cada lado lleva su tasa de fotogramas arriba. El vídeo se guarda en la carpeta de grabaciones y se abre directamente en editores de vídeo",
+   "fr": "Chaque côté porte sa fréquence d'images en haut. La vidéo est enregistrée dans le dossier des enregistrements et s'ouvre directement dans les logiciels de montage",
+   "it": "Ogni lato riporta in alto la propria frequenza. Il video viene salvato nella cartella delle registrazioni e si apre direttamente nei programmi di montaggio",
+   "pt-BR": "Cada lado mostra sua taxa de quadros no topo. O vídeo é salvo na pasta de gravações e abre direto em editores de vídeo",
+   "tr": "Her iki tarafın üstünde kendi kare hızı yazar. Video kayıt klasörüne kaydedilir ve video düzenleyicilerde doğrudan açılır",
+   "ar": "يظهر معدل الإطارات أعلى كل جانب. يُحفظ الفيديو في مجلد التسجيلات ويفتح مباشرة في برامج المونتاج",
+   "pl": "Każda strona ma u góry swoją liczbę klatek. Wideo zapisuje się w folderze nagrań i otwiera się bezpośrednio w edytorach wideo",
+   "ru": "Над каждой стороной указана её частота кадров. Видео сохраняется в папку записей и сразу открывается в видеоредакторах"
+  },
+  {
    "zh": "严格补帧节奏",
    "src": "qml/NodePage.qml",
    "zh-TW": "嚴格補幀節奏",
@@ -9522,7 +9539,7 @@
   },
   {
    "zh": "主机原画 · %1 FPS",
-   "src": "src/ui/bridge/PushFps.cpp",
+   "src": "qml/PushCompareDialog.qml",
    "zh-TW": "主機原始畫面 · %1 FPS",
    "en": "Console · %1 FPS",
    "ja": "ゲーム機の元映像 · %1 FPS",
@@ -16322,6 +16339,23 @@
    "ru": "Количество объединенных узлов превышает предел"
   },
   {
+   "zh": "同一个画面从中间分开：左半边是原帧率，右半边是 PushFPS",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "同一個畫面從中間分開：左半邊是原幀率，右半邊是 PushFPS",
+   "en": "One picture cut down the middle: the original frame rate on the left half, PushFPS on the right half",
+   "ja": "1 つの画面を中央で分割：左半分が元のフレームレート、右半分が PushFPS",
+   "nl": "Eén beeld in het midden gesplitst: links de oorspronkelijke framerate, rechts PushFPS",
+   "de": "Ein Bild in der Mitte geteilt: links die ursprüngliche Bildrate, rechts PushFPS",
+   "es": "Una imagen dividida por la mitad: a la izquierda la tasa original, a la derecha PushFPS",
+   "fr": "Une seule image coupée au milieu : à gauche la fréquence d'origine, à droite PushFPS",
+   "it": "Un'unica immagine divisa a metà: a sinistra la frequenza originale, a destra PushFPS",
+   "pt-BR": "Uma imagem dividida ao meio: à esquerda a taxa original, à direita PushFPS",
+   "tr": "Tek görüntü ortadan bölünür: sol yarıda orijinal kare hızı, sağ yarıda PushFPS",
+   "ar": "صورة واحدة مقسومة من المنتصف: النصف الأيسر بمعدل الإطارات الأصلي، والنصف الأيمن PushFPS",
+   "pl": "Jeden obraz podzielony na pół: po lewej oryginalna liczba klatek, po prawej PushFPS",
+   "ru": "Одна картинка разделена посередине: слева исходная частота кадров, справа PushFPS"
+  },
+  {
    "zh": "同名的色彩预设已存在",
    "src": "src/engine/ColorLookStore.cpp",
    "zh-TW": "同名的色彩預設已存在",
@@ -19841,6 +19875,23 @@
    "ru": "Полная копия настроек, размещенных в стороне, не подключенных"
   },
   {
+   "zh": "完整画面并排两份：左边是原帧率，右边是 PushFPS",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "完整畫面並排兩份：左邊是原幀率，右邊是 PushFPS",
+   "en": "The whole picture twice, side by side: the original frame rate on the left, PushFPS on the right",
+   "ja": "画面全体を 2 つ並べて表示：左が元のフレームレート、右が PushFPS",
+   "nl": "Het hele beeld twee keer naast elkaar: links de oorspronkelijke framerate, rechts PushFPS",
+   "de": "Das ganze Bild zweimal nebeneinander: links die ursprüngliche Bildrate, rechts PushFPS",
+   "es": "La imagen completa dos veces, una al lado de otra: a la izquierda la tasa original, a la derecha PushFPS",
+   "fr": "L'image entière deux fois, côte à côte : à gauche la fréquence d'origine, à droite PushFPS",
+   "it": "L'immagine intera due volte, affiancata: a sinistra la frequenza originale, a destra PushFPS",
+   "pt-BR": "A imagem inteira duas vezes, lado a lado: à esquerda a taxa original, à direita PushFPS",
+   "tr": "Tüm görüntü iki kez yan yana: solda orijinal kare hızı, sağda PushFPS",
+   "ar": "الصورة كاملة مرتين جنبًا إلى جنب: على اليسار معدل الإطارات الأصلي، وعلى اليمين PushFPS",
+   "pl": "Cały obraz dwa razy obok siebie: po lewej oryginalna liczba klatek, po prawej PushFPS",
+   "ru": "Вся картинка дважды, рядом: слева исходная частота кадров, справа PushFPS"
+  },
+  {
    "zh": "定位正在播放的文件",
    "src": "qml/PlaylistWindow.qml",
    "zh-TW": "定位正在播放的檔案",
@@ -20148,7 +20199,7 @@
   },
   {
    "zh": "对比片段",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/PushCompareDialog.qml",
    "zh-TW": "對比片段",
    "en": "Comparison clip",
    "ja": "比較クリップ",
@@ -20162,6 +20213,23 @@
    "ar": "مقطع مقارنة",
    "pl": "Klip porównawczy",
    "ru": "Сравнительный клип"
+  },
+  {
+   "zh": "对比片段着色器加载失败",
+   "src": "src/engine/RecordingCompare.cpp",
+   "zh-TW": "對比片段著色器載入失敗",
+   "en": "The comparison clip shader could not be loaded",
+   "ja": "比較クリップのシェーダーを読み込めませんでした",
+   "nl": "De shader voor de vergelijkingsclip kon niet worden geladen",
+   "de": "Der Shader für den Vergleichsclip konnte nicht geladen werden",
+   "es": "No se pudo cargar el sombreador del clip comparativo",
+   "fr": "Impossible de charger le shader du clip comparatif",
+   "it": "Impossibile caricare lo shader della clip di confronto",
+   "pt-BR": "Não foi possível carregar o shader do clipe comparativo",
+   "tr": "Karşılaştırma klibi gölgelendiricisi yüklenemedi",
+   "ar": "تعذّر تحميل مُظلِّل مقطع المقارنة",
+   "pl": "Nie udało się wczytać shadera klipu porównawczego",
+   "ru": "Не удалось загрузить шейдер сравнительного клипа"
   },
   {
    "zh": "对比片段里没有生成的帧，左右两边相同。请确认补帧正在运行",
@@ -23717,6 +23785,23 @@
    "ru": "Полноэкранный режим заблокирован · Ctrl+L — разблокировать, Esc — выйти"
   },
   {
+   "zh": "布局",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "版面",
+   "en": "Layout",
+   "ja": "レイアウト",
+   "nl": "Indeling",
+   "de": "Layout",
+   "es": "Diseño",
+   "fr": "Disposition",
+   "it": "Layout",
+   "pt-BR": "Layout",
+   "tr": "Düzen",
+   "ar": "التخطيط",
+   "pl": "Układ",
+   "ru": "Макет"
+  },
+  {
    "zh": "布局/颜色暂不支持",
    "src": "src/source/CaptureCardSource.cpp",
    "zh-TW": "布局/顏色暫不支援",
@@ -24021,6 +24106,23 @@
    "ar": "الدمج في الدخل",
    "pl": "Scal z wejściem",
    "ru": "Объединить со входом"
+  },
+  {
+   "zh": "并排",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "並排",
+   "en": "Side by side",
+   "ja": "横並び",
+   "nl": "Naast elkaar",
+   "de": "Nebeneinander",
+   "es": "Lado a lado",
+   "fr": "Côte à côte",
+   "it": "Affiancati",
+   "pt-BR": "Lado a lado",
+   "tr": "Yan yana",
+   "ar": "جنبًا إلى جنب",
+   "pl": "Obok siebie",
+   "ru": "Рядом"
   },
   {
    "zh": "应用",
@@ -24412,6 +24514,23 @@
    "ar": "وبدء التصدير يغلق ما يلعبه حتى يتجه GPU إلى التصدير.",
    "pl": "Rozpoczęcie eksportu zamyka to, co gra, więc całość GPU idzie do eksportu.",
    "ru": "Начало экспорта закрывает то, что играет, так что все GPU идет на экспорт."
+  },
+  {
+   "zh": "开始录制",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "開始錄製",
+   "en": "Start recording",
+   "ja": "録画を開始",
+   "nl": "Opname starten",
+   "de": "Aufnahme starten",
+   "es": "Empezar a grabar",
+   "fr": "Démarrer l'enregistrement",
+   "it": "Avvia registrazione",
+   "pt-BR": "Iniciar gravação",
+   "tr": "Kaydı başlat",
+   "ar": "ابدأ التسجيل",
+   "pl": "Rozpocznij nagrywanie",
+   "ru": "Начать запись"
   },
   {
    "zh": "开始捕获",
@@ -25723,21 +25842,21 @@
    "ru": "Запись в %1 с"
   },
   {
-   "zh": "录制 15 秒的左右对比视频：左边是主机原本的帧率，右边是 PushFPS",
-   "src": "qml/PushQuickSetup.qml",
-   "zh-TW": "錄製 15 秒的左右對比影片：左邊是主機原本的幀率，右邊是 PushFPS",
-   "en": "Record a 15-second side-by-side video: the console’s own frame rate on the left, PushFPS on the right",
-   "ja": "15 秒の左右比較動画を録画します：左がゲーム機本来のフレームレート、右が PushFPS",
-   "nl": "Neem een video van 15 seconden naast elkaar op: links de eigen framerate van de console, rechts PushFPS",
-   "de": "Nimm ein 15-Sekunden-Video nebeneinander auf: links die eigene Bildrate der Konsole, rechts PushFPS",
-   "es": "Graba un vídeo comparativo de 15 segundos: a la izquierda la tasa de fotogramas original de la consola, a la derecha PushFPS",
-   "fr": "Enregistrer une vidéo comparative de 15 secondes : à gauche la fréquence d’images d’origine de la console, à droite PushFPS",
-   "it": "Registra un video affiancato di 15 secondi: a sinistra il frame rate originale della console, a destra PushFPS",
-   "pt-BR": "Grave um vídeo comparativo de 15 segundos: à esquerda a taxa de quadros original do console, à direita o PushFPS",
-   "tr": "15 saniyelik yan yana video kaydet: solda konsolun kendi kare hızı, sağda PushFPS",
-   "ar": "سجّل فيديو مقارنة جنبًا إلى جنب مدته 15 ثانية: على اليسار معدل إطارات الجهاز الأصلي، وعلى اليمين PushFPS",
-   "pl": "Nagraj 15-sekundowe wideo obok siebie: po lewej oryginalna liczba klatek konsoli, po prawej PushFPS",
-   "ru": "Записать 15-секундное видео бок о бок: слева родная частота кадров консоли, справа PushFPS"
+   "zh": "录制一段前后对比视频：一边是主机原本的帧率，一边是 PushFPS",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "錄製一段前後對比影片：一邊是主機原本的幀率，一邊是 PushFPS",
+   "en": "Record a before/after video: the console’s own frame rate on one side, PushFPS on the other",
+   "ja": "前後比較動画を録画：片側はゲーム機本来のフレームレート、もう片側は PushFPS",
+   "nl": "Neem een voor/na-video op: aan de ene kant de eigen framerate van de console, aan de andere PushFPS",
+   "de": "Ein Vorher-nachher-Video aufnehmen: auf einer Seite die Bildrate der Konsole, auf der anderen PushFPS",
+   "es": "Graba un vídeo de antes y después: a un lado la tasa propia de la consola, al otro PushFPS",
+   "fr": "Enregistrez une vidéo avant/après : d'un côté la fréquence d'origine de la console, de l'autre PushFPS",
+   "it": "Registra un video prima/dopo: da un lato la frequenza originale della console, dall'altro PushFPS",
+   "pt-BR": "Grave um vídeo de antes e depois: de um lado a taxa original do console, do outro o PushFPS",
+   "tr": "Önce/sonra videosu kaydedin: bir yanda konsolun kendi kare hızı, diğer yanda PushFPS",
+   "ar": "سجّل فيديو قبل/بعد: على جانب معدل إطارات الجهاز الأصلي، وعلى الآخر PushFPS",
+   "pl": "Nagraj wideo przed/po: z jednej strony oryginalna liczba klatek konsoli, z drugiej PushFPS",
+   "ru": "Запишите видео «до и после»: с одной стороны родная частота кадров консоли, с другой PushFPS"
   },
   {
    "zh": "录制中不可用",
@@ -25772,6 +25891,23 @@
    "ar": "مجلد التسجيلات",
    "pl": "Folder nagrań",
    "ru": "Папка записей"
+  },
+  {
+   "zh": "录制前后对比视频：一边是主机原本的帧率，一边是 PushFPS。可选分屏或并排，以及时长",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "錄製前後對比影片：一邊是主機原本的幀率，一邊是 PushFPS。可選分屏或並排，以及時長",
+   "en": "Record a before/after video: the console’s own frame rate on one side, PushFPS on the other. Choose split or side by side, and the length",
+   "ja": "前後比較動画を録画：片側はゲーム機本来のフレームレート、もう片側は PushFPS。分割か横並びか、長さを選べます",
+   "nl": "Neem een voor/na-video op: aan de ene kant de eigen framerate van de console, aan de andere PushFPS. Kies gesplitst of naast elkaar, en de lengte",
+   "de": "Ein Vorher-nachher-Video aufnehmen: auf einer Seite die Bildrate der Konsole, auf der anderen PushFPS. Geteilt oder nebeneinander, und die Länge wählbar",
+   "es": "Graba un vídeo de antes y después: a un lado la tasa propia de la consola, al otro PushFPS. Elige dividido o lado a lado, y la duración",
+   "fr": "Enregistrez une vidéo avant/après : d'un côté la fréquence d'origine de la console, de l'autre PushFPS. Choisissez divisé ou côte à côte, et la durée",
+   "it": "Registra un video prima/dopo: da un lato la frequenza originale della console, dall'altro PushFPS. Scegli diviso o affiancato, e la durata",
+   "pt-BR": "Grave um vídeo de antes e depois: de um lado a taxa original do console, do outro o PushFPS. Escolha dividido ou lado a lado, e a duração",
+   "tr": "Önce/sonra videosu kaydedin: bir yanda konsolun kendi kare hızı, diğer yanda PushFPS. Bölünmüş ya da yan yana ve süreyi seçin",
+   "ar": "سجّل فيديو قبل/بعد: على جانب معدل إطارات الجهاز الأصلي، وعلى الآخر PushFPS. اختر منقسمًا أو جنبًا إلى جنب، والمدة",
+   "pl": "Nagraj wideo przed/po: z jednej strony oryginalna liczba klatek konsoli, z drugiej PushFPS. Wybierz podział lub obok siebie oraz długość",
+   "ru": "Запишите видео «до и после»: с одной стороны родная частота кадров консоли, с другой PushFPS. Выберите раздельно или рядом и длительность"
   },
   {
    "zh": "录制回读缓冲分配失败",
@@ -31349,6 +31485,23 @@
    "ar": "التراكم الزمني",
    "pl": "Akumulacja czasowa",
    "ru": "Временное накопление"
+  },
+  {
+   "zh": "时长",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "時長",
+   "en": "Length",
+   "ja": "長さ",
+   "nl": "Lengte",
+   "de": "Länge",
+   "es": "Duración",
+   "fr": "Durée",
+   "it": "Durata",
+   "pt-BR": "Duração",
+   "tr": "Süre",
+   "ar": "المدة",
+   "pl": "Długość",
+   "ru": "Длительность"
   },
   {
    "zh": "时间",
@@ -52806,7 +52959,7 @@
   },
   {
    "zh": "需要正在播放的画面",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/PushCompareDialog.qml",
    "zh-TW": "需要正在播放的畫面",
    "en": "Needs a playing picture",
    "ja": "再生中の映像が必要です",

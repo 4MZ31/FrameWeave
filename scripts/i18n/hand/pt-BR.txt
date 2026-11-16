@@ -1423,3 +1423,7 @@ zh:亮|Luz
 1420|Não iniciada
 1421|Falha na conexão
 1422|Microfone
+1423|Layout
+1424|Lado a lado
+1425|Iniciar gravação
+1426|Duração

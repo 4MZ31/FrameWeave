@@ -1511,7 +1511,8 @@ public:
     Q_INVOKABLE QVariantMap pushHudDetection();
     // PushFPS before/after comparison clip (engine/RecordingCompare.h): a
     // recording of `seconds` whose left half is the console's real frames.
-    Q_INVOKABLE bool pushStartCompareClip(int seconds);
+    // layout: 0 split picture, 1 both pictures side by side.
+    Q_INVOKABLE bool pushStartCompareClip(int seconds, int layout = 0);
     // PushFPS 窗口置顶: keeps a top-level window above others (SetWindowPos, no window recreation).
     Q_INVOKABLE bool pushSetAlwaysOnTop(QObject* window, bool onTop);
     Q_INVOKABLE void copyDiagnostics();

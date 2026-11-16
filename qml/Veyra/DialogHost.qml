@@ -150,6 +150,10 @@ Item {
         id: streamDialog
         dialogHost: host
     }
+    PushCompareDialog {
+        id: compareDialog
+        dialogHost: host
+    }
 
     // --- small building blocks the design's dialogs use --------------------
 

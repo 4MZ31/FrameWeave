@@ -384,14 +384,19 @@ VGroup {
         PushToolTile {
             objectName: "pushfps-compare-clip"
             iconName: "split"
+            readonly property int clipSeconds: {
+                const n = Number(veyra.preferences.pushCompareSeconds || 15)
+                return [10, 15, 30, 60].indexOf(n) >= 0 ? n : 15
+            }
+            readonly property string clipLayout: Number(veyra.preferences.pushCompareLayout || 0) === 1 ? qsTr("并排") : qsTr("分屏")
             text: quick.compareRecording ? qsTr("停止对比片段") : qsTr("对比片段")
             sub: quick.compareRecording ? qsTr("正在录制…") : !veyra.hasSource ? qsTr("需要正在播放的画面")
-                 : veyra.recording ? qsTr("录制中不可用") : qsTr("15 秒的前后对比视频")
-            tip: qsTr("录制 15 秒的左右对比视频：左边是主机原本的帧率，右边是 PushFPS")
+                 : veyra.recording ? qsTr("录制中不可用") : qsTr("%1 秒").arg(clipSeconds) + " · " + clipLayout
+            tip: qsTr("录制前后对比视频：一边是主机原本的帧率，一边是 PushFPS。可选分屏或并排，以及时长")
             enabled: veyra.hasSource && (quick.compareRecording || !veyra.recording)
             onClicked: {
                 if (quick.compareRecording) veyra.stopRecording("compare-button")
-                else veyra.pushStartCompareClip(15)
+                else veyra.navigate("compare")
             }
         }
         PushToolTile {

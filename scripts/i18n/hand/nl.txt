@@ -1423,3 +1423,7 @@ zh:亮|Licht
 1420|Niet gestart
 1421|Verbinding mislukt
 1422|Microfoon
+1423|Indeling
+1424|Naast elkaar
+1425|Opname starten
+1426|Lengte

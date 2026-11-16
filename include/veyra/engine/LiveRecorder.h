@@ -54,6 +54,7 @@ struct RecordingSettings {
     // PushFPS before/after comparison clip (RecordingCompare.h): left half the
     // console's real frames, right half every presented frame. Recordings only.
     bool compare=false;
+    CompareLayout compareLayout=CompareLayout::Split; // split picture, or both pictures side by side
     RecordingLabelRenderer compareLabels; // optional labels, called per file on the engine thread
     // Instant replay recorder only.
     uint32_t replaySeconds=60;   // how much the buffer keeps

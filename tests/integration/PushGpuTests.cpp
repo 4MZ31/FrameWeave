@@ -233,11 +233,141 @@ void testCompare(Gpu& gpu) {
     check(frame(10, 10, true, &py, &puv) && Y(2, 60) == 90 && Y(200, 60) == 10, "compare: the next generated frame uses the new hold");
     check(!gpu.debugErrors(), "compare: no D3D12 debug errors");
 
-    engine::RecordingCompare hdr;
-    check(hdr.create(device, W, H, true, left, right, reason) && !hdr.labelled(), "compare: HDR splits without overlays");
     engine::RecordingLabel huge{200, 100, std::vector<uint8_t>(20000, 255)};
     engine::RecordingCompare tooBig;
-    check(tooBig.create(device, W, H, false, huge, huge, reason) && tooBig.patches().size() == 1, "compare: labels that do not fit are left out");
+    check(tooBig.create(device, W, H, false, huge, huge, reason) && tooBig.patches().size() == 3, "compare: labels too large are scaled down, not left out");
+    if (tooBig.patches().size() == 3) {
+        const auto& l = tooBig.patches()[1];
+        check(l.width <= 128 - 2 * 8 - 4 && l.height <= H / 3 - 16 && l.width >= 8, "compare: the scaled label fits its half");
+        check(tooBig.patches()[2].x + tooBig.patches()[2].width <= W - 8, "compare: the scaled right label stays inside the picture");
+    }
+    engine::RecordingLabel nothing{};
+    engine::RecordingCompare unlabelled;
+    check(unlabelled.create(device, W, H, false, nothing, nothing, reason) && unlabelled.patches().size() == 1, "compare: no label text keeps only the divider");
+}
+
+// One comparison frame on planes of any format: fill y and uv with the given bytes,
+// compose, read both back (tight rows).
+bool composeFrame(Gpu& gpu, engine::RecordingCompare& compare, pipeline::StateTracker& states, const Plane& y, const Plane& uv,
+                  const std::vector<uint8_t>& yData, const std::vector<uint8_t>& uvData, bool generated,
+                  std::vector<uint8_t>& yOut, std::vector<uint8_t>& uvOut) {
+    if (!gpu.begin()) return false;
+    auto a = recordFill(gpu, y, yData, states.get(y.texture.Get()), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    states.set(y.texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    auto b = recordFill(gpu, uv, uvData, states.get(uv.texture.Get()), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    states.set(uv.texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    compare.compose(gpu.list.Get(), states, y.texture.Get(), uv.texture.Get(), generated);
+    auto ry = recordRead(gpu, y, states.get(y.texture.Get()));
+    auto ruv = recordRead(gpu, uv, states.get(uv.texture.Get()));
+    if (!gpu.submitAndWait()) return false;
+    yOut = mapRead(y, ry.Get()); uvOut = mapRead(uv, ruv.Get());
+    return yOut.size() == size_t(y.w) * y.h * y.bpp;
+}
+std::vector<uint8_t> words(const std::vector<uint16_t>& v) {
+    std::vector<uint8_t> out(v.size() * 2);
+    std::memcpy(out.data(), v.data(), out.size());
+    return out;
+}
+uint16_t word(const std::vector<uint8_t>& bytes, size_t index) { uint16_t v; std::memcpy(&v, bytes.data() + index * 2, 2); return v; }
+
+void testCompareHdr(Gpu& gpu) {
+    // P010: 10-bit codes in the top bits. White text and the divider at code 573 (203 nits).
+    constexpr uint32_t W = 256, H = 144;
+    auto* device = gpu.device.Get();
+    Plane y{pipeline::makeTexture(device, W, H, DXGI_FORMAT_R16_UNORM, true), DXGI_FORMAT_R16_UNORM, W, H, 2};
+    Plane uv{pipeline::makeTexture(device, W / 2, H / 2, DXGI_FORMAT_R16G16_UNORM, true), DXGI_FORMAT_R16G16_UNORM, W / 2, H / 2, 4};
+    check(y.texture && uv.texture, "compare HDR: planes created");
+    engine::RecordingLabel left{8, 4, std::vector<uint8_t>(32, 255)}, right{8, 4, std::vector<uint8_t>(32, 0)};
+    engine::RecordingCompare compare;
+    std::wstring reason;
+    check(compare.create(device, W, H, true, left, right, reason), "compare HDR: created");
+    check(compare.labelled() && compare.patches().size() == 3, "compare HDR: divider and both labels (they used to be left out)");
+    pipeline::StateTracker states;
+    std::vector<uint8_t> py, puv;
+    const uint16_t real = 300 << 6, gen = 700 << 6, chroma = 600 << 6;
+    check(composeFrame(gpu, compare, states, y, uv, words(std::vector<uint16_t>(W * H, real)), words(std::vector<uint16_t>(W / 2 * H / 2 * 2, chroma)), false, py, puv), "compare HDR: real frame runs");
+    check(composeFrame(gpu, compare, states, y, uv, words(std::vector<uint16_t>(W * H, gen)), words(std::vector<uint16_t>(W / 2 * H / 2 * 2, chroma)), true, py, puv), "compare HDR: generated frame runs");
+    const auto Y = [&](uint32_t x, uint32_t yy) { return int(word(py, size_t(yy) * W + x)); };
+    check(Y(2, 60) == real && Y(200, 60) == gen, "compare HDR: split holds the real frame on the left");
+    check(Y(127, 60) == (573 << 6), "compare HDR: divider at 203 nits");
+    check(Y(10, 10) == (573 << 6), "compare HDR: white label text at 203 nits");
+    check(Y(240, 9) == (64 << 6), "compare HDR: black label box at code 64");
+    check(int(word(puv, size_t(5) * (W / 2) * 2 + 5 * 2)) == (512 << 6), "compare HDR: overlay chroma is neutral");
+    check(!gpu.debugErrors(), "compare HDR: no D3D12 debug errors");
+}
+
+void testCompareSideBySide(Gpu& gpu, bool hdr) {
+    constexpr uint32_t W = 256, H = 144;
+    const char* tag = hdr ? "side by side HDR" : "side by side";
+    auto* device = gpu.device.Get();
+    const auto yFormat = hdr ? DXGI_FORMAT_R16_UNORM : DXGI_FORMAT_R8_UNORM;
+    const auto uvFormat = hdr ? DXGI_FORMAT_R16G16_UNORM : DXGI_FORMAT_R8G8_UNORM;
+    const uint32_t bpp = hdr ? 2 : 1;
+    Plane y{pipeline::makeTexture(device, W, H, yFormat, true), yFormat, W, H, bpp};
+    Plane uv{pipeline::makeTexture(device, W / 2, H / 2, uvFormat, true), uvFormat, W / 2, H / 2, bpp * 2};
+    engine::RecordingLabel left{8, 4, std::vector<uint8_t>(32, 255)}, right{8, 4, std::vector<uint8_t>(32, 255)};
+    engine::RecordingCompare compare;
+    std::wstring reason;
+    const bool created = compare.create(device, W, H, hdr, left, right, reason, engine::CompareLayout::SideBySide);
+    if (!created) std::printf("%s: create failed: %ls\n", tag, reason.c_str());
+    check(created, std::string(tag) + ": created (shader loaded)");
+    if (!created) return;
+    check(compare.pictureWidth() == 128 && compare.pictureHeight() == 72 && compare.pictureTop() == 36 && compare.rightX() == 128, std::string(tag) + ": two half-size pictures, centred");
+    check(compare.patches().size() == 3, std::string(tag) + ": divider and two labels");
+    if (compare.patches().size() == 3) {
+        const auto& d = compare.patches()[0]; const auto& l = compare.patches()[1]; const auto& r = compare.patches()[2];
+        check(d.y == 36 && d.height == 72, std::string(tag) + ": divider only between the pictures");
+        check(l.y + l.height <= 36 && r.y + r.height <= 36, std::string(tag) + ": labels in the black bar above the pictures");
+        check(l.x == 60 && r.x == 188, std::string(tag) + ": labels centred over their picture");
+    }
+    // Values: SDR in 8-bit codes, HDR in 10-bit codes (stored << 6).
+    const auto code = [&](uint32_t v8, uint32_t v10) { return hdr ? v10 << 6 : v8; };
+    const auto fill = [&](auto f, uint32_t w, uint32_t h, uint32_t channels) {
+        std::vector<uint8_t> out(size_t(w) * h * channels * bpp);
+        for (uint32_t yy = 0; yy < h; ++yy)
+            for (uint32_t x = 0; x < w; ++x)
+                for (uint32_t c = 0; c < channels; ++c) {
+                    const uint32_t v = f(x, yy);
+                    const size_t at = (size_t(yy) * w + x) * channels + c;
+                    if (hdr) { const uint16_t w16 = uint16_t(v); std::memcpy(out.data() + at * 2, &w16, 2); }
+                    else out[at] = uint8_t(v);
+                }
+        return out;
+    };
+    const auto read = [&](const std::vector<uint8_t>& bytes, size_t index) { return hdr ? int(word(bytes, index)) : int(bytes[index]); };
+    pipeline::StateTracker states;
+    std::vector<uint8_t> py, puv;
+    // Real frame: luma pairs of equal columns (so the 2x2 average is exact), chroma 100.
+    const auto realY = fill([&](uint32_t x, uint32_t) { return code(x & ~1u, (x & ~1u) + 64); }, W, H, 1);
+    const auto realUv = fill([&](uint32_t, uint32_t) { return code(100, 400); }, W / 2, H / 2, 2);
+    check(composeFrame(gpu, compare, states, y, uv, realY, realUv, false, py, puv), std::string(tag) + ": real frame runs");
+    const auto Y = [&](uint32_t x, uint32_t yy) { return read(py, size_t(yy) * W + x); };
+    const auto U = [&](uint32_t x, uint32_t yy) { return read(puv, (size_t(yy) * (W / 2) + x) * 2); };
+    check(Y(10, 41) == int(code(20, 84)), std::string(tag) + ": left picture is the frame at half size (2x2 average)");
+    check(Y(138, 41) == int(code(20, 84)), std::string(tag) + ": a real frame shows on both sides");
+    check(Y(5, 5) == int(code(16, 64)) && Y(5, 140) == int(code(16, 64)), std::string(tag) + ": black bars above and below");
+    check(U(2, 2) == int(code(128, 512)) && U(10, 25) == int(code(100, 400)), std::string(tag) + ": chroma neutral in the bars, kept in the picture");
+    check(Y(62, 17) == int(code(235, 573)), std::string(tag) + ": label text in the bar");
+    check(Y(127, 60) == int(code(235, 573)) && Y(127, 20) == int(code(16, 64)), std::string(tag) + ": divider between the pictures only");
+    // Generated frame: the right side changes, the left keeps the held real frame.
+    const auto genY = fill([&](uint32_t, uint32_t) { return code(200, 800); }, W, H, 1);
+    const auto genUv = fill([&](uint32_t, uint32_t) { return code(150, 600); }, W / 2, H / 2, 2);
+    check(composeFrame(gpu, compare, states, y, uv, genY, genUv, true, py, puv), std::string(tag) + ": generated frame runs");
+    check(Y(10, 41) == int(code(20, 84)), std::string(tag) + ": left keeps the real frame");
+    check(Y(138, 41) == int(code(200, 800)) && U(70, 25) == int(code(150, 600)), std::string(tag) + ": right shows the generated frame");
+    check(U(10, 25) == int(code(100, 400)), std::string(tag) + ": left chroma stays the real frame's");
+    check(compare.generatedFrames() == 1 && compare.realFrames() == 1, std::string(tag) + ": counts frames");
+    check(!gpu.debugErrors(), std::string(tag) + ": no D3D12 debug errors");
+}
+
+void testLabelScale() {
+    engine::RecordingLabel l{8, 4, std::vector<uint8_t>(32, 0)};
+    for (int yy = 0; yy < 4; ++yy) for (int x = 4; x < 8; ++x) l.luma[size_t(yy) * 8 + x] = 255;
+    const auto h = engine::scaleRecordingLabel(l, 4, 2);
+    check(h.width == 4 && h.height == 2 && h.luma[0] == 0 && h.luma[3] == 255, "label scale: halves by area average");
+    const auto t = engine::scaleRecordingLabel(l, 3, 3);
+    check(t.luma.size() == 9 && t.luma[1] == 128, "label scale: partial pixels are weighted");
+    check(engine::scaleRecordingLabel(l, 0, 3).luma.empty(), "label scale: empty size gives no label");
 }
 
 void testHudSampler(Gpu& gpu) {
@@ -415,6 +545,10 @@ int main() {
     if (!gpu.create()) { std::printf("FAIL no D3D12 device\n"); return 1; }
     std::printf("INFO adapter %s debug=%d\n", gpu.adapter.c_str(), gpu.debug ? 1 : 0);
     testCompare(gpu);
+    testCompareHdr(gpu);
+    testCompareSideBySide(gpu, false);
+    testCompareSideBySide(gpu, true);
+    testLabelScale();
     testHudSampler(gpu);
     testHudLock(gpu);
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "OK", failures);

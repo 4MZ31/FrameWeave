@@ -451,14 +451,21 @@ veyra::engine::RecordingLabel drawCompareLabel(const QString& text, uint32_t pic
 }
 }
 
-bool QmlPlayerBridge::pushStartCompareClip(int seconds) {
+bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     if (recording()) { emit notice(tr("录制已在进行中"), true); return false; }
     if (!hasSource()) { emit notice(tr("没有正在播放的画面，无法录制"), true); return false; }
     const auto& s = impl_->snapshot;
     if (!s.fgActive) { emit notice(tr("请先开启补帧：对比片段把主机原本的帧率和补帧后的画面放在一起"), true); return false; }
+    // XeSS frame generation makes its frames in the swap chain, after the recorder has read the
+    // picture: the clip would hold only real frames and both sides would look the same.
+    if (engine::presentSinkFrameGeneration(s.applied.frameGenerationBackend)) {
+        emit notice(tr("XeSS 补帧的画面在显示时才生成，录不进对比片段。请换用其他补帧方式后再录"), true);
+        return false;
+    }
     seconds = std::clamp(seconds, 5, 120);
     auto options = recordingOptions();
     options.compare = true;
+    options.compareLayout = layout == 1 ? engine::CompareLayout::SideBySide : engine::CompareLayout::Split;
     // Frame rates for the labels: the console's own (distinct game frames),
     // and what PushFPS presents.
     const int gameFps = s.contentFps > 1 ? s.contentFps : std::clamp(impl_->prefInt("pushGameFps", 30), 24, 120);
@@ -470,11 +477,21 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds) {
     const auto out = s.metrics.resolution.output;
     const uint32_t height = out.height > 0 ? uint32_t(out.height) : 1080;
     const auto left = drawCompareLabel(leftText, height), right = drawCompareLabel(rightText, height);
-    options.compareLabels = [left, right](uint32_t, uint32_t, engine::RecordingLabel& l, engine::RecordingLabel& r) { l = left; r = right; };
+    // Labels are sized for the picture height; a recorded file of another height (the picture
+    // changed size, or the expected height was not known yet) gets them scaled to match.
+    options.compareLabels = [left, right, height](uint32_t, uint32_t recorded, engine::RecordingLabel& l, engine::RecordingLabel& r) {
+        l = left; r = right;
+        if (!recorded || recorded == height) return;
+        const double f = double(recorded) / double(height);
+        const auto scaled = [f](const engine::RecordingLabel& label) {
+            return engine::scaleRecordingLabel(label, std::max(2u, uint32_t(label.width * f)), std::max(2u, uint32_t(label.height * f)));
+        };
+        l = scaled(left); r = scaled(right);
+    };
     std::wstring error;
     if (!impl_->engine.requestRecording(options, error)) { emit notice(uiText(error), true); return false; }
-    veyra::log::info("push-compare", std::format("comparison clip seconds={} labels=\"{}\" / \"{}\" height={}", seconds,
-                                                 leftText.toStdString(), rightText.toStdString(), height));
+    veyra::log::info("push-compare", std::format("comparison clip seconds={} layout={} labels=\"{}\" / \"{}\" height={}", seconds,
+                                                 layout == 1 ? "side-by-side" : "split", leftText.toStdString(), rightText.toStdString(), height));
     impl_->recordingState["active"] = true;
     impl_->recordingState["failed"] = false;
     impl_->recordingState["compare"] = true;

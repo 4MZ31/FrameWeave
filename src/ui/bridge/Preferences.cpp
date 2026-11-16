@@ -236,6 +236,9 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"soundPreset", {0, 6}},
         // PushFPS NVIDIA Image Scaling sharpness in percent (pipeline::setNisSharpness).
         {"nisSharpness", {0, 100}},
+        // PushFPS comparison clip: length in seconds, layout 0 split picture / 1 side by side.
+        {"pushCompareSeconds", {5, 120}},
+        {"pushCompareLayout", {0, 1}},
         // Network sources (#48): seconds to collect before the first picture; -1 follows the buffer level.
         {"networkPrebuffer", {-1, 60}},
         // Live recording: the target bitrate for the file, and the frame rate

@@ -1423,3 +1423,7 @@ zh:亮|Işık
 1420|Başlamadı
 1421|Bağlantı başarısız
 1422|Mikrofon
+1423|Düzen
+1424|Yan yana
+1425|Kaydı başlat
+1426|Süre

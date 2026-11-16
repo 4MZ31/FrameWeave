@@ -159,6 +159,7 @@ QtObject {
     property int hudCancels: 0
     property int compareStarts: 0
     property int compareSeconds: 0
+    property int compareLayout: -1
     property int recordingStops: 0
     function pushStartHudDetection(samples) {
         if (!hasSource) return false
@@ -168,7 +169,7 @@ QtObject {
     }
     function pushCancelHudDetection() { hudCancels++; hudState = ({running: false, done: false, failed: false, taken: 0, target: 0, regions: [], preview: ""}) }
     function pushHudDetection() { return hudState }
-    function pushStartCompareClip(seconds) { compareStarts++; compareSeconds = seconds; return true }
+    function pushStartCompareClip(seconds, layout) { compareStarts++; compareSeconds = seconds; compareLayout = layout === undefined ? 0 : layout; return true }
     // PushFPS going live (src/ui/bridge/PushStream.cpp, tst_push_stream.qml).
     property var streamKeys: ({})
     property var streamState: ({active: false, live: false, outputs: []})
