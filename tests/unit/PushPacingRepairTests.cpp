@@ -16,7 +16,7 @@ static void check(bool ok, const std::string& label) {
 }
 static const int64_t T60 = 166667, T120 = 83333;
 
-struct Run { std::vector<int64_t> out, in; uint64_t repaired = 0; int64_t maxLate = 0, maxEarly = 0; };
+struct Run { std::vector<int64_t> out, in; uint64_t repaired = 0; int64_t maxLate = 0, maxEarly = 0; bool shiftsRight = true; };
 // samples: when each new picture arrived (on the capture grid). content = sample (Veyra's time
 // for an irregular frame).
 static Run run(const std::vector<int64_t>& samples, int64_t transport, std::vector<bool> boundary = {}) {
@@ -24,6 +24,8 @@ static Run run(const std::vector<int64_t>& samples, int64_t transport, std::vect
     for (size_t i = 0; i < samples.size(); ++i) {
         const auto res = p.apply(samples[i], samples[i], transport, i < boundary.size() && boundary[i]);
         r.out.push_back(res.pts); r.in.push_back(samples[i]);
+        // The reported shift always belongs to this frame: its time minus its own sample.
+        if (res.shift != res.pts - samples[i]) r.shiftsRight = false;
         if (res.repaired) { ++r.repaired; r.maxLate = std::max(r.maxLate, res.shift); r.maxEarly = std::max(r.maxEarly, -res.shift); }
     }
     return r;
@@ -108,6 +110,44 @@ int main() {
     r = run(s, T60, b);
     check(r.out[20] == s[20], "the frame at a boundary keeps its own time");
     check(ordered(r.out), "boundary: times in order");
+
+    // 9. Fuzz: random cadences, stalls, boundaries and early frames. Times stay in order, no frame moves
+    // more than one refresh (or the in-order nudge), and every reported shift is pts minus that frame's
+    // own sample, also when the in-order fallback moves a frame (audit item, November 2026).
+    std::mt19937 fz(2026);
+    bool allOrdered = true, allShifts = true;
+    int fallbacks = 0;
+    for (int seq = 0; seq < 400; ++seq) {
+        s.clear(); b.clear(); t = 0;
+        const int64_t T = fz() % 2 ? T60 : T120;
+        for (int i = 0; i < 80; ++i) {
+            s.push_back(t);
+            b.push_back(fz() % 40 == 0);
+            const int r2 = int(fz() % 10);
+            t += (r2 < 4 ? 1 : r2 < 8 ? 3 : r2 < 9 ? 2 : 8) * T;
+        }
+        r = run(s, T, b);
+        // In order everywhere except across a boundary (a seek may go back in time on purpose).
+        for (size_t i = 1; i < r.out.size(); ++i) if (!b[i] && r.out[i] <= r.out[i - 1]) allOrdered = false;
+        allShifts = allShifts && r.shiftsRight;
+        for (size_t i = 0; i < s.size(); ++i) if (r.out[i] > s[i] + T) ++fallbacks;
+    }
+    check(allOrdered, "fuzz: times always in order (except across a boundary)");
+    check(allShifts, "fuzz: every reported shift is the frame's own pts minus its sample");
+    // Direct case for the in-order fallback: a repaired, late-shifted frame followed by one whose
+    // own time would land before it.
+    {
+        PushPacingRepair p;
+        int64_t tt = 0;
+        PushPacingRepair::Result last{};
+        for (int i = 0; i < 30; ++i) { last = p.apply(tt, tt, T60, false); tt += (i % 2 ? 3 : 1) * T60; }
+        // A pass-through frame (variable rate breaks the fit) right after the last one.
+        const int64_t early = last.pts - last.shift + 1;  // just after the last frame's own sample
+        const auto next = p.apply(early, early, T60, false);
+        check(next.pts > last.pts, "in-order fallback keeps time moving forward");
+        check(next.shift == next.pts - early, "in-order fallback reports this frame's shift (" + std::to_string(next.shift) + ")");
+    }
+    std::printf("  fuzz: frames nudged forward for order: %d\n", fallbacks);
 
     std::printf("%s\n", failures ? "PushPacingRepair tests FAILED" : "PushPacingRepair tests passed");
     return failures ? 1 : 0;
