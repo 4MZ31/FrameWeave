@@ -3571,6 +3571,23 @@
    "ru": "GTA VI и другие, HUD остаётся чётким"
   },
   {
+   "zh": "H.265 在相同码率下画面更清晰（推荐）；HDR 需要 PS5 实际输出 HDR 且 Windows HDR 开启",
+   "src": "qml/Ps5SourceDialog.qml",
+   "zh-TW": "H.265 在相同碼率下畫面更清晰（推薦）；HDR 需要 PS5 實際輸出 HDR 且 Windows HDR 開啟",
+   "en": "H.265 gives a sharper picture at the same bitrate (recommended); HDR needs the PS5 to output HDR and Windows HDR on",
+   "ja": "H.265 は同じビットレートでより鮮明です（推奨）。HDR には PS5 の HDR 出力と Windows の HDR オンが必要です",
+   "nl": "H.265 geeft een scherper beeld bij dezelfde bitrate (aanbevolen); HDR vereist HDR-uitvoer van de PS5 en Windows HDR aan",
+   "de": "H.265 liefert bei gleicher Bitrate ein schärferes Bild (empfohlen); HDR erfordert HDR-Ausgabe der PS5 und Windows-HDR an",
+   "es": "H.265 da una imagen más nítida con la misma tasa de bits (recomendado); HDR requiere que la PS5 emita HDR y HDR de Windows activado",
+   "fr": "H.265 donne une image plus nette au même débit (recommandé) ; le HDR exige une sortie HDR de la PS5 et le HDR de Windows activé",
+   "it": "H.265 offre un'immagine più nitida a parità di bitrate (consigliato); l'HDR richiede l'uscita HDR della PS5 e l'HDR di Windows attivo",
+   "pt-BR": "H.265 dá uma imagem mais nítida com a mesma taxa de bits (recomendado); HDR exige saída HDR do PS5 e o HDR do Windows ativado",
+   "tr": "H.265 aynı bit hızında daha net görüntü verir (önerilir); HDR için PS5'in HDR çıkışı ve Windows HDR'nin açık olması gerekir",
+   "ar": "يعطي H.265 صورة أوضح بنفس معدل البت (موصى به)؛ يتطلب HDR أن يُخرج PS5 إشارة HDR وتفعيل HDR في Windows",
+   "pl": "H.265 daje ostrzejszy obraz przy tej samej przepływności (zalecane); HDR wymaga wyjścia HDR z PS5 i włączonego HDR w Windows",
+   "ru": "H.265 даёт более чёткую картинку при том же битрейте (рекомендуется); для HDR нужен HDR-выход PS5 и включённый HDR в Windows"
+  },
+  {
    "zh": "HDMI 采集设备",
    "src": "qml/CineBar.qml",
    "zh-TW": "HDMI 擷取裝置",
@@ -3793,7 +3810,7 @@
   },
   {
    "zh": "HDR 需要 PS5 实际输出 HDR 且 Windows HDR 开启",
-   "src": "qml/Ps5SourceDialog.qml",
+   "src": "qml/SettingsPage.qml",
    "zh-TW": "HDR 需要 PS5 實際輸出 HDR 且 Windows HDR 開啟",
    "en": "HDR needs the PS5 to actually output HDR and Windows HDR to be on",
    "ja": "HDR には PS5 が実際に HDR を出力し、Windows の HDR がオンである必要があります",
@@ -7770,6 +7787,40 @@
    "ru": "☕ Угостите меня кофе · 5 $"
   },
   {
+   "zh": "一键减少等待：画质、补帧和 AI 增强都不变",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "一鍵減少等待：畫質、補幀和 AI 增強都不變",
+   "en": "Less waiting in one tap: picture quality, frame generation and AI enhancement stay the same",
+   "ja": "ワンタップで待ち時間を削減：画質、フレーム生成、AI 補正はそのまま",
+   "nl": "Minder wachten met één tik: beeldkwaliteit, framegeneratie en AI-verbetering blijven gelijk",
+   "de": "Weniger Wartezeit mit einem Tipp: Bildqualität, Frame-Generierung und KI-Verbesserung bleiben gleich",
+   "es": "Menos espera con un toque: la calidad de imagen, la generación de fotogramas y la mejora con IA no cambian",
+   "fr": "Moins d'attente en un clic : la qualité d'image, la génération d'images et l'amélioration IA restent identiques",
+   "it": "Meno attesa con un tocco: qualità dell'immagine, generazione di fotogrammi e miglioramento IA restano invariati",
+   "pt-BR": "Menos espera com um toque: a qualidade de imagem, a geração de quadros e o aprimoramento por IA continuam iguais",
+   "tr": "Tek dokunuşla daha az bekleme: görüntü kalitesi, kare oluşturma ve yapay zekâ iyileştirmesi aynı kalır",
+   "ar": "انتظار أقل بلمسة واحدة: تبقى جودة الصورة وتوليد الإطارات وتحسين الذكاء الاصطناعي كما هي",
+   "pl": "Mniej czekania jednym dotknięciem: jakość obrazu, generowanie klatek i ulepszanie AI pozostają bez zmian",
+   "ru": "Меньше ожидания одним нажатием: качество картинки, генерация кадров и улучшение ИИ не меняются"
+  },
+  {
+   "zh": "一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "一鍵開啟所有不影響畫質的低延遲設定：顯示卡只排隊一幀（NVIDIA 顯示卡用 NVIDIA 低延遲），連接後進入全螢幕（繞過桌面合成，少等一次刷新），螢幕支援 G-SYNC/FreeSync 時用可變刷新同步（不撕裂、不跳幀）。補幀、AI 增強、HUD 鎖定和幀節奏修復保持不變。關閉後恢復之前的設定",
+   "en": "Turns on every low-latency setting that does not cost picture quality: the graphics card queues only one frame (NVIDIA Low Latency on NVIDIA cards), fullscreen when connecting (skips the desktop compositor, one refresh less waiting), and variable refresh sync on G-SYNC/FreeSync screens (no tearing, no skipped frames). Frame generation, AI enhancement, HUD lock and pacing repair stay as they are. Turning it off restores your previous settings",
+   "ja": "画質に影響しない低遅延設定をすべてオンにします：GPU のキューは 1 フレームのみ（NVIDIA カードでは NVIDIA 低遅延）、接続時にフルスクリーン（デスクトップ合成を通らず、リフレッシュ 1 回分の待ちが減る）、G-SYNC/FreeSync 対応画面では可変リフレッシュ同期（ティアリングもフレーム飛びもなし）。フレーム生成、AI 補正、HUD ロック、フレームペーシング修正はそのまま。オフにすると以前の設定に戻ります",
+   "nl": "Zet alle lage-latentie-instellingen aan die geen beeldkwaliteit kosten: de videokaart zet maar één frame in de wachtrij (NVIDIA Low Latency op NVIDIA-kaarten), volledig scherm bij verbinden (slaat de desktopcompositor over, één verversing minder wachten) en variabele verversing op G-SYNC/FreeSync-schermen (geen tearing, geen overgeslagen frames). Framegeneratie, AI-verbetering, HUD-vergrendeling en tempoherstel blijven zoals ze zijn. Uitzetten herstelt je vorige instellingen",
+   "de": "Schaltet alle Niedriglatenz-Einstellungen ein, die keine Bildqualität kosten: Die Grafikkarte reiht nur ein Bild ein (NVIDIA Low Latency auf NVIDIA-Karten), Vollbild beim Verbinden (umgeht den Desktop-Compositor, eine Bildwiederholung weniger Wartezeit) und variable Bildwiederholrate auf G-SYNC/FreeSync-Bildschirmen (kein Tearing, keine übersprungenen Bilder). Frame-Generierung, KI-Verbesserung, HUD-Sperre und Taktreparatur bleiben unverändert. Ausschalten stellt deine vorherigen Einstellungen wieder her",
+   "es": "Activa todos los ajustes de baja latencia que no cuestan calidad de imagen: la tarjeta gráfica solo pone un fotograma en cola (NVIDIA Low Latency en tarjetas NVIDIA), pantalla completa al conectar (evita el compositor del escritorio, un refresco menos de espera) y sincronización de frecuencia variable en pantallas G-SYNC/FreeSync (sin tearing ni fotogramas saltados). La generación de fotogramas, la mejora con IA, el bloqueo del HUD y la reparación del ritmo no cambian. Al desactivarlo se restauran tus ajustes anteriores",
+   "fr": "Active tous les réglages de faible latence qui ne coûtent rien en qualité d'image : la carte graphique ne met qu'une image en file (NVIDIA Low Latency sur les cartes NVIDIA), plein écran à la connexion (évite le compositeur du bureau, un rafraîchissement d'attente en moins) et synchronisation à fréquence variable sur les écrans G-SYNC/FreeSync (sans déchirement ni image sautée). La génération d'images, l'amélioration IA, le verrouillage du HUD et la réparation du rythme restent inchangés. Le désactiver rétablit vos réglages précédents",
+   "it": "Attiva tutte le impostazioni a bassa latenza che non costano qualità d'immagine: la scheda grafica mette in coda un solo fotogramma (NVIDIA Low Latency sulle schede NVIDIA), schermo intero alla connessione (salta il compositore del desktop, un aggiornamento di attesa in meno) e sincronizzazione a frequenza variabile sugli schermi G-SYNC/FreeSync (niente tearing né fotogrammi saltati). Generazione di fotogrammi, miglioramento IA, blocco HUD e correzione del ritmo restano invariati. Disattivandolo tornano le impostazioni precedenti",
+   "pt-BR": "Ativa todas as configurações de baixa latência que não custam qualidade de imagem: a placa de vídeo enfileira só um quadro (NVIDIA Low Latency em placas NVIDIA), tela cheia ao conectar (evita o compositor da área de trabalho, uma atualização a menos de espera) e sincronização de taxa variável em telas G-SYNC/FreeSync (sem tearing nem quadros pulados). Geração de quadros, aprimoramento por IA, bloqueio do HUD e reparo de ritmo continuam iguais. Desativar restaura suas configurações anteriores",
+   "tr": "Görüntü kalitesinden ödün vermeyen tüm düşük gecikme ayarlarını açar: ekran kartı yalnızca bir kareyi sıraya alır (NVIDIA kartlarda NVIDIA Low Latency), bağlanınca tam ekran (masaüstü birleştiricisini atlar, bir yenileme daha az bekleme) ve G-SYNC/FreeSync ekranlarda değişken yenileme senkronu (yırtılma ve atlanan kare yok). Kare oluşturma, yapay zekâ iyileştirmesi, HUD kilidi ve kare ritmi onarımı olduğu gibi kalır. Kapatınca önceki ayarlarınız geri gelir",
+   "ar": "يفعّل كل إعدادات زمن الاستجابة المنخفض التي لا تكلّف جودة الصورة: بطاقة الرسوميات تضع إطارًا واحدًا فقط في الطابور (NVIDIA Low Latency على بطاقات NVIDIA)، وملء الشاشة عند الاتصال (يتجاوز مُركّب سطح المكتب، انتظار تحديث أقل)، ومزامنة معدل التحديث المتغير على شاشات G-SYNC/FreeSync (بلا تمزق ولا إطارات متخطاة). يبقى توليد الإطارات وتحسين الذكاء الاصطناعي وقفل واجهة اللعب وإصلاح الإيقاع كما هي. الإيقاف يستعيد إعداداتك السابقة",
+   "pl": "Włącza wszystkie ustawienia niskich opóźnień, które nie kosztują jakości obrazu: karta graficzna kolejkuje tylko jedną klatkę (NVIDIA Low Latency na kartach NVIDIA), pełny ekran po połączeniu (pomija kompozytor pulpitu, o jedno odświeżenie mniej czekania) i synchronizacja zmiennej częstotliwości na ekranach G-SYNC/FreeSync (bez rozrywania i pominiętych klatek). Generowanie klatek, ulepszanie AI, blokada HUD i naprawa rytmu pozostają bez zmian. Wyłączenie przywraca poprzednie ustawienia",
+   "ru": "Включает все настройки низкой задержки, которые не стоят качества картинки: видеокарта ставит в очередь только один кадр (NVIDIA Low Latency на картах NVIDIA), полный экран при подключении (минуя композитор рабочего стола, на одно обновление меньше ожидания) и синхронизация с переменной частотой на экранах G-SYNC/FreeSync (без разрывов и пропущенных кадров). Генерация кадров, улучшение ИИ, блокировка HUD и исправление ритма не меняются. Выключение возвращает прежние настройки"
+  },
+  {
    "zh": "一键推荐",
    "src": "qml/ProDisplayPanel.qml",
    "zh-TW": "一鍵推薦",
@@ -8569,6 +8620,23 @@
    "ru": "Без замеров"
   },
   {
+   "zh": "不说话时自动静音，挡住键盘、风扇和房间噪音",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "不說話時自動靜音，擋住鍵盤、風扇和房間噪音",
+   "en": "Mutes automatically while you are not talking, blocking keyboard, fan and room noise",
+   "ja": "話していないときは自動でミュートし、キーボードやファン、部屋の雑音を遮ります",
+   "nl": "Dempt automatisch als je niet praat en houdt toetsenbord-, ventilator- en kamergeluid tegen",
+   "de": "Schaltet automatisch stumm, wenn du nicht sprichst, und blockt Tastatur-, Lüfter- und Raumgeräusche",
+   "es": "Silencia automáticamente cuando no hablas y bloquea el ruido del teclado, el ventilador y la sala",
+   "fr": "Coupe automatiquement le son quand vous ne parlez pas et bloque les bruits de clavier, de ventilateur et de la pièce",
+   "it": "Silenzia automaticamente quando non parli, bloccando i rumori di tastiera, ventola e stanza",
+   "pt-BR": "Silencia automaticamente quando você não fala, bloqueando ruído de teclado, ventoinha e ambiente",
+   "tr": "Konuşmadığınızda otomatik olarak sessize alır; klavye, fan ve oda gürültüsünü engeller",
+   "ar": "يكتم الصوت تلقائيًا عندما لا تتحدث ويحجب ضجيج لوحة المفاتيح والمروحة والغرفة",
+   "pl": "Wycisza automatycznie, gdy nie mówisz, blokując szum klawiatury, wentylatora i pokoju",
+   "ru": "Автоматически заглушает, когда вы молчите, и отсекает шум клавиатуры, вентилятора и комнаты"
+  },
+  {
    "zh": "不采集音频",
    "src": "qml/CaptureSourceDialog.qml",
    "zh-TW": "不擷取音訊",
@@ -8720,6 +8788,23 @@
    "ar": "%1 مُسقَطة",
    "pl": "Utracone: %1",
    "ru": "Потеряно: %1"
+  },
+  {
+   "zh": "两半都标有各自的帧率。保存为 1080×1920 视频，可直接上传到手机应用",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "兩半都標有各自的幀率。儲存為 1080×1920 影片，可直接上傳到手機應用程式",
+   "en": "Both halves are labelled with their frame rate. Saved as a 1080×1920 video, ready to upload to phone apps",
+   "ja": "上下それぞれにフレームレートが表示されます。1080×1920 の動画として保存され、そのままスマホアプリにアップロードできます",
+   "nl": "Beide helften krijgen hun framerate. Opgeslagen als 1080×1920-video, klaar om te uploaden naar telefoonapps",
+   "de": "Beide Hälften tragen ihre Bildrate. Gespeichert als 1080×1920-Video, bereit zum Hochladen in Handy-Apps",
+   "es": "Ambas mitades llevan su tasa de fotogramas. Se guarda como vídeo de 1080×1920, listo para subir a apps móviles",
+   "fr": "Les deux moitiés portent leur fréquence d'images. Enregistré en vidéo 1080×1920, prêt à publier dans les applis mobiles",
+   "it": "Entrambe le metà riportano la propria frequenza. Salvato come video 1080×1920, pronto da caricare nelle app per telefono",
+   "pt-BR": "As duas metades mostram sua taxa de quadros. Salvo como vídeo 1080×1920, pronto para enviar a apps de celular",
+   "tr": "Her iki yarıda kendi kare hızı yazar. 1080×1920 video olarak kaydedilir, telefon uygulamalarına yüklemeye hazırdır",
+   "ar": "يظهر معدل الإطارات على كل نصف. يُحفظ كفيديو 1080×1920 جاهز للرفع إلى تطبيقات الهاتف",
+   "pl": "Obie połowy mają swoją liczbę klatek. Zapisane jako wideo 1080×1920, gotowe do wrzucenia do aplikacji na telefon",
+   "ru": "На обеих половинах указана их частота кадров. Сохраняется как видео 1080×1920, готовое к загрузке в мобильные приложения"
   },
   {
    "zh": "两台电脑接在同一个局域网，这里会自动出现；也可以在下面手填它的 IP。首次使用需要配对。",
@@ -9946,6 +10031,23 @@
    "ru": "Ведущему не удалось преобразовать картину. При включении HDR это происходит, когда разрешение рабочего стола хоста несовместимо с разрешением потока."
   },
   {
+   "zh": "主机输出 120 Hz 时每帧还能早约 8 毫秒到达。",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "主機輸出 120 Hz 時每幀還能早約 8 毫秒到達。",
+   "en": "With 120 Hz console output each frame arrives about 8 ms sooner.",
+   "ja": "本体を 120 Hz 出力にすると各フレームが約 8 ミリ秒早く届きます。",
+   "nl": "Met 120 Hz-uitvoer van de console komt elk frame ongeveer 8 ms eerder aan.",
+   "de": "Mit 120-Hz-Ausgabe der Konsole kommt jedes Bild etwa 8 ms früher an.",
+   "es": "Con salida de 120 Hz en la consola cada fotograma llega unos 8 ms antes.",
+   "fr": "Avec une sortie console en 120 Hz, chaque image arrive environ 8 ms plus tôt.",
+   "it": "Con uscita a 120 Hz della console ogni fotogramma arriva circa 8 ms prima.",
+   "pt-BR": "Com saída de 120 Hz no console, cada quadro chega cerca de 8 ms antes.",
+   "tr": "Konsol 120 Hz çıkış verdiğinde her kare yaklaşık 8 ms daha erken gelir.",
+   "ar": "مع إخراج 120 Hz من الجهاز يصل كل إطار أبكر بنحو 8 ms.",
+   "pl": "Przy wyjściu 120 Hz z konsoli każda klatka dociera o około 8 ms wcześniej.",
+   "ru": "При выводе консоли 120 Гц каждый кадр приходит примерно на 8 мс раньше."
+  },
+  {
    "zh": "主机连上了，但没有完成握手。请重试。",
    "src": "src/source/XboxSessionSource.cpp",
    "zh-TW": "主機連上了，但沒有完成握手。請重試。",
@@ -10202,7 +10304,7 @@
   },
   {
    "zh": "人声清晰",
-   "src": "qml/PushSoundProfile.qml",
+   "src": "qml/PushMicFiltersDialog.qml",
    "zh-TW": "人聲清晰",
    "en": "Voice clarity",
    "ja": "ボイスクリア",
@@ -10660,6 +10762,23 @@
    "ru": "Низкое"
   },
   {
+   "zh": "低于 %1 dB 时静音：不说话时听不到键盘和背景声",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "低於 %1 dB 時靜音：不說話時聽不到鍵盤和背景聲",
+   "en": "Silent below %1 dB: no keyboard or background noise while you are not talking",
+   "ja": "%1 dB 未満でミュート：話していないときはキーボードや背景音が聞こえません",
+   "nl": "Stil onder %1 dB: geen toetsenbord- of achtergrondgeluid als je niet praat",
+   "de": "Stumm unter %1 dB: keine Tastatur- oder Hintergrundgeräusche, wenn du nicht sprichst",
+   "es": "Silencio por debajo de %1 dB: sin teclado ni ruido de fondo cuando no hablas",
+   "fr": "Muet sous %1 dB : aucun bruit de clavier ni de fond quand vous ne parlez pas",
+   "it": "Silenzio sotto %1 dB: niente tastiera né rumore di fondo quando non parli",
+   "pt-BR": "Mudo abaixo de %1 dB: sem teclado nem ruído de fundo quando você não fala",
+   "tr": "%1 dB altında sessiz: konuşmadığınızda klavye veya arka plan sesi duyulmaz",
+   "ar": "صامت تحت %1 dB: لا صوت للوحة المفاتيح أو الخلفية عندما لا تتحدث",
+   "pl": "Cisza poniżej %1 dB: bez klawiatury i hałasu w tle, gdy nie mówisz",
+   "ru": "Тишина ниже %1 дБ: без клавиатуры и фонового шума, пока вы молчите"
+  },
+  {
    "zh": "低于它的人脸不算；误识别时调高",
    "src": "qml/BeautyEditor.qml",
    "zh-TW": "低於它的人臉不計；誤識別時調高",
@@ -10864,6 +10983,23 @@
    "ru": "Низкочастотная временная реконструкция"
   },
   {
+   "zh": "低频滤除",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "低頻濾除",
+   "en": "Rumble filter",
+   "ja": "低域カット",
+   "nl": "Rommelfilter",
+   "de": "Rumpelfilter",
+   "es": "Filtro de graves",
+   "fr": "Filtre anti-grondement",
+   "it": "Filtro antirombo",
+   "pt-BR": "Filtro de graves",
+   "tr": "Uğultu filtresi",
+   "ar": "مرشح الطنين",
+   "pl": "Filtr dudnienia",
+   "ru": "Фильтр гула"
+  },
+  {
    "zh": "余量 ",
    "src": "qml/NodePage.qml",
    "zh-TW": "餘量 ",
@@ -11015,6 +11151,23 @@
    "ar": "حفظ الإعادة الفورية",
    "pl": "Zapisz natychmiastową powtórkę",
    "ru": "Сохранить мгновенный повтор"
+  },
+  {
+   "zh": "保存即时回放（%1 秒）",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "儲存即時重播（%1 秒）",
+   "en": "Save instant replay (%1 s)",
+   "ja": "インスタントリプレイを保存（%1 秒）",
+   "nl": "Directe herhaling opslaan (%1 s)",
+   "de": "Sofortwiederholung speichern (%1 s)",
+   "es": "Guardar repetición instantánea (%1 s)",
+   "fr": "Enregistrer le replay instantané (%1 s)",
+   "it": "Salva replay istantaneo (%1 s)",
+   "pt-BR": "Salvar replay instantâneo (%1 s)",
+   "tr": "Anlık tekrarı kaydet (%1 sn)",
+   "ar": "حفظ الإعادة الفورية (%1 ث)",
+   "pl": "Zapisz natychmiastową powtórkę (%1 s)",
+   "ru": "Сохранить мгновенный повтор (%1 с)"
   },
   {
    "zh": "保存后设为启动默认",
@@ -11697,6 +11850,23 @@
    "ru": "Остановить сравнительный клип"
   },
   {
+   "zh": "停止录制",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "停止錄製",
+   "en": "Stop recording",
+   "ja": "録画を停止",
+   "nl": "Opname stoppen",
+   "de": "Aufnahme beenden",
+   "es": "Detener grabación",
+   "fr": "Arrêter l'enregistrement",
+   "it": "Interrompi registrazione",
+   "pt-BR": "Parar gravação",
+   "tr": "Kaydı durdur",
+   "ar": "إيقاف التسجيل",
+   "pl": "Zatrzymaj nagrywanie",
+   "ru": "Остановить запись"
+  },
+  {
    "zh": "停止本次启动音乐",
    "src": "qml/Main.qml",
    "zh-TW": "停止本次啟動音樂",
@@ -11848,6 +12018,23 @@
    "ar": "اقطع الاتصال قبل تشكيل برنامج التعريف",
    "pl": "Rozłącz przechwytywanie przed konfiguracją sterownika",
    "ru": "Отключите захват перед настройкой драйвера"
+  },
+  {
+   "zh": "先连接画面，再开始直播或录制",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "先連接畫面，再開始直播或錄製",
+   "en": "Connect a picture first, then go live or record",
+   "ja": "まず映像を接続してから、配信または録画を始めてください",
+   "nl": "Verbind eerst een beeld, ga dan live of neem op",
+   "de": "Verbinde zuerst ein Bild, dann geh live oder nimm auf",
+   "es": "Conecta primero una imagen y luego transmite o graba",
+   "fr": "Connectez d'abord une image, puis passez en direct ou enregistrez",
+   "it": "Collega prima un'immagine, poi vai in diretta o registra",
+   "pt-BR": "Conecte uma imagem primeiro e depois transmita ou grave",
+   "tr": "Önce bir görüntü bağlayın, sonra yayına geçin veya kaydedin",
+   "ar": "اتصل بصورة أولًا ثم ابدأ البث أو التسجيل",
+   "pl": "Najpierw podłącz obraz, potem nadawaj lub nagrywaj",
+   "ru": "Сначала подключите картинку, затем начните трансляцию или запись"
   },
   {
    "zh": "先连接采集卡并让游戏画面出现，再开始优化",
@@ -12205,6 +12392,23 @@
    "ar": "الكل",
    "pl": "Wszystkie",
    "ru": "Все"
+  },
+  {
+   "zh": "全部关闭",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "全部關閉",
+   "en": "Turn all off",
+   "ja": "すべてオフ",
+   "nl": "Alles uit",
+   "de": "Alle aus",
+   "es": "Desactivar todo",
+   "fr": "Tout désactiver",
+   "it": "Disattiva tutto",
+   "pt-BR": "Desativar tudo",
+   "tr": "Tümünü kapat",
+   "ar": "إيقاف الكل",
+   "pl": "Wyłącz wszystko",
+   "ru": "Выключить всё"
   },
   {
    "zh": "全部显卡",
@@ -14741,6 +14945,40 @@
    "ru": "Щёлкните по изображению"
   },
   {
+   "zh": "单帧队列、全屏、可变刷新已开启。",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "單幀佇列、全螢幕、可變刷新已開啟。",
+   "en": "One-frame queue, fullscreen and variable refresh are on.",
+   "ja": "1 フレームキュー、フルスクリーン、可変リフレッシュがオンです。",
+   "nl": "Wachtrij van één frame, volledig scherm en variabele verversing staan aan.",
+   "de": "Ein-Bild-Warteschlange, Vollbild und variable Bildwiederholrate sind an.",
+   "es": "Cola de un fotograma, pantalla completa y frecuencia variable activadas.",
+   "fr": "File d'une image, plein écran et fréquence variable activés.",
+   "it": "Coda di un fotogramma, schermo intero e frequenza variabile attivi.",
+   "pt-BR": "Fila de um quadro, tela cheia e taxa variável ativadas.",
+   "tr": "Tek kare kuyruğu, tam ekran ve değişken yenileme açık.",
+   "ar": "طابور الإطار الواحد وملء الشاشة والتحديث المتغير مفعّلة.",
+   "pl": "Kolejka jednej klatki, pełny ekran i zmienne odświeżanie są włączone.",
+   "ru": "Очередь из одного кадра, полный экран и переменная частота включены."
+  },
+  {
+   "zh": "单帧队列和全屏已开启；屏幕不支持可变刷新，帧同步保持不变以免画面撕裂。",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "單幀佇列和全螢幕已開啟；螢幕不支援可變刷新，幀同步保持不變以免畫面撕裂。",
+   "en": "One-frame queue and fullscreen are on; the screen has no variable refresh, so sync stays as it is to avoid tearing.",
+   "ja": "1 フレームキューとフルスクリーンがオンです。画面が可変リフレッシュ非対応のため、ティアリングを避けて同期設定はそのままです。",
+   "nl": "Wachtrij van één frame en volledig scherm staan aan; het scherm heeft geen variabele verversing, dus de synchronisatie blijft zo om tearing te voorkomen.",
+   "de": "Ein-Bild-Warteschlange und Vollbild sind an; der Bildschirm hat keine variable Bildwiederholrate, daher bleibt die Synchronisierung, um Tearing zu vermeiden.",
+   "es": "Cola de un fotograma y pantalla completa activadas; la pantalla no tiene frecuencia variable, así que la sincronización no cambia para evitar tearing.",
+   "fr": "File d'une image et plein écran activés ; l'écran n'a pas de fréquence variable, la synchronisation reste donc inchangée pour éviter le déchirement.",
+   "it": "Coda di un fotogramma e schermo intero attivi; lo schermo non ha frequenza variabile, quindi la sincronizzazione resta invariata per evitare il tearing.",
+   "pt-BR": "Fila de um quadro e tela cheia ativadas; a tela não tem taxa variável, então a sincronização continua igual para evitar tearing.",
+   "tr": "Tek kare kuyruğu ve tam ekran açık; ekranda değişken yenileme yok, yırtılmayı önlemek için senkron olduğu gibi kalır.",
+   "ar": "طابور الإطار الواحد وملء الشاشة مفعّلان؛ الشاشة لا تدعم التحديث المتغير، لذا تبقى المزامنة كما هي لتجنب التمزق.",
+   "pl": "Kolejka jednej klatki i pełny ekran są włączone; ekran nie ma zmiennego odświeżania, więc synchronizacja zostaje bez zmian, by uniknąć rozrywania.",
+   "ru": "Очередь из одного кадра и полный экран включены; экран не поддерживает переменную частоту, поэтому синхронизация не меняется, чтобы избежать разрывов."
+  },
+  {
    "zh": "即时回放",
    "src": "qml/ProPage.qml",
    "zh-TW": "即時回放",
@@ -14943,6 +15181,23 @@
    "ar": "يوازن بين الأجزاء العالية والهادئة، للعب في وقت متأخر",
    "pl": "Wyrównuje głośne i ciche fragmenty, na późne wieczory",
    "ru": "Выравнивает громкие и тихие места, для поздних вечеров"
+  },
+  {
+   "zh": "压缩器",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "壓縮器",
+   "en": "Compressor",
+   "ja": "コンプレッサー",
+   "nl": "Compressor",
+   "de": "Kompressor",
+   "es": "Compresor",
+   "fr": "Compresseur",
+   "it": "Compressore",
+   "pt-BR": "Compressor",
+   "tr": "Kompresör",
+   "ar": "الضاغط",
+   "pl": "Kompresor",
+   "ru": "Компрессор"
   },
   {
    "zh": "压缩采集使用码流颜色信息；手动颜色和范围请选择原生采集格式。",
@@ -15215,6 +15470,23 @@
    "ar": "إدارة الإعدادات المسبقة في وضع Pro…",
    "pl": "Zarządzaj presetami w trybie Pro…",
    "ru": "Управлять пресетами в режиме Pro…"
+  },
+  {
+   "zh": "去掉 80 Hz 以下的嗡嗡声、桌面震动和风扇声",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "去掉 80 Hz 以下的嗡嗡聲、桌面震動和風扇聲",
+   "en": "Removes hum, desk thumps and fan rumble below 80 Hz",
+   "ja": "80 Hz 以下のハム音、机の振動、ファンの低音を取り除きます",
+   "nl": "Verwijdert brom, bureaubonken en ventilatorgerommel onder 80 Hz",
+   "de": "Entfernt Brummen, Tischstöße und Lüfterrumpeln unter 80 Hz",
+   "es": "Elimina el zumbido, los golpes en la mesa y el ruido del ventilador por debajo de 80 Hz",
+   "fr": "Supprime le bourdonnement, les chocs sur le bureau et le grondement du ventilateur sous 80 Hz",
+   "it": "Elimina ronzio, colpi sulla scrivania e rombo della ventola sotto gli 80 Hz",
+   "pt-BR": "Remove zumbido, batidas na mesa e ronco da ventoinha abaixo de 80 Hz",
+   "tr": "80 Hz altındaki uğultuyu, masa darbelerini ve fan sesini kaldırır",
+   "ar": "يزيل الطنين واهتزاز المكتب وصوت المروحة تحت 80 Hz",
+   "pl": "Usuwa brum, stuknięcia w biurko i dudnienie wentylatora poniżej 80 Hz",
+   "ru": "Убирает гул, стуки по столу и шум вентилятора ниже 80 Гц"
   },
   {
    "zh": "去朦胧",
@@ -15795,6 +16067,23 @@
    "ru": "Отмена"
   },
   {
+   "zh": "取消静音",
+   "src": "qml/PushMixerStrip.qml",
+   "zh-TW": "取消靜音",
+   "en": "Unmute",
+   "ja": "ミュート解除",
+   "nl": "Geluid aan",
+   "de": "Stummschaltung aufheben",
+   "es": "Activar sonido",
+   "fr": "Réactiver le son",
+   "it": "Riattiva audio",
+   "pt-BR": "Ativar som",
+   "tr": "Sesi aç",
+   "ar": "إلغاء الكتم",
+   "pl": "Wyłącz wyciszenie",
+   "ru": "Включить звук"
+  },
+  {
    "zh": "变化容差",
    "src": "qml/NodePage.qml",
    "zh-TW": "變化容差",
@@ -15980,6 +16269,40 @@
    "ar": "لا تُجهز إلا بالفيديو المسمّى على أنه متداخل، باستخدام الـ GPU عند فك رموز الأجهزة. زينة البرمجيات تستخدم مرشح متوافق يبدو أنك عندما تفتحين شريط فيديو",
    "pl": "Przetwarza tylko wideo oznaczone jako przeplatane, używając GPU podczas dekodowania na sprzęcie. Dekodowanie oprogramowania wykorzystuje kompatybilny filtr. Ma zastosowanie, gdy następnym razem otworzysz film.",
    "ru": "Обрабатывает только видео, помеченное как переплетенное, используя GPU при декодировании на аппаратном обеспечении. Программное декодирование использует совместимый фильтр. Применяется при следующем открытии видео."
+  },
+  {
+   "zh": "只影响录制和直播里的麦克风声音，不改变你自己听到的声音",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "只影響錄製和直播裡的麥克風聲音，不改變你自己聽到的聲音",
+   "en": "Only changes the microphone in recordings and streams, not what you hear yourself",
+   "ja": "録画と配信のマイク音声だけに影響し、自分に聞こえる音は変わりません",
+   "nl": "Verandert alleen de microfoon in opnames en streams, niet wat je zelf hoort",
+   "de": "Ändert nur das Mikrofon in Aufnahmen und Streams, nicht das, was du selbst hörst",
+   "es": "Solo cambia el micrófono en grabaciones y transmisiones, no lo que oyes tú",
+   "fr": "Ne modifie que le micro dans les enregistrements et les diffusions, pas ce que vous entendez",
+   "it": "Cambia solo il microfono nelle registrazioni e nelle dirette, non ciò che senti tu",
+   "pt-BR": "Só muda o microfone nas gravações e transmissões, não o que você ouve",
+   "tr": "Yalnızca kayıt ve yayınlardaki mikrofonu değiştirir, kendi duyduğunuzu değil",
+   "ar": "يغيّر الميكروفون في التسجيلات والبث فقط، وليس ما تسمعه أنت",
+   "pl": "Zmienia tylko mikrofon w nagraniach i transmisjach, nie to, co sam słyszysz",
+   "ru": "Меняет только микрофон в записях и трансляциях, а не то, что слышите вы"
+  },
+  {
+   "zh": "只改变你听到的声音",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "只改變你聽到的聲音",
+   "en": "Only changes what you hear",
+   "ja": "自分に聞こえる音だけを変えます",
+   "nl": "Verandert alleen wat je hoort",
+   "de": "Ändert nur, was du hörst",
+   "es": "Solo cambia lo que oyes",
+   "fr": "Ne change que ce que vous entendez",
+   "it": "Cambia solo ciò che senti",
+   "pt-BR": "Só muda o que você ouve",
+   "tr": "Yalnızca duyduğunuzu değiştirir",
+   "ar": "يغيّر ما تسمعه فقط",
+   "pl": "Zmienia tylko to, co słyszysz",
+   "ru": "Меняет только то, что слышите вы"
   },
   {
    "zh": "只有节点模式使用编辑连接",
@@ -16968,6 +17291,23 @@
    "ru": "Wake failed ({}); make sure the PS5 is in rest mode, not powered off."
   },
   {
+   "zh": "噪声门",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "噪聲門",
+   "en": "Noise gate",
+   "ja": "ノイズゲート",
+   "nl": "Noise gate",
+   "de": "Noise Gate",
+   "es": "Puerta de ruido",
+   "fr": "Noise gate",
+   "it": "Noise gate",
+   "pt-BR": "Noise gate",
+   "tr": "Gürültü kapısı",
+   "ar": "بوابة الضوضاء",
+   "pl": "Bramka szumów",
+   "ru": "Шумовой гейт"
+  },
+  {
    "zh": "回到列表模式，恢复列表之前的设置和预设。",
    "src": "qml/NodePage.qml",
    "zh-TW": "回到列表模式，恢復列表之前的設定和預設。",
@@ -17852,6 +18192,23 @@
    "ru": "Сбалансированный"
   },
   {
+   "zh": "均衡器",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "等化器",
+   "en": "Equalizer",
+   "ja": "イコライザー",
+   "nl": "Equalizer",
+   "de": "Equalizer",
+   "es": "Ecualizador",
+   "fr": "Égaliseur",
+   "it": "Equalizzatore",
+   "pt-BR": "Equalizador",
+   "tr": "Ekolayzır",
+   "ar": "المعادل",
+   "pl": "Korektor",
+   "ru": "Эквалайзер"
+  },
+  {
    "zh": "均衡器归零",
    "src": "qml/PushSoundProfile.qml",
    "zh-TW": "等化器歸零",
@@ -18445,6 +18802,23 @@
    "ar": "جارٍ المعالجة · ",
    "pl": "Przetwarzanie · ",
    "ru": "Обработка · "
+  },
+  {
+   "zh": "处理延迟 %1 ms",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "處理延遲 %1 ms",
+   "en": "Processing latency %1 ms",
+   "ja": "処理遅延 %1 ms",
+   "nl": "Verwerkingslatentie %1 ms",
+   "de": "Verarbeitungslatenz %1 ms",
+   "es": "Latencia de procesamiento %1 ms",
+   "fr": "Latence de traitement %1 ms",
+   "it": "Latenza di elaborazione %1 ms",
+   "pt-BR": "Latência de processamento %1 ms",
+   "tr": "İşleme gecikmesi %1 ms",
+   "ar": "زمن المعالجة %1 ms",
+   "pl": "Opóźnienie przetwarzania %1 ms",
+   "ru": "Задержка обработки %1 мс"
   },
   {
    "zh": "处理比例",
@@ -20230,6 +20604,23 @@
    "ar": "مقطع مقارنة",
    "pl": "Klip porównawczy",
    "ru": "Сравнительный клип"
+  },
+  {
+   "zh": "对比片段尺寸不一致",
+   "src": "src/engine/LiveRecorder.cpp",
+   "zh-TW": "對比片段尺寸不一致",
+   "en": "Comparison clip size mismatch",
+   "ja": "比較クリップのサイズが一致しません",
+   "nl": "Formaat van vergelijkingsclip klopt niet",
+   "de": "Größe des Vergleichsclips stimmt nicht",
+   "es": "El tamaño del clip comparativo no coincide",
+   "fr": "La taille du clip comparatif ne correspond pas",
+   "it": "Le dimensioni della clip di confronto non corrispondono",
+   "pt-BR": "O tamanho do clipe comparativo não confere",
+   "tr": "Karşılaştırma klibi boyutu uyuşmuyor",
+   "ar": "حجم مقطع المقارنة غير متطابق",
+   "pl": "Rozmiar klipu porównawczego się nie zgadza",
+   "ru": "Размер сравнительного клипа не совпадает"
   },
   {
    "zh": "对比片段着色器加载失败",
@@ -24091,6 +24482,23 @@
    "ru": "Скрытый обычно; падает вниз, когда указатель касается верхней части окна"
   },
   {
+   "zh": "平直",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "平坦",
+   "en": "Flat",
+   "ja": "フラット",
+   "nl": "Vlak",
+   "de": "Neutral",
+   "es": "Plano",
+   "fr": "Plat",
+   "it": "Piatto",
+   "pt-BR": "Plano",
+   "tr": "Düz",
+   "ar": "مسطّح",
+   "pl": "Płaski",
+   "ru": "Ровный"
+  },
+  {
    "zh": "平衡",
    "src": "qml/NodePage.qml",
    "zh-TW": "平衡",
@@ -24140,6 +24548,23 @@
    "ar": "جنبًا إلى جنب",
    "pl": "Obok siebie",
    "ru": "Рядом"
+  },
+  {
+   "zh": "广播",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "廣播",
+   "en": "Broadcast",
+   "ja": "放送",
+   "nl": "Uitzending",
+   "de": "Rundfunk",
+   "es": "Radio",
+   "fr": "Radio",
+   "it": "Radio",
+   "pt-BR": "Rádio",
+   "tr": "Yayın",
+   "ar": "بث إذاعي",
+   "pl": "Radiowy",
+   "ru": "Эфирный"
   },
   {
    "zh": "应用",
@@ -24361,6 +24786,23 @@
    "ar": "On: new model B. Off: legacy model A. Switching rebuilds NR and may change the picture.",
    "pl": "On: new model B. Off: legacy model A. Switching rebuilds NR and may change the picture.",
    "ru": "Новая модель B. Off: унаследованная модель A. Переключение перестраивает NR и может изменить картину."
+  },
+  {
+   "zh": "开启即时回放",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "開啟即時重播",
+   "en": "Turn on instant replay",
+   "ja": "インスタントリプレイをオン",
+   "nl": "Directe herhaling aanzetten",
+   "de": "Sofortwiederholung einschalten",
+   "es": "Activar repetición instantánea",
+   "fr": "Activer le replay instantané",
+   "it": "Attiva replay istantaneo",
+   "pt-BR": "Ativar replay instantâneo",
+   "tr": "Anlık tekrarı aç",
+   "ar": "تفعيل الإعادة الفورية",
+   "pl": "Włącz natychmiastową powtórkę",
+   "ru": "Включить мгновенный повтор"
   },
   {
    "zh": "开启后麦克风在第 2 条音轨，剪辑时可单独调整；普通播放器通常只播放第 1 条",
@@ -24601,6 +25043,23 @@
    "ru": "Секунды для сбора перед началом воспроизведения; «Следующий уровень буфера» использует уровень, выбранный выше. Вступает в силу в следующий раз, когда открывается сетевое видео"
   },
   {
+   "zh": "开始直播",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "開始直播",
+   "en": "Go live",
+   "ja": "配信を開始",
+   "nl": "Live gaan",
+   "de": "Live gehen",
+   "es": "Empezar a transmitir",
+   "fr": "Passer en direct",
+   "it": "Vai in diretta",
+   "pt-BR": "Iniciar transmissão",
+   "tr": "Yayına başla",
+   "ar": "ابدأ البث",
+   "pl": "Rozpocznij transmisję",
+   "ru": "Начать трансляцию"
+  },
+  {
    "zh": "开播",
    "src": "qml/PushStreamDialog.qml",
    "zh-TW": "開播",
@@ -24616,6 +25075,23 @@
    "ar": "ابدأ البث",
    "pl": "Rozpocznij transmisję",
    "ru": "Начать трансляцию"
+  },
+  {
+   "zh": "开播后这里显示每个平台的状态和码率",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "開播後這裡顯示每個平台的狀態和碼率",
+   "en": "Once live, each platform shows its status and bitrate here",
+   "ja": "配信を始めると、各プラットフォームの状態とビットレートがここに表示されます",
+   "nl": "Zodra je live bent, toont elk platform hier zijn status en bitrate",
+   "de": "Sobald du live bist, zeigt jede Plattform hier Status und Bitrate",
+   "es": "Al transmitir, cada plataforma muestra aquí su estado y tasa de bits",
+   "fr": "Une fois en direct, chaque plateforme affiche ici son état et son débit",
+   "it": "Quando sei in diretta, ogni piattaforma mostra qui stato e bitrate",
+   "pt-BR": "Ao transmitir, cada plataforma mostra aqui seu status e taxa de bits",
+   "tr": "Yayına geçince her platformun durumu ve bit hızı burada görünür",
+   "ar": "عند البث تظهر هنا حالة كل منصة ومعدل البت",
+   "pl": "Po rozpoczęciu transmisji każda platforma pokaże tu stan i przepływność",
+   "ru": "Во время трансляции здесь видны состояние и битрейт каждой платформы"
   },
   {
    "zh": "开播自动选档",
@@ -25859,6 +26335,40 @@
    "ru": "Запись"
   },
   {
+   "zh": "录制 %1",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "錄製 %1",
+   "en": "REC %1",
+   "ja": "録画 %1",
+   "nl": "OPN %1",
+   "de": "REC %1",
+   "es": "GRAB %1",
+   "fr": "ENR %1",
+   "it": "REC %1",
+   "pt-BR": "GRAV %1",
+   "tr": "KAYIT %1",
+   "ar": "تسجيل %1",
+   "pl": "NAGR %1",
+   "ru": "ЗАП %1"
+  },
+  {
+   "zh": "录制 %1 · 丢帧 %2",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "錄製 %1 · 丟幀 %2",
+   "en": "REC %1 · dropped %2",
+   "ja": "録画 %1 · ドロップ %2",
+   "nl": "OPN %1 · verloren %2",
+   "de": "REC %1 · verworfen %2",
+   "es": "GRAB %1 · perdidos %2",
+   "fr": "ENR %1 · perdues %2",
+   "it": "REC %1 · persi %2",
+   "pt-BR": "GRAV %1 · perdidos %2",
+   "tr": "KAYIT %1 · düşen %2",
+   "ar": "تسجيل %1 · مفقودة %2",
+   "pl": "NAGR %1 · utracone %2",
+   "ru": "ЗАП %1 · потеряно %2"
+  },
+  {
    "zh": "录制 %1 秒",
    "src": "qml/ProPage.qml",
    "zh-TW": "錄製 %1 秒",
@@ -25874,6 +26384,23 @@
    "ar": "سجل في %1",
    "pl": "Zapis w %1 s",
    "ru": "Запись в %1 с"
+  },
+  {
+   "zh": "录制 未开始",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "錄製 未開始",
+   "en": "REC off",
+   "ja": "録画 オフ",
+   "nl": "OPN uit",
+   "de": "REC aus",
+   "es": "GRAB apagado",
+   "fr": "ENR arrêté",
+   "it": "REC spento",
+   "pt-BR": "GRAV desligada",
+   "tr": "KAYIT kapalı",
+   "ar": "التسجيل متوقف",
+   "pl": "NAGR wył.",
+   "ru": "ЗАП выкл."
   },
   {
    "zh": "录制一段前后对比视频：一边是主机原本的帧率，一边是 PushFPS",
@@ -25927,21 +26454,21 @@
    "ru": "Папка записей"
   },
   {
-   "zh": "录制前后对比视频：一边是主机原本的帧率，一边是 PushFPS。可选分屏或并排，以及时长",
+   "zh": "录制前后对比视频：一边是主机原本的帧率，一边是 PushFPS。可选分屏、并排或竖屏（TikTok、Shorts、Reels），以及时长",
    "src": "qml/PushQuickSetup.qml",
-   "zh-TW": "錄製前後對比影片：一邊是主機原本的幀率，一邊是 PushFPS。可選分屏或並排，以及時長",
-   "en": "Record a before/after video: the console’s own frame rate on one side, PushFPS on the other. Choose split or side by side, and the length",
-   "ja": "前後比較動画を録画：片側はゲーム機本来のフレームレート、もう片側は PushFPS。分割か横並びか、長さを選べます",
-   "nl": "Neem een voor/na-video op: aan de ene kant de eigen framerate van de console, aan de andere PushFPS. Kies gesplitst of naast elkaar, en de lengte",
-   "de": "Ein Vorher-nachher-Video aufnehmen: auf einer Seite die Bildrate der Konsole, auf der anderen PushFPS. Geteilt oder nebeneinander, und die Länge wählbar",
-   "es": "Graba un vídeo de antes y después: a un lado la tasa propia de la consola, al otro PushFPS. Elige dividido o lado a lado, y la duración",
-   "fr": "Enregistrez une vidéo avant/après : d'un côté la fréquence d'origine de la console, de l'autre PushFPS. Choisissez divisé ou côte à côte, et la durée",
-   "it": "Registra un video prima/dopo: da un lato la frequenza originale della console, dall'altro PushFPS. Scegli diviso o affiancato, e la durata",
-   "pt-BR": "Grave um vídeo de antes e depois: de um lado a taxa original do console, do outro o PushFPS. Escolha dividido ou lado a lado, e a duração",
-   "tr": "Önce/sonra videosu kaydedin: bir yanda konsolun kendi kare hızı, diğer yanda PushFPS. Bölünmüş ya da yan yana ve süreyi seçin",
-   "ar": "سجّل فيديو قبل/بعد: على جانب معدل إطارات الجهاز الأصلي، وعلى الآخر PushFPS. اختر منقسمًا أو جنبًا إلى جنب، والمدة",
-   "pl": "Nagraj wideo przed/po: z jednej strony oryginalna liczba klatek konsoli, z drugiej PushFPS. Wybierz podział lub obok siebie oraz długość",
-   "ru": "Запишите видео «до и после»: с одной стороны родная частота кадров консоли, с другой PushFPS. Выберите раздельно или рядом и длительность"
+   "zh-TW": "錄製前後對比影片：一邊是主機原本的幀率，一邊是 PushFPS。可選分屏、並排或直式（TikTok、Shorts、Reels），以及時長",
+   "en": "Record a before/after video: the console's own frame rate on one side, PushFPS on the other. Choose split, side by side or vertical (TikTok, Shorts, Reels), and the length",
+   "ja": "ビフォーアフター動画を録画：片側は本体本来のフレームレート、もう片側は PushFPS。分割・横並び・縦型（TikTok、Shorts、Reels）と長さを選べます",
+   "nl": "Neem een voor/na-video op: de eigen framerate van de console aan de ene kant, PushFPS aan de andere. Kies gesplitst, naast elkaar of verticaal (TikTok, Shorts, Reels) en de lengte",
+   "de": "Nimm ein Vorher/Nachher-Video auf: die eigene Bildrate der Konsole auf einer Seite, PushFPS auf der anderen. Wähle geteilt, nebeneinander oder hochkant (TikTok, Shorts, Reels) und die Länge",
+   "es": "Graba un vídeo de antes y después: la tasa propia de la consola en un lado, PushFPS en el otro. Elige dividido, lado a lado o vertical (TikTok, Shorts, Reels) y la duración",
+   "fr": "Enregistrez une vidéo avant/après : la fréquence d'origine de la console d'un côté, PushFPS de l'autre. Choisissez divisé, côte à côte ou vertical (TikTok, Shorts, Reels) et la durée",
+   "it": "Registra un video prima/dopo: la frequenza originale della console da un lato, PushFPS dall'altro. Scegli diviso, affiancati o verticale (TikTok, Shorts, Reels) e la durata",
+   "pt-BR": "Grave um vídeo de antes e depois: a taxa original do console de um lado, PushFPS do outro. Escolha dividido, lado a lado ou vertical (TikTok, Shorts, Reels) e a duração",
+   "tr": "Önce/sonra videosu kaydedin: bir yanda konsolun kendi kare hızı, diğer yanda PushFPS. Bölünmüş, yan yana veya dikey (TikTok, Shorts, Reels) ve süreyi seçin",
+   "ar": "سجّل فيديو قبل/بعد: معدل إطارات الجهاز الأصلي في جانب وPushFPS في الآخر. اختر منقسمًا أو جنبًا إلى جنب أو عموديًا (TikTok وShorts وReels) والمدة",
+   "pl": "Nagraj wideo przed/po: własna liczba klatek konsoli z jednej strony, PushFPS z drugiej. Wybierz podział, obok siebie lub pion (TikTok, Shorts, Reels) i długość",
+   "ru": "Запишите видео «до и после»: родная частота консоли с одной стороны, PushFPS — с другой. Выберите раздельно, рядом или вертикально (TikTok, Shorts, Reels) и длительность"
   },
   {
    "zh": "录制回读缓冲分配失败",
@@ -26112,6 +26639,23 @@
    "ar": "توقف التسجيل لأن الملفات السابقة لا تزال قيد الإنقاذ",
    "pl": "Nagrywanie zatrzymane, ponieważ poprzednie pliki są nadal zapisywane",
    "ru": "Запись прекратилась, потому что предыдущие файлы все еще сохраняются."
+  },
+  {
+   "zh": "录制文件夹",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "錄製資料夾",
+   "en": "Recordings folder",
+   "ja": "録画フォルダー",
+   "nl": "Opnamemap",
+   "de": "Aufnahmeordner",
+   "es": "Carpeta de grabaciones",
+   "fr": "Dossier des enregistrements",
+   "it": "Cartella registrazioni",
+   "pt-BR": "Pasta de gravações",
+   "tr": "Kayıt klasörü",
+   "ar": "مجلد التسجيلات",
+   "pl": "Folder nagrań",
+   "ru": "Папка записей"
   },
   {
    "zh": "录制文件收尾失败",
@@ -28509,6 +29053,23 @@
    "ar": "فرز",
    "pl": "Sortuj",
    "ru": "Сортировка"
+  },
+  {
+   "zh": "控制",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "控制",
+   "en": "Controls",
+   "ja": "コントロール",
+   "nl": "Bediening",
+   "de": "Steuerung",
+   "es": "Controles",
+   "fr": "Commandes",
+   "it": "Controlli",
+   "pt-BR": "Controles",
+   "tr": "Kontroller",
+   "ar": "التحكم",
+   "pl": "Sterowanie",
+   "ru": "Управление"
   },
   {
    "zh": "描边",
@@ -32864,6 +33425,23 @@
    "ru": "Лучшая комбинация: %1. Применено."
   },
   {
+   "zh": "最后总有一个 -1 dB 的限幅器，防止爆音。滤镜在麦克风开启录制或直播时生效",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "最後總有一個 -1 dB 的限幅器，防止爆音。濾鏡在麥克風開啟錄製或直播時生效",
+   "en": "A -1 dB limiter always comes last to prevent clipping. The filters apply while the microphone is on for recordings or streams",
+   "ja": "最後に必ず -1 dB のリミッターが入り、音割れを防ぎます。フィルターはマイクを録画または配信に使っているときに有効です",
+   "nl": "Een limiter op -1 dB komt altijd als laatste en voorkomt oversturing. De filters werken zodra de microfoon aan staat voor opnames of streams",
+   "de": "Ein Limiter bei -1 dB kommt immer zuletzt und verhindert Übersteuerung. Die Filter wirken, solange das Mikrofon für Aufnahmen oder Streams an ist",
+   "es": "Siempre hay un limitador a -1 dB al final para evitar la saturación. Los filtros funcionan mientras el micrófono está activo para grabaciones o transmisiones",
+   "fr": "Un limiteur à -1 dB vient toujours en dernier pour éviter la saturation. Les filtres s'appliquent quand le micro est activé pour les enregistrements ou les diffusions",
+   "it": "Alla fine c'è sempre un limitatore a -1 dB per evitare la distorsione. I filtri agiscono quando il microfono è attivo per registrazioni o dirette",
+   "pt-BR": "Sempre há um limitador em -1 dB no final para evitar distorção. Os filtros valem enquanto o microfone estiver ativo para gravações ou transmissões",
+   "tr": "Kırpılmayı önlemek için en sonda her zaman -1 dB sınırlayıcı vardır. Filtreler, mikrofon kayıt veya yayın için açıkken çalışır",
+   "ar": "يوجد دائمًا محدِّد عند -1 dB في النهاية لمنع التشوه. تعمل المرشحات عندما يكون الميكروفون مفعّلًا للتسجيل أو البث",
+   "pl": "Na końcu zawsze działa limiter -1 dB, który zapobiega przesterowaniu. Filtry działają, gdy mikrofon jest włączony do nagrań lub transmisji",
+   "ru": "В конце всегда стоит лимитер на -1 дБ против перегруза. Фильтры работают, когда микрофон включён для записи или трансляции"
+  },
+  {
    "zh": "最多 4 个保护区域，请先删除一个",
    "src": "src/ui/bridge/View.cpp",
    "zh-TW": "最多 4 個保護區域，請先刪除一個",
@@ -33695,6 +34273,23 @@
    "ar": "غير نشط: ",
    "pl": "Nieaktywne: ",
    "ru": "Неактивно: "
+  },
+  {
+   "zh": "未用于录制或直播",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "未用於錄製或直播",
+   "en": "Not used for recordings or streams",
+   "ja": "録画にも配信にも使っていません",
+   "nl": "Niet gebruikt voor opnames of streams",
+   "de": "Nicht für Aufnahmen oder Streams genutzt",
+   "es": "No se usa en grabaciones ni transmisiones",
+   "fr": "Non utilisé pour les enregistrements ni les diffusions",
+   "it": "Non usato per registrazioni o dirette",
+   "pt-BR": "Não usado em gravações nem transmissões",
+   "tr": "Kayıt veya yayında kullanılmıyor",
+   "ar": "غير مستخدم للتسجيل أو البث",
+   "pl": "Nieużywany w nagraniach ani transmisjach",
+   "ru": "Не используется для записи и трансляции"
   },
   {
    "zh": "未登录",
@@ -35465,6 +36060,23 @@
    "ru": "Запись сравнительного клипа на %1 с: слева родная частота кадров консоли, справа PushFPS"
   },
   {
+   "zh": "正在录制 %1 秒的竖屏对比片段：上面是主机原本的帧率，下面是 PushFPS",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "正在錄製 %1 秒的直式對比片段：上面是主機原本的幀率，下面是 PushFPS",
+   "en": "Recording a %1-second vertical comparison clip: the console's own frame rate on top, PushFPS below",
+   "ja": "%1 秒の縦型比較クリップを録画中：上が本体本来のフレームレート、下が PushFPS",
+   "nl": "Verticale vergelijkingsclip van %1 seconden wordt opgenomen: boven de eigen framerate van de console, onder PushFPS",
+   "de": "Hochkant-Vergleichsclip mit %1 Sekunden wird aufgenommen: oben die eigene Bildrate der Konsole, unten PushFPS",
+   "es": "Grabando un clip comparativo vertical de %1 segundos: arriba la tasa propia de la consola, abajo PushFPS",
+   "fr": "Enregistrement d'un clip comparatif vertical de %1 secondes : en haut la fréquence d'origine de la console, en bas PushFPS",
+   "it": "Registrazione di una clip di confronto verticale di %1 secondi: sopra la frequenza originale della console, sotto PushFPS",
+   "pt-BR": "Gravando um clipe comparativo vertical de %1 segundos: em cima a taxa original do console, embaixo PushFPS",
+   "tr": "%1 saniyelik dikey karşılaştırma klibi kaydediliyor: üstte konsolun kendi kare hızı, altta PushFPS",
+   "ar": "جارٍ تسجيل مقطع مقارنة عمودي مدته %1 ثانية: في الأعلى معدل الجهاز الأصلي وفي الأسفل PushFPS",
+   "pl": "Nagrywanie pionowego klipu porównawczego (%1 s): u góry własna liczba klatek konsoli, na dole PushFPS",
+   "ru": "Идёт запись вертикального сравнительного клипа на %1 с: сверху родная частота консоли, снизу PushFPS"
+  },
+  {
    "zh": "正在录制…",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "正在錄製…",
@@ -36160,6 +36772,23 @@
    "ar": "Connecting to Xbox…",
    "pl": "Łączenie z Xbox...",
    "ru": "Подключение к Xbox..."
+  },
+  {
+   "zh": "正在连接…",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "正在連接…",
+   "en": "Connecting…",
+   "ja": "接続中…",
+   "nl": "Verbinden…",
+   "de": "Verbinde…",
+   "es": "Conectando…",
+   "fr": "Connexion…",
+   "it": "Connessione…",
+   "pt-BR": "Conectando…",
+   "tr": "Bağlanıyor…",
+   "ar": "جارٍ الاتصال…",
+   "pl": "Łączenie…",
+   "ru": "Подключение…"
   },
   {
    "zh": "正在连接串流主机…",
@@ -37063,6 +37692,23 @@
    "ru": "Субтитров на экране нет"
   },
   {
+   "zh": "没有画面",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "沒有畫面",
+   "en": "No picture",
+   "ja": "映像なし",
+   "nl": "Geen beeld",
+   "de": "Kein Bild",
+   "es": "Sin imagen",
+   "fr": "Pas d'image",
+   "it": "Nessuna immagine",
+   "pt-BR": "Sem imagem",
+   "tr": "Görüntü yok",
+   "ar": "لا توجد صورة",
+   "pl": "Brak obrazu",
+   "ru": "Нет картинки"
+  },
+  {
    "zh": "没有画面。连接采集卡并开始播放后，可以在你自己的游戏画面上调整方框",
    "src": "qml/PushHudDialog.qml",
    "zh-TW": "沒有畫面。連接擷取卡並開始播放後，可以在你自己的遊戲畫面上調整方框",
@@ -37811,6 +38457,23 @@
    "ru": "Очистить память"
   },
   {
+   "zh": "温暖",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "溫暖",
+   "en": "Warm",
+   "ja": "ウォーム",
+   "nl": "Warm",
+   "de": "Warm",
+   "es": "Cálido",
+   "fr": "Chaud",
+   "it": "Caldo",
+   "pt-BR": "Quente",
+   "tr": "Sıcak",
+   "ar": "دافئ",
+   "pl": "Ciepły",
+   "ru": "Тёплый"
+  },
+  {
    "zh": "游戏",
    "src": "qml/PushGamePresetsDialog.qml",
    "zh-TW": "遊戲",
@@ -37826,6 +38489,23 @@
    "ar": "اللعبة",
    "pl": "Gra",
    "ru": "Игра"
+  },
+  {
+   "zh": "游戏 %1 FPS",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "遊戲 %1 FPS",
+   "en": "Game %1 FPS",
+   "ja": "ゲーム %1 FPS",
+   "nl": "Game %1 FPS",
+   "de": "Spiel %1 FPS",
+   "es": "Juego %1 FPS",
+   "fr": "Jeu %1 FPS",
+   "it": "Gioco %1 FPS",
+   "pt-BR": "Jogo %1 FPS",
+   "tr": "Oyun %1 FPS",
+   "ar": "اللعبة %1 FPS",
+   "pl": "Gra %1 FPS",
+   "ru": "Игра %1 FPS"
   },
   {
    "zh": "游戏 %1 FPS → 输出 %2 FPS",
@@ -37928,6 +38608,23 @@
    "ar": "صوت اللعبة",
    "pl": "Dźwięk gry",
    "ru": "Звук игры"
+  },
+  {
+   "zh": "游戏声音和麦克风的推子只影响录制和直播；监听只改变你听到的声音",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "遊戲聲音和麥克風的推子只影響錄製和直播；監聽只改變你聽到的聲音",
+   "en": "Game sound and microphone faders only affect recordings and streams; monitor only changes what you hear",
+   "ja": "ゲーム音とマイクのフェーダーは録画と配信だけに影響します。モニターは自分に聞こえる音だけを変えます",
+   "nl": "De schuifregelaars voor gamegeluid en microfoon gelden alleen voor opnames en streams; meeluisteren verandert alleen wat je hoort",
+   "de": "Die Regler für Spielton und Mikrofon wirken nur auf Aufnahmen und Streams; Mithören ändert nur, was du hörst",
+   "es": "Los faders del sonido del juego y del micrófono solo afectan a grabaciones y transmisiones; la escucha solo cambia lo que oyes",
+   "fr": "Les curseurs du son du jeu et du micro n'agissent que sur les enregistrements et les diffusions ; le retour ne change que ce que vous entendez",
+   "it": "I fader di audio di gioco e microfono agiscono solo su registrazioni e dirette; il monitor cambia solo ciò che senti",
+   "pt-BR": "Os faders do som do jogo e do microfone só afetam gravações e transmissões; o retorno só muda o que você ouve",
+   "tr": "Oyun sesi ve mikrofon kaydırıcıları yalnızca kayıt ve yayınları etkiler; dinleme yalnızca duyduğunuzu değiştirir",
+   "ar": "منزلقات صوت اللعبة والميكروفون تؤثر في التسجيلات والبث فقط؛ المراقبة تغيّر ما تسمعه فقط",
+   "pl": "Suwaki dźwięku gry i mikrofonu działają tylko na nagrania i transmisje; odsłuch zmienia tylko to, co słyszysz",
+   "ru": "Фейдеры звука игры и микрофона влияют только на записи и трансляции; мониторинг меняет только то, что слышите вы"
   },
   {
    "zh": "游戏帧率",
@@ -38744,6 +39441,23 @@
    "ar": "الآن %1×: اللعبة %2 FPS ← نحو %3 FPS",
    "pl": "Teraz %1×: gra %2 FPS → około %3 FPS",
    "ru": "Сейчас %1×: игра %2 FPS → около %3 FPS"
+  },
+  {
+   "zh": "现在电脑处理延迟 %1 毫秒。",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "現在電腦處理延遲 %1 毫秒。",
+   "en": "PC processing latency now %1 ms.",
+   "ja": "現在の PC 処理遅延は %1 ミリ秒です。",
+   "nl": "PC-verwerkingslatentie nu %1 ms.",
+   "de": "PC-Verarbeitungslatenz jetzt %1 ms.",
+   "es": "Latencia de procesamiento del PC ahora: %1 ms.",
+   "fr": "Latence de traitement du PC actuellement : %1 ms.",
+   "it": "Latenza di elaborazione del PC ora: %1 ms.",
+   "pt-BR": "Latência de processamento do PC agora: %1 ms.",
+   "tr": "Şu anki PC işleme gecikmesi %1 ms.",
+   "ar": "زمن معالجة الحاسوب الآن %1 ms.",
+   "pl": "Opóźnienie przetwarzania PC teraz: %1 ms.",
+   "ru": "Сейчас задержка обработки ПК %1 мс."
   },
   {
    "zh": "生效中",
@@ -39783,6 +40497,23 @@
    "ru": "Белое свечение"
   },
   {
+   "zh": "监听",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "監聽",
+   "en": "Monitor",
+   "ja": "モニター",
+   "nl": "Meeluisteren",
+   "de": "Mithören",
+   "es": "Escucha",
+   "fr": "Retour",
+   "it": "Monitor",
+   "pt-BR": "Retorno",
+   "tr": "Dinleme",
+   "ar": "المراقبة",
+   "pl": "Odsłuch",
+   "ru": "Мониторинг"
+  },
+  {
    "zh": "监控兼容绘制已启用：OSD 只显示在视频上；部分阴影与模糊简化",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "監控相容繪製已啟用：OSD 只顯示在影片上；部分陰影與模糊簡化",
@@ -40021,6 +40752,40 @@
    "ru": "Начать трансляцию"
   },
   {
+   "zh": "直播 %1 · %2 Mbps · 丢帧 %3",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "直播 %1 · %2 Mbps · 丟幀 %3",
+   "en": "LIVE %1 · %2 Mbps · dropped %3",
+   "ja": "配信 %1 · %2 Mbps · ドロップ %3",
+   "nl": "LIVE %1 · %2 Mbps · verloren %3",
+   "de": "LIVE %1 · %2 Mbps · verworfen %3",
+   "es": "EN VIVO %1 · %2 Mbps · perdidos %3",
+   "fr": "DIRECT %1 · %2 Mbps · perdues %3",
+   "it": "LIVE %1 · %2 Mbps · persi %3",
+   "pt-BR": "AO VIVO %1 · %2 Mbps · perdidos %3",
+   "tr": "CANLI %1 · %2 Mbps · düşen %3",
+   "ar": "مباشر %1 · %2 Mbps · مفقودة %3",
+   "pl": "NA ŻYWO %1 · %2 Mbps · utracone %3",
+   "ru": "ЭФИР %1 · %2 Мбит/с · потеряно %3"
+  },
+  {
+   "zh": "直播 未开始",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "直播 未開始",
+   "en": "LIVE off",
+   "ja": "配信 オフ",
+   "nl": "LIVE uit",
+   "de": "LIVE aus",
+   "es": "EN VIVO apagado",
+   "fr": "DIRECT arrêté",
+   "it": "LIVE spento",
+   "pt-BR": "AO VIVO desligado",
+   "tr": "CANLI kapalı",
+   "ar": "البث متوقف",
+   "pl": "NA ŻYWO wył.",
+   "ru": "ЭФИР выкл."
+  },
+  {
    "zh": "直播中",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "直播中",
@@ -40036,6 +40801,23 @@
    "ar": "مباشر الآن",
    "pl": "Na żywo",
    "ru": "В эфире"
+  },
+  {
+   "zh": "直播中 %1",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "直播中 %1",
+   "en": "LIVE %1",
+   "ja": "配信中 %1",
+   "nl": "LIVE %1",
+   "de": "LIVE %1",
+   "es": "EN VIVO %1",
+   "fr": "EN DIRECT %1",
+   "it": "IN DIRETTA %1",
+   "pt-BR": "AO VIVO %1",
+   "tr": "CANLI %1",
+   "ar": "مباشر %1",
+   "pl": "NA ŻYWO %1",
+   "ru": "В ЭФИРЕ %1"
   },
   {
    "zh": "直播中 · %1",
@@ -40072,6 +40854,23 @@
    "ru": "Не удалось включить режим совместимости потокового вещания; восстановлен"
   },
   {
+   "zh": "直播和录制 PushFPS 的画面，混音、开播、录像都在这一页",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "直播和錄製 PushFPS 的畫面，混音、開播、錄影都在這一頁",
+   "en": "Stream and record the PushFPS picture: mixing, going live and recording all on one page",
+   "ja": "PushFPS の映像を配信・録画：ミキサー、配信開始、録画をすべてこのページで",
+   "nl": "Stream en neem het PushFPS-beeld op: mixen, live gaan en opnemen op één pagina",
+   "de": "Streame und nimm das PushFPS-Bild auf: Mischen, Live gehen und Aufnehmen auf einer Seite",
+   "es": "Transmite y graba la imagen de PushFPS: mezcla, transmisión y grabación en una sola página",
+   "fr": "Diffusez et enregistrez l'image PushFPS : mixage, direct et enregistrement sur une seule page",
+   "it": "Trasmetti e registra l'immagine di PushFPS: mixer, diretta e registrazione in un'unica pagina",
+   "pt-BR": "Transmita e grave a imagem do PushFPS: mixagem, transmissão e gravação em uma só página",
+   "tr": "PushFPS görüntüsünü yayınlayın ve kaydedin: miksaj, yayın ve kayıt tek sayfada",
+   "ar": "ابث وسجّل صورة PushFPS: المزج وبدء البث والتسجيل كلها في صفحة واحدة",
+   "pl": "Transmituj i nagrywaj obraz PushFPS: miks, nadawanie i nagrywanie na jednej stronie",
+   "ru": "Транслируйте и записывайте картинку PushFPS: микшер, эфир и запись на одной странице"
+  },
+  {
    "zh": "直播地址无效：",
    "src": "src/engine/LiveRecorder.cpp",
    "zh-TW": "直播位址無效：",
@@ -40087,6 +40886,23 @@
    "ar": "عنوان البث غير صالح: ",
    "pl": "Nieprawidłowy adres transmisji: ",
    "ru": "Недействительный адрес трансляции: "
+  },
+  {
+   "zh": "直播平台",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "直播平台",
+   "en": "Streaming platforms",
+   "ja": "配信プラットフォーム",
+   "nl": "Streamplatforms",
+   "de": "Streaming-Plattformen",
+   "es": "Plataformas de streaming",
+   "fr": "Plateformes de diffusion",
+   "it": "Piattaforme di streaming",
+   "pt-BR": "Plataformas de streaming",
+   "tr": "Yayın platformları",
+   "ar": "منصات البث",
+   "pl": "Platformy streamingowe",
+   "ru": "Платформы трансляции"
   },
   {
    "zh": "直播服务器地址必须以 rtmp:// 或 rtmps:// 开头",
@@ -40106,6 +40922,23 @@
    "ru": "Адреса серверов должны начинаться с rtmp:// или rtmps://"
   },
   {
+   "zh": "直播模式",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "直播模式",
+   "en": "Streaming mode",
+   "ja": "配信モード",
+   "nl": "Streammodus",
+   "de": "Streaming-Modus",
+   "es": "Modo streaming",
+   "fr": "Mode diffusion",
+   "it": "Modalità streaming",
+   "pt-BR": "Modo streaming",
+   "tr": "Yayın modu",
+   "ar": "وضع البث",
+   "pl": "Tryb streamingu",
+   "ru": "Режим трансляции"
+  },
+  {
    "zh": "直播的声音编码失败",
    "src": "src/engine/LiveRecorder.cpp",
    "zh-TW": "直播的聲音編碼失敗",
@@ -40121,6 +40954,23 @@
    "ar": "فشل ترميز صوت البث",
    "pl": "Kodowanie dźwięku transmisji nie powiodło się",
    "ru": "Не удалось закодировать звук трансляции"
+  },
+  {
+   "zh": "直播输出",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "直播輸出",
+   "en": "Stream outputs",
+   "ja": "配信出力",
+   "nl": "Streamuitvoer",
+   "de": "Stream-Ausgänge",
+   "es": "Salidas de transmisión",
+   "fr": "Sorties de diffusion",
+   "it": "Uscite della diretta",
+   "pt-BR": "Saídas da transmissão",
+   "tr": "Yayın çıkışları",
+   "ar": "مخرجات البث",
+   "pl": "Wyjścia transmisji",
+   "ru": "Выходы трансляции"
   },
   {
    "zh": "直播需要 SDR 画面：请关闭 HDR 输出后再开播",
@@ -40852,6 +41702,40 @@
    "ar": "يسري مفعولها فوراً، وتبقّى السجلات بالصينية، لذا تبقى تقارير المشاكل قابلة للقراءة",
    "pl": "Od razu staje się skuteczna; logi pozostają w Chinach więc raporty problemów pozostają czytelne",
    "ru": "Вступает в силу немедленно; журналы остаются на китайском языке, поэтому отчеты о проблемах остаются читаемыми."
+  },
+  {
+   "zh": "竖屏",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "直式",
+   "en": "Vertical",
+   "ja": "縦型",
+   "nl": "Verticaal",
+   "de": "Hochkant",
+   "es": "Vertical",
+   "fr": "Vertical",
+   "it": "Verticale",
+   "pt-BR": "Vertical",
+   "tr": "Dikey",
+   "ar": "عمودي",
+   "pl": "Pion",
+   "ru": "Вертикально"
+  },
+  {
+   "zh": "竖屏 9:16，适合 TikTok、Shorts 和 Reels：上面是原帧率，下面是 PushFPS，各占半屏（取画面中间部分）",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "直式 9:16，適合 TikTok、Shorts 和 Reels：上面是原幀率，下面是 PushFPS，各占半屏（取畫面中間部分）",
+   "en": "Vertical 9:16 for TikTok, Shorts and Reels: original frame rate on top, PushFPS below, each filling half the screen (the middle of the picture)",
+   "ja": "縦型 9:16、TikTok・Shorts・Reels 向け：上が元のフレームレート、下が PushFPS、それぞれ画面の半分（映像の中央部分）",
+   "nl": "Verticaal 9:16 voor TikTok, Shorts en Reels: boven de originele framerate, onder PushFPS, elk een half scherm (het midden van het beeld)",
+   "de": "Hochkant 9:16 für TikTok, Shorts und Reels: oben die Original-Bildrate, unten PushFPS, je ein halber Bildschirm (die Bildmitte)",
+   "es": "Vertical 9:16 para TikTok, Shorts y Reels: arriba la tasa original, abajo PushFPS, cada uno ocupa media pantalla (el centro de la imagen)",
+   "fr": "Vertical 9:16 pour TikTok, Shorts et Reels : en haut la fréquence d'origine, en bas PushFPS, chacun sur une demi-écran (le centre de l'image)",
+   "it": "Verticale 9:16 per TikTok, Shorts e Reels: sopra la frequenza originale, sotto PushFPS, ciascuno su mezzo schermo (il centro dell'immagine)",
+   "pt-BR": "Vertical 9:16 para TikTok, Shorts e Reels: em cima a taxa original, embaixo PushFPS, cada um em meia tela (o centro da imagem)",
+   "tr": "TikTok, Shorts ve Reels için dikey 9:16: üstte orijinal kare hızı, altta PushFPS, her biri ekranın yarısı (görüntünün ortası)",
+   "ar": "عمودي 9:16 لـ TikTok وShorts وReels: في الأعلى المعدل الأصلي وفي الأسفل PushFPS، كل منهما نصف الشاشة (وسط الصورة)",
+   "pl": "Pion 9:16 do TikTok, Shorts i Reels: u góry oryginalna liczba klatek, na dole PushFPS, każde na pół ekranu (środek obrazu)",
+   "ru": "Вертикально 9:16 для TikTok, Shorts и Reels: сверху исходная частота, снизу PushFPS, каждое на половину экрана (середина картинки)"
   },
   {
    "zh": "端点已打开",
@@ -42637,6 +43521,23 @@
    "ar": "نقل قديم مسطح",
    "pl": "Płaski stary transfer",
    "ru": "Плоская старая передача"
+  },
+  {
+   "zh": "耳机麦克风",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "耳機麥克風",
+   "en": "Headset mic",
+   "ja": "ヘッドセットマイク",
+   "nl": "Headsetmicrofoon",
+   "de": "Headset-Mikrofon",
+   "es": "Micrófono de auriculares",
+   "fr": "Micro de casque",
+   "it": "Microfono cuffie",
+   "pt-BR": "Microfone de headset",
+   "tr": "Kulaklık mikrofonu",
+   "ar": "ميكروفون السماعة",
+   "pl": "Mikrofon zestawu słuchawkowego",
+   "ru": "Микрофон гарнитуры"
   },
   {
    "zh": "肤色提亮",
@@ -45733,6 +46634,23 @@
    "ru": "Пусть хост переключится на разрешение потока"
   },
   {
+   "zh": "让大声和小声更接近，喊叫不爆音、轻声也听得清（3:1，-18 dB 起）",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "讓大聲和小聲更接近，喊叫不爆音、輕聲也聽得清（3:1，-18 dB 起）",
+   "en": "Brings loud and quiet closer together: shouts do not clip and soft speech stays clear (3:1 above -18 dB)",
+   "ja": "大きな声と小さな声の差を縮めます。叫んでも割れず、小声も聞き取れます（3:1、-18 dB から）",
+   "nl": "Brengt hard en zacht dichter bij elkaar: schreeuwen stuurt niet over en zacht praten blijft verstaanbaar (3:1 boven -18 dB)",
+   "de": "Bringt laut und leise näher zusammen: Schreie übersteuern nicht, leises Sprechen bleibt klar (3:1 ab -18 dB)",
+   "es": "Acerca lo fuerte y lo suave: los gritos no saturan y el habla suave se entiende (3:1 por encima de -18 dB)",
+   "fr": "Rapproche le fort et le faible : les cris ne saturent pas et la voix douce reste claire (3:1 au-dessus de -18 dB)",
+   "it": "Avvicina forte e piano: le urla non distorcono e la voce bassa resta chiara (3:1 sopra -18 dB)",
+   "pt-BR": "Aproxima o alto e o baixo: gritos não distorcem e a fala suave continua clara (3:1 acima de -18 dB)",
+   "tr": "Yüksek ve alçak sesi yakınlaştırır: bağırışlar kırpılmaz, alçak ses de net duyulur (-18 dB üzerinde 3:1)",
+   "ar": "يقرّب بين الأصوات العالية والهادئة: لا يتشوه الصراخ ويبقى الكلام الهادئ واضحًا (3:1 فوق -18 dB)",
+   "pl": "Zbliża głośne i ciche: krzyk nie przesterowuje, a cicha mowa pozostaje wyraźna (3:1 powyżej -18 dB)",
+   "ru": "Сближает громкое и тихое: крик не перегружает, тихая речь остаётся разборчивой (3:1 выше -18 дБ)"
+  },
+  {
    "zh": "让游戏画面通过采集卡显示出来，然后开始。PushFPS 会在实际画面上依次测试这台电脑能运行的每种补帧方式（每种约 10 秒，共 1 到 3 分钟），测量真实帧率、1% 低帧和延迟，按你选的目标选出最好的一种。",
    "src": "qml/PushOptimizeDialog.qml",
    "zh-TW": "讓遊戲畫面透過擷取卡顯示出來，然後開始。PushFPS 會在實際畫面上依次測試這台電腦能運行的每種補幀方式（每種約 10 秒，共 1 到 3 分鐘），測量真實幀率、1% 低幀和延遲，按你選的目標選出最好的一種。",
@@ -47414,6 +48332,23 @@
    "ar": "مبلغ التكييف؛ ٪ يعطل المنحنى",
    "pl": "Kwota korekty; 0% wyłącza krzywą",
    "ru": "Сумма корректировки; 0% отключает кривую"
+  },
+  {
+   "zh": "调整声音的低频、中频和高频",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "調整聲音的低頻、中頻和高頻",
+   "en": "Adjusts the lows, mids and highs of your voice",
+   "ja": "声の低域・中域・高域を調整します",
+   "nl": "Past de lage, midden- en hoge tonen van je stem aan",
+   "de": "Passt Tiefen, Mitten und Höhen deiner Stimme an",
+   "es": "Ajusta graves, medios y agudos de tu voz",
+   "fr": "Règle les graves, les médiums et les aigus de votre voix",
+   "it": "Regola bassi, medi e alti della tua voce",
+   "pt-BR": "Ajusta graves, médios e agudos da sua voz",
+   "tr": "Sesinizin bas, orta ve tiz frekanslarını ayarlar",
+   "ar": "يضبط الترددات المنخفضة والمتوسطة والعالية لصوتك",
+   "pl": "Reguluje niskie, średnie i wysokie tony głosu",
+   "ru": "Настраивает низкие, средние и высокие частоты голоса"
   },
   {
    "zh": "调色",
@@ -51445,6 +52380,23 @@
    "ru": "Карта захвата потеряла %1% кадров"
   },
   {
+   "zh": "采集卡或串流",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "擷取卡或串流",
+   "en": "Capture card or stream",
+   "ja": "キャプチャーボードまたはストリーム",
+   "nl": "Capturekaart of stream",
+   "de": "Capture-Karte oder Stream",
+   "es": "Capturadora o transmisión",
+   "fr": "Carte d'acquisition ou flux",
+   "it": "Scheda di acquisizione o stream",
+   "pt-BR": "Placa de captura ou stream",
+   "tr": "Yakalama kartı veya akış",
+   "ar": "بطاقة الالتقاط أو البث",
+   "pl": "Karta przechwytująca lub strumień",
+   "ru": "Карта захвата или поток"
+  },
+  {
    "zh": "采集卡或串流画面出现时进入全屏；按 F11 或 Esc 退出",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "擷取卡或串流畫面出現時進入全螢幕；按 F11 或 Esc 退出",
@@ -53432,6 +54384,23 @@
    "ar": "لا يمكن أن يسترد من تحت الصوت",
    "pl": "Nie można odzyskać z podłączenia audio",
    "ru": "Не удалось восстановиться после аудиозаписи"
+  },
+  {
+   "zh": "音频混音器",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "音訊混音器",
+   "en": "Audio mixer",
+   "ja": "オーディオミキサー",
+   "nl": "Audiomixer",
+   "de": "Audio-Mixer",
+   "es": "Mezclador de audio",
+   "fr": "Mixeur audio",
+   "it": "Mixer audio",
+   "pt-BR": "Mixer de áudio",
+   "tr": "Ses mikseri",
+   "ar": "خلاط الصوت",
+   "pl": "Mikser audio",
+   "ru": "Аудиомикшер"
   },
   {
    "zh": "音频漂移校正失败",
@@ -55863,6 +56832,40 @@
    "ar": "The microphone cannot record (0x{:08X})",
    "pl": "Mikrofon nie może zarejestrować (0x {:08X})",
    "ru": "The microphone cannot record (0x{:08X})"
+  },
+  {
+   "zh": "麦克风滤镜",
+   "src": "qml/PushMicFiltersDialog.qml",
+   "zh-TW": "麥克風濾鏡",
+   "en": "Microphone filters",
+   "ja": "マイクフィルター",
+   "nl": "Microfoonfilters",
+   "de": "Mikrofonfilter",
+   "es": "Filtros del micrófono",
+   "fr": "Filtres du micro",
+   "it": "Filtri del microfono",
+   "pt-BR": "Filtros do microfone",
+   "tr": "Mikrofon filtreleri",
+   "ar": "مرشحات الميكروفون",
+   "pl": "Filtry mikrofonu",
+   "ru": "Фильтры микрофона"
+  },
+  {
+   "zh": "麦克风滤镜（均衡器、噪声门、压缩）",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "麥克風濾鏡（等化器、噪聲門、壓縮）",
+   "en": "Microphone filters (equalizer, noise gate, compressor)",
+   "ja": "マイクフィルター（イコライザー、ノイズゲート、コンプレッサー）",
+   "nl": "Microfoonfilters (equalizer, noise gate, compressor)",
+   "de": "Mikrofonfilter (Equalizer, Noise Gate, Kompressor)",
+   "es": "Filtros del micrófono (ecualizador, puerta de ruido, compresor)",
+   "fr": "Filtres du micro (égaliseur, noise gate, compresseur)",
+   "it": "Filtri del microfono (equalizzatore, noise gate, compressore)",
+   "pt-BR": "Filtros do microfone (equalizador, noise gate, compressor)",
+   "tr": "Mikrofon filtreleri (ekolayzır, gürültü kapısı, kompresör)",
+   "ar": "مرشحات الميكروفون (المعادل، بوابة الضوضاء، الضاغط)",
+   "pl": "Filtry mikrofonu (korektor, bramka szumów, kompresor)",
+   "ru": "Фильтры микрофона (эквалайзер, шумовой гейт, компрессор)"
   },
   {
    "zh": "麦克风被其他程序独占，请关闭独占模式后再试",

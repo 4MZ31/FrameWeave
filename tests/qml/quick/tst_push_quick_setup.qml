@@ -241,7 +241,7 @@ Item {
         }
         function test_rows_are_shown() {
             for (const n of ["pushfps-console-row", "pushfps-game-row", "pushfps-game-fps-row",
-                             "pushfps-target-row", "pushfps-adaptive-row", "pushfps-pacing-row", "pushfps-hudlock-row", "pushfps-enhance-row", "pushfps-smooth-row", "pushfps-low-latency-row"])
+                             "pushfps-target-row", "pushfps-adaptive-row", "pushfps-pacing-row", "pushfps-hudlock-row", "pushfps-enhance-row", "pushfps-smooth-row", "pushfps-low-latency-row", "pushfps-lowest-latency-row"])
                 verify(control(n).visible, n)
             verify(quick.height > 0)
         }
@@ -261,6 +261,36 @@ Item {
             compare(veyra.variableRefresh, false)
             compare(veyra.outputRateMode, 0, "off: no output cap")
             compare(veyra.preferences.pushSmoothPacing, false)
+        }
+        function test_lowest_latency_one_tap_keeps_quality_and_restores() {
+            // A G-SYNC/FreeSync screen on an NVIDIA card, display sync Automatic before.
+            veyra.nvidiaLowLatencyAvailable = true; veyra.nvidiaLowLatency = 0; veyra.vrrState = 4
+            veyra.displaySync = 2; veyra.variableRefresh = false; veyra.outputRateMode = 0
+            veyra.fgMultiplier = 3; veyra.nrAnyEnabled = true; veyra.hudLock = true; veyra.pacingRepair = true
+            const sw = control("pushfps-lowest-latency")
+            verify(!sw.checked)
+            sw.toggled(true)
+            compare(veyra.nvidiaLowLatency, 1, "NVIDIA low latency: one-frame queue")
+            compare(veyra.preferences.pushAutoFullscreen, true, "fullscreen on connect")
+            compare(veyra.displaySync, 1); compare(veyra.variableRefresh, true); compare(veyra.outputRateMode, 1)
+            verify(quick.lowestLatency && sw.checked)
+            // Picture and frame generation untouched.
+            compare(veyra.fgMultiplier, 3); verify(veyra.nrAnyEnabled); verify(veyra.hudLock); verify(veyra.pacingRepair)
+            sw.toggled(false)
+            compare(veyra.nvidiaLowLatency, 0, "restored")
+            compare(veyra.preferences.pushAutoFullscreen, false)
+            compare(veyra.displaySync, 2); compare(veyra.variableRefresh, false); compare(veyra.outputRateMode, 0)
+            verify(!quick.lowestLatency)
+            // Another GPU, no variable refresh: the low queue, display sync left alone (no tearing).
+            veyra.nvidiaLowLatencyAvailable = false; veyra.vrrState = 0; veyra.fgLowQueue = false
+            veyra.displaySync = 2
+            sw.toggled(true)
+            compare(veyra.fgLowQueue, true)
+            compare(veyra.displaySync, 2, "no VRR: sync unchanged")
+            verify(quick.lowestLatency)
+            sw.toggled(false)
+            compare(veyra.fgLowQueue, false)
+            veyra.vrrState = 0
         }
     }
 }

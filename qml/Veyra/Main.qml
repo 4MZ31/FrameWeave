@@ -251,6 +251,9 @@ Window {
             return nodePage.videoViewport
         case "exp":
             return ExportLayout.calculate(width, height, exportPage.compactTab).video
+        case "live":
+            // PushFPS streaming mode: the preview card (StudioLayout.js).
+            return studioPage.videoViewport
         default:
             return { x: 0, y: 0, width: 0, height: 0 }
         }
@@ -309,6 +312,13 @@ Window {
             }
         }
         ExportPage { id: exportPage; pageId: "exp"; home: pages; onRequestPage: p => root.goPage(p) }
+        StudioPage {
+            id: studioPage
+            pageId: "live"
+            home: pages
+            onVideoViewportChanged: if (root.page === "live" && !root.fullscreen) videoHost.syncRect()
+            onRequestPage: p => root.goPage(p)
+        }
         SettingsPage { id: settingsPage; pageId: "set"; home: pages; onRequestPage: p => root.goPage(p) }
     }
 
@@ -910,7 +920,7 @@ Window {
         function onNavigate(p) {
             // A dialog key opens the dialog; anything else is a page.
             if (p === "network" || p === "capture" || p === "ps5" || p === "moonlight" || p === "xbox" || p === "screen"
-                || p === "subtitle" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud" || p === "latencyguide" || p === "stream" || p === "compare") {
+                || p === "subtitle" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud" || p === "latencyguide" || p === "stream" || p === "compare" || p === "micfilters") {
                 dialogs.open(p)
                 return
             }
@@ -1113,10 +1123,10 @@ Window {
     onVisibilityChanged: Qt.callLater(root.applyOnTop)
 
     // PushFPS "Sunset City" intro (PushIntro.qml) and the startup music, each with its own switch in
-    // 设置 → 外观 (introAnimation, introMusic; unset = on). The music is the file Veyra's runtime
+    // 设置 → 外观 (introAnimation unset = on; introMusic unset = off, PushFPS default since 3.0.0). The music is the file Veyra's runtime
     // package installs (media/startup-music.mp3); PushFPS never ships or copies it.
     readonly property bool brandIntro: veyra.preferences.introAnimation !== false
-    readonly property bool musicOn: typeof vyMusic !== "undefined" && veyra.preferences.introMusic !== false
+    readonly property bool musicOn: typeof vyMusic !== "undefined" && veyra.preferences.introMusic === true
     readonly property bool musicSounding: typeof vyMusic !== "undefined" && (vyMusic.state === "loading" || vyMusic.state === "playing")
     function stopStartupMusicForSession() {
         if (typeof vyMusic === "undefined") return

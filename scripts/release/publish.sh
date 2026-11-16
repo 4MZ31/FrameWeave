@@ -15,6 +15,8 @@ else
   KIND=(--prerelease)
 fi
 obszip=$(ls dist/PushFPS-OBS-Plugin-*.zip | head -1); obssum=$(cat "$obszip.sha256")
+# The setup guide (recommended settings, console, Windows and HDR) as a plain text file.
+if [ -f docs/PushFPS-Setup-Guide.txt ]; then cp docs/PushFPS-Setup-Guide.txt dist/PushFPS-Setup-Guide.txt; fi
 # One checksum list for every file, and the pinned components this build was made from (from the
 # env block of build-windows.yml), so anyone can check what they downloaded and what is inside.
 (cd dist && sha256sum $(ls | grep -v -E '\.sha256$|^SHA256SUMS\.txt$|-components\.txt$') > SHA256SUMS.txt)
@@ -43,6 +45,12 @@ and desktop shortcuts. No administrator rights needed.
 $STATUS_LINE
 
 SHA-256: \`$sum\`
+
+## Setup guide
+
+**PushFPS-Setup-Guide.txt** has the recommended settings to start from, how to tune them, the
+settings for PS5, Xbox and Switch, the Windows settings and when to use HDR. Also on the website:
+https://dosukasol.github.io/PushFPS/#guide
 
 ## OBS Studio plugin
 

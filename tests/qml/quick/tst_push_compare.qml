@@ -48,6 +48,26 @@ Item {
             compare(veyra.compareSeconds, 30)
             compare(veyra.compareLayout, 1)
         }
+        function test_vertical_for_short_video_apps() {
+            findChild(cmp, "pushfps-compare-layout").picked("2")
+            compare(veyra.preferences.pushCompareLayout, 2)
+            compare(cmp.layoutId, 2)
+            verify(cmp.verticalPreview, "portrait preview shown")
+            verify(findChild(cmp, "pushfps-compare-preview-vertical") !== null)
+            // Labels next to the divider: the console's just above, PushFPS's just below (192-high preview).
+            const top = cmp.verticalTagY(0, 12, 192), bottom = cmp.verticalTagY(1, 12, 192)
+            verify(top + 12 <= 96 && top > 60, "console label just above the middle, y=" + top)
+            verify(bottom >= 96 && bottom < 120, "PushFPS label just below the middle, y=" + bottom)
+            verify(cmp.layoutHint(2).indexOf("TikTok") >= 0)
+            action(qsTr("开始录制"))
+            compare(veyra.compareLayout, 2)
+            const tile = findChild(quick, "pushfps-compare-clip")
+            compare(tile.sub, qsTr("%1 秒").arg(15) + " · " + qsTr("竖屏"))
+        }
+        function test_an_unknown_layout_falls_back_to_split() {
+            veyra.setPreference("pushCompareLayout", 5)
+            compare(cmp.layoutId, 0)
+        }
         function test_cancel_records_nothing() {
             action(qsTr("取消"))
             compare(veyra.compareStarts, 0)

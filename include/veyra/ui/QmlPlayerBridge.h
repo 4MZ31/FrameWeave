@@ -1503,6 +1503,11 @@ public:
     Q_INVOKABLE bool pushStartStream();
     Q_INVOKABLE void pushStopStream();
     Q_INVOKABLE QVariantMap pushStreamStatus() const;
+    // PushFPS streaming mode (StudioPage.qml) audio mixer: meters while the page is on screen
+    // (the game sound tap, and the microphone when recordings or streams use it), and the levels
+    // since the last call (dBFS, -100 silence). The mix itself is in preferences (applyPushMix).
+    Q_INVOKABLE void pushSetStudioMeters(bool on);
+    Q_INVOKABLE QVariantMap pushStudioLevels();
     Q_INVOKABLE QString pushLinkUrl(const QString& key) const;
     // PushFPS automatic HUD detection (engine/PushHudSampler.h): samples=1 only
     // takes a fresh picture for the box editor. pushHudDetection() polls it.
@@ -1627,6 +1632,7 @@ private:
     // Pushes a stored preference to whatever consumes it (subtitle overlay,
     // audio endpoint). Called after load and after every accepted change.
     void applyPreference(const QString& key);
+    void applyPushMix();   // PushFPS mixer preferences -> engine::setPushMix (PushStudio.cpp)
     void scheduleEnhancementPrewarm();
     // Hold-to-compare key (press/release), handled for the whole application.
     bool eventFilter(QObject* watched, QEvent* event) override;

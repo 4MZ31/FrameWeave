@@ -1,4 +1,5 @@
 #include "veyra/engine/MicrophoneCapture.h"
+#include "veyra/engine/PushAudioMix.h"
 
 // The audio client headers come before AudioFormat.h (ks.h), as in
 // source/WasapiAudioInput.cpp.
@@ -89,7 +90,13 @@ struct Hub {
     MicrophoneStatus status;
     bool started=false;
 
+    std::vector<float> processed;        // PushFPS: the packet after the mixer's microphone filters
     void deliver(const float* pcm,size_t frames,int64_t capturedUs){
+        // PushFPS streaming mode mixer (PushAudioMix.h): rumble filter, EQ, gate, compressor,
+        // fader and meter, once for every recorder and stream that takes the microphone.
+        processed.assign(pcm,pcm+frames*2);
+        pushProcessMicrophone(processed.data(),frames);
+        pcm=processed.data();
         std::lock_guard lock(m);
         for(const auto& sink:sinks)sink->microphonePcm(pcm,frames,capturedUs);
         ++status.packets;

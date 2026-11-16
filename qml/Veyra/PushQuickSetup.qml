@@ -21,6 +21,53 @@ VGroup {
         veyra.outputRateMode = on ? 1 : 0
         veyra.setPreference("pushSmoothPacing", on)
     }
+    // One-tap lowest latency (row pushfps-lowest-latency): only switches that cut waiting without
+    // touching the picture: the one-frame present queue (NVIDIA low latency on NVIDIA, the low
+    // queue elsewhere), fullscreen on connect (a fullscreen window skips the desktop compositor's
+    // extra refresh), and on a G-SYNC/FreeSync screen smooth frame pacing with variable refresh
+    // (no tearing, no skipped frames, almost no wait below the refresh rate). Frame generation,
+    // AI enhancement, HUD lock and pacing repair stay as they are. Turning it off restores what
+    // was set before (preference pushLowestLatency: the saved values as JSON).
+    readonly property bool vrrCapable: Number(veyra.vrrState || 0) >= 2
+    readonly property bool lowestLatency: (veyra.nvidiaLowLatencyAvailable === true ? Number(veyra.nvidiaLowLatency || 0) > 0 : veyra.fgLowQueue === true)
+        && veyra.preferences.pushAutoFullscreen === true
+        && (!quick.vrrCapable || (quick.smoothPacing && veyra.variableRefresh === true))
+    function setLowestLatency(on) {
+        const nvidia = veyra.nvidiaLowLatencyAvailable === true
+        if (on) {
+            veyra.setPreference("pushLowestLatency", JSON.stringify({
+                nvidia: Number(veyra.nvidiaLowLatency || 0), queue: veyra.fgLowQueue === true,
+                fullscreen: veyra.preferences.pushAutoFullscreen === true, display: veyra.displaySync,
+                vrr: veyra.variableRefresh === true, rate: veyra.outputRateMode }))
+            if (nvidia) veyra.nvidiaLowLatency = 1
+            else veyra.fgLowQueue = true
+            veyra.setPreference("pushAutoFullscreen", true)
+            if (quick.vrrCapable) quick.setSmoothPacing(true)
+            veyra.logUi("push-latency", "lowest latency on nvidia=" + nvidia + " vrr=" + quick.vrrCapable)
+            return
+        }
+        let saved = null
+        try { saved = JSON.parse(String(veyra.preferences.pushLowestLatency || "")) } catch (e) { saved = null }
+        if (!saved || typeof saved !== "object") saved = { nvidia: 0, queue: false, fullscreen: false }
+        if (nvidia) veyra.nvidiaLowLatency = Number(saved.nvidia || 0) > 0 ? 1 : 0
+        else veyra.fgLowQueue = saved.queue === true
+        veyra.setPreference("pushAutoFullscreen", saved.fullscreen === true)
+        if (typeof saved.display === "number" && typeof saved.rate === "number") {
+            veyra.displaySync = saved.display
+            veyra.variableRefresh = saved.vrr === true
+            veyra.outputRateMode = saved.rate
+        }
+        veyra.logUi("push-latency", "lowest latency off (previous settings restored)")
+    }
+    readonly property string lowestLatencyHint: {
+        const ms = Number(quick.liveStats.latencyMs || 0)
+        const now = ms > 0 ? qsTr("现在电脑处理延迟 %1 毫秒。").arg(ms.toFixed(0)) : ""
+        const capture = Number(quick.liveStats.captureFps || 0)
+        const tip = capture > 0 && capture < 100 && (quick.consoleId === "ps5" || quick.consoleId === "ps5pro" || quick.consoleId === "xbox")
+                  ? qsTr("主机输出 120 Hz 时每帧还能早约 8 毫秒到达。") : ""
+        if (!quick.lowestLatency) return qsTr("一键减少等待：画质、补帧和 AI 增强都不变")
+        return now + (quick.vrrCapable ? qsTr("单帧队列、全屏、可变刷新已开启。") : qsTr("单帧队列和全屏已开启；屏幕不支持可变刷新，帧同步保持不变以免画面撕裂。")) + tip
+    }
     objectName: "pushfps-quick-setup"
     // Home shows the short form: no low-latency row and no intro line.
     property bool compact: false
@@ -397,11 +444,14 @@ VGroup {
                 const n = Number(veyra.preferences.pushCompareSeconds || 15)
                 return [10, 15, 30, 60].indexOf(n) >= 0 ? n : 15
             }
-            readonly property string clipLayout: Number(veyra.preferences.pushCompareLayout || 0) === 1 ? qsTr("并排") : qsTr("分屏")
+            readonly property string clipLayout: {
+                const n = Number(veyra.preferences.pushCompareLayout || 0)
+                return n === 2 ? qsTr("竖屏") : n === 1 ? qsTr("并排") : qsTr("分屏")
+            }
             text: quick.compareRecording ? qsTr("停止对比片段") : qsTr("对比片段")
             sub: quick.compareRecording ? qsTr("正在录制…") : veyra.recording ? qsTr("录制中不可用")
                  : qsTr("%1 秒").arg(clipSeconds) + " · " + clipLayout
-            tip: qsTr("录制前后对比视频：一边是主机原本的帧率，一边是 PushFPS。可选分屏或并排，以及时长")
+            tip: qsTr("录制前后对比视频：一边是主机原本的帧率，一边是 PushFPS。可选分屏、并排或竖屏（TikTok、Shorts、Reels），以及时长")
             // Opens with nothing playing too, so the layout and length can be set beforehand;
             // the dialog says a picture is needed and only its start button records.
             enabled: quick.compareRecording || !veyra.recording
@@ -623,6 +673,18 @@ VGroup {
             opacity: enabled ? 1 : 0.4
             checked: veyra.nrAnyEnabled
             onToggled: checked => quick.setEnhancement(checked)
+        }
+    }
+
+    VRow {
+        objectName: "pushfps-lowest-latency-row"
+        label: qsTr("最低延迟")
+        help: qsTr("一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置")
+        hint: quick.lowestLatencyHint
+        VSwitch {
+            objectName: "pushfps-lowest-latency"
+            checked: quick.lowestLatency
+            onToggled: checked => quick.setLowestLatency(checked)
         }
     }
 

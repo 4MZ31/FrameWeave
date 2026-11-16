@@ -1,5 +1,6 @@
 // QML bridge: Preferences responsibilities.
 #include "../QmlPlayerBridge_p.h"
+#include "veyra/engine/PushAudioMix.h"
 #include "veyra/Brand.h"
 
 #include <QJsonDocument>
@@ -60,7 +61,7 @@ void QmlPlayerBridge::setInitialPage(const QString& value) {
 QString QmlPlayerBridge::currentPage() const { return impl_->currentPage; }
 void QmlPlayerBridge::setCurrentPage(const QString& value) {
     impl_->currentPage = value;
-    static const QStringList remembered{"home", "min", "pro", "node", "set", "exp"};
+    static const QStringList remembered{"home", "min", "pro", "node", "set", "exp", "live"};
     if (remembered.contains(value) && impl_->prefString("lastPage") != value) {
         impl_->prefs["lastPage"] = value == QLatin1String("node") ? QStringLiteral("pro") : value;
         impl_->savePrefs();
@@ -238,7 +239,7 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"nisSharpness", {0, 100}},
         // PushFPS comparison clip: length in seconds, layout 0 split picture / 1 side by side.
         {"pushCompareSeconds", {5, 120}},
-        {"pushCompareLayout", {0, 1}},
+        {"pushCompareLayout", {0, 2}},
         // Network sources (#48): seconds to collect before the first picture; -1 follows the buffer level.
         {"networkPrebuffer", {-1, 60}},
         // Live recording: the target bitrate for the file, and the frame rate
@@ -258,20 +259,26 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"recordAudioKbps", {64, 320}},
         {"recordContainer", {0, 1}},
         // Instant replay (#103): seconds the buffer keeps.
-        {"replaySeconds", {15, 600}}};
+        {"replaySeconds", {15, 600}},
+        // PushFPS streaming mode mixer (engine/PushAudioMix.h): faders in dB, the noise gate threshold.
+        {"mixGameDb", {-60, 12}},
+        {"mixMicDb", {-60, 20}},
+        {"micGateDb", {-80, -10}}};
     static const QStringList flags{"recordHevc", "recordAdvanced", "recordAudio", "recordMic", "recordMicTrack", "replayEnabled", "subtitleEnabled", "subtitleBackground", "subtitleFit",
                                    "subtitleSecondLanguage", "audioForceStereo", "captureAudioMonitor", "holdCompare",
                                    "magewellLowLatency", "blackmagicNativeCapture", "captureShowAllFrameRates", "cinePillHidden", "exportStopsPlayback", "obsGameCapture", "autoResume", "fullscreenMemoryProtection", "prewarmEnhancement", "hdrFgCompatibility", "computeOnMonitorGpu", "deinterlace", "networkAutoReconnect",
                                    // 设置 → 外观 → 启动动画 (the dusk palette's intro, DuskIntro.qml); unset = on.
                                    "introAnimation",
-                                   // 设置 → 外观 → 启动音乐 and the music button (Main.qml); unset = on.
+                                   // 设置 → 外观 → 启动音乐 and the music button (Main.qml); unset = off in PushFPS.
                                    "introMusic", "exclusionOverlay",
                                    // PushFPS: on-screen latency readout, fullscreen on connect, window on top.
                                    "pushLatencyOverlay", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset",
                                    // PushFPS: smooth frame pacing (quick setup); set once by the 2.9.7 default.
                                    "pushSmoothPacing",
                                    // PushFPS going live: sound and microphone in the stream.
-                                   "streamAudio", "streamMic"};
+                                   "streamAudio", "streamMic",
+                                   // PushFPS streaming mode mixer: mutes and the microphone filters.
+                                   "mixGameMuted", "mixMicMuted", "micHighPass", "micEqOn", "micGate", "micCompressor"};
     QVariant stored;
     if (ranges.contains(key)) {
         bool ok = false; const int n = value.toInt(&ok);
@@ -362,6 +369,18 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
             clean << QString::number(std::round(db * 10.0) / 10.0);
         }
         stored = clean.join(QLatin1Char(','));
+    } else if (key == QLatin1String("micEq")) {
+        // PushFPS microphone EQ (streaming mode mixer): five comma-separated gains in dB, -12..+12.
+        const QStringList parts = value.toString().split(QLatin1Char(','));
+        if (parts.size() != engine::kMicEqBands) return false;
+        QStringList clean;
+        for (const QString& part : parts) {
+            bool ok = false;
+            const double db = part.trimmed().toDouble(&ok);
+            if (!ok || !std::isfinite(db) || db < -engine::kMicEqMaxDb || db > engine::kMicEqMaxDb) return false;
+            clean << QString::number(std::round(db * 10.0) / 10.0);
+        }
+        stored = clean.join(QLatin1Char(','));
     } else if (key == QLatin1String("pushConsole")) {
         // PushFPS quick setup: which console the profile is for.
         const QString v = value.toString();
@@ -377,9 +396,10 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         const QJsonDocument doc = QJsonDocument::fromJson(v.toUtf8(), &error);
         if (error.error != QJsonParseError::NoError || !doc.isObject()) return false;
         stored = v;
-    } else if (key == QLatin1String("pushGamePresets") || key == QLatin1String("pushBenchmark")) {
-        // PushFPS: the user's own game presets and the last "Optimise for my PC" result,
-        // JSON written by the interface; size-capped and parsed here like pushProfiles.
+    } else if (key == QLatin1String("pushGamePresets") || key == QLatin1String("pushBenchmark") || key == QLatin1String("pushLowestLatency")) {
+        // PushFPS: the user's own game presets, the last "Optimise for my PC" result and the settings
+        // the one-tap lowest latency switch restores; JSON written by the interface, size-capped and
+        // parsed here like pushProfiles.
         const QString v = value.toString();
         if (v.size() > 131072) return false;
         QJsonParseError error{};
@@ -498,6 +518,11 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
             for (int i = 0; i < sink::kSoundEqBands; ++i) sound.customDb[std::size_t(i)] = parts[i].toFloat();
         sink::setSoundProfile(sound);
     }
+    else if (key == QLatin1String("mixGameDb") || key == QLatin1String("mixGameMuted") || key == QLatin1String("mixMicDb") ||
+             key == QLatin1String("mixMicMuted") || key == QLatin1String("micHighPass") || key == QLatin1String("micEqOn") ||
+             key == QLatin1String("micEq") || key == QLatin1String("micGate") || key == QLatin1String("micGateDb") ||
+             key == QLatin1String("micCompressor"))
+        applyPushMix();
     else if (key == QLatin1String("nisSharpness"))
         pipeline::setNisSharpness(float(impl_->prefInt("nisSharpness", int(pipeline::kNisDefaultSharpness * 100))) / 100.0f);
     else if (key == QLatin1String("magewellLowLatency")) source::magewell::setLowLatencyPreference(impl_->prefBool("magewellLowLatency", false));
