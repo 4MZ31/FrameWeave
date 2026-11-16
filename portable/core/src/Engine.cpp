@@ -92,6 +92,7 @@ void Engine::resetLocked() {
     lastArrival_ = lastKeptArrival_ = lastContent_ = 0;
     lastWidth_ = lastHeight_ = 0;
     delayNs_ = 0;
+    lateMarginMs_ = 0;
     pacing_->repair.reset();
     hudReset_ = true;
     lastForward_ = {};
@@ -250,6 +251,7 @@ Pick Engine::pick(int64_t displayNs) {
         displayHz_ = d.size() >= 4 && d[d.size() / 2] > 0 ? 1e9 / double(d[d.size() / 2]) : 0;
     }
     lastPick_ = displayNs;
+    ++st_.picks;
     if (frames_.empty()) return p;
     auto showOne = [&](const std::shared_ptr<const ContentFrame>& f) {
         p.a = p.b = f->image;
@@ -274,7 +276,9 @@ Pick Engine::pick(int64_t displayNs) {
         // ahead of now.
         const double budget = s_.estimateBudgetMs > 0 ? s_.estimateBudgetMs : std::clamp(estimateMsAvg_ * 1.5 + 4.0, 6.0, 40.0);
         const double refresh = displayHz_ > 0 ? 1e9 / displayHz_ : 0.0;
-        const double target = spacing + budget * double(kMs) + refresh;
+        // Plus what this machine turned out to need: every refresh that found the motion not ready yet
+        // adds 1 ms (up to 40), and it slowly gives that back while everything is on time.
+        const double target = spacing + (budget + lateMarginMs_) * double(kMs) + refresh;
         if (delayNs_ <= 0) delayNs_ = target;
         delayNs_ += std::clamp(target - delayNs_, -0.25 * double(kMs), 0.25 * double(kMs));
         const int64_t tau = displayNs - int64_t(delayNs_);
@@ -295,7 +299,10 @@ Pick Engine::pick(int64_t displayNs) {
                 // The game paused between these two frames: hold A, no stretched motion.
                 showOne(A);
             } else if (!fields || fields->forward.sceneCut || fields->backward.sceneCut) {
-                if (!fields) ++st_.lateFields;
+                if (!fields) {
+                    ++st_.lateFields;
+                    lateMarginMs_ = std::min(40.0, lateMarginMs_ + 1.0);
+                }
                 showOne(t < 0.5f ? A : B);
             } else {
                 // Pictures on a fixed grid per pair of real frames (4 steps for 33 ms at 120): every real
@@ -313,6 +320,7 @@ Pick Engine::pick(int64_t displayNs) {
                 p.t = t;
                 p.fields = fields;
                 if (t <= 0.f) { p.b = p.a; p.bId = p.aId; p.fields = nullptr; }
+                lateMarginMs_ = std::max(0.0, lateMarginMs_ - 0.002);
             }
         }
     }

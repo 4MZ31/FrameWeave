@@ -30,6 +30,8 @@
     <string>public.app-category.games</string>
     <key>NSCameraUsageDescription</key>
     <string>PushFPS shows the picture from your capture card (macOS lists capture cards as cameras).</string>
+    <key>NSCameraUseContinuityCameraDeviceType</key>
+    <true/>
     <key>NSMicrophoneUsageDescription</key>
     <string>PushFPS plays the sound from your capture card (macOS lists its audio as a microphone).</string>
 </dict>

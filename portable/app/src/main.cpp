@@ -157,7 +157,8 @@ int selftest(QGuiApplication& app, double seconds, const QString& sourceSpec, in
     const qint64 read = source.framesRead();
     source.stop();
     if (!saveFrame.isEmpty() && !sample.isNull()) sample.save(saveFrame);
-    const double lateShare = st.kept > 0 ? double(st.lateFields) / double(std::max<uint64_t>(1, st.kept)) : 0;
+    // Share of refreshes that had to show a real frame because the motion was not ready yet.
+    const double lateShare = st.picks > 0 ? double(st.lateFields) / double(st.picks) : 0;
     int code = 0;
     QString verdict = QStringLiteral("PASS");
     if (!failure.isEmpty() && read == 0) { code = 2; verdict = QStringLiteral("FAIL (source: %1)").arg(failure); }
@@ -168,7 +169,7 @@ int selftest(QGuiApplication& app, double seconds, const QString& sourceSpec, in
         if (std::abs(st.transportFps - 60) > 6 || std::abs(st.contentFps - 30) > 4) { code = 1; verdict = QStringLiteral("FAIL (rates)"); }
         else if (st.outputFps < wantOut * 0.85) { code = 1; verdict = QStringLiteral("FAIL (output %1 < %2)").arg(st.outputFps, 0, 'f', 1).arg(wantOut * 0.85, 0, 'f', 1); }
         else if (generated == 0 || checked.load() == 0) { code = 1; verdict = QStringLiteral("FAIL (no generated frames)"); }
-        else if (lateShare > 0.1) { code = 1; verdict = QStringLiteral("FAIL (motion late for %1% of pairs)").arg(lateShare * 100, 0, 'f', 0); }
+        else if (lateShare > 0.05) { code = 1; verdict = QStringLiteral("FAIL (motion late for %1% of refreshes)").arg(lateShare * 100, 0, 'f', 1); }
     }
     QString r;
     QTextStream o(&r);

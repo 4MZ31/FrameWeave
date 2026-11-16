@@ -23,7 +23,8 @@ QtObject {
     readonly property color warn: "#F5C84B"
     // Bahnschrift is the Windows wordmark face; the closest wide sans on each system follows.
     readonly property string fontBrand: Qt.platform.os === "osx" ? "Avenir Next" : "Bahnschrift"
-    readonly property string fontUi: Qt.platform.os === "osx" ? "SF Pro Text" : "Noto Sans"
+    // The system's own interface font (San Francisco on macOS, the desktop's choice on Linux).
+    readonly property string fontUi: Qt.application.font.family
     readonly property real fsBody: 13
     readonly property real fsHint: 11.5
     readonly property real fsTitle: 15

@@ -68,7 +68,9 @@ struct EngineStats {
     double latencyMs = 0;      // display time minus arrival of the newest real frame it needs
     double estimateMs = 0;     // motion estimation time per pair (both directions)
     double delayMs = 0;        // current display delay behind the content
-    uint64_t framesIn = 0, duplicates = 0, kept = 0, sceneCuts = 0, lateFields = 0, pacingRepaired = 0;
+    uint64_t framesIn = 0, duplicates = 0, kept = 0, sceneCuts = 0, pacingRepaired = 0;
+    uint64_t lateFields = 0;   // refreshes that showed a real frame because the motion was not ready yet
+    uint64_t picks = 0;        // refreshes asked for
     int width = 0, height = 0;
 };
 
@@ -112,6 +114,7 @@ private:
     int lastWidth_ = 0, lastHeight_ = 0;
     std::deque<int64_t> arrivals_, keptTimes_;
     double delayNs_ = 0;
+    double lateMarginMs_ = 0;  // extra delay this machine needed (motion not ready in time)
     double estimateMsAvg_ = 0;
     // Output bookkeeping (render thread under the same lock).
     uint64_t lastShownA_ = 0, lastShownB_ = 0, lastNeededId_ = 0;

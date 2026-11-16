@@ -52,7 +52,7 @@ qt_add_qml_module(pushfps_portable
 # Interpolation shader. texelFetch needs GLSL ES 3.0 / GLSL 3.3 at least.
 qt_add_shaders(pushfps_portable "pushfps_shaders"
   PREFIX "/"
-  GLSL "300es,330"
+  GLSL "300 es,330"
   HLSL 50
   MSL 12
   FILES
