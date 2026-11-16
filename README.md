@@ -414,6 +414,18 @@ every frame generation method; it does not change any setting until you click **
 
 Every generated frame is shown once. With variable refresh it adds almost no delay; without it a frame can wait up to one refresh. Turn it off for the lowest-latency mode, where a frame can now and then be skipped. For the best result, turn on G-SYNC/FreeSync in your graphics driver and play in fullscreen (F11).
 
+## Lowest latency (one tap)
+
+**Lowest latency** in the quick setup turns on every latency setting that costs no picture quality:
+- the graphics card queues only one frame (NVIDIA Low Latency on NVIDIA cards, the low queue on others);
+- fullscreen when the capture card or stream connects, which skips the desktop compositor's extra refresh;
+- on a G-SYNC/FreeSync screen, smooth frame pacing with variable refresh (no tearing, no skipped frames).
+
+Frame generation, AI enhancement, HUD lock and pacing repair stay as they are. On a screen without variable
+refresh the display sync is left alone, so the picture never tears. Turning it off brings back your previous
+settings. The row shows the measured processing latency, and suggests 120 Hz console output where it would
+save about 8 ms per frame.
+
 ## Before/after comparison clips
 
 **Comparison clip** in the quick setup opens a small dialog: pick the layout and the length (10, 15, 30 or 60
@@ -424,6 +436,9 @@ seconds), then **Start recording** (the same two choices are under *Settings, Pl
   shows, with frame generation and AI picture enhancement.
 - **Side by side**: the whole picture twice, each at half size: the raw console picture on the left, PushFPS
   on the right, on a black background.
+- **Vertical (TikTok, Shorts, Reels)**: a 1080×1920 video, the console on top and PushFPS below, each filling
+  half the screen with the middle of the picture. The badges sit next to the divider, where those apps leave the
+  screen free. H.264, ready to upload from your phone (HDR recordings stay HEVC 10-bit).
 
 The console side has no AI enhancement, upscaling or colour changes, so the clip shows exactly what PushFPS adds.
 Each side has a badge at the top: *Console · 30 FPS* and the PushFPS logo with its frame rate, in SDR and HDR. Frame generation has to be on, using any method except XeSS (XeSS makes its frames as they
@@ -477,6 +492,22 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
 - **Works in video editors**: a finished MP4 recording is rewritten as a standard MP4 (no re-encoding), so it
   opens in Vegas Pro, Premiere Pro, DaVinci Resolve and others. While recording it is kept in a crash-safe
   format, so a crash or power cut still keeps what was recorded.
+
+## Streaming mode
+
+**Streaming mode** (the broadcast button in the top bar) is a page laid out like OBS Studio, with PushFPS's own
+features built in:
+- **Preview** in the middle, with the source, the game's frame rate and what PushFPS shows.
+- **PushFPS features** on the left: frame generation, adaptive multiplier, pacing repair, HUD lock, AI
+  enhancement and lowest latency, as in the quick setup.
+- **Controls** on the right: go live, record, save the instant replay, comparison clip, screenshot, your
+  streaming platforms and each platform's state and bitrate while live.
+- **Audio mixer** across the bottom, like OBS's: *Game sound* and *Microphone* faders with level meters and
+  mute, for what recordings and streams take, and *Monitor* (what you hear yourself). Choose whether the
+  microphone goes into recordings, streams or both.
+- **Microphone filters** (the sliders button on the microphone): rumble filter, 5-band equaliser with voice
+  presets, noise gate and compressor, then a -1 dB limiter that is always on.
+- **Status bar**: live time, bitrate and dropped frames, recording time, processing latency and the encoder.
 
 ## Go live: Twitch, YouTube, Kick and TikTok
 

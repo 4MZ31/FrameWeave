@@ -361,6 +361,92 @@ void testCompareSideBySide(Gpu& gpu, bool hdr) {
     check(!gpu.debugErrors(), std::string(tag) + ": no D3D12 debug errors");
 }
 
+// Vertical (TikTok, Shorts, Reels): a 1080 x 1920 picture of its own, the console (held real frame)
+// in the top half and the current frame in the bottom half, each the middle of the 1920 x 1080
+// frame (1214 x 1080 from column 352) scaled to 1080 x 960; labels next to the divider.
+void testCompareVertical(Gpu& gpu, bool hdr) {
+    constexpr uint32_t W = 1920, H = 1080;
+    const std::string tag = hdr ? "vertical HDR" : "vertical";
+    auto* device = gpu.device.Get();
+    const auto yFormat = hdr ? DXGI_FORMAT_R16_UNORM : DXGI_FORMAT_R8_UNORM;
+    const auto uvFormat = hdr ? DXGI_FORMAT_R16G16_UNORM : DXGI_FORMAT_R8G8_UNORM;
+    const uint32_t bpp = hdr ? 2 : 1;
+    uint32_t ow = 0, oh = 0;
+    engine::compareOutputSize(engine::CompareLayout::Vertical, W, H, ow, oh);
+    check(ow == 1080 && oh == 1920, tag + ": 1080 x 1920 file");
+    const auto crop = engine::compareVerticalCrop(W, H, 1080, 960);
+    check(crop.width == 1214 && crop.height == 1080 && crop.x == 352 && crop.y == 0, tag + ": the middle of the frame, 9:8");
+    const auto tall = engine::compareVerticalCrop(1080, 1920, 1080, 960);
+    check(tall.width == 1080 && tall.height == 960 && tall.x == 0 && tall.y == 480, tag + ": a tall frame keeps its middle rows");
+    Plane y{pipeline::makeTexture(device, W, H, yFormat, true), yFormat, W, H, bpp};
+    Plane uv{pipeline::makeTexture(device, W / 2, H / 2, uvFormat, true), uvFormat, W / 2, H / 2, bpp * 2};
+    engine::RecordingLabel left{8, 4, std::vector<uint8_t>(32, 255)}, right{8, 4, std::vector<uint8_t>(32, 255)};
+    engine::RecordingCompare compare;
+    std::wstring reason;
+    const bool created = compare.create(device, W, H, hdr, left, right, reason, engine::CompareLayout::Vertical);
+    if (!created) std::printf("%s: create failed: %ls\n", tag.c_str(), reason.c_str());
+    check(created, tag + ": created (shader loaded)");
+    if (!created) return;
+    check(compare.outputY() && compare.outputWidth() == 1080 && compare.outputHeight() == 1920 && compare.pictureHeight() == 960, tag + ": own output planes");
+    check(compare.patches().size() == 3, tag + ": divider and two labels");
+    if (compare.patches().size() == 3) {
+        const auto& d = compare.patches()[0]; const auto& l = compare.patches()[1]; const auto& r = compare.patches()[2];
+        check(d.x == 0 && d.y == 958 && d.width == 1080 && d.height == 4, tag + ": divider across the middle");
+        check(l.y + l.height <= 958 && l.y + l.height + 80 > 958, tag + ": console label just above the divider");
+        check(r.y >= 962 && r.y < 962 + 80, tag + ": PushFPS label just below the divider");
+        check(l.x == 536 && r.x == 536, tag + ": labels centred");
+    }
+    const auto code = [&](uint32_t v8, uint32_t v10) { return hdr ? v10 << 6 : v8; };
+    const auto fill = [&](auto f, uint32_t w, uint32_t h, uint32_t channels) {
+        std::vector<uint8_t> out(size_t(w) * h * channels * bpp);
+        for (uint32_t yy = 0; yy < h; ++yy)
+            for (uint32_t x = 0; x < w; ++x)
+                for (uint32_t c = 0; c < channels; ++c) {
+                    const uint32_t v = f(x, yy);
+                    const size_t at = (size_t(yy) * w + x) * channels + c;
+                    if (hdr) { const uint16_t w16 = uint16_t(v); std::memcpy(out.data() + at * 2, &w16, 2); }
+                    else out[at] = uint8_t(v);
+                }
+        return out;
+    };
+    Plane oy{compare.outputY(), yFormat, 1080, 1920, bpp};
+    Plane ouv{compare.outputUv(), uvFormat, 540, 960, bpp * 2};
+    pipeline::StateTracker states;
+    std::vector<uint8_t> py, puv;
+    const auto frame = [&](const std::vector<uint8_t>& yData, const std::vector<uint8_t>& uvData, bool generated) {
+        if (!gpu.begin()) return false;
+        auto a = recordFill(gpu, y, yData, states.get(y.texture.Get()), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        states.set(y.texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        auto b = recordFill(gpu, uv, uvData, states.get(uv.texture.Get()), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        states.set(uv.texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        compare.compose(gpu.list.Get(), states, y.texture.Get(), uv.texture.Get(), generated);
+        auto ry = recordRead(gpu, oy, states.get(oy.texture.Get()));
+        auto ruv = recordRead(gpu, ouv, states.get(ouv.texture.Get()));
+        if (!gpu.submitAndWait()) return false;
+        py = mapRead(oy, ry.Get()); puv = mapRead(ouv, ruv.Get());
+        return py.size() == size_t(1080) * 1920 * bpp;
+    };
+    const auto read = [&](const std::vector<uint8_t>& bytes, size_t index) { return hdr ? int(word(bytes, index)) : int(bytes[index]); };
+    const auto Y = [&](uint32_t x, uint32_t yy) { return read(py, size_t(yy) * 1080 + x); };
+    const auto U = [&](uint32_t x, uint32_t yy) { return read(puv, (size_t(yy) * 540 + x) * 2); };
+    // Real frame: 120 inside the crop, 16 outside it (so a wrong crop shows), chroma 100.
+    const auto realY = fill([&](uint32_t x, uint32_t) { return x >= 352 && x < 352 + 1214 ? code(120, 500) : code(16, 64); }, W, H, 1);
+    const auto realUv = fill([&](uint32_t, uint32_t) { return code(100, 400); }, W / 2, H / 2, 2);
+    check(frame(realY, realUv, false), tag + ": real frame runs");
+    check(Y(2, 100) == int(code(120, 500)) && Y(1077, 100) == int(code(120, 500)), tag + ": the edges show the crop's edges, not the frame outside it");
+    check(Y(540, 400) == int(code(120, 500)) && Y(540, 1500) == int(code(120, 500)), tag + ": a real frame shows in both halves");
+    check(U(270, 200) == int(code(100, 400)) && U(270, 750) == int(code(100, 400)), tag + ": chroma kept");
+    check(Y(10, 959) == int(code(235, 573)) && Y(10, 956) == int(code(120, 500)), tag + ": divider rows 958-961 only");
+    // Generated frame: the bottom changes, the top keeps the held real frame.
+    const auto genY = fill([&](uint32_t, uint32_t) { return code(200, 800); }, W, H, 1);
+    const auto genUv = fill([&](uint32_t, uint32_t) { return code(150, 600); }, W / 2, H / 2, 2);
+    check(frame(genY, genUv, true), tag + ": generated frame runs");
+    check(Y(540, 400) == int(code(120, 500)) && U(270, 200) == int(code(100, 400)), tag + ": top keeps the console frame");
+    check(Y(540, 1500) == int(code(200, 800)) && U(270, 750) == int(code(150, 600)), tag + ": bottom shows the generated frame");
+    check(compare.generatedFrames() == 1 && compare.realFrames() == 1, tag + ": counts frames");
+    check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
+}
+
 // The console side from the raw picture (linear BT.709, float RGBA, here half the recorded size):
 // no enhancement, only scaled and coded like the recorder's own conversion.
 void testCompareRaw(Gpu& gpu, bool hdr, engine::CompareLayout layout) {
@@ -670,6 +756,8 @@ int main() {
     testCompareHdr(gpu);
     testCompareSideBySide(gpu, false);
     testCompareSideBySide(gpu, true);
+    testCompareVertical(gpu, false);
+    testCompareVertical(gpu, true);
     testLabelScale();
     testCompareSkipRule();
     testCompareRaw(gpu, false, engine::CompareLayout::Split);

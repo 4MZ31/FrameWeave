@@ -2,6 +2,7 @@
 #include "veyra/engine/Mp4Finalize.h"
 #include "veyra/Brand.h"
 #include "veyra/engine/MicrophoneCapture.h"
+#include "veyra/engine/PushAudioMix.h"
 #include "veyra/engine/ReplayBuffer.h"
 #include "veyra/pipeline/GpuPassUtils.h"
 #include "veyra/sink/MfLiveEncoder.h"
@@ -435,7 +436,8 @@ bool writeReplayFile(const std::wstring& path,const ReplayBuffer::Clip& clip,std
 struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
     // Fixed at creation.
     ComPtr<ID3D12Device> device;
-    uint32_t width=0,height=0,hdrMode=0,fps=60,bitrateMbps=20,vendor=0;
+    uint32_t width=0,height=0,hdrMode=0,fps=60,bitrateMbps=20,vendor=0;   // width x height: what is encoded
+    uint32_t frameWidth=0,frameHeight=0;        // the presented frame (= width x height except vertical comparison clips)
     bool hevc=false,nvenc=false;
     // PushFPS advanced recording (RecordingSettings).
     uint32_t rateControl=1,quality=22,preset=4,keyframeSeconds=2,audioKbps=192;
@@ -552,7 +554,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         if(pending<0)closeJobs();
     }
     bool matches(const PresentCapture::Frame& frame) const {
-        return frame.width==width&&frame.height==height&&frame.hdrMode==hdrMode;
+        return frame.width==frameWidth&&frame.height==frameHeight&&frame.hdrMode==hdrMode;
     }
 
     // ---- creation (engine thread) -------------------------------------------
@@ -561,8 +563,8 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         if(!convert.loadShader("RgbToNv12.dxil",shader)||!convert.create(device.Get(),shader,kSlots+2,1,2)){reason=L"录制转换着色器加载失败";return false;}
         if(!stager.initialize(device.Get(),kSlots)){reason=L"录制描述符分配失败";return false;}
         const bool hdr=hdrMode!=0;
-        y=pipeline::makeTexture(device.Get(),width,height,hdr?DXGI_FORMAT_R16_UNORM:DXGI_FORMAT_R8_UNORM,true);
-        uv=pipeline::makeTexture(device.Get(),width/2,height/2,hdr?DXGI_FORMAT_R16G16_UNORM:DXGI_FORMAT_R8G8_UNORM,true);
+        y=pipeline::makeTexture(device.Get(),frameWidth,frameHeight,hdr?DXGI_FORMAT_R16_UNORM:DXGI_FORMAT_R8_UNORM,true);
+        uv=pipeline::makeTexture(device.Get(),frameWidth/2,frameHeight/2,hdr?DXGI_FORMAT_R16G16_UNORM:DXGI_FORMAT_R8G8_UNORM,true);
         if(!y||!uv){reason=L"录制显存分配失败";return false;}
         pipeline::makeUav(device.Get(),y.Get(),hdr?DXGI_FORMAT_R16_UNORM:DXGI_FORMAT_R8_UNORM,pipeline::cpuHandleOf(convert,kSlots));
         pipeline::makeUav(device.Get(),uv.Get(),hdr?DXGI_FORMAT_R16G16_UNORM:DXGI_FORMAT_R8G8_UNORM,pipeline::cpuHandleOf(convert,kSlots+1));
@@ -588,9 +590,12 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
                 catch(...){left={};right={};veyra::log::warn("live-recorder","comparison labels could not be drawn; recording without them");}
             }
             compare=std::make_unique<RecordingCompare>();
-            if(!compare->create(device.Get(),width,height,hdr,left,right,reason,compareLayout))return false;
-            veyra::log::info("live-recorder",std::format("comparison clip layout={} extent={}x{} hdr={} copied={} blended={} rawConsole={} labels={}x{} / {}x{}",
-                compareLayout==CompareLayout::SideBySide?"side-by-side":"split",width,height,hdr,compare->patches().size(),compare->overlays().size(),
+            if(!compare->create(device.Get(),frameWidth,frameHeight,hdr,left,right,reason,compareLayout))return false;
+            if(compare->outputY()&&(compare->outputWidth()!=width||compare->outputHeight()!=height)){reason=L"对比片段尺寸不一致";return false;}
+            const auto crop=compare->crop();
+            veyra::log::info("live-recorder",std::format("comparison clip layout={} extent={}x{} frame={}x{} crop={}x{}+{}+{} hdr={} copied={} blended={} rawConsole={} labels={}x{} / {}x{}",
+                compareLayout==CompareLayout::SideBySide?"side-by-side":compareLayout==CompareLayout::Vertical?"vertical":"split",width,height,frameWidth,frameHeight,
+                crop.width,crop.height,crop.x,crop.y,hdr,compare->patches().size(),compare->overlays().size(),
                 compare->rawAvailable(),left.width,left.height,right.width,right.height));
         }
         encoderThread=std::thread([this]{encoderMain();});
@@ -633,17 +638,20 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         states.transition(list,y.Get(),D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         states.transition(list,uv.Get(),D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         // reserved.x = HDR mode, reserved.y = output dither step (RgbToNv12.hlsl).
-        const float constants[8]={std::bit_cast<float>(width),std::bit_cast<float>(height),std::bit_cast<float>(hdrMode),frame.ditherStep,0,0,0,0};
+        const float constants[8]={std::bit_cast<float>(frameWidth),std::bit_cast<float>(frameHeight),std::bit_cast<float>(hdrMode),frame.ditherStep,0,0,0,0};
         convert.bind(list,constants,pipeline::gpuHandleOf(convert,UINT(index)).ptr,pipeline::gpuHandleOf(convert,kSlots).ptr);
-        list->Dispatch((width+15)/16,(height+15)/16,1);
+        list->Dispatch((frameWidth+15)/16,(frameHeight+15)/16,1);
         states.uavBarrier(list,y.Get());states.uavBarrier(list,uv.Get());
         if(compare){
             const RecordingRawFrame raw{frame.raw,frame.rawSdrInHdr};
             compare->compose(list,states,y.Get(),uv.Get(),frame.generated,frame.raw?&raw:nullptr,unsigned(index));
             if(frame.generated)++generated;
         }
-        states.transition(list,y.Get(),D3D12_RESOURCE_STATE_COPY_SOURCE);
-        states.transition(list,uv.Get(),D3D12_RESOURCE_STATE_COPY_SOURCE);
+        // What is encoded: the recorder's planes, or a vertical comparison clip's own picture.
+        ID3D12Resource* const encY=compare&&compare->outputY()?compare->outputY():y.Get();
+        ID3D12Resource* const encUv=compare&&compare->outputUv()?compare->outputUv():uv.Get();
+        states.transition(list,encY,D3D12_RESOURCE_STATE_COPY_SOURCE);
+        states.transition(list,encUv,D3D12_RESOURCE_STATE_COPY_SOURCE);
         std::swap(source.Transition.StateBefore,source.Transition.StateAfter);
         list->ResourceBarrier(1,&source);
         if(nvenc){
@@ -653,7 +661,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
             list->ResourceBarrier(1,&target);
             for(UINT plane=0;plane<2;++plane){
                 D3D12_TEXTURE_COPY_LOCATION from{},to{};
-                from.pResource=plane?uv.Get():y.Get();from.Type=D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;from.SubresourceIndex=0;
+                from.pResource=plane?encUv:encY;from.Type=D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;from.SubresourceIndex=0;
                 to.pResource=slot.nv12.Get();to.Type=D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;to.SubresourceIndex=plane;
                 list->CopyTextureRegion(&to,0,0,0,&from,nullptr);
             }
@@ -668,8 +676,8 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
                 b.PlacedFootprint.Footprint.Depth=1;b.PlacedFootprint.Footprint.RowPitch=pitch;
                 list->CopyTextureRegion(&b,0,0,0,&a,nullptr);
             };
-            copyPlane(y.Get(),slot.yRead.Get(),DXGI_FORMAT_R8_UNORM,width,height,slot.yPitch);
-            copyPlane(uv.Get(),slot.uvRead.Get(),DXGI_FORMAT_R8G8_UNORM,width/2,height/2,slot.uvPitch);
+            copyPlane(encY,slot.yRead.Get(),DXGI_FORMAT_R8_UNORM,width,height,slot.yPitch);
+            copyPlane(encUv,slot.uvRead.Get(),DXGI_FORMAT_R8G8_UNORM,width/2,height/2,slot.uvPitch);
         }
         pending=index;
         return true;
@@ -813,6 +821,16 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
     // ---- sound (audio owner and microphone threads) ----------------------------
     void renderedPcm(const float* pcm,size_t count,const sink::AudioFormat& format,int64_t playoutUs,const void* renderer) override {
         if(!sound||!audio||closing.load()||!format.valid()||!count)return;
+        // PushFPS streaming mode mixer: the game fader and mute (PushAudioMix.h). What the player
+        // hears keeps its own volume; this changes only recordings, the replay and streams.
+        const float gain=pushGameGain();
+        if(gain!=1.0f){
+            thread_local std::vector<float> scaled;
+            scaled.resize(count*format.channels);
+            for(size_t i=0;i<scaled.size();++i)scaled[i]=pcm[i]*gain;
+            soundLane.push(scaled.data(),count,format,playoutUs,renderer);
+            return;
+        }
         soundLane.push(pcm,count,format,playoutUs,renderer);
     }
     void microphonePcm(const float* stereo,size_t count,int64_t capturedUs) override {
@@ -1367,7 +1385,7 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
             s.retire(s.current,{});s.current.reset();return false;
         }
         veyra::log::info("live-recorder",std::format("picture changed {}x{} hdr={} -> {}x{} hdr={}; continuing in a new {}",
-            s.current->width,s.current->height,s.current->hdrMode,frame.width,frame.height,frame.hdrMode,s.replayMode?"replay buffer":"file"));
+            s.current->frameWidth,s.current->frameHeight,s.current->hdrMode,frame.width,frame.height,frame.hdrMode,s.replayMode?"replay buffer":"file"));
         s.retire(s.current,(s.replayMode||s.streamMode)?std::wstring{}:L"画面尺寸或 HDR 模式变化，已接着写入新文件");s.current.reset();
     }
     if(!s.current){
@@ -1391,6 +1409,7 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         if(frame.width<16||frame.height<16||(frame.width&1)||(frame.height&1))
             return fail(std::format(L"当前画面尺寸 {}×{} 无法录制",frame.width,frame.height));
         segment->width=frame.width;segment->height=frame.height;segment->hdrMode=frame.hdrMode;
+        segment->frameWidth=frame.width;segment->frameHeight=frame.height;
         // H.264 hardware encoders stop at 4096 pixels per side.
         segment->hevc=s.settings.hevc||frame.hdrMode!=0||frame.width>4096||frame.height>4096;
         const double hint=s.presentFps.load();
@@ -1420,6 +1439,13 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         }else{
             const auto base=s.baseName+(s.nextNumber>1?std::format(L"-{}",s.nextNumber):L"");
             segment->path=uniqueFile(s.settings.directory,base,segment->matroska?L".mkv":L".mp4");
+        }
+        if(segment->compareClip&&segment->compareLayout==CompareLayout::Vertical){
+            // Vertical comparison clips are a 1080 x 1920 file of their own size: H.264 (what the
+            // short-video apps take best) unless HDR or the settings ask for HEVC.
+            compareOutputSize(segment->compareLayout,frame.width,frame.height,segment->width,segment->height);
+            segment->hevc=s.settings.hevc||frame.hdrMode!=0;
+            if(!s.settings.bitrateMbps)segment->bitrateMbps=autoBitrateMbps(segment->width,segment->height,segment->fps,segment->hevc);
         }
         std::wstring reason;
         if(!segment->create(reason))return fail(reason);

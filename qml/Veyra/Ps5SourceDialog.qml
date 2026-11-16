@@ -97,7 +97,7 @@ DialogLayer {
         }
         VRow {
             label: qsTr("编码")
-            hint: qsTr("HDR 需要 PS5 实际输出 HDR 且 Windows HDR 开启")
+            hint: qsTr("H.265 在相同码率下画面更清晰（推荐）；HDR 需要 PS5 实际输出 HDR 且 Windows HDR 开启")
             VSeg {
                 options: [{ id: "0", label: "H.264" }, { id: "1", label: "H.265" }, { id: "2", label: "H.265 HDR" }]
                 current: String(veyra.ps5.codec || 0)

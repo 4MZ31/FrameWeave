@@ -534,9 +534,11 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
         return false;
     }
     seconds = std::clamp(seconds, 5, 120);
+    layout = std::clamp(layout, 0, 2);
     auto options = recordingOptions();
     options.compare = true;
-    options.compareLayout = layout == 1 ? engine::CompareLayout::SideBySide : engine::CompareLayout::Split;
+    options.compareLayout = layout == 2 ? engine::CompareLayout::Vertical
+                          : layout == 1 ? engine::CompareLayout::SideBySide : engine::CompareLayout::Split;
     // Frame rates for the labels: the console's own (distinct game frames),
     // and what PushFPS presents.
     const int gameFps = s.contentFps > 1 ? s.contentFps : std::clamp(impl_->prefInt("pushGameFps", 30), 24, 120);
@@ -545,9 +547,13 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     const QString leftText = tr("主机原画 · %1 FPS").arg(gameFps);
     const QString rightText = QStringLiteral("%1 · %2 FPS").arg(QString::fromLatin1(brand::kProductName)).arg(shownFps);
     // Drawn here (UI thread) for the expected picture height; the recorder blends them in.
+    // Vertical clips are always 1920 high (RecordingCompare.h); their badges are drawn as for a
+    // 1440-high picture, a size that reads well on a phone without covering the game.
     const auto out = s.metrics.resolution.output;
-    const uint32_t height = out.height > 0 ? uint32_t(out.height) : 1080;
-    const auto left = drawCompareBadge(false, tr("主机原画"), gameFps, height), right = drawCompareBadge(true, {}, shownFps, height);
+    const bool vertical = layout == 2;
+    const uint32_t height = vertical ? 1920u : out.height > 0 ? uint32_t(out.height) : 1080;
+    const uint32_t badgeHeight = vertical ? 1440u : height;
+    const auto left = drawCompareBadge(false, tr("主机原画"), gameFps, badgeHeight), right = drawCompareBadge(true, {}, shownFps, badgeHeight);
     // Labels are sized for the picture height; a recorded file of another height (the picture
     // changed size, or the expected height was not known yet) gets them scaled to match.
     options.compareLabels = [left, right, height](uint32_t, uint32_t recorded, engine::RecordingLabel& l, engine::RecordingLabel& r) {
@@ -562,7 +568,7 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     std::wstring error;
     if (!impl_->engine.requestRecording(options, error)) { emit notice(uiText(error), true); return false; }
     veyra::log::info("push-compare", std::format("comparison clip seconds={} layout={} labels=\"{}\" / \"{}\" height={}", seconds,
-                                                 layout == 1 ? "side-by-side" : "split", leftText.toStdString(), rightText.toStdString(), height));
+                                                 layout == 2 ? "vertical" : layout == 1 ? "side-by-side" : "split", leftText.toStdString(), rightText.toStdString(), height));
     impl_->recordingState["active"] = true;
     impl_->recordingState["failed"] = false;
     impl_->recordingState["compare"] = true;
@@ -572,7 +578,8 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
         if (generation == impl_->compareGeneration && recording() && impl_->recordingState.value("compare").toBool())
             stopRecording(QStringLiteral("compare-timer"));
     });
-    emit notice(tr("正在录制 %1 秒的对比片段：左边是主机原本的帧率，右边是 PushFPS").arg(seconds), false);
+    emit notice(vertical ? tr("正在录制 %1 秒的竖屏对比片段：上面是主机原本的帧率，下面是 PushFPS").arg(seconds)
+                         : tr("正在录制 %1 秒的对比片段：左边是主机原本的帧率，右边是 PushFPS").arg(seconds), false);
     return true;
 }
 

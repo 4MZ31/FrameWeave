@@ -4,9 +4,11 @@
 // Before/after comparison clip: choose the layout and the length, then record
 // (pushStartCompareClip, engine/RecordingCompare.h). Split: one picture cut down
 // the middle. Side by side: the whole picture twice, each at half size, with the
-// FPS labels in the black bar above each. Both layouts label each side with its
-// frame rate. Dialog key "compare"; opened from the quick setup's comparison tile.
-// Preferences pushCompareLayout (0 split, 1 side by side) and pushCompareSeconds.
+// FPS labels in the black bar above each. Vertical: a 9:16 clip for TikTok, Shorts
+// and Reels, the console on top and PushFPS below, labels next to the divider. Every
+// layout labels each side with its frame rate. Dialog key "compare"; opened from the
+// quick setup's comparison tile. Preferences pushCompareLayout (0 split, 1 side by
+// side, 2 vertical) and pushCompareSeconds.
 import QtQuick
 import QtQuick.Layouts
 
@@ -20,7 +22,10 @@ DialogLayer {
     dialogWidth: 560
 
     readonly property var lengths: [10, 15, 30, 60]
-    readonly property int layoutId: Number(veyra.preferences.pushCompareLayout || 0) === 1 ? 1 : 0
+    readonly property int layoutId: {
+        const n = Number(veyra.preferences.pushCompareLayout || 0)
+        return n === 1 || n === 2 ? n : 0
+    }
     readonly property int seconds: {
         const n = Number(veyra.preferences.pushCompareSeconds || 15)
         return cmp.lengths.indexOf(n) >= 0 ? n : 15
@@ -34,7 +39,17 @@ DialogLayer {
     readonly property string leftTag: qsTr("主机原画 · %1 FPS").arg(cmp.gameFps)
     readonly property string rightTag: "PushFPS · " + cmp.shownFps + " FPS"
 
-    function layoutName(id) { return id === 1 ? qsTr("并排") : qsTr("分屏") }
+    function layoutName(id) { return id === 2 ? qsTr("竖屏") : id === 1 ? qsTr("并排") : qsTr("分屏") }
+    function layoutHint(id) {
+        return id === 2 ? qsTr("竖屏 9:16，适合 TikTok、Shorts 和 Reels：上面是原帧率，下面是 PushFPS，各占半屏（取画面中间部分）")
+             : id === 1 ? qsTr("完整画面并排两份：左边是原帧率，右边是 PushFPS")
+             : qsTr("同一个画面从中间分开：左半边是原帧率，右半边是 PushFPS")
+    }
+    // Vertical preview (portrait, 108 x 192): where each label goes, centred just above (index 0)
+    // and just below (index 1) the divider in the middle, as the clip puts them.
+    function verticalTagY(index, tagHeight, previewHeight) {
+        return index === 0 ? previewHeight / 2 - 4 - tagHeight : previewHeight / 2 + 4
+    }
     // Where the preview puts each label (index 0 left, 1 right), as the clip does: split at
     // the top corners of the picture, side by side centred in the black bar above each picture.
     function tagX(index, tagWidth, previewWidth, sideBySide) {
@@ -58,6 +73,7 @@ DialogLayer {
         border.width: 1
         border.color: Theme.stroke
         clip: true
+        visible: cmp.layoutId !== 2
         readonly property bool sideBySide: cmp.layoutId === 1
         readonly property real picW: sideBySide ? width / 2 : width / 2
         readonly property real picH: sideBySide ? height / 2 : height
@@ -121,15 +137,71 @@ DialogLayer {
         }
     }
 
+    // Vertical: a portrait stand-in, the console picture on top and PushFPS below.
+    Rectangle {
+        id: portrait
+        objectName: "pushfps-compare-preview-vertical"
+        visible: cmp.layoutId === 2
+        Layout.alignment: Qt.AlignHCenter
+        Layout.bottomMargin: 12
+        implicitWidth: 108
+        implicitHeight: 192
+        radius: 6
+        color: "#000000"
+        border.width: 1
+        border.color: Theme.stroke
+        clip: true
+        Repeater {
+            model: 2
+            delegate: Rectangle {
+                required property int index
+                y: index * portrait.height / 2
+                width: portrait.width
+                height: portrait.height / 2
+                opacity: index === 0 ? 0.8 : 1
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "#3d6fa8" }
+                    GradientStop { position: 0.55; color: "#9cc3e6" }
+                    GradientStop { position: 0.56; color: "#4b5a3a" }
+                    GradientStop { position: 1.0; color: "#2c3324" }
+                }
+            }
+        }
+        Rectangle { y: portrait.height / 2 - 1; width: portrait.width; height: 2; color: "#ffffff" }
+        Repeater {
+            model: 2
+            delegate: Rectangle {
+                required property int index
+                objectName: index === 0 ? "pushfps-compare-vtag-top" : "pushfps-compare-vtag-bottom"
+                width: Math.min(portrait.width - 8, vtagText.implicitWidth + 10)
+                height: vtagText.implicitHeight + 4
+                radius: height / 2
+                border.width: 1
+                border.color: index === 1 ? "#8df237" : "#4dffffff"
+                x: (portrait.width - width) / 2
+                y: cmp.verticalTagY(index, height, portrait.height)
+                color: "#d60e0f12"
+                Text {
+                    id: vtagText
+                    anchors.centerIn: parent
+                    text: index === 0 ? cmp.leftTag : cmp.rightTag
+                    color: "#ffffff"
+                    font.family: Theme.fontUi
+                    font.pixelSize: 7
+                    font.weight: Font.Bold
+                }
+            }
+        }
+    }
+
     DialogGroup {
         VRow {
             label: qsTr("布局")
-            hint: cmp.layoutId === 1 ? qsTr("完整画面并排两份：左边是原帧率，右边是 PushFPS")
-                                     : qsTr("同一个画面从中间分开：左半边是原帧率，右半边是 PushFPS")
+            hint: cmp.layoutHint(cmp.layoutId)
             hintBelow: true
             VSeg {
                 objectName: "pushfps-compare-layout"
-                options: [{ id: "0", label: cmp.layoutName(0) }, { id: "1", label: cmp.layoutName(1) }]
+                options: [0, 1, 2].map(n => ({ id: String(n), label: cmp.layoutName(n) }))
                 current: String(cmp.layoutId)
                 onPicked: id => veyra.setPreference("pushCompareLayout", Number(id))
             }
@@ -149,6 +221,7 @@ DialogLayer {
         Layout.fillWidth: true
         Layout.topMargin: 10
         text: !veyra.hasSource ? qsTr("需要正在播放的画面")
+            : cmp.layoutId === 2 ? qsTr("两半都标有各自的帧率。保存为 1080×1920 视频，可直接上传到手机应用")
             : qsTr("两边上方都标有各自的帧率。视频保存在录制文件夹里，可直接导入剪辑软件")
         color: veyra.hasSource ? Theme.t3 : Theme.warn
         font.family: Theme.fontUi

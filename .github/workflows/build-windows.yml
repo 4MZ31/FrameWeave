@@ -300,7 +300,7 @@ jobs:
             Write-Host "$t exit $code"
             if ($code -ne 0) { $failed++ }
           }
-          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_benchmark_tests', 'veyra_push_hud_tests', 'veyra_push_adaptive_fg_tests', 'veyra_push_pacing_repair_tests', 'veyra_push_archive_paths_tests', 'veyra_vrr_profile_tests') {
+          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_audio_mix_tests', 'veyra_push_benchmark_tests', 'veyra_push_hud_tests', 'veyra_push_adaptive_fg_tests', 'veyra_push_pacing_repair_tests', 'veyra_push_archive_paths_tests', 'veyra_vrr_profile_tests') {
             cmake --build $env:BUILD --target $t --parallel
             if ($LASTEXITCODE -ne 0) { Write-Host "::error::$t did not build"; $failed++; continue }
             $exe = Get-ChildItem $env:BUILD -Recurse -Filter "$t.exe" | Select-Object -First 1
@@ -387,7 +387,7 @@ jobs:
           $env:QML_DISABLE_DISK_CACHE = '1'
           Push-Location $stage
           $failed = 0
-          foreach ($t in 'tst_push_quick_setup', 'tst_push_picture_sound', 'tst_push_nis', 'tst_push_optimize', 'tst_push_presets', 'tst_push_appearance', 'tst_push_hud', 'tst_push_plug_and_play', 'tst_push_intro', 'tst_push_stream', 'tst_push_ps5_pairing', 'tst_push_compare') {
+          foreach ($t in 'tst_push_quick_setup', 'tst_push_picture_sound', 'tst_push_nis', 'tst_push_optimize', 'tst_push_presets', 'tst_push_appearance', 'tst_push_hud', 'tst_push_plug_and_play', 'tst_push_intro', 'tst_push_stream', 'tst_push_ps5_pairing', 'tst_push_compare', 'tst_push_studio') {
             & .\veyra_qml_quick_tests.exe -platform offscreen -input "qml-tests\$t.qml" -o "$t.txt,txt" 2>&1 | Out-Host
             $code = $LASTEXITCODE
             Get-Content "$t.txt" -ErrorAction SilentlyContinue | Out-Host
@@ -512,7 +512,7 @@ jobs:
           Write-Host "PushFPS started and loaded its interface with no QML errors."
           # Every main page and the capture dialog, each in a fresh profile: no QML errors either.
           $pages = @(@('--page', 'pro', '--tab', 'fg'), @('--page', 'pro', '--tab', 'quality'), @('--page', 'pro', '--tab', 'display'),
-                     @('--page', 'set'), @('--page', 'min'), @('--page', 'exp'), @('--page', 'home', '--dialog', 'capture'))
+                     @('--page', 'set'), @('--page', 'min'), @('--page', 'exp'), @('--page', 'live'), @('--page', 'home', '--dialog', 'capture'))
           $i = 0
           foreach ($pa in $pages) {
             $i++

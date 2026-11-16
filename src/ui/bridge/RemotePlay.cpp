@@ -291,8 +291,9 @@ void QmlPlayerBridge::ps5Load() {
         bool known = false;
         for (const auto& p : i.ps5ProfileList) known = known || p.toMap().value("id").toString() == QString::fromStdWString(i.ps5Profile);
         if (!known) i.ps5Profile = i.ps5ProfileList.isEmpty() ? std::wstring{} : i.ps5ProfileList.front().toMap().value("id").toString().toStdWString();
-        // Form defaults, then the selected pairing's own values.
-        i.ps5Form = QVariantMap{{"host", QString()}, {"account", QString()}, {"quality", 3}, {"codec", 0}, {"bitrate", 2}, {"viewOnly", false},
+        // Form defaults, then the selected pairing's own values. PushFPS: H.265 for a new pairing, a
+        // sharper picture than H.264 at the same requested bitrate (every PS5 encodes it for Remote Play).
+        i.ps5Form = QVariantMap{{"host", QString()}, {"account", QString()}, {"quality", 3}, {"codec", 1}, {"bitrate", 2}, {"viewOnly", false},
             {"decode", int(std::min(2u, GetPrivateProfileIntW(L"RemotePlay", L"DecodeMode", 0, ps5Settings().c_str())))},
             {"sampling", int(std::min(1u, GetPrivateProfileIntW(L"RemotePlay", L"FineSampling", 1, ps5Settings().c_str())))}};
         if (!i.ps5Profile.empty())

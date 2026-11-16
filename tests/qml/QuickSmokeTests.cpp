@@ -65,6 +65,8 @@ QtObject {
     // Off by default, as before these existed: only the low latency test turns them on.
     property bool nvidiaLowLatencyAvailable: false
     property int nvidiaLowLatency: 0
+    property bool fgLowQueue: false
+    property int vrrState: 0
     property bool running: false
     property string presentationStatus: ""
     // PushFPS quick setup (tst_push_quick_setup.qml): frame generation, output cap,
@@ -203,6 +205,29 @@ QtObject {
     }
     function pushStopStream() { streamStops++; streamState = ({active: false, live: false, outputs: []}) }
     function pushStreamStatus() { return streamState }
+    // PushFPS streaming mode (tst_push_studio.qml): mixer meters, recording and monitor controls.
+    property var studioLevels: ({gamePeakDb: -100, gameRmsDb: -100, micPeakDb: -100, micRmsDb: -100, micOpen: false, micDevice: "", micError: ""})
+    property bool studioMeters: false
+    property int studioMeterCalls: 0
+    function pushStudioLevels() { return studioLevels }
+    function pushSetStudioMeters(on) { studioMeters = on; studioMeterCalls++ }
+    property int microphoneRefreshes: 0
+    function refreshMicrophones() { microphoneRefreshes++ }
+    property var microphoneDevices: []
+    readonly property bool recordingMicrophone: preferences.recordMic === true
+    readonly property string recordingMicrophoneId: String(preferences.recordMicDevice || "")
+    property real volume: 1
+    property bool muted: false
+    property int recordingToggles: 0
+    function toggleRecording(source) { recordingToggles++; recording = !recording }
+    readonly property bool replayEnabled: preferences.replayEnabled === true
+    property int replaySeconds: 60
+    property int replaySaves: 0
+    function saveReplay(source) { replaySaves++ }
+    property int screenshots: 0
+    function takeScreenshot() { screenshots++ }
+    property string sourceTitle: ""
+    property string sourceKind: ""
     function stopRecording(source) { recordingStops++; recording = false }
     // PushFPS super-resolution editor (SrStageEditor): ids as QmlPlayerBridge::srBackendChoices.
     property int videoSrQuality: 2

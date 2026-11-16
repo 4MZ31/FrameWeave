@@ -221,7 +221,7 @@ VPage {
                                   : qsTr("未找到音乐文件：程序目录下的 media/startup-music.mp3")
                             VSwitch {
                                 objectName: "set-intro-music"
-                                checked: veyra.preferences.introMusic !== false
+                                checked: veyra.preferences.introMusic === true
                                 onToggled: checked => {
                                     veyra.setPreference("introMusic", checked)
                                     if (!checked && typeof vyMusic !== "undefined") vyMusic.pause()
@@ -710,15 +710,21 @@ VPage {
                         // PushFPS comparison clip: the same choices as its dialog (PushCompareDialog.qml).
                         VRow {
                             label: qsTr("对比片段")
-                            hint: Number(veyra.preferences.pushCompareLayout || 0) === 1
-                                  ? qsTr("完整画面并排两份：左边是原帧率，右边是 PushFPS")
-                                  : qsTr("同一个画面从中间分开：左半边是原帧率，右半边是 PushFPS")
+                            hint: {
+                                const n = Number(veyra.preferences.pushCompareLayout || 0)
+                                return n === 2 ? qsTr("竖屏 9:16，适合 TikTok、Shorts 和 Reels：上面是原帧率，下面是 PushFPS，各占半屏（取画面中间部分）")
+                                     : n === 1 ? qsTr("完整画面并排两份：左边是原帧率，右边是 PushFPS")
+                                     : qsTr("同一个画面从中间分开：左半边是原帧率，右半边是 PushFPS")
+                            }
                             RowLayout {
                                 spacing: 8
                                 VSeg {
                                     objectName: "set-compare-layout"
-                                    options: [{ id: "0", label: qsTr("分屏") }, { id: "1", label: qsTr("并排") }]
-                                    current: String(Number(veyra.preferences.pushCompareLayout || 0) === 1 ? 1 : 0)
+                                    options: [{ id: "0", label: qsTr("分屏") }, { id: "1", label: qsTr("并排") }, { id: "2", label: qsTr("竖屏") }]
+                                    current: {
+                                        const n = Number(veyra.preferences.pushCompareLayout || 0)
+                                        return String(n === 1 || n === 2 ? n : 0)
+                                    }
                                     onPicked: id => veyra.setPreference("pushCompareLayout", Number(id))
                                 }
                                 VSeg {

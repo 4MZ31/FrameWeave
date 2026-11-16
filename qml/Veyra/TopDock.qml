@@ -43,6 +43,7 @@ Item {
     readonly property var items: [
         { id: "min",   icon: "tv", tip: qsTr("极简") },
         { id: "pro",   icon: "sliders", tip: qsTr("专业模式") },
+        { id: "live",  icon: "cast", tip: qsTr("直播模式") },
         { id: "exp",   icon: "upload", tip: qsTr("导出") },
         { id: "set",   icon: "settings", tip: qsTr("设置") }
     ]

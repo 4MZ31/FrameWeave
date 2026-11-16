@@ -154,6 +154,10 @@ Item {
         id: compareDialog
         dialogHost: host
     }
+    PushMicFiltersDialog {
+        id: micFiltersDialog
+        dialogHost: host
+    }
 
     // --- small building blocks the design's dialogs use --------------------
 

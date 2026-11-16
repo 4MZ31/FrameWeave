@@ -175,6 +175,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     applyPreference(QStringLiteral("audioDevice"));
     applyPreference(QStringLiteral("audioForceStereo"));
     applyPreference(QStringLiteral("soundPreset"));
+    applyPushMix();   // PushFPS streaming mode mixer (PushStudio.cpp)
     applyPreference(QStringLiteral("nisSharpness"));
     applyPreference(QStringLiteral("magewellLowLatency"));
     const bool presetsLoaded = impl_->facade.importLegacyStores();
