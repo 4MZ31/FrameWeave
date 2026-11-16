@@ -1701,6 +1701,23 @@
    "ru": "2X - это родной путь; 3X / 4X - экспериментальные разблокировки. Диагностика неудач"
   },
   {
+   "zh": "30 FPS 的游戏在 60 Hz 信号里每张画面会发两次；补帧只看真正的新画面",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "30 FPS 的遊戲在 60 Hz 訊號裡每張畫面會發兩次；補幀只看真正的新畫面",
+   "en": "A 30 FPS game on a 60 Hz signal sends every picture twice; frame generation only looks at the new ones",
+   "ja": "60 Hz 信号の 30 FPS ゲームは同じ画面を 2 回送ります。フレーム生成は本当に新しい画面だけを使います",
+   "nl": "Een 30 FPS-game op een 60 Hz-signaal stuurt elk beeld twee keer; framegeneratie kijkt alleen naar de nieuwe",
+   "de": "Ein 30-FPS-Spiel auf einem 60-Hz-Signal sendet jedes Bild zweimal; die Frame-Generierung nutzt nur die neuen",
+   "es": "Un juego a 30 FPS en una señal de 60 Hz envía cada imagen dos veces; la generación de fotogramas solo usa las nuevas",
+   "fr": "Un jeu à 30 FPS sur un signal 60 Hz envoie chaque image deux fois ; la génération d’images n’utilise que les nouvelles",
+   "it": "Un gioco a 30 FPS su un segnale a 60 Hz invia ogni immagine due volte; la generazione dei fotogrammi usa solo quelle nuove",
+   "pt-BR": "Um jogo a 30 FPS num sinal de 60 Hz envia cada imagem duas vezes; a geração de quadros usa só as novas",
+   "tr": "60 Hz sinyaldeki 30 FPS bir oyun her görüntüyü iki kez gönderir; kare üretimi yalnızca yenilere bakar",
+   "ar": "لعبة 30 FPS على إشارة 60 Hz ترسل كل صورة مرتين؛ توليد الإطارات يستخدم الجديدة فقط",
+   "pl": "Gra 30 FPS na sygnale 60 Hz wysyła każdy obraz dwa razy; generowanie klatek bierze tylko nowe",
+   "ru": "Игра на 30 FPS в сигнале 60 Гц присылает каждый кадр дважды; генерация кадров берёт только новые"
+  },
+  {
    "zh": "30 秒",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "30 秒",
@@ -4047,6 +4064,23 @@
    "ru": "Ограниченный = 16-235, полный = 0-255. Если изображение выглядит вымытым, выберите Limited; если тени раздавливаются до черного цвета, а выделения выдуваются, выберите Full"
   },
   {
+   "zh": "Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 PushFPS 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。",
+   "src": "portable/app/qml/SettingsPage.qml",
+   "zh-TW": "Linux 與 macOS 預覽版：補幀、幀節奏修復和即時 HUD 鎖定都是 PushFPS 自己的技術，不需要 NVIDIA、AMD 或 Intel 的元件。",
+   "en": "Linux and macOS preview: frame generation, Frame Pacing Repair and Live HUD Lock are PushFPS’s own technology and need no NVIDIA, AMD or Intel components.",
+   "ja": "Linux / macOS プレビュー版：フレーム生成、フレームペーシング修復、ライブ HUD ロックはすべて PushFPS 独自の技術で、NVIDIA・AMD・Intel のコンポーネントは不要です。",
+   "nl": "Preview voor Linux en macOS: framegeneratie, Frame Pacing Repair en Live HUD Lock zijn eigen technologie van PushFPS en hebben geen onderdelen van NVIDIA, AMD of Intel nodig.",
+   "de": "Vorschau für Linux und macOS: Frame-Generierung, Frame Pacing Repair und Live HUD Lock sind eigene PushFPS-Technik und brauchen keine Komponenten von NVIDIA, AMD oder Intel.",
+   "es": "Versión preliminar para Linux y macOS: la generación de fotogramas, Frame Pacing Repair y Live HUD Lock son tecnología propia de PushFPS y no necesitan componentes de NVIDIA, AMD ni Intel.",
+   "fr": "Préversion Linux et macOS : la génération d’images, Frame Pacing Repair et Live HUD Lock sont des technologies propres à PushFPS, sans composants NVIDIA, AMD ou Intel.",
+   "it": "Anteprima per Linux e macOS: generazione dei fotogrammi, Frame Pacing Repair e Live HUD Lock sono tecnologie di PushFPS e non richiedono componenti NVIDIA, AMD o Intel.",
+   "pt-BR": "Prévia para Linux e macOS: a geração de quadros, o Frame Pacing Repair e o Live HUD Lock são tecnologia própria do PushFPS e não precisam de componentes da NVIDIA, AMD ou Intel.",
+   "tr": "Linux ve macOS önizlemesi: kare üretimi, Frame Pacing Repair ve Live HUD Lock PushFPS’in kendi teknolojisidir; NVIDIA, AMD veya Intel bileşeni gerekmez.",
+   "ar": "معاينة Linux وmacOS: توليد الإطارات وFrame Pacing Repair وLive HUD Lock تقنيات خاصة بـ PushFPS ولا تحتاج مكونات من NVIDIA أو AMD أو Intel.",
+   "pl": "Wersja zapoznawcza dla Linuksa i macOS: generowanie klatek, Frame Pacing Repair i Live HUD Lock to własna technologia PushFPS, bez komponentów NVIDIA, AMD ani Intel.",
+   "ru": "Предварительная версия для Linux и macOS: генерация кадров, Frame Pacing Repair и Live HUD Lock — собственные технологии PushFPS, компоненты NVIDIA, AMD или Intel не нужны."
+  },
+  {
    "zh": "MKV 不支持直接保留此编码，请排除此轨",
    "src": "src/engine/ExportStreams.cpp",
    "zh-TW": "MKV 不支援直接保留此編碼，請排除此軌",
@@ -5577,6 +5611,23 @@
    "ru": "Patreon, WeChat и Alipay"
   },
   {
+   "zh": "PushFPS 以 GPL-3.0 许可发布。使用 Qt 6（LGPL-3.0），视频解码由 Qt 自带的 FFmpeg（LGPL）完成。",
+   "src": "portable/app/qml/SettingsPage.qml",
+   "zh-TW": "PushFPS 以 GPL-3.0 授權發布。使用 Qt 6（LGPL-3.0），影片解碼由 Qt 內建的 FFmpeg（LGPL）完成。",
+   "en": "PushFPS is released under the GPL-3.0. It uses Qt 6 (LGPL-3.0); video decoding is done by the FFmpeg that comes with Qt (LGPL).",
+   "ja": "PushFPS は GPL-3.0 で公開されています。Qt 6（LGPL-3.0）を使用し、動画のデコードは Qt 付属の FFmpeg（LGPL）が行います。",
+   "nl": "PushFPS valt onder de GPL-3.0. Het gebruikt Qt 6 (LGPL-3.0); video wordt gedecodeerd door de FFmpeg die bij Qt zit (LGPL).",
+   "de": "PushFPS steht unter der GPL-3.0. Es nutzt Qt 6 (LGPL-3.0); Videos dekodiert das mit Qt gelieferte FFmpeg (LGPL).",
+   "es": "PushFPS se publica bajo la GPL-3.0. Usa Qt 6 (LGPL-3.0); el vídeo lo decodifica el FFmpeg incluido con Qt (LGPL).",
+   "fr": "PushFPS est publié sous licence GPL-3.0. Il utilise Qt 6 (LGPL-3.0) ; la vidéo est décodée par le FFmpeg fourni avec Qt (LGPL).",
+   "it": "PushFPS è distribuito con licenza GPL-3.0. Usa Qt 6 (LGPL-3.0); i video sono decodificati dall’FFmpeg incluso in Qt (LGPL).",
+   "pt-BR": "O PushFPS é distribuído sob a GPL-3.0. Usa o Qt 6 (LGPL-3.0); o vídeo é decodificado pelo FFmpeg que vem com o Qt (LGPL).",
+   "tr": "PushFPS GPL-3.0 lisansıyla yayımlanır. Qt 6 (LGPL-3.0) kullanır; video kod çözme Qt ile gelen FFmpeg (LGPL) ile yapılır.",
+   "ar": "يصدر PushFPS بترخيص GPL-3.0. يستخدم Qt 6 (LGPL-3.0)، ويتولى فك ترميز الفيديو FFmpeg المرفق مع Qt (LGPL).",
+   "pl": "PushFPS jest wydany na licencji GPL-3.0. Używa Qt 6 (LGPL-3.0); wideo dekoduje FFmpeg dołączony do Qt (LGPL).",
+   "ru": "PushFPS распространяется по лицензии GPL-3.0. Использует Qt 6 (LGPL-3.0); видео декодирует FFmpeg из состава Qt (LGPL)."
+  },
+  {
    "zh": "PushFPS 使用 NVIDIA® DLSS SDK 与 NGX SDK、AMD FidelityFX™ SDK 和 Intel® XeSS SDK。NVIDIA、NVIDIA RTX™ 和 DLSS 是 NVIDIA Corporation 的商标；PushFPS 未获 NVIDIA、AMD 或 Intel 赞助或认可。各 SDK 的许可证随程序提供。",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "PushFPS 使用 NVIDIA® DLSS SDK 與 NGX SDK、AMD FidelityFX™ SDK 和 Intel® XeSS SDK。NVIDIA、NVIDIA RTX™ 和 DLSS 是 NVIDIA Corporation 的商標；PushFPS 未獲 NVIDIA、AMD 或 Intel 贊助或認可。各 SDK 的授權條款隨程式提供。",
@@ -5694,6 +5745,23 @@
    "ar": "يضيف PushFPS نحو %1 ملي ثانية مقارنةً بالتمرير المباشر (نحو %2 ملي ثانية لكل إطار)",
    "pl": "PushFPS dodaje około %1 ms względem passthrough (około %2 ms na klatkę)",
    "ru": "PushFPS добавляет около %1 мс по сравнению со сквозным выходом (около %2 мс на кадр)"
+  },
+  {
+   "zh": "PushFPS 没有使用采集卡的权限，请在系统设置的隐私与安全性中允许",
+   "src": "portable/app/src/AppController.cpp",
+   "zh-TW": "PushFPS 沒有使用擷取卡的權限，請在系統設定的隱私權與安全性中允許",
+   "en": "PushFPS isn’t allowed to use the capture card. Allow it in System Settings → Privacy & Security",
+   "ja": "PushFPS にキャプチャーカードの使用許可がありません。システム設定の「プライバシーとセキュリティ」で許可してください",
+   "nl": "PushFPS mag de capturekaart niet gebruiken. Sta het toe in Systeeminstellingen → Privacy en beveiliging",
+   "de": "PushFPS darf die Capture-Karte nicht verwenden. Erlaube es in den Systemeinstellungen → Datenschutz & Sicherheit",
+   "es": "PushFPS no tiene permiso para usar la capturadora. Permítelo en Ajustes del Sistema → Privacidad y seguridad",
+   "fr": "PushFPS n’a pas l’autorisation d’utiliser la carte d’acquisition. Autorisez-la dans Réglages Système → Confidentialité et sécurité",
+   "it": "PushFPS non ha il permesso di usare la scheda di acquisizione. Consentilo in Impostazioni di Sistema → Privacy e sicurezza",
+   "pt-BR": "O PushFPS não tem permissão para usar a placa de captura. Permita em Ajustes do Sistema → Privacidade e Segurança",
+   "tr": "PushFPS’in yakalama kartını kullanma izni yok. Sistem Ayarları → Gizlilik ve Güvenlik’ten izin verin",
+   "ar": "لا يملك PushFPS إذنًا لاستخدام بطاقة الالتقاط. اسمح له من إعدادات النظام ← الخصوصية والأمن",
+   "pl": "PushFPS nie ma uprawnień do karty przechwytującej. Zezwól w Ustawieniach systemowych → Prywatność i ochrona",
+   "ru": "У PushFPS нет доступа к карте захвата. Разрешите его в Системных настройках → Конфиденциальность и безопасность"
   },
   {
    "zh": "PushFPS 游戏预设 (*.pushfps)",
@@ -8040,6 +8108,23 @@
    "ar": "لا تُقدّمْ هذا PC ' متحكم مدخل إلى PS5",
    "pl": "Nie przesyłaj wejścia kontrolera PC do PS5",
    "ru": "Не перенаправляйте этот контроллер PC на вход PS5."
+  },
+  {
+   "zh": "不均匀出帧",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "不均勻出幀",
+   "en": "Uneven pacing",
+   "ja": "不均一なペース",
+   "nl": "Ongelijk tempo",
+   "de": "Ungleichmäßig",
+   "es": "Ritmo irregular",
+   "fr": "Rythme irrégulier",
+   "it": "Ritmo irregolare",
+   "pt-BR": "Ritmo irregular",
+   "tr": "Düzensiz ritim",
+   "ar": "إيقاع غير منتظم",
+   "pl": "Nierówne tempo",
+   "ru": "Неровный темп"
   },
   {
    "zh": "不撕裂，也不等待垂直同步（延迟最低）",
@@ -10541,6 +10626,23 @@
    "ru": "напр. Вечерняя игра"
   },
   {
+   "zh": "便携模式",
+   "src": "portable/app/qml/SettingsPage.qml",
+   "zh-TW": "可攜模式",
+   "en": "Portable mode",
+   "ja": "ポータブルモード",
+   "nl": "Draagbare modus",
+   "de": "Portabler Modus",
+   "es": "Modo portátil",
+   "fr": "Mode portable",
+   "it": "Modalità portatile",
+   "pt-BR": "Modo portátil",
+   "tr": "Taşınabilir mod",
+   "ar": "الوضع المحمول",
+   "pl": "Tryb przenośny",
+   "ru": "Портативный режим"
+  },
+  {
    "zh": "保存",
    "src": "qml/ColourPanel.qml",
    "zh-TW": "儲存",
@@ -11066,6 +11168,23 @@
    "ar": "الإشارة",
    "pl": "Sygnał",
    "ru": "Сигнал"
+  },
+  {
+   "zh": "信号 %1 Hz · 延迟 %2 ms · 运动估计 %3 ms",
+   "src": "portable/app/qml/PlayerPage.qml",
+   "zh-TW": "訊號 %1 Hz · 延遲 %2 ms · 運動估計 %3 ms",
+   "en": "Signal %1 Hz · latency %2 ms · motion estimation %3 ms",
+   "ja": "信号 %1 Hz · 遅延 %2 ms · 動き推定 %3 ms",
+   "nl": "Signaal %1 Hz · vertraging %2 ms · bewegingsschatting %3 ms",
+   "de": "Signal %1 Hz · Latenz %2 ms · Bewegungsschätzung %3 ms",
+   "es": "Señal %1 Hz · latencia %2 ms · estimación de movimiento %3 ms",
+   "fr": "Signal %1 Hz · latence %2 ms · estimation du mouvement %3 ms",
+   "it": "Segnale %1 Hz · latenza %2 ms · stima del movimento %3 ms",
+   "pt-BR": "Sinal %1 Hz · latência %2 ms · estimativa de movimento %3 ms",
+   "tr": "Sinyal %1 Hz · gecikme %2 ms · hareket tahmini %3 ms",
+   "ar": "الإشارة %1 Hz · التأخير %2 ms · تقدير الحركة %3 ms",
+   "pl": "Sygnał %1 Hz · opóźnienie %2 ms · szacowanie ruchu %3 ms",
+   "ru": "Сигнал %1 Гц · задержка %2 мс · оценка движения %3 мс"
   },
   {
    "zh": "修复",
@@ -17274,6 +17393,23 @@
    "ru": "Показывать задержку на экране"
   },
   {
+   "zh": "在程序旁边放一个名为 portable.txt 的文件，设置和截图就会保存在那里，删除文件夹即可彻底移除",
+   "src": "portable/app/qml/SettingsPage.qml",
+   "zh-TW": "在程式旁邊放一個名為 portable.txt 的檔案，設定和截圖就會儲存在那裡，刪除資料夾即可徹底移除",
+   "en": "Put a file named portable.txt next to the program and settings and screenshots are saved there; deleting the folder removes everything",
+   "ja": "プログラムの横に portable.txt という名前のファイルを置くと、設定とスクリーンショットがそこに保存され、フォルダーを削除すればすべて消えます",
+   "nl": "Zet een bestand met de naam portable.txt naast het programma; instellingen en schermafbeeldingen komen dan daar, en de map verwijderen haalt alles weg",
+   "de": "Lege eine Datei namens portable.txt neben das Programm, dann landen Einstellungen und Screenshots dort; den Ordner zu löschen entfernt alles",
+   "es": "Pon un archivo llamado portable.txt junto al programa y los ajustes y capturas se guardarán ahí; borrar la carpeta lo elimina todo",
+   "fr": "Placez un fichier nommé portable.txt à côté du programme : les réglages et captures y seront enregistrés, et supprimer le dossier efface tout",
+   "it": "Metti un file chiamato portable.txt accanto al programma: impostazioni e screenshot verranno salvati lì, ed eliminare la cartella rimuove tutto",
+   "pt-BR": "Coloque um arquivo chamado portable.txt ao lado do programa e as configurações e capturas serão salvas ali; apagar a pasta remove tudo",
+   "tr": "Programın yanına portable.txt adlı bir dosya koyun; ayarlar ve ekran görüntüleri oraya kaydedilir, klasörü silmek her şeyi kaldırır",
+   "ar": "ضع ملفًا باسم portable.txt بجانب البرنامج لتُحفظ الإعدادات ولقطات الشاشة هناك، وحذف المجلد يزيل كل شيء",
+   "pl": "Umieść obok programu plik o nazwie portable.txt, a ustawienia i zrzuty ekranu będą zapisywane tam; usunięcie folderu usuwa wszystko",
+   "ru": "Положите рядом с программой файл portable.txt — настройки и скриншоты будут сохраняться там, а удаление папки удалит всё"
+  },
+  {
    "zh": "在线",
    "src": "qml/PcSourceDialog.qml",
    "zh-TW": "在線",
@@ -22442,6 +22578,23 @@
    "ru": "Включено: %1"
   },
   {
+   "zh": "已开启：设置和截图保存在程序旁边的文件夹里",
+   "src": "portable/app/qml/SettingsPage.qml",
+   "zh-TW": "已開啟：設定和截圖儲存在程式旁邊的資料夾裡",
+   "en": "On: settings and screenshots are saved in the folder next to the program",
+   "ja": "オン：設定とスクリーンショットはプログラムの横のフォルダーに保存されます",
+   "nl": "Aan: instellingen en schermafbeeldingen staan in de map naast het programma",
+   "de": "An: Einstellungen und Screenshots liegen im Ordner neben dem Programm",
+   "es": "Activado: los ajustes y capturas se guardan en la carpeta junto al programa",
+   "fr": "Activé : réglages et captures sont enregistrés dans le dossier à côté du programme",
+   "it": "Attiva: impostazioni e screenshot sono salvati nella cartella accanto al programma",
+   "pt-BR": "Ativado: configurações e capturas ficam na pasta ao lado do programa",
+   "tr": "Açık: ayarlar ve ekran görüntüleri programın yanındaki klasöre kaydedilir",
+   "ar": "مفعّل: تُحفظ الإعدادات ولقطات الشاشة في المجلد بجانب البرنامج",
+   "pl": "Włączony: ustawienia i zrzuty ekranu są w folderze obok programu",
+   "ru": "Включён: настройки и скриншоты сохраняются в папке рядом с программой"
+  },
+  {
    "zh": "已按片源自动选档：%1",
    "src": "src/ui/bridge/Enhancement.cpp",
    "zh-TW": "已按片源自動選檔：%1",
@@ -23681,6 +23834,23 @@
    "ar": "وقد دفع صاحب البلاغ دائماً ثمن معدات التطوير والاختبار من جيبه. إذا Veyra يُساعدُك، يُفكّرُ في شراء قهوة صاحب البلاغ: دعمكَ الذي يُبقي التحديثاتَ القادمة.",
    "pl": "Autor zawsze płacił za rozwój i testowanie sprzętu z kieszeni. Jeśli Veyra pomaga, rozważyć zakup autorowi kawy: Twoje wsparcie jest tym, co utrzymuje aktualizacje nadchodzi.",
    "ru": "Автор всегда платил за разработку и тестирование аппаратного обеспечения из своего кармана. Если Veyra поможет вам, подумайте о том, чтобы купить автору кофе: ваша поддержка - это то, что поддерживает обновления."
+  },
+  {
+   "zh": "开启",
+   "src": "portable/app/qml/SettingsPage.qml",
+   "zh-TW": "開啟",
+   "en": "On",
+   "ja": "オン",
+   "nl": "Aan",
+   "de": "An",
+   "es": "Activado",
+   "fr": "Activé",
+   "it": "Attivo",
+   "pt-BR": "Ligado",
+   "tr": "Açık",
+   "ar": "تشغيل",
+   "pl": "Wł.",
+   "ru": "Вкл."
   },
   {
    "zh": "开启使用 Small 模型；关闭使用原模型。每层独立选择，切换会重建 NR，画面可能有所不同。",
@@ -25774,6 +25944,23 @@
    "ru": "Не удалось сохранить сочетание клавиш"
   },
   {
+   "zh": "快速",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "快速",
+   "en": "Fast",
+   "ja": "高速",
+   "nl": "Snel",
+   "de": "Schnell",
+   "es": "Rápido",
+   "fr": "Rapide",
+   "it": "Veloce",
+   "pt-BR": "Rápido",
+   "tr": "Hızlı",
+   "ar": "سريع",
+   "pl": "Szybki",
+   "ru": "Быстро"
+  },
+  {
    "zh": "快速设置",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "快速設定",
@@ -26078,6 +26265,23 @@
    "ar": "تُوفَّر طلقات نارية من أجل: %1",
    "pl": "Zrzuty ekranu są zapisywane do: %1",
    "ru": "Скриншоты сохраняются до: %1"
+  },
+  {
+   "zh": "截图已保存",
+   "src": "portable/app/qml/PlayerPage.qml",
+   "zh-TW": "截圖已儲存",
+   "en": "Screenshot saved",
+   "ja": "スクリーンショットを保存しました",
+   "nl": "Schermafbeelding opgeslagen",
+   "de": "Screenshot gespeichert",
+   "es": "Captura guardada",
+   "fr": "Capture enregistrée",
+   "it": "Screenshot salvato",
+   "pt-BR": "Captura salva",
+   "tr": "Ekran görüntüsü kaydedildi",
+   "ar": "تم حفظ لقطة الشاشة",
+   "pl": "Zrzut ekranu zapisany",
+   "ru": "Скриншот сохранён"
   },
   {
    "zh": "截图目录不可用：%1",
@@ -28325,6 +28529,23 @@
    "ru": "Скорость воспроизведения %1 ×"
   },
   {
+   "zh": "播放采集卡声音",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "播放擷取卡聲音",
+   "en": "Play capture card sound",
+   "ja": "キャプチャーカードの音声を再生",
+   "nl": "Geluid van de capturekaart afspelen",
+   "de": "Ton der Capture-Karte abspielen",
+   "es": "Reproducir el sonido de la capturadora",
+   "fr": "Lire le son de la carte d’acquisition",
+   "it": "Riproduci l’audio della scheda di acquisizione",
+   "pt-BR": "Reproduzir o som da placa de captura",
+   "tr": "Yakalama kartı sesini çal",
+   "ar": "تشغيل صوت بطاقة الالتقاط",
+   "pl": "Odtwarzaj dźwięk karty przechwytującej",
+   "ru": "Воспроизводить звук карты захвата"
+  },
+  {
    "zh": "操作失败；请检查网络、输入和可用磁盘空间。",
    "src": "src/ui/bridge/RemotePlay.cpp",
    "zh-TW": "操作失敗；請檢查網路、輸入和可用磁盤空間。",
@@ -30059,6 +30280,40 @@
    "ru": "Не удалось открыть видео; посмотреть диагностику"
   },
   {
+   "zh": "无法打开采集设备",
+   "src": "portable/app/src/CaptureSource.cpp",
+   "zh-TW": "無法開啟擷取裝置",
+   "en": "Can’t open the capture device",
+   "ja": "キャプチャーデバイスを開けません",
+   "nl": "Kan het capture-apparaat niet openen",
+   "de": "Capture-Gerät kann nicht geöffnet werden",
+   "es": "No se puede abrir el dispositivo de captura",
+   "fr": "Impossible d’ouvrir le périphérique d’acquisition",
+   "it": "Impossibile aprire il dispositivo di acquisizione",
+   "pt-BR": "Não foi possível abrir o dispositivo de captura",
+   "tr": "Yakalama cihazı açılamıyor",
+   "ar": "تعذّر فتح جهاز الالتقاط",
+   "pl": "Nie można otworzyć urządzenia przechwytującego",
+   "ru": "Не удаётся открыть устройство захвата"
+  },
+  {
+   "zh": "无法打开音频设备",
+   "src": "portable/app/src/AudioPassthrough.cpp",
+   "zh-TW": "無法開啟音訊裝置",
+   "en": "Can’t open the audio device",
+   "ja": "オーディオデバイスを開けません",
+   "nl": "Kan het audioapparaat niet openen",
+   "de": "Audiogerät kann nicht geöffnet werden",
+   "es": "No se puede abrir el dispositivo de audio",
+   "fr": "Impossible d’ouvrir le périphérique audio",
+   "it": "Impossibile aprire il dispositivo audio",
+   "pt-BR": "Não foi possível abrir o dispositivo de áudio",
+   "tr": "Ses cihazı açılamıyor",
+   "ar": "تعذّر فتح جهاز الصوت",
+   "pl": "Nie można otworzyć urządzenia audio",
+   "ru": "Не удаётся открыть аудиоустройство"
+  },
+  {
    "zh": "无法打开驱动设置；请先断开采集并关闭占用设备的应用。",
    "src": "src/source/CaptureCardSource.cpp",
    "zh-TW": "無法開啟驅動設定；請先中斷擷取並關閉佔用裝置的應用程式。",
@@ -30074,6 +30329,23 @@
    "ar": "لا يمكن فتح مواقع القيادة. انفصال التقاط والتطبيقات الدقيقة باستخدام الجهاز أولاً",
    "pl": "Nie można otworzyć ustawień sterownika. Najpierw odłącz przechwytywanie i zamknij aplikacje za pomocą urządzenia.",
    "ru": "Невозможно открыть настройки драйвера. Сначала отключите захват и закройте приложения с помощью устройства."
+  },
+  {
+   "zh": "无法播放此文件",
+   "src": "portable/app/src/CaptureSource.cpp",
+   "zh-TW": "無法播放此檔案",
+   "en": "Can’t play this file",
+   "ja": "このファイルを再生できません",
+   "nl": "Kan dit bestand niet afspelen",
+   "de": "Diese Datei kann nicht abgespielt werden",
+   "es": "No se puede reproducir este archivo",
+   "fr": "Impossible de lire ce fichier",
+   "it": "Impossibile riprodurre questo file",
+   "pt-BR": "Não foi possível reproduzir este arquivo",
+   "tr": "Bu dosya oynatılamıyor",
+   "ar": "تعذّر تشغيل هذا الملف",
+   "pl": "Nie można odtworzyć tego pliku",
+   "ru": "Не удаётся воспроизвести этот файл"
   },
   {
    "zh": "无法映射导出通信资源",
@@ -31264,6 +31536,23 @@
    "ar": "إظهار شريط التشغيل",
    "pl": "Pokaż pasek odtwarzania",
    "ru": "Показать панель воспроизведения"
+  },
+  {
+   "zh": "显示统计",
+   "src": "portable/app/qml/PlayerPage.qml",
+   "zh-TW": "顯示統計",
+   "en": "Show stats",
+   "ja": "統計を表示",
+   "nl": "Statistieken tonen",
+   "de": "Statistik zeigen",
+   "es": "Mostrar estadísticas",
+   "fr": "Afficher les stats",
+   "it": "Mostra statistiche",
+   "pt-BR": "Mostrar estatísticas",
+   "tr": "İstatistikleri göster",
+   "ar": "إظهار الإحصاءات",
+   "pl": "Pokaż statystyki",
+   "ru": "Показать статистику"
   },
   {
    "zh": "显示设备峰值 (nit)",
@@ -33408,6 +33697,23 @@
    "ru": "Стиль"
   },
   {
+   "zh": "格式",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "格式",
+   "en": "Format",
+   "ja": "フォーマット",
+   "nl": "Formaat",
+   "de": "Format",
+   "es": "Formato",
+   "fr": "Format",
+   "it": "Formato",
+   "pt-BR": "Formato",
+   "tr": "Biçim",
+   "ar": "التنسيق",
+   "pl": "Format",
+   "ru": "Формат"
+  },
+  {
    "zh": "格式与画面",
    "src": "qml/CaptureSourceDialog.qml",
    "zh-TW": "格式與畫面",
@@ -34734,6 +35040,23 @@
    "ru": "Вход в стриминговый сервис Xbox..."
   },
   {
+   "zh": "正在等待画面…",
+   "src": "portable/app/qml/PlayerPage.qml",
+   "zh-TW": "正在等待畫面…",
+   "en": "Waiting for a picture…",
+   "ja": "映像を待っています…",
+   "nl": "Wachten op beeld…",
+   "de": "Warte auf ein Bild …",
+   "es": "Esperando imagen…",
+   "fr": "En attente d’image…",
+   "it": "In attesa dell’immagine…",
+   "pt-BR": "Aguardando imagem…",
+   "tr": "Görüntü bekleniyor…",
+   "ar": "بانتظار الصورة…",
+   "pl": "Czekam na obraz…",
+   "ru": "Ожидание изображения…"
+  },
+  {
    "zh": "正在缓冲 {:.1f}/{:.1f} 秒",
    "src": "src/media/DemuxSession.cpp",
    "zh-TW": "正在緩衝 {:.1f}/{:.1f} 秒",
@@ -35975,6 +36298,23 @@
    "ru": "не выбранный цвет"
   },
   {
+   "zh": "没有采集卡也能看看补帧效果",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "沒有擷取卡也能看看補幀效果",
+   "en": "See frame generation without a capture card",
+   "ja": "キャプチャーカードがなくてもフレーム生成を試せます",
+   "nl": "Bekijk framegeneratie zonder capturekaart",
+   "de": "Frame-Generierung ohne Capture-Karte ansehen",
+   "es": "Mira la generación de fotogramas sin capturadora",
+   "fr": "Voyez la génération d’images sans carte d’acquisition",
+   "it": "Prova la generazione dei fotogrammi senza scheda di acquisizione",
+   "pt-BR": "Veja a geração de quadros sem placa de captura",
+   "tr": "Yakalama kartı olmadan kare üretimini görün",
+   "ar": "شاهد توليد الإطارات دون بطاقة التقاط",
+   "pl": "Zobacz generowanie klatek bez karty przechwytującej",
+   "ru": "Посмотрите генерацию кадров без карты захвата"
+  },
+  {
    "zh": "没有需要拼接的分段",
    "src": "src/engine/VideoExportJob.cpp",
    "zh-TW": "沒有需要拼接的分段",
@@ -36194,6 +36534,23 @@
    "ar": "يختبر كل تركيبة ويختار الأفضل",
    "pl": "Testuje każdą kombinację, wybiera najlepszą",
    "ru": "Проверяет все варианты, выбирает лучший"
+  },
+  {
+   "zh": "测试画面",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "測試畫面",
+   "en": "Test picture",
+   "ja": "テスト映像",
+   "nl": "Testbeeld",
+   "de": "Testbild",
+   "es": "Imagen de prueba",
+   "fr": "Image de test",
+   "it": "Immagine di prova",
+   "pt-BR": "Imagem de teste",
+   "tr": "Test görüntüsü",
+   "ar": "صورة اختبار",
+   "pl": "Obraz testowy",
+   "ru": "Тестовое изображение"
   },
   {
    "zh": "测量中设置被改变",
@@ -36570,6 +36927,23 @@
    "ru": "Игра"
   },
   {
+   "zh": "游戏 %1 FPS → 输出 %2 FPS",
+   "src": "portable/app/qml/PlayerPage.qml",
+   "zh-TW": "遊戲 %1 FPS → 輸出 %2 FPS",
+   "en": "Game %1 FPS → output %2 FPS",
+   "ja": "ゲーム %1 FPS → 出力 %2 FPS",
+   "nl": "Game %1 FPS → uitvoer %2 FPS",
+   "de": "Spiel %1 FPS → Ausgabe %2 FPS",
+   "es": "Juego %1 FPS → salida %2 FPS",
+   "fr": "Jeu %1 FPS → sortie %2 FPS",
+   "it": "Gioco %1 FPS → uscita %2 FPS",
+   "pt-BR": "Jogo %1 FPS → saída %2 FPS",
+   "tr": "Oyun %1 FPS → çıkış %2 FPS",
+   "ar": "اللعبة %1 FPS ← الإخراج %2 FPS",
+   "pl": "Gra %1 FPS → wyjście %2 FPS",
+   "ru": "Игра %1 FPS → вывод %2 FPS"
+  },
+  {
    "zh": "游戏与程序 · ",
    "src": "qml/PcSourceDialog.qml",
    "zh-TW": "遊戲與程式 · ",
@@ -36670,6 +37044,23 @@
    "ar": "معدل إطارات اللعبة · الهدف",
    "pl": "Liczba klatek gry · cel",
    "ru": "Частота кадров игры · цель"
+  },
+  {
+   "zh": "游戏帧率、输出帧率和延迟（按 Tab 切换）",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "遊戲幀率、輸出幀率和延遲（按 Tab 切換）",
+   "en": "Game frame rate, output frame rate and latency (Tab toggles)",
+   "ja": "ゲームのフレームレート、出力フレームレート、遅延（Tab で切り替え）",
+   "nl": "Framerate van de game, uitvoer-framerate en vertraging (Tab schakelt)",
+   "de": "Bildrate des Spiels, Ausgabe-Bildrate und Latenz (Tab schaltet um)",
+   "es": "Fotogramas del juego, de salida y latencia (Tab alterna)",
+   "fr": "Fréquence du jeu, fréquence de sortie et latence (Tab pour basculer)",
+   "it": "Frame rate del gioco, di uscita e latenza (Tab per alternare)",
+   "pt-BR": "Taxa de quadros do jogo, de saída e latência (Tab alterna)",
+   "tr": "Oyun kare hızı, çıkış kare hızı ve gecikme (Tab ile aç/kapat)",
+   "ar": "معدل إطارات اللعبة والإخراج والتأخير (Tab للتبديل)",
+   "pl": "Klatki gry, klatki wyjścia i opóźnienie (Tab przełącza)",
+   "ru": "Частота кадров игры, вывода и задержка (Tab переключает)"
   },
   {
    "zh": "游戏帧率波动时自动调整倍率，输出尽量贴近目标",
@@ -39815,6 +40206,23 @@
    "ar": "دقيق",
    "pl": "Dokładnie",
    "ru": "Точно"
+  },
+  {
+   "zh": "精细：按 16 像素找运动，更准；快速：按 32 像素，占用更少",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "精細：按 16 像素找運動，更準；快速：按 32 像素，佔用更少",
+   "en": "Fine: motion per 16 pixels, more accurate; Fast: per 32 pixels, lighter",
+   "ja": "精細：16 ピクセル単位で動きを探し、より正確。高速：32 ピクセル単位で、負荷が軽い",
+   "nl": "Fijn: beweging per 16 pixels, nauwkeuriger; Snel: per 32 pixels, lichter",
+   "de": "Fein: Bewegung je 16 Pixel, genauer; Schnell: je 32 Pixel, sparsamer",
+   "es": "Fino: movimiento cada 16 píxeles, más preciso; Rápido: cada 32 píxeles, más ligero",
+   "fr": "Fin : mouvement par 16 pixels, plus précis ; Rapide : par 32 pixels, plus léger",
+   "it": "Fine: movimento ogni 16 pixel, più preciso; Veloce: ogni 32 pixel, più leggero",
+   "pt-BR": "Fino: movimento a cada 16 pixels, mais preciso; Rápido: a cada 32 pixels, mais leve",
+   "tr": "İnce: 16 pikselde bir hareket, daha doğru; Hızlı: 32 pikselde bir, daha hafif",
+   "ar": "دقيق: حركة لكل 16 بكسل وأكثر دقة؛ سريع: لكل 32 بكسل وأخف",
+   "pl": "Dokładny: ruch co 16 pikseli, precyzyjniej; Szybki: co 32 piksele, lżej",
+   "ru": "Точно: движение по 16 пикселей, точнее; Быстро: по 32 пикселя, легче"
   },
   {
    "zh": "精细：按位置还原色度，放大用双三次；不是 AI 超分",
@@ -43302,6 +43710,23 @@
    "ru": "Сгенерированные кадры тянут неподвижный текст, прицелы и полоски здоровья вместе с движущимся фоном, и они размазываются или дрожат. Когда включено, PushFPS в каждом кадре находит неподвижные пиксели HUD и при генерации использует там собственные пиксели консоли, без рисования рамок"
   },
   {
+   "zh": "补出来的帧夹在两张真实画面之间，画面会晚一张真实画面显示",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "補出來的幀夾在兩張真實畫面之間，畫面會晚一張真實畫面顯示",
+   "en": "Generated frames sit between two real pictures, so the picture shows one real frame later",
+   "ja": "生成フレームは 2 枚の実画面の間に入るため、映像は実画面 1 枚分遅れて表示されます",
+   "nl": "Gegenereerde frames zitten tussen twee echte beelden, dus het beeld komt één echt frame later",
+   "de": "Generierte Bilder liegen zwischen zwei echten, daher erscheint das Bild ein echtes Bild später",
+   "es": "Los fotogramas generados van entre dos imágenes reales, así que la imagen se muestra un fotograma real más tarde",
+   "fr": "Les images générées se placent entre deux vraies, l’image s’affiche donc une vraie image plus tard",
+   "it": "I fotogrammi generati stanno tra due immagini reali, quindi l’immagine appare un fotogramma reale dopo",
+   "pt-BR": "Os quadros gerados ficam entre duas imagens reais, então a imagem aparece um quadro real depois",
+   "tr": "Üretilen kareler iki gerçek görüntünün arasına girer; görüntü bir gerçek kare geç gösterilir",
+   "ar": "الإطارات المولّدة تقع بين صورتين حقيقيتين، لذا تظهر الصورة متأخرة بإطار حقيقي واحد",
+   "pl": "Generowane klatki trafiają między dwa prawdziwe obrazy, więc obraz pojawia się o jedną prawdziwą klatkę później",
+   "ru": "Сгенерированные кадры встают между двумя настоящими, поэтому изображение показывается на один настоящий кадр позже"
+  },
+  {
    "zh": "补帧",
    "src": "qml/ProPage.qml",
    "zh-TW": "補幀",
@@ -43402,6 +43827,23 @@
    "ar": "FG متوقف",
    "pl": "FG wył.",
    "ru": "FG выкл."
+  },
+  {
+   "zh": "补帧关闭：每一帧到达后立刻显示，延迟最低",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "補幀關閉：每一幀到達後立刻顯示，延遲最低",
+   "en": "Frame generation off: every frame shows as soon as it arrives, lowest latency",
+   "ja": "フレーム生成オフ：各フレームは届いた瞬間に表示され、遅延は最小です",
+   "nl": "Framegeneratie uit: elk frame verschijnt meteen, laagste vertraging",
+   "de": "Frame-Generierung aus: jedes Bild erscheint sofort, niedrigste Latenz",
+   "es": "Generación desactivada: cada fotograma se muestra al llegar, latencia mínima",
+   "fr": "Génération désactivée : chaque image s’affiche dès son arrivée, latence minimale",
+   "it": "Generazione disattivata: ogni fotogramma appare appena arriva, latenza minima",
+   "pt-BR": "Geração desligada: cada quadro aparece assim que chega, latência mínima",
+   "tr": "Kare üretimi kapalı: her kare gelir gelmez gösterilir, en düşük gecikme",
+   "ar": "توليد الإطارات متوقف: يظهر كل إطار فور وصوله بأقل تأخير",
+   "pl": "Generowanie wyłączone: każda klatka pojawia się od razu, najniższe opóźnienie",
+   "ru": "Генерация выключена: каждый кадр показывается сразу, минимальная задержка"
   },
   {
    "zh": "补帧只能放在链路最后",
@@ -43878,6 +44320,23 @@
    "ar": "Resume the video position or reopen the last capture device and settings",
    "pl": "Wznowić pozycję wideo lub ponownie otworzyć ostatnie urządzenie do przechwytywania i ustawienia",
    "ru": "Возобновить положение видео или снова открыть последнее устройство захвата и настройки"
+  },
+  {
+   "zh": "视频文件",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "影片檔案",
+   "en": "Video files",
+   "ja": "動画ファイル",
+   "nl": "Videobestanden",
+   "de": "Videodateien",
+   "es": "Archivos de vídeo",
+   "fr": "Fichiers vidéo",
+   "it": "File video",
+   "pt-BR": "Arquivos de vídeo",
+   "tr": "Video dosyaları",
+   "ar": "ملفات الفيديو",
+   "pl": "Pliki wideo",
+   "ru": "Видеофайлы"
   },
   {
    "zh": "视频文件 (*.mp4 *.mkv *.mov *.avi *.webm *.ts *.m2ts);;所有文件 (*)",
@@ -47790,6 +48249,23 @@
    "ru": "Качество оценки движения"
   },
   {
+   "zh": "运动估计",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "運動估計",
+   "en": "Motion estimation",
+   "ja": "動き推定",
+   "nl": "Bewegingsschatting",
+   "de": "Bewegungsschätzung",
+   "es": "Estimación de movimiento",
+   "fr": "Estimation du mouvement",
+   "it": "Stima del movimento",
+   "pt-BR": "Estimativa de movimento",
+   "tr": "Hareket tahmini",
+   "ar": "تقدير الحركة",
+   "pl": "Szacowanie ruchu",
+   "ru": "Оценка движения"
+  },
+  {
    "zh": "运算显卡已切换为「%1」，重新打开视频后生效",
    "src": "src/ui/bridge/Preferences.cpp",
    "zh-TW": "運算顯示卡已切換為「%1」，重新開啟影片後生效",
@@ -48895,6 +49371,23 @@
    "ru": "После подключения устройства выключите улучшение, чтобы сначала проверить базовое изображение, а затем включите то, что вам нужно."
   },
   {
+   "zh": "退出全屏",
+   "src": "portable/app/qml/PlayerPage.qml",
+   "zh-TW": "退出全螢幕",
+   "en": "Exit fullscreen",
+   "ja": "全画面を終了",
+   "nl": "Volledig scherm sluiten",
+   "de": "Vollbild beenden",
+   "es": "Salir de pantalla completa",
+   "fr": "Quitter le plein écran",
+   "it": "Esci da schermo intero",
+   "pt-BR": "Sair da tela cheia",
+   "tr": "Tam ekrandan çık",
+   "ar": "الخروج من ملء الشاشة",
+   "pl": "Zamknij pełny ekran",
+   "ru": "Выйти из полноэкранного режима"
+  },
+  {
    "zh": "退出全屏，恢复普通窗口操作",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "退出全螢幕，恢復一般視窗操作",
@@ -49114,6 +49607,23 @@
    "ar": "اختيار مجلد لقطات الشاشة",
    "pl": "Wybierz folder zrzutów ekranu",
    "ru": "Выбрать папку снимков экрана"
+  },
+  {
+   "zh": "选择文件",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "選擇檔案",
+   "en": "Choose file",
+   "ja": "ファイルを選択",
+   "nl": "Bestand kiezen",
+   "de": "Datei wählen",
+   "es": "Elegir archivo",
+   "fr": "Choisir un fichier",
+   "it": "Scegli file",
+   "pt-BR": "Escolher arquivo",
+   "tr": "Dosya seç",
+   "ar": "اختيار ملف",
+   "pl": "Wybierz plik",
+   "ru": "Выбрать файл"
   },
   {
    "zh": "选择要处理的图片",
@@ -49828,6 +50338,23 @@
    "ar": "The selected capture format could not connect (0x{:08X}). Check whether another app is using the device and choose the format again.",
    "pl": "Wybrany format nie mógł się połączyć (0x {:08X}). Sprawdź, czy inna aplikacja używa urządzenia i wybierz ponownie format.",
    "ru": "Выбранный формат захвата не мог соединяться (0x {:08X}). Проверьте, использует ли другое приложение устройство, и снова выберите формат."
+  },
+  {
+   "zh": "采集卡的声音与画面同步延迟后播放",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "擷取卡的聲音與畫面同步延遲後播放",
+   "en": "The capture card’s sound plays delayed with the picture, so it stays in sync",
+   "ja": "キャプチャーカードの音声は映像に合わせて遅らせて再生されます",
+   "nl": "Het geluid van de capturekaart speelt met dezelfde vertraging als het beeld, zodat het synchroon blijft",
+   "de": "Der Ton der Capture-Karte wird wie das Bild verzögert und bleibt synchron",
+   "es": "El sonido de la capturadora se retrasa igual que la imagen para mantenerse sincronizado",
+   "fr": "Le son de la carte est retardé comme l’image pour rester synchronisé",
+   "it": "L’audio della scheda viene ritardato come l’immagine per restare sincronizzato",
+   "pt-BR": "O som da placa é atrasado junto com a imagem para ficar sincronizado",
+   "tr": "Yakalama kartının sesi görüntüyle aynı gecikmeyle çalınır, senkron kalır",
+   "ar": "يُشغَّل صوت بطاقة الالتقاط بتأخير الصورة نفسه ليبقى متزامنًا",
+   "pl": "Dźwięk karty jest opóźniany razem z obrazem, więc pozostaje zsynchronizowany",
+   "ru": "Звук карты захвата задерживается вместе с изображением и остаётся синхронным"
   },
   {
    "zh": "采集卡设置",
@@ -50850,6 +51377,23 @@
    "ru": "Скрыть панель воспроизведения (ее можно снова показать с дока вверху)"
   },
   {
+   "zh": "隐藏统计",
+   "src": "portable/app/qml/PlayerPage.qml",
+   "zh-TW": "隱藏統計",
+   "en": "Hide stats",
+   "ja": "統計を隠す",
+   "nl": "Statistieken verbergen",
+   "de": "Statistik ausblenden",
+   "es": "Ocultar estadísticas",
+   "fr": "Masquer les stats",
+   "it": "Nascondi statistiche",
+   "pt-BR": "Ocultar estatísticas",
+   "tr": "İstatistikleri gizle",
+   "ar": "إخفاء الإحصاءات",
+   "pl": "Ukryj statystyki",
+   "ru": "Скрыть статистику"
+  },
+  {
    "zh": "隔行",
    "src": "src/source/CaptureCardSource.cpp",
    "zh-TW": "交錯",
@@ -51632,6 +52176,23 @@
    "ru": "Восстановление звука ждет, пока драйвер захвата остановится; повторение в ближайшее время"
   },
   {
+   "zh": "音频格式不受支持",
+   "src": "portable/app/src/AudioPassthrough.cpp",
+   "zh-TW": "音訊格式不受支援",
+   "en": "Audio format not supported",
+   "ja": "オーディオ形式に対応していません",
+   "nl": "Audioformaat niet ondersteund",
+   "de": "Audioformat nicht unterstützt",
+   "es": "Formato de audio no compatible",
+   "fr": "Format audio non pris en charge",
+   "it": "Formato audio non supportato",
+   "pt-BR": "Formato de áudio não suportado",
+   "tr": "Ses biçimi desteklenmiyor",
+   "ar": "تنسيق الصوت غير مدعوم",
+   "pl": "Nieobsługiwany format audio",
+   "ru": "Формат звука не поддерживается"
+  },
+  {
    "zh": "音频欠载恢复失败",
    "src": "src/sink/CaptureAudioSession.cpp",
    "zh-TW": "音訊欠載恢復失敗",
@@ -52004,6 +52565,23 @@
    "ar": "وتصدر عملية الاستعراض والفيديو NR في القرار الداخلي المختار، مع الإبقاء على النسبة الجانبية دون زيادة المدخلات الصغيرة؛ وحجم الناتج لم يتغير. ولا يزال تصدير الصور مجهزا تجهيزا كاملا.",
    "pl": "Podgląd i eksport wideo zarówno procesu NR w wybranej rozdzielczości wewnętrznej, zachowując proporcje bez rozszerzania małych wejść; wielkość wyjściowa nie zmienia się. Eksport obrazów jest nadal w pełni przetwarzany.",
    "ru": "Предварительный просмотр и видео экспортируют оба процесса NR с выбранным внутренним разрешением, сохраняя соотношение сторон без увеличения небольших входов; размер выхода не изменяется. Экспорт изображений по-прежнему полностью обработан."
+  },
+  {
+   "zh": "预览版",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "預覽版",
+   "en": "Preview",
+   "ja": "プレビュー版",
+   "nl": "Voorbeeld",
+   "de": "Vorschau",
+   "es": "Vista previa",
+   "fr": "Aperçu",
+   "it": "Anteprima",
+   "pt-BR": "Prévia",
+   "tr": "Önizleme",
+   "ar": "معاينة",
+   "pl": "Podgląd",
+   "ru": "Предпросмотр"
   },
   {
    "zh": "预览：SDR 转 HDR 已运行",

@@ -119,10 +119,15 @@ def collect():
     for f in sorted((ROOT / 'qml/Veyra').glob('*.qml')):
         for s, ctx in qml_strings(f.read_text(encoding='utf-8')):
             add(s, 'qml/' + f.name, ctx)
+    # PushFPS for Linux and macOS (portable/app) uses the same catalog.
+    for f in sorted((ROOT / 'portable/app/qml').glob('*.qml')):
+        for s, ctx in qml_strings(f.read_text(encoding='utf-8')):
+            add(s, 'portable/app/qml/' + f.name, ctx)
     cpp = list((ROOT / 'src/ui').rglob('*.cpp')) + list((ROOT / 'apps/veyra-qml').glob('*.cpp'))
     # The bridge's private state/default strings moved out of its translation
     # unit. Keep collecting exactly that source alongside its domain modules.
     cpp += [ROOT / 'src/ui/QmlPlayerBridge_p.h']
+    cpp += list((ROOT / 'portable/app/src').glob('*.cpp'))
     for d in ('engine', 'source', 'gfx', 'pipeline', 'moonlight', 'xbox', 'remoteplay', 'sink', 'media', 'ngx', 'base'):
         cpp += list((ROOT / 'src' / d).rglob('*.cpp'))
         # Default member values (a status set in a class body) live in the headers.
