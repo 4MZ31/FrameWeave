@@ -1508,6 +1508,10 @@ public:
     // since the last call (dBFS, -100 silence). The mix itself is in preferences (applyPushMix).
     Q_INVOKABLE void pushSetStudioMeters(bool on);
     Q_INVOKABLE QVariantMap pushStudioLevels();
+    // Streaming mode scenes (PushStreamOverlay.h): draws the scene for recordings and streams.
+    // scene: {type: "game"|"card", title, subtitle, image, overlayImage, overlayText, corner}.
+    Q_INVOKABLE bool pushSetStreamScene(const QVariantMap& scene);
+    Q_INVOKABLE QString pushPickImage();
     Q_INVOKABLE QString pushLinkUrl(const QString& key) const;
     // PushFPS automatic HUD detection (engine/PushHudSampler.h): samples=1 only
     // takes a fresh picture for the box editor. pushHudDetection() polls it.

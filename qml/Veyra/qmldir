@@ -98,6 +98,7 @@ PushStreamDialog 1.0 PushStreamDialog.qml
 PushCompareDialog 1.0 PushCompareDialog.qml
 PushIntro 1.0 PushIntro.qml
 StudioPage 1.0 StudioPage.qml
+WatchPage 1.0 WatchPage.qml
 PushMixerStrip 1.0 PushMixerStrip.qml
 PushLevelMeter 1.0 PushLevelMeter.qml
 PushMicFiltersDialog 1.0 PushMicFiltersDialog.qml

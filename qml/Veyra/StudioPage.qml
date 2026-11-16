@@ -25,6 +25,7 @@ VPage {
     readonly property bool compact: geometry.compact
     readonly property rect videoViewport: Qt.rect(geometry.video.x, geometry.video.y, geometry.video.width, geometry.video.height)
 
+    component FieldLabel: Text { color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 11 }
     component StatusText: Text {
         color: Theme.t3; font.family: Theme.fontMono; font.pixelSize: 11
     }
@@ -81,6 +82,72 @@ VPage {
 
     function toggleMicRecording() { veyra.setPreference("recordMic", !veyra.recordingMicrophone); veyra.refreshMicrophones() }
     function toggleMicStreaming() { veyra.setPreference("streamMic", !(veyra.preferences.streamMic === true)) }
+    // --- scenes (PushStreamOverlay.h): what recordings and streams carry ------------------------
+    // pref studioScenes: [{id, name, type: "game"|"card", title, subtitle, image, overlayImage,
+    // overlayText, corner, muteGame}]; the first game scene cannot be removed. Ctrl+1..9 switch.
+    readonly property var defaultScenes: [
+        { id: "game", name: qsTr("游戏"), type: "game", overlayImage: "", overlayText: "", corner: "tr" },
+        { id: "soon", name: qsTr("即将开始"), type: "card", title: qsTr("即将开始"), subtitle: "", image: "", muteGame: true },
+        { id: "brb", name: qsTr("马上回来"), type: "card", title: qsTr("马上回来"), subtitle: "", image: "", muteGame: true },
+        { id: "end", name: qsTr("感谢观看"), type: "card", title: qsTr("感谢观看"), subtitle: "", image: "", muteGame: true }
+    ]
+    readonly property var scenes: {
+        let list = null
+        try { list = JSON.parse(String(veyra.preferences.studioScenes || "")) } catch (e) { list = null }
+        return Array.isArray(list) && list.length > 0 && list.some(x => x.type === "game") ? list : studio.defaultScenes
+    }
+    property string activeScene: "game"
+    property bool muteBeforeCard: false
+    property string editingScene: ""
+    function sceneById(id) { return studio.scenes.find(x => x.id === id) || null }
+    function saveScenes(list) { veyra.setPreference("studioScenes", JSON.stringify(list)) }
+    function activate(id) {
+        const scene = studio.sceneById(id)
+        if (!scene) return
+        const wasCard = (studio.sceneById(studio.activeScene) || {}).type === "card"
+        if (scene.type === "card" && !wasCard) studio.muteBeforeCard = veyra.preferences.mixGameMuted === true
+        veyra.pushSetStreamScene(scene)
+        if (scene.type === "card") veyra.setPreference("mixGameMuted", scene.muteGame !== false ? true : studio.muteBeforeCard)
+        else if (wasCard) veyra.setPreference("mixGameMuted", studio.muteBeforeCard)
+        studio.activeScene = id
+        veyra.logUi("push-studio", "scene " + id + " (" + scene.type + ")")
+    }
+    function addScene(type) {
+        const list = studio.scenes.slice()
+        if (list.length >= 12) return
+        const id = "s" + Date.now().toString(36)
+        list.push(type === "card" ? { id: id, name: qsTr("新场景"), type: "card", title: qsTr("新场景"), subtitle: "", image: "", muteGame: true }
+                                  : { id: id, name: qsTr("新场景"), type: "game", overlayImage: "", overlayText: "", corner: "tr" })
+        studio.saveScenes(list)
+        studio.editingScene = id
+    }
+    function updateScene(id, changes) {
+        const list = studio.scenes.map(x => x.id === id ? Object.assign({}, x, changes) : x)
+        studio.saveScenes(list)
+        if (id === studio.activeScene) Qt.callLater(() => studio.activate(id))
+    }
+    function removeScene(id) {
+        const games = studio.scenes.filter(x => x.type === "game")
+        const target = studio.sceneById(id)
+        if (!target || (target.type === "game" && games.length <= 1)) return false
+        if (id === studio.activeScene) studio.activate(games[0].id)
+        studio.saveScenes(studio.scenes.filter(x => x.id !== id))
+        return true
+    }
+    // Starts on the game scene: a card left on from a previous session never surprises a new stream.
+    Component.onCompleted: Qt.callLater(() => { const g = studio.scenes.find(x => x.type === "game"); if (g) veyra.pushSetStreamScene(g) })
+    Repeater {
+        model: 9
+        delegate: Item {
+            required property int index
+            Shortcut {
+                sequence: "Ctrl+" + (index + 1)
+                enabled: studio.current && index < studio.scenes.length
+                onActivated: studio.activate(studio.scenes[index].id)
+            }
+        }
+    }
+
     function goLive() {
         if (studio.live) { veyra.pushStopStream(); studio.pollSlow(); return }
         let targets = []
@@ -238,6 +305,160 @@ VPage {
                 width: controlScroll.width
                 spacing: 8
                 Text {
+                    text: qsTr("场景")
+                    color: Theme.t2; font.family: Theme.fontUi; font.pixelSize: 12
+                    font.weight: Font.DemiBold; font.variableAxes: Theme.axesDemiBold
+                }
+                Repeater {
+                    model: studio.scenes
+                    delegate: Rectangle {
+                        id: sceneRow
+                        required property var modelData
+                        required property int index
+                        objectName: "studio-scene-" + modelData.id
+                        readonly property bool active: studio.activeScene === modelData.id
+                        Layout.fillWidth: true
+                        implicitHeight: 34
+                        radius: 8
+                        color: active ? Theme.errGlow : sceneHover.hovered ? Theme.ink(0.07) : Theme.ink(0.03)
+                        border.width: 1
+                        border.color: active ? Theme.err : Theme.stroke
+                        HoverHandler { id: sceneHover; cursorShape: Qt.PointingHandCursor }
+                        TapHandler { onTapped: studio.activate(sceneRow.modelData.id) }
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 4
+                            spacing: 8
+                            VIcon { name: sceneRow.modelData.type === "card" ? "image" : "gamepad"; size: 13; color: sceneRow.active ? Theme.err : Theme.t2 }
+                            Text {
+                                Layout.fillWidth: true
+                                text: sceneRow.modelData.name
+                                color: Theme.t1; font.family: Theme.fontUi; font.pixelSize: 12
+                                elide: Text.ElideRight
+                            }
+                            Text {
+                                visible: sceneRow.index < 9
+                                text: "Ctrl+" + (sceneRow.index + 1)
+                                color: Theme.t3; font.family: Theme.fontMono; font.pixelSize: 10
+                            }
+                            VButton {
+                                icon: true; ghost: true; iconName: "settings"
+                                tip: qsTr("编辑场景")
+                                onClicked: studio.editingScene = studio.editingScene === sceneRow.modelData.id ? "" : sceneRow.modelData.id
+                            }
+                        }
+                    }
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+                    VButton { objectName: "studio-add-game-scene"; Layout.fillWidth: true; ghost: true; iconName: "plus"; text: qsTr("画面场景"); onClicked: studio.addScene("game") }
+                    VButton { objectName: "studio-add-card-scene"; Layout.fillWidth: true; ghost: true; iconName: "plus"; text: qsTr("图卡场景"); onClicked: studio.addScene("card") }
+                }
+                // The scene editor, under the list while a scene is being edited.
+                Rectangle {
+                    id: editor
+                    objectName: "studio-scene-editor"
+                    readonly property var scene: studio.sceneById(studio.editingScene)
+                    visible: scene !== null
+                    Layout.fillWidth: true
+                    implicitHeight: editorColumn.implicitHeight + 20
+                    radius: 8
+                    color: Theme.ink(0.04)
+                    border.width: 1
+                    border.color: Theme.stroke2
+                    ColumnLayout {
+                        id: editorColumn
+                        x: 10; y: 10; width: parent.width - 20
+                        spacing: 6
+                        FieldLabel { text: qsTr("名称") }
+                        DialogTextField {
+                            objectName: "scene-name"
+                            Layout.fillWidth: true
+                            text: editor.scene ? editor.scene.name : ""
+                            onEdited: t => { if (editor.scene && t.trim().length) studio.updateScene(editor.scene.id, { name: t.trim().slice(0, 40) }) }
+                        }
+                        FieldLabel { visible: editor.scene && editor.scene.type === "card"; text: qsTr("标题") }
+                        DialogTextField {
+                            objectName: "scene-title"
+                            visible: editor.scene && editor.scene.type === "card"
+                            Layout.fillWidth: true
+                            text: editor.scene ? (editor.scene.title || "") : ""
+                            onEdited: t => { if (editor.scene) studio.updateScene(editor.scene.id, { title: t.slice(0, 60) }) }
+                        }
+                        FieldLabel { visible: editor.scene && editor.scene.type === "card"; text: qsTr("副标题") }
+                        DialogTextField {
+                            objectName: "scene-subtitle"
+                            visible: editor.scene && editor.scene.type === "card"
+                            Layout.fillWidth: true
+                            text: editor.scene ? (editor.scene.subtitle || "") : ""
+                            onEdited: t => { if (editor.scene) studio.updateScene(editor.scene.id, { subtitle: t.slice(0, 120) }) }
+                        }
+                        FieldLabel { visible: editor.scene && editor.scene.type === "game"; text: qsTr("角标文字（例如频道名）") }
+                        DialogTextField {
+                            objectName: "scene-overlay-text"
+                            visible: editor.scene && editor.scene.type === "game"
+                            Layout.fillWidth: true
+                            text: editor.scene ? (editor.scene.overlayText || "") : ""
+                            onEdited: t => { if (editor.scene) studio.updateScene(editor.scene.id, { overlayText: t.slice(0, 80) }) }
+                        }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 6
+                            VButton {
+                                objectName: "scene-pick-image"
+                                Layout.fillWidth: true
+                                ghost: true
+                                iconName: "image"
+                                readonly property string current: editor.scene ? String(editor.scene.type === "card" ? (editor.scene.image || "") : (editor.scene.overlayImage || "")) : ""
+                                text: current.length ? current.split(/[\\/]/).pop() : (editor.scene && editor.scene.type === "card" ? qsTr("背景图片") : qsTr("角标图片"))
+                                maxTextWidth: 150
+                                onClicked: {
+                                    const path = veyra.pushPickImage()
+                                    if (path && editor.scene) studio.updateScene(editor.scene.id, editor.scene.type === "card" ? { image: path } : { overlayImage: path })
+                                }
+                            }
+                            VButton {
+                                icon: true; ghost: true; iconName: "x"
+                                tip: qsTr("移除图片")
+                                onClicked: if (editor.scene) studio.updateScene(editor.scene.id, editor.scene.type === "card" ? { image: "" } : { overlayImage: "" })
+                            }
+                        }
+                        VSeg {
+                            objectName: "scene-corner"
+                            visible: editor.scene && editor.scene.type === "game"
+                            options: [{ id: "tl", label: qsTr("左上") }, { id: "tr", label: qsTr("右上") }, { id: "bl", label: qsTr("左下") }, { id: "br", label: qsTr("右下") }]
+                            current: editor.scene ? (editor.scene.corner || "tr") : "tr"
+                            onPicked: id => { if (editor.scene) studio.updateScene(editor.scene.id, { corner: id }) }
+                        }
+                        RowLayout {
+                            visible: editor.scene && editor.scene.type === "card"
+                            Layout.fillWidth: true
+                            Text { Layout.fillWidth: true; text: qsTr("切换到此场景时静音游戏声音"); color: Theme.t2; font.family: Theme.fontUi; font.pixelSize: 12; wrapMode: Text.WordWrap }
+                            VSwitch {
+                                objectName: "scene-mute"
+                                checked: editor.scene ? editor.scene.muteGame !== false : true
+                                onToggled: v => { if (editor.scene) studio.updateScene(editor.scene.id, { muteGame: v }) }
+                            }
+                        }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 6
+                            VButton { objectName: "scene-delete"; ghost: true; text: qsTr("删除"); onClicked: { if (editor.scene && studio.removeScene(editor.scene.id)) studio.editingScene = "" } }
+                            Item { Layout.fillWidth: true }
+                            VButton { objectName: "scene-done"; primary: true; text: qsTr("完成"); onClicked: studio.editingScene = "" }
+                        }
+                    }
+                }
+                Text {
+                    Layout.fillWidth: true
+                    text: qsTr("场景只改变录制和直播的画面；你自己看到的仍是游戏")
+                    color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 11
+                    wrapMode: Text.WordWrap
+                }
+                Text {
+                    Layout.topMargin: 6
                     text: qsTr("控制")
                     color: Theme.t2; font.family: Theme.fontUi; font.pixelSize: 12
                     font.weight: Font.DemiBold; font.variableAxes: Theme.axesDemiBold

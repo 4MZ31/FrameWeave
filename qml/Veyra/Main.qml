@@ -254,6 +254,9 @@ Window {
         case "live":
             // PushFPS streaming mode: the preview card (StudioLayout.js).
             return studioPage.videoViewport
+        case "watch":
+            // PushFPS video playback mode: the picture beside its controls.
+            return watchPage.videoViewport
         default:
             return { x: 0, y: 0, width: 0, height: 0 }
         }
@@ -312,6 +315,13 @@ Window {
             }
         }
         ExportPage { id: exportPage; pageId: "exp"; home: pages; onRequestPage: p => root.goPage(p) }
+        WatchPage {
+            id: watchPage
+            pageId: "watch"
+            home: pages
+            onVideoViewportChanged: if (root.page === "watch" && !root.fullscreen) videoHost.syncRect()
+            onRequestPage: p => root.goPage(p)
+        }
         StudioPage {
             id: studioPage
             pageId: "live"
