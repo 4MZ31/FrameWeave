@@ -13,6 +13,8 @@ Nothing changes on the console or in the game: you need a capture card and a gra
 
 [![Download for Windows](https://img.shields.io/badge/Download-Windows%2011-89F52A?style=for-the-badge&logo=windows&logoColor=0D1A04&labelColor=89F52A)](https://github.com/DosukaSOL/PushFPS/releases)
 &nbsp;
+[![Linux and macOS preview](https://img.shields.io/badge/Linux%20%26%20macOS-preview-1b1b20?style=for-the-badge)](#linux-and-macos-preview)
+&nbsp;
 [![OBS Studio plugin](https://img.shields.io/badge/OBS%20Studio-plugin-1b1b20?style=for-the-badge)](#obs-studio-plugin)
 &nbsp;
 [![Website](https://img.shields.io/badge/Website-dosukasol.github.io%2FPushFPS-1b1b20?style=for-the-badge)](https://dosukasol.github.io/PushFPS/)
@@ -99,7 +101,11 @@ everything Veyra does, PushFPS adds what console players need:
 
 | Feature | What it does |
 |---|---|
-| **Optimise for my PC** | Tests every frame generation method, AI enhancement and upscaler on your real game picture, measures frame rate, 1% low and latency, and keeps the best combination |
+| **Optimise for my PC** | Tests every frame generation method your PC has, AI enhancement and the upscalers on your real game picture, measures frame rate, 1% low, latency and jitter, and keeps the best combination for your goal (balanced, lowest latency, smoothest or best picture), up to 144 or 240 Hz |
+| **Go live** | Stream the boosted picture straight to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or any RTMP server, to several platforms at once from one encode. Stream keys are stored encrypted |
+| **Frame Pacing Repair** | Evens out the uneven frame timing many 30 FPS console games have before frames are generated |
+| **Live HUD Lock** | Finds still text, crosshairs and bars on every frame and keeps them sharp in generated frames, no boxes needed |
+| **Adaptive multiplier** | Follows the game when its frame rate drops, so the output stays even |
 | **Game presets** | GTA VI and other layouts in one click, with the minimap and HUD kept sharp. Save your own and share them as a code |
 | **Automatic HUD detection** | Watches your game for a few seconds and finds the minimap, health and ammo, so they are never interpolated. Correct the boxes by dragging them |
 | **Before/after comparison clips** | Records a split-screen clip: the console's own frame rate on the left, PushFPS on the right, with the frame rates labelled |
@@ -116,6 +122,7 @@ everything Veyra does, PushFPS adds what console players need:
 | **Light and black modes** | The default dark grey, an almost-black mode for OLED screens, and a light mode |
 | **Plug and play** | Connects to your capture card when PushFPS opens and goes fullscreen when the picture appears (both optional) |
 | **Measure total delay** | A guided slow-motion phone test that shows the whole delay PushFPS adds over your capture card's passthrough |
+| **Linux and macOS (preview)** | PushFPS's own frame generation, Frame Pacing Repair and Live HUD Lock on Vulkan, OpenGL or Metal, with no vendor components |
 
 ## How it works
 
@@ -201,9 +208,17 @@ never rehosts those files.
 
 </details>
 
+**Portable install.** PushFPS keeps its settings, profiles and logs inside its own folder. To keep it out of
+your user folder and Start menu, run `Install-PushFPS.cmd -InstallDir D:\PushFPS -NoShortcuts` (any folder);
+moving or deleting that folder moves or removes PushFPS. Only the PS5, Moonlight and Xbox sign-ins are kept,
+encrypted, in your Windows user profile.
+
+**Checking the download.** Every release lists the SHA-256 of each file in `SHA256SUMS.txt` and the exact
+pinned components in `PushFPS-<version>-components.txt`. In PowerShell: `Get-FileHash PushFPS-*.zip`.
+
 > [!NOTE]
-> Releases marked **Pre-release** are preview builds: built and start-tested automatically on Windows, but
-> not yet tested by a person with a capture card and GPU. Reports from real setups are very welcome in
+> Every release is built and start-tested automatically on Windows. Its release notes say plainly which parts
+> were also tested by a person with a capture card and GPU. Reports from real setups are very welcome in
 > [Issues](https://github.com/DosukaSOL/PushFPS/issues).
 
 ## What you need
@@ -276,13 +291,18 @@ still gives the sharpest picture and the lowest latency.
 
 ## Optimise for my PC
 
-Click **Optimise for my PC** in the quick setup while your game is on screen. In one to two minutes PushFPS:
+Click **Optimise for my PC** in the quick setup while your game is on screen, and pick a goal: **Balanced**,
+**Lowest latency**, **Smoothest** or **Best picture**. In one to three minutes PushFPS:
 
 1. measures the picture without effects, to find the game's frame rate (30, 40 or 60) and the base latency;
-2. tries each frame generation method your graphics card offers at the highest frame rate your screen shows
-   (120 FPS on a 120 Hz or faster screen), and at 60 FPS if none holds that;
+2. tries every frame generation method your PC can run (DLSS, NVIDIA VFG, ANR, FSR 4/3.1, XeSS, AMD FRC) at
+   the highest frame rate your screen shows: your monitor's own rate on 144, 165 or 240 Hz screens when the game
+   divides into it evenly, otherwise 120 FPS, and 60 FPS if none holds that;
 3. adds AI enhancement to the best one, then the upscalers when your screen is larger than the capture;
 4. measures the winner again to confirm it, and applies it. **Undo** puts your old settings back.
+
+The result lists every method it skipped and why (not supported by this graphics card, not installed), and
+shows PC processing latency, its 95th percentile and frame-time jitter for each tested combination.
 
 Every number is measured on the real picture: PushFPS times each frame it hands to the display and each
 frame's latency, after the settings are applied and warmed up, over a 6-second window per combination. A
@@ -438,6 +458,27 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
   output settings. Off, recordings use the standard settings. If the graphics card can't use a combination,
   the recording falls back to the standard settings and says so.
 
+## Go live: Twitch, YouTube, Kick and TikTok
+
+Click **Go live** in the quick setup to stream the picture you see, frame generation, picture settings and sound
+included, straight from PushFPS. No OBS needed.
+
+- **Several platforms at once.** Add up to eight outputs (Twitch, YouTube, Kick, TikTok, Facebook Live, Trovo or
+  any RTMP/RTMPS server) and switch on the ones you want. One encode feeds them all, so streaming to three
+  platforms costs no more graphics card time than one; each platform gets its own upload.
+- **OBS's settings.** Server lists and recommended limits come from OBS Studio's service list. The bitrate
+  follows the strictest platform you stream to (Twitch 6 Mbps, Kick 8 Mbps), at 30 or 60 FPS, H.264 with
+  constant bitrate and a keyframe every 2 seconds, as the platforms ask.
+- **Stream keys stay private.** A key is encrypted for your Windows user (DPAPI), never shown again, never
+  written to logs, and only sent to the server it belongs to.
+- **Keeps going.** Each output reconnects by itself when the connection drops; the others keep streaming. The
+  dialog shows each output's state, bitrate, dropped frames and reconnects.
+- Game sound and your microphone (mixed in). Recording and instant replay can run while you are live; each uses
+  its own encoder session.
+
+TikTok gives a server address and key only to accounts with LIVE access (TikTok LIVE Producer). Streaming needs
+an SDR picture: turn HDR output off first.
+
 ## Upscaling: NVIDIA Image Scaling and more
 
 Professional mode, *Quality*, *Super resolution*, *Upscaling algorithm* offers DLSS SR, RTX Video Super Resolution (three model
@@ -534,6 +575,28 @@ ANR is in beta and Apex does not allow it to be redistributed, so it is not insi
 ANR in games gets motion data from the game itself. From a capture card PushFPS has only the picture, so the
 motion is estimated, as with every method in PushFPS: results can differ from what ANR shows in games.
 
+## Linux and macOS (preview)
+
+PushFPS for Linux and macOS is a separate, smaller app (`portable/` in this repository) with PushFPS's own frame
+generation: block motion estimation on the processor and motion-compensated interpolation on the graphics card
+(Vulkan or OpenGL on Linux, Metal on macOS), plus Frame Pacing Repair, duplicate-frame removal and Live HUD Lock.
+It needs no NVIDIA, AMD or Intel components, so it runs on any graphics card that supports OpenGL 3.3, Vulkan or
+Metal.
+
+| | Linux | macOS |
+|---|---|---|
+| Download | `PushFPS-<version>-linux-x86_64.AppImage` or `.tar.gz` | `PushFPS-<version>-macos-universal.zip` (Apple Silicon and Intel) |
+| Needs | x86-64, glibc 2.31+ (Ubuntu 20.04+, Debian 11+, Fedora 33+), X11 or Wayland, OpenGL (`libopengl0`, present on desktop systems) | macOS 12 or newer |
+| Capture cards | Any UVC card (`/dev/video*`): almost every USB card | Any card macOS lists as a camera |
+| Portable | Put an empty `portable.txt` next to the program | Put an empty `portable.txt` next to PushFPS.app |
+
+Try it without a capture card: **Home → Test picture**. `PushFPS --selftest 6` checks the whole chain.
+
+Not in the preview yet: the NVIDIA/AMD/Intel frame generation and AI enhancement (Windows only), recording,
+going live and the streaming sources. It is tested automatically (core tests with sanitizers, self-tests, a GPU
+check against the processor reference, a clean Ubuntu container); it is not code signed or notarised, so macOS
+asks you to confirm the first start (right-click → Open).
+
 ## Tune it for your setup
 
 | If you see | Try |
@@ -581,9 +644,9 @@ No. PushFPS only processes the video coming out of the capture card. Nothing is 
 **Is it free?**
 Yes. PushFPS is free and open source under the GPL-3.0, like Veyra.
 
-**Is there a macOS version?**
-Not yet. The frame generation in PushFPS runs on NVIDIA, AMD and Intel graphics through DirectX 12 on
-Windows. A macOS version needs a separate engine and is planned for later.
+**Is there a macOS or Linux version?**
+Yes, as a preview: see [Linux and macOS (preview)](#linux-and-macos-preview). It has PushFPS's own frame
+generation instead of the NVIDIA, AMD and Intel methods, which only exist for Windows.
 
 **Where are my settings and profiles stored?**
 In your user folder, next to Veyra's settings. Updating PushFPS keeps them.
@@ -613,13 +676,17 @@ In your user folder, next to Veyra's settings. Updating PushFPS keeps them.
 - [x] PS5 Remote Play, Moonlight and Xbox streaming in the release builds
 - [x] Veyra 2.1.9: AMD FRC frame generation, FSR 4 ML with FSR 3.1 fallback, local audio monitoring separate from recording, NVIDIA G-SYNC profile check and repair, processing on a second graphics card
 - [x] Plug and play (connect on start, fullscreen on connect), 120 Hz and 40 FPS guidance, total-delay guide, always on top
-- [ ] macOS and Linux versions. The engine is built on DirectX 12, Media Foundation and Windows-only GPU SDKs
-  (about 100 000 lines), so this means a new engine on Metal or Vulkan, planned as its own project
+- [x] Go live to Twitch, YouTube, Kick, TikTok and more, several platforms at once
+- [x] Optimiser goals, every frame generation method tested, 144-240 Hz targets
+- [x] Linux and macOS preview with PushFPS's own frame generation
+- [ ] Linux and macOS: tested capture cards, recording and going live
+- [ ] Code signing (SignPath Foundation application)
 
 ## Privacy
 
 PushFPS has no accounts, analytics or telemetry. It only connects to the internet for the update check (GitHub),
-when you share a clip to your own Discord webhook, and when you start a stream. Details in [PRIVACY.md](PRIVACY.md).
+when you share a clip to your own Discord webhook, when you connect a streaming source, and when you go live
+(only to the platforms you chose). Details in [PRIVACY.md](PRIVACY.md).
 
 ## Build from source
 

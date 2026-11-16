@@ -146,6 +146,10 @@ Item {
         id: latencyGuideDialog
         dialogHost: host
     }
+    PushStreamDialog {
+        id: streamDialog
+        dialogHost: host
+    }
 
     // --- small building blocks the design's dialogs use --------------------
 

@@ -15,6 +15,21 @@ else
   KIND=(--prerelease)
 fi
 obszip=$(ls dist/PushFPS-OBS-Plugin-*.zip | head -1); obssum=$(cat "$obszip.sha256")
+# One checksum list for every file, and the pinned components this build was made from (from the
+# env block of build-windows.yml), so anyone can check what they downloaded and what is inside.
+(cd dist && sha256sum $(ls | grep -v -E '\.sha256$|^SHA256SUMS\.txt$|-components\.txt$') > SHA256SUMS.txt)
+version=$(basename "$zip" | sed -E 's/^PushFPS-(.*)-win64\.zip$/\1/')
+{
+  echo "PushFPS $TAG ($version), built from commit $GITHUB_SHA"
+  echo "Build recipe: .github/workflows/build-windows.yml at that commit"
+  echo
+  echo "Pinned components:"
+  if [ -f .github/workflows/build-windows.yml ]; then
+    sed -n '/^env:/,/^jobs:/p' .github/workflows/build-windows.yml | grep -E '^  [A-Z0-9_]+:' | sed -E 's/^  /  /; s/ +#.*$//'
+  fi
+  echo "  Qt: 6.8.3 (from Veyra's runtime package, imports checked by the build)"
+  echo "  Veyra runtime package: downloaded by the installer from Veyra's own release, SHA-256 pinned"
+} > "dist/PushFPS-$version-components.txt"
 cat > notes.md <<NOTES
 ## Install
 
@@ -35,6 +50,17 @@ SHA-256: \`$sum\`
 frame generation included, in any scene. Extract it and double-click **Install-PushFPS-OBS.cmd**.
 
 SHA-256: \`$obssum\`
+
+## Linux and macOS (preview)
+
+PushFPS also runs on Linux and macOS with its own frame generation, Frame Pacing Repair and Live HUD
+Lock (no vendor components). The packages (*linux-x86_64* folder or AppImage, *macos-universal* app)
+are attached to this release when their build finishes. See the README for what is tested.
+
+## Checking the download
+
+**SHA256SUMS.txt** lists the SHA-256 of every file; ***-components.txt** lists the pinned components
+this build was made from.
 
 ## License and source
 

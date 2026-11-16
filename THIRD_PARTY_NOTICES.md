@@ -8,6 +8,13 @@ Veyra adds a per-layer isolated network host with D3D12 shared textures/fences, 
 
 2026-11-03 local multi-GPU repair: the same pinned ZLUDA `nvapi/src/lib.rs` is patched by [zluda-current-device-luid.patch](third_party/redduke/zluda-current-device-luid.patch) to obtain the adapter LUID from the current CUDA context's device. A context-free fallback is allowed only for one device; ambiguous mappings and LUID failures report errors. This fixes the stand-in reporting ordinal-zero integrated GPU identity while Veyra runs NR on a discrete GPU. `scripts/amd-nr/build-rdna3-nvapi.py` rebuilds only the open-source NVAPI crate; its output is installed as `runtime/amd-nr-rdna3/zluda/zluda_nvapi.dll` behind the original forwarder. No NVIDIA binary, GPU driver or translation cache is modified. Full upstream MIT and Apache-2.0 notices are retained in [licenses/rdna3-nvapi](licenses/rdna3-nvapi). CPU fixture validation is not Radeon inference validation. See [evidence and limits](docs/RDNA3_NVAPI_LUID_2026-11-03.md).
 
+## PushFPS going live: streaming service list (2026-11-16)
+
+| Source | License | PushFPS use |
+|---|---|---|
+| OBS Studio, `plugins/rtmp-services/data/services.json` | GPL-2.0-or-later | Ingest server names and addresses and the recommended maximum video/audio bitrates for Twitch, YouTube, Facebook Live and Trovo, as data in `src/engine/LiveStream.cpp` (`platforms()`). No OBS code is used; the FLV/RTMP output is FFmpeg's (`libavformat`). Kick's server and limit follow Kick's own help pages |
+| MediaMTX v1.21.4 (bluenviron/mediamtx) | MIT | Test only: the local RTMP/RTMPS server in `tests/data/stream/run-live-stream-tests.sh`, downloaded in CI and checked against its published SHA-256; never packaged |
+
 ## Beauty node: face restore and skin smoothing (2026-10-18)
 
 | Source | License | Veyra use |

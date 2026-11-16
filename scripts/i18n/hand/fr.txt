@@ -1409,3 +1409,17 @@ zh:亮|Lumière
 1406|Entrée audio
 1407|Le profil du pilote est utilisé
 1408|Logo Sunset City
+1409|Clé de stream
+1410|Plateforme
+1411|Serveur
+1412|Passer en direct
+1413|En direct
+1414|Arrêter le stream
+1415|Ajouter une plateforme
+1416|Son du jeu
+1417|Débit vidéo
+1418|RTMP personnalisé
+1419|Collez la clé de stream
+1420|Pas démarré
+1421|Échec de la connexion
+1422|Microphone

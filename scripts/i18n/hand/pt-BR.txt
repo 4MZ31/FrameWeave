@@ -1409,3 +1409,17 @@ zh:亮|Luz
 1406|Entrada de áudio
 1407|O perfil do driver está em uso
 1408|Logo Sunset City
+1409|Chave de transmissão
+1410|Plataforma
+1411|Servidor
+1412|Entrar ao vivo
+1413|Ao vivo
+1414|Parar transmissão
+1415|Adicionar plataforma
+1416|Som do jogo
+1417|Taxa de bits de vídeo
+1418|RTMP personalizado
+1419|Cole a chave de transmissão
+1420|Não iniciada
+1421|Falha na conexão
+1422|Microfone

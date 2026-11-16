@@ -1409,3 +1409,17 @@ zh:亮|Światło
 1406|Wejście audio
 1407|Profil sterownika jest używany
 1408|Logo Sunset City
+1409|Klucz transmisji
+1410|Platforma
+1411|Serwer
+1412|Rozpocznij transmisję
+1413|Na żywo
+1414|Zakończ transmisję
+1415|Dodaj platformę
+1416|Dźwięk gry
+1417|Bitrate wideo
+1418|Własny RTMP
+1419|Wklej klucz transmisji
+1420|Nie rozpoczęto
+1421|Połączenie nieudane
+1422|Mikrofon

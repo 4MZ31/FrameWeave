@@ -174,7 +174,7 @@
       <div class="tabs" role="tablist" aria-label="Features" aria-orientation="vertical">
         <button role="tab" id="t-optimize" aria-controls="p-show" aria-selected="true" data-shot="optimize" data-alt="Optimise for my PC dialog with the test plan and results">
           <b>Optimise for my PC</b>
-          <span>One click while your game is on screen. PushFPS tests every frame generation method, AI enhancement and upscaler on your real picture, measures frame rate, 1% low and latency, and keeps the best. Undo puts everything back.</span>
+          <span>One click while your game is on screen. Pick a goal (balanced, lowest latency, smoothest or best picture) and PushFPS tests every frame generation method your PC has, AI enhancement and the upscalers on your real picture, up to 144 or 240&nbsp;Hz, and keeps the best. Undo puts everything back.</span>
         </button>
         <button role="tab" id="t-quick" aria-controls="p-show" aria-selected="false" data-shot="home" data-alt="PushFPS home screen with capture card, streaming sources and quick setup">
           <b>Quick setup</b>
@@ -214,6 +214,9 @@
     </div>
 
     <ul class="more">
+      <li><b>Go live</b><span>Stream straight to Twitch, YouTube, Kick, TikTok and more, to several platforms at once. Stream keys are stored encrypted.</span></li>
+      <li><b>Frame Pacing Repair</b><span>Evens out the uneven frame timing of many 30&nbsp;FPS console games before frames are generated.</span></li>
+      <li><b>Live HUD Lock</b><span>Keeps still text, crosshairs and bars sharp in generated frames, found on every frame, no boxes needed.</span></li>
       <li><b>Latency on screen</b><span>Measured PC latency, frame rate and 1% low over the picture.</span></li>
       <li><b>OBS Studio plugin</b><span>Your boosted picture as a source in OBS, generated frames included.</span></li>
       <li><b>Recording and instant replay</b><span>With optional OBS-style encoding settings: rate control, quality, preset, keyframes, MP4 or MKV.</span></li>
@@ -293,6 +296,8 @@
       <div class="dl-buttons">
         <a class="btn big" id="dl-main" href="https://github.com/DosukaSOL/PushFPS/releases/latest">Download for Windows</a>
         <a class="btn ghost" id="dl-obs" href="https://github.com/DosukaSOL/PushFPS/releases/latest">OBS Studio plugin</a>
+        <a class="btn ghost" id="dl-linux" href="https://github.com/DosukaSOL/PushFPS/releases/latest">Linux (preview)</a>
+        <a class="btn ghost" id="dl-mac" href="https://github.com/DosukaSOL/PushFPS/releases/latest">macOS (preview)</a>
         <p class="fine" id="dl-version">From the latest release on GitHub.</p>
       </div>
     </div>
@@ -303,6 +308,7 @@
       <li><h3>Pick your frame rate</h3><p>Open PushFPS, click <b>Connect</b> on the capture card and fill in the quick setup, or let <b>Optimise for my PC</b> do it. Press F11 for fullscreen.</p></li>
     </ol>
     <div class="note">
+      <p><b>Portable:</b> run <code>Install-PushFPS.cmd -InstallDir D:\PushFPS -NoShortcuts</code> to keep PushFPS and its settings in one folder of your choice. Every release lists SHA-256 checksums in <code>SHA256SUMS.txt</code>.</p>
       <p><b>Windows warns about an unknown publisher?</b> PushFPS isn't code signed yet. If you downloaded it from the PushFPS GitHub releases, choose <em>More info</em>, then <em>Run anyway</em>. To update, run the newer installer; your settings are kept. To uninstall, run <code>Install-PushFPS.cmd -Uninstall</code>.</p>
     </div>
   </div>
@@ -320,9 +326,9 @@
       <details><summary>Which capture cards work?</summary><p>Any card that Windows shows as a camera and that sends 1080p at 60&nbsp;FPS without compression. The Elgato 4K X, HD60 X and 4K S are tested. The app shows each card's status and has a report form for untested cards.</p></details>
       <details><summary>Can I use it without a capture card?</summary><p>Yes. PS5 streaming (Remote Play over your home network), PC streaming from a Sunshine host and Xbox streaming are built in. A capture card still gives the sharpest picture and the lowest delay.</p></details>
       <details><summary>Does it work with 60 FPS games?</summary><p>Yes. Set the game frame rate to 60 and pick 120&nbsp;FPS or <em>Match monitor</em>.</p></details>
-      <details><summary>Can I stream or record it?</summary><p>Yes. PushFPS records and keeps an instant replay itself, and the OBS Studio plugin adds the boosted picture to your OBS scenes for streaming.</p></details>
-      <details><summary>Is there a macOS or Linux version?</summary><p>Not yet. The engine is built on DirectX 12 and Windows-only GPU components, so another platform needs a new engine. It's on the roadmap as a separate project.</p></details>
-      <details><summary>Does PushFPS collect any data?</summary><p>No. There's no telemetry or analytics. It only goes online for the update check on GitHub, when you share a clip to your own Discord webhook, and when you start a stream. See the <a href="https://github.com/DosukaSOL/PushFPS/blob/main/PRIVACY.md">privacy policy</a>.</p></details>
+      <details><summary>Can I stream or record it?</summary><p>Yes. PushFPS records, keeps an instant replay and goes live itself: to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or your own RTMP server, several at once. The OBS Studio plugin adds the boosted picture to your OBS scenes if you prefer OBS.</p></details>
+      <details><summary>Is there a macOS or Linux version?</summary><p>Yes, as a preview. It has PushFPS's own frame generation, Frame Pacing Repair and Live HUD Lock on Vulkan, OpenGL or Metal, without NVIDIA, AMD or Intel components (those exist only for Windows). Linux comes as an AppImage, macOS as one app for Apple Silicon and Intel. Recording and going live are Windows-only for now.</p></details>
+      <details><summary>Does PushFPS collect any data?</summary><p>No. There's no telemetry or analytics. It only goes online for the update check on GitHub, when you share a clip to your own Discord webhook, when you connect a streaming source and when you go live (only to the platforms you chose). See the <a href="https://github.com/DosukaSOL/PushFPS/blob/main/PRIVACY.md">privacy policy</a>.</p></details>
       <details><summary>Where do I report a problem?</summary><p>In the app, <em>Settings, Report a problem</em> copies diagnostic information and opens <a href="https://github.com/DosukaSOL/PushFPS/issues">GitHub Issues</a>. Read it before pasting.</p></details>
     </div>
   </div>

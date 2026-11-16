@@ -80,10 +80,18 @@ VGroup {
     // Frame Pacing Repair, the share of real frames it re-timed over the last second.
     property var liveStats: ({})
     property var lastPacing: null
+    // Going live: polled while a stream runs (or every few seconds) for the tile.
+    property var liveStream: ({})
+    Timer {
+        interval: quick.liveStream.active ? 1000 : 3000; repeat: true
+        running: quick.visible && typeof veyra.pushStreamStatus === "function"
+        triggeredOnStart: true
+        onTriggered: quick.liveStream = veyra.pushStreamStatus() || ({})
+    }
     property real pacingShare: -1
     Timer {
         interval: 1000; repeat: true
-        running: (quick.adaptive || quick.pacingOn) && veyra.hasSource && veyra.fgEnabled && quick.visible
+        running: (quick.adaptive || quick.pacingOn || veyra.hudLock === true) && veyra.hasSource && veyra.fgEnabled && quick.visible
         triggeredOnStart: true
         onTriggered: {
             const st = veyra.pushLiveStats()
@@ -339,6 +347,7 @@ VGroup {
         veyra.navigate(dialog)
     }
     GridLayout {
+        id: toolsGrid
         objectName: "pushfps-tools-row"
         Layout.fillWidth: true
         Layout.topMargin: 8
@@ -384,6 +393,19 @@ VGroup {
                 if (quick.compareRecording) veyra.stopRecording("compare-button")
                 else veyra.pushStartCompareClip(15)
             }
+        }
+        PushToolTile {
+            objectName: "pushfps-stream"
+            // Fifth tile: the whole row, so the grid stays even.
+            Layout.columnSpan: toolsGrid.columns
+            Layout.fillWidth: true
+            iconName: "cast"
+            readonly property var streamState: quick.liveStream
+            text: streamState.active ? qsTr("直播中") : qsTr("直播")
+            sub: streamState.active ? (streamState.live ? qsTr("%1 个平台").arg((streamState.outputs || []).filter(o => o.state === "live").length) : qsTr("正在连接平台…"))
+                             : qsTr("Twitch、YouTube、Kick、TikTok，可同时推")
+            tip: qsTr("把 PushFPS 的画面直接推到直播平台，可以同时推多个平台")
+            onClicked: veyra.navigate("stream")
         }
     }
 
@@ -558,7 +580,11 @@ VGroup {
         objectName: "pushfps-hudlock-row"
         label: qsTr("实时 HUD 锁定")
         help: qsTr("补出来的帧会把画面上静止的文字、准星和血条跟着背景一起拉动，看起来发糊或抖动。开启后 PushFPS 每一帧都会找出静止的 HUD 像素，补帧时直接用主机原来的像素，不需要画框")
+        // What actually runs (EnhanceGraph::hudLockState): a pass that could not start says so.
+        readonly property int hudState: Number(quick.liveStats.hudLockState || 0)
         hint: !quick.ownTechPossible ? (quick.fgPossible ? qsTr("XeSS 自己生成画面，不能同时使用") : (Support.status(veyra, "frame-generation").reason || ""))
+            : veyra.hudLock === true && hudState === 2 ? qsTr("实时 HUD 锁定没能在这台电脑上启动，补帧照常运行（原因见日志）")
+            : veyra.hudLock === true && hudState === 1 ? qsTr("正在运行：文字和准星在补出来的帧里保持清晰")
             : qsTr("每一帧自动找出 HUD，文字和准星在补出来的帧里保持清晰")
         VSwitch {
             objectName: "pushfps-hudlock"

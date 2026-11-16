@@ -1409,3 +1409,17 @@ zh:亮|Işık
 1406|Ses girişi
 1407|Sürücü profili kullanımda
 1408|Sunset City logosu
+1409|Yayın anahtarı
+1410|Platform
+1411|Sunucu
+1412|Yayına başla
+1413|Yayında
+1414|Yayını durdur
+1415|Platform ekle
+1416|Oyun sesi
+1417|Video bit hızı
+1418|Özel RTMP
+1419|Yayın anahtarını yapıştırın
+1420|Başlamadı
+1421|Bağlantı başarısız
+1422|Mikrofon

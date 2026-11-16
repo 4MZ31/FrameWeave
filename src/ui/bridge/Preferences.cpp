@@ -5,7 +5,10 @@
 #include <QJsonDocument>
 #include "veyra/sink/SoundProfile.h"
 #include "veyra/pipeline/NisSettings.h"
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QJsonParseError>
+#include "veyra/engine/LiveStream.h"
 #include <QRegularExpression>
 #include "veyra/ngx/AnrProvider.h"
 #include "veyra/gfx/AmfFrcBackend.h"
@@ -167,7 +170,13 @@ void QmlPlayerBridge::copyDiagnostics() {
 
 
 // --- shell preferences (P4-f / P4-c / P4-d) --------------------------------
-QVariantMap QmlPlayerBridge::preferences() const { return impl_->prefs; }
+QVariantMap QmlPlayerBridge::preferences() const {
+    // PushFPS: the encrypted stream keys stay in C++ (PushStream.cpp); QML only asks whether one exists.
+    if (!impl_->prefs.contains(QStringLiteral("streamKeys"))) return impl_->prefs;
+    QVariantMap visible = impl_->prefs;
+    visible.remove(QStringLiteral("streamKeys"));
+    return visible;
+}
 QString QmlPlayerBridge::gpuPriorityStatus() const {
     const auto status=gfx::gpuPriorityStatus();
     const auto name=[](int priority){return priority==5?tr("实时"):priority==4?tr("高"):tr("普通");};
@@ -233,6 +242,9 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         // cap (0 keeps the presented rate).
         {"recordBitrateMbps", {0, 400}},
         {"recordFps", {0, 240}},
+        // PushFPS going live: video bitrate (Mbps) and frame rate cap of the stream.
+        {"streamBitrateMbps", {1, 50}},
+        {"streamFps", {30, 60}},
         // PushFPS advanced recording (applied only while recordAdvanced is on):
         // rate control 0 CBR / 1 VBR / 2 constant quality, quality level, encoder
         // preset 1..7, keyframe interval in seconds, AAC kbps, container 0 MP4 / 1 MKV.
@@ -252,7 +264,9 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    // 设置 → 外观 → 启动音乐 and the music button (Main.qml); unset = on.
                                    "introMusic", "exclusionOverlay",
                                    // PushFPS: on-screen latency readout, fullscreen on connect, window on top.
-                                   "pushLatencyOverlay", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset"};
+                                   "pushLatencyOverlay", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset",
+                                   // PushFPS going live: sound and microphone in the stream.
+                                   "streamAudio", "streamMic"};
     QVariant stored;
     if (ranges.contains(key)) {
         bool ok = false; const int n = value.toInt(&ok);
@@ -399,6 +413,32 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         const QString v = value.toString();
         static const QStringList sizes{"1280x800", "1600x1000", "1920x1200", "last"};
         if (!sizes.contains(v)) return false;
+        stored = v;
+    } else if (key == QLatin1String("pushOptimizeGoal")) {
+        // PushFPS "Optimise for my PC" goal (PushOptimizeDialog.qml).
+        const QString v = value.toString();
+        static const QStringList goals{"balanced", "latency", "smooth", "picture"};
+        if (!goals.contains(v)) return false;
+        stored = v;
+    } else if (key == QLatin1String("streamTargets")) {
+        // PushFPS going live: up to 8 outputs [{id, platform, name, server, enabled}]. Stream keys are
+        // never here: they are kept encrypted by pushSetStreamKey (Windows DPAPI).
+        const QString v = value.toString();
+        if (v.size() > 16384) return false;
+        QJsonParseError error{};
+        const QJsonDocument doc = QJsonDocument::fromJson(v.toUtf8(), &error);
+        if (error.error != QJsonParseError::NoError || !doc.isArray() || doc.array().size() > 8) return false;
+        for (const auto item : doc.array()) {
+            const QJsonObject o = item.toObject();
+            const QString id = o.value(QStringLiteral("id")).toString(), platformId = o.value(QStringLiteral("platform")).toString();
+            const QString server = o.value(QStringLiteral("server")).toString(), name = o.value(QStringLiteral("name")).toString();
+            if (id.isEmpty() || id.size() > 40 || name.size() > 60 || server.size() > 512) return false;
+            if (!engine::stream::platform(platformId.toStdString())) return false;
+            if (!server.isEmpty() && !engine::stream::validServer(server.toStdString())) {
+                emit notice(tr("直播服务器地址必须以 rtmp:// 或 rtmps:// 开头"), true);
+                return false;
+            }
+        }
         stored = v;
     } else {
         return false;

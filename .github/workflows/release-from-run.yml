@@ -13,9 +13,9 @@ on:
         description: 'Release tag (vX.Y.Z)'
         required: true
       full_release:
-        description: 'Publish as a full (latest) release instead of a pre-release'
+        description: 'Publish as a full (latest) release (the default, as the owner asked)'
         type: boolean
-        default: false
+        default: true
 
 permissions:
   contents: write
@@ -36,6 +36,7 @@ jobs:
           sparse-checkout: |
             packaging/release-notes
             scripts/release
+            .github/workflows
       - uses: actions/download-artifact@v4
         with:
           path: dist

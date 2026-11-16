@@ -48,7 +48,8 @@ public:
     };
     struct Stats { uint64_t frames = 0, repaired = 0, restarts = 0, variable = 0; int64_t maxLate = 0, maxEarly = 0; };
 
-    void reset() { count_ = head_ = 0; haveLast_ = false; lastRepaired_ = false; }
+    // A boundary (seek, settings change): the time base may jump, nothing carries over.
+    void reset() { restart(); haveLast_ = false; }
     const Stats& stats() const { return stats_; }
 
     // sample: when the capture delivered this new picture; content: the time
@@ -58,7 +59,9 @@ public:
         ++stats_.frames;
         Result r; r.pts = content; r.shift = content - sample;
         if (boundary || transport <= 0) { reset(); push(sample); return keep(r); }
-        if (haveLast_ && sample <= lastSample_) { reset(); push(sample); return keep(r); }
+        // A capture time that went back, or a stall below: the fit starts again, but output times stay
+        // in order with what was already handed on.
+        if (haveLast_ && sample <= lastSample_) { restart(); push(sample); return keep(r); }
         push(sample);
         if (count_ < kMinimum) return keep(r);
         double slope = 0, intercept = 0;
@@ -67,7 +70,7 @@ public:
         const double newest = intercept + slope * double(count_ - 1);
         if (std::abs(double(sample) - newest) > tolerance) {
             // A stall or a rate change: start again from this frame.
-            ++stats_.restarts; reset(); push(sample); return keep(r);
+            ++stats_.restarts; restart(); push(sample); return keep(r);
         }
         if (slope < double(transport) * 1.4) return keep(r);   // no repeated pictures to re-time
         for (unsigned i = 0; i < count_; ++i) {
@@ -91,11 +94,13 @@ public:
     }
 
 private:
+    void restart() { count_ = head_ = 0; lastRepaired_ = false; }
     Result keep(const Result& r) {
         if (!r.repaired) lastRepaired_ = false;
         // A pass-through time must not land before the last repaired one.
         Result out = r;
-        if (haveLast_ && out.pts <= lastOut_) { out.pts = lastOut_ + 10000; out.shift = out.pts - lastSample_; }
+        // The shift is reported against this frame's own sample (r.pts - r.shift), not the previous one.
+        if (haveLast_ && out.pts <= lastOut_) { const int64_t sample = r.pts - r.shift; out.pts = lastOut_ + 10000; out.shift = out.pts - sample; }
         lastOut_ = out.pts; lastSample_ = count_ ? at(count_ - 1) : lastSample_; haveLast_ = true;
         return out;
     }

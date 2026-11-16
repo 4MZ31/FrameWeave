@@ -28,6 +28,7 @@
 #include <memory>
 #include <string>
 
+#include "veyra/engine/LiveStream.h"
 #include "veyra/engine/PresentCapture.h"
 #include "veyra/engine/RecordingCompare.h"
 
@@ -57,6 +58,8 @@ struct RecordingSettings {
     // Instant replay recorder only.
     uint32_t replaySeconds=60;   // how much the buffer keeps
     uint64_t replayMemoryBytes=0;// memory cap; 0: an eighth of the installed memory, 512 MB to 4 GB
+    // PushFPS going live (Mode::Stream): where the stream goes, each with its own connection.
+    std::vector<stream::Target> streams;
 };
 
 struct RecordingStatus {
@@ -84,10 +87,16 @@ struct RecordingStatus {
     uint64_t bufferedBytes=0;    // memory the buffer holds
     bool memoryLimited=false;    // the memory cap keeps less than the chosen length
     bool saving=false;           // a clip is being written
+    std::vector<stream::TargetStatus> streams; // going live: each output's connection
 };
 
 class LiveRecorder final : public PresentCapture {
 public:
+    // File: recordings. Replay: the instant replay buffer. Stream: going live (RTMP/RTMPS outputs,
+    // H.264 + AAC, constant bitrate); like the replay buffer it stays on across sessions and picture
+    // changes (a new picture size reconnects) and retries after an error.
+    enum class Mode{File,Replay,Stream};
+    explicit LiveRecorder(Mode mode);
     explicit LiveRecorder(bool replay=false);
     ~LiveRecorder() override;
     LiveRecorder(const LiveRecorder&)=delete;

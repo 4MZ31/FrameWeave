@@ -169,6 +169,37 @@ QtObject {
     function pushCancelHudDetection() { hudCancels++; hudState = ({running: false, done: false, failed: false, taken: 0, target: 0, regions: [], preview: ""}) }
     function pushHudDetection() { return hudState }
     function pushStartCompareClip(seconds) { compareStarts++; compareSeconds = seconds; return true }
+    // PushFPS going live (src/ui/bridge/PushStream.cpp, tst_push_stream.qml).
+    property var streamKeys: ({})
+    property var streamState: ({active: false, live: false, outputs: []})
+    property int streamStarts: 0
+    property int streamStops: 0
+    function pushStreamPlatforms() {
+        return [
+            {id: "twitch", name: "Twitch", servers: [{name: "Auto", url: "twitch-auto"}], maxVideoKbps: 6000, maxAudioKbps: 320, needsRtmps: false, keyPage: "dashboard.twitch.tv"},
+            {id: "youtube", name: "YouTube", servers: [{name: "Primary (RTMPS)", url: "youtube-primary"}], maxVideoKbps: 51000, maxAudioKbps: 160, needsRtmps: false, keyPage: "studio.youtube.com"},
+            {id: "kick", name: "Kick", servers: [{name: "Default", url: "kick-default"}], maxVideoKbps: 8000, maxAudioKbps: 160, needsRtmps: true, keyPage: "kick.com"},
+            {id: "tiktok", name: "TikTok", servers: [], maxVideoKbps: 6000, maxAudioKbps: 160, needsRtmps: false, keyPage: "tiktok.com"},
+            {id: "custom", name: "Custom", servers: [], maxVideoKbps: 50000, maxAudioKbps: 320, needsRtmps: false, keyPage: ""}
+        ]
+    }
+    function pushSetStreamKey(id, key) {
+        if (String(key).trim().length === 0) return false
+        const k = Object.assign({}, streamKeys); k[id] = true; streamKeys = k; return true
+    }
+    function pushHasStreamKey(id) { return streamKeys[id] === true }
+    function pushForgetStreamKey(id) { const k = Object.assign({}, streamKeys); delete k[id]; streamKeys = k }
+    function pushStartStream() {
+        let list = []
+        try { list = JSON.parse(String(preferences.streamTargets || "[]")) } catch (e) {}
+        const on = list.filter(t => t.enabled !== false && streamKeys[t.id] === true)
+        if (!hasSource || on.length === 0) return false
+        streamStarts++
+        streamState = ({active: true, live: true, seconds: 5, outputs: on.map(t => ({name: t.name || t.platform, state: "live", kbps: 6100, framesDropped: 0, reconnects: 0, error: ""}))})
+        return true
+    }
+    function pushStopStream() { streamStops++; streamState = ({active: false, live: false, outputs: []}) }
+    function pushStreamStatus() { return streamState }
     function stopRecording(source) { recordingStops++; recording = false }
     // PushFPS super-resolution editor (SrStageEditor): ids as QmlPlayerBridge::srBackendChoices.
     property int videoSrQuality: 2
