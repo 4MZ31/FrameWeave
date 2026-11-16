@@ -493,12 +493,9 @@ VPage {
                     VButton { objectName: "studio-compare"; Layout.fillWidth: true; iconName: "split"; text: qsTr("对比片段"); onClicked: veyra.navigate("compare") }
                     VButton { objectName: "studio-screenshot"; icon: true; iconName: "camera"; tip: qsTr("截图"); enabled: veyra.hasSource; onClicked: veyra.takeScreenshot() }
                 }
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
-                    VButton { objectName: "studio-outputs"; Layout.fillWidth: true; ghost: true; iconName: "settings"; text: qsTr("直播平台"); onClicked: veyra.navigate("stream") }
-                    VButton { Layout.fillWidth: true; ghost: true; iconName: "folder"; text: qsTr("录制文件夹"); onClicked: veyra.openRecordingDirectory() }
-                }
+                // One per row: side by side their labels were cut off in the narrow column.
+                VButton { objectName: "studio-outputs"; Layout.fillWidth: true; ghost: true; iconName: "settings"; text: qsTr("直播平台"); onClicked: veyra.navigate("stream") }
+                VButton { objectName: "studio-folder"; Layout.fillWidth: true; ghost: true; iconName: "folder"; text: qsTr("录制文件夹"); onClicked: veyra.openRecordingDirectory() }
 
                 // Outputs and their health (one line per platform while live).
                 Text {
