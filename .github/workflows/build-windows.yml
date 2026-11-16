@@ -6,8 +6,10 @@
 # package, PushFPS.exe is built against exactly the same Qt (6.8.3) and FFmpeg (9.0.1) ABI as Veyra.
 #
 # Every dependency below is fetched from its official public source at a pinned version; none needs a login.
-# The NVIDIA Optical Flow SDK does (developer login), so this build uses AMD FidelityFX optical flow instead
-# (src/ngx/NvOfSessionUnavailable.cpp).
+# The NVIDIA Optical Flow SDK does (developer login). When the repository secret NVOF_SDK_HEADERS holds the
+# SDK's two interface headers (base64 of a zip, from the owner's own SDK download, never committed or uploaded),
+# the build compiles NVIDIA optical flow in as Veyra does; without it, NVIDIA optical flow reports unavailable
+# and AMD FidelityFX optical flow is used (src/ngx/NvOfSessionUnavailable.cpp).
 name: build-windows
 
 on:
@@ -224,6 +226,34 @@ jobs:
           python -m pip install -q protobuf
           "$env:DEPS\stream-installed\x64-windows-static\tools\protobuf" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
 
+      # Optional: NVIDIA Optical Flow SDK 5.0.7 interface headers (nvOpticalFlowCommon.h, nvOpticalFlowD3D12.h)
+      # from the secret NVOF_SDK_HEADERS. They stay on the runner; nothing here uploads or packages them.
+      - name: NVIDIA Optical Flow headers (optional)
+        env:
+          NVOF_SDK_HEADERS: ${{ secrets.NVOF_SDK_HEADERS }}
+        run: |
+          if (-not $env:NVOF_SDK_HEADERS) {
+            Write-Host "No NVOF_SDK_HEADERS secret: NVIDIA optical flow stays unavailable, AMD FidelityFX optical flow is used"
+            exit 0
+          }
+          $root = "$env:RUNNER_TEMP\nvof-sdk"
+          $dir = "$root\NvOFInterface"
+          New-Item -ItemType Directory -Force $dir | Out-Null
+          $zip = "$env:RUNNER_TEMP\nvof-headers.zip"
+          [IO.File]::WriteAllBytes($zip, [Convert]::FromBase64String(($env:NVOF_SDK_HEADERS -replace '\s', '')))
+          Expand-Archive $zip -DestinationPath $dir -Force
+          Remove-Item $zip
+          # Accept the headers at the zip's top level or inside one folder.
+          foreach ($h in 'nvOpticalFlowCommon.h', 'nvOpticalFlowD3D12.h') {
+            if (-not (Test-Path "$dir\$h")) {
+              $found = Get-ChildItem $dir -Recurse -Filter $h | Select-Object -First 1
+              if (-not $found) { Write-Host "::error::NVOF_SDK_HEADERS has no $h"; exit 1 }
+              Copy-Item $found.FullName "$dir\$h"
+            }
+          }
+          Write-Host "NVIDIA Optical Flow headers present: NVIDIA optical flow is built in"
+          "NVOF_SDK_ROOT=$root" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+
       - name: Configure
         run: |
           $ffmpeg = "$env:DEPS\vcpkg\installed\x64-windows"
@@ -245,7 +275,8 @@ jobs:
             "-DVEYRA_XESS_ROOT=$env:XESS_ROOT" `
             "-DVEYRA_FIDELITYFX_ROOT=$env:FFX1_ROOT" `
             "-DVEYRA_FIDELITYFX2_ROOT=$env:DEPS\ffx2\Kits\FidelityFX" `
-            "-DVEYRA_AMF_SDK_ROOT=$env:DEPS\amf\amf\public"
+            "-DVEYRA_AMF_SDK_ROOT=$env:DEPS\amf\amf\public" `
+            "-DVEYRA_NVOF_SDK_ROOT=$env:NVOF_SDK_ROOT"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build PushFPS.exe

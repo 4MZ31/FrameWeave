@@ -631,7 +631,9 @@ pinned versions; none is committed. The workflow then runs the unit and interfac
 `PushFPS.exe` links exactly the Qt and FFmpeg libraries in Veyra's runtime package, installs it with the real
 installer and opens every main page, failing on any interface error.
 
-The NVIDIA Optical Flow SDK needs a developer login, so release builds leave it out and use AMD FidelityFX
+The NVIDIA Optical Flow SDK needs a developer login, so its headers are never in this repository. Release
+builds get its two interface headers from a private repository secret (`NVOF_SDK_HEADERS`) and then include
+NVIDIA optical flow as Veyra does; a build without the secret (a fork, for example) uses AMD FidelityFX
 optical flow for motion estimation instead (it runs on any DirectX 12 GPU). NVIDIA Video Frame Generation
 has its own optical flow and is not affected. If you build locally with the Optical Flow SDK in
 `third_party_local/nvidia/Optical_Flow_SDK_5.0.7`, NVIDIA optical flow is available as in Veyra.

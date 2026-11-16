@@ -89,8 +89,11 @@ and edits would conflict on every merge.
 - The upstream runtime package version is `UPSTREAM_TAG` in the workflow; its SHA-256 values are pinned into
   the installer at build time from Veyra's own `SHA256SUMS.txt`. Moving to a newer Veyra release means
   merging upstream and changing `UPSTREAM_TAG` together.
-- Release builds have no NVIDIA Optical Flow SDK (login-only): `src/ngx/NvOfSessionUnavailable.cpp` makes
-  NVOF report unavailable and the app uses AMD FidelityFX optical flow.
+- NVIDIA Optical Flow SDK 5.0.7 (login-only): never commit, upload or package its files. The build takes its
+  two interface headers (`nvOpticalFlowCommon.h`, `nvOpticalFlowD3D12.h`) from the repository secret
+  `NVOF_SDK_HEADERS` (base64 of a zip, made by the owner from their own SDK download) and passes
+  `VEYRA_NVOF_SDK_ROOT`; without the secret, `src/ngx/NvOfSessionUnavailable.cpp` makes NVOF report
+  unavailable and the app uses AMD FidelityFX optical flow.
 
 ## Syncing with Veyra
 

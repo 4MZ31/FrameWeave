@@ -15,7 +15,8 @@ then (latest change: see the date of the newest commit). The modifications, in s
 - Interface: quick setup with console and game profiles, home screen layout, row layout and theme
   (`qml/Veyra/PushQuickSetup.qml`, `HomePage.qml`, `VRow.qml`, `Theme.qml`, `ProPage.qml`, `TopDock.qml`
   and others), with their translations in `i18n/catalog.json`.
-- Builds without the NVIDIA Optical Flow SDK (`src/ngx/NvOfSessionUnavailable.cpp`).
+- Builds without the NVIDIA Optical Flow SDK (`src/ngx/NvOfSessionUnavailable.cpp`); release builds with the
+  SDK's headers from a private secret compile Veyra's own NVIDIA optical flow code unchanged.
 - Windows installer and release packaging (`packaging/`), build and test workflows (`.github/workflows/`).
 - OBS Studio plugin (`obs-plugin/`).
 - Picture & sound editor, sound profiles and the saved-recording card (`qml/Veyra/PushPicture.qml`,
