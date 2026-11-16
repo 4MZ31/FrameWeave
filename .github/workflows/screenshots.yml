@@ -122,7 +122,11 @@ jobs:
             # README screens in the PushFPS brand (the Sunset City logo is for the app and website only).
             @{ name = '48-home-classic-light'; args = @('--page', 'home', '--dock-pinned', '--theme', 'light', '--pref', 'pushSunset=false') },
             @{ name = '49-home-classic-black'; args = @('--page', 'home', '--dock-pinned', '--theme', 'black', '--pref', 'pushSunset=false') },
-            @{ name = '50-home-classic-pinned'; args = @('--page', 'home', '--dock-pinned', '--pref', 'pushSunset=false') }
+            @{ name = '50-home-classic-pinned'; args = @('--page', 'home', '--dock-pinned', '--pref', 'pushSunset=false') },
+            # Going live (2.9.0): three outputs, the way a multistream setup looks before going live. Start-Process
+            # does not escape quotes, so the JSON carries \" for the Windows command line.
+            @{ name = '51-go-live'; args = @('--page', 'home', '--dialog', 'stream', '--lang', 'en', '--pref', ('streamTargets=' + '[{"id":"o1","platform":"twitch","name":"","server":"","enabled":true},{"id":"o2","platform":"youtube","name":"","server":"","enabled":true},{"id":"o3","platform":"kick","name":"","server":"","enabled":false}]'.Replace('"', '\"'))) },
+            @{ name = '52-optimize-goals'; args = @('--page', 'home', '--dialog', 'optimize', '--lang', 'en', '--pref', 'pushOptimizeGoal=balanced') }
           )
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"
