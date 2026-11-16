@@ -17,11 +17,11 @@ VPage {
     signal requestPage(string page)
     readonly property bool compact: width < 980
     readonly property int margin: 12
-    readonly property int top: 56
+    readonly property int bodyTop: 56
     readonly property int panelWidth: compact ? Math.max(300, width - 2 * margin) : 400
     // Narrow windows: the controls only; the picture is a fullscreen away (F11).
     readonly property rect videoViewport: compact ? Qt.rect(0, 0, 0, 0)
-        : Qt.rect(margin + panelWidth + 10 + 1, top + 36, Math.max(1, width - 2 * margin - panelWidth - 10 - 2), Math.max(1, height - top - margin - 36 - 1))
+        : Qt.rect(margin + panelWidth + 10 + 1, bodyTop + 36, Math.max(1, width - 2 * margin - panelWidth - 10 - 2), Math.max(1, height - bodyTop - margin - 36 - 1))
 
     // What to play: 0 a window, 1 a whole screen, 2 a video file.
     property int kind: Number(veyra.screenOptions.kind || 0) === 1 ? 1 : 0
@@ -73,8 +73,8 @@ VPage {
 
     Rectangle {
         objectName: "watch-panel"
-        x: watch.margin; y: watch.top
-        width: watch.panelWidth; height: watch.height - watch.top - watch.margin
+        x: watch.margin; y: watch.bodyTop
+        width: watch.panelWidth; height: watch.height - watch.bodyTop - watch.margin
         radius: Theme.rCard; color: Theme.card; border.color: Theme.stroke
         clip: true
         Flickable {
@@ -236,8 +236,8 @@ VPage {
     Rectangle {
         objectName: "watch-preview"
         visible: !watch.compact
-        x: watch.margin + watch.panelWidth + 10; y: watch.top
-        width: watch.width - 2 * watch.margin - watch.panelWidth - 10; height: watch.height - watch.top - watch.margin
+        x: watch.margin + watch.panelWidth + 10; y: watch.bodyTop
+        width: watch.width - 2 * watch.margin - watch.panelWidth - 10; height: watch.height - watch.bodyTop - watch.margin
         radius: Theme.rCard; color: Theme.videoBlack; border.color: Theme.stroke
         Text {
             x: 12; height: 36
