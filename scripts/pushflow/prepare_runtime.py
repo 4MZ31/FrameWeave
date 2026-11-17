@@ -5,9 +5,9 @@
 
   1. ONNX Runtime (DirectML build) and DirectML from nuget.org, pinned versions; the SHA-256 of each
      package is printed and checked against PINS when a value is set there.
-  2. RIFE models (MIT weights by hzwer, ONNX by vs-mlrt) from vs-mlrt's "external-models" release: every
-     RIFE archive is listed; the newest lite model becomes pushflow-fast.onnx and the newest full model
-     (no ensemble) pushflow-quality.onnx.
+  2. RIFE models (MIT weights by hzwer, ONNX by vs-mlrt) from vs-mlrt's "external-models" release: the
+     pinned archives in MODEL_ARCHIVES; the newest lite model becomes pushflow-fast.onnx and the newest
+     full model (no ensemble) pushflow-quality.onnx.
   3. Each model is checked on the CPU with a moving test pattern (identical frames come back, a moving
      square lands in the middle, well ahead of a plain blend) and converted to half precision when the
      half model gives the same picture; otherwise the full-precision model is kept.
@@ -34,8 +34,16 @@ from pathlib import Path
 ORT_ID, ORT_VERSION = "Microsoft.ML.OnnxRuntime.DirectML", "1.20.1"
 DML_ID, DML_VERSION = "Microsoft.AI.DirectML", "1.15.4"
 MODELS_REPO, MODELS_TAG = "AmusementClub/vs-mlrt", "external-models"
-# SHA-256 of the packages and model archives; None = print only (first build after a version change).
-PINS: dict[str, str | None] = {}
+# The two RIFE archives PushFlow ships (chosen by the checks below on the first build, 2026-11-17):
+# v4.25 lite for Fast/Balanced, v4.26 for Quality. Change both the list and the pins together.
+MODEL_ARCHIVES = ["rife_v4.25_lite.7z", "rife_v4.26.7z"]
+# SHA-256 of the packages and model archives; a missing entry is printed only.
+PINS: dict[str, str | None] = {
+    "Microsoft.ML.OnnxRuntime.DirectML.1.20.1.nupkg": "6763468507b7cfc777b1334b3e174c11a540ddacb7bd4354bc2e0ec89e56eec2",
+    "Microsoft.AI.DirectML.1.15.4.nupkg": "4e7cb7ddce8cf837a7a75dc029209b520ca0101470fcdf275c1f49736a3615b9",
+    "rife_v4.25_lite.7z": "7d53e29fff5e67345b19f4ce97dfd1e34b490eedc752df2236904fda1a13842c",
+    "rife_v4.26.7z": "dfdabd84a2a3db773f87604b8cc255e94a6a72f13550d910ccd3b4ee2606cd4f",
+}
 
 
 def sha256(path: Path) -> str:
@@ -83,8 +91,10 @@ def model_archives(work: Path) -> list[Path]:
     assets = [a["name"] for a in json.loads(listing)["assets"]]
     rife = sorted(a for a in assets if re.search(r"rife", a, re.I) and a.endswith((".7z", ".zip")))
     print("RIFE archives in the release:", ", ".join(rife) or "(none)")
-    if not rife:
-        sys.exit("::error::no RIFE archives in vs-mlrt external-models")
+    missing = [a for a in MODEL_ARCHIVES if a not in assets]
+    if missing:
+        sys.exit(f"::error::vs-mlrt external-models no longer has {', '.join(missing)}")
+    rife = MODEL_ARCHIVES
     out = []
     for name in rife:
         subprocess.run(["gh", "release", "download", MODELS_TAG, "-R", MODELS_REPO, "-p", name, "-D", str(work), "--clobber"], check=True)

@@ -51,7 +51,8 @@ Which target for your monitor
 
   Which multipliers your method offers:
     2x ......... every method
-    3x and 4x .. NVIDIA Video Frame Generation, NVIDIA Frame Generation for games on RTX 50, ANR, Intel XeSS
+    3x and 4x .. NVIDIA Video Frame Generation, NVIDIA Frame Generation for games on RTX 50, ANR, Intel XeSS,
+                 PushFlow (PushFPS's own, any DirectX 12 card)
     6x ......... NVIDIA Video Frame Generation, NVIDIA Frame Generation for games on RTX 50, ANR
     8x ......... NVIDIA Video Frame Generation only (RTX 40/50)
   AMD FSR stops at 2x, so a 30 FPS game goes to 60. More generated frames per real frame show more
@@ -190,6 +191,12 @@ NVIDIA Video Frame Generation: Medium or High?
   pair. At 2x, "VFG auto regulation" drops a pair to the next tier when it can't keep up instead
   of dropping frames. All in Pro mode under Frame generation, or let "Optimise for my PC" test
   what your card keeps up with.
+
+PushFlow: which tier?
+  PushFlow is PushFPS's own frame generation (RIFE through DirectML) and runs on NVIDIA, AMD and
+  Intel cards, 2x to 4x. Start with Balanced. Fast estimates motion at half resolution for slower
+  cards; Quality uses the full model and is the heaviest. Its speed on real cards has not been
+  measured yet: let "Optimise for my PC" check what yours keeps up with.
 
 
 5. WINDOWS SETTINGS

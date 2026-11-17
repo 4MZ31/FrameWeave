@@ -1170,7 +1170,8 @@ ship it in `runtime\experimental\pushflow` with each licence in its `licenses` f
   under the Microsoft DirectML licence that comes with the package.
 - **RIFE** (Real-Time Intermediate Flow Estimation, Practical-RIFE v4.x) by hzwer and contributors,
   [MIT License](https://github.com/hzwer/Practical-RIFE/blob/main/LICENSE). The ONNX conversions come from
-  [vs-mlrt](https://github.com/AmusementClub/vs-mlrt)'s `external-models` release (vs-mlrt is GPL-3.0).
+  [vs-mlrt](https://github.com/AmusementClub/vs-mlrt)'s `external-models` release (vs-mlrt is GPL-3.0):
+  RIFE v4.25 lite (Fast and Balanced tiers) and RIFE v4.26 (Quality tier), both in vs-mlrt's 7-channel layout.
   The release build checks each model on a test pattern and may convert it to half precision with
   onnxconverter-common (MIT); `models.json` next to the models records the source archive, version, SHA-256
   and precision of each file.
