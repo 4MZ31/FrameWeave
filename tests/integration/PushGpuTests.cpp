@@ -1075,7 +1075,7 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
         bar.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         bar.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON; bar.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
         gpu.list->ResourceBarrier(1, &bar);
-        if (!flow.resolve(gpu.list.Get(), out.texture.Get())) return result;
+        if (!flow.resolve(gpu.list.Get(), a.texture.Get(), b.texture.Get(), out.texture.Get())) return result;
         auto rb = recordRead(gpu, out, D3D12_RESOURCE_STATE_COPY_DEST);
         bar.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST; bar.Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
         gpu.list->ResourceBarrier(1, &bar);
