@@ -147,11 +147,12 @@ Item {
             lay.selected = 0
             waitForRendering(lay)
             const handle = findChild(findChild(lay, "layout-item-0"), "layout-handle-3")
-            const p = handle.mapToItem(root, 6, 6)
+            // The full-frame picture's corner handle sits on the stage's clipped edge: press its inner half.
+            const p = handle.mapToItem(root, 2, 2)
             mousePress(root, p.x, p.y)
             mouseMove(root, p.x - 300, p.y - 100)
             mouseRelease(root, p.x - 300, p.y - 100)
-            verify(Number(veyra.preferences.canvasW) < 1000)
+            tryVerify(() => Number(veyra.preferences.canvasW) < 1000, 2000, "the box shrank: " + veyra.preferences.canvasW)
             fuzzyCompare(Number(veyra.preferences.canvasW) / Number(veyra.preferences.canvasH), 1, 0.02, "16:9 box on a 16:9 output keeps its shape")
             verify(veyra.preferences.canvasStretch !== true)
             lay.setCrop("l", 0.2); lay.commit()

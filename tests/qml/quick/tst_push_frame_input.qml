@@ -23,7 +23,7 @@ Item {
         function test_nothing_sending_says_so() {
             host.dialog = "frameinput"
             verify(input.shown)
-            verify(findChild(input, "frame-input-none").visible, "the empty state is shown")
+            tryVerify(() => input.senders.length === 0 && findChild(input, "frame-input-none").visible, 3000, "the empty state is shown")
             verify(!input.use("default"), "nothing to open")
             compare(host.dialog, "frameinput", "the dialog stays open")
         }
