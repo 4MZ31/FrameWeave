@@ -1050,13 +1050,13 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict);
 // Network size per tier (no runtime needed): 4K never runs RIFE at 4K, small pictures stay full size
 // (Fast stays at half), and every scale keeps at least the tier's pixel budget order.
 void testPushFlowSizes() {
-    const auto near = [](double a, double b) { return std::abs(a - b) < 1e-6; };
-    check(near(pushflow::networkScale(0, 640, 360), 0.5), "pushflow sizes: Fast at 640x360 is half size");
-    check(near(pushflow::networkScale(1, 640, 360), 1.0) && near(pushflow::networkScale(2, 640, 360), 1.0), "pushflow sizes: small pictures run at full size");
-    check(near(pushflow::networkScale(0, 3840, 2160), 0.25), "pushflow sizes: Fast at 4K is 960x540");
-    check(near(pushflow::networkScale(1, 3840, 2160), 1.0 / 3.0), "pushflow sizes: Balanced at 4K is 1280x720");
-    check(near(pushflow::networkScale(2, 3840, 2160), 0.5), "pushflow sizes: Quality at 4K is 1920x1080");
-    check(near(pushflow::networkScale(2, 1920, 1080), 1.0) && near(pushflow::networkScale(1, 1920, 1080), 2.0 / 3.0), "pushflow sizes: 1080p");
+    const auto same = [](double a, double b) { return std::abs(a - b) < 1e-6; };
+    check(same(pushflow::networkScale(0, 640, 360), 0.5), "pushflow sizes: Fast at 640x360 is half size");
+    check(same(pushflow::networkScale(1, 640, 360), 1.0) && same(pushflow::networkScale(2, 640, 360), 1.0), "pushflow sizes: small pictures run at full size");
+    check(same(pushflow::networkScale(0, 3840, 2160), 0.25), "pushflow sizes: Fast at 4K is 960x540");
+    check(same(pushflow::networkScale(1, 3840, 2160), 1.0 / 3.0), "pushflow sizes: Balanced at 4K is 1280x720");
+    check(same(pushflow::networkScale(2, 3840, 2160), 0.5), "pushflow sizes: Quality at 4K is 1920x1080");
+    check(same(pushflow::networkScale(2, 1920, 1080), 1.0) && same(pushflow::networkScale(1, 1920, 1080), 2.0 / 3.0), "pushflow sizes: 1080p");
 }
 void testPushFlow(Gpu& gpu) {
     wchar_t dir[1024]{}, full[1024]{};
