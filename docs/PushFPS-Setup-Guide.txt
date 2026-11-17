@@ -20,8 +20,8 @@ Get the game on screen first, then set these in the Quick setup (Home or Pro mod
 
   Console ................ your console (each console remembers its own choices)
   Game frame rate ........ 30 for most games (GTA VI), 40 for 40 FPS modes, 60 for performance modes
-  Target frame rate ...... 120 FPS on a 120 Hz or faster monitor, 60 FPS on a 60 Hz monitor
-                           ("Match monitor" uses your monitor's refresh rate)
+  Target frame rate ...... 60 FPS on a 60 Hz monitor, 120 FPS on 120 Hz and faster
+                           (per refresh rate: "Which target for your monitor" below)
   Game preset ............ pick the game if it is listed (GTA VI has one): it sets the HUD boxes
   Smooth frame pacing .... ON (default): every generated frame is shown once
   Frame Pacing Repair .... ON: evens out uneven 30 FPS games before frames are generated
@@ -32,6 +32,29 @@ Get the game on screen first, then set these in the Quick setup (Home or Pro mod
 
 Then click "Optimise for my PC" with the game on screen (goal: Balanced). PushFPS tests the frame
 generation methods your PC has on your real picture and keeps the best. "Undo" puts everything back.
+
+Which target for your monitor
+  Pick a target your monitor's refresh rate divides evenly, so every frame stays on screen equally
+  long. That is why 120 beats 144: 144 is not a whole multiple of 30 or 60. "Match monitor" sets the
+  target to your monitor's own rate.
+
+  Monitor      30 FPS game (GTA VI)            60 FPS game                  Good to know
+  60 Hz        60 (2x)                         Off                          Use Lowest latency only
+  75/100 Hz    60 (2x)                         Off                          G-SYNC/FreeSync on, or Windows at 60 Hz
+  120 Hz       120 (4x)                        120 (2x)                     The sweet spot for console games
+  144/165 Hz   120 (4x)                        120 (2x)                     G-SYNC/FreeSync on, or Windows at 120 Hz
+  180 Hz       120 (4x) or Match monitor (6x)  Match monitor (3x)           180 = 6 x 30 = 3 x 60
+  240 Hz       120 (4x) or Match monitor (8x)  120 (2x) or Match mon. (4x)  Start at 120
+  360 Hz       120 (4x)                        120 (2x) or Match mon. (6x)  360 = 3 x 120
+
+  Which multipliers your method offers:
+    2x ......... every method
+    3x and 4x .. NVIDIA Video Frame Generation, NVIDIA Frame Generation for games on RTX 50, ANR, Intel XeSS
+    6x ......... NVIDIA Video Frame Generation, NVIDIA Frame Generation for games on RTX 50, ANR
+    8x ......... NVIDIA Video Frame Generation only (RTX 40/50)
+  AMD FSR stops at 2x, so a 30 FPS game goes to 60. More generated frames per real frame show more
+  wobble in fast motion: if you see it, step down to 120 or 60. "Optimise for my PC" tests 120 and
+  your monitor's rate when your PC can reach it, and keeps what passes.
 
 
 2. THEN TUNE IT TO YOUR LIKING
@@ -158,7 +181,7 @@ Tips
   [ ] HDCP off (PlayStation)
   [ ] Console at 60 Hz (120 Hz only with a 120 Hz capture card), VRR off
   [ ] Capture card on a USB 3 port directly on the PC, set to exactly 60 FPS (or 120)
-  [ ] Quick setup: console, game frame rate 30, target 120 (or 60), game preset if listed
+  [ ] Quick setup: console, game frame rate 30, target from the monitor table (60 or 120), game preset
   [ ] Smooth frame pacing, Frame Pacing Repair and Live HUD Lock on
   [ ] Optimise for my PC with the game on screen
   [ ] Lowest latency on for action games

@@ -352,6 +352,11 @@ dialog#lightbox[open] { animation: pop .2s ease; }
 .guide-note { color: var(--muted); font-size: 16px; max-width: 52em; margin: 14px 0 0; }
 .guide-steps b { color: var(--text); font-weight: 600; }
 .tune tbody th { width: 34%; }
+.rates tbody th { width: 16%; white-space: nowrap; }
+.rates td { color: var(--text); }
+.rates td:last-child { color: var(--muted); }
+.rates td b { font-weight: 700; }
+.rates .nw { white-space: nowrap; }
 .hdr td { color: var(--muted); }
 .hdr td:last-child { color: var(--muted); }
 .chip { display: inline-flex; align-items: center; justify-content: center; min-width: 46px; height: 26px; padding: 0 10px; border-radius: 999px; font: 600 13px/1 var(--body); border: 1px solid var(--line-2); color: var(--text); background: var(--ink-2); white-space: nowrap; }

@@ -300,10 +300,28 @@
     <h3 class="sub-h">1. Start here</h3>
     <ol class="steps guide-steps">
       <li><h3>Get the game on screen</h3><p>Connect the capture card and start your game, so PushFPS can see the real picture.</p></li>
-      <li><h3>Fill in the quick setup</h3><p>Your console, game frame rate <b>30</b> (40 or 60 for those modes), target <b>120&nbsp;FPS</b> on a 120&nbsp;Hz+ monitor or <b>60</b> on a 60&nbsp;Hz one. Pick the game preset if it's listed.</p></li>
+      <li><h3>Fill in the quick setup</h3><p>Your console, game frame rate <b>30</b> (40 or 60 for those modes), and the target for your monitor from <a href="#guide-rates">the table below</a>: <b>60</b> on a 60&nbsp;Hz monitor, <b>120&nbsp;FPS</b> on 120&nbsp;Hz and faster. Pick the game preset if it's listed.</p></li>
       <li><h3>Keep these on</h3><p><b>Smooth frame pacing</b>, <b>Frame Pacing Repair</b> and <b>Live HUD Lock</b>. <b>Adaptive multiplier</b> for games that dip. <b>Lowest latency</b> for action games. AI enhancement off to start.</p></li>
       <li><h3>Optimise for my PC</h3><p>With the game on screen, goal <b>Balanced</b>. PushFPS tests every method your PC has and keeps the best. Undo puts everything back.</p></li>
     </ol>
+
+    <h3 class="sub-h" id="guide-rates">Which target for your monitor</h3>
+    <p class="guide-note">Pick a target your monitor's refresh rate divides evenly, so every frame stays on screen equally long. That's why 120 beats 144: 144 isn't a whole multiple of 30 or 60. <b>Match monitor</b> sets the target to your monitor's own rate.</p>
+    <div class="table-wrap">
+      <table class="spec rates">
+        <thead><tr><th scope="col">Monitor</th><th scope="col">30&nbsp;FPS game (GTA VI)</th><th scope="col">60&nbsp;FPS game</th><th scope="col">Good to know</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">60&nbsp;Hz</th><td data-label="30 FPS game"><b>60</b><em>2×</em></td><td data-label="60 FPS game"><b>Off</b></td><td data-label="Good to know">A 60&nbsp;FPS game already fills the monitor: use Lowest latency only.</td></tr>
+          <tr><th scope="row">75 or 100&nbsp;Hz</th><td data-label="30 FPS game"><b>60</b><em>2×</em></td><td data-label="60 FPS game"><b>Off</b></td><td data-label="Good to know">Turn G-SYNC/FreeSync on, or set Windows to 60&nbsp;Hz.</td></tr>
+          <tr><th scope="row">120&nbsp;Hz</th><td data-label="30 FPS game"><b>120</b><em>4×</em></td><td data-label="60 FPS game"><b>120</b><em>2×</em></td><td data-label="Good to know">The sweet spot for console games.</td></tr>
+          <tr><th scope="row">144 or 165&nbsp;Hz</th><td data-label="30 FPS game"><b>120</b><em>4×</em></td><td data-label="60 FPS game"><b>120</b><em>2×</em></td><td data-label="Good to know">Turn G-SYNC/FreeSync on so 120&nbsp;FPS shows evenly; without it, set Windows to 120&nbsp;Hz.</td></tr>
+          <tr><th scope="row">180&nbsp;Hz</th><td data-label="30 FPS game"><b>120</b><em>4×</em> or <span class="nw">Match monitor <em>6×</em></span></td><td data-label="60 FPS game"><b>Match monitor</b><em>3×</em></td><td data-label="Good to know">180 is 6 × 30 and 3 × 60, so Match monitor works if your method offers that multiplier.</td></tr>
+          <tr><th scope="row">240&nbsp;Hz</th><td data-label="30 FPS game"><b>120</b><em>4×</em> or <span class="nw">Match monitor <em>8×</em></span></td><td data-label="60 FPS game"><b>120</b><em>2×</em> or <span class="nw">Match monitor <em>4×</em></span></td><td data-label="Good to know">Start at 120. 8× from 30&nbsp;FPS needs NVIDIA Video Frame Generation (RTX 40/50).</td></tr>
+          <tr><th scope="row">360&nbsp;Hz</th><td data-label="30 FPS game"><b>120</b><em>4×</em></td><td data-label="60 FPS game"><b>120</b><em>2×</em> or <span class="nw">Match monitor <em>6×</em></span></td><td data-label="Good to know">360 is 3 × 120, so 120 stays even.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="guide-note">Which multipliers your method offers: <b>2×</b> every method; <b>3× and 4×</b> NVIDIA Video Frame Generation, NVIDIA Frame Generation for games on RTX 50, ANR and Intel XeSS; <b>6×</b> NVIDIA Video Frame Generation, NVIDIA Frame Generation for games on RTX 50 and ANR; <b>8×</b> NVIDIA Video Frame Generation only. AMD FSR stops at 2×, so a 30&nbsp;FPS game goes to 60. More generated frames per real frame show more wobble in fast motion: if you see it, step down to 120 or 60. Not sure? <b>Optimise for my PC</b> tests 120 and your monitor's rate when your PC can reach it, and keeps what passes.</p>
 
     <h3 class="sub-h">2. Then tune it to your liking</h3>
     <p class="guide-note">Change one thing at a time, play a minute, then decide.</p>
