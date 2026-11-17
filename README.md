@@ -302,17 +302,25 @@ on every DirectX 12 graphics card: NVIDIA, AMD and Intel. Choose it under *Frame
 mode or in streaming mode.
 
 - **2×, 3× or 4×**: each frame is made for its own moment between the two real frames.
-- **Tiers**: *Fast* (lite model, motion estimated at half resolution), *Balanced* (lite model, full resolution)
-  and *Quality* (full model, full resolution).
-- **Everything stays on the graphics card**: a compute pass packs the two frames into the network's input,
-  the network runs on PushFPS's own GPU queue, and a second pass turns the result back into a picture, with
-  no copies through the CPU.
+- **Tiers**: *Fast* (lite model, motion estimated at half resolution, picture rebuilt at full resolution),
+  *Balanced* (lite model, full resolution) and *Quality* (full model, full resolution).
+- **Sharp Fast tier**: the network's final motion and blend mask are enlarged, not its picture: every pixel is
+  sampled from the full-resolution real frames. On a panning fine-texture test this scores 25 dB against
+  17 dB for enlarging the half-size picture.
+- **Everything stays on the graphics card**: a compute pass packs the two frames into the network's input
+  (once per pair; later frames only change the time), the network runs on PushFPS's own GPU queue, and a
+  second pass turns the result back into a picture, with no copies through the CPU.
+- **Half precision when your card gets it right**: a start-up self-check compares fp16 with fp32 on your
+  graphics card and falls back to fp32 when they differ.
+- **Measure your card**: `PushFlowBench.exe`, next to `PushFPS.exe`, writes PushFlow's timings on your card
+  as JSON. Details: [docs/PUSHFLOW.md](docs/PUSHFLOW.md).
 - Works with HUD protection, Live HUD Lock, the adaptive multiplier, recording and going live.
 - *Optimise for my PC* tests PushFlow like the other methods, and the frame quality test can score it on your
   own game.
 
 How fast it is depends on your graphics card, the tier and the resolution; it has been tested in CI on
-Windows' software renderer, not yet measured on real graphics cards. TensorRT isn't bundled (its runtime is
+Windows' software renderer, not yet measured on real graphics cards (PushFlowBench is how we will get those
+numbers). TensorRT isn't bundled (its runtime is
 over a gigabyte and NVIDIA-only); DirectML covers every vendor.
 
 ## Optimise for my PC

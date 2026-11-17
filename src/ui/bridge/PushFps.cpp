@@ -82,6 +82,10 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     // Frame Pacing Repair: kept frames seen and re-timed since the source opened.
     m["pacingFrames"] = QVariant::fromValue(qulonglong(s.pacingFrames));
     m["hudLockState"] = s.hudLockState;
+    m["pushFlowPrecision"] = QString::fromStdString(s.pushFlowPrecision);
+    m["pushFlowRebuild"] = s.pushFlowRebuild;
+    m["pushFlowP50Ms"] = s.pushFlowP50Ms;
+    m["pushFlowP95Ms"] = s.pushFlowP95Ms;
     m["pacingRepaired"] = QVariant::fromValue(qulonglong(s.pacingRepaired));
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;
@@ -546,7 +550,13 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     const int gameFps = s.contentFps > 1 ? s.contentFps : std::clamp(impl_->prefInt("pushGameFps", 30), 24, 120);
     const int shownFps = s.submissionFps && std::isfinite(*s.submissionFps) && *s.submissionFps > gameFps
         ? int(std::lround(*s.submissionFps)) : gameFps * std::max(2, int(s.applied.multiplier));
-    const QString leftText = tr("主机原画 · %1 FPS").arg(gameFps);
+    // Video playback mode (a video file, a web video, a window or screen, the frame input API):
+    // the left side is the video's own picture, not a console's.
+    const QString kind = sourceKind();
+    const bool video = kind == QLatin1String("file") || kind == QLatin1String("url") || kind == QLatin1String("screen")
+        || kind == QLatin1String("frameinput");
+    const QString leftName = video ? tr("原画") : tr("主机原画");
+    const QString leftText = QStringLiteral("%1 · %2 FPS").arg(leftName).arg(gameFps);
     const QString rightText = QStringLiteral("%1 · %2 FPS").arg(QString::fromLatin1(brand::kProductName)).arg(shownFps);
     // Drawn here (UI thread) for the expected picture height; the recorder blends them in.
     // Vertical clips are always 1920 high (RecordingCompare.h); their badges are drawn as for a
@@ -555,7 +565,7 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     const bool vertical = layout == 2;
     const uint32_t height = vertical ? 1920u : out.height > 0 ? uint32_t(out.height) : 1080;
     const uint32_t badgeHeight = vertical ? 1440u : height;
-    const auto left = drawCompareBadge(false, tr("主机原画"), gameFps, badgeHeight), right = drawCompareBadge(true, {}, shownFps, badgeHeight);
+    const auto left = drawCompareBadge(false, leftName, gameFps, badgeHeight), right = drawCompareBadge(true, {}, shownFps, badgeHeight);
     // Labels are sized for the picture height; a recorded file of another height (the picture
     // changed size, or the expected height was not known yet) gets them scaled to match.
     options.compareLabels = [left, right, height](uint32_t, uint32_t recorded, engine::RecordingLabel& l, engine::RecordingLabel& r) {

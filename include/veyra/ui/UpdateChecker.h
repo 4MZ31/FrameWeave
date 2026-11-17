@@ -1,4 +1,5 @@
 #pragma once
+#include <QVersionNumber>
 #include <QObject>
 #include <QByteArray>
 #include <QUrl>
@@ -54,6 +55,7 @@ signals:
     void quitForUpdate();
     void installFinished(const QString& result);   // "started" or the failure reason
 private:
+    QVersionNumber localVersion() const;
     void finish();
     void setInstall(const QString& state, double progress = 0);
     void failInstall(const QString& reason);

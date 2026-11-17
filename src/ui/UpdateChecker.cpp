@@ -36,6 +36,19 @@ UpdateChecker::UpdateChecker(QString currentVersion, QObject* parent, QUrl endpo
         if (reply_) { failure_ = QStringLiteral("timeout"); reply_->abort(); }
     });
 }
+// The installed version: the build's own version, or the installer's record (PushFPS-VERSION.txt) when
+// that names a newer one. 3.1.3 and 3.1.4 were built with the Veyra version (2.1.9) as their own, so
+// without the record they kept offering the update they had just installed.
+QVersionNumber UpdateChecker::localVersion() const {
+    QVersionNumber local = versionNumber(currentVersion_, true);
+    if (!installDir_.isEmpty()) {
+        QFile f(QDir(installDir_).filePath(QStringLiteral("PushFPS-VERSION.txt")));
+        if (f.open(QIODevice::ReadOnly))
+            if (const auto record = parseInstalledVersionFile(f.read(64 * 1024)); record && QVersionNumber::compare(record->version, local) > 0)
+                local = record->version;
+    }
+    return local;
+}
 UpdateChecker::~UpdateChecker() {
     deadline_.stop();
     if (reply_) {
@@ -93,7 +106,7 @@ void UpdateChecker::finish() {
         const auto document = QJsonDocument::fromJson(body_, &error);
         const auto obj = document.object();
         const auto tag = obj.value(QStringLiteral("tag_name")).toString();
-        const auto remote = versionNumber(tag, false), local = versionNumber(currentVersion_, true);
+        const auto remote = versionNumber(tag, false), local = localVersion();
         const QUrl url(obj.value(QStringLiteral("html_url")).toString());
         const bool validUrl = url.scheme() == QStringLiteral("https") && url.host() == QStringLiteral("github.com")
             && url.userInfo().isEmpty() && url.port(-1) == -1 && !url.hasQuery() && !url.hasFragment()
@@ -218,7 +231,7 @@ void UpdateChecker::installUpdate() {
             if (!verifyUpdateSignature(publicKeyPem_, sums_, signature, &why)) { failInstall(why); return; }
             const auto package = updatePackageIn(sums_);
             if (!package || package->fileName != zipName_ || package->version != QVersionNumber::fromString(latestVersion_) ||
-                QVersionNumber::compare(package->version, versionNumber(currentVersion_, true)) <= 0) {
+                QVersionNumber::compare(package->version, localVersion()) <= 0) {
                 failInstall(QStringLiteral("package-mismatch")); return;
             }
             expectedZipSha_ = package->sha256;

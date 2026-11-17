@@ -708,6 +708,14 @@ bool QmlPlayerBridge::startScreenCapture() {
     if (gameMode()) { updateGameGeometry(); updateGameMode(); emit gameModeChanged(); }
     emit compareChanged();
     rememberSource(QStringLiteral("screen"), screenTargetLabel());
+    // PushFPS: a window or screen has no sound of its own here (the browser or player plays it), so
+    // recordings take the PC's sound (process loopback without PushFPS, PushAuxAudio.h). Turned on
+    // once, the first time; after that it is the user's switch (recording settings, video playback
+    // mode, streaming mode's mixer).
+    if (!impl_->prefs.contains(QStringLiteral("mixDesktopOn"))) {
+        setPreference(QStringLiteral("mixDesktopOn"), true);
+        veyra::log::info("screen-ui", "desktop audio for recordings turned on (first screen capture)");
+    }
     return true;
 }
 bool QmlPlayerBridge::gameMode() const { return impl_->gameModeSessionId != 0; }

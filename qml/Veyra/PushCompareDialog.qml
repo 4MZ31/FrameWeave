@@ -18,7 +18,8 @@ DialogLayer {
     key: "compare"
     glyph: "split"
     title: qsTr("对比片段")
-    sub: qsTr("录制一段前后对比视频：一边是主机原本的帧率，一边是 PushFPS")
+    sub: cmp.videoSource ? qsTr("录制一段前后对比视频：一边是视频原本的帧率，一边是 PushFPS")
+                         : qsTr("录制一段前后对比视频：一边是主机原本的帧率，一边是 PushFPS")
     dialogWidth: 560
 
     readonly property var lengths: [10, 15, 30, 60]
@@ -36,7 +37,10 @@ DialogLayer {
         return n === 40 || n === 60 ? n : 30
     }
     readonly property int shownFps: cmp.gameFps * Math.max(2, Number(veyra.fgMultiplier || 2))
-    readonly property string leftTag: qsTr("主机原画 · %1 FPS").arg(cmp.gameFps)
+    // Video playback mode labels the left side "Original" instead of "Console" (as the recording does).
+    readonly property bool videoSource: veyra.hasSource ? ["file", "url", "screen", "frameinput"].indexOf(String(veyra.sourceKind)) >= 0
+                                                        : veyra.currentPage === "watch"
+    readonly property string leftTag: (cmp.videoSource ? qsTr("原画 · %1 FPS") : qsTr("主机原画 · %1 FPS")).arg(cmp.gameFps)
     readonly property string rightTag: "PushFPS · " + cmp.shownFps + " FPS"
 
     // The preview drawn: portrait for the vertical layout, landscape for the others.

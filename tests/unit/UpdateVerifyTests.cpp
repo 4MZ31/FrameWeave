@@ -101,6 +101,27 @@ private slots:
         QCOMPARE(rec->gpu, QStringLiteral("AMD"));
         QVERIFY(!rec->extras);
         QVERIFY(!parseInstalledVersionFile("hello").has_value());
+        QCOMPARE(parseInstalledVersionFile("PushFPS 3.1.4\nRuntime: Veyra-2.1.9-NVIDIA-win64-portable.zip from x\n")->version, QVersionNumber(3, 1, 4));
+    }
+    // 3.1.3 and 3.1.4 report "2.1.9" (Veyra's version) as their own: the installer's record decides, so an
+    // installed release is not offered again.
+    void installedRecordStopsTheUpdateLoop() {
+        Server server;
+        server.files["/latest"] = QJsonDocument(QJsonObject{
+            {"tag_name", "v3.1.4"}, {"draft", false}, {"prerelease", false},
+            {"html_url", "https://github.com/DosukaSOL/PushFPS/releases/tag/v3.1.4"}, {"assets", QJsonArray{}}}).toJson();
+        QTemporaryDir install;
+        QFile rec(install.filePath("PushFPS-VERSION.txt"));
+        QVERIFY(rec.open(QIODevice::WriteOnly));
+        rec.write("PushFPS 3.1.4\r\nRuntime: Veyra-2.1.9-NVIDIA-win64-portable.zip from x\r\n");
+        rec.close();
+        UpdateChecker checker(QStringLiteral("2.1.9"), nullptr, QUrl(QString::fromLatin1(server.base() + "/latest")));
+        checker.setAllowHttpForTests(true);
+        checker.setInstallDirForTests(install.path());
+        QSignalSpy checked(&checker, &UpdateChecker::completed);
+        checker.check(true);
+        QVERIFY(checked.wait(5000));
+        QVERIFY2(checked.first().first().toString() != QStringLiteral("available"), qPrintable(checked.first().first().toString()));
     }
 
     // The whole flow against a local server: signed list, zip, unpack with tar, installer launch.

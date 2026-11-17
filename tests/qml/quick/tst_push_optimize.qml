@@ -135,7 +135,9 @@ Item {
             veyra.outputRateMode = 2; veyra.outputCustomFps = 60
             opt.start()
             tryCompare(opt, "phase", "done", 15000)
+            compare(JSON.parse(veyra.preferences.pushBenchmark).applied, true, "kept result: the tile turns green")
             opt.undo()
+            compare(JSON.parse(veyra.preferences.pushBenchmark).applied, false, "undone: the tile turns grey again")
             compare(veyra.fgBackendName, "dlss")
             compare(veyra.fgMultiplier, 2)
             compare(veyra.outputCustomFps, 60)

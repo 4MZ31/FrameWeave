@@ -57,6 +57,49 @@ Item {
             verify(veyra.nrAnyEnabled)
             watch.setEnhancement(false)
         }
+        SignalSpy { id: navigations; target: veyra; signalName: "navigate" }
+        SignalSpy { id: settingsRequests; target: watch; signalName: "requestSettings" }
+        // Recording as in Professional mode: record, comparison clip (same dialog), instant replay,
+        // audio and microphone, and the shared recording settings.
+        function test_recording_section() {
+            veyra.recording = false
+            const record = control("watch-record")
+            verify(!record.enabled, "nothing to record without a picture")
+            veyra.hasSource = true
+            verify(record.enabled)
+            const toggles = veyra.recordingToggles
+            record.clicked()
+            compare(veyra.recordingToggles, toggles + 1)
+            verify(veyra.recording)
+            verify(!control("watch-compare").enabled, "no comparison clip while recording")
+            record.clicked()
+            verify(!veyra.recording)
+
+            navigations.clear()
+            control("watch-compare").clicked()
+            compare(navigations.count, 1)
+            compare(navigations.signalArguments[0][0], "compare", "the same comparison clip dialog as Professional mode")
+
+            control("watch-replay").toggled(true)
+            compare(veyra.preferences.replayEnabled, true)
+            verify(control("watch-replay-save").visible)
+            control("watch-replay").toggled(false)
+
+            control("watch-recaudio").toggled(false)
+            compare(veyra.preferences.recordAudio, false)
+            control("watch-recaudio").toggled(true)
+            verify(control("watch-recdesktop").enabled)
+            control("watch-recdesktop").toggled(true)
+            compare(veyra.preferences.mixDesktopOn, true, "the video's sound from the browser or player")
+            control("watch-recmic").toggled(true)
+            compare(veyra.preferences.recordMic, true)
+
+            settingsRequests.clear()
+            control("watch-record-settings").clicked()
+            compare(settingsRequests.count, 1)
+            compare(settingsRequests.signalArguments[0][1], "set-recording")
+            veyra.hasSource = false
+        }
         function test_viewport_beside_the_controls() {
             verify(watch.videoViewport.x > watch.panelWidth)
             verify(watch.videoViewport.width > 300)

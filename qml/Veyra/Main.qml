@@ -316,6 +316,11 @@ Window {
             home: pages
             onVideoViewportChanged: if (root.page === "watch" && !root.fullscreen) videoHost.syncRect()
             onRequestPage: p => root.goPage(p)
+            onRequestSettings: (section, row) => {
+                settingsPage.section = section
+                root.goPage("set")
+                Qt.callLater(() => settingsPage.scrollToObject(row))
+            }
         }
         StudioPage {
             id: studioPage

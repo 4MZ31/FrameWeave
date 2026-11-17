@@ -45,6 +45,9 @@ New-Item -ItemType Directory -Force $files | Out-Null
 
 # The program and everything built next to it that the runtime package does not already have newer.
 Copy-Item (Join-Path $BuildDir 'PushFPS.exe') $files
+# PushFlowBench: PushFlow timings on the player's graphics card (docs/PUSHFLOW.md), when it was built.
+$bench = Join-Path $BuildDir 'PushFlowBench.exe'
+if (Test-Path $bench) { Copy-Item $bench $files } else { Write-Warning 'PushFlowBench.exe not built: not packaged' }
 Copy-Item (Join-Path $repo 'qml') $files -Recurse
 $shaders = Join-Path $BuildDir 'shaders'
 if (-not (Test-Path $shaders)) { throw "Compiled shaders not found in $shaders" }

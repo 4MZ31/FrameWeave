@@ -4,14 +4,14 @@ project(veyra VERSION 2.1.9 LANGUAGES C CXX RC)
 # Moonlight/Xbox have C sources independently of the optional PS5 backend.
 # Shown in the EXE's version resource and in the package name. CMake versions
 # must be numeric, so the beta marker lives here instead.
-set(VEYRA_DISPLAY_VERSION "2.1.9" CACHE STRING "Human-readable version string")
-# The cache keeps the first value it ever saw, so a release that bumps
-# project(VERSION) used to ship an EXE still stamped with the previous display
-# string. Re-align it whenever the cached label does not start with the project
-# version; an explicit matching label (e.g. "1.4.0beta") is still honoured.
-if(NOT VEYRA_DISPLAY_VERSION MATCHES "^${PROJECT_VERSION}")
-  message(STATUS "VEYRA_DISPLAY_VERSION ${VEYRA_DISPLAY_VERSION} does not match project ${PROJECT_VERSION}; using ${PROJECT_VERSION}")
-  set(VEYRA_DISPLAY_VERSION "${PROJECT_VERSION}" CACHE STRING "Human-readable version string" FORCE)
+# PushFPS: project(VERSION) stays Veyra's release number (the Veyra version PushFPS is built on,
+# VEYRA_UPSTREAM_VERSION); VEYRA_DISPLAY_VERSION is PushFPS's own version, passed by CI
+# (-DVEYRA_DISPLAY_VERSION=3.1.5). Veyra's realignment of the label to project(VERSION) is gone: it
+# stamped PushFPS 3.1.3 and 3.1.4 as "2.1.9", so their update check kept offering the installed release.
+set(VEYRA_UPSTREAM_VERSION "${PROJECT_VERSION}")
+set(VEYRA_DISPLAY_VERSION "${PROJECT_VERSION}" CACHE STRING "PushFPS version shown in the app and the EXE resource")
+if(NOT VEYRA_DISPLAY_VERSION)
+  set(VEYRA_DISPLAY_VERSION "${PROJECT_VERSION}" CACHE STRING "PushFPS version shown in the app and the EXE resource" FORCE)
 endif()
 
 # Match the compiler's actual bytes, including on localized Windows installs.
@@ -333,6 +333,7 @@ veyra_add_compute_shader(veyra_shader_push_canvas_convert PushCanvasConvert)
 # PushFlow (PushFPS's own frame generation): network input packing and output unpacking.
 veyra_add_compute_shader(veyra_shader_push_flow_pack PushFlowPack)
 veyra_add_compute_shader(veyra_shader_push_flow_unpack PushFlowUnpack)
+veyra_add_compute_shader(veyra_shader_push_flow_reconstruct PushFlowReconstruct)
 # Nv12Upload: byte buffer -> luma/chroma planes (copy-free upload path).
 veyra_add_compute_shader(veyra_shader_nv12_upload Nv12Upload)
 # PresentBlit: fullscreen-triangle pixel blit onto flip-model back buffers.
@@ -464,7 +465,7 @@ if(VEYRA_ONNXRUNTIME_ROOT AND EXISTS "${VEYRA_ONNXRUNTIME_ROOT}/build/native/inc
 else()
   message(STATUS "PushFlow: ONNX Runtime headers not found; PushFlow is built as unavailable")
 endif()
-add_dependencies(veyra_pipeline veyra_shader_push_flow_pack veyra_shader_push_flow_unpack)
+add_dependencies(veyra_pipeline veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct)
 
 # Optional independent RX7000 network worker. All third-party source and runtime
 # assets remain external; only our host and reproducible preparation script live here.
@@ -561,7 +562,15 @@ add_executable(veyra_push_gpu_tests tests/integration/PushGpuTests.cpp src/engin
 target_compile_features(veyra_push_gpu_tests PRIVATE cxx_std_20)
 target_compile_options(veyra_push_gpu_tests PRIVATE /utf-8)
 target_link_libraries(veyra_push_gpu_tests PRIVATE veyra_pipeline)
-add_dependencies(veyra_push_gpu_tests veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_push_flow_pack veyra_shader_push_flow_unpack)
+add_dependencies(veyra_push_gpu_tests veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct)
+
+# PushFlowBench (tools/pushflow_bench): PushFlow timings on this PC's GPU, as JSON; shipped next to PushFPS.exe.
+add_executable(veyra_pushflow_bench tools/pushflow_bench/main.cpp)
+target_compile_features(veyra_pushflow_bench PRIVATE cxx_std_20)
+target_compile_options(veyra_pushflow_bench PRIVATE /utf-8)
+target_link_libraries(veyra_pushflow_bench PRIVATE veyra_pipeline)
+set_target_properties(veyra_pushflow_bench PROPERTIES OUTPUT_NAME PushFlowBench)
+add_dependencies(veyra_pushflow_bench veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct)
 
 add_executable(veyra_pipeline_tests
   tests/unit/PipelineContractTests.cpp
@@ -1392,7 +1401,7 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
   endif()
   # VEYRA_DISPLAY_VERSION is the human-readable version the app reports; it is
   # the same value the resource file uses, so the UI cannot drift from it.
-  target_compile_definitions(veyra_qml_bridge PRIVATE VEYRA_DISPLAY_VERSION="${VEYRA_DISPLAY_VERSION}")
+  target_compile_definitions(veyra_qml_bridge PRIVATE VEYRA_DISPLAY_VERSION="${VEYRA_DISPLAY_VERSION}" VEYRA_UPSTREAM_VERSION="${VEYRA_UPSTREAM_VERSION}")
   # libass (ISC) + FreeType/FriBidi/HarfBuzz, static, for full ASS/SSA effect
   # subtitles. Local prebuilt tree only (vcpkg x64-windows-static-md); never in
   # source Git. Without it ASS tracks fall back to the built-in styled renderer.

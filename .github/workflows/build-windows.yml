@@ -365,6 +365,12 @@ jobs:
           $code = $LASTEXITCODE
           Write-Host "veyra_push_gpu_tests exit $code"
           if ($code -ne 0) { exit 1 }
+          # PushFlowBench (shipped next to PushFPS.exe): a short smoke run on WARP; the JSON goes in the log.
+          cmake --build $env:BUILD --target veyra_pushflow_bench --parallel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & "$env:BUILD\PushFlowBench.exe" --warp --sizes 640x360 --pairs 2 --runtime "$env:DEPS\pushflow\runtime" --out "$env:RUNNER_TEMP\pushflow-bench.json" 2>&1 | Out-Host
+          if ($LASTEXITCODE -ne 0) { Write-Host "::error::PushFlowBench failed"; exit 1 }
+          Get-Content "$env:RUNNER_TEMP\pushflow-bench.json" | Out-Host
 
       # Going live: two outputs at once (RTMP + RTMPS through Schannel) to a local MediaMTX, read back,
       # server restart, a closed port, key redaction. Proves the FFmpeg build has rtmp/rtmps.

@@ -939,6 +939,21 @@ VPage {
                                 onToggled: v => veyra.setPreference("recordAudio", v)
                             }
                         }
+                        // PushFPS: the PC's sound (everything but PushFPS, PushAuxAudio.h), for window and
+                        // screen captures whose sound plays in another app; the same switch as streaming
+                        // mode's desktop audio strip and video playback mode.
+                        VRow {
+                            label: qsTr("录制电脑声音")
+                            hint: veyra.recordingAudio ? qsTr("录入电脑上除 PushFPS 以外的所有声音，例如浏览器或播放器里正在播放的视频声音。捕获窗口或屏幕时需要打开")
+                                                       : qsTr("先打开录制声音")
+                            VSwitch {
+                                objectName: "set-recdesktop"
+                                enabled: veyra.recordingAudio
+                                opacity: enabled ? 1 : 0.4
+                                checked: veyra.preferences.mixDesktopOn === true
+                                onToggled: v => veyra.setPreference("mixDesktopOn", v)
+                            }
+                        }
                         // Microphone (#101): mixed into the sound, or a track of its own.
                         VRow {
                             label: qsTr("录制麦克风")
@@ -1566,14 +1581,15 @@ VPage {
                             spacing: 4
                             PushWordmark { objectName: "about-wordmark"; pixelSize: 28 }
                             Text {
-                                text: qsTr("版本 ") + veyra.version
+                                objectName: "about-version"
+                                text: qsTr("版本 %1").arg(veyra.version)
                                 color: Theme.t2
                                 font.family: Theme.fontUi
                                 font.pixelSize: Theme.fsBody
                             }
                             Text {
                                 objectName: "about-upstream-credit"
-                                text: qsTr("基于 Veyra 构建（GPL-3.0，作者 Likely7）")
+                                text: qsTr("基于 Veyra %1 构建（GPL-3.0，作者 Likely7）").arg(veyra.upstreamVersion || "")
                                 color: Theme.t2
                                 font.family: Theme.fontUi
                                 font.pixelSize: Theme.fsBody

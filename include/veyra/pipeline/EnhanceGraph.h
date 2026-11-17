@@ -739,6 +739,9 @@ public:
     bool amfFrcEnabled() const { return desc_.enableFg && !desc_.noFeatures && !desc_.stillImage && desc_.frameGenerationBackend==engine::FrameGenerationBackend::AmdFrc; }
     bool pushFlowEnabled() const { return desc_.enableFg && !desc_.noFeatures && !desc_.stillImage && desc_.frameGenerationBackend==engine::FrameGenerationBackend::PushFlow; }
     bool pushFlowActive() const;
+    // PushFlow summary for the live stats: "fp32"/"fp16", rebuild, inference p50/p95 ms (0 when not running).
+    struct PushFlowSummary { std::string precision; bool rebuild = false; double p50Ms = 0, p95Ms = 0; };
+    PushFlowSummary pushFlowSummary() const;
     bool amfFrcActive() const;
     const char* fsrProviderVersion() const;
     // XeSS generates in the present sink; FSR and DLSSG generate in the graph.
