@@ -1889,7 +1889,7 @@ VPage {
                             VRow {
                                 label: qsTr("PushFlow 档位")
                                 visible: veyra.fgBackendName === "pushflow"
-                                hint: qsTr("快速：轻量模型、半分辨率估算运动；均衡：轻量模型、全分辨率；高质量：完整模型、全分辨率，最耗显卡")
+                                hint: qsTr("快速：轻量模型，最高 540p 估算运动；均衡：轻量模型，最高 720p；高质量：完整模型，最高 1080p，最耗显卡。画面都按原分辨率重建")
                                 VSelect {
                                     objectName: "list-pushflow-tier"
                                     options: [{id:"0",label:qsTr("快速")},{id:"1",label:qsTr("均衡")},{id:"2",label:qsTr("高质量")}]

@@ -369,7 +369,7 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
 #else
     p.device = device; p.queue = queue; p.width = width; p.height = height; p.format = viewFormat(format); p.encoding = encoding;
     tier = std::min(tier, kTierCount - 1);
-    const double scale = tier == 0 ? 0.5 : 1.0;
+    const double scale = networkScale(tier, width, height);
     p.status.modelW = std::max<uint32_t>(32, uint32_t(std::lround(width * scale)));
     p.status.modelH = std::max<uint32_t>(32, uint32_t(std::lround(height * scale)));
     const fs::path dir = pushFlowDirectory(runtimeDir);

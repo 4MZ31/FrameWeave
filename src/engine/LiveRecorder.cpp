@@ -47,6 +47,7 @@ using Microsoft::WRL::ComPtr;
 namespace {
 
 constexpr unsigned kSlots=6;
+constexpr uint32_t kCompareMaxHeight=1440;   // PushFPS comparison clips (split, side by side): recorded height cap
 constexpr size_t kBacklogSkipBytes=size_t(64)<<20;   // the disk is behind: skip frames
 constexpr size_t kBacklogFailBytes=size_t(512)<<20;  // far behind: stop with an error
 constexpr int kAudioRate=48000;
@@ -633,7 +634,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
                 catch(...){left={};right={};veyra::log::warn("live-recorder","comparison labels could not be drawn; recording without them");}
             }
             compare=std::make_unique<RecordingCompare>();
-            if(!compare->create(device.Get(),frameWidth,frameHeight,hdr,left,right,reason,compareLayout))return false;
+            if(!compare->create(device.Get(),planeWidth,planeHeight,hdr,left,right,reason,compareLayout))return false;
             if(compare->outputY()&&(compare->outputWidth()!=width||compare->outputHeight()!=height)){reason=L"对比片段尺寸不一致";return false;}
             const auto crop=compare->crop();
             veyra::log::info("live-recorder",std::format("comparison clip layout={} extent={}x{} frame={}x{} crop={}x{}+{}+{} hdr={} copied={} blended={} rawConsole={} labels={}x{} / {}x{}",
@@ -1543,6 +1544,16 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
             segment->liveLayout=true;
             segment->width=ow;segment->height=oh;
             segment->planeWidth=ow;segment->planeHeight=oh;
+        }
+        // PushFPS comparison clips (split, side by side) record every presented frame: at 4K and 180 FPS
+        // that is more than a hardware encoder takes, real frames were dropped and the console side
+        // froze or showed a picture seconds old (field report 2026-11-17). They are recorded at most
+        // 1440 pixels high, scaled once by PushCanvasConvert; the vertical layout has its own 1080 x 1920.
+        else if(!s.replayMode&&s.settings.compareLayout!=CompareLayout::Vertical&&frame.height>kCompareMaxHeight){
+            const uint32_t oh=kCompareMaxHeight;
+            const uint32_t ow=std::max<uint32_t>(16,uint32_t(std::lround(double(frame.width)*oh/frame.height))&~1u);
+            segment->canvas=PushCanvas{};segment->canvasPass=true;segment->liveLayout=false;
+            segment->width=ow;segment->height=oh;segment->planeWidth=ow;segment->planeHeight=oh;
         }
         if(s.streamMode&&(segment->width>4096||segment->height>4096))return fail(std::format(L"当前画面尺寸 {}×{} 太大，无法直播",segment->width,segment->height));
         // H.264 hardware encoders stop at 4096 pixels per side.

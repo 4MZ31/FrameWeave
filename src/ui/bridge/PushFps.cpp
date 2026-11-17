@@ -559,8 +559,14 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     // Frame rates for the labels: the console's own (distinct game frames),
     // and what PushFPS presents.
     const int gameFps = s.contentFps > 1 ? s.contentFps : std::clamp(impl_->prefInt("pushGameFps", 30), 24, 120);
-    const int shownFps = s.submissionFps && std::isfinite(*s.submissionFps) && *s.submissionFps > gameFps
-        ? int(std::lround(*s.submissionFps)) : gameFps * std::max(2, int(s.applied.multiplier));
+    // What the clip shows: the game rate times the multiplier in use now (the adaptive multiplier's
+    // choice, not the configured ceiling), never above the output cap or the display the cap follows.
+    // The old label took the ceiling, so a 60 FPS target with a 3X ceiling read "180 FPS".
+    const int multiplierNow = s.previewFgMultiplier > 1 ? int(s.previewFgMultiplier) : std::max(2, int(s.applied.multiplier));
+    double shown = double(gameFps) * multiplierNow;
+    if (outputRateMode() == 2 && outputCustomFps() > 1) shown = std::min(shown, outputCustomFps());
+    else if (outputRateMode() == 1 && impl_->displayRefreshHz > 1) shown = std::min(shown, double(impl_->displayRefreshHz));
+    const int shownFps = std::max(gameFps, int(std::lround(shown)));
     // Video playback mode (a video file, a web video, a window or screen, the frame input API):
     // the left side is the video's own picture, not a console's.
     const QString kind = sourceKind();

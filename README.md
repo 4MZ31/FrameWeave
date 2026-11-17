@@ -302,8 +302,9 @@ on every DirectX 12 graphics card: NVIDIA, AMD and Intel. Choose it under *Frame
 mode or in streaming mode.
 
 - **2×, 3× or 4×**: each frame is made for its own moment between the two real frames.
-- **Tiers**: *Fast* (lite model, motion estimated at half resolution, picture rebuilt at full resolution),
-  *Balanced* (lite model, full resolution) and *Quality* (full model, full resolution).
+- **Tiers**: *Fast* (lite model, motion estimated at up to 540p), *Balanced* (lite model, up to 720p) and
+  *Quality* (full model, up to 1080p); whenever the motion is estimated smaller, the picture is rebuilt at
+  full resolution, so 4K stays sharp and fast enough for live play.
 - **Sharp Fast tier**: the network's final motion and blend mask are enlarged, not its picture: every pixel is
   sampled from the full-resolution real frames. On a panning fine-texture test this scores 25 dB against
   17 dB for enlarging the half-size picture.

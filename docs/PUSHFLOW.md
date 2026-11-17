@@ -18,11 +18,16 @@ graph, so it works on NVIDIA, AMD and Intel graphics cards.
 4. **Protect.** HUD Lock and the HUD boxes are composed on top, as for every method; scene cuts reset the pair
    so PushFlow never blends across a cut.
 
-| Tier | Model | Network size | Picture |
+| Tier | Model | Motion estimated at | Picture |
 |---|---|---|---|
-| Fast | RIFE 4.25 lite | half | rebuilt at full size from the full-size frames |
-| Balanced | RIFE 4.25 lite | full | network output |
-| Quality | RIFE 4.26 | full | network output |
+| Fast | RIFE 4.25 lite | up to 960×540 (at most half size) | rebuilt at full size from the full-size frames |
+| Balanced | RIFE 4.25 lite | up to 1280×720 | rebuilt at full size when smaller, else network output |
+| Quality | RIFE 4.26 | up to 1920×1080 | rebuilt at full size when smaller, else network output |
+
+Since 3.1.6 no tier runs the network above 1080p: at 4K every tier ran RIFE at 4K (or 1080p for Fast) and
+was too slow for live play, so the admission control skipped every pair and PushFlow stayed at the game's
+frame rate (field report, 17 November 2026). A 4K picture now uses 960×540 / 1280×720 / 1920×1080 motion and
+the full-resolution rebuild.
 
 ### Precision
 

@@ -18,10 +18,16 @@
 //    variable VEYRA_PUSHFLOW_PRECISION=fp32|fp16 forces one (fp16 still needs its file).
 //  - Per-frame inference times are kept in a small ring (telemetry()) and summarised in the log.
 // Tiers (EnhancementSettings::vfgQuality, shared with VFG):
-//   0 Fast: the lite model at 50 % size, rebuilt at full size;  1 Balanced: the lite model at full size;
-//   2 Quality: the full model at full size.
+//   0 Fast: the lite model, motion at up to 960 x 540 (and at most half size);
+//   1 Balanced: the lite model, motion at up to 1280 x 720;  2 Quality: the full model, motion at up to 1920 x 1080.
+// Whenever the network runs smaller than the picture, the picture is rebuilt at full size from the
+// full-resolution real frames (grids + mask, PushFlowReconstruct.hlsl). Running RIFE at 4K made every
+// tier too slow for live play (field report 2026-11-17: capped at the game's 30 FPS, the optimiser saw
+// no generated frames): the admission control skipped every pair it could not finish in time.
 #pragma once
 #include <d3d12.h>
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -29,6 +35,13 @@
 namespace veyra::pushflow {
 
 constexpr uint32_t kTierCount = 3;
+// The network's share of the picture's width and height for a tier (pure, unit-tested).
+inline double networkScale(uint32_t tier, uint32_t width, uint32_t height) {
+    static constexpr double kMaxPixels[kTierCount] = {960.0 * 540.0, 1280.0 * 720.0, 1920.0 * 1080.0};
+    const double area = std::max(1.0, double(width) * double(height));
+    const double cap = std::sqrt(kMaxPixels[std::min(tier, kTierCount - 1)] / area);
+    return std::min(tier == 0 ? 0.5 : 1.0, cap);
+}
 // The pictures' encoding for the network (PushFlowPack.hlsl).
 enum class Encoding : uint32_t { Encoded = 0, LinearSdr = 1, ScRgbHdr = 2 };
 
