@@ -29,6 +29,7 @@
 #include <string>
 
 #include "veyra/engine/LiveStream.h"
+#include "veyra/engine/PushCanvas.h"
 #include "veyra/engine/PresentCapture.h"
 #include "veyra/engine/RecordingCompare.h"
 
@@ -37,6 +38,12 @@ namespace veyra::engine {
 struct RecordingSettings {
     std::wstring directory;      // output folder (created when missing)
     uint32_t bitrateMbps=0;      // 0: automatic from the picture size and frame rate
+    uint32_t bitrateKbps=0;      // PushFPS output presets: the same in kbps (wins when set)
+    // PushFPS outputs and canvas (PushCanvas.h): the size this output is encoded at (0 x 0: the
+    // presented picture's), where the game picture sits on it, and new files every N minutes.
+    uint32_t outputWidth=0,outputHeight=0;
+    PushCanvas canvas;
+    uint32_t splitMinutes=0;     // recordings only; 0: one file
     bool hevc=false;             // H.264 unless chosen; HDR always records HEVC 10-bit
     uint32_t fpsLimit=0;         // 0: every presented frame
     bool audio=true;             // record the sound the player plays

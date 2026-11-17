@@ -21,6 +21,7 @@ public:
         bool hdr=false;          // HEVC Main10 from P010 inputs, BT.2020 PQ signalling
         uint32_t fps=60;         // rate-control frame rate
         uint32_t bitrateMbps=20; // VBR/CBR target
+        uint32_t bitrateKbps=0;  // PushFPS output presets: kbps precision (wins when set)
         // PushFPS advanced recording (设置 → 录制 → 高级). Defaults are the
         // recorder's standard behaviour: VBR, preset P4, a 2 s keyframe interval.
         uint32_t rateControl=1;  // sink::ExportRateControl: 0 CBR, 1 VBR, 2 constant QP

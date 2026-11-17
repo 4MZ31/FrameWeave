@@ -33,6 +33,7 @@
 #include "veyra/engine/EffectChain.h"
 #include "veyra/engine/ExportJobManager.h"
 #include "veyra/engine/EnhancementSettings.h"
+#include "veyra/engine/PushCanvas.h"
 #include "veyra/ui/PlayerUiFacade.h"
 
 class QQmlEngine;
@@ -1514,7 +1515,7 @@ public:
     Q_INVOKABLE QString pushPickImage();
     // Streaming mode sources (engine/PushLayerSources.h): webcams, windows and video files a scene
     // adds. pushSetSceneSources([{id, kind: "camera"|"window"|"media", target, mirror, loop,
-    // shape: "rect"|"round"|"circle", corner: "tl"|"tr"|"bl"|"br"|"c", size: 0.05..1, margin}]).
+    // shape: "rect"|"round"|"circle", corner: "tl"|"tr"|"bl"|"br"|"c"|"custom" (+ x, y), size: 0.05..1, margin, cropL/T/R/B}]).
     Q_INVOKABLE QVariantList pushCameras();
     Q_INVOKABLE QVariantList pushWindows();
     Q_INVOKABLE QString pushPickMedia();
@@ -1647,6 +1648,7 @@ private:
     // audio endpoint). Called after load and after every accepted change.
     void applyPreference(const QString& key);
     void applyPushMix();   // PushFPS mixer preferences -> engine::setPushMix (PushStudio.cpp)
+    engine::PushCanvas pushCanvas(int fit) const;   // PushFPS canvas preferences (Recording.cpp)
     void scheduleEnhancementPrewarm();
     // Hold-to-compare key (press/release), handled for the whole application.
     bool eventFilter(QObject* watched, QEvent* event) override;

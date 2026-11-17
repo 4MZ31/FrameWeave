@@ -12,6 +12,8 @@ Item {
 
     // Active dialog: network/capture/ps5/moonlight/xbox/screen/subtitle/audio/save/manage.
     property string dialog: ""
+    // The game scene the layout editor opens on (StudioPage.requestLayout).
+    property string layoutScene: ""
     onDialogChanged: if (dialog !== "capture") legacyCapturePicker.close()
 
     function open(key) {
@@ -157,6 +159,11 @@ Item {
     PushMicFiltersDialog {
         id: micFiltersDialog
         dialogHost: host
+    }
+    PushLayoutDialog {
+        id: layoutDialog
+        dialogHost: host
+        sceneId: host.layoutScene
     }
 
     // --- small building blocks the design's dialogs use --------------------

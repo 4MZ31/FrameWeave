@@ -328,6 +328,7 @@ Window {
             home: pages
             onVideoViewportChanged: if (root.page === "live" && !root.fullscreen) videoHost.syncRect()
             onRequestPage: p => root.goPage(p)
+            onRequestLayout: id => { dialogs.layoutScene = id; dialogs.open("layout") }
         }
         SettingsPage { id: settingsPage; pageId: "set"; home: pages; onRequestPage: p => root.goPage(p) }
     }
@@ -930,7 +931,7 @@ Window {
         function onNavigate(p) {
             // A dialog key opens the dialog; anything else is a page.
             if (p === "network" || p === "capture" || p === "ps5" || p === "moonlight" || p === "xbox" || p === "screen"
-                || p === "subtitle" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud" || p === "latencyguide" || p === "stream" || p === "compare" || p === "micfilters") {
+                || p === "subtitle" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud" || p === "latencyguide" || p === "stream" || p === "compare" || p === "micfilters" || p === "layout") {
                 dialogs.open(p)
                 return
             }

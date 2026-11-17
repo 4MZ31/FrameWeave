@@ -1,5 +1,6 @@
 // QML bridge: Core responsibilities.
 #include "QmlPlayerBridge_p.h"
+#include "veyra/engine/PushStreamOverlay.h"
 #include "veyra/engine/MicrophoneCapture.h"
 #include "veyra/ui/NvidiaVrrProfileController.h"
 
@@ -176,6 +177,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     applyPreference(QStringLiteral("audioForceStereo"));
     applyPreference(QStringLiteral("soundPreset"));
     applyPushMix();   // PushFPS streaming mode mixer (PushStudio.cpp)
+    engine::setPushLiveCanvas(pushCanvas(0));   // PushFPS layout (Recording.cpp)
     applyPreference(QStringLiteral("nisSharpness"));
     applyPreference(QStringLiteral("magewellLowLatency"));
     const bool presetsLoaded = impl_->facade.importLegacyStores();

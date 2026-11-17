@@ -18,7 +18,8 @@
 // Sources (engine/PushLayerSources.h): a scene can add up to four webcams, windows or looping video
 // files in a corner or the middle, at a size, with rounded corners or a circle. They run while this
 // page is on screen or a recording or stream is going, so a camera is not on while you just play.
-// Scene changes cut or fade (pref studioTransitionMs).
+// Scene changes cut or fade (pref studioTransitionMs). The layout editor (PushLayoutDialog.qml, the
+// 布局 button) moves, resizes and crops the game picture and the sources on the output picture.
 // Geometry: StudioLayout.js, also used by Main.qml to place the native video window.
 import QtQuick
 import QtQuick.Controls
@@ -28,6 +29,14 @@ import "StudioLayout.js" as StudioGeometry
 VPage {
     id: studio
     signal requestPage(string page)
+    // Opens the layout editor (PushLayoutDialog.qml) on a game scene.
+    signal requestLayout(string sceneId)
+    function openLayout() {
+        const editing = studio.sceneById(studio.editingScene)
+        const active = studio.sceneById(studio.activeScene)
+        const scene = editing && editing.type === "game" ? editing : active && active.type === "game" ? active : studio.scenes.find(x => x.type === "game")
+        studio.requestLayout(scene ? scene.id : "")
+    }
     readonly property var geometry: StudioGeometry.calculate(width, height)
     readonly property bool compact: geometry.compact
     readonly property rect videoViewport: Qt.rect(geometry.video.x, geometry.video.y, geometry.video.width, geometry.video.height)
@@ -158,6 +167,8 @@ VPage {
     // Sources run while this page is on screen or something records or streams.
     readonly property bool sourcesActive: studio.current || studio.recordingNow || studio.live
     onSourcesActiveChanged: studio.applySources()
+    // The layout editor writes the scenes straight to the preference; sources follow it.
+    onScenesChanged: Qt.callLater(studio.applySources)
     function applySources() {
         const scene = studio.sceneById(studio.activeScene)
         veyra.pushSetSceneSources(studio.sourcesActive && scene && Array.isArray(scene.sources) ? scene.sources : [])
@@ -655,6 +666,14 @@ VPage {
                             VButton { objectName: "source-add-window"; Layout.fillWidth: true; ghost: true; iconName: "monitor"; text: qsTr("窗口"); enabled: !parent.full; maxTextWidth: 70; onClicked: studio.addSource("window") }
                             VButton { objectName: "source-add-media"; Layout.fillWidth: true; ghost: true; iconName: "video"; text: qsTr("视频"); enabled: !parent.full; maxTextWidth: 70; onClicked: studio.addSource("media") }
                         }
+                        VButton {
+                            objectName: "scene-layout"
+                            visible: editor.scene && editor.scene.type === "game"
+                            Layout.fillWidth: true
+                            iconName: "layers"
+                            text: qsTr("在画面上摆放和裁剪…")
+                            onClicked: studio.openLayout()
+                        }
                         Text {
                             visible: studio.sourceNote.length > 0
                             Layout.fillWidth: true
@@ -724,6 +743,7 @@ VPage {
                     VButton { objectName: "studio-screenshot"; icon: true; iconName: "camera"; tip: qsTr("截图"); enabled: veyra.hasSource; onClicked: veyra.takeScreenshot() }
                 }
                 // One per row: side by side their labels were cut off in the narrow column.
+                VButton { objectName: "studio-layout"; Layout.fillWidth: true; ghost: true; iconName: "layers"; text: qsTr("布局"); onClicked: studio.openLayout() }
                 VButton { objectName: "studio-outputs"; Layout.fillWidth: true; ghost: true; iconName: "settings"; text: qsTr("直播平台"); onClicked: veyra.navigate("stream") }
                 VButton { objectName: "studio-folder"; Layout.fillWidth: true; ghost: true; iconName: "folder"; text: qsTr("录制文件夹"); onClicked: veyra.openRecordingDirectory() }
 

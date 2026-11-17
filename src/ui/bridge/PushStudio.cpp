@@ -309,7 +309,15 @@ void QmlPlayerBridge::pushSetSceneSources(const QVariantList& sources) {
         engine::PushLayerPlace place;
         place.w = float(size);
         if (corner == QLatin1String("c")) { place.x = 0.5f; place.y = 0.5f; place.anchor = 4; }
-        else {
+        else if (corner == QLatin1String("custom")) {
+            // Free placement: the source's top-left corner at (x, y), fractions of the picture.
+            place.x = float(std::clamp(m.value("x", 0.7).toDouble(), -0.5, 1.0));
+            place.y = float(std::clamp(m.value("y", 0.7).toDouble(), -0.5, 1.0));
+            place.anchor = 0;
+            // Height as a share of the picture's; 0 keeps the source's own shape (the layout editor
+            // sets it only when the source was stretched with Ctrl held).
+            place.h = float(std::clamp(m.value("h", 0.0).toDouble(), 0.0, 1.0));
+        } else {
             const bool right = corner == QLatin1String("tr") || corner == QLatin1String("br") || corner.isEmpty();
             const bool bottom = corner == QLatin1String("bl") || corner == QLatin1String("br") || corner.isEmpty();
             // The margin in pixels is the same horizontally and vertically (16:9 picture).
@@ -318,6 +326,10 @@ void QmlPlayerBridge::pushSetSceneSources(const QVariantList& sources) {
             place.anchor = (right ? 1 : 0) + (bottom ? 2 : 0);
         }
         spec.place = place;
+        spec.cropLeft = float(std::clamp(m.value("cropL", 0.0).toDouble(), 0.0, 0.45));
+        spec.cropTop = float(std::clamp(m.value("cropT", 0.0).toDouble(), 0.0, 0.45));
+        spec.cropRight = float(std::clamp(m.value("cropR", 0.0).toDouble(), 0.0, 0.45));
+        spec.cropBottom = float(std::clamp(m.value("cropB", 0.0).toDouble(), 0.0, 0.45));
         specs.push_back(std::move(spec));
     }
     engine::setPushSources(specs, uint32_t(impl_->prefInt("studioTransitionMs", 300)));

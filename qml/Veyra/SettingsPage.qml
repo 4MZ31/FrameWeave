@@ -10,6 +10,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "PushOutputPresets.js" as OutputPresets
 
 VPage {
     id: root
@@ -687,14 +688,95 @@ VPage {
                                 VButton { objectName: "set-recdir"; text: qsTr("更改…"); onClicked: veyra.chooseRecordingDirectory() }
                             }
                         }
+                        // PushFPS upload presets (PushOutputPresets.js): YouTube, Shorts, TikTok, Reels, X and
+                        // editing, per resolution and frame rate. Every value below stays editable.
+                        VRow {
+                            id: recPresetRow
+                            readonly property var preset: OutputPresets.recordPreset(String(veyra.preferences.recordProfile || ""))
+                            readonly property var platform: preset ? OutputPresets.platformOf(OutputPresets.recordPlatforms, preset.id) : null
+                            readonly property var changed: preset ? OutputPresets.differences(veyra.preferences, preset, false) : []
+                            function platformName(pl) { return pl.id === "edit" ? qsTr("剪辑用") : pl.name }
+                            function presetText(pl, pr) {
+                                const size = OutputPresets.sizeLabel(pr.width, pr.height) || qsTr("画面原尺寸")
+                                if (pl.id === "edit") return platformName(pl) + " · " + size + " · " + (pr.hevc ? qsTr("HEVC 恒定质量") : qsTr("H.264 恒定质量"))
+                                return pl.name + " · " + OutputPresets.presetLabel(pr, size)
+                            }
+                            label: qsTr("上传预设")
+                            help: qsTr("按平台推荐的分辨率、帧率、码率、编码和音频一次填好。之后每一项都可以自己改")
+                            hint: !preset ? qsTr("手动设置")
+                                : changed.length > 0 ? qsTr("基于 %1，已修改").arg(presetText(platform, preset))
+                                : preset.hevc && platform.hdr ? qsTr("HDR 需要 NVIDIA 显卡和 HDR 输出（HEVC 10bit）")
+                                : qsTr("使用中：%1").arg(presetText(platform, preset))
+                            VSelect {
+                                objectName: "set-recprofile"
+                                implicitWidth: 240
+                                title: qsTr("上传预设")
+                                options: {
+                                    const out = [{ id: "", label: qsTr("手动设置") }]
+                                    for (const pl of OutputPresets.recordPlatforms)
+                                        for (const pr of pl.presets) out.push({ id: pr.id, label: recPresetRow.presetText(pl, pr) })
+                                    return out
+                                }
+                                value: recPresetRow.preset ? recPresetRow.presetText(recPresetRow.platform, recPresetRow.preset) : qsTr("手动设置")
+                                onPicked: id => {
+                                    const pr = OutputPresets.recordPreset(id)
+                                    if (!pr) { veyra.setPreference("recordProfile", ""); return }
+                                    const prefs = OutputPresets.recordPrefs(pr)
+                                    for (const k in prefs) veyra.setPreference(k, prefs[k])
+                                }
+                            }
+                        }
+                        VRow {
+                            label: qsTr("输出分辨率")
+                            hint: qsTr("录制文件的尺寸，与直播分别设置。比画面大时会放大，不会更清晰")
+                            VSelect {
+                                objectName: "set-recsize"
+                                implicitWidth: 180
+                                readonly property int w: Number(veyra.preferences.recordWidth || 0)
+                                readonly property int h: Number(veyra.preferences.recordHeight || 0)
+                                function sizeText(sw, sh) { return sw > 0 ? (sh > sw ? sw + " × " + sh + qsTr("（竖屏）") : sw + " × " + sh) : qsTr("画面原尺寸") }
+                                options: OutputPresets.recordSizes.map(z => ({ id: z[0] + "x" + z[1], label: sizeText(z[0], z[1]) }))
+                                value: sizeText(w, h)
+                                onPicked: id => { const z = id.split("x"); veyra.setPreference("recordWidth", Number(z[0])); veyra.setPreference("recordHeight", Number(z[1])) }
+                            }
+                        }
+                        VRow {
+                            visible: Number(veyra.preferences.recordWidth || 0) > 0
+                            label: qsTr("画面填充")
+                            hint: qsTr("形状不同时：适应保留整个画面（有黑边），填满裁掉边缘，拉伸会变形。位置和裁剪在直播模式的布局里调整")
+                            VSeg {
+                                objectName: "set-recfit"
+                                options: [{ id: "0", label: qsTr("适应") }, { id: "1", label: qsTr("填满") }, { id: "2", label: qsTr("拉伸") }]
+                                current: String(Number(veyra.preferences.recordFit || 0))
+                                onPicked: id => veyra.setPreference("recordFit", Number(id))
+                            }
+                        }
                         VRow {
                             label: qsTr("录制码率")
                             hint: qsTr("自动按画面尺寸和帧率选择；数字为 Mbps，越高越清晰、文件也越大")
                             VSeg {
                                 objectName: "set-recbitrate"
-                                options: [{ id: "0", label: qsTr("自动") }, { id: "8", label: "8" }, { id: "16", label: "16" }, { id: "20", label: "20" }, { id: "40", label: "40" }, { id: "80", label: "80" }]
-                                current: String(veyra.recordingBitrateMbps)
-                                onPicked: id => veyra.setPreference("recordBitrateMbps", Number(id))
+                                readonly property int presetKbps: Number(veyra.preferences.recordBitrateKbps || 0)
+                                options: {
+                                    const base = [{ id: "0", label: qsTr("自动") }, { id: "8", label: "8" }, { id: "16", label: "16" }, { id: "20", label: "20" }, { id: "40", label: "40" }, { id: "80", label: "80" }]
+                                    return presetKbps > 0 ? base.concat([{ id: "k", label: String(Math.round(presetKbps / 100) / 10) }]) : base
+                                }
+                                current: presetKbps > 0 ? "k" : String(veyra.recordingBitrateMbps)
+                                onPicked: id => {
+                                    if (id === "k") return
+                                    veyra.setPreference("recordBitrateKbps", 0)
+                                    veyra.setPreference("recordBitrateMbps", Number(id))
+                                }
+                            }
+                        }
+                        VRow {
+                            label: qsTr("自动分段")
+                            hint: qsTr("长时间录制时每隔一段时间开始一个新文件，不中断录制；单个文件更小，出问题时损失更少")
+                            VSeg {
+                                objectName: "set-recsplit"
+                                options: [{ id: "0", label: qsTr("关") }, { id: "30", label: qsTr("%1 分钟").arg(30) }, { id: "60", label: qsTr("%1 分钟").arg(60) }, { id: "120", label: qsTr("%1 分钟").arg(120) }]
+                                current: String([0, 30, 60, 120].indexOf(Number(veyra.preferences.recordSplitMinutes || 0)) >= 0 ? Number(veyra.preferences.recordSplitMinutes || 0) : 0)
+                                onPicked: id => veyra.setPreference("recordSplitMinutes", Number(id))
                             }
                         }
                         VRow {

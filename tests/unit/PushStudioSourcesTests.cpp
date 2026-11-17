@@ -4,6 +4,7 @@
 // window or video layer (mirror, rounded corners, circle) and the extra-audio input buffer.
 #include "veyra/engine/PushAuxAudio.h"
 #include "veyra/engine/PushLayerSources.h"
+#include "veyra/engine/PushCanvas.h"
 
 #include <cmath>
 #include <cstdio>
@@ -93,6 +94,65 @@ int main() {
         std::vector<float> bad(2, std::nanf(""));
         fifo.push(bad.data(), 1);
         check(fifo.frames() == 100, "a sample that is not a number becomes silence, not a crash");
+    }
+    // Source crop.
+    {
+        auto image = gradient(100, 50);
+        cropPushSourceFrame(image, 0.1f, 0.2f, 0.3f, 0.0f);
+        check(image.width == 60 && image.height == 40, "crop cuts each side");
+        check(px(image, 0, 0)[0] == 10 && px(image, 0, 0)[1] == 10, "crop starts at the cut corner");
+        auto same = gradient(20, 20);
+        cropPushSourceFrame(same, 0, 0, 0, 0);
+        check(same.width == 20, "no crop leaves the picture");
+        auto greedy = gradient(20, 20);
+        cropPushSourceFrame(greedy, 0.9f, 0.9f, 0.9f, 0.9f);
+        check(greedy.width >= 2 && greedy.height >= 2 && greedy.width <= 20, "a crop never leaves less than 2 x 2");
+    }
+    // Scene pictures on another shape: bars, never stretched.
+    {
+        PushOverlayImage card{160, 90, {}, std::vector<uint8_t>(size_t(160) * 90 * 4, 255)};
+        PushOverlayImage out;
+        check(padPushOverlayToShape(card, 1080, 1920, out), "a 16:9 card on a 9:16 output is padded");
+        check(out.width == 160 && out.height == 284, "padded to 9:16 at its own width");
+        check(out.rgba[3] == 255 && out.rgba[0] == 0, "opaque card: black bars that still cover");
+        check(px(out, 80, 142)[0] == 255, "the card in the middle");
+        PushOverlayImage clear{160, 90, {}, std::vector<uint8_t>(size_t(160) * 90 * 4, 0)};
+        check(padPushOverlayToShape(clear, 1080, 1920, out) && out.rgba[3] == 0, "a see-through scene gets clear bars");
+        check(!padPushOverlayToShape(card, 1920, 1080, out), "the same shape is left alone");
+    }
+    // Canvas and output sizes (PushCanvas.h).
+    {
+        uint32_t w = 0, h = 0;
+        pushOutputSize(0, 0, 3840, 2160, 8192, w, h);
+        check(w == 3840 && h == 2160, "0 x 0 keeps the picture's size");
+        pushOutputSize(1920, 1080, 3840, 2160, 4096, w, h);
+        check(w == 1920 && h == 1080, "a requested size is used");
+        pushOutputSize(0, 720, 3840, 2160, 4096, w, h);
+        check(w == 1280 && h == 720, "one side 0 keeps the shape");
+        pushOutputSize(7680, 4320, 7680, 4320, 4096, w, h);
+        check(w == 4096 && h == 2304, "never above the limit, shape kept");
+        pushOutputSize(1665, 937, 1920, 1080, 4096, w, h);
+        check(w == 1664 && h == 936, "sizes are even");
+        PushCanvas full;
+        check(full.fullFrame(), "the default canvas is the whole picture");
+        auto m = mapPushCanvas(full, 3840, 2160, 1920, 1080);
+        check(m.srcW == 3840 && m.dstW == 1920 && m.dstX == 0 && m.dstY == 0, "16:9 on 16:9: the whole picture fills the output");
+        // 16:9 game on a 9:16 output.
+        PushCanvas fit; fit.fit = PushCanvasFit::Fit;
+        m = mapPushCanvas(fit, 1920, 1080, 1080, 1920);
+        check(std::abs(m.dstW - 1080) < 1e-6 && std::abs(m.dstH - 607.5) < 1e-6 && std::abs(m.dstY - 656.25) < 1e-6, "fit: the whole picture, bars above and below");
+        PushCanvas fill; fill.fit = PushCanvasFit::Fill;
+        m = mapPushCanvas(fill, 1920, 1080, 1080, 1920);
+        check(m.dstW == 1080 && m.dstH == 1920 && std::abs(m.srcW - 607.5) < 1e-6 && std::abs(m.srcX - 656.25) < 1e-6 && std::abs(m.srcH - 1080) < 1e-6,
+              "fill: the middle of the picture covers the output");
+        PushCanvas box; box.x = 0.5f; box.y = 0.0f; box.w = 0.5f; box.h = 0.5f; box.fit = PushCanvasFit::Stretch;
+        box.cropLeft = 0.25f;
+        m = mapPushCanvas(box, 1920, 1080, 1920, 1080);
+        check(m.dstX == 960 && m.dstW == 960 && m.dstH == 540 && m.srcX == 480 && m.srcW == 1440, "a box and a crop");
+        check(!box.fullFrame(), "a box is not the whole picture");
+        PushCanvas bad; bad.w = std::nanf(""); bad.cropTop = 2.0f;
+        check(bad.sanitized().w == 1.0f && bad.sanitized().cropTop == 0.45f, "bad numbers are cleaned");
+        check(pushCanvasTaps(3840, 1920) == 2 && pushCanvasTaps(1920, 3840) == 1 && pushCanvasTaps(7680, 640) == 4, "box filter taps follow the shrink");
     }
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "OK", failures);
     return failures ? 1 : 0;

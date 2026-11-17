@@ -20,12 +20,14 @@
 #include "veyra/pipeline/PushHudLock.h"
 #include "veyra/engine/RecordingCompare.h"
 #include "veyra/engine/PushStreamOverlay.h"
+#include "veyra/engine/PushCanvas.h"
 #include "veyra/pipeline/GpuPassUtils.h"
 
 #include <d3d12sdklayers.h>
 #include <dxgi1_6.h>
 
 #include <algorithm>
+#include <bit>
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
@@ -513,6 +515,81 @@ void testStreamOverlay(Gpu& gpu, bool hdr) {
     check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
 }
 
+// PushFPS outputs and canvas (engine/PushCanvas.h, shaders/PushCanvasConvert.hlsl): the presented
+// picture sampled into an output of another size and layout, as the recorder does for each output.
+void testCanvasConvert(Gpu& gpu) {
+    const std::string tag = "canvas convert";
+    auto* device = gpu.device.Get();
+    constexpr uint32_t SW = 128, SH = 72;
+    Plane src{pipeline::makeTexture(device, SW, SH, DXGI_FORMAT_R32G32B32A32_FLOAT, false), DXGI_FORMAT_R32G32B32A32_FLOAT, SW, SH, 16};
+    // White picture with a black left quarter (so a crop is visible).
+    std::vector<uint8_t> pixels(size_t(SW) * SH * 16);
+    for (uint32_t y = 0; y < SH; ++y)
+        for (uint32_t x = 0; x < SW; ++x) {
+            const float v = x < SW / 4 ? 0.0f : 1.0f;
+            const float px[4] = {v, v, v, 1.0f};
+            std::memcpy(pixels.data() + (size_t(y) * SW + x) * 16, px, 16);
+        }
+    if (!gpu.begin()) return;
+    auto srcUpload = recordFill(gpu, src, pixels, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    check(gpu.submitAndWait(), tag + ": picture uploaded");
+    pipeline::ComputePass pass;
+    pipeline::DescriptorStager stager;
+    std::vector<uint8_t> shader;
+    check(pass.loadShader("PushCanvasConvert.dxil", shader) && pass.create(device, shader, 3, 1, 2, 16) && stager.initialize(device, 2), tag + ": shader loaded");
+    D3D12_SHADER_RESOURCE_VIEW_DESC view{};
+    view.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; view.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    view.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; view.Texture2D.MipLevels = 1;
+    stager.stageSrv(src.texture.Get(), &view, pass.heap.Get(), 0);
+    // Runs one layout into a W x H output; returns the Y plane.
+    const auto run = [&](const engine::PushCanvas& canvas, uint32_t W, uint32_t H, std::vector<uint8_t>& py) {
+        Plane y{pipeline::makeTexture(device, W, H, DXGI_FORMAT_R8_UNORM, true), DXGI_FORMAT_R8_UNORM, W, H, 1};
+        Plane uv{pipeline::makeTexture(device, W / 2, H / 2, DXGI_FORMAT_R8G8_UNORM, true), DXGI_FORMAT_R8G8_UNORM, W / 2, H / 2, 2};
+        if (!y.texture || !uv.texture) return false;
+        pipeline::makeUav(device, y.texture.Get(), DXGI_FORMAT_R8_UNORM, pipeline::cpuHandleOf(pass, 1));
+        pipeline::makeUav(device, uv.texture.Get(), DXGI_FORMAT_R8G8_UNORM, pipeline::cpuHandleOf(pass, 2));
+        const auto map = engine::mapPushCanvas(canvas, SW, SH, W, H);
+        const uint32_t taps = engine::pushCanvasTaps(map.srcW, map.dstW) | (engine::pushCanvasTaps(map.srcH, map.dstH) << 8);
+        const float constants[16] = {std::bit_cast<float>(W), std::bit_cast<float>(H), 0.0f, 0.0f,
+            float(map.dstX), float(map.dstY), float(map.dstW), float(map.dstH), float(map.srcX), float(map.srcY), float(map.srcW), float(map.srcH),
+            std::bit_cast<float>(SW), std::bit_cast<float>(SH), std::bit_cast<float>(taps), std::bit_cast<float>(canvas.background)};
+        if (!gpu.begin()) return false;
+        D3D12_RESOURCE_BARRIER b[2]{};
+        for (int i = 0; i < 2; ++i) {
+            b[i].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; b[i].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+            b[i].Transition.pResource = i ? uv.texture.Get() : y.texture.Get();
+            b[i].Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON; b[i].Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        }
+        gpu.list->ResourceBarrier(2, b);
+        pass.bind(gpu.list.Get(), constants, pipeline::gpuHandleOf(pass, 0).ptr, pipeline::gpuHandleOf(pass, 1).ptr);
+        gpu.list->Dispatch((W + 15) / 16, (H + 15) / 16, 1);
+        auto ry = recordRead(gpu, y, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        if (!gpu.submitAndWait()) return false;
+        py = mapRead(y, ry.Get());
+        return py.size() == size_t(W) * H;
+    };
+    std::vector<uint8_t> py;
+    // Same shape, half size (box filtered): white right of the black quarter, black in it.
+    engine::PushCanvas full;
+    check(run(full, 64, 36, py), tag + ": half size runs");
+    check(py[size_t(18) * 64 + 40] == 235 && py[size_t(18) * 64 + 4] == 16, tag + ": half size keeps the picture");
+    // 16:9 into 9:16, fit: picture in the middle band, black bars above and below.
+    engine::PushCanvas fit; fit.fit = engine::PushCanvasFit::Fit;
+    check(run(fit, 36, 64, py), tag + ": vertical fit runs");
+    check(py[size_t(32) * 36 + 30] == 235 && py[size_t(2) * 36 + 30] == 16 && py[size_t(61) * 36 + 30] == 16, tag + ": fit leaves bars above and below");
+    // Fill: the middle of the picture covers the output (the black quarter is cropped away).
+    engine::PushCanvas fill; fill.fit = engine::PushCanvasFit::Fill;
+    check(run(fill, 36, 64, py), tag + ": vertical fill runs");
+    check(py[size_t(2) * 36 + 2] == 235 && py[size_t(61) * 36 + 33] == 235, tag + ": fill covers the whole output");
+    // A crop of the black quarter and a green background around a box.
+    engine::PushCanvas box; box.x = 0.5f; box.y = 0.5f; box.w = 0.5f; box.h = 0.5f; box.fit = engine::PushCanvasFit::Stretch;
+    box.cropLeft = 0.25f; box.background = 0x00FF00;
+    check(run(box, 64, 36, py), tag + ": box runs");
+    check(py[size_t(27) * 64 + 34] == 235, tag + ": the cropped picture (no black quarter) in its box");
+    check(std::abs(int(py[size_t(4) * 64 + 4]) - 173) <= 1, tag + ": green background around it");
+    check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
+}
+
 // PushFPS streaming mode: scene transitions (the scene picture at part opacity) and live layers (a
 // webcam, window or video frame scaled into a rectangle, engine/PushStreamOverlay.h LiveLayerBlend).
 void testLiveLayers(Gpu& gpu, bool hdr) {
@@ -915,6 +992,7 @@ int main() {
     testCompareVertical(gpu, true);
     testStreamOverlay(gpu, false);
     testStreamOverlay(gpu, true);
+    testCanvasConvert(gpu);
     testLiveLayers(gpu, false);
     testLiveLayers(gpu, true);
     testLabelScale();

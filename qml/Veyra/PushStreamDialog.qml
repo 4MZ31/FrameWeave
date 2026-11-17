@@ -8,6 +8,7 @@
 // recommended limits follow OBS Studio's rtmp-services.
 import QtQuick
 import QtQuick.Layouts
+import "PushOutputPresets.js" as OutputPresets
 
 DialogLayer {
     id: live
@@ -23,7 +24,24 @@ DialogLayer {
     property var status: ({})
     property int keyRevision: 0       // bumps after a key is saved or forgotten
     readonly property bool streaming: status.active === true
-    readonly property int bitrate: Number(veyra.preferences.streamBitrateMbps || 6)
+    // Video bitrate in kbps (output presets); older versions kept whole Mbps in streamBitrateMbps.
+    readonly property int kbps: Number(veyra.preferences.streamBitrateKbps || 0) > 0 ? Number(veyra.preferences.streamBitrateKbps)
+                                                                                      : Math.max(1, Math.min(50, Number(veyra.preferences.streamBitrateMbps || 6))) * 1000
+    readonly property real bitrate: kbps / 1000
+    // Output presets (PushOutputPresets.js): the platform of the first enabled output comes first.
+    readonly property var preset: OutputPresets.streamPreset(String(veyra.preferences.streamProfile || ""))
+    readonly property var presetPlatform: preset ? OutputPresets.platformOf(OutputPresets.streamPlatforms, preset.id) : null
+    readonly property var presetChanges: preset ? OutputPresets.differences(veyra.preferences, preset, true) : []
+    readonly property string firstPlatform: (targets.find(t => t.enabled !== false) || {}).platform || ""
+    function presetText(pl, pr) { return pl.name + " · " + OutputPresets.presetLabel(pr, qsTr("画面原尺寸")) }
+    function applyPreset(id) {
+        const pr = OutputPresets.streamPreset(id)
+        if (!pr) { veyra.setPreference("streamProfile", ""); return false }
+        const prefs = OutputPresets.streamPrefs(pr)
+        for (const k in prefs) veyra.setPreference(k, prefs[k])
+        return true
+    }
+    function sizeText(w, h) { return w > 0 ? (h > w ? w + " × " + h + qsTr("（竖屏）") : w + " × " + h) : qsTr("画面原尺寸") }
     readonly property int enabledCount: targets.filter(t => t.enabled !== false).length
 
     function platformOf(id) { return platforms.find(p => p.id === id) || platforms[platforms.length - 1] || ({ servers: [] }) }
@@ -224,17 +242,68 @@ DialogLayer {
         Item { Layout.fillWidth: true }
     }
 
-    // Encoding for every output.
+    // Encoding for every output: a platform preset fills everything in; each value stays editable.
     DialogGroup {
         VRow {
-            label: qsTr("视频码率")
-            hint: qsTr("Twitch 最高 6 Mbps，Kick 8 Mbps，YouTube 更高；同时推多个平台时按最严格的平台")
-            VSeg {
-                objectName: "pushfps-stream-bitrate"
-                options: [{ id: "3", label: "3" }, { id: "4", label: "4" }, { id: "6", label: "6" }, { id: "8", label: "8" }, { id: "12", label: "12" }]
-                current: String(live.bitrate)
+            label: qsTr("平台预设")
+            help: qsTr("按平台推荐的分辨率、帧率、码率、关键帧和音频一次填好。之后每一项都可以自己改")
+            hint: !live.preset ? qsTr("手动设置")
+                : live.presetChanges.length > 0 ? qsTr("基于 %1，已修改").arg(live.presetText(live.presetPlatform, live.preset))
+                : qsTr("使用中：%1").arg(live.presetText(live.presetPlatform, live.preset))
+            VSelect {
+                objectName: "pushfps-stream-preset"
+                implicitWidth: 260
+                title: qsTr("平台预设")
                 enabled: !live.streaming
-                onPicked: id => veyra.setPreference("streamBitrateMbps", Number(id))
+                options: {
+                    const out = [{ id: "", label: qsTr("手动设置") }]
+                    const list = OutputPresets.streamPlatforms.slice()
+                    list.sort((a, b) => (b.id === live.firstPlatform) - (a.id === live.firstPlatform))
+                    for (const pl of list) for (const pr of pl.presets) out.push({ id: pr.id, label: live.presetText(pl, pr) })
+                    return out
+                }
+                value: live.preset ? live.presetText(live.presetPlatform, live.preset) : qsTr("手动设置")
+                onPicked: id => live.applyPreset(id)
+            }
+        }
+        VRow {
+            label: qsTr("输出分辨率")
+            hint: qsTr("直播画面的尺寸，与录制分别设置；TikTok LIVE 用竖屏")
+            VSelect {
+                objectName: "pushfps-stream-size"
+                implicitWidth: 180
+                enabled: !live.streaming
+                readonly property int w: Number(veyra.preferences.streamWidth || 0)
+                readonly property int h: Number(veyra.preferences.streamHeight || 0)
+                options: OutputPresets.streamSizes.map(z => ({ id: z[0] + "x" + z[1], label: live.sizeText(z[0], z[1]) }))
+                value: live.sizeText(w, h)
+                onPicked: id => { const z = id.split("x"); veyra.setPreference("streamWidth", Number(z[0])); veyra.setPreference("streamHeight", Number(z[1])) }
+            }
+        }
+        VRow {
+            visible: Number(veyra.preferences.streamWidth || 0) > 0
+            label: qsTr("画面填充")
+            hint: qsTr("形状不同时：适应保留整个画面（有黑边），填满裁掉边缘，拉伸会变形。位置和裁剪在直播模式的布局里调整")
+            VSeg {
+                objectName: "pushfps-stream-fit"
+                options: [{ id: "0", label: qsTr("适应") }, { id: "1", label: qsTr("填满") }, { id: "2", label: qsTr("拉伸") }]
+                current: String(Number(veyra.preferences.streamFit || 0))
+                enabled: !live.streaming
+                onPicked: id => veyra.setPreference("streamFit", Number(id))
+            }
+        }
+        VRow {
+            label: qsTr("视频码率")
+            value: Number(live.bitrate.toFixed(2)) + " Mbps"
+            hint: qsTr("Twitch 最高 6 Mbps，Kick 8 Mbps，YouTube 更高；同时推多个平台时按最严格的平台")
+            VSlider {
+                objectName: "pushfps-stream-bitrate"
+                implicitWidth: 200
+                valueFromModel: true
+                from: 1000; to: 51000; stepSize: 250
+                value: live.kbps
+                enabledControl: !live.streaming
+                onMoved: v => veyra.setPreference("streamBitrateKbps", Math.round(v / 250) * 250)
             }
         }
         VRow {
@@ -246,6 +315,40 @@ DialogLayer {
                 current: String(Number(veyra.preferences.streamFps || 60) >= 60 ? 60 : 30)
                 enabled: !live.streaming
                 onPicked: id => veyra.setPreference("streamFps", Number(id))
+            }
+        }
+        VRow {
+            label: qsTr("关键帧间隔")
+            hint: qsTr("秒；所有平台推荐 2 秒")
+            VSeg {
+                objectName: "pushfps-stream-keyframe"
+                options: [{ id: "1", label: "1" }, { id: "2", label: "2" }, { id: "3", label: "3" }, { id: "4", label: "4" }]
+                current: String(Math.max(1, Math.min(4, Number(veyra.preferences.streamKeyframe || 2))))
+                enabled: !live.streaming
+                onPicked: id => veyra.setPreference("streamKeyframe", Number(id))
+            }
+        }
+        VRow {
+            label: qsTr("音频码率")
+            hint: qsTr("kbps；YouTube 和 Facebook 推荐 128，Twitch 最高 160。超过平台上限时自动降低")
+            VSeg {
+                objectName: "pushfps-stream-audiokbps"
+                options: [{ id: "96", label: "96" }, { id: "128", label: "128" }, { id: "160", label: "160" }, { id: "192", label: "192" }, { id: "320", label: "320" }]
+                current: String(Number(veyra.preferences.streamAudioKbps || 160))
+                enabled: !live.streaming
+                onPicked: id => veyra.setPreference("streamAudioKbps", Number(id))
+            }
+        }
+        VRow {
+            label: qsTr("编码预设")
+            help: qsTr("编码器在每一帧上花多少功夫。越慢压缩得越好，同样的文件大小画质更高")
+            hint: qsTr("越靠右画质越好，但显卡编码负担越重；标准为 4。NVIDIA 用 NVENC，AMD 和 Intel 用显卡自带的硬件编码器")
+            VSeg {
+                objectName: "pushfps-stream-encoder-preset"
+                options: [1, 2, 3, 4, 5, 6, 7].map(n => ({ id: String(n), label: String(n) }))
+                current: String(Math.max(1, Math.min(7, Number(veyra.preferences.streamEncoderPreset || 4))))
+                enabled: !live.streaming
+                onPicked: id => veyra.setPreference("streamEncoderPreset", Number(id))
             }
         }
         VRow {
