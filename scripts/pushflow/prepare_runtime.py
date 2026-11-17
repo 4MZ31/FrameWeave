@@ -192,11 +192,16 @@ def check_model(path: Path, channels: int) -> dict:
 
 
 def detail_frame(w, h, shift):
-    """Fine texture panning sideways (stripes, 2-pixel checker, thin lines): what the Fast tier must keep."""
+    """Fine, non-repeating texture (hashed noise, 1-pixel lines) panning sideways: what the Fast tier must keep.
+    Integer shifts keep the ground truth exact; the pattern never repeats, so the motion is unambiguous."""
     import numpy as np
-    y, x = np.mgrid[0:h, 0:w].astype(np.float32)
-    u = x - shift
-    tex = 0.5 + 0.18 * np.sin(u * 1.3) + 0.12 * ((np.floor(u / 2) + np.floor(y / 2)) % 2) + 0.15 * (np.abs((u % 24) - 12) < 0.8)
+    y, x = np.mgrid[0:h, 0:w].astype(np.int64)
+    u = x - int(shift)
+    hsh = (u * 73856093) ^ (y * 19349663)
+    noise = ((hsh ^ (hsh >> 13)) * 1274126177 & 0xFFFF) / 65535.0
+    lines = ((u % 37) == 0) | ((y % 29) == 0)
+    tex = 0.25 + 0.5 * noise
+    tex = np.where(lines, 0.95, tex)
     img = np.stack([tex, tex * 0.9 + 0.05, tex * 0.8 + 0.1])
     return np.clip(img, 0, 1).astype(np.float32)
 
@@ -276,7 +281,7 @@ def check_exposed(path: Path, channels: int, align: int) -> dict:
     # Fast tier: the network at half size, rebuilt at full size versus the half-size picture enlarged.
     # Full size twice a padded half size, so both the half-size network input and the full frames fit.
     H, W = 2 * (-(-192 // pad) * pad), 2 * (-(-256 // pad) * pad)
-    f0, f1, gt = detail_frame(W, H, 0), detail_frame(W, H, 12), detail_frame(W, H, 6)
+    f0, f1, gt = detail_frame(W, H, 0), detail_frame(W, H, 8), detail_frame(W, H, 4)
     s0, s1 = resize_box(f0, 2), resize_box(f1, 2)
     srgb, sg0, sg1, sm = session.run(None, {name: tensor(s0, s1, 0.5, channels)})[:4]
     yo, xo = np.mgrid[0:H, 0:W].astype(np.float64)
@@ -386,6 +391,8 @@ def main() -> None:
         onnx.save(exposed, str(target))
         verdict = check_exposed(target, c["channels"], info["align_corners"])
         print(f"exposed {role}: {json.dumps({k: v for k, v in verdict.items() if k != 'output'})}")
+        if verdict["rebuild_db"] < 45:
+            print(rife_graph.describe_tail(base))
         if verdict["rebuild_db"] < 40:
             sys.exit(f"::error::rebuilding from grids and mask does not reproduce {c['path'].name} ({verdict['rebuild_db']} dB)")
         entry = {"file": target.name, "from": c["path"].name, "version": "%d.%d" % c["version"], "lite": c["lite"],

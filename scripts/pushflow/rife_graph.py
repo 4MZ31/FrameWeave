@@ -101,3 +101,25 @@ def reconstruct(img0, img1, grid0, grid1, mask, align_corners, mask_for_first=Tr
 def psnr(a, b):
     mse = float(np.mean((np.clip(a, 0, 1) - np.clip(b, 0, 1)) ** 2))
     return 99.0 if mse < 1e-12 else 10 * np.log10(1.0 / mse)
+
+
+def describe_tail(model, n=45):
+    """The n nodes closest to output 0 (breadth-first from the output), for diagnosing an export."""
+    graph = model.graph
+    producer = _producers(graph)
+    out = graph.output[0].name
+    dist = {out: 0}
+    queue = collections.deque([out])
+    lines = []
+    while queue and len(lines) < n:
+        name = queue.popleft()
+        node = producer.get(name)
+        if node is None:
+            continue
+        attrs = ",".join(f"{a.name}={a.i if a.type == 2 else (a.s.decode() if a.type == 3 else ('[..]' if a.ints else a.f))}" for a in node.attribute)
+        lines.append(f"d={dist[name]:>2} {node.op_type:<14} {list(node.input)} -> {list(node.output)} {attrs}")
+        for i in node.input:
+            if i and i not in dist:
+                dist[i] = dist[name] + 1
+                queue.append(i)
+    return "\n".join(lines)
