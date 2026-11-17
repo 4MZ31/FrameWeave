@@ -5,7 +5,7 @@
 // the results as JSON, so players can share real numbers (docs/PUSHFLOW.md, "Measure your card").
 // For each size and tier: warm-up, then N pairs at 2X/3X/4X with D3D12 timestamp queries around the pack
 // and rebuild passes and the network's span on the queue, plus the CPU time of the inference call.
-// Usage: PushFlowBench.exe [--sizes 1920x1080,2560x1440,3840x2160] [--tiers 0,1,2] [--pairs 40]
+// Usage: PushFlowBench.exe [--sizes 1920x1080,2560x1440,3840x2160] [--tiers 0,1,2] [--pairs 40] [--compare-shapes]
 //                          [--out pushflow-bench.json] [--warp] [--runtime <folder holding pushflow>]
 // Runs next to PushFPS.exe (it uses PushFPS's shaders and runtime\experimental\pushflow).
 #include "veyra/pushflow/PushFlowBackend.h"
@@ -141,13 +141,14 @@ int main(int argc, char** argv) {
     std::vector<std::pair<uint32_t, uint32_t>> sizes{{1920, 1080}, {2560, 1440}, {3840, 2160}};
     std::vector<uint32_t> tiers{0, 1, 2};
     int pairs = 40;
-    bool warp = false;
+    bool warp = false, compareShapes = false;
     std::string out = "pushflow-bench.json";
     std::wstring runtimeOverride;
     for (int i = 1; i < argc; ++i) {
         const std::string a = argv[i];
         const std::string next = i + 1 < argc ? argv[i + 1] : "";
         if (a == "--warp") warp = true;
+        else if (a == "--compare-shapes") compareShapes = true;
         else if (a == "--runtime" && !next.empty()) { runtimeOverride.assign(next.begin(), next.end()); ++i; }
         else if (a == "--pairs" && !next.empty()) { pairs = std::clamp(std::atoi(next.c_str()), 1, 1000); ++i; }
         else if (a == "--out" && !next.empty()) { out = next; ++i; }
@@ -184,11 +185,19 @@ int main(int argc, char** argv) {
         auto a = frameTexture(gpu, w, h, 0), b = frameTexture(gpu, w, h, 8);
         auto output = pipeline::makeTexture(gpu.device.Get(), w, h, DXGI_FORMAT_R8G8B8A8_UNORM, false);
         if (!a || !b || !output) { std::printf("%ux%u: textures failed\n", w, h); continue; }
-        for (uint32_t tier : tiers) {
+        for (uint32_t tier : tiers)
+          for (int shapes = 0; shapes < (compareShapes ? 2 : 1); ++shapes) {
+            // --compare-shapes: each tier once with static shapes (the default) and once dynamic.
+            SetEnvironmentVariableW(L"VEYRA_PUSHFLOW_DYNAMIC", shapes == 1 ? L"1" : nullptr);
+            const char* shapeName = shapes == 1 ? "dynamic" : "static";
+            if (const HRESULT removed = gpu.device->GetDeviceRemovedReason(); removed != S_OK) {
+                std::printf("device removed before %s (0x%08X); stopping\n", tierName[tier], unsigned(removed));
+                break;
+            }
             pushflow::PushFlowBackend flow;
             const auto initStart = std::chrono::steady_clock::now();
             if (!flow.initialize(gpu.device.Get(), gpu.queue.Get(), runtimeDir, w, h, DXGI_FORMAT_R8G8B8A8_UNORM, pushflow::Encoding::Encoded, tier)) {
-                std::printf("%ux%u %s: PushFlow did not start (see logs)\n", w, h, tierName[tier]);
+                std::printf("%ux%u %s %s: PushFlow did not start (see logs), device 0x%08X\n", w, h, tierName[tier], shapeName, unsigned(gpu.device->GetDeviceRemovedReason()));
                 continue;
             }
             const double initMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - initStart).count();
@@ -231,17 +240,17 @@ int main(int argc, char** argv) {
                     for (uint32_t sub = 1; sub < m && good; ++sub) good = one(float(sub) / float(m), sub > 1, true);
                     pair[m - 2].add(std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count());
                 }
-            if (!good) { std::printf("%ux%u %s: a run failed\n", w, h, tierName[tier]); continue; }
+            if (!good) { std::printf("%ux%u %s %s: a run failed, device 0x%08X\n", w, h, tierName[tier], shapeName, unsigned(gpu.device->GetDeviceRemovedReason())); continue; }
             const auto& st = flow.status();
-            std::printf("%ux%u %-8s %s rebuild=%d  network p50 %.2f ms p95 %.2f ms  pair 2X %.2f / 3X %.2f / 4X %.2f ms\n", w, h, tierName[tier],
+            std::printf("%ux%u %-8s %-7s %s rebuild=%d  network p50 %.2f ms p95 %.2f ms  pair 2X %.2f / 3X %.2f / 4X %.2f ms\n", w, h, tierName[tier], st.staticShapes ? "static" : "dynamic",
                 st.precision.c_str(), st.rebuild ? 1 : 0, network.pct(0.5), network.pct(0.95), pair[0].pct(0.5), pair[1].pct(0.5), pair[2].pct(0.5));
-            json += std::format("{}    {{\"width\": {}, \"height\": {}, \"tier\": \"{}\", \"model\": \"{}\", \"precision\": \"{}\", \"selfCheckDb\": {:.1f}, "
+            json += std::format("{}    {{\"width\": {}, \"height\": {}, \"tier\": \"{}\", \"shapes\": \"{}\", \"model\": \"{}\", \"precision\": \"{}\", \"selfCheckDb\": {:.1f}, "
                 "\"rebuild\": {}, \"modelSize\": \"{}x{}\", \"initMs\": {:.0f},\n      \"packMs\": {}, \"timeOnlyPackMs\": {}, \"networkMs\": {}, \"rebuildMs\": {}, \"inferCpuMs\": {},\n"
                 "      \"pairWallMs\": {{\"2x\": {}, \"3x\": {}, \"4x\": {}}}}}",
-                firstRun ? "" : ",\n", w, h, tierName[tier], st.model, st.precision, st.selfCheckDb, st.rebuild ? "true" : "false", st.modelW, st.modelH, initMs,
+                firstRun ? "" : ",\n", w, h, tierName[tier], st.staticShapes ? "static" : "dynamic", st.model, st.precision, st.selfCheckDb, st.rebuild ? "true" : "false", st.modelW, st.modelH, initMs,
                 stats(pack), stats(timePack), stats(network), stats(rebuild), stats(inferCpu), stats(pair[0]), stats(pair[1]), stats(pair[2]));
             firstRun = false;
-        }
+          }
     }
     json += "\n  ],\n  \"notes\": \"networkMs is the GPU span between the pack and rebuild passes on the queue (the network plus queue gaps); pairWallMs is CPU wall time for all generated frames of one pair.\"\n}\n";
     std::ofstream(out) << json;

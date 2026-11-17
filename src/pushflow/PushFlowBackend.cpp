@@ -19,6 +19,8 @@
 #include <fstream>
 #include <functional>
 #include <mutex>
+#include <string>
+#include <utility>
 #include <vector>
 
 #ifdef VEYRA_HAVE_ONNXRUNTIME
@@ -201,9 +203,11 @@ struct PushFlowBackend::Impl {
     }
     void release() {
         if (api) {
+            // Values and binding, then the allocations they wrapped, then the session (Microsoft's
+            // samples free GPU allocations before the session that used them goes).
             releaseBinding();
-            releaseSession(session);
             for (auto*& a : allocations) { if (dml && a && !sehFreeAllocation(dml, a)) fault("FreeGPUAllocation"); a = nullptr; }
+            releaseSession(session);
             if (memory && !sehReleaseMemoryInfo(api, memory)) fault("ReleaseMemoryInfo");
             if (env && !sehReleaseEnv(api, env)) fault("ReleaseEnv");
         }
@@ -213,52 +217,105 @@ struct PushFlowBackend::Impl {
     }
     // Opens a session for `model` and checks its contract: one [1, 7|11, H, W] float input; output 0 RGB,
     // optionally pushflow_grid0 / pushflow_grid1 / pushflow_mask.
-    bool open(const fs::path& model, ID3D12CommandQueue* q, OrtSession** out, uint32_t& inChannels, bool& grids) {
+    // One session with the DirectML provider; `overrides` fixes named free dimensions of the input.
+    bool createSession(const fs::path& model, ID3D12CommandQueue* q, OrtSession** out, const std::vector<std::pair<std::string, int64_t>>& overrides) {
         OrtSessionOptions* options = nullptr;
         if (!ok(api->CreateSessionOptions(&options), "CreateSessionOptions")) return false;
         bool good = ok(api->SetSessionGraphOptimizationLevel(options, ORT_ENABLE_ALL), "optimization level") &&
                     ok(api->DisableMemPattern(options), "DisableMemPattern") &&
-                    ok(api->SetSessionExecutionMode(options, ORT_SEQUENTIAL), "execution mode") &&
-                    ok(dml->SessionOptionsAppendExecutionProvider_DML1(options, dmlDevice.Get(), q), "DirectML provider");
+                    ok(api->SetSessionExecutionMode(options, ORT_SEQUENTIAL), "execution mode");
+        for (const auto& [name, value] : overrides)
+            if (good) good = ok(api->AddFreeDimensionOverrideByName(options, name.c_str(), value), "free dimension override");
+        if (good) good = ok(dml->SessionOptionsAppendExecutionProvider_DML1(options, dmlDevice.Get(), q), "DirectML provider");
         if (good) {
             bool crashed = false;
             good = ok(sehCreateSession(api, env, model.c_str(), options, out, &crashed), "CreateSession") && !crashed;
             if (crashed) fault("CreateSession");
         }
         api->ReleaseSessionOptions(options);
-        if (!good) return false;
-        OrtAllocator* allocator = nullptr;
-        if (!ok(api->GetAllocatorWithDefaultOptions(&allocator), "allocator")) return false;
-        size_t inputs = 0, outputs = 0;
-        api->SessionGetInputCount(*out, &inputs); api->SessionGetOutputCount(*out, &outputs);
-        if (inputs != 1 || outputs < 1) { veyra::log::error("pushflow", std::format("model has {} inputs and {} outputs", inputs, outputs)); return false; }
-        OrtTypeInfo* typeInfo = nullptr;
-        if (!ok(api->SessionGetInputTypeInfo(*out, 0, &typeInfo), "input type")) return false;
-        const OrtTensorTypeAndShapeInfo* tensorInfo = nullptr;
-        api->CastTypeInfoToTensorInfo(typeInfo, &tensorInfo);
-        ONNXTensorElementDataType element = ONNX_TENSOR_ELEMENT_DATA_TYPE_UNDEFINED;
-        size_t dims = 0;
-        int64_t shape[4]{};
-        if (tensorInfo) { api->GetTensorElementType(tensorInfo, &element); api->GetDimensionsCount(tensorInfo, &dims); if (dims == 4) api->GetDimensions(tensorInfo, shape, 4); }
-        api->ReleaseTypeInfo(typeInfo);
-        if (dims != 4 || (shape[1] != 7 && shape[1] != 11) || element != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
-            veyra::log::error("pushflow", std::format("model input not [N,7|11,H,W] float (dims={} channels={} type={})", dims, dims == 4 ? shape[1] : 0, int(element)));
-            return false;
+        return good;
+    }
+    // Opens a session for `model` and checks its contract: one [1, 7|11, H, W] float input; output 0 RGB,
+    // optionally pushflow_grid0 / pushflow_grid1 / pushflow_mask.
+    //
+    // Static shapes (2026-11-18): the vs-mlrt RIFE models have a free height and width. Left free, the
+    // DirectML provider cannot fold the shape arithmetic (the model pads itself to its block size),
+    // splits the graph into DirectML and CPU pieces and syncs between them on every run, and does not
+    // pre-process the weights: Microsoft's DirectML provider documentation says it "works most
+    // efficiently when tensor shapes are known at the time a session is created". PushFlow always runs
+    // one size per session, so the session is reopened with the free dimensions fixed
+    // (AddFreeDimensionOverrideByName) to the padded network size. VEYRA_PUSHFLOW_DYNAMIC=1 keeps the
+    // old dynamic session, for comparisons (PushFlowBench --dynamic).
+    bool open(const fs::path& model, ID3D12CommandQueue* q, OrtSession** out, uint32_t& inChannels, bool& grids) {
+        if (!createSession(model, q, out, {})) return false;
+        for (int pass = 0; pass < 2; ++pass) {
+            OrtAllocator* allocator = nullptr;
+            if (!ok(api->GetAllocatorWithDefaultOptions(&allocator), "allocator")) return false;
+            size_t inputs = 0, outputs = 0;
+            api->SessionGetInputCount(*out, &inputs); api->SessionGetOutputCount(*out, &outputs);
+            if (inputs != 1 || outputs < 1) { veyra::log::error("pushflow", std::format("model has {} inputs and {} outputs", inputs, outputs)); return false; }
+            OrtTypeInfo* typeInfo = nullptr;
+            if (!ok(api->SessionGetInputTypeInfo(*out, 0, &typeInfo), "input type")) return false;
+            const OrtTensorTypeAndShapeInfo* tensorInfo = nullptr;
+            api->CastTypeInfoToTensorInfo(typeInfo, &tensorInfo);
+            ONNXTensorElementDataType element = ONNX_TENSOR_ELEMENT_DATA_TYPE_UNDEFINED;
+            size_t dims = 0;
+            int64_t shape[4]{};
+            const char* names[4]{};
+            if (tensorInfo) {
+                api->GetTensorElementType(tensorInfo, &element); api->GetDimensionsCount(tensorInfo, &dims);
+                if (dims == 4) { api->GetDimensions(tensorInfo, shape, 4); ok(api->GetSymbolicDimensions(tensorInfo, names, 4), "symbolic dimensions"); }
+            }
+            std::string symbolic[4];
+            for (int i = 0; i < 4; ++i) symbolic[i] = names[i] ? names[i] : "";
+            api->ReleaseTypeInfo(typeInfo);
+            if (dims != 4 || (shape[1] != 7 && shape[1] != 11) || element != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
+                veyra::log::error("pushflow", std::format("model input not [N,7|11,H,W] float (dims={} channels={} type={})", dims, dims == 4 ? shape[1] : 0, int(element)));
+                return false;
+            }
+            if ((shape[2] > 0 && shape[2] != int64_t(status.padH)) || (shape[3] > 0 && shape[3] != int64_t(status.padW))) {
+                veyra::log::error("pushflow", std::format("model has a fixed size {}x{}; needed {}x{}", shape[3], shape[2], status.padW, status.padH));
+                return false;
+            }
+            inChannels = uint32_t(shape[1]);
+            int found = 0;
+            for (size_t i = 1; i < outputs; ++i) {
+                char* name = nullptr;
+                if (!ok(api->SessionGetOutputName(*out, i, allocator, &name), "output name")) return false;
+                const std::string n = name; api->AllocatorFree(allocator, name);
+                if (n == "pushflow_grid0" || n == "pushflow_grid1" || n == "pushflow_mask") ++found;
+            }
+            grids = found == 3;
+            if (pass == 1) {
+                status.staticShapes = shape[0] > 0 && shape[2] > 0 && shape[3] > 0;
+                veyra::log::info("pushflow", std::format("session shapes {}: input {}x{}x{}x{}", status.staticShapes ? "static" : "still dynamic", shape[0], shape[1], shape[2], shape[3]));
+                return true;
+            }
+            // First pass: fix the free dimensions and reopen.
+            std::vector<std::pair<std::string, int64_t>> overrides;
+            const int64_t wanted[4] = {1, shape[1], int64_t(status.padH), int64_t(status.padW)};
+            bool clash = false;
+            for (int i = 0; i < 4; ++i) {
+                if (shape[i] > 0) continue;
+                if (symbolic[i].empty()) { veyra::log::warn("pushflow", std::format("input dimension {} is free and unnamed; it stays dynamic", i)); continue; }
+                bool seen = false;
+                for (auto& [n, v] : overrides) if (n == symbolic[i]) { seen = true; clash = clash || v != wanted[i]; }
+                if (!seen) overrides.emplace_back(symbolic[i], wanted[i]);
+            }
+            const bool dynamic = GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_DYNAMIC", nullptr, 0) > 0;
+            if (dynamic || clash || overrides.empty()) {
+                status.staticShapes = !dynamic && !clash && shape[0] > 0 && shape[2] > 0 && shape[3] > 0;
+                veyra::log::info("pushflow", std::format("session shapes {} ({})", status.staticShapes ? "static" : "dynamic",
+                    dynamic ? "VEYRA_PUSHFLOW_DYNAMIC" : clash ? "height and width share one name" : overrides.empty() ? "nothing to fix" : ""));
+                return true;
+            }
+            std::string list;
+            for (auto& [n, v] : overrides) list += std::format("{}{}={}", list.empty() ? "" : ", ", n, v);
+            veyra::log::info("pushflow", "fixing free dimensions: " + list);
+            releaseSession(*out); *out = nullptr;
+            if (!createSession(model, q, out, overrides)) return false;
         }
-        if ((shape[2] > 0 && shape[2] != int64_t(status.padH)) || (shape[3] > 0 && shape[3] != int64_t(status.padW))) {
-            veyra::log::error("pushflow", std::format("model has a fixed size {}x{}; needed {}x{}", shape[3], shape[2], status.padW, status.padH));
-            return false;
-        }
-        inChannels = uint32_t(shape[1]);
-        int found = 0;
-        for (size_t i = 1; i < outputs; ++i) {
-            char* name = nullptr;
-            if (!ok(api->SessionGetOutputName(*out, i, allocator, &name), "output name")) return false;
-            const std::string n = name; api->AllocatorFree(allocator, name);
-            if (n == "pushflow_grid0" || n == "pushflow_grid1" || n == "pushflow_mask") ++found;
-        }
-        grids = found == 3;
-        return true;
+        return false;
     }
     // Binds the preallocated D3D12 buffers to `s`: every output, so ONNX Runtime never allocates one itself.
     bool bind(OrtSession* s) {
@@ -487,12 +544,17 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
     }
     if (!p.bind(p.session)) return false;
 
-    // Half precision only after it matches the full-precision model on this graphics card.
+    // Half precision: opt-in, then only after it matches the full-precision model on this graphics card.
     char forced[16]{};
     const DWORD forcedLen = GetEnvironmentVariableA("VEYRA_PUSHFLOW_PRECISION", forced, sizeof(forced));
     const std::string force = forcedLen > 0 && forcedLen < sizeof(forced) ? std::string(forced) : std::string();
     std::error_code ec;
-    if (force != "fp32" && fs::is_regular_file(fp16Model, ec)) {
+    // Half precision only when asked for (VEYRA_PUSHFLOW_PRECISION=fp16), since 3.1.7. The automatic
+    // self-check ran an fp16 model on every start; on Windows' software renderer that removed the
+    // device (PushFlowBench, 2026-11-17: the next tier failed with DMLCreateDevice), and a crash
+    // report from an RTX 5090 ended inside ONNX Runtime right after it. fp32 with static shapes is the
+    // safe default.
+    if (force == "fp16" && fs::is_regular_file(fp16Model, ec)) {
         const auto input = selfCheckInput(p.status.padW, p.status.padH, p.channels);
         std::vector<float> reference;
         if (p.uploadInput(input) && p.run()) reference = p.readRgb();
@@ -612,6 +674,12 @@ bool PushFlowBackend::infer() {
         ++p.inferCount;
         if (p.markerArmed && done && p.inferCount >= kSteadyInferences) { p.markerArmed = false; clearCrashMarker(); }
         if (std::chrono::steady_clock::now() - p.lastSummary > std::chrono::seconds(30)) { p.lastSummary = std::chrono::steady_clock::now(); summarize = true; }
+    }
+    if (!done) {
+        const HRESULT removed = p.device ? p.device->GetDeviceRemovedReason() : S_OK;
+        veyra::log::error("pushflow", std::format("inference failed after {:.1f} ms; device state 0x{:08X}{}", p.inferMs, uint32_t(removed), removed != S_OK ? " (device removed)" : ""));
+    } else if (p.inferCount == 1) {
+        veyra::log::info("pushflow", std::format("first inference {:.1f} ms (includes DirectML's one-time preparation)", p.inferMs));
     }
     if (summarize) {
         const auto t = telemetry();

@@ -148,6 +148,19 @@ def describe(model_path: Path):
     return channels
 
 
+def name_free_dims(model):
+    """Gives every free input dimension a name, so PushFPS can fix it per session
+    (AddFreeDimensionOverrideByName): DirectML only folds the model's shape arithmetic and fuses
+    the graph when the input size is known at session creation. Returns the dimension names."""
+    inputs = [i for i in model.graph.input if i.name not in {init.name for init in model.graph.initializer}]
+    names = []
+    for k, d in enumerate(inputs[0].type.tensor_type.shape.dim):
+        if not d.dim_value and not d.dim_param:
+            d.dim_param = ("pushflow_n", "pushflow_c", "pushflow_h", "pushflow_w")[k]
+        names.append(d.dim_param or str(d.dim_value))
+    return names
+
+
 def frame(w, h, square_x):
     import numpy as np
     y, x = np.mgrid[0:h, 0:w]
@@ -386,6 +399,8 @@ def main() -> None:
               "models": {}}
     for role, c in chosen.items():
         base = onnx.load(str(c["path"]))
+        input_dims = name_free_dims(base)
+        print(f"{role} input dimensions: {input_dims}")
         target = runtime / "models" / f"pushflow-{role}.onnx"
         best = None
         for batched in (True, False):
@@ -409,7 +424,7 @@ def main() -> None:
         if verdict["rebuild_db"] < 45:
             sys.exit(f"::error::rebuilding from grids and mask does not reproduce {c['path'].name} ({verdict['rebuild_db']} dB)")
         entry = {"file": target.name, "from": c["path"].name, "version": "%d.%d" % c["version"], "lite": c["lite"],
-                 "channels": c["channels"], "precision": "fp32", "sha256": sha256(target), "opset": [o.version for o in base.opset_import],
+                 "channels": c["channels"], "input_dims": input_dims, "precision": "fp32", "sha256": sha256(target), "opset": [o.version for o in base.opset_import],
                  "align_corners": info["align_corners"], "padding_mode": info["padding_mode"], "batched_warp": info["batched"], "mask_for_first": verdict["mask_for_first"], "pad": verdict["pad"],
                  "cpu_check_db": {k: c["check"][k] for k in ("identical_db", "moving_db", "blend_db")},
                  "rebuild_db": verdict["rebuild_db"], "fast_detail": verdict["fast_detail"]}

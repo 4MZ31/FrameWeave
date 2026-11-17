@@ -56,6 +56,7 @@ enum class Encoding : uint32_t { Encoded = 0, LinearSdr = 1, ScRgbHdr = 2 };
 struct Status {
     bool ready = false;
     bool rebuild = false;          // the full-resolution rebuild from grids and mask is used
+    bool staticShapes = false;     // the session's input size is fixed (free dimensions overridden)
     std::string provider;          // "DirectML"
     std::string model;             // file name of the model in use
     std::string precision;         // "fp32" or "fp16"
