@@ -234,6 +234,8 @@ QtObject {
     property var microphoneDevices: []
     readonly property bool recordingMicrophone: preferences.recordMic === true
     readonly property string recordingMicrophoneId: String(preferences.recordMicDevice || "")
+    readonly property bool recordingAudio: preferences.recordAudio !== false
+    property string currentPage: ""
     property real volume: 1
     property bool muted: false
     property int recordingToggles: 0

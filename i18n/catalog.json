@@ -1871,6 +1871,23 @@
    "ru": "2X - это родной путь; 3X / 4X - экспериментальные разблокировки. Диагностика неудач"
   },
   {
+   "zh": "3. 录制",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "3. 錄製",
+   "en": "3. Record",
+   "ja": "3. 録画",
+   "nl": "3. Record",
+   "de": "3. Record",
+   "es": "3. Record",
+   "fr": "3. Record",
+   "it": "3. Record",
+   "pt-BR": "3. Record",
+   "tr": "3. Record",
+   "ar": "3. Record",
+   "pl": "3. Record",
+   "ru": "3. Record"
+  },
+  {
    "zh": "30 FPS 的游戏在 60 Hz 信号里每张画面会发两次；补帧只看真正的新画面",
    "src": "portable/app/qml/HomePage.qml",
    "zh-TW": "30 FPS 的遊戲在 60 Hz 訊號裡每張畫面會發兩次；補幀只看真正的新畫面",
@@ -8161,6 +8178,23 @@
    "ru": "☕ Угостите меня кофе · 5 $"
   },
   {
+   "zh": "一直保留最近的画面和声音，按下保存时写成视频文件",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "一直保留最近的畫面和聲音，按下儲存時寫成影片檔",
+   "en": "Keeps the last moments of picture and sound; saving writes them to a video file",
+   "ja": "直近の映像と音声を常に保持し、保存すると動画ファイルに書き出します",
+   "nl": "Keeps the last moments of picture and sound; saving writes them to a video file",
+   "de": "Keeps the last moments of picture and sound; saving writes them to a video file",
+   "es": "Keeps the last moments of picture and sound; saving writes them to a video file",
+   "fr": "Keeps the last moments of picture and sound; saving writes them to a video file",
+   "it": "Keeps the last moments of picture and sound; saving writes them to a video file",
+   "pt-BR": "Keeps the last moments of picture and sound; saving writes them to a video file",
+   "tr": "Keeps the last moments of picture and sound; saving writes them to a video file",
+   "ar": "Keeps the last moments of picture and sound; saving writes them to a video file",
+   "pl": "Keeps the last moments of picture and sound; saving writes them to a video file",
+   "ru": "Keeps the last moments of picture and sound; saving writes them to a video file"
+  },
+  {
    "zh": "一键减少等待：画质、补帧和 AI 增强都不变",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "一鍵減少等待：畫質、補幀和 AI 增強都不變",
@@ -11610,6 +11644,23 @@
    "ar": "جارٍ الحفظ…",
    "pl": "Zapisywanie…",
    "ru": "Сохранение…"
+  },
+  {
+   "zh": "保存位置、尺寸、码率、帧率、编码和高级选项，与专业模式相同",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "儲存位置、尺寸、位元率、幀率、編碼和進階選項，與專業模式相同",
+   "en": "Save location, size, bitrate, frame rate, encoding and advanced options, the same as in Professional mode",
+   "ja": "保存先、サイズ、ビットレート、フレームレート、エンコードと詳細オプション（プロモードと同じ）",
+   "nl": "Save location, size, bitrate, frame rate, encoding and advanced options, the same as in Professional mode",
+   "de": "Save location, size, bitrate, frame rate, encoding and advanced options, the same as in Professional mode",
+   "es": "Save location, size, bitrate, frame rate, encoding and advanced options, the same as in Professional mode",
+   "fr": "Save location, size, bitrate, frame rate, encoding and advanced options, the same as in Professional mode",
+   "it": "Save location, size, bitrate, frame rate, encoding and advanced options, the same as in Professional mode",
+   "pt-BR": "Save location, size, bitrate, frame rate, encoding and advanced options, the same as in Professional mode",
+   "tr": "Save location, size, bitrate, frame rate, encoding and advanced options, the same as in Professional mode",
+   "ar": "Save location, size, bitrate, frame rate, encoding and advanced options, the same as in Professional mode",
+   "pl": "Save location, size, bitrate, frame rate, encoding and advanced options, the same as in Professional mode",
+   "ru": "Save location, size, bitrate, frame rate, encoding and advanced options, the same as in Professional mode"
   },
   {
    "zh": "保存到",
@@ -16201,6 +16252,23 @@
    "ar": "مقارنة الأصل / المحسّن",
    "pl": "Porównanie oryginał / ulepszony",
    "ru": "Сравнение оригинала и улучшенного"
+  },
+  {
+   "zh": "原画 · %1 FPS",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "原畫 · %1 FPS",
+   "en": "Original · %1 FPS",
+   "ja": "オリジナル · %1 FPS",
+   "nl": "Original · %1 FPS",
+   "de": "Original · %1 FPS",
+   "es": "Original · %1 FPS",
+   "fr": "Original · %1 FPS",
+   "it": "Original · %1 FPS",
+   "pt-BR": "Original · %1 FPS",
+   "tr": "Original · %1 FPS",
+   "ar": "Original · %1 FPS",
+   "pl": "Original · %1 FPS",
+   "ru": "Original · %1 FPS"
   },
   {
    "zh": "原画保护 %1%",
@@ -27661,6 +27729,23 @@
    "ru": "Not an NVIDIA adapter: NR, NVIDIA super resolution and DLSS are disabled; XeSS preview and AMD optical flow are available"
   },
   {
+   "zh": "录下处理后的画面和声音",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "錄下處理後的畫面和聲音",
+   "en": "Records the processed picture and sound",
+   "ja": "処理後の映像と音声を録画します",
+   "nl": "Records the processed picture and sound",
+   "de": "Records the processed picture and sound",
+   "es": "Records the processed picture and sound",
+   "fr": "Records the processed picture and sound",
+   "it": "Records the processed picture and sound",
+   "pt-BR": "Records the processed picture and sound",
+   "tr": "Records the processed picture and sound",
+   "ar": "Records the processed picture and sound",
+   "pl": "Records the processed picture and sound",
+   "ru": "Records the processed picture and sound"
+  },
+  {
    "zh": "录入所选音频输入，不受音量、静音和本机音频监听开关影响；采集卡需选择音频输入",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "錄入所選音訊輸入，不受音量、靜音和本機音訊監聽開關影響；擷取卡需選擇音訊輸入",
@@ -27780,6 +27865,23 @@
    "ru": "Запишите видео «до и после»: с одной стороны родная частота кадров консоли, с другой PushFPS"
   },
   {
+   "zh": "录制一段前后对比视频：一边是视频原本的帧率，一边是 PushFPS",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "錄製一段前後對比影片：一邊是影片原本的幀率，一邊是 PushFPS",
+   "en": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other",
+   "ja": "比較動画を録画します：片側は動画本来のフレームレート、もう片側は PushFPS",
+   "nl": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other",
+   "de": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other",
+   "es": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other",
+   "fr": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other",
+   "it": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other",
+   "pt-BR": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other",
+   "tr": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other",
+   "ar": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other",
+   "pl": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other",
+   "ru": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other"
+  },
+  {
    "zh": "录制中不可用",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "錄製中無法使用",
@@ -27829,6 +27931,23 @@
    "ar": "سجّل فيديو قبل/بعد: معدل إطارات الجهاز الأصلي في جانب وPushFPS في الآخر. اختر منقسمًا أو جنبًا إلى جنب أو عموديًا (TikTok وShorts وReels) والمدة",
    "pl": "Nagraj wideo przed/po: własna liczba klatek konsoli z jednej strony, PushFPS z drugiej. Wybierz podział, obok siebie lub pion (TikTok, Shorts, Reels) i długość",
    "ru": "Запишите видео «до и после»: родная частота консоли с одной стороны, PushFPS — с другой. Выберите раздельно, рядом или вертикально (TikTok, Shorts, Reels) и длительность"
+  },
+  {
+   "zh": "录制前后对比视频：一边是视频原本的帧率，一边是 PushFPS。可选分屏、并排或竖屏（TikTok、Shorts、Reels），以及时长",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "錄製前後對比影片：一邊是影片原本的幀率，一邊是 PushFPS。可選分割、並排或直式（TikTok、Shorts、Reels），以及時長",
+   "en": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other. Split, side by side or vertical (TikTok, Shorts, Reels), and the length",
+   "ja": "比較動画を録画します：片側は動画本来のフレームレート、もう片側は PushFPS。分割、横並び、縦（TikTok、Shorts、Reels）と長さを選べます",
+   "nl": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other. Split, side by side or vertical (TikTok, Shorts, Reels), and the length",
+   "de": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other. Split, side by side or vertical (TikTok, Shorts, Reels), and the length",
+   "es": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other. Split, side by side or vertical (TikTok, Shorts, Reels), and the length",
+   "fr": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other. Split, side by side or vertical (TikTok, Shorts, Reels), and the length",
+   "it": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other. Split, side by side or vertical (TikTok, Shorts, Reels), and the length",
+   "pt-BR": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other. Split, side by side or vertical (TikTok, Shorts, Reels), and the length",
+   "tr": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other. Split, side by side or vertical (TikTok, Shorts, Reels), and the length",
+   "ar": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other. Split, side by side or vertical (TikTok, Shorts, Reels), and the length",
+   "pl": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other. Split, side by side or vertical (TikTok, Shorts, Reels), and the length",
+   "ru": "Record a before-and-after video: the video's own frame rate on one side, PushFPS on the other. Split, side by side or vertical (TikTok, Shorts, Reels), and the length"
   },
   {
    "zh": "录制回读缓冲分配失败",
@@ -28186,6 +28305,23 @@
    "ar": "ترميز التسجيل",
    "pl": "Kodek nagrania",
    "ru": "Кодек записи"
+  },
+  {
+   "zh": "录制设置",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "錄製設定",
+   "en": "Recording settings",
+   "ja": "録画設定",
+   "nl": "Recording settings",
+   "de": "Recording settings",
+   "es": "Recording settings",
+   "fr": "Recording settings",
+   "it": "Recording settings",
+   "pt-BR": "Recording settings",
+   "tr": "Recording settings",
+   "ar": "Recording settings",
+   "pl": "Recording settings",
+   "ru": "Recording settings"
   },
   {
    "zh": "录制转换着色器加载失败",
@@ -29444,6 +29580,23 @@
    "ar": "ترجمة",
    "pl": "Otwórz dekoder podtytułu",
    "ru": "Открытый декодер субтитров"
+  },
+  {
+   "zh": "打开录制文件夹",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "開啟錄製資料夾",
+   "en": "Open recordings folder",
+   "ja": "録画フォルダーを開く",
+   "nl": "Open recordings folder",
+   "de": "Open recordings folder",
+   "es": "Open recordings folder",
+   "fr": "Open recordings folder",
+   "it": "Open recordings folder",
+   "pt-BR": "Open recordings folder",
+   "tr": "Open recordings folder",
+   "ar": "Open recordings folder",
+   "pl": "Open recordings folder",
+   "ru": "Open recordings folder"
   },
   {
    "zh": "打开接口说明",
@@ -38100,6 +38253,23 @@
    "ru": "Запуск захвата экрана…"
   },
   {
+   "zh": "正在录制 %1",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "正在錄製 %1",
+   "en": "Recording %1",
+   "ja": "録画中 %1",
+   "nl": "Recording %1",
+   "de": "Recording %1",
+   "es": "Recording %1",
+   "fr": "Recording %1",
+   "it": "Recording %1",
+   "pt-BR": "Recording %1",
+   "tr": "Recording %1",
+   "ar": "Recording %1",
+   "pl": "Recording %1",
+   "ru": "Recording %1"
+  },
+  {
    "zh": "正在录制 %1 秒的对比片段：左边是主机原本的帧率，右边是 PushFPS",
    "src": "src/ui/bridge/PushFps.cpp",
    "zh-TW": "正在錄製 %1 秒的對比片段：左邊是主機原本的幀率，右邊是 PushFPS",
@@ -38149,6 +38319,23 @@
    "ar": "جارٍ التسجيل…",
    "pl": "Nagrywanie…",
    "ru": "Идёт запись…"
+  },
+  {
+   "zh": "正在录制对比片段…",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "正在錄製對比片段…",
+   "en": "Recording a comparison clip…",
+   "ja": "比較クリップを録画中…",
+   "nl": "Recording a comparison clip…",
+   "de": "Recording a comparison clip…",
+   "es": "Recording a comparison clip…",
+   "fr": "Recording a comparison clip…",
+   "it": "Recording a comparison clip…",
+   "pt-BR": "Recording a comparison clip…",
+   "tr": "Recording a comparison clip…",
+   "ar": "Recording a comparison clip…",
+   "pl": "Recording a comparison clip…",
+   "ru": "Recording a comparison clip…"
   },
   {
    "zh": "正在恢复",
@@ -50270,6 +50457,23 @@
    "ar": "تم إنقاذ (ستينغز) أعيدوا تطبيقهم إعادة التشغيل الآن؟ العزف الحالي أو التصفيق سيتوقف",
    "pl": "Ustawienia zapisane. Przywróć je. Teraz? Bieżące odtwarzanie lub strumieniowanie ustanie.",
    "ru": "Настройки сохранены. Перезагрузите, чтобы применить их. Перезапустить сейчас? Текущее воспроизведение или потоковая передача прекратится."
+  },
+  {
+   "zh": "设置并录制",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "設定並錄製",
+   "en": "Set up and record",
+   "ja": "設定して録画",
+   "nl": "Set up and record",
+   "de": "Set up and record",
+   "es": "Set up and record",
+   "fr": "Set up and record",
+   "it": "Set up and record",
+   "pt-BR": "Set up and record",
+   "tr": "Set up and record",
+   "ar": "Set up and record",
+   "pl": "Set up and record",
+   "ru": "Set up and record"
   },
   {
    "zh": "设置应用失败，已恢复上一套参数",

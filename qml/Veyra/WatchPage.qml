@@ -15,6 +15,8 @@ import "EffectSupport.js" as Support
 VPage {
     id: watch
     signal requestPage(string page)
+    // Opens Settings at a row (Main.qml: section, then scrolls to the objectName).
+    signal requestSettings(string section, string row)
     readonly property bool compact: width < 980
     readonly property int margin: 12
     readonly property int bodyTop: 56
@@ -59,6 +61,26 @@ VPage {
         } else if ((veyra.nrLayers || []).length > 0) veyra.setAllNrEnabled(false)
     }
     onCurrentChanged: if (current) veyra.refreshCaptureTargets()
+
+    // Recording, as in Professional mode: the same recorder, instant replay and comparison clips
+    // (dialog "compare", same layouts and lengths); the options are the shared recording settings.
+    readonly property bool compareRecording: veyra.recording && veyra.recordingState.compare === true
+    readonly property bool recordSaving: !veyra.recording && !!(veyra.recordingState && veyra.recordingState.finishing)
+    readonly property string recordElapsed: {
+        const total = Math.max(0, Math.floor((veyra.recordingState && veyra.recordingState.seconds) || 0))
+        const h = Math.floor(total / 3600), m = Math.floor(total / 60) % 60, sec = total % 60
+        const two = n => (n < 10 ? "0" : "") + n
+        return h > 0 ? h + ":" + two(m) + ":" + two(sec) : two(m) + ":" + two(sec)
+    }
+    readonly property int replayHeld: Math.max(0, (veyra.replayState && veyra.replayState.seconds) || 0)
+    readonly property int clipSeconds: {
+        const n = Number(veyra.preferences.pushCompareSeconds || 15)
+        return [10, 15, 30, 60].indexOf(n) >= 0 ? n : 15
+    }
+    readonly property string clipLayout: {
+        const n = Number(veyra.preferences.pushCompareLayout || 0)
+        return n === 2 ? qsTr("竖屏") : n === 1 ? qsTr("并排") : qsTr("分屏")
+    }
 
     RowLayout {
         x: watch.margin; y: 12; width: parent.width - 2 * watch.margin; height: 32
@@ -224,11 +246,102 @@ VPage {
                     color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 11
                     wrapMode: Text.WordWrap
                 }
+                VButton { objectName: "watch-pro"; Layout.fillWidth: true; ghost: true; iconName: "sliders"; text: qsTr("专业模式"); onClicked: watch.requestPage("pro") }
+
+                Text {
+                    Layout.topMargin: 8
+                    text: qsTr("3. 录制")
+                    color: Theme.t1; font.family: Theme.fontUi; font.pixelSize: 14
+                    font.weight: Font.DemiBold; font.variableAxes: Theme.axesDemiBold
+                }
+                VGroup {
+                    VRow {
+                        objectName: "watch-record-row"
+                        label: qsTr("录制")
+                        hint: watch.compareRecording ? qsTr("正在录制对比片段…")
+                            : veyra.recording ? qsTr("正在录制 %1").arg(watch.recordElapsed)
+                            : watch.recordSaving ? qsTr("保存中…")
+                            : !veyra.hasSource ? qsTr("需要正在播放的画面") : qsTr("录下处理后的画面和声音")
+                        VButton {
+                            objectName: "watch-record"
+                            iconName: "video"
+                            text: veyra.recording ? qsTr("停止 %1").arg(watch.recordElapsed) : watch.recordSaving ? qsTr("保存中…") : qsTr("录制")
+                            enabled: veyra.recording || (veyra.hasSource && !watch.recordSaving)
+                            onClicked: veyra.toggleRecording("watch")
+                        }
+                    }
+                    VRow {
+                        objectName: "watch-compare-row"
+                        label: qsTr("对比片段")
+                        help: qsTr("录制前后对比视频：一边是视频原本的帧率，一边是 PushFPS。可选分屏、并排或竖屏（TikTok、Shorts、Reels），以及时长")
+                        hint: watch.compareRecording ? qsTr("正在录制…") : veyra.recording ? qsTr("录制中不可用")
+                            : qsTr("%1 秒").arg(watch.clipSeconds) + " · " + watch.clipLayout
+                        VButton {
+                            objectName: "watch-compare"
+                            iconName: "split"
+                            text: watch.compareRecording ? qsTr("停止") : qsTr("设置并录制")
+                            enabled: watch.compareRecording || !veyra.recording
+                            onClicked: watch.compareRecording ? veyra.stopRecording("watch-compare") : veyra.navigate("compare")
+                        }
+                    }
+                    VRow {
+                        objectName: "watch-replay-row"
+                        label: qsTr("即时回放")
+                        help: qsTr("一直保留最近的画面和声音，按下保存时写成视频文件")
+                        hint: veyra.replayEnabled ? qsTr("保存最近的画面和声音（%1）").arg(veyra.shortcuts.replay || qsTr("未设置快捷键")) : qsTr("关闭")
+                        RowLayout {
+                            spacing: 8
+                            VButton {
+                                objectName: "watch-replay-save"
+                                visible: veyra.replayEnabled
+                                iconName: "clock"
+                                text: veyra.replayState && veyra.replayState.saving ? qsTr("保存中…")
+                                    : qsTr("回放 %1").arg(Math.floor(watch.replayHeld / 60) + ":" + (watch.replayHeld % 60 < 10 ? "0" : "") + watch.replayHeld % 60)
+                                enabled: !(veyra.replayState && veyra.replayState.saving) && watch.replayHeld > 0
+                                onClicked: veyra.saveReplay("watch")
+                            }
+                            VSwitch {
+                                objectName: "watch-replay"
+                                checked: veyra.replayEnabled === true
+                                onToggled: checked => veyra.setPreference("replayEnabled", checked)
+                            }
+                        }
+                    }
+                    VRow {
+                        objectName: "watch-recaudio-row"
+                        label: qsTr("录制声音")
+                        VSwitch {
+                            objectName: "watch-recaudio"
+                            checked: veyra.recordingAudio === true
+                            onToggled: checked => veyra.setPreference("recordAudio", checked)
+                        }
+                    }
+                    VRow {
+                        objectName: "watch-recmic-row"
+                        label: qsTr("录制麦克风")
+                        VSwitch {
+                            objectName: "watch-recmic"
+                            checked: veyra.recordingMicrophone === true
+                            onToggled: checked => { veyra.setPreference("recordMic", checked); if (checked) veyra.refreshMicrophones() }
+                        }
+                    }
+                }
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 8
-                    VButton { objectName: "watch-pro"; Layout.fillWidth: true; ghost: true; iconName: "sliders"; text: qsTr("专业模式"); onClicked: watch.requestPage("pro") }
-                    VButton { objectName: "watch-record"; Layout.fillWidth: true; ghost: true; iconName: "video"; text: veyra.recording ? qsTr("停止录制") : qsTr("录制"); enabled: veyra.recording || veyra.hasSource; onClicked: veyra.toggleRecording("watch") }
+                    VButton {
+                        objectName: "watch-record-settings"
+                        Layout.fillWidth: true; ghost: true; iconName: "settings"
+                        text: qsTr("录制设置")
+                        tip: qsTr("保存位置、尺寸、码率、帧率、编码和高级选项，与专业模式相同")
+                        onClicked: watch.requestSettings("play", "set-recording")
+                    }
+                    VButton {
+                        objectName: "watch-record-folder"
+                        Layout.fillWidth: true; ghost: true; iconName: "folder"
+                        text: qsTr("打开录制文件夹")
+                        onClicked: veyra.openRecordingDirectory()
+                    }
                 }
             }
         }
