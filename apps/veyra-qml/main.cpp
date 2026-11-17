@@ -608,6 +608,19 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
             GetModuleHandleW(L"RTSSHooks64.dll") != nullptr, overlayCompatAuto ? "auto" : "off", gpuD3d12 ? "off (GPU interface)" : "on"));
         veyra::log::info("app", std::format("NVIDIA overlay running={} GamePP running={} Douyin companion running={} interface={}", nvidiaOverlay, gamePP, douyin, softwareUi ? "software" : "GPU"));
     }
+    {
+        // PushFPS: NVIDIA VFG on RTX 30 runs retargeted CUDA kernels (VfgAmpereCompat.cpp) that the
+        // driver compiles from PTX when they load. A hang dump from 2026-11-16 (engine frozen, one
+        // thread inside nvptxJitCompiler64.dll) showed that compile stalling the picture. The driver
+        // keeps compiled kernels in its compute cache, but the default size is too small for these
+        // models, so they were compiled again in later sessions. Raise the cache to its 4 GiB
+        // maximum (only when the user has not set it) and never let it be disabled for us.
+        wchar_t value[32]{};
+        if (GetEnvironmentVariableW(L"CUDA_CACHE_MAXSIZE", value, 32) == 0) SetEnvironmentVariableW(L"CUDA_CACHE_MAXSIZE", L"4294967296");
+        if (GetEnvironmentVariableW(L"CUDA_CACHE_DISABLE", value, 32) > 0 && wcscmp(value, L"0") != 0) SetEnvironmentVariableW(L"CUDA_CACHE_DISABLE", nullptr);
+        GetEnvironmentVariableW(L"CUDA_CACHE_MAXSIZE", value, 32);
+        veyra::log::info("app", std::format("CUDA compute cache maxSize={} (compiled VFG kernels are kept between sessions)", std::string(value, value + wcslen(value))));
+    }
     QApplication app(argc, argv);
     // Qt does not automatically use the executable's Win32 icon for its windows.
     // Load the same embedded multi-size resource for the taskbar and Alt+Tab.
