@@ -1657,13 +1657,26 @@ VPage {
                     VGroup {
                         VRow {
                             label: qsTr("检查更新")
-                            hint: veyra.updates.latestVersion.length > 0
-                                  ? qsTr("发现新版本 %1").arg(veyra.updates.latestVersion)
+                            // PushFPS signed updates (UpdateVerify.h): one click when the release is signed.
+                            hint: veyra.updates.installState === "downloading" ? qsTr("正在下载更新… %1%").arg(Math.round(veyra.updates.installProgress * 100))
+                                  : veyra.updates.installState === "verifying" ? qsTr("正在验证签名…")
+                                  : veyra.updates.installState === "installing" ? qsTr("签名和校验通过，正在启动安装程序；PushFPS 会自动关闭并重新打开")
+                                  : veyra.updates.latestVersion.length > 0
+                                  ? (veyra.updates.canInstall ? qsTr("发现新版本 %1，已签名，可以一键安装").arg(veyra.updates.latestVersion)
+                                                              : qsTr("发现新版本 %1").arg(veyra.updates.latestVersion))
                                   : qsTr("启动时自动检查，有更新时提示")
                             VButton {
                                 text: veyra.updates.checking ? qsTr("检查中…") : qsTr("检查")
                                 enabled: !veyra.updates.checking
                                 onClicked: veyra.updates.check(true)
+                            }
+                            VButton {
+                                objectName: "about-install-update"
+                                visible: veyra.updates.latestVersion.length > 0 && veyra.updates.canInstall
+                                primary: true
+                                enabled: ["downloading", "verifying", "installing"].indexOf(veyra.updates.installState) < 0
+                                text: qsTr("安装更新")
+                                onClicked: veyra.updates.installUpdate()
                             }
                             VButton {
                                 visible: veyra.updates.latestVersion.length > 0

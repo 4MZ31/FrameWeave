@@ -24,7 +24,10 @@ param(
     # Ask (default): a question when run in a console window; No when there is no one to ask.
     [ValidateSet('Ask', 'Yes', 'No')]
     [string]$ExperimentalExtras = 'Ask',
-    [switch]$Uninstall
+    [switch]$Uninstall,
+    # Signed in-app updates (src/ui/UpdateChecker.cpp): the running PushFPS that started this
+    # installer; it quits right after, and the copy waits until it has (at most a minute).
+    [int]$WaitForPid = 0
 )
 
 $ErrorActionPreference = 'Stop'
@@ -172,6 +175,10 @@ try {
     foreach ($item in $skipped) { Info "Not installed: $item" }
 
     Step "Installing to $InstallDir"
+    if ($WaitForPid -gt 0) {
+        $old = Get-Process -Id $WaitForPid -ErrorAction SilentlyContinue
+        if ($old) { Info 'Waiting for PushFPS to close'; $old.WaitForExit(60000) | Out-Null }
+    }
     $running = Get-Process -Name 'PushFPS' -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($InstallDir, [StringComparison]::OrdinalIgnoreCase) }
     if ($running) { Fail 'PushFPS is running. Close it, then run the installer again.' }
     New-Item -ItemType Directory -Force $InstallDir | Out-Null

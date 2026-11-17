@@ -1,5 +1,7 @@
 // QML bridge: Core responsibilities.
 #include "QmlPlayerBridge_p.h"
+#include <QCoreApplication>
+#include <QTimer>
 #include "veyra/engine/PushStreamOverlay.h"
 #include "veyra/engine/MicrophoneCapture.h"
 #include "veyra/ui/NvidiaVrrProfileController.h"
@@ -71,6 +73,10 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     auto* checker = new UpdateChecker(version(), this);
     updates_ = checker;
     connect(checker, &UpdateChecker::notice, this, &QmlPlayerBridge::notice);
+    // PushFPS signed updates: the verified installer is running; it waits for this process to exit.
+    connect(checker, &UpdateChecker::quitForUpdate, this, [] {
+        QTimer::singleShot(400, qApp, [] { QCoreApplication::quit(); });
+    });
     impl_->playlist = new PlaylistModel(utf8Of((impl_->dataDir / L"playlist.v1.json").wstring()), this);
     connect(impl_->playlist, &PlaylistModel::playRequested, this, [this](const QString& path) {
         openPath(path);

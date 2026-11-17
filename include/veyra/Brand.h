@@ -20,6 +20,12 @@ inline constexpr const char* kReleasesUrl = "https://github.com/DosukaSOL/PushFP
 inline constexpr const char* kLatestReleaseApi = "https://api.github.com/repos/DosukaSOL/PushFPS/releases/latest";
 inline constexpr const char* kReleaseTagPathPrefix = "/DosukaSOL/PushFPS/releases/tag/";
 
+// Signed updates (ui/UpdateVerify.h): the public half of the key that signs each release's
+// SHA256SUMS.txt in CI (repository secret UPDATE_SIGNING_KEY, scripts/release/publish.sh). Empty
+// until the owner's key is set: the app then only opens the release page, never installs.
+inline constexpr const char* kUpdatePublicKeyPem = "";
+inline constexpr const char* kReleaseDownloadPathPrefix = "/DosukaSOL/PushFPS/releases/download/";
+
 // The project PushFPS is built on; shown in About and the README credits.
 inline constexpr const char* kUpstreamName = "Veyra";
 inline constexpr const char* kUpstreamUrl = "https://github.com/Likely7/Veyra-NRVideo";

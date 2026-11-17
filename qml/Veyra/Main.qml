@@ -844,7 +844,9 @@ Window {
         anchors.topMargin: 12
         anchors.horizontalCenter: parent.horizontalCenter
         width: Math.min(500, root.width - 32)
-        onOpenRequested: veyra.updates.openRelease()
+        installable: veyra.updates.canInstall
+        // Signed releases install in one click (UpdateChecker::installUpdate); others open the release page.
+        onOpenRequested: veyra.updates.canInstall ? veyra.updates.installUpdate() : veyra.updates.openRelease()
     }
     Connections {
         target: veyra.updates
