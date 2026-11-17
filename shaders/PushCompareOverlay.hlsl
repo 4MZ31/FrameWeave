@@ -12,7 +12,7 @@ RWTexture2D<float> outY : register(u0);
 RWTexture2D<float2> outUv : register(u1);
 cbuffer Constants : register(b0) {
     uint x0, y0, w, h; // badge place in the picture (even) and size
-    uint hdr, pad0, pad1, pad2;
+    uint hdr; float fade; uint pad1, pad2; // fade: 1 - opacity (scene transitions; 0 = opaque)
 };
 float3 coded(float3 srgb) {
     if (hdr) {
@@ -32,7 +32,8 @@ void main(uint3 id : SV_DispatchThreadID) {
     const uint2 p = uint2(x0, y0) + id.xy;
     const float4 o = overlay[id.xy];
     float luma = bgY[id.xy];
-    if (o.a > 0) luma = lerp(luma, coded(saturate(o.rgb)).x, o.a);
+    const float keep = saturate(1.0 - fade);
+    if (o.a > 0) luma = lerp(luma, coded(saturate(o.rgb)).x, o.a * keep);
     outY[p] = codes(luma);
     if ((id.x & 1) != 0 || (id.y & 1) != 0) return;
     // Chroma: the 2x2 badge pixels it covers, colour weighted by alpha.
@@ -45,6 +46,6 @@ void main(uint3 id : SV_DispatchThreadID) {
             alpha += t.a;
         }
     float2 chroma = bgUv[id.xy / 2];
-    if (alpha > 0) chroma = lerp(chroma, coded(saturate(sum / alpha)).yz, alpha * 0.25);
+    if (alpha > 0) chroma = lerp(chroma, coded(saturate(sum / alpha)).yz, alpha * 0.25 * keep);
     outUv[p / 2] = float2(codes(chroma.x), codes(chroma.y));
 }

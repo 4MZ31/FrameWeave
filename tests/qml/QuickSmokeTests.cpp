@@ -206,7 +206,8 @@ QtObject {
     function pushStopStream() { streamStops++; streamState = ({active: false, live: false, outputs: []}) }
     function pushStreamStatus() { return streamState }
     // PushFPS streaming mode (tst_push_studio.qml): mixer meters, recording and monitor controls.
-    property var studioLevels: ({gamePeakDb: -100, gameRmsDb: -100, micPeakDb: -100, micRmsDb: -100, micOpen: false, micDevice: "", micError: ""})
+    property var studioLevels: ({gamePeakDb: -100, gameRmsDb: -100, micPeakDb: -100, micRmsDb: -100, micOpen: false, micDevice: "", micError: "",
+                                  desktopPeakDb: -100, desktopRmsDb: -100, desktopOpen: false, desktopError: "", auxPeakDb: -100, auxRmsDb: -100, auxOpen: false, auxDevice: "", auxError: ""})
     property bool studioMeters: false
     property int studioMeterCalls: 0
     function pushStudioLevels() { return studioLevels }
@@ -234,6 +235,19 @@ QtObject {
     function pushSetStreamScene(scene) { lastScene = scene; sceneCalls++; return true }
     property string pickedImage: ""
     function pushPickImage() { return pickedImage }
+    // Streaming mode sources (webcam, window, video file).
+    property var cameras: [{id: "cam1", name: "USB Webcam"}]
+    property var windowList: [{id: "4242", name: "Chat - Browser"}]
+    property string pickedMedia: ""
+    property var lastSources: []
+    property int sourceCalls: 0
+    property var sourceStatus: []
+    function pushCameras() { return cameras }
+    function pushWindows() { return windowList }
+    function pushPickMedia() { return pickedMedia }
+    function pushSetSceneSources(list) { lastSources = list; sourceCalls++ }
+    function pushSourceStatus() { return sourceStatus }
+    function pushSourcePreview(id) { return "" }
     property var screenOptions: ({kind: 0, passthrough: false, method: 0, fps: 0, cursor: true, left: 0, top: 0, right: 0, bottom: 0, fill: false})
     property var screenTargets: [{id: "w1", label: "Browser - YouTube"}]
     property string screenTargetId: "w1"

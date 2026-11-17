@@ -12,6 +12,13 @@
 // hear yourself, Veyra's own volume). The microphone's gear opens its filters (PushMicFiltersDialog:
 // rumble filter, EQ, noise gate, compressor). While this page is on screen the meters keep the
 // game sound tap open, and the microphone too when recordings or streams use it.
+// Desktop audio (everything Windows plays except PushFPS) and an extra input (a second microphone,
+// a line-in) have their own strips (engine/PushAuxAudio.h).
+//
+// Sources (engine/PushLayerSources.h): a scene can add up to four webcams, windows or looping video
+// files in a corner or the middle, at a size, with rounded corners or a circle. They run while this
+// page is on screen or a recording or stream is going, so a camera is not on while you just play.
+// Scene changes cut or fade (pref studioTransitionMs).
 // Geometry: StudioLayout.js, also used by Main.qml to place the native video window.
 import QtQuick
 import QtQuick.Controls
@@ -42,6 +49,10 @@ VPage {
     property real gamePeak: -100
     property real micRms: -100
     property real micPeak: -100
+    property real desktopRms: -100
+    property real desktopPeak: -100
+    property real auxRms: -100
+    property real auxPeak: -100
     property double lastTick: 0
 
     function poll() {
@@ -54,14 +65,19 @@ VPage {
         studio.gamePeak = StudioGeometry.fall(studio.gamePeak, Number(l.gamePeakDb ?? -100), dt, 24)
         studio.micRms = StudioGeometry.fall(studio.micRms, Number(l.micRmsDb ?? -100), dt, 24)
         studio.micPeak = StudioGeometry.fall(studio.micPeak, Number(l.micPeakDb ?? -100), dt, 24)
+        studio.desktopRms = StudioGeometry.fall(studio.desktopRms, Number(l.desktopRmsDb ?? -100), dt, 24)
+        studio.desktopPeak = StudioGeometry.fall(studio.desktopPeak, Number(l.desktopPeakDb ?? -100), dt, 24)
+        studio.auxRms = StudioGeometry.fall(studio.auxRms, Number(l.auxRmsDb ?? -100), dt, 24)
+        studio.auxPeak = StudioGeometry.fall(studio.auxPeak, Number(l.auxPeakDb ?? -100), dt, 24)
     }
     function pollSlow() {
         studio.stream = veyra.pushStreamStatus() || ({})
         studio.stats = veyra.pushLiveStats() || ({})
+        studio.sourceStatus = veyra.pushSourceStatus() || []
     }
     function meters(on) {
         veyra.pushSetStudioMeters(on)
-        if (!on) { studio.gameRms = studio.gamePeak = studio.micRms = studio.micPeak = -100 }
+        if (!on) { studio.gameRms = studio.gamePeak = studio.micRms = studio.micPeak = -100; studio.desktopRms = studio.desktopPeak = studio.auxRms = studio.auxPeak = -100 }
     }
     onCurrentChanged: {
         if (current) { veyra.refreshMicrophones(); studio.pollSlow(); studio.lastTick = 0 }
@@ -110,6 +126,7 @@ VPage {
         if (scene.type === "card") veyra.setPreference("mixGameMuted", scene.muteGame !== false ? true : studio.muteBeforeCard)
         else if (wasCard) veyra.setPreference("mixGameMuted", studio.muteBeforeCard)
         studio.activeScene = id
+        studio.applySources()
         veyra.logUi("push-studio", "scene " + id + " (" + scene.type + ")")
     }
     function addScene(type) {
@@ -134,6 +151,59 @@ VPage {
         studio.saveScenes(studio.scenes.filter(x => x.id !== id))
         return true
     }
+    // --- sources (PushLayerSources.h): webcams, windows and video files in a scene ----------------
+    // scene.sources: [{id, kind: "camera"|"window"|"media", target, name, corner, size, shape, mirror, loop}].
+    property var sourceStatus: []
+    property string editingSource: ""
+    // Sources run while this page is on screen or something records or streams.
+    readonly property bool sourcesActive: studio.current || studio.recordingNow || studio.live
+    onSourcesActiveChanged: studio.applySources()
+    function applySources() {
+        const scene = studio.sceneById(studio.activeScene)
+        veyra.pushSetSceneSources(studio.sourcesActive && scene && Array.isArray(scene.sources) ? scene.sources : [])
+    }
+    function statusOf(id) { return studio.sourceStatus.find(x => x.id === id) || null }
+    function addSource(kind) {
+        const scene = studio.sceneById(studio.editingScene)
+        if (!scene) return false
+        const list = Array.isArray(scene.sources) ? scene.sources.slice() : []
+        if (list.length >= 4) return false
+        let target = "", name = ""
+        if (kind === "camera") {
+            const cams = veyra.pushCameras() || []
+            if (cams.length === 0) { studio.sourceNote = qsTr("没有找到摄像头"); return false }
+            target = cams[0].id; name = cams[0].name
+        } else if (kind === "window") {
+            const wins = veyra.pushWindows() || []
+            if (wins.length === 0) { studio.sourceNote = qsTr("没有可用的窗口"); return false }
+            target = wins[0].id; name = wins[0].name
+        } else {
+            target = veyra.pushPickMedia()
+            if (!target) return false
+            name = target.split(/[\\/]/).pop()
+        }
+        studio.sourceNote = ""
+        const id = "src" + Date.now().toString(36)
+        list.push({ id: id, kind: kind, target: target, name: name, corner: kind === "camera" ? "br" : "tr",
+                    size: kind === "camera" ? 0.24 : 0.3, shape: kind === "camera" ? "round" : "rect", mirror: false, loop: true })
+        studio.updateScene(scene.id, { sources: list })
+        studio.editingSource = id
+        return true
+    }
+    function updateSource(sourceId, changes) {
+        const scene = studio.sceneById(studio.editingScene)
+        if (!scene || !Array.isArray(scene.sources)) return
+        studio.updateScene(scene.id, { sources: scene.sources.map(x => x.id === sourceId ? Object.assign({}, x, changes) : x) })
+    }
+    function removeSource(sourceId) {
+        const scene = studio.sceneById(studio.editingScene)
+        if (!scene || !Array.isArray(scene.sources)) return
+        studio.updateScene(scene.id, { sources: scene.sources.filter(x => x.id !== sourceId) })
+        if (studio.editingSource === sourceId) studio.editingSource = ""
+    }
+    property string sourceNote: ""
+    // Scene transitions: cut, fade or slow fade (pref studioTransitionMs).
+    readonly property int transitionMs: Number(veyra.preferences.studioTransitionMs ?? 300)
     // Starts on the game scene: a card left on from a previous session never surprises a new stream.
     Component.onCompleted: Qt.callLater(() => { const g = studio.scenes.find(x => x.type === "game"); if (g) veyra.pushSetStreamScene(g) })
     Repeater {
@@ -356,6 +426,18 @@ VPage {
                     VButton { objectName: "studio-add-game-scene"; Layout.fillWidth: true; ghost: true; iconName: "plus"; text: qsTr("画面场景"); onClicked: studio.addScene("game") }
                     VButton { objectName: "studio-add-card-scene"; Layout.fillWidth: true; ghost: true; iconName: "plus"; text: qsTr("图卡场景"); onClicked: studio.addScene("card") }
                 }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+                    FieldLabel { text: qsTr("转场") }
+                    VSeg {
+                        objectName: "studio-transition"
+                        Layout.fillWidth: true
+                        options: [{ id: "0", label: qsTr("切换") }, { id: "300", label: qsTr("淡入淡出") }, { id: "800", label: qsTr("慢速淡入") }]
+                        current: studio.transitionMs <= 0 ? "0" : studio.transitionMs >= 600 ? "800" : "300"
+                        onPicked: id => veyra.setPreference("studioTransitionMs", Number(id))
+                    }
+                }
                 // The scene editor, under the list while a scene is being edited.
                 Rectangle {
                     id: editor
@@ -431,6 +513,154 @@ VPage {
                             options: [{ id: "tl", label: qsTr("左上") }, { id: "tr", label: qsTr("右上") }, { id: "bl", label: qsTr("左下") }, { id: "br", label: qsTr("右下") }]
                             current: editor.scene ? (editor.scene.corner || "tr") : "tr"
                             onPicked: id => { if (editor.scene) studio.updateScene(editor.scene.id, { corner: id }) }
+                        }
+                        // Sources: webcams, windows and video files over the picture.
+                        FieldLabel { Layout.topMargin: 4; text: qsTr("来源（摄像头、窗口、视频）") }
+                        Repeater {
+                            model: editor.scene && Array.isArray(editor.scene.sources) ? editor.scene.sources : []
+                            delegate: Rectangle {
+                                id: sourceRow
+                                required property var modelData
+                                objectName: "studio-source-" + modelData.id
+                                readonly property var status: studio.statusOf(modelData.id)
+                                readonly property bool open: studio.editingSource === modelData.id
+                                Layout.fillWidth: true
+                                implicitHeight: sourceColumn.implicitHeight + 12
+                                radius: 6
+                                color: Theme.ink(0.03)
+                                border.width: 1
+                                border.color: open ? Theme.stroke2 : Theme.stroke
+                                ColumnLayout {
+                                    id: sourceColumn
+                                    x: 8; y: 6; width: parent.width - 16
+                                    spacing: 6
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 6
+                                        VIcon { name: sourceRow.modelData.kind === "camera" ? "camera" : sourceRow.modelData.kind === "window" ? "monitor" : "video"; size: 13; color: Theme.t2 }
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 0
+                                            Text {
+                                                Layout.fillWidth: true
+                                                text: String(sourceRow.modelData.name || "")
+                                                color: Theme.t1; font.family: Theme.fontUi; font.pixelSize: 12
+                                                elide: Text.ElideRight
+                                            }
+                                            Text {
+                                                Layout.fillWidth: true
+                                                visible: studio.sourcesActive
+                                                text: !sourceRow.status ? qsTr("正在启动…")
+                                                    : String(sourceRow.status.error || "").length ? String(sourceRow.status.error)
+                                                    : sourceRow.status.running ? qsTr("%1×%2 · %3 FPS").arg(sourceRow.status.width).arg(sourceRow.status.height).arg(Math.round(Number(sourceRow.status.fps || 0)))
+                                                    : qsTr("正在启动…")
+                                                color: sourceRow.status && String(sourceRow.status.error || "").length ? Theme.err : Theme.t3
+                                                font.family: Theme.fontUi; font.pixelSize: 10
+                                                elide: Text.ElideRight
+                                            }
+                                        }
+                                        VButton {
+                                            icon: true; ghost: true; iconName: "settings"
+                                            tip: qsTr("位置和外观")
+                                            onClicked: studio.editingSource = sourceRow.open ? "" : sourceRow.modelData.id
+                                        }
+                                        VButton {
+                                            objectName: "source-remove-" + sourceRow.modelData.id
+                                            icon: true; ghost: true; iconName: "x"
+                                            tip: qsTr("移除来源")
+                                            onClicked: studio.removeSource(sourceRow.modelData.id)
+                                        }
+                                    }
+                                    // Settings, while open.
+                                    VSelect {
+                                        objectName: "source-target"
+                                        visible: sourceRow.open && sourceRow.modelData.kind !== "media"
+                                        Layout.fillWidth: true
+                                        readonly property var choices: !sourceRow.open ? [] : (sourceRow.modelData.kind === "camera" ? veyra.pushCameras() : veyra.pushWindows()) || []
+                                        options: choices.map(c => ({ id: c.id, label: c.name }))
+                                        value: String(sourceRow.modelData.name || "")
+                                        onPicked: id => { const c = choices.find(x => x.id === id); if (c) studio.updateSource(sourceRow.modelData.id, { target: c.id, name: c.name }) }
+                                    }
+                                    Image {
+                                        visible: sourceRow.open && source !== ""
+                                        Layout.alignment: Qt.AlignHCenter
+                                        Layout.preferredWidth: Math.min(200, sourceColumn.width)
+                                        Layout.preferredHeight: visible ? Layout.preferredWidth * 9 / 16 : 0
+                                        fillMode: Image.PreserveAspectFit
+                                        cache: false
+                                        source: ""
+                                        Timer {
+                                            interval: 500; repeat: true; triggeredOnStart: true
+                                            running: sourceRow.open && studio.sourcesActive
+                                            onTriggered: parent.source = veyra.pushSourcePreview(sourceRow.modelData.id)
+                                        }
+                                    }
+                                    VSeg {
+                                        objectName: "source-corner"
+                                        visible: sourceRow.open
+                                        Layout.fillWidth: true
+                                        options: [{ id: "tl", label: qsTr("左上") }, { id: "tr", label: qsTr("右上") }, { id: "c", label: qsTr("中间") }, { id: "bl", label: qsTr("左下") }, { id: "br", label: qsTr("右下") }]
+                                        current: String(sourceRow.modelData.corner || "br")
+                                        onPicked: id => studio.updateSource(sourceRow.modelData.id, { corner: id })
+                                    }
+                                    RowLayout {
+                                        visible: sourceRow.open
+                                        Layout.fillWidth: true
+                                        spacing: 8
+                                        FieldLabel { text: qsTr("大小") }
+                                        VSlider {
+                                            objectName: "source-size"
+                                            Layout.fillWidth: true
+                                            from: 0.1; to: 1; stepSize: 0.01
+                                            value: Number(sourceRow.modelData.size ?? 0.25)
+                                            onMoved: v => studio.updateSource(sourceRow.modelData.id, { size: Math.round(v * 100) / 100 })
+                                        }
+                                        Text { text: Math.round(Number(sourceRow.modelData.size ?? 0.25) * 100) + "%"; color: Theme.t3; font.family: Theme.fontMono; font.pixelSize: 10 }
+                                    }
+                                    VSeg {
+                                        objectName: "source-shape"
+                                        visible: sourceRow.open
+                                        Layout.fillWidth: true
+                                        options: [{ id: "rect", label: qsTr("方形") }, { id: "round", label: qsTr("圆角") }, { id: "circle", label: qsTr("圆形") }]
+                                        current: String(sourceRow.modelData.shape || "rect")
+                                        onPicked: id => studio.updateSource(sourceRow.modelData.id, { shape: id })
+                                    }
+                                    RowLayout {
+                                        visible: sourceRow.open && sourceRow.modelData.kind === "camera"
+                                        Layout.fillWidth: true
+                                        Text { Layout.fillWidth: true; text: qsTr("镜像"); color: Theme.t2; font.family: Theme.fontUi; font.pixelSize: 12 }
+                                        VSwitch {
+                                            objectName: "source-mirror"
+                                            checked: sourceRow.modelData.mirror === true
+                                            onToggled: v => studio.updateSource(sourceRow.modelData.id, { mirror: v })
+                                        }
+                                    }
+                                    RowLayout {
+                                        visible: sourceRow.open && sourceRow.modelData.kind === "media"
+                                        Layout.fillWidth: true
+                                        Text { Layout.fillWidth: true; text: qsTr("循环播放"); color: Theme.t2; font.family: Theme.fontUi; font.pixelSize: 12 }
+                                        VSwitch {
+                                            checked: sourceRow.modelData.loop !== false
+                                            onToggled: v => studio.updateSource(sourceRow.modelData.id, { loop: v })
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+                            readonly property bool full: editor.scene && Array.isArray(editor.scene.sources) && editor.scene.sources.length >= 4
+                            VButton { objectName: "source-add-camera"; Layout.fillWidth: true; ghost: true; iconName: "camera"; text: qsTr("摄像头"); enabled: !parent.full; maxTextWidth: 70; onClicked: studio.addSource("camera") }
+                            VButton { objectName: "source-add-window"; Layout.fillWidth: true; ghost: true; iconName: "monitor"; text: qsTr("窗口"); enabled: !parent.full; maxTextWidth: 70; onClicked: studio.addSource("window") }
+                            VButton { objectName: "source-add-media"; Layout.fillWidth: true; ghost: true; iconName: "video"; text: qsTr("视频"); enabled: !parent.full; maxTextWidth: 70; onClicked: studio.addSource("media") }
+                        }
+                        Text {
+                            visible: studio.sourceNote.length > 0
+                            Layout.fillWidth: true
+                            text: studio.sourceNote
+                            color: Theme.warn; font.family: Theme.fontUi; font.pixelSize: 11
+                            wrapMode: Text.WordWrap
                         }
                         RowLayout {
                             visible: editor.scene && editor.scene.type === "card"
@@ -569,6 +799,12 @@ VPage {
                     elide: Text.ElideRight
                 }
             }
+            GridLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                columns: 2
+                columnSpacing: 8
+                rowSpacing: 6
             PushMixerStrip {
                 objectName: "mixer-game"
                 Layout.fillWidth: true
@@ -638,6 +874,68 @@ VPage {
                 meterActive: false
                 onMoved: v => veyra.volume = v
                 onMuteToggled: veyra.muted = !veyra.muted
+            }
+            // Desktop audio: everything Windows plays except PushFPS (Discord, music, a browser).
+            PushMixerStrip {
+                objectName: "mixer-desktop"
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                readonly property bool on: veyra.preferences.mixDesktopOn === true
+                title: qsTr("桌面音频")
+                subtitle: !on ? qsTr("关闭：不进入录制和直播")
+                        : String(studio.levels.desktopError || "").length ? String(studio.levels.desktopError)
+                        : qsTr("除 PushFPS 外的所有声音")
+                iconName: "monitor"
+                from: -60; to: 12
+                value: Number(veyra.preferences.mixDesktopDb ?? 0)
+                muted: veyra.preferences.mixDesktopMuted === true
+                rmsDb: studio.desktopRms; peakDb: studio.desktopPeak
+                meterActive: on && studio.levels.desktopOpen === true
+                opacity: on ? 1 : 0.75
+                onMoved: v => veyra.setPreference("mixDesktopDb", Math.round(v))
+                onMuteToggled: veyra.setPreference("mixDesktopMuted", !(veyra.preferences.mixDesktopMuted === true))
+                VTag {
+                    objectName: "mixer-desktop-on"
+                    text: veyra.preferences.mixDesktopOn === true ? qsTr("开启") : qsTr("关闭")
+                    kind: veyra.preferences.mixDesktopOn === true ? "ok" : ""
+                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                    TapHandler { onTapped: veyra.setPreference("mixDesktopOn", !(veyra.preferences.mixDesktopOn === true)) }
+                }
+            }
+            // Extra input: a second microphone, a line-in or an audio interface.
+            PushMixerStrip {
+                objectName: "mixer-aux"
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                readonly property bool on: veyra.preferences.mixAuxOn === true
+                title: qsTr("额外输入")
+                subtitle: !on ? qsTr("关闭：不进入录制和直播")
+                        : String(studio.levels.auxError || "").length ? String(studio.levels.auxError)
+                        : String(studio.levels.auxDevice || qsTr("系统默认麦克风"))
+                iconName: "activity"
+                from: -60; to: 12
+                value: Number(veyra.preferences.mixAuxDb ?? 0)
+                muted: veyra.preferences.mixAuxMuted === true
+                rmsDb: studio.auxRms; peakDb: studio.auxPeak
+                meterActive: on && studio.levels.auxOpen === true
+                opacity: on ? 1 : 0.75
+                onMoved: v => veyra.setPreference("mixAuxDb", Math.round(v))
+                onMuteToggled: veyra.setPreference("mixAuxMuted", !(veyra.preferences.mixAuxMuted === true))
+                VSelect {
+                    objectName: "mixer-aux-device"
+                    implicitWidth: 130
+                    options: [{ id: "", label: qsTr("系统默认麦克风") }].concat(veyra.microphoneDevices || [])
+                    value: (options.find(o => o.id === String(veyra.preferences.mixAuxDevice || "")) || options[0]).label
+                    onPicked: id => veyra.setPreference("mixAuxDevice", id)
+                }
+                VTag {
+                    objectName: "mixer-aux-on"
+                    text: veyra.preferences.mixAuxOn === true ? qsTr("开启") : qsTr("关闭")
+                    kind: veyra.preferences.mixAuxOn === true ? "ok" : ""
+                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                    TapHandler { onTapped: veyra.setPreference("mixAuxOn", !(veyra.preferences.mixAuxOn === true)) }
+                }
+            }
             }
         }
     }

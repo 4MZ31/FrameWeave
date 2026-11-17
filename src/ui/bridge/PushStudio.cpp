@@ -9,11 +9,17 @@
 // game sound tap and (when the microphone is used for recordings or streams) the microphone open
 // so their meters move before anything records, as in OBS; the page turns them off when it leaves.
 #include "../QmlPlayerBridge_p.h"
+#include <windows.h>
 #include "veyra/engine/MicrophoneCapture.h"
 #include "veyra/engine/PushAudioMix.h"
+#include "veyra/engine/PushAuxAudio.h"
+#include "veyra/engine/PushLayerSources.h"
 #include "veyra/engine/PushStreamOverlay.h"
+#include "veyra/source/ScreenCaptureSource.h"
 #include "veyra/Brand.h"
 
+#include <QBuffer>
+#include <QByteArray>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFont>
@@ -25,6 +31,7 @@
 #include <QPainterPath>
 #include "veyra/sink/RecordingAudioTap.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <format>
@@ -96,7 +103,7 @@ bool QmlPlayerBridge::pushSetStreamScene(const QVariantMap& scene) {
     const bool card = scene.value("type").toString() == QLatin1String("card");
     const QString overlayPath = scene.value("overlayImage").toString(), overlayText = scene.value("overlayText").toString().left(80);
     if (!card && overlayPath.isEmpty() && overlayText.trimmed().isEmpty()) {
-        engine::setPushStreamOverlay(nullptr);
+        engine::setPushStreamOverlay(nullptr, uint32_t(impl_->prefInt("studioTransitionMs", 300)));
         veyra::log::info("push-studio", "scene game (no overlay)");
         return true;
     }
@@ -178,7 +185,7 @@ bool QmlPlayerBridge::pushSetStreamScene(const QVariantMap& scene) {
         }
     }
     painter.end();
-    engine::setPushStreamOverlay(std::make_shared<engine::PushOverlayImage>(imageOf(canvas)));
+    engine::setPushStreamOverlay(std::make_shared<engine::PushOverlayImage>(imageOf(canvas)), uint32_t(impl_->prefInt("studioTransitionMs", 300)));
     veyra::log::info("push-studio", std::format("scene {} {}x{}", card ? "card" : "game overlay", W, H));
     return true;
 }
@@ -198,6 +205,15 @@ void QmlPlayerBridge::applyPushMix() {
     s.micGateDb = float(impl_->prefInt("micGateDb", -45));
     s.micCompressor = impl_->prefBool("micCompressor", false);
     engine::setPushMix(s);
+    engine::PushAuxSettings aux;
+    aux.desktop = impl_->prefBool("mixDesktopOn", false);
+    aux.desktopDb = float(impl_->prefInt("mixDesktopDb", 0));
+    aux.desktopMuted = impl_->prefBool("mixDesktopMuted", false);
+    aux.input = impl_->prefBool("mixAuxOn", false);
+    aux.inputId = impl_->prefString("mixAuxDevice").toStdWString();
+    aux.inputDb = float(impl_->prefInt("mixAuxDb", 0));
+    aux.inputMuted = impl_->prefBool("mixAuxMuted", false);
+    engine::setPushAux(aux);
 }
 
 void QmlPlayerBridge::pushSetStudioMeters(bool on) {
@@ -216,6 +232,7 @@ void QmlPlayerBridge::pushSetStudioMeters(bool on) {
         engine::detachMicrophone(micTap.get());
         micTap.reset();
     }
+    engine::setPushAuxMeters(on);
     veyra::log::info("push-studio", std::format("meters {} microphone={}", on ? "on" : "off", wantMic));
 }
 
@@ -231,7 +248,104 @@ QVariantMap QmlPlayerBridge::pushStudioLevels() {
     m["micOpen"] = status.open;
     m["micDevice"] = QString::fromStdWString(status.device);
     m["micError"] = status.error.empty() ? QString() : uiText(status.error);
+    const auto desktop = engine::pushDesktopMeter().take();
+    const auto input = engine::pushInputMeter().take();
+    const auto aux = engine::pushAuxStatus();
+    m["desktopPeakDb"] = level(desktop.peakDb);
+    m["desktopRmsDb"] = level(desktop.rmsDb);
+    m["desktopOpen"] = aux.desktopOpen;
+    m["desktopError"] = QString::fromStdWString(aux.desktopError);
+    m["auxPeakDb"] = level(input.peakDb);
+    m["auxRmsDb"] = level(input.rmsDb);
+    m["auxOpen"] = aux.inputOpen;
+    m["auxDevice"] = QString::fromStdWString(aux.inputName);
+    m["auxError"] = QString::fromStdWString(aux.inputError);
     return m;
+}
+
+// --- scene sources (engine/PushLayerSources.h) ---------------------------------------------------
+QVariantList QmlPlayerBridge::pushCameras() {
+    QVariantList out;
+    for (const auto& c : engine::pushCameras())
+        out.push_back(QVariantMap{{"id", QString::fromStdWString(c.id)}, {"name", QString::fromStdWString(c.name)}});
+    return out;
+}
+
+QVariantList QmlPlayerBridge::pushWindows() {
+    QVariantList out;
+    for (const auto& t : source::ScreenCaptureSource::targets(source::ScreenTargetKind::Window)) {
+        if (t.name.empty() || t.processId == GetCurrentProcessId()) continue;
+        out.push_back(QVariantMap{{"id", QString::number(qulonglong(t.handle))}, {"name", QString::fromStdWString(t.name)}});
+        if (out.size() >= 60) break;
+    }
+    return out;
+}
+
+QString QmlPlayerBridge::pushPickMedia() {
+    return QFileDialog::getOpenFileName(nullptr, tr("选择视频"), QString(), tr("视频 (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)"));
+}
+
+void QmlPlayerBridge::pushSetSceneSources(const QVariantList& sources) {
+    std::vector<engine::PushSourceSpec> specs;
+    for (const auto& item : sources) {
+        const QVariantMap m = item.toMap();
+        engine::PushSourceSpec spec;
+        spec.id = m.value("id").toString().left(40).toStdString();
+        const QString kind = m.value("kind").toString();
+        spec.kind = kind == QLatin1String("window") ? engine::PushSourceKind::Window
+                  : kind == QLatin1String("media") ? engine::PushSourceKind::Media : engine::PushSourceKind::Camera;
+        spec.target = m.value("target").toString().left(1024).toStdWString();
+        if (spec.target.empty() || spec.id.empty()) continue;
+        if (spec.kind == engine::PushSourceKind::Media && !QFileInfo(QString::fromStdWString(spec.target)).isFile()) continue;
+        spec.mirror = m.value("mirror").toBool();
+        spec.loop = m.value("loop", true).toBool();
+        const QString shape = m.value("shape").toString();
+        spec.shape = shape == QLatin1String("circle") ? engine::PushSourceShape::Circle
+                   : shape == QLatin1String("round") ? engine::PushSourceShape::Rounded : engine::PushSourceShape::Rectangle;
+        // Size: the layer's width as a share of the picture's; margin: the gap to the edges.
+        const double size = std::clamp(m.value("size", 0.25).toDouble(), 0.05, 1.0);
+        const double margin = std::clamp(m.value("margin", 0.025).toDouble(), 0.0, 0.2);
+        const QString corner = m.value("corner").toString();
+        engine::PushLayerPlace place;
+        place.w = float(size);
+        if (corner == QLatin1String("c")) { place.x = 0.5f; place.y = 0.5f; place.anchor = 4; }
+        else {
+            const bool right = corner == QLatin1String("tr") || corner == QLatin1String("br") || corner.isEmpty();
+            const bool bottom = corner == QLatin1String("bl") || corner == QLatin1String("br") || corner.isEmpty();
+            // The margin in pixels is the same horizontally and vertically (16:9 picture).
+            place.x = float(right ? 1.0 - margin * 9.0 / 16.0 : margin * 9.0 / 16.0);
+            place.y = float(bottom ? 1.0 - margin : margin);
+            place.anchor = (right ? 1 : 0) + (bottom ? 2 : 0);
+        }
+        spec.place = place;
+        specs.push_back(std::move(spec));
+    }
+    engine::setPushSources(specs, uint32_t(impl_->prefInt("studioTransitionMs", 300)));
+}
+
+QVariantList QmlPlayerBridge::pushSourceStatus() {
+    QVariantList out;
+    for (const auto& st : engine::pushSourceStatus())
+        out.push_back(QVariantMap{{"id", QString::fromStdString(st.id)}, {"running", st.running}, {"error", QString::fromStdWString(st.error)},
+                                  {"width", int(st.width)}, {"height", int(st.height)}, {"fps", st.fps}});
+    return out;
+}
+
+QString QmlPlayerBridge::pushSourcePreview(const QString& id) {
+    const auto frame = engine::pushSourceFrame(id.toStdString());
+    if (!frame || frame->width < 2 || frame->height < 2 || frame->rgba.size() < size_t(frame->width) * frame->height * 4) return {};
+    const QImage image(frame->rgba.data(), int(frame->width), int(frame->height), int(frame->width) * 4, QImage::Format_RGBA8888);
+    const QImage thumb = image.scaledToWidth(std::min(240, int(frame->width)), Qt::SmoothTransformation).convertToFormat(QImage::Format_ARGB32);
+    QImage flat(thumb.size(), QImage::Format_RGB32);
+    flat.fill(QColor(20, 22, 26));
+    QPainter painter(&flat);
+    painter.drawImage(0, 0, thumb);
+    painter.end();
+    QByteArray bytes;
+    QBuffer buffer(&bytes);
+    buffer.open(QIODevice::WriteOnly);
+    flat.save(&buffer, "JPG", 75);
+    return QStringLiteral("data:image/jpeg;base64,") + QString::fromLatin1(bytes.toBase64());
 }
 
 } // namespace veyra::ui

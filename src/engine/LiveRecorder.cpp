@@ -3,6 +3,7 @@
 #include "veyra/Brand.h"
 #include "veyra/engine/MicrophoneCapture.h"
 #include "veyra/engine/PushAudioMix.h"
+#include "veyra/engine/PushAuxAudio.h"
 #include "veyra/engine/PushStreamOverlay.h"
 #include "veyra/engine/ReplayBuffer.h"
 #include "veyra/pipeline/GpuPassUtils.h"
@@ -271,6 +272,7 @@ struct AudioLane {
 struct AudioTrack {
     AudioLane* lane=nullptr;
     AudioLane* mix=nullptr;
+    AudioLane* mix2=nullptr;          // PushFPS: desktop audio and the extra input (PushAuxAudio.h)
     std::string name;                 // MP4 handler name
     AVCodecContext* codec=nullptr;
     AVFrame* frame=nullptr;
@@ -333,16 +335,18 @@ struct AudioTrack {
         for(;;){
             int64_t available=av_audio_fifo_size(lane->fifo);
             if(mix)available=std::min<int64_t>(available,av_audio_fifo_size(mix->fifo));
+            if(mix2)available=std::min<int64_t>(available,av_audio_fifo_size(mix2->fifo));
             if(final)available=std::min(available,limit-encodedSamples);
             if(available<=0||(!final&&available<size))break;
             const int n=int(std::min<int64_t>(available,size));
             if(av_frame_make_writable(frame)<0)return false;
             frame->nb_samples=n;
             if(av_audio_fifo_read(lane->fifo,reinterpret_cast<void**>(frame->data),n)<n)return false;
-            if(mix){
+            for(AudioLane* each:{mix,mix2}){
+                if(!each)continue;
                 for(auto& plane:extra)if(plane.size()<size_t(n))plane.resize(size_t(n));
                 void* data[2]={extra[0].data(),extra[1].data()};
-                if(av_audio_fifo_read(mix->fifo,data,n)<n)return false;
+                if(av_audio_fifo_read(each->fifo,data,n)<n)return false;
                 for(int c=0;c<2;++c){
                     auto* samples=reinterpret_cast<float*>(frame->data[c]);
                     for(int i=0;i<n;++i)samples[i]=std::clamp(samples[i]+extra[c][size_t(i)],-1.0f,1.0f);
@@ -353,7 +357,7 @@ struct AudioTrack {
             frame->nb_samples=size;
         }
         if(!final)return true;
-        for(auto* each:{lane,mix})
+        for(auto* each:{lane,mix,mix2})
             if(each&&av_audio_fifo_size(each->fifo)>0)av_audio_fifo_drain(each->fifo,av_audio_fifo_size(each->fifo));
         return send(nullptr,out);
     }
@@ -434,7 +438,7 @@ bool writeReplayFile(const std::wstring& path,const ReplayBuffer::Clip& clip,std
 // slots and conversion (engine thread), the encoder thread and the writer
 // thread. Created by record() on the engine thread; LiveRecorder keeps it
 // until both threads are done.
-struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
+struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, PushAuxSink {
     // Fixed at creation.
     ComPtr<ID3D12Device> device;
     uint32_t width=0,height=0,hdrMode=0,fps=60,bitrateMbps=20,vendor=0;   // width x height: what is encoded
@@ -452,6 +456,13 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
     std::unique_ptr<FrameOverlay> overlay;
     uint64_t overlayVersion=0,overlayFrames=0;
     std::vector<std::pair<std::unique_ptr<FrameOverlay>,uint64_t>> retiredOverlays;
+    // Scene transitions: the previous scene picture fading out under the new one fading in.
+    std::unique_ptr<FrameOverlay> fadingOverlay;
+    std::chrono::steady_clock::time_point fadeStart{};
+    uint32_t fadeMs=0;
+    // Live layers (webcam, window, video file) over the scene picture.
+    std::unique_ptr<LiveLayerBlend> layers;
+    bool layersFailed=false;
     std::atomic<uint64_t> generated{0};         // comparison: generated frames recorded
     bool sound=false,microphone=false,microphoneTrack=false; // what the sound tracks take
     std::atomic<bool> audio{false};             // the file (or buffer) has sound tracks
@@ -505,6 +516,8 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
     // Sound: the played sound (tap) and the microphone, each on its own lane;
     // up to two AAC tracks take them (sound / sound + microphone / microphone).
     AudioLane soundLane,micLane;
+    AudioLane auxLane;                        // PushFPS desktop audio + extra input
+    bool aux=false;
     std::array<AudioTrack,2> tracks;
     unsigned trackCount=0;
 
@@ -655,7 +668,14 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
                 overlayVersion=version;
                 uint64_t got=0;
                 const auto image=pushStreamOverlay(got);
-                if(overlay)retiredOverlays.emplace_back(std::move(overlay),overlayFrames);
+                // The old picture fades out while the new one fades in (scene transitions).
+                if(fadingOverlay)retiredOverlays.emplace_back(std::move(fadingOverlay),overlayFrames);
+                fadeMs=overlayFrames>1?pushStreamTransitionMs():0;
+                fadeStart=std::chrono::steady_clock::now();
+                if(overlay){
+                    if(fadeMs>0)fadingOverlay=std::move(overlay);
+                    else retiredOverlays.emplace_back(std::move(overlay),overlayFrames);
+                }
                 if(image){
                     auto next=std::make_unique<FrameOverlay>();
                     if(next->create(device.Get(),frameWidth,frameHeight,hdrMode!=0,*image))overlay=std::move(next);
@@ -665,7 +685,22 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
             }
             // Every slot has been reused at least twice since: the frames that used them are finished.
             std::erase_if(retiredOverlays,[&](const auto& r){return overlayFrames>r.second+2*kSlots;});
-            if(overlay)overlay->apply(list,states,y.Get(),uv.Get());
+            const float shown=pushTransitionProgress(std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-fadeStart).count(),fadeMs);
+            if(fadingOverlay){
+                if(shown>=1.0f)retiredOverlays.emplace_back(std::move(fadingOverlay),overlayFrames);
+                else fadingOverlay->apply(list,states,y.Get(),uv.Get(),1.0f-shown);
+            }
+            if(overlay)overlay->apply(list,states,y.Get(),uv.Get(),shown);
+            if(!layersFailed&&(layers||pushLiveLayersActive())){
+                if(!layers){
+                    layers=std::make_unique<LiveLayerBlend>();
+                    if(!layers->create(device.Get(),frameWidth,frameHeight,hdrMode!=0,kSlots)){
+                        layers.reset();layersFailed=true;
+                        veyra::log::warn("live-recorder","live layers could not be prepared; recording without camera, window and video sources");
+                    }else veyra::log::info("live-recorder","live layers on");
+                }
+                if(layers)layers->apply(list,states,y.Get(),uv.Get());
+            }
         }
         if(compare){
             const RecordingRawFrame raw{frame.raw,frame.rawSdrInHdr};
@@ -862,6 +897,10 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         if(!microphone||!audio||closing.load()||!count)return;
         micLane.push(stereo,count,sink::AudioFormat{},capturedUs,this);
     }
+    void auxPcm(const float* stereo,size_t count,int64_t capturedUs) override {
+        if(!aux||!audio||closing.load()||!count)return;
+        auxLane.push(stereo,count,sink::AudioFormat{},capturedUs,static_cast<PushAuxSink*>(this));
+    }
 
     // ---- writer thread ---------------------------------------------------------
     void releaseMux(){
@@ -870,16 +909,19 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
             avformat_free_context(mux);mux=nullptr;
         }
         for(auto& track:tracks)track.release();
-        soundLane.release();micLane.release();
+        soundLane.release();micLane.release();auxLane.release();
     }
     // The tracks the settings ask for: the played sound, the microphone
     // mixed into it, or the microphone on a second track.
     bool openAudio(){
         trackCount=0;
-        if((sound&&!soundLane.open())||(microphone&&!micLane.open()))return false;
+        if((sound&&!soundLane.open())||(microphone&&!micLane.open())||(aux&&!auxLane.open()))return false;
+        // Desktop audio and the extra input ride on the first track (the one streams send).
+        AudioLane* auxMix=aux?&auxLane:nullptr;
         auto add=[&](AudioLane* lane,AudioLane* mix,const char* label){
             auto& track=tracks[trackCount];
             track.lane=lane;track.mix=mix;track.name=label;
+            track.mix2=trackCount==0?auxMix:nullptr;
             track.bitRate=int64_t(std::clamp(audioKbps,64u,320u))*1000;
             if(!track.open())return false;
             ++trackCount;return true;
@@ -887,6 +929,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         if(sound&&microphone&&!microphoneTrack)return add(&soundLane,&micLane,"Veyra sound + microphone");
         if(sound&&!add(&soundLane,nullptr,"Veyra sound"))return false;
         if(microphone&&!add(&micLane,nullptr,"Veyra microphone"))return false;
+        if(aux&&trackCount==0){auxMix=nullptr;if(!add(&auxLane,nullptr,"PushFPS desktop audio"))return false;}
         return true;
     }
     void openSound(){
@@ -976,6 +1019,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink {
         const int64_t t0=t0Us.load();
         if(sound&&!soundLane.process(final,endTimeUs,t0))return false;
         if(microphone&&!micLane.process(final,endTimeUs,t0))return false;
+        if(aux&&!auxLane.process(final,endTimeUs,t0))return false;
         if(!t0)return true;
         const int64_t limit=final?std::max<int64_t>(endTimeUs*kAudioRate/1000000,0):INT64_MAX;
         for(unsigned i=0;i<trackCount;++i){
@@ -1121,6 +1165,7 @@ struct LiveRecorder::State {
         if(!segment)return;
         sink::removeRecordingAudioSink(segment.get());
         detachMicrophone(segment.get());
+        detachPushAux(segment.get());
         if(!why.empty()&&segment->noteText().empty())segment->setNote(why);
         if(segment->outputs)lastStreams=segment->outputs->status();
         if(const auto name=segment->encoderText();!name.empty())encoder=name;
@@ -1443,6 +1488,8 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         segment->sound=s.settings.audio;
         segment->microphone=s.settings.microphone;
         segment->microphoneTrack=s.settings.microphoneTrack;
+        // PushFPS streaming mode mixer: desktop audio and the extra input go wherever sound does.
+        segment->aux=s.settings.audio&&pushAuxEnabled();
         segment->rateControl=std::min(s.settings.rateControl,2u);segment->quality=std::clamp(s.settings.quality,1u,51u);
         segment->preset=std::clamp(s.settings.preset,1u,7u);segment->keyframeSeconds=std::clamp(s.settings.keyframeSeconds,1u,10u);
         segment->audioKbps=std::clamp(s.settings.audioKbps,64u,320u);
@@ -1477,6 +1524,7 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         s.current=segment;++s.files;++s.nextNumber;s.audioTrack=segment->audio;
         if(segment->sound)sink::addRecordingAudioSink(segment);
         if(segment->microphone)attachMicrophone(segment,s.settings.microphoneId);
+        if(segment->aux)attachPushAux(segment);
         veyra::log::info("live-recorder",std::format("{} {} path={} extent={}x{} hdr={} codec={} fps={} bitrateMbps={} encoder={} audio={} microphone={}",
             s.replayMode?"replay buffer":s.streamMode?"live stream":"file",s.files,segment->name(),segment->width,segment->height,segment->hdrMode,segment->hevc?"HEVC":"H264",segment->fps,segment->bitrateMbps,
             segment->nvenc?"NVENC":"MediaFoundation",segment->sound,segment->microphone?(segment->microphoneTrack?"track":"mixed"):"off"));

@@ -171,6 +171,81 @@ Item {
             verify(studio.removeScene(g))
             studio.editingScene = ""
         }
+        function test_sources_in_a_scene() {
+            veyra.recording = false
+            studio.addScene("game")
+            const g = studio.editingScene
+            verify(studio.addSource("camera"))
+            const cam = studio.sceneById(g).sources[0]
+            compare(cam.kind, "camera")
+            compare(cam.target, "cam1")
+            compare(cam.name, "USB Webcam")
+            compare(cam.shape, "round", "a camera starts with rounded corners")
+            compare(cam.corner, "br")
+            verify(findChild(studio, "studio-source-" + cam.id) !== null, "the source is listed in the editor")
+            verify(studio.addSource("window"))
+            compare(studio.sceneById(g).sources[1].target, "4242")
+            veyra.pickedMedia = ""
+            verify(!studio.addSource("media"), "a cancelled file dialog adds nothing")
+            veyra.pickedMedia = "C:/clips/intro.mp4"
+            verify(studio.addSource("media"))
+            compare(studio.sceneById(g).sources[2].name, "intro.mp4")
+            verify(studio.addSource("camera"))
+            verify(!studio.addSource("camera"), "at most four sources")
+            // Sources run only while this page is on screen or something records or streams.
+            studio.activate(g)
+            compare(veyra.lastSources.length, 0, "not on screen, nothing recording: no camera on")
+            veyra.recording = true
+            wait(20)
+            compare(veyra.lastSources.length, 4, "recording: the scene's sources run")
+            studio.updateSource(cam.id, { corner: "tl", size: 0.4, mirror: true })
+            wait(20)
+            compare(veyra.lastSources[0].corner, "tl")
+            compare(veyra.lastSources[0].size, 0.4)
+            compare(veyra.lastSources[0].mirror, true)
+            studio.removeSource(cam.id)
+            wait(20)
+            compare(veyra.lastSources.length, 3)
+            studio.activate("game")
+            compare(veyra.lastSources.length, 0, "the game scene has none")
+            veyra.recording = false
+            verify(studio.removeScene(g))
+            studio.editingScene = ""
+        }
+        function test_no_camera_found() {
+            studio.addScene("game")
+            const g = studio.editingScene
+            const before = veyra.cameras
+            veyra.cameras = []
+            verify(!studio.addSource("camera"))
+            compare(studio.sourceNote, qsTr("没有找到摄像头"))
+            veyra.cameras = before
+            verify(studio.removeScene(g))
+            studio.editingScene = ""
+        }
+        function test_transition_and_extra_audio() {
+            const t = control(studio, "studio-transition")
+            t.picked("800")
+            compare(veyra.preferences.studioTransitionMs, 800)
+            compare(t.current, "800")
+            t.picked("0")
+            compare(studio.transitionMs, 0)
+            const desktop = control(studio, "mixer-desktop")
+            compare(desktop.subtitle, qsTr("关闭：不进入录制和直播"))
+            veyra.setPreference("mixDesktopOn", true)
+            compare(desktop.subtitle, qsTr("除 PushFPS 外的所有声音"))
+            desktop.moved(-12.3)
+            compare(veyra.preferences.mixDesktopDb, -12)
+            desktop.muteToggled()
+            compare(veyra.preferences.mixDesktopMuted, true)
+            const aux = control(studio, "mixer-aux")
+            veyra.setPreference("mixAuxOn", true)
+            control(studio, "mixer-aux-device").picked("mic2")
+            compare(veyra.preferences.mixAuxDevice, "mic2")
+            aux.moved(3)
+            compare(veyra.preferences.mixAuxDb, 3)
+            verify(control(studio, "mixer-game") && control(studio, "mixer-mic") && control(studio, "mixer-monitor"), "all five strips")
+        }
         function test_mic_filters_dialog() {
             host.dialog = "micfilters"
             verify(filters.shown)
