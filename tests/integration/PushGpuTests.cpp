@@ -1004,14 +1004,18 @@ std::vector<uint8_t> flowFrame(uint32_t w, uint32_t h, double squareX) {
     return px;
 }
 // Fine texture (stripes, 2-pixel checker, thin lines) panned sideways by `shift` pixels.
-std::vector<uint8_t> detailFrame(uint32_t w, uint32_t h, double shift) {
+// Fine, non-repeating texture (hashed noise and 1-pixel lines) panning sideways, as in
+// prepare_runtime.py's CPU check. A periodic pattern made the motion ambiguous (a shift of a whole
+// period looks like no motion), so integer shifts and a pattern that never repeats.
+std::vector<uint8_t> detailFrame(uint32_t w, uint32_t h, int shift) {
     std::vector<uint8_t> px(size_t(w) * h * 4);
     for (uint32_t y = 0; y < h; ++y)
         for (uint32_t x = 0; x < w; ++x) {
-            const double u = x - shift;
-            double t = 0.5 + 0.18 * std::sin(u * 1.3) + 0.12 * std::fmod(std::floor(u / 2) + std::floor(y / 2.0) + 1000.0, 2.0) +
-                (std::abs(std::fmod(u + 2400.0, 24.0) - 12.0) < 0.8 ? 0.15 : 0.0);
-            t = std::clamp(t, 0.0, 1.0);
+            const int64_t u = int64_t(x) - shift;
+            const int64_t hsh = (u * 73856093) ^ (int64_t(y) * 19349663);
+            const double noise = double((uint64_t(hsh ^ (hsh >> 13)) * 1274126177ull) & 0xFFFF) / 65535.0;   // unsigned: no overflow
+            const bool line = ((u % 37) + 37) % 37 == 0 || y % 29 == 0;
+            const double t = std::clamp(line ? 0.95 : 0.25 + 0.5 * noise, 0.0, 1.0);
             uint8_t* p = &px[(size_t(y) * w + x) * 4];
             p[0] = uint8_t(t * 255.0 + 0.5); p[1] = uint8_t((t * 0.9 + 0.05) * 255.0 + 0.5); p[2] = uint8_t((t * 0.8 + 0.1) * 255.0 + 0.5); p[3] = 255;
         }
@@ -1132,7 +1136,7 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
         const auto quarter = flowFrame(W, H, 104);
         checkOr(!early.empty() && flowPsnr(early, quarter) > flowPsnr(early, middle), "pushflow: tier " + std::to_string(tier) + " t = 0.25 is closer to the quarter position");
         // Fine texture panning sideways: the Fast tier rebuilds it from the full-size frames.
-        const auto d0 = detailFrame(W, H, 0), d1 = detailFrame(W, H, 12), dMid = detailFrame(W, H, 6);
+        const auto d0 = detailFrame(W, H, 0), d1 = detailFrame(W, H, 8), dMid = detailFrame(W, H, 4);
         std::vector<uint8_t> dBlend(d0.size());
         for (size_t i = 0; i < dBlend.size(); ++i) dBlend[i] = uint8_t((int(d0[i]) + d1[i] + 1) / 2);
         const auto detail = run(d0, d1, 0.5f, flow, nullptr);
