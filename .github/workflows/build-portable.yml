@@ -311,9 +311,22 @@ jobs:
           # This checks the packaged bundle (Qt frameworks, plugins, shaders, QML), not speed: the 120 FPS
           # self-test already ran on the build. Shared macOS runners sometimes stall for a moment under load,
           # so the bundle is checked at 60 FPS, where a stall cannot decide the result.
-          /tmp/t/PushFPS.app/Contents/MacOS/PushFPS --selftest 5 --source testpattern --target 60 || {
-            echo "::warning::retrying once after a runner stall"
-            /tmp/t/PushFPS.app/Contents/MacOS/PushFPS --selftest 5 --source testpattern --target 60; }
+          # A slow shared runner can also miss the 60 Hz test pattern's rate for the whole run (signal ~46-53 FPS
+          # seen in November 2026). That says nothing about the bundle, so a rate-only miss that still read and
+          # generated frames is a warning; a bundle that cannot start, read or render still fails (codes 2-4).
+          bundle_test() {
+            set +e
+            out=$(/tmp/t/PushFPS.app/Contents/MacOS/PushFPS --selftest 5 --source testpattern --target 60 2>&1); code=$?
+            set -e
+            echo "$out"
+            [ $code -eq 0 ] && return 0
+            if [ $code -eq 1 ] && echo "$out" | grep -q "result: FAIL (rates)" && echo "$out" | grep -Eq "generated: [1-9]"; then
+              echo "::warning::the runner missed the test pattern's rate; the bundle itself loaded, read and generated frames"
+              return 0
+            fi
+            return $code
+          }
+          bundle_test || { echo "::warning::retrying once after a runner stall"; bundle_test; }
 
       - name: Screenshots
         continue-on-error: true
