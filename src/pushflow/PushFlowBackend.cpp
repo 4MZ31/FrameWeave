@@ -601,12 +601,15 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
     const DWORD forcedLen = GetEnvironmentVariableA("VEYRA_PUSHFLOW_PRECISION", forced, sizeof(forced));
     const std::string force = forcedLen > 0 && forcedLen < sizeof(forced) ? std::string(forced) : std::string();
     std::error_code ec;
-    // Half precision only when asked for (VEYRA_PUSHFLOW_PRECISION=fp16), since 3.1.7. The automatic
-    // self-check ran an fp16 model on every start; on Windows' software renderer that removed the
-    // device (PushFlowBench, 2026-11-17: the next tier failed with DMLCreateDevice), and a crash
-    // report from an RTX 5090 ended inside ONNX Runtime right after it. fp32 with static shapes is the
-    // safe default.
-    if (force == "fp16" && fs::is_regular_file(fp16Model, ec)) {
+    // Half precision only when asked for, since 3.1.7. The automatic self-check ran an fp16 model on
+    // every start; on Windows' software renderer that removed the device (PushFlowBench, 2026-11-17:
+    // the next tier failed with DMLCreateDevice), and a crash report from an RTX 5090 ended inside ONNX
+    // Runtime right after it. fp32 with static shapes is the default. "fp16-checked" is what PushFPS
+    // sets once PushFlowBench --fp16-probe passed on this graphics card in its own process
+    // (preference pushFlowHalf): the comparison still runs and fp32 stays if it does not match.
+    // "fp16" (developers) takes the half model whatever the comparison says.
+    const bool wantHalf = force == "fp16" || force == "fp16-checked";
+    if (wantHalf && fs::is_regular_file(fp16Model, ec)) {
         const auto input = selfCheckInput(p.status.padW, p.status.padH, p.channels);
         std::vector<float> reference;
         if (p.uploadInput(input) && p.run()) reference = p.readRgb();

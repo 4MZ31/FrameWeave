@@ -370,6 +370,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & "$env:BUILD\PushFlowBench.exe" --warp --sizes 640x360 --pairs 2 --compare-shapes --compare-sync --runtime "$env:DEPS\pushflow\runtime" --out "$env:RUNNER_TEMP\pushflow-bench.json" 2>&1 | Out-Host
           if ($LASTEXITCODE -ne 0) { Write-Host "::error::PushFlowBench failed"; exit 1 }
+          # The half precision probe PushFPS runs in its own process (Settings: PushFlow half precision -> Test).
+          # It must end with a result whatever fp16 does on WARP (2026-11-17: fp16 removed the WARP device).
+          & "$env:BUILD\PushFlowBench.exe" --warp --fp16-probe --runtime "$env:DEPS\pushflow\runtime" --out "$env:RUNNER_TEMP\pushflow-fp16.json" 2>&1 | Out-Host
+          Write-Host "fp16 probe exit $LASTEXITCODE"
+          if (Test-Path "$env:RUNNER_TEMP\pushflow-fp16.json") { Get-Content "$env:RUNNER_TEMP\pushflow-fp16.json" | Out-Host } else { Write-Host "::warning::fp16 probe wrote no result" }
           Get-Content "$env:RUNNER_TEMP\pushflow-bench.json" | Out-Host
 
       # Going live: two outputs at once (RTMP + RTMPS through Schannel) to a local MediaMTX, read back,

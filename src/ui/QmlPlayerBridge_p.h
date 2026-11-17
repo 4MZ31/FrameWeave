@@ -55,6 +55,7 @@
 #include <QBuffer>
 #include <QImage>
 #include <QImageReader>
+class QProcess;
 
 #include <algorithm>
 #include <cmath>
@@ -216,6 +217,17 @@ struct QmlPlayerBridge::Impl {
     bool openingSource = false;
     uint64_t openingSessionId = 0;
     uint64_t vramNoticeSession = 0;   // the session the video-memory warning was shown for
+    // PushFlow budget watch (pushFlowBudgetWatch): seconds in a row in which the frame budget skipped
+    // nearly every pair, the revision those seconds belong to, and what was already done about it.
+    struct PushFlowWatch {
+        std::chrono::steady_clock::time_point last{};
+        uint64_t revision = 0, session = 0, settledAt = 0;
+        int starved = 0, settledSeconds = 0;
+        uint64_t loweredRevision = 0;   // the revision this watch's own tier change produced
+        int loweredFrom = -1;           // the tier it lowered from (a user raising it again stops the watch)
+        bool userChose = false, slowNoticeShown = false, awaitingOwn = false;
+    } pushFlowWatch;
+    QProcess* pushFlowHalfTest = nullptr;   // PushFlowBench --fp16-probe while it runs
 
     // The chain the UI edits, kept in step with the facade's pending settings.
     engine::EffectChain chain;

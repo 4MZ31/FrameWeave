@@ -42,6 +42,8 @@
 #include <cstring>
 #include <cmath>
 #include <QTimer>
+#include <QDateTime>
+#include "veyra/gfx/D3D12DeviceContext.h"
 
 namespace veyra::ui {
 namespace {
@@ -658,3 +660,121 @@ QVariantMap QmlPlayerBridge::pushQualityStatus() {
         {"revision", qulonglong(st.revision)}};
 }
 } // namespace veyra::ui
+
+namespace veyra::ui {
+// PushFlow too slow for the frame budget. The engine skips every pair it cannot finish in time, so a
+// tier this graphics card cannot sustain shows as "PushFlow stuck at the game's frame rate" with no
+// error anywhere. After the budget has skipped nearly every pair for eight seconds in a row (output
+// under 1.25x the game's rate), PushFlow moves one tier down and says why; on the Fast tier it says
+// what else would help, once per source. A tier the user picks again after that is left alone.
+void QmlPlayerBridge::pushFlowBudgetWatch() {
+    auto& w = impl_->pushFlowWatch;
+    const auto now = std::chrono::steady_clock::now();
+    if (now - w.last < std::chrono::seconds(1)) return;
+    w.last = now;
+    const auto& s = impl_->snapshot;
+    const auto reset = [&] { w.starved = 0; w.settledSeconds = 0; };
+    if (!s.running || !s.fgActive || s.pushFlowPrecision.empty() || fgBackendName() != QLatin1String("pushflow")) { reset(); return; }
+    // "Optimise for my PC" measures every tier itself: never change one under it.
+    const QString optimizing = impl_->prefs.value(QStringLiteral("pushOptimizeRestore")).toString();
+    if (engine::pushBenchmarkProbe().active() || impl_->engine.qualityTest().running || (!optimizing.isEmpty() && optimizing != QLatin1String("{}"))) { reset(); return; }
+    if (s.sessionId != w.session) { w.session = s.sessionId; w.slowNoticeShown = false; reset(); }
+    if (impl_->facade.applying() || s.applying || s.desired.revision != s.applied.revision) { reset(); return; }
+    if (s.applied.revision != w.revision) {
+        if (w.awaitingOwn) { w.loweredRevision = s.applied.revision; w.awaitingOwn = false; }
+        else if (w.loweredRevision && w.loweredFrom >= 0 && vfgQuality() >= w.loweredFrom) w.userChose = true;
+        w.revision = s.applied.revision;
+        reset();
+    }
+    if (++w.settledSeconds <= 4) return;   // the budget learns its costs first
+    const double content = double(s.contentFps), output = s.submissionFps.value_or(0);
+    const bool starved = s.fgBudgetLimited && content > 1 && output > 0 && output < content * 1.25;
+    w.starved = starved ? w.starved + 1 : 0;
+    if (w.starved < 8 || w.userChose) return;
+    w.starved = 0;
+    const int tier = std::clamp(vfgQuality(), 0, 2);
+    const QString names[3] = {tr("快速"), tr("均衡"), tr("高质量")};
+    const QString ms = QString::number(s.pushFlowP50Ms, 'f', 1);
+    veyra::log::warn("pushflow-watch", std::format("budget skipped nearly every pair for 8 s: content={:.1f} output={:.1f} network p50={:.1f} ms tier={}",
+        content, output, s.pushFlowP50Ms, tier));
+    if (tier > 0) {
+        w.loweredFrom = tier;
+        w.awaitingOwn = true;
+        setVfgQuality(tier - 1);
+        emit notice(tr("PushFlow 在%1档每帧需要 %2 ms，这块显卡跟不上当前帧率，几乎每一对画面都被跳过。已自动换成%3档")
+            .arg(names[tier], ms, names[tier - 1]), false);
+    } else if (!w.slowNoticeShown) {
+        w.slowNoticeShown = true;
+        emit notice(tr("PushFlow 即使在快速档每帧也需要 %1 ms，这块显卡跟不上当前帧率，几乎没有补出的画面。可以降低输出分辨率、改用 2×，或换一种补帧方式（FSR、DLSS、AMD FRC）")
+            .arg(ms), false);
+    }
+}
+}  // namespace veyra::ui
+
+namespace veyra::ui {
+bool QmlPlayerBridge::pushFlowHalfTesting() const { return impl_->pushFlowHalfTest != nullptr; }
+
+// Half precision runs PushFlow's network roughly twice as fast on most cards, but whether the fp16
+// model works depends on the graphics card, driver and DirectML: on Windows' software renderer it
+// removed the D3D12 device. So it is tested in a separate process (PushFlowBench.exe, shipped next to
+// PushFPS.exe): if the driver faults, that process ends and PushFPS keeps running.
+bool QmlPlayerBridge::pushTestPushFlowHalf() {
+    if (impl_->pushFlowHalfTest) return false;
+    if (impl_->snapshot.running) { emit notice(tr("请先停止播放再测试：测试会占用显卡几秒钟"), true); return false; }
+    const QString exe = QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("PushFlowBench.exe"));
+    if (!QFileInfo::exists(exe)) { emit notice(tr("没有找到 PushFlowBench.exe，请重新安装 PushFPS"), true); return false; }
+    const QString out = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).filePath(QStringLiteral("pushfps-fp16-probe.json"));
+    QFile::remove(out);
+    QStringList args{QStringLiteral("--fp16-probe"), QStringLiteral("--out"), out};
+    if (const uint64_t luid = gfx::preferredAdapterLuid()) args << QStringLiteral("--adapter-luid") << QString::number(luid);
+    auto* proc = new QProcess(this);
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.remove(QStringLiteral("VEYRA_PUSHFLOW_PRECISION"));
+    proc->setProcessEnvironment(env);
+    proc->setProgram(exe);
+    proc->setArguments(args);
+    proc->setProcessChannelMode(QProcess::MergedChannels);
+    impl_->pushFlowHalfTest = proc;
+    auto* timeout = new QTimer(proc);
+    timeout->setSingleShot(true);
+    connect(timeout, &QTimer::timeout, proc, [proc] { proc->kill(); });
+    connect(proc, &QProcess::finished, this, [this, proc, out](int code, QProcess::ExitStatus status) {
+        const QByteArray console = proc->readAll();
+        impl_->pushFlowHalfTest = nullptr;
+        proc->deleteLater();
+        QFile file(out);
+        QJsonObject r;
+        if (file.open(QIODevice::ReadOnly)) r = QJsonDocument::fromJson(file.readAll()).object();
+        file.close();
+        QFile::remove(out);
+        const bool crashed = status != QProcess::NormalExit || code != 0 || r.isEmpty();
+        veyra::log::info("pushflow", std::format("fp16 probe exit={} crashed={} result={} output={}", code, crashed ? 1 : 0,
+            QJsonDocument(r).toJson(QJsonDocument::Compact).toStdString(), console.left(400).simplified().toStdString()));
+        if (crashed) { r = QJsonObject{{"ok", false}, {"reason", "probe-stopped"}}; }
+        r["when"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+        const bool ok = r.value("ok").toBool();
+        setPreference(QStringLiteral("pushFlowHalfProbe"), QString::fromUtf8(QJsonDocument(r).toJson(QJsonDocument::Compact)));
+        setPreference(QStringLiteral("pushFlowHalf"), ok);
+        const QString reason = r.value("reason").toString();
+        const QString full = QString::number(r.value("fullMs").toDouble(), 'f', 1), half = QString::number(r.value("halfMs").toDouble(), 'f', 1);
+        if (ok)
+            emit notice(tr("半精度在这块显卡上可用：每帧 %1 ms，全精度 %2 ms，画面一致（%3 dB）。已开启，下次启动 PushFlow 时生效")
+                .arg(half, full, QString::number(r.value("matchDb").toDouble(), 'f', 1)), false);
+        else if (reason == QLatin1String("not-faster"))
+            emit notice(tr("半精度在这块显卡上没有更快（%1 ms，全精度 %2 ms），继续使用全精度").arg(half, full), false);
+        else if (reason == QLatin1String("fp16-mismatch"))
+            emit notice(tr("半精度的画面和全精度不一致（%1 dB），继续使用全精度").arg(QString::number(r.value("matchDb").toDouble(), 'f', 1)), false);
+        else
+            emit notice(tr("半精度测试没有完成（显卡驱动或 DirectML 在半精度下出错），继续使用全精度。PushFPS 不受影响"), false);
+    });
+    proc->start();
+    if (!proc->waitForStarted(5000)) {
+        impl_->pushFlowHalfTest = nullptr;
+        proc->deleteLater();
+        emit notice(tr("PushFlowBench.exe 无法启动"), true);
+        return false;
+    }
+    timeout->start(180000);
+    return true;
+}
+}  // namespace veyra::ui

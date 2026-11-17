@@ -43,9 +43,21 @@ struct Gpu {
     std::string adapter;
     uint64_t vram = 0;
 
-    bool create(bool warp) {
+    bool create(bool warp, uint64_t luid = 0) {
         ComPtr<IDXGIFactory6> factory;
         if (FAILED(CreateDXGIFactory2(0, IID_PPV_ARGS(&factory)))) return false;
+        if (!warp && luid) {
+            // The adapter PushFPS itself renders on (--adapter-luid), when it is still there.
+            LUID l{}; l.LowPart = DWORD(luid & 0xffffffffu); l.HighPart = LONG(luid >> 32);
+            ComPtr<IDXGIAdapter1> a;
+            if (SUCCEEDED(factory->EnumAdapterByLuid(l, IID_PPV_ARGS(&a)))) {
+                DXGI_ADAPTER_DESC1 d{}; a->GetDesc1(&d);
+                if (SUCCEEDED(D3D12CreateDevice(a.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)))) {
+                    for (const wchar_t* c = d.Description; *c; ++c) adapter.push_back(*c < 128 ? char(*c) : '?');
+                    vram = d.DedicatedVideoMemory;
+                }
+            }
+        }
         for (UINT i = 0; !warp && !device; ++i) {
             ComPtr<IDXGIAdapter1> a;
             if (factory->EnumAdapterByGpuPreference(i, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&a)) == DXGI_ERROR_NOT_FOUND) break;
@@ -141,7 +153,8 @@ int main(int argc, char** argv) {
     std::vector<std::pair<uint32_t, uint32_t>> sizes{{1920, 1080}, {2560, 1440}, {3840, 2160}};
     std::vector<uint32_t> tiers{0, 1, 2};
     int pairs = 40;
-    bool warp = false, compareShapes = false, compareSync = false;
+    bool warp = false, compareShapes = false, compareSync = false, fp16Probe = false;
+    uint64_t adapterLuid = 0;
     std::string out = "pushflow-bench.json";
     std::wstring runtimeOverride;
     for (int i = 1; i < argc; ++i) {
@@ -150,6 +163,8 @@ int main(int argc, char** argv) {
         if (a == "--warp") warp = true;
         else if (a == "--compare-shapes") compareShapes = true;
         else if (a == "--compare-sync") compareSync = true;
+        else if (a == "--fp16-probe") fp16Probe = true;
+        else if (a == "--adapter-luid" && !next.empty()) { adapterLuid = std::strtoull(next.c_str(), nullptr, 10); ++i; }
         else if (a == "--runtime" && !next.empty()) { runtimeOverride.assign(next.begin(), next.end()); ++i; }
         else if (a == "--pairs" && !next.empty()) { pairs = std::clamp(std::atoi(next.c_str()), 1, 1000); ++i; }
         else if (a == "--out" && !next.empty()) { out = next; ++i; }
@@ -170,14 +185,66 @@ int main(int argc, char** argv) {
             }
             ++i;
         } else if (a == "--help" || a == "-h") {
-            std::printf("PushFlowBench [--sizes 1920x1080,2560x1440] [--tiers 0,1,2] [--pairs 40] [--out file.json] [--warp]\n");
+            std::printf("PushFlowBench [--sizes 1920x1080,2560x1440] [--tiers 0,1,2] [--pairs 40] [--out file.json] [--warp] [--compare-shapes] [--compare-sync]\n"
+                        "PushFlowBench --fp16-probe [--adapter-luid <n>] --out result.json   (is half precision safe and faster here?)\n");
             return 0;
         }
     }
     Gpu gpu;
-    if (!gpu.create(warp)) { std::printf("No D3D12 device\n"); return 1; }
+    if (!gpu.create(warp, adapterLuid)) { std::printf("No D3D12 device\n"); return 1; }
     // The folder holding pushflow\ (runtime\experimental next to PushFPS.exe), or --runtime <folder>.
     const std::wstring runtimeDir = !runtimeOverride.empty() ? runtimeOverride : runtime::localRuntimeDirectory().wstring();
+    if (fp16Probe) {
+        // --fp16-probe: is half precision safe and faster on this graphics card? PushFPS runs this in a
+        // separate process (Settings -> PushFlow half precision -> Test), so a driver or DirectML fault
+        // with the fp16 model ends this process, never PushFPS. Balanced at 1280x720: full precision
+        // timed, then the fp16 model with PushFlow's own comparison against full precision.
+        const uint32_t w = 1280, h = 720, tier = 1;
+        auto a = frameTexture(gpu, w, h, 0), b = frameTexture(gpu, w, h, 8);
+        auto output = pipeline::makeTexture(gpu.device.Get(), w, h, DXGI_FORMAT_R8G8B8A8_UNORM, false);
+        if (!a || !b || !output) { std::printf("textures failed\n"); return 1; }
+        const auto timeIt = [&](const wchar_t* precision, pushflow::Status* status) -> double {
+            SetEnvironmentVariableW(L"VEYRA_PUSHFLOW_PRECISION", precision);
+            pushflow::PushFlowBackend flow;
+            if (!flow.initialize(gpu.device.Get(), gpu.queue.Get(), runtimeDir, w, h, DXGI_FORMAT_R8G8B8A8_UNORM, pushflow::Encoding::Encoded, tier)) return -1;
+            bool outputState = false;
+            Samples network;
+            for (int i = 0; i < 20; ++i) {
+                if (!gpu.begin()) return -1;
+                gpu.stamp(0);
+                if (!flow.pack(gpu.list.Get(), a.Get(), b.Get(), 0.5f, false)) return -1;
+                gpu.stamp(1);
+                if (!gpu.submit() || !flow.infer() || !gpu.begin()) return -1;
+                gpu.stamp(2);
+                D3D12_RESOURCE_BARRIER bar{}; bar.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; bar.Transition.pResource = output.Get();
+                bar.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+                if (!outputState) { bar.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON; bar.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST; gpu.list->ResourceBarrier(1, &bar); outputState = true; }
+                if (!flow.resolve(gpu.list.Get(), a.Get(), b.Get(), output.Get())) return -1;
+                gpu.list->ResolveQueryData(gpu.queries.Get(), D3D12_QUERY_TYPE_TIMESTAMP, 0, 3, gpu.readback.Get(), 0);
+                if (!gpu.submit() || !gpu.wait()) return -1;
+                uint64_t* ts = nullptr;
+                gpu.readback->Map(0, nullptr, reinterpret_cast<void**>(&ts));
+                if (i >= 4) network.add(double(ts[2] - ts[1]) * 1000.0 / double(gpu.frequency));
+                const D3D12_RANGE none{0, 0}; gpu.readback->Unmap(0, &none);
+            }
+            if (status) *status = flow.status();
+            return network.pct(0.5);
+        };
+        const double fullMs = timeIt(nullptr, nullptr);
+        pushflow::Status half;
+        const double halfMs = fullMs > 0 ? timeIt(L"fp16-checked", &half) : -1;
+        const HRESULT removed = gpu.device->GetDeviceRemovedReason();
+        // Half precision has to match (PushFlow's own 38 dB check) and save at least 10%.
+        const bool matches = halfMs > 0 && half.precision == "fp16" && half.selfCheckDb >= 38.0;
+        const bool ok = removed == S_OK && matches && halfMs < fullMs * 0.9;
+        const std::string reason = removed != S_OK ? "device-removed" : fullMs <= 0 ? "pushflow-failed" : halfMs <= 0 ? "fp16-failed"
+                                 : !matches ? "fp16-mismatch" : !ok ? "not-faster" : "ok";
+        std::printf("fp16 probe on %s: full %.2f ms, half %.2f ms, match %.1f dB -> %s\n", gpu.adapter.c_str(), fullMs, halfMs, half.selfCheckDb, reason.c_str());
+        std::ofstream(out) << std::format("{{\"tool\": \"PushFlowBench\", \"probe\": \"fp16\", \"adapter\": \"{}\", \"fullMs\": {:.3f}, \"halfMs\": {:.3f}, "
+            "\"matchDb\": {:.1f}, \"deviceState\": {}, \"ok\": {}, \"reason\": \"{}\"}}\n", gpu.adapter, fullMs, halfMs, half.selfCheckDb, unsigned(removed),
+            ok ? "true" : "false", reason);
+        return 0;
+    }
     std::printf("PushFlowBench on %s, %d pairs per run\n", gpu.adapter.c_str(), pairs);
     std::string json = std::format("{{\n  \"tool\": \"PushFlowBench\",\n  \"adapter\": \"{}\",\n  \"vramMB\": {},\n  \"runs\": [\n", gpu.adapter, gpu.vram >> 20);
     bool firstRun = true;

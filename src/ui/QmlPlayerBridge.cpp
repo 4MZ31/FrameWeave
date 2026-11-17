@@ -186,6 +186,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     applyPushMix();   // PushFPS streaming mode mixer (PushStudio.cpp)
     engine::setPushLiveCanvas(pushCanvas(0));   // PushFPS layout (Recording.cpp)
     applyPreference(QStringLiteral("nisSharpness"));
+    applyPreference(QStringLiteral("pushFlowHalf"));
     applyPreference(QStringLiteral("magewellLowLatency"));
     const bool presetsLoaded = impl_->facade.importLegacyStores();
     const auto presetNotice = uiText(impl_->facade.error());
@@ -464,6 +465,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
         const uint64_t wasSession = impl_->snapshot.sessionId;
         const auto oldSourceAspect=sourceAspect();
         if(impl_->poll()){emit settingsChanged();emitChainChanged();}
+        pushFlowBudgetWatch();
         if(wasSession!=impl_->snapshot.sessionId||oldSourceAspect!=sourceAspect())emit compareChanged();
         // Live recording state: the recorder owns the files, this side shows them.
         {

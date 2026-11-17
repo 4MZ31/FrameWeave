@@ -296,7 +296,9 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    // PushFPS streaming mode mixer: mutes and the microphone filters.
                                    "mixGameMuted", "mixMicMuted", "micHighPass", "micEqOn", "micGate", "micCompressor",
                                    // PushFPS streaming mode: desktop audio and the extra input on / muted.
-                                   "mixDesktopOn", "mixDesktopMuted", "mixAuxOn", "mixAuxMuted"};
+                                   "mixDesktopOn", "mixDesktopMuted", "mixAuxOn", "mixAuxMuted",
+                                   // PushFPS: PushFlow half precision, turned on after PushFlowBench --fp16-probe passed.
+                                   "pushFlowHalf"};
     QVariant stored;
     if (ranges.contains(key)) {
         bool ok = false; const int n = value.toInt(&ok);
@@ -426,7 +428,7 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         if (error.error != QJsonParseError::NoError || !doc.isObject()) return false;
         stored = v;
     } else if (key == QLatin1String("pushGamePresets") || key == QLatin1String("pushBenchmark") || key == QLatin1String("pushLowestLatency") ||
-               key == QLatin1String("studioScenes") || key == QLatin1String("pushOptimizeRestore")) {
+               key == QLatin1String("studioScenes") || key == QLatin1String("pushOptimizeRestore") || key == QLatin1String("pushFlowHalfProbe")) {
         // PushFPS: the user's own game presets, the last "Optimise for my PC" result and the settings
         // the one-tap lowest latency switch restores; JSON written by the interface, size-capped and
         // parsed here like pushProfiles.
@@ -559,6 +561,14 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
         applyPushMix();
     else if (key.startsWith(QLatin1String("canvas")))
         engine::setPushLiveCanvas(pushCanvas(0));   // PushFPS layout editor: applies to running outputs
+    else if (key == QLatin1String("pushFlowHalf")) {
+        // Read by PushFlowBackend::initialize: applies the next time PushFlow starts. A value a developer
+        // set before starting PushFPS (VEYRA_PUSHFLOW_PRECISION=fp16) is left alone.
+        wchar_t current[32]{};
+        const DWORD n = GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_PRECISION", current, 32);
+        if (n == 0 || std::wstring_view(current) == L"fp16-checked")
+            SetEnvironmentVariableW(L"VEYRA_PUSHFLOW_PRECISION", impl_->prefBool("pushFlowHalf", false) ? L"fp16-checked" : nullptr);
+    }
     else if (key == QLatin1String("nisSharpness"))
         pipeline::setNisSharpness(float(impl_->prefInt("nisSharpness", int(pipeline::kNisDefaultSharpness * 100))) / 100.0f);
     else if (key == QLatin1String("magewellLowLatency")) source::magewell::setLowLatencyPreference(impl_->prefBool("magewellLowLatency", false));

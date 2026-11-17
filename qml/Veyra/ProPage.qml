@@ -1897,6 +1897,45 @@ VPage {
                                     onPicked: id => veyra.vfgQuality = Number(id)
                                 }
                             }
+                            // Half precision is tested in a separate process first (PushFlowBench --fp16-probe):
+                            // the switch only turns on after that test passed on this graphics card.
+                            VRow {
+                                id: pushFlowHalfRow
+                                objectName: "list-pushflow-half-row"
+                                label: qsTr("PushFlow 半精度")
+                                visible: veyra.fgBackendName === "pushflow"
+                                property bool testing: false
+                                readonly property var probe: {
+                                    try { return JSON.parse(veyra.preferences.pushFlowHalfProbe || "{}") } catch (e) { return ({}) }
+                                }
+                                help: qsTr("半精度（fp16）通常让 PushFlow 的网络快一倍左右，但是否可用取决于显卡、驱动和 DirectML。测试在单独的进程里运行，出错也不会影响 PushFPS")
+                                hint: testing ? qsTr("正在测试，约需半分钟…")
+                                    : pushFlowHalfRow.probe.ok === true ? qsTr("已通过测试：每帧 %1 ms，全精度 %2 ms").arg(Number(pushFlowHalfRow.probe.halfMs || 0).toFixed(1)).arg(Number(pushFlowHalfRow.probe.fullMs || 0).toFixed(1))
+                                    : pushFlowHalfRow.probe.reason ? qsTr("上次测试没有通过，使用全精度")
+                                    : qsTr("先测试这块显卡；通过后才能开启。请在没有播放时测试")
+                                hintBelow: true
+                                RowLayout {
+                                    spacing: 8
+                                    VButton {
+                                        objectName: "list-pushflow-half-test"
+                                        text: pushFlowHalfRow.testing ? qsTr("测试中…") : qsTr("测试")
+                                        enabled: !pushFlowHalfRow.testing
+                                        onClicked: if (veyra.pushTestPushFlowHalf()) pushFlowHalfRow.testing = true
+                                    }
+                                    VSwitch {
+                                        objectName: "list-pushflow-half"
+                                        enabled: pushFlowHalfRow.probe.ok === true && !pushFlowHalfRow.testing
+                                        opacity: enabled ? 1 : 0.4
+                                        checked: veyra.preferences.pushFlowHalf === true
+                                        onToggled: v => veyra.setPreference("pushFlowHalf", v)
+                                    }
+                                    Timer {
+                                        interval: 500; repeat: true
+                                        running: pushFlowHalfRow.testing
+                                        onTriggered: if (!veyra.pushFlowHalfTesting()) pushFlowHalfRow.testing = false
+                                    }
+                                }
+                            }
                             VRow {
                                 label: qsTr("VFG 自动调控")
                                 visible: veyra.fgBackendName === "vfg"

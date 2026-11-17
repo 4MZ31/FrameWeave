@@ -135,6 +135,9 @@ QtObject {
     property string lastExportText: ""
     signal pushShareFinished(bool ok, string message)
     function pushLiveStats() { return liveStats }
+    property int halfTests: 0
+    function pushTestPushFlowHalf() { halfTests++; return true }
+    function pushFlowHalfTesting() { return false }
     function pushBenchmarkBegin() { benchmarkWindows++ }
     function pushBenchmarkEnd() { return benchmarkModel ? benchmarkModel() : ({valid: false}) }
     // PushFPS ground-truth quality test (tst_push_optimize.qml). qualityModel(backend) returns the status

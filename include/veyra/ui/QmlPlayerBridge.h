@@ -1554,6 +1554,10 @@ public:
     // recording of `seconds` whose left half is the console's real frames.
     // layout: 0 split picture, 1 both pictures side by side.
     Q_INVOKABLE bool pushStartCompareClip(int seconds, int layout = 0);
+    // PushFlow half precision: PushFlowBench --fp16-probe in its own process; the result goes to the
+    // preference pushFlowHalfProbe and, when half precision matches and is faster, pushFlowHalf.
+    Q_INVOKABLE bool pushTestPushFlowHalf();
+    Q_INVOKABLE bool pushFlowHalfTesting() const;
     // PushFPS 窗口置顶: keeps a top-level window above others (SetWindowPos, no window recreation).
     Q_INVOKABLE bool pushSetAlwaysOnTop(QObject* window, bool onTop);
     Q_INVOKABLE void copyDiagnostics();
@@ -1673,6 +1677,7 @@ private:
     // audio endpoint). Called after load and after every accepted change.
     void applyPreference(const QString& key);
     void applyPushMix();   // PushFPS mixer preferences -> engine::setPushMix (PushStudio.cpp)
+    void pushFlowBudgetWatch();   // PushFlow too slow for the frame budget -> a faster tier (PushFps.cpp)
     engine::PushCanvas pushCanvas(int fit) const;   // PushFPS canvas preferences (Recording.cpp)
     void scheduleEnhancementPrewarm();
     // Hold-to-compare key (press/release), handled for the whole application.

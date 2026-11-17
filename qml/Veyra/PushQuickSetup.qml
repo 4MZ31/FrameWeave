@@ -163,7 +163,7 @@ VGroup {
     property real pacingShare: -1
     Timer {
         interval: 1000; repeat: true
-        running: (quick.adaptive || quick.pacingOn || veyra.hudLock === true) && veyra.hasSource && veyra.fgEnabled && quick.visible
+        running: (quick.adaptive || quick.pacingOn || veyra.hudLock === true || veyra.fgBackendName === "pushflow") && veyra.hasSource && veyra.fgEnabled && quick.visible
         triggeredOnStart: true
         onTriggered: {
             const st = veyra.pushLiveStats()
