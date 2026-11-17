@@ -4,6 +4,7 @@
 #include "veyra/pushflow/PushFlowBackend.h"
 #include "veyra/pipeline/GpuPassUtils.h"
 #include "veyra/Log.h"
+#include "veyra/RuntimePaths.h"
 
 #include <windows.h>
 #include <algorithm>
@@ -28,6 +29,30 @@
 
 namespace veyra::pushflow {
 namespace fs = std::filesystem;
+#ifdef VEYRA_HAVE_ONNXRUNTIME
+namespace {
+// ONNX Runtime faults are caught here instead of ending PushFPS (field report 2026-11-17: an access
+// violation inside onnxruntime.dll's ReleaseSession on an RTX 5090, on every connect). Structured
+// exception handling needs functions without C++ objects to unwind, hence these small wrappers.
+// After a fault the object is leaked and PushFlow reports itself failed; the crash marker stays.
+bool sehReleaseSession(const OrtApi* api, OrtSession* s) { __try { api->ReleaseSession(s); return true; } __except (EXCEPTION_EXECUTE_HANDLER) { return false; } }
+bool sehReleaseIoBinding(const OrtApi* api, OrtIoBinding* b) { __try { api->ReleaseIoBinding(b); return true; } __except (EXCEPTION_EXECUTE_HANDLER) { return false; } }
+bool sehReleaseValue(const OrtApi* api, OrtValue* v) { __try { api->ReleaseValue(v); return true; } __except (EXCEPTION_EXECUTE_HANDLER) { return false; } }
+bool sehReleaseMemoryInfo(const OrtApi* api, OrtMemoryInfo* m) { __try { api->ReleaseMemoryInfo(m); return true; } __except (EXCEPTION_EXECUTE_HANDLER) { return false; } }
+bool sehReleaseEnv(const OrtApi* api, OrtEnv* e) { __try { api->ReleaseEnv(e); return true; } __except (EXCEPTION_EXECUTE_HANDLER) { return false; } }
+bool sehFreeAllocation(const OrtDmlApi* dml, void* a) { __try { dml->FreeGPUAllocation(a); return true; } __except (EXCEPTION_EXECUTE_HANDLER) { return false; } }
+// `faulted` is set when the call itself faulted (the returned status is then null).
+OrtStatus* sehCreateSession(const OrtApi* api, const OrtEnv* env, const wchar_t* model, const OrtSessionOptions* options, OrtSession** out, bool* faulted) {
+    __try { return api->CreateSession(env, model, options, out); } __except (EXCEPTION_EXECUTE_HANDLER) { *faulted = true; *out = nullptr; return nullptr; }
+}
+OrtStatus* sehRun(const OrtApi* api, OrtSession* s, OrtIoBinding* b, bool* faulted) {
+    __try { return api->RunWithBinding(s, nullptr, b); } __except (EXCEPTION_EXECUTE_HANDLER) { *faulted = true; return nullptr; }
+}
+OrtStatus* sehSync(const OrtApi* api, OrtIoBinding* b, bool* faulted) {
+    __try { return api->SynchronizeBoundOutputs(b); } __except (EXCEPTION_EXECUTE_HANDLER) { *faulted = true; return nullptr; }
+}
+}
+#endif
 using Microsoft::WRL::ComPtr;
 
 namespace {
@@ -126,6 +151,7 @@ struct PushFlowBackend::Impl {
     mutable std::mutex telemetryMutex;
     std::array<float, kTelemetry> inferRing{};
     size_t inferCount = 0;
+    bool markerArmed = false;   // crash guard file written, not yet cleared
     uint64_t fullPacks = 0, timePacks = 0;
     std::chrono::steady_clock::time_point lastSummary = std::chrono::steady_clock::now();
     ComPtr<ID3D12Device> device;
@@ -161,19 +187,25 @@ struct PushFlowBackend::Impl {
         api->ReleaseStatus(s);
         return false;
     }
+    bool faulted = false;   // ONNX Runtime faulted (caught); PushFlow stays failed and the crash marker stays
+    void fault(const char* what) {
+        if (!faulted) veyra::log::error("pushflow", std::format("ONNX Runtime faulted in {}; PushFlow is turned off for this session", what));
+        faulted = true; status.ready = false;
+    }
+    void releaseSession(OrtSession* s) { if (s && !sehReleaseSession(api, s)) fault("ReleaseSession"); }
     void releaseBinding() {
         if (!api) return;
-        if (binding) api->ReleaseIoBinding(binding);
+        if (binding && !sehReleaseIoBinding(api, binding)) fault("ReleaseIoBinding");
         binding = nullptr;
-        for (auto*& v : values) { if (v) api->ReleaseValue(v); v = nullptr; }
+        for (auto*& v : values) { if (v && !sehReleaseValue(api, v)) fault("ReleaseValue"); v = nullptr; }
     }
     void release() {
         if (api) {
             releaseBinding();
-            if (session) api->ReleaseSession(session);
-            for (auto*& a : allocations) { if (dml && a) dml->FreeGPUAllocation(a); a = nullptr; }
-            if (memory) api->ReleaseMemoryInfo(memory);
-            if (env) api->ReleaseEnv(env);
+            releaseSession(session);
+            for (auto*& a : allocations) { if (dml && a && !sehFreeAllocation(dml, a)) fault("FreeGPUAllocation"); a = nullptr; }
+            if (memory && !sehReleaseMemoryInfo(api, memory)) fault("ReleaseMemoryInfo");
+            if (env && !sehReleaseEnv(api, env)) fault("ReleaseEnv");
         }
         session = nullptr; memory = nullptr; env = nullptr; dml = nullptr; api = nullptr;
         dmlDevice.Reset();
@@ -188,7 +220,11 @@ struct PushFlowBackend::Impl {
                     ok(api->DisableMemPattern(options), "DisableMemPattern") &&
                     ok(api->SetSessionExecutionMode(options, ORT_SEQUENTIAL), "execution mode") &&
                     ok(dml->SessionOptionsAppendExecutionProvider_DML1(options, dmlDevice.Get(), q), "DirectML provider");
-        if (good) good = ok(api->CreateSession(env, model.c_str(), options, out), "CreateSession");
+        if (good) {
+            bool crashed = false;
+            good = ok(sehCreateSession(api, env, model.c_str(), options, out, &crashed), "CreateSession") && !crashed;
+            if (crashed) fault("CreateSession");
+        }
         api->ReleaseSessionOptions(options);
         if (!good) return false;
         OrtAllocator* allocator = nullptr;
@@ -320,8 +356,12 @@ struct PushFlowBackend::Impl {
     // DirectML records the network into its own command lists and may hold them back; synchronizing the
     // bound outputs submits them to the queue and waits, so the next list reads the finished output.
     bool run() {
-        return ok(api->RunWithBinding(session, nullptr, binding), "RunWithBinding") &&
-               ok(api->SynchronizeBoundOutputs(binding), "SynchronizeBoundOutputs");
+        if (faulted) return false;
+        bool crashed = false;
+        const bool done = ok(sehRun(api, session, binding, &crashed), "RunWithBinding") && !crashed &&
+                          ok(sehSync(api, binding, &crashed), "SynchronizeBoundOutputs") && !crashed;
+        if (crashed) fault("RunWithBinding");
+        return done;
     }
 #endif
     ~Impl() {
@@ -331,8 +371,32 @@ struct PushFlowBackend::Impl {
     }
 };
 
+std::wstring crashMarkerPath() { return (veyra::runtime::localDataDirectory() / L"pushflow-starting.txt").wstring(); }
+bool crashedLastTime() { std::error_code ec; return fs::exists(crashMarkerPath(), ec); }
+void clearCrashMarker() { std::error_code ec; fs::remove(crashMarkerPath(), ec); }
+namespace {
+// Written and flushed before ONNX Runtime runs, so it survives a crash inside it.
+void armCrashMarker() {
+    std::error_code ec;
+    fs::create_directories(fs::path(crashMarkerPath()).parent_path(), ec);
+    std::ofstream out(fs::path(crashMarkerPath()), std::ios::trunc);
+    out << "PushFlow was starting; if this file is still here at the next start, PushFPS stopped inside PushFlow.\n";
+    out.flush();
+}
+constexpr size_t kSteadyInferences = 120;   // about 2 s at 2X from 30 FPS
+}
 PushFlowBackend::PushFlowBackend() : p_(std::make_unique<Impl>()) {}
-PushFlowBackend::~PushFlowBackend() = default;
+PushFlowBackend::~PushFlowBackend() {
+    const bool armed = p_ && p_->markerArmed;
+    bool keepMarker = false;
+#ifdef VEYRA_HAVE_ONNXRUNTIME
+    // Release ONNX Runtime first (guarded): a fault there keeps the marker, so the next start
+    // switches away from PushFlow.
+    if (p_) { p_->release(); keepMarker = p_->faulted; }
+#endif
+    p_.reset();
+    if (armed && !keepMarker) clearCrashMarker();
+}
 double PushFlowBackend::lastInferCpuMs() const { return p_->inferMs; }
 ID3D12Resource* PushFlowBackend::tensorBuffer(bool input) const { return p_->buffers[input ? 0 : 1].Get(); }
 uint32_t PushFlowBackend::inputChannels() const { return p_->channels; }
@@ -368,6 +432,8 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
     return false;
 #else
     p.device = device; p.queue = queue; p.width = width; p.height = height; p.format = viewFormat(format); p.encoding = encoding;
+    armCrashMarker();
+    p.markerArmed = true;
     tier = std::min(tier, kTierCount - 1);
     const double scale = networkScale(tier, width, height);
     p.status.modelW = std::max<uint32_t>(32, uint32_t(std::lround(width * scale)));
@@ -453,17 +519,17 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
             p.status.selfCheckDb = mse <= 1e-12 ? 99.0 : 10.0 * std::log10(1.0 / mse);
             accepted = finite && (p.status.selfCheckDb >= 38.0 || force == "fp16");
             if (accepted) {
-                api->ReleaseSession(full);
+                p.releaseSession(full);
                 p.status.model = narrow(fp16Model.filename().wstring());
                 p.status.precision = "fp16";
             } else {
                 p.releaseBinding();
-                api->ReleaseSession(half);
+                p.releaseSession(half);
                 p.session = full;
                 if (!p.bind(full)) return false;
             }
         } else if (half) {
-            api->ReleaseSession(half);
+            p.releaseSession(half);
         }
         veyra::log::info("pushflow", std::format("fp16 self-check {:.1f} dB -> {}", p.status.selfCheckDb,
             accepted ? "fp16" : "fp32 (half precision does not match on this GPU)"));
@@ -544,6 +610,7 @@ bool PushFlowBackend::infer() {
         std::lock_guard lock(p.telemetryMutex);
         p.inferRing[p.inferCount % kTelemetry] = float(p.inferMs);
         ++p.inferCount;
+        if (p.markerArmed && done && p.inferCount >= kSteadyInferences) { p.markerArmed = false; clearCrashMarker(); }
         if (std::chrono::steady_clock::now() - p.lastSummary > std::chrono::seconds(30)) { p.lastSummary = std::chrono::steady_clock::now(); summarize = true; }
     }
     if (summarize) {

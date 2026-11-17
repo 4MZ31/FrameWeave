@@ -116,6 +116,7 @@ Item {
             verify(opt.skipped.some(x => x.reason.indexOf("144") >= 0), "the 144 Hz limit is explained")
             const fsr = opt.steps.find(s => s.config.backend === "fsr3")
             verify(fsr && !fsr.result.ok && fsr.result.reason.length > 0, "FSR at 60 FPS fails the 120 target")
+            compare(veyra.preferences.pushOptimizeRestore, "{}", "a finished run leaves nothing to restore after a crash")
             const record = JSON.parse(veyra.preferences.pushBenchmark)
             compare(record.steps.length, opt.steps.length)
             verify(record.best.indexOf("VFG") >= 0)

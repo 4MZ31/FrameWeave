@@ -176,6 +176,10 @@ DialogLayer {
         opt.failure = ""
         if (!s.running) { opt.failure = qsTr("先连接采集卡并让游戏画面出现，再开始优化"); opt.phase = "failed"; return }
         opt.original = opt.saveOriginal()
+        // Crash safety: the settings to put back are kept on disk while the tests run. If PushFPS stops
+        // halfway (a crash in one of the tested methods), the next start restores them instead of
+        // loading the combination that crashed (field report 2026-11-17: every connect crashed after).
+        veyra.setPreference("pushOptimizeRestore", JSON.stringify(opt.original))
         opt.refreshHz = Number(s.displayRefreshHz) > 0 ? Number(s.displayRefreshHz) : (veyra.displayRefreshHz > 0 ? veyra.displayRefreshHz : 60)
         opt.gameFps = opt.original.gameFps === 40 || opt.original.gameFps === 60 ? opt.original.gameFps : 30
         opt.baselineResult = null
@@ -187,7 +191,21 @@ DialogLayer {
         veyra.logUi("push-optimize", "start refresh=" + opt.refreshHz + " backends=" + opt.backends().join(","))
         opt.beginStep(0)
     }
+    function clearRestore() { veyra.setPreference("pushOptimizeRestore", "{}") }
+    Component.onCompleted: {
+        let saved = null
+        try { saved = JSON.parse(String(veyra.preferences.pushOptimizeRestore || "{}")) } catch (e) { saved = null }
+        if (!saved || saved.backend === undefined) return
+        opt.original = saved
+        opt.restoreOriginal()
+        opt.original = null
+        opt.clearRestore()
+        veyra.logUi("push-optimize", "restored the settings from before an interrupted run")
+        if (typeof veyra.notice === "function")
+            veyra.notice(qsTr("上次「为我的电脑优化」没有完成，已恢复优化前的设置"), false)
+    }
     function cancel() {
+        opt.clearRestore()
         if (opt.phase === "running") { veyra.pushBenchmarkEnd(); veyra.pushQualityCancel(); runner.stop(); opt.restoreOriginal(); opt.phase = "idle" }
         opt.dialogHost.close()
     }
@@ -376,6 +394,7 @@ DialogLayer {
         return top
     }
     function finish() {
+        opt.clearRestore()
         const confirmed = opt.steps.filter(s => s.config.kind === "confirm" && s.result && s.result.ok)
         const winner = confirmed.length ? confirmed[confirmed.length - 1] : null
         opt.best = winner
@@ -404,6 +423,7 @@ DialogLayer {
         veyra.logUi("push-optimize", "done best=" + record.best)
     }
     function abort(message) {
+        opt.clearRestore()
         runner.stop()
         veyra.pushBenchmarkEnd()
         veyra.pushQualityCancel()

@@ -35,6 +35,14 @@
 namespace veyra::pushflow {
 
 constexpr uint32_t kTierCount = 3;
+// Crash guard (field report 2026-11-17: an access violation inside onnxruntime.dll on every connect,
+// RTX 5090, with PushFlow left selected): a marker file is written before ONNX Runtime is touched and
+// removed once PushFlow has run steadily (or was closed normally). If it is still there at the next
+// start, PushFPS died inside PushFlow, and the interface switches to another method instead of
+// crashing again.
+std::wstring crashMarkerPath();
+bool crashedLastTime();
+void clearCrashMarker();
 // The network's share of the picture's width and height for a tier (pure, unit-tested).
 inline double networkScale(uint32_t tier, uint32_t width, uint32_t height) {
     static constexpr double kMaxPixels[kTierCount] = {960.0 * 540.0, 1280.0 * 720.0, 1920.0 * 1080.0};

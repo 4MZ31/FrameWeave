@@ -2,6 +2,7 @@
 #include "QmlPlayerBridge_p.h"
 #include <QCoreApplication>
 #include <QTimer>
+#include "veyra/pushflow/PushFlowBackend.h"
 #include "veyra/engine/PushStreamOverlay.h"
 #include "veyra/engine/MicrophoneCapture.h"
 #include "veyra/ui/NvidiaVrrProfileController.h"
@@ -407,6 +408,26 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
         }
         if (pr.valid()) impl_->engine.requestPresentation(pr);
         impl_->aspectMode = std::clamp(impl_->prefs.value(QStringLiteral("aspect")).toInt(), 0, 6);
+    }
+    // PushFPS crash guard (PushFlowBackend.h): PushFPS stopped inside PushFlow last time. Switch to
+    // another method before anything connects, so the next connect does not crash again.
+    if (pushflow::crashedLastTime()) {
+        pushflow::clearCrashMarker();
+        if (settings().frameGenerationBackend == engine::FrameGenerationBackend::PushFlow) {
+            const auto caps = effectCapabilities();
+            QString chosen;
+            for (const char* name : {"vfg", "dlss", "fsr4", "fsr3", "xess", "anr", "amdfrc"}) {
+                if (!caps.value(QLatin1String(name)).toMap().value("available").toBool()) continue;
+                setFgBackendName(QLatin1String(name));
+                if (settings().frameGenerationBackend != engine::FrameGenerationBackend::PushFlow) { chosen = QLatin1String(name); break; }
+            }
+            if (chosen.isEmpty()) setFgEnabled(false);
+            veyra::log::warn("pushflow", std::format("PushFPS stopped inside PushFlow last time; switched to {}", chosen.isEmpty() ? std::string("frame generation off") : chosen.toStdString()));
+            QTimer::singleShot(0, this, [this, chosen] {
+                emit notice(chosen.isEmpty() ? tr("上次 PushFPS 在 PushFlow 运行时停止，已关闭补帧。请把日志发给我们")
+                                             : tr("上次 PushFPS 在 PushFlow 运行时停止，已改用其他补帧方式。请把日志发给我们"), true);
+            });
+        }
     }
     impl_->sessionSaveTimer = new QTimer(this);
     impl_->sessionSaveTimer->setSingleShot(true);

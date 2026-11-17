@@ -1165,6 +1165,7 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
         checkOr(tel.inferences > 0 && tel.inferP50Ms > 0, std::format("pushflow: telemetry ({} inferences, p50 {:.1f} ms)", tel.inferences, tel.inferP50Ms));
         checkOr(!gpu.debugErrors(), "pushflow: no debug layer errors");
     }
+    checkOr(!pushflow::crashedLastTime(), "pushflow: the crash marker is gone after a normal close");
 }
 
 int main() {
