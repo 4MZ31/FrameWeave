@@ -45,6 +45,30 @@ PINS: dict[str, str | None] = {
 }
 
 
+MIT = """MIT License
+
+Copyright (c) {year}{holder}
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
+
 def sha256(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as f:
@@ -190,7 +214,18 @@ def main() -> None:
             sys.exit(f"::error::missing {f}")
     shutil.copy2(ort_dll, runtime)
     shutil.copy2(dml_dll, runtime)
-    for src, dst in ((out / "ort" / "LICENSE.txt", "ONNX_Runtime_LICENSE.txt"), (out / "ort" / "ThirdPartyNotices.txt", "ONNX_Runtime_ThirdPartyNotices.txt"),
+    # ONNX Runtime's NuGet has no LICENSE.txt at its root in every version: use whichever LICENSE file it
+    # has, else write its MIT licence (Copyright (c) Microsoft Corporation), so the licence always ships.
+    ort_licence = next((f for f in sorted((out / "ort").glob("LICENSE*")) if f.is_file()), None)
+    if ort_licence:
+        shutil.copy2(ort_licence, licences / "ONNX_Runtime_LICENSE.txt")
+    else:
+        (licences / "ONNX_Runtime_LICENSE.txt").write_text(MIT.format(holder="Microsoft Corporation", year=""), encoding="utf-8")
+    (licences / "RIFE_LICENSE.txt").write_text(
+        "RIFE (Real-Time Intermediate Flow Estimation), Practical-RIFE v4 weights: https://github.com/hzwer/Practical-RIFE\n"
+        "ONNX conversions: https://github.com/AmusementClub/vs-mlrt (external-models)\n\n" + MIT.format(holder="hzwer", year="2021 "),
+        encoding="utf-8")
+    for src, dst in ( (out / "ort" / "ThirdPartyNotices.txt", "ONNX_Runtime_ThirdPartyNotices.txt"),
                      (out / "dml" / "LICENSE.txt", "DirectML_LICENSE.txt"), (out / "dml" / "ThirdPartyNotices.txt", "DirectML_ThirdPartyNotices.txt")):
         if src.exists():
             shutil.copy2(src, licences / dst)
