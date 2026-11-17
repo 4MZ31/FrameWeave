@@ -607,6 +607,27 @@ VGroup {
         }
     }
 
+    // The game is set to 30 FPS but every 60 Hz capture frame looks new to the automatic duplicate
+    // removal (a capture card that adds noise to repeated pictures, field report 2026-11-17: GTA V
+    // fidelity mode measured as 60). Then frame generation works from 60 and the console side of a
+    // comparison clip reads 60. One tap switches to the fixed 60 -> 30 mode (every second sample).
+    readonly property bool cadenceMismatch: quick.liveStats.running === true && veyra.fgEnabled === true && quick.baseFps === 30
+        && Math.abs(Number(quick.liveStats.captureFps || 0) - 60) < 3 && Number(quick.liveStats.contentFps || 0) > 45
+        && Number(veyra.contentRate) !== 5
+    VRow {
+        objectName: "pushfps-cadence-row"
+        visible: quick.cadenceMismatch
+        label: qsTr("检测到 60 FPS")
+        hint: qsTr("游戏帧率设为 30，但每一帧采集画面都被当作新画面（%1 FPS）。采集卡可能给重复画面加了噪点。改用固定的「60→30」去重，按 30 FPS 补帧").arg(Math.round(Number(quick.liveStats.contentFps || 0)))
+        hintColor: Theme.warn
+        hintBelow: true
+        VButton {
+            objectName: "pushfps-cadence-fix"
+            text: qsTr("改为 60→30")
+            onClicked: { veyra.contentRate = 5; veyra.logUi("push-quick", "content rate 60->30 from the cadence hint") }
+        }
+    }
+
     VRow {
         objectName: "pushfps-target-row"
         label: qsTr("目标帧率")

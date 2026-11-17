@@ -31810,6 +31810,23 @@
    "ru": "Свернуть"
   },
   {
+   "zh": "改为 60→30",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "改為 60→30",
+   "en": "Use 60→30",
+   "ja": "60→30 にする",
+   "nl": "Use 60→30",
+   "de": "Use 60→30",
+   "es": "Use 60→30",
+   "fr": "Use 60→30",
+   "it": "Use 60→30",
+   "pt-BR": "Use 60→30",
+   "tr": "Use 60→30",
+   "ar": "Use 60→30",
+   "pl": "Use 60→30",
+   "ru": "Use 60→30"
+  },
+  {
    "zh": "改动会实时显示在这里。",
    "src": "qml/SubtitleSettingsDialog.qml",
    "zh-TW": "改動會即時顯示在這裡。",
@@ -37488,6 +37505,23 @@
    "ru": "%1 Лицо (лица) обнаружено"
   },
   {
+   "zh": "检测到 60 FPS",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "偵測到 60 FPS",
+   "en": "60 FPS detected",
+   "ja": "60 FPS を検出",
+   "nl": "60 FPS detected",
+   "de": "60 FPS detected",
+   "es": "60 FPS detected",
+   "fr": "60 FPS detected",
+   "it": "60 FPS detected",
+   "pt-BR": "60 FPS detected",
+   "tr": "60 FPS detected",
+   "ar": "60 FPS detected",
+   "pl": "60 FPS detected",
+   "ru": "60 FPS detected"
+  },
+  {
    "zh": "检测到 Dolby Vision RPU，但缺少基础层兼容声明，无法确认颜色，已停止",
    "src": "src/source/MediaFileSource.cpp",
    "zh-TW": "檢測到 Dolby Vision RPU，但缺少基礎層相容聲明，無法確認顏色，已停止",
@@ -41413,6 +41447,23 @@
    "ar": "يضبط المضاعف عند تغيّر معدل إطارات اللعبة، ليبقى الإخراج قريبًا من الهدف",
    "pl": "Dopasowuje mnożnik, gdy liczba klatek gry się zmienia, utrzymując wynik blisko celu",
    "ru": "Меняет множитель, когда частота кадров игры колеблется, удерживая вывод близко к цели"
+  },
+  {
+   "zh": "游戏帧率设为 30，但每一帧采集画面都被当作新画面（%1 FPS）。采集卡可能给重复画面加了噪点。改用固定的「60→30」去重，按 30 FPS 补帧",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "遊戲幀率設為 30，但每一幀擷取畫面都被當作新畫面（%1 FPS）。擷取卡可能給重複畫面加了雜訊。改用固定的「60→30」去重，按 30 FPS 補幀",
+   "en": "The game frame rate is set to 30, but every captured frame looks new (%1 FPS). Your capture card may add noise to repeated pictures. Switch to the fixed 60→30 duplicate removal to generate frames from 30 FPS",
+   "ja": "ゲームのフレームレートは 30 ですが、キャプチャした全フレームが新しい映像と判定されています（%1 FPS）。キャプチャカードが重複フレームにノイズを加えている可能性があります。固定の「60→30」重複除去に切り替え、30 FPS から補間します",
+   "nl": "The game frame rate is set to 30, but every captured frame looks new (%1 FPS). Your capture card may add noise to repeated pictures. Switch to the fixed 60→30 duplicate removal to generate frames from 30 FPS",
+   "de": "The game frame rate is set to 30, but every captured frame looks new (%1 FPS). Your capture card may add noise to repeated pictures. Switch to the fixed 60→30 duplicate removal to generate frames from 30 FPS",
+   "es": "The game frame rate is set to 30, but every captured frame looks new (%1 FPS). Your capture card may add noise to repeated pictures. Switch to the fixed 60→30 duplicate removal to generate frames from 30 FPS",
+   "fr": "The game frame rate is set to 30, but every captured frame looks new (%1 FPS). Your capture card may add noise to repeated pictures. Switch to the fixed 60→30 duplicate removal to generate frames from 30 FPS",
+   "it": "The game frame rate is set to 30, but every captured frame looks new (%1 FPS). Your capture card may add noise to repeated pictures. Switch to the fixed 60→30 duplicate removal to generate frames from 30 FPS",
+   "pt-BR": "The game frame rate is set to 30, but every captured frame looks new (%1 FPS). Your capture card may add noise to repeated pictures. Switch to the fixed 60→30 duplicate removal to generate frames from 30 FPS",
+   "tr": "The game frame rate is set to 30, but every captured frame looks new (%1 FPS). Your capture card may add noise to repeated pictures. Switch to the fixed 60→30 duplicate removal to generate frames from 30 FPS",
+   "ar": "The game frame rate is set to 30, but every captured frame looks new (%1 FPS). Your capture card may add noise to repeated pictures. Switch to the fixed 60→30 duplicate removal to generate frames from 30 FPS",
+   "pl": "The game frame rate is set to 30, but every captured frame looks new (%1 FPS). Your capture card may add noise to repeated pictures. Switch to the fixed 60→30 duplicate removal to generate frames from 30 FPS",
+   "ru": "The game frame rate is set to 30, but every captured frame looks new (%1 FPS). Your capture card may add noise to repeated pictures. Switch to the fixed 60→30 duplicate removal to generate frames from 30 FPS"
   },
   {
    "zh": "游戏模式",

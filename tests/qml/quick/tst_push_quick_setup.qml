@@ -269,6 +269,20 @@ Item {
         }
         // A 60 FPS target and smooth pacing together (3.1.6): turning it on keeps the cap, the switch
         // reads on with the cap, and turning it off keeps the target.
+        function test_cadence_hint_offers_60_to_30() {
+            veyra.setPreference("pushGameFps", 30)
+            veyra.fgEnabled = true; veyra.contentRate = 1
+            quick.liveStats = ({ running: true, captureFps: 60, contentFps: 59.9 })
+            verify(quick.cadenceMismatch, "30 FPS set, 60 measured in a 60 Hz capture")
+            control("pushfps-cadence-fix").clicked()
+            compare(veyra.contentRate, 5, "fixed 60->30")
+            verify(!quick.cadenceMismatch)
+            quick.liveStats = ({ running: true, captureFps: 60, contentFps: 30 })
+            veyra.contentRate = 1
+            verify(!quick.cadenceMismatch, "no hint when 30 is measured")
+            quick.liveStats = ({})
+            veyra.fgEnabled = false
+        }
         function test_smooth_frame_pacing_keeps_a_target() {
             veyra.displaySync = 2; veyra.variableRefresh = false
             veyra.outputCustomFps = 60; veyra.outputRateMode = 2
