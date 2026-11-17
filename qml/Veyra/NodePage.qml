@@ -87,7 +87,7 @@ VPage {
         case "nr-stabilizer": return "#5DCCA1"
         case "exclusion": return "#E7B868"
         case "video-hdr": return "#FFB547"
-        case "frame-generation": case "dlss-fg": case "xess-fg": case "fsr3-fg": case "fsr4-fg": case "vfg-fg": case "anr-fg": case "amdfrc-fg": return "#3DDC84"
+        case "frame-generation": case "dlss-fg": case "xess-fg": case "fsr3-fg": case "fsr4-fg": case "vfg-fg": case "anr-fg": case "amdfrc-fg": case "pushflow-fg": return "#3DDC84"
         }
         return "#55555C"
     }
@@ -1657,6 +1657,17 @@ VPage {
                         objectName: "node-vfg-quality"
                         options: [{id:"0",label:qsTr("低")},{id:"1",label:qsTr("中")},{id:"2",label:qsTr("高")},{id:"3",label:qsTr("高+中")},{id:"4",label:qsTr("高+低")},{id:"5",label:qsTr("中+低")}]
                         value: options[veyra.vfgQuality].label
+                        onPicked: id => veyra.vfgQuality = Number(id)
+                    }
+                }
+                VRow {
+                    label: qsTr("PushFlow 档位")
+                    visible: veyra.fgBackendName === "pushflow"
+                    hint: qsTr("快速：轻量模型、半分辨率估算运动；均衡：轻量模型、全分辨率；高质量：完整模型、全分辨率，最耗显卡")
+                    VSelect {
+                        objectName: "node-pushflow-tier"
+                        options: [{id:"0",label:qsTr("快速")},{id:"1",label:qsTr("均衡")},{id:"2",label:qsTr("高质量")}]
+                        value: options[Math.min(veyra.vfgQuality, 2)].label
                         onPicked: id => veyra.vfgQuality = Number(id)
                     }
                 }

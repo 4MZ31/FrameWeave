@@ -16,6 +16,11 @@
 //    picture, a generated frame takes the HUD pixels from the held real frame
 //    and keeps its own everywhere else; a HUD that disappears is released on
 //    that frame; a reset starts over.
+//  - PushFlow (PushFPS's own frame generation, RIFE on DirectML): when VEYRA_PUSHFLOW_TEST_RUNTIME names a
+//    folder holding pushflow\ (the release's runtime), two identical frames give the same picture back,
+//    and a square that moves 16 px lands near the middle at t = 0.5, far closer than a blend of the two
+//    frames, in both tiers' models. Without the variable the test is skipped (and says so).
+#include "veyra/pushflow/PushFlowBackend.h"
 #include "veyra/engine/PushHudSampler.h"
 #include "veyra/pipeline/PushHudLock.h"
 #include "veyra/engine/RecordingCompare.h"
@@ -35,6 +40,7 @@
 #include <cstring>
 #include <string>
 #include <thread>
+#include <format>
 #include <functional>
 #include <vector>
 
@@ -980,6 +986,93 @@ void testHudLock(Gpu& gpu) {
 }
 } // namespace
 
+// PushFlow: RGBA8 frames with a textured square on a soft gradient.
+std::vector<uint8_t> flowFrame(uint32_t w, uint32_t h, double squareX) {
+    std::vector<uint8_t> px(size_t(w) * h * 4);
+    for (uint32_t y = 0; y < h; ++y)
+        for (uint32_t x = 0; x < w; ++x) {
+            uint8_t* p = &px[(size_t(y) * w + x) * 4];
+            const int base = 60 + int(40.0 * x / w) + int(30.0 * y / h);
+            int r = base, g = base + 10, b = base + 20;
+            const double dx = x - squareX, dy = double(y) - h * 0.35;
+            if (dx >= 0 && dx < 40 && dy >= 0 && dy < 40) {
+                const bool light = ((int(dx) / 8) + (int(dy) / 8)) % 2 == 0;
+                r = light ? 235 : 40; g = light ? 200 : 30; b = light ? 60 : 20;
+            }
+            p[0] = uint8_t(r); p[1] = uint8_t(g); p[2] = uint8_t(b); p[3] = 255;
+        }
+    return px;
+}
+double flowPsnr(const std::vector<uint8_t>& a, const std::vector<uint8_t>& b) {
+    double se = 0; size_t n = 0;
+    for (size_t i = 0; i < a.size() && i < b.size(); ++i) { if (i % 4 == 3) continue; const double d = double(a[i]) - b[i]; se += d * d; ++n; }
+    const double mse = n ? se / n : 0;
+    return mse <= 1e-9 ? 99.0 : 10.0 * std::log10(255.0 * 255.0 / mse);
+}
+void testPushFlow(Gpu& gpu) {
+    wchar_t dir[1024]{};
+    if (!GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_TEST_RUNTIME", dir, 1024)) { std::printf("SKIP pushflow: VEYRA_PUSHFLOW_TEST_RUNTIME not set\n"); return; }
+    std::wstring why;
+    check(pushflow::runtimeInstalled(dir, &why), "pushflow: runtime installed");
+    if (!pushflow::runtimeInstalled(dir)) return;
+    constexpr uint32_t W = 256, H = 160;
+    auto* device = gpu.device.Get();
+    const auto fmt = DXGI_FORMAT_R8G8B8A8_UNORM;
+    Plane a{pipeline::makeTexture(device, W, H, fmt, false), fmt, W, H, 4};
+    Plane b{pipeline::makeTexture(device, W, H, fmt, false), fmt, W, H, 4};
+    Plane out{pipeline::makeTexture(device, W, H, fmt, false), fmt, W, H, 4};
+    check(a.texture && b.texture && out.texture, "pushflow: textures created");
+    const auto run = [&](const std::vector<uint8_t>& pa, const std::vector<uint8_t>& pb, float t, pushflow::PushFlowBackend& flow, double* ms) {
+        std::vector<uint8_t> result;
+        if (!gpu.begin()) return result;
+        auto ua = recordFill(gpu, a, pa, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        auto ub = recordFill(gpu, b, pb, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        if (!flow.pack(gpu.list.Get(), a.texture.Get(), b.texture.Get(), t) || !gpu.submit()) return result;
+        const auto start = std::chrono::steady_clock::now();
+        if (!flow.infer()) return result;
+        if (!gpu.begin()) return result;
+        D3D12_RESOURCE_BARRIER bar{}; bar.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; bar.Transition.pResource = out.texture.Get();
+        bar.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        bar.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON; bar.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
+        gpu.list->ResourceBarrier(1, &bar);
+        if (!flow.resolve(gpu.list.Get(), out.texture.Get())) return result;
+        auto rb = recordRead(gpu, out, D3D12_RESOURCE_STATE_COPY_DEST);
+        bar.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST; bar.Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
+        gpu.list->ResourceBarrier(1, &bar);
+        // Back to COMMON for the next fill.
+        D3D12_RESOURCE_BARRIER back[2]{};
+        for (int i = 0; i < 2; ++i) {
+            back[i].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; back[i].Transition.pResource = (i ? b : a).texture.Get();
+            back[i].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+            back[i].Transition.StateBefore = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; back[i].Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
+        }
+        gpu.list->ResourceBarrier(2, back);
+        if (!gpu.submitAndWait()) return result;
+        if (ms) *ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+        return mapRead(out, rb.Get());
+    };
+    for (uint32_t tier : {0u, 2u}) {
+        pushflow::PushFlowBackend flow;
+        const bool ready = flow.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, tier);
+        check(ready, "pushflow: tier " + std::to_string(tier) + " initializes (" + flow.status().model + ")");
+        if (!ready) continue;
+        const auto first = flowFrame(W, H, 100), second = flowFrame(W, H, 116), middle = flowFrame(W, H, 108);
+        double ms = 0;
+        const auto same = run(first, first, 0.5f, flow, &ms);
+        check(!same.empty() && flowPsnr(same, first) > 30.0, std::format("pushflow: tier {} identical frames come back ({:.1f} dB, {:.0f} ms on {})", tier,
+            same.empty() ? 0.0 : flowPsnr(same, first), ms, gpu.adapter));
+        const auto mid = run(first, second, 0.5f, flow, &ms);
+        std::vector<uint8_t> blend(first.size());
+        for (size_t i = 0; i < blend.size(); ++i) blend[i] = uint8_t((int(first[i]) + second[i] + 1) / 2);
+        const double flowDb = mid.empty() ? 0.0 : flowPsnr(mid, middle), blendDb = flowPsnr(blend, middle);
+        check(!mid.empty() && flowDb > blendDb + 2.0, std::format("pushflow: tier {} moving square lands in the middle ({:.1f} dB vs blend {:.1f} dB)", tier, flowDb, blendDb));
+        const auto early = run(first, second, 0.25f, flow, nullptr);
+        const auto quarter = flowFrame(W, H, 104);
+        check(!early.empty() && flowPsnr(early, quarter) > flowPsnr(early, middle), "pushflow: tier " + std::to_string(tier) + " t = 0.25 is closer to the quarter position");
+        check(!gpu.debugErrors(), "pushflow: no debug layer errors");
+    }
+}
+
 int main() {
     Gpu gpu;
     if (!gpu.create()) { std::printf("FAIL no D3D12 device\n"); return 1; }
@@ -1004,6 +1097,7 @@ int main() {
     testCompareBadges(gpu, true);
     testHudSampler(gpu);
     testHudLock(gpu);
+    testPushFlow(gpu);
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "OK", failures);
     return failures ? 1 : 0;
 }

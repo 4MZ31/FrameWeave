@@ -6,6 +6,7 @@
     Install-PushFPS.ps1        the installer (Veyra runtime package hashes pinned in it)
     READ ME FIRST.txt
     PushFPS-files\             PushFPS.exe, its QML interface, shaders and licence files
+    PushFPS-files\runtime\experimental\pushflow\   PushFlow: ONNX Runtime + DirectML and the RIFE models
 #>
 [CmdletBinding()]
 param(
@@ -14,7 +15,9 @@ param(
     [Parameter(Mandatory)][string]$UpstreamRepo,
     [Parameter(Mandatory)][string]$UpstreamTag,
     [Parameter(Mandatory)][string]$UpstreamSums,
-    [string]$OutDir = 'dist'
+    [string]$OutDir = 'dist',
+    # PushFlow's runtime (scripts/pushflow/prepare_runtime.py). Without it PushFlow reports itself unavailable.
+    [string]$PushFlowDir = ''
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
@@ -49,6 +52,17 @@ Copy-Item $shaders $files -Recurse
 foreach ($doc in 'LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md') { Copy-Item (Join-Path $repo $doc) $files }
 Copy-Item (Join-Path $repo 'README.md') (Join-Path $files 'PushFPS-README.md')
 Copy-Item (Join-Path $repo 'licenses') $files -Recurse
+if ($PushFlowDir) {
+    foreach ($f in 'onnxruntime.dll', 'DirectML.dll', 'models\pushflow-fast.onnx', 'models\pushflow-quality.onnx') {
+        if (-not (Test-Path (Join-Path $PushFlowDir $f))) { throw "PushFlow runtime incomplete: $f missing in $PushFlowDir" }
+    }
+    $pushFlow = Join-Path $files 'runtime\experimental\pushflow'
+    New-Item -ItemType Directory -Force $pushFlow | Out-Null
+    Copy-Item (Join-Path $PushFlowDir '*') $pushFlow -Recurse
+    Get-ChildItem $pushFlow -Recurse -File | Format-Table FullName, Length
+} else {
+    Write-Warning 'No -PushFlowDir: this package has no PushFlow runtime (PushFlow will report itself unavailable).'
+}
 
 # Installer with the pinned values filled in.
 $installer = Get-Content (Join-Path $PSScriptRoot 'Install-PushFPS.ps1') -Raw

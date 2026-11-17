@@ -611,6 +611,34 @@ VGroup {
         }
     }
 
+    // Streaming mode has no Professional page beside it: the frame generation method (PushFlow, DLSS, FSR,
+    // ...) and PushFlow's tier are chosen here too.
+    VRow {
+        objectName: "pushfps-fg-backend-row"
+        visible: quick.compactPro
+        label: qsTr("补帧方式")
+        hint: veyra.fgProviderText
+        hintBelow: true
+        VSelect {
+            objectName: "pushfps-fg-backend"
+            options: veyra.fgBackendChoices
+            value: (options.find(o => o.id === veyra.fgBackendName) || options[0]).label
+            onPicked: id => veyra.fgBackendName = id
+        }
+    }
+
+    VRow {
+        objectName: "pushfps-pushflow-tier-row"
+        visible: quick.compactPro && veyra.fgBackendName === "pushflow"
+        label: qsTr("PushFlow 档位")
+        VSeg {
+            objectName: "pushfps-pushflow-tier"
+            options: [{ id: "0", label: qsTr("快速") }, { id: "1", label: qsTr("均衡") }, { id: "2", label: qsTr("高质量") }]
+            current: String(Math.min(veyra.vfgQuality, 2))
+            onPicked: id => veyra.vfgQuality = Number(id)
+        }
+    }
+
     VRow {
         objectName: "pushfps-adaptive-row"
         label: qsTr("自适应倍率")

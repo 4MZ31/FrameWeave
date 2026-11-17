@@ -65,8 +65,8 @@ DialogLayer {
     property bool applied: false
 
     // Picture-quality order of the methods: a heuristic, used when the ground-truth test could not run.
-    readonly property var qualityRank: ({ vfg: 6, dlss: 5, anr: 4, fsr4: 3, xess: 2, fsr3: 2, amdfrc: 1 })
-    readonly property var backendLabel: ({ vfg: "NVIDIA VFG", dlss: qsTr("DLSS 帧生成"), anr: "ANR", fsr4: "FSR 4", xess: "XeSS", fsr3: "FSR 3.1", amdfrc: "AMD FRC" })
+    readonly property var qualityRank: ({ vfg: 6, dlss: 5, anr: 4, pushflow: 4, fsr4: 3, xess: 2, fsr3: 2, amdfrc: 1 })
+    readonly property var backendLabel: ({ vfg: "NVIDIA VFG", dlss: qsTr("DLSS 帧生成"), anr: "ANR", fsr4: "FSR 4", xess: "XeSS", fsr3: "FSR 3.1", amdfrc: "AMD FRC", pushflow: "PushFlow" })
     // Goal (preference pushOptimizeGoal): balanced | latency | smooth | picture.
     property string goal: ["balanced", "latency", "smooth", "picture"].indexOf(String(veyra.preferences.pushOptimizeGoal)) >= 0
                           ? String(veyra.preferences.pushOptimizeGoal) : "balanced"

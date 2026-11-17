@@ -22,7 +22,7 @@ Nothing changes on the console or in the game: you need a capture card and a gra
 [![Latest release](https://img.shields.io/github/v/release/DosukaSOL/PushFPS?include_prereleases&style=flat-square&color=89F52A&label=release)](https://github.com/DosukaSOL/PushFPS/releases)
 [![Build](https://img.shields.io/github/actions/workflow/status/DosukaSOL/PushFPS/build-windows.yml?branch=main&event=push&style=flat-square&label=build)](https://github.com/DosukaSOL/PushFPS/actions/workflows/build-windows.yml)
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-89F52A?style=flat-square)](LICENSE)
-[![Based on Veyra](https://img.shields.io/badge/based%20on-Veyra%20by%20Likely7-89F52A?style=flat-square)](https://github.com/Likely7/Veyra-NRVideo)
+[![Built on Veyra](https://img.shields.io/badge/built%20on-Veyra%20by%20Likely7-89F52A?style=flat-square)](https://github.com/Likely7/Veyra-NRVideo)
 
 <table>
   <tr>
@@ -97,10 +97,15 @@ GPL-3.0, no account needed. Built on Veyra, the open-source video enhancer by Li
 ## Only in PushFPS
 
 PushFPS is built on [Veyra](https://github.com/Likely7/Veyra-NRVideo), a general video enhancer. On top of
-everything Veyra does, PushFPS adds what console players need:
+that, PushFPS adds what console players need:
 
 | Feature | What it does |
 |---|---|
+| **PushFlow** | PushFPS's own frame generation: the RIFE neural network on DirectML, on NVIDIA, AMD and Intel graphics cards, 2× to 4×, Fast / Balanced / Quality tiers ([more](#pushflow-our-own-frame-generation)) |
+| **Frame quality test** | Holds back every second real frame, lets frame generation rebuild it and compares it with the original: accuracy (PSNR), pixel errors, HUD smearing, gain over a simple blend, and whether generated frames are on time. *Optimise for my PC* uses it |
+| **PS5 latency test** | Presses the PS button over Remote Play, times the response on screen and splits the PS5, network and decoding part from PushFPS's own processing |
+| **One-click signed updates** | New versions download and install from the app; every release is signed (RSA-3072, SHA-256) and the app refuses anything that doesn't match |
+| **Frame input API** | Other programs can send video straight into PushFPS through shared memory ([docs/FRAME-INPUT-API.md](docs/FRAME-INPUT-API.md)) |
 | **Optimise for my PC** | Tests every frame generation method your PC has, AI enhancement and the upscalers on your real game picture, measures frame rate, 1% low, latency and jitter, and keeps the best combination for your goal (balanced, lowest latency, smoothest or best picture), up to 144 or 240 Hz |
 | **Streaming mode** | An OBS-style page: preview, PushFPS features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards) with webcam, window and video sources and cut or fade transitions, a layout editor (move, resize and crop the game picture and every source), go live and record controls, an audio mixer for game sound, microphone, desktop audio, an extra input and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
 | **Video playback mode** | Frame generation, super resolution, AI enhancement and SDR to HDR on any video on your PC: a browser window with YouTube, a video app, a screen or a file |
@@ -298,13 +303,37 @@ still gives the sharpest picture and the lowest latency.
 > Only one program can use a capture card at a time. To show PushFPS in OBS, use the
 > [OBS Studio plugin](#obs-studio-plugin) instead.
 
+## PushFlow: our own frame generation
+
+<img src="assets/pushflow-logo.png" alt="PushFlow" height="64">
+
+PushFlow is PushFPS's own frame generation. It runs **RIFE** (Real-Time Intermediate Flow Estimation, an open
+neural network for in-between frames, MIT-licensed, by hzwer) through **ONNX Runtime on DirectML**, so it works
+on every DirectX 12 graphics card: NVIDIA, AMD and Intel. Choose it under *Frame generation* in Professional
+mode or in streaming mode.
+
+- **2×, 3× or 4×**: each frame is made for its own moment between the two real frames.
+- **Tiers**: *Fast* (lite model, motion estimated at half resolution), *Balanced* (lite model, full resolution)
+  and *Quality* (full model, full resolution).
+- **Everything stays on the graphics card**: a compute pass packs the two frames into the network's input,
+  the network runs on PushFPS's own GPU queue, and a second pass turns the result back into a picture, with
+  no copies through the CPU. The models are converted to half precision when the release is built, when that
+  gives the same picture.
+- Works with HUD protection, Live HUD Lock, the adaptive multiplier, recording and going live.
+- *Optimise for my PC* tests PushFlow like the other methods, and the frame quality test can score it on your
+  own game.
+
+How fast it is depends on your graphics card, the tier and the resolution; it has been tested in CI on
+Windows' software renderer, not yet measured on real graphics cards. TensorRT isn't bundled (its runtime is
+over a gigabyte and NVIDIA-only); DirectML covers every vendor.
+
 ## Optimise for my PC
 
 Click **Optimise for my PC** in the quick setup while your game is on screen, and pick a goal: **Balanced**,
 **Lowest latency**, **Smoothest** or **Best picture**. In one to three minutes PushFPS:
 
 1. measures the picture without effects, to find the game's frame rate (30, 40 or 60) and the base latency;
-2. tries every frame generation method your PC can run (DLSS, NVIDIA VFG, ANR, FSR 4/3.1, XeSS, AMD FRC) at
+2. tries every frame generation method your PC can run (PushFlow, DLSS, NVIDIA VFG, ANR, FSR 4/3.1, XeSS, AMD FRC) at
    the highest frame rate your screen shows: your monitor's own rate on 144, 165 or 240 Hz screens when the game
    divides into it evenly, otherwise 120 FPS, and 60 FPS if none holds that;
 3. adds AI enhancement to the best one, then the upscalers when your screen is larger than the capture;
@@ -795,6 +824,10 @@ In your user folder, next to Veyra's settings. Updating PushFPS keeps them.
 - [x] Go live to Twitch, YouTube, Kick, TikTok and more, several platforms at once
 - [x] Optimiser goals, every frame generation method tested, 144-240 Hz targets
 - [x] Linux and macOS preview with PushFPS's own frame generation
+- [x] PushFlow, PushFPS's own frame generation (RIFE on DirectML)
+- [x] Measured frame quality in the optimiser, automatic PS5 latency test
+- [x] One-click signed updates, frame input API for other apps
+- [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)
 
@@ -835,12 +868,10 @@ Veyra keep merging cleanly. The PushFPS name and links live in
 
 ## Credits and license
 
-PushFPS is a modified version of **[Veyra](https://github.com/Likely7/Veyra-NRVideo)** by
-**[Likely7](https://github.com/Likely7)**, forked on 2026-11-12. Nearly all of the engine, the capture
-support and the frame generation integration is their work. If PushFPS helps you, consider
-[supporting Veyra's author](https://www.patreon.com/cw/Likely7). Likely7 is on
-[X](https://x.com/likely2002) and [YouTube](https://www.youtube.com/@Likely7Ai), with a
-[Veyra video tutorial in English](https://www.youtube.com/watch?v=ZJ42jzNAbik).
+PushFPS is built on **[Veyra](https://github.com/Likely7/Veyra-NRVideo)** by
+**[Likely7](https://github.com/Likely7)** (GPL-3.0). It started from Veyra on 2026-11-12 and is now its own
+project; Veyra's engine, capture support and streaming sources are still at its core. Likely7 is on
+[X](https://x.com/likely2002) and [YouTube](https://www.youtube.com/@Likely7Ai).
 
 ANR frame generation is **[Apex Neural Rendering](https://github.com/apex-compute/ANR)** by
 **[Apex Compute](https://apexcompute.com)**. PushFPS contains Veyra's own ANR host code (GPL-3.0) and no ANR files;

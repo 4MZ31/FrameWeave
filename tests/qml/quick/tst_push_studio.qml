@@ -268,5 +268,20 @@ Item {
             filters.actionTriggered(qsTr("完成"))
             compare(host.dialog, "")
         }
+
+        function test_pushflow_is_chosen_in_streaming_mode() {
+            veyra.fgBackendChoices = [{ id: "pushflow", label: "PushFlow" }, { id: "dlss", label: "DLSS" }]
+            veyra.fgBackendName = "dlss"
+            const row = control(studio, "pushfps-fg-backend-row")
+            verify(row.visible, "the frame generation method is chosen in streaming mode")
+            verify(!control(studio, "pushfps-pushflow-tier-row").visible, "tiers only for PushFlow")
+            control(studio, "pushfps-fg-backend").picked("pushflow")
+            compare(veyra.fgBackendName, "pushflow")
+            verify(control(studio, "pushfps-pushflow-tier-row").visible)
+            control(studio, "pushfps-pushflow-tier").picked("2")
+            compare(veyra.vfgQuality, 2)
+            veyra.fgBackendName = "dlss"; veyra.vfgQuality = 1
+            veyra.fgBackendChoices = [{ id: "dlss", label: "DLSS" }]
+        }
     }
 }

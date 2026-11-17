@@ -1155,3 +1155,23 @@ Runtime path: `media/startup-music.mp3`, 1847011 bytes, SHA256
 `3005aa601f06a97d3968fd9fa171e870fceb4ec47586f1e950c9ed3c7875fb6a`.
 Each runnable package includes its separate notice and manifest. Windows Media
 Foundation provides decoding; no additional codec or audio SDK is bundled.
+
+## PushFlow: ONNX Runtime, DirectML and RIFE models (PushFPS 3.1.3, 2026-11-17)
+
+PushFlow, PushFPS's own frame generation (`src/pushflow/`, `shaders/PushFlowPack.hlsl`,
+`shaders/PushFlowUnpack.hlsl`, GPL-3.0-or-later), runs a RIFE network through ONNX Runtime on DirectML. Nothing
+below is committed to this repository; release builds download it (`scripts/pushflow/prepare_runtime.py`) and
+ship it in `runtime\experimental\pushflow` with each licence in its `licenses` folder:
+
+- **ONNX Runtime** 1.20.1, DirectML build (`Microsoft.ML.OnnxRuntime.DirectML` from nuget.org),
+  [MIT License](https://github.com/microsoft/onnxruntime/blob/main/LICENSE), with its third-party notices.
+  Only `onnxruntime.dll` is shipped; PushFPS loads it at run time and uses its public C API headers to build.
+- **Microsoft DirectML** 1.15.4 (`Microsoft.AI.DirectML` from nuget.org), `DirectML.dll` redistributed unmodified
+  under the Microsoft DirectML licence that comes with the package.
+- **RIFE** (Real-Time Intermediate Flow Estimation, Practical-RIFE v4.x) by hzwer and contributors,
+  [MIT License](https://github.com/hzwer/Practical-RIFE/blob/main/LICENSE). The ONNX conversions come from
+  [vs-mlrt](https://github.com/AmusementClub/vs-mlrt)'s `external-models` release (vs-mlrt is GPL-3.0).
+  The release build checks each model on a test pattern and may convert it to half precision with
+  onnxconverter-common (MIT); `models.json` next to the models records the source archive, version, SHA-256
+  and precision of each file.
+

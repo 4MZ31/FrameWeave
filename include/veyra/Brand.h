@@ -3,7 +3,7 @@
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 // PushFPS product identity: the one place that names the product and its GitHub home.
 //
-// PushFPS is a fork of Veyra (https://github.com/Likely7/Veyra-NRVideo, GPL-3.0). Internal
+// PushFPS is built on Veyra (https://github.com/Likely7/Veyra-NRVideo, GPL-3.0). Internal
 // identifiers (namespaces, target names, the qml/Veyra module, window classes, data folders)
 // keep Veyra's names on purpose so upstream fixes keep merging cleanly; only what a user sees
 // uses these constants.
@@ -53,5 +53,7 @@ inline constexpr const char* kAnrName = "Apex Neural Rendering (ANR)";
 inline constexpr const char* kAnrMaker = "Apex Compute";
 inline constexpr const char* kAnrUrl = "https://github.com/apex-compute/ANR";
 inline constexpr const char* kAnrReleasesUrl = "https://github.com/apex-compute/ANR/releases";
+// PushFlow (PushFPS's own frame generation) runs RIFE (MIT, hzwer); credited in About.
+inline constexpr const char* kRifeUrl = "https://github.com/hzwer/Practical-RIFE";
 inline constexpr const char* kApexUrl = "https://apexcompute.com";
 }

@@ -372,6 +372,7 @@ QString QmlPlayerBridge::pushLinkUrl(const QString& key) const {
     if (key == QLatin1String("repo")) return QString::fromLatin1(brand::kRepositoryUrl);
     if (key == QLatin1String("veyra")) return QString::fromLatin1(brand::kUpstreamUrl);
     if (key == QLatin1String("anr")) return QString::fromLatin1(brand::kAnrUrl);
+    if (key == QLatin1String("rife")) return QString::fromLatin1(brand::kRifeUrl);
     if (key == QLatin1String("anrReleases")) return QString::fromLatin1(brand::kAnrReleasesUrl);
     if (key == QLatin1String("apex")) return QString::fromLatin1(brand::kApexUrl);
     if (key == QLatin1String("frameInputDocs")) return QString::fromLatin1(brand::kRepositoryUrl) + QStringLiteral("/blob/main/docs/FRAME-INPUT-API.md");

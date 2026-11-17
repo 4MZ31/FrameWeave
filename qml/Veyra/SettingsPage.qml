@@ -42,7 +42,7 @@ VPage {
         // render(true): 480 ms, i*40 ms, y 12).
         Qt.callLater(() => stagger(sectionColumns[section] || null))
     }
-    readonly property var sectionColumns: ({ look: secLook, window: secWindow, play: secPlay, audio: secAudio, perf: secPerf, compat: secCompat, ps5: secPs5, keys: secKeys, comp: secComp, about: secAbout, sponsor: secSponsor })
+    readonly property var sectionColumns: ({ look: secLook, window: secWindow, play: secPlay, audio: secAudio, perf: secPerf, compat: secCompat, ps5: secPs5, keys: secKeys, comp: secComp, about: secAbout })
     Component { id: staggerComp; VRise.Stagger {} }
     function stagger(col) {
         if (Theme.reduced || !col) return
@@ -66,9 +66,7 @@ VPage {
         { id: "ps5",   label: qsTr("PS5 串流"), icon: "gamepad" },
         { id: "keys",  label: qsTr("快捷键"), icon: "zap" },
         { id: "comp",  label: qsTr("组件与许可"), icon: "box" },
-        { id: "about", label: qsTr("关于"), icon: "info" },
-        // The one entry with a coloured icon, so it can be found.
-        { id: "sponsor", label: qsTr("赞助作者"), icon: "heart", tint: "#FF6B81" }
+        { id: "about", label: qsTr("关于"), icon: "info" }
     ].filter(s => s.id !== "ps5" || (!!veyra.ps5 && veyra.ps5.available === true))
 
     // --- nav ---------------------------------------------------------------
@@ -1575,7 +1573,7 @@ VPage {
                             }
                             Text {
                                 objectName: "about-upstream-credit"
-                                text: qsTr("基于开源项目 Veyra（GPL-3.0）打造，感谢原作者 Likely7")
+                                text: qsTr("基于 Veyra 构建（GPL-3.0，作者 Likely7）")
                                 color: Theme.t2
                                 font.family: Theme.fontUi
                                 font.pixelSize: Theme.fsBody
@@ -1644,6 +1642,16 @@ VPage {
                             }
                         }
                         VRow {
+                            label: "PushFlow · RIFE"
+                            hint: qsTr("PushFlow 补帧使用 RIFE 神经网络（MIT，作者 hzwer），经 ONNX Runtime 与 DirectML 运行")
+                            VButton {
+                                objectName: "about-open-rife"
+                                text: qsTr("访问页面")
+                                iconName: "external"
+                                onClicked: veyra.pushOpenLink("rife")
+                            }
+                        }
+                        VRow {
                             label: qsTr("源代码")
                             hint: "github.com/DosukaSOL/PushFPS"
                             VButton {
@@ -1690,11 +1698,6 @@ VPage {
                             VButton { text: qsTr("打开"); onClicked: veyra.openFeedbackPage() }
                         }
                         VRow {
-                            label: qsTr("赞助作者")
-                            hint: qsTr("Patreon、微信与支付宝")
-                            VButton { objectName: "about-sponsor"; text: qsTr("前往"); onClicked: root.section = "sponsor" }
-                        }
-                        VRow {
                             label: qsTr("交流群")
                             hint: qsTr("群二维码在项目主页 README 里")
                             VButton { text: qsTr("查看"); onClicked: veyra.openProjectPage() }
@@ -1739,15 +1742,6 @@ VPage {
                             }
                         }
                     }
-                }
-
-                // --- 赞助作者 ------------------------------------------------
-                SponsorPanel {
-                    id: secSponsor
-                    objectName: "set-sponsor"
-                    Layout.fillWidth: true
-                    visible: root.section === "sponsor"
-                    onOpenLink: id => veyra.openSponsorLink(id)
                 }
 
                 Item { Layout.preferredHeight: 12 }

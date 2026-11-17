@@ -118,6 +118,8 @@ QtObject {
     // PushFPS optimiser, game presets, latency readout and sharing (src/ui/bridge/PushFps.cpp).
     property string fgBackendName: "dlss"
     property var fgBackendChoices: [{id: "dlss", label: "DLSS"}]
+    property string fgProviderText: ""
+    property int vfgQuality: 1
     property bool srEnabled: false
     property string captureDeviceLabel: ""
     property var exclusionState: ({enabled: false, feather: 6, regions: []})

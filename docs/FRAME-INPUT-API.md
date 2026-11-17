@@ -107,4 +107,4 @@ reads, the older frames are skipped, as with a capture card.
 
 ## Version history
 
-- **1** (PushFPS 3.2.0): shared-memory BGRA8/RGBA8 frames.
+- **1** (PushFPS 3.1.3): shared-memory BGRA8/RGBA8 frames.

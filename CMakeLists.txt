@@ -330,6 +330,9 @@ veyra_add_compute_shader(veyra_shader_push_compare_raw PushCompareRaw)
 veyra_add_compute_shader(veyra_shader_push_compare_overlay PushCompareOverlay)
 veyra_add_compute_shader(veyra_shader_push_layer_blend PushLayerBlend)
 veyra_add_compute_shader(veyra_shader_push_canvas_convert PushCanvasConvert)
+# PushFlow (PushFPS's own frame generation): network input packing and output unpacking.
+veyra_add_compute_shader(veyra_shader_push_flow_pack PushFlowPack)
+veyra_add_compute_shader(veyra_shader_push_flow_unpack PushFlowUnpack)
 # Nv12Upload: byte buffer -> luma/chroma planes (copy-free upload path).
 veyra_add_compute_shader(veyra_shader_nv12_upload Nv12Upload)
 # PresentBlit: fullscreen-triangle pixel blit onto flip-model back buffers.
@@ -420,6 +423,7 @@ add_library(veyra_pipeline STATIC
   src/pipeline/AntiAliasPass.cpp
   src/pipeline/NisPass.cpp
   src/pipeline/PushHudLock.cpp
+  src/pushflow/PushFlowBackend.cpp
   src/pipeline/SmaaLookupTables.cpp
   src/pipeline/NrInstance.cpp
   src/pipeline/AmdHipPreflight.cpp
@@ -444,6 +448,23 @@ if(EXISTS "${VEYRA_CUDA_DRIVER_INCLUDE_DIR}/cuda.h")
 endif()
 target_link_libraries(veyra_pipeline PUBLIC veyra_base veyra_gfx d3d12 dxgi dxguid d3dcompiler)
 add_dependencies(veyra_pipeline veyra_shader_rdna3_nr_decode)
+# PushFlow: ONNX Runtime (DirectML build) headers, from the Microsoft.ML.OnnxRuntime.DirectML and
+# Microsoft.AI.DirectML NuGet packages (MIT / DirectML licence). The DLLs are loaded at run time from
+# runtime\experimental\pushflow, so nothing links against them. Without the headers PushFlow is built
+# as unavailable.
+set(VEYRA_ONNXRUNTIME_ROOT "" CACHE PATH "Extracted Microsoft.ML.OnnxRuntime.DirectML NuGet package (PushFlow)")
+set(VEYRA_DIRECTML_ROOT "" CACHE PATH "Extracted Microsoft.AI.DirectML NuGet package (PushFlow)")
+if(VEYRA_ONNXRUNTIME_ROOT AND EXISTS "${VEYRA_ONNXRUNTIME_ROOT}/build/native/include/onnxruntime_c_api.h")
+  target_include_directories(veyra_pipeline PRIVATE "${VEYRA_ONNXRUNTIME_ROOT}/build/native/include")
+  if(VEYRA_DIRECTML_ROOT AND EXISTS "${VEYRA_DIRECTML_ROOT}/include/DirectML.h")
+    target_include_directories(veyra_pipeline BEFORE PRIVATE "${VEYRA_DIRECTML_ROOT}/include")
+  endif()
+  target_compile_definitions(veyra_pipeline PRIVATE VEYRA_HAVE_ONNXRUNTIME=1)
+  message(STATUS "PushFlow: ONNX Runtime headers from ${VEYRA_ONNXRUNTIME_ROOT}")
+else()
+  message(STATUS "PushFlow: ONNX Runtime headers not found; PushFlow is built as unavailable")
+endif()
+add_dependencies(veyra_pipeline veyra_shader_push_flow_pack veyra_shader_push_flow_unpack)
 
 # Optional independent RX7000 network worker. All third-party source and runtime
 # assets remain external; only our host and reproducible preparation script live here.
@@ -540,7 +561,7 @@ add_executable(veyra_push_gpu_tests tests/integration/PushGpuTests.cpp src/engin
 target_compile_features(veyra_push_gpu_tests PRIVATE cxx_std_20)
 target_compile_options(veyra_push_gpu_tests PRIVATE /utf-8)
 target_link_libraries(veyra_push_gpu_tests PRIVATE veyra_pipeline)
-add_dependencies(veyra_push_gpu_tests veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert)
+add_dependencies(veyra_push_gpu_tests veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_push_flow_pack veyra_shader_push_flow_unpack)
 
 add_executable(veyra_pipeline_tests
   tests/unit/PipelineContractTests.cpp

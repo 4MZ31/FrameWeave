@@ -1887,6 +1887,17 @@ VPage {
                                 }
                             }
                             VRow {
+                                label: qsTr("PushFlow 档位")
+                                visible: veyra.fgBackendName === "pushflow"
+                                hint: qsTr("快速：轻量模型、半分辨率估算运动；均衡：轻量模型、全分辨率；高质量：完整模型、全分辨率，最耗显卡")
+                                VSelect {
+                                    objectName: "list-pushflow-tier"
+                                    options: [{id:"0",label:qsTr("快速")},{id:"1",label:qsTr("均衡")},{id:"2",label:qsTr("高质量")}]
+                                    value: options[Math.min(veyra.vfgQuality, 2)].label
+                                    onPicked: id => veyra.vfgQuality = Number(id)
+                                }
+                            }
+                            VRow {
                                 label: qsTr("VFG 自动调控")
                                 visible: veyra.fgBackendName === "vfg"
                                 enabled: veyra.vfgQuality !== 0 && veyra.fgMultiplier === 2

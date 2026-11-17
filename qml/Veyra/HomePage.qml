@@ -11,8 +11,6 @@ import QtQuick.Effects
 VPage {
     id: root
     signal requestPage(string page)
-    // The coffee line under the title: Main opens 设置 → 赞助作者.
-    signal requestSponsor()
     // Opens 画面与声音 and scrolls it into view (the screenshot run's `--tab tuning`).
     function showTuning() {
         tuning.open = true
@@ -494,48 +492,17 @@ VPage {
         }
     }
 
-    // Free and open source; the coffee goes to Veyra's author (设置 → 赞助作者).
-    Item {
-        id: sponsorLine
-        objectName: "home-sponsor"
+    // Free and open source, built on Veyra (since 3.1.3 PushFPS links no sponsor pages).
+    Text {
+        id: creditLine
+        objectName: "home-credit"
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 18
-        implicitWidth: sponsorRow.implicitWidth
-        implicitHeight: sponsorRow.implicitHeight
-        Row {
-            id: sponsorRow
-            spacing: 5
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("本软件开源免费，如果对你有帮助，你可以 →")
-                color: sponsorHover.hovered ? Theme.t2 : Theme.t3
-                font.family: Theme.fontUi
-                font.pixelSize: Theme.fsSmall
-            }
-            VIcon {
-                anchors.verticalCenter: parent.verticalCenter
-                name: "coffee"
-                size: 13
-                color: Theme.accent
-            }
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("请作者喝杯咖啡")
-                color: Theme.accent
-                font.family: Theme.fontUi
-                font.pixelSize: Theme.fsSmall
-                font.weight: Font.Medium
-                font.underline: sponsorHover.hovered
-            }
-        }
-        HoverHandler { id: sponsorHover; cursorShape: Qt.PointingHandCursor }
-        TapHandler {
-            onTapped: {
-                veyra.logUi("ui-sponsor", "home link")
-                root.requestSponsor()
-            }
-        }
+        text: qsTr("免费开源 · 基于 Veyra 构建")
+        color: Theme.t3
+        font.family: Theme.fontUi
+        font.pixelSize: Theme.fsSmall
     }
 
     // [data-in] entrance order from pages-a.js (the source cards rise from their delegate, --d 2-5).

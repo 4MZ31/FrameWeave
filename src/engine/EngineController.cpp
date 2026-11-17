@@ -906,6 +906,9 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     else if(reduced.frameGenerationBackend==FrameGenerationBackend::AmdFrc){
                         capabilityGeneratedFrames=int((graph->amfFrcActive()?1u:0u));
                     }
+                    else if(reduced.frameGenerationBackend==FrameGenerationBackend::PushFlow){
+                        capabilityGeneratedFrames=graph->pushFlowActive()?3:0;
+                    }
                 }
                 if(capabilityGeneratedFrames>0&&int(reduced.multiplier)-1>capabilityGeneratedFrames){
                     const uint32_t clamped=uint32_t(capabilityGeneratedFrames+1);
@@ -926,6 +929,8 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                         backendRecoveryWarning+=L"NVIDIA VFG 未能启用（需要 Ada / Blackwell 显卡、VFG 运行组件和支持的输出格式），已关闭补帧；原因见日志";
                     else if(selected.settings.frameGenerationBackend==FrameGenerationBackend::AmdFrc&&failure==FailedBackend::Fg)
                         backendRecoveryWarning+=L"AMD FRC 未能启用（需要 AMD 显卡和驱动自带的 AMF 运行库），已关闭补帧；原因见日志";
+                    else if(selected.settings.frameGenerationBackend==FrameGenerationBackend::PushFlow&&failure==FailedBackend::Fg)
+                        backendRecoveryWarning+=L"PushFlow 未能启用（需要 DirectX 12 显卡和 PushFlow 运行组件），已关闭补帧；原因见日志";
                     else if(selected.settings.frameGenerationBackend==FrameGenerationBackend::Fsr4&&failure==FailedBackend::Fg)
                     {
                         backendRecoveryWarning+=L"FSR 4 ML 提供方不可用（需要支持的 RX 9000 和驱动），已改用 FSR 3.1；原因见日志";
@@ -1860,7 +1865,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     }
                     else {
                         finishReset(diagnostics::ResetOutcome::RolledBack);
-                        std::lock_guard lock(mutex_);if(desired_.revision==requested.revision)desiredNodeOrder_=previousOrder;desired_.rejectVideoRequest(requested,previous);snapshot_.desired=desired_;snapshot_.rejectedRevision=requested.revision;snapshot_.applying=desired_!=previous;snapshot_.status=L"设置应用失败，已恢复上一套参数";snapshot_.backendWarning=requested.nrRuntime!=previous.nrRuntime?L"NR运行版本切换失败，已恢复上一套参数":requested.frameGenerationBackend==FrameGenerationBackend::XeSS?L"XeSS 未能启用，已恢复上一套参数":requested.frameGenerationBackend==FrameGenerationBackend::AmdFrc?L"AMD FRC 未能启用（需要 AMD 显卡和驱动自带的 AMF 运行库），已恢复上一套参数":
+                        std::lock_guard lock(mutex_);if(desired_.revision==requested.revision)desiredNodeOrder_=previousOrder;desired_.rejectVideoRequest(requested,previous);snapshot_.desired=desired_;snapshot_.rejectedRevision=requested.revision;snapshot_.applying=desired_!=previous;snapshot_.status=L"设置应用失败，已恢复上一套参数";snapshot_.backendWarning=requested.nrRuntime!=previous.nrRuntime?L"NR运行版本切换失败，已恢复上一套参数":requested.frameGenerationBackend==FrameGenerationBackend::XeSS?L"XeSS 未能启用，已恢复上一套参数":requested.frameGenerationBackend==FrameGenerationBackend::AmdFrc?L"AMD FRC 未能启用（需要 AMD 显卡和驱动自带的 AMF 运行库），已恢复上一套参数":requested.frameGenerationBackend==FrameGenerationBackend::PushFlow?L"PushFlow 未能启用（需要 DirectX 12 显卡和 PushFlow 运行组件），已恢复上一套参数":
                             requested.frameGenerationBackend==FrameGenerationBackend::Fsr4?L"FSR 4 ML 未能启用（需要支持的 RX 9000 和驱动），已恢复上一套参数":fsrFrameGeneration(requested.frameGenerationBackend)?L"FSR 3.1 帧生成未能启用，已恢复上一套参数":L"后端切换失败，已恢复上一套参数";}
                 }
                 // Live uniform update. The revision identifies the graph *shape*
