@@ -390,7 +390,7 @@ DialogLayer {
                                        : qsTr("无法测量")
             opt.phase = "failed"
         }
-        const record = { v: 3, at: new Date().toISOString(), refreshHz: opt.refreshHz, gameFps: opt.gameFps, goal: opt.goal,
+        const record = { v: 3, at: new Date().toISOString(), applied: !!winner, refreshHz: opt.refreshHz, gameFps: opt.gameFps, goal: opt.goal,
                          best: winner ? opt.describe(winner.config) : "",
                          skipped: opt.skipped,
                          steps: opt.steps.map(s => ({ label: s.label, ok: !!(s.result && s.result.ok), reason: s.result ? s.result.reason : "",
@@ -411,7 +411,14 @@ DialogLayer {
         opt.failure = message
         opt.phase = "failed"
     }
-    function undo() { opt.restoreOriginal(); opt.applied = false; opt.dialogHost.close() }
+    function undo() {
+        opt.restoreOriginal(); opt.applied = false
+        // The quick setup's tile turns grey again: nothing optimised is in use.
+        let record = null
+        try { record = JSON.parse(String(veyra.preferences.pushBenchmark || "")) } catch (e) { record = null }
+        if (record) { record.applied = false; veyra.setPreference("pushBenchmark", JSON.stringify(record)) }
+        opt.dialogHost.close()
+    }
 
     Timer { id: runner; interval: opt.tickMs; repeat: true; onTriggered: opt.tick() }
     onShownChanged: if (!shown && phase === "running") cancel()

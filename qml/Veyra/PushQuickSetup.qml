@@ -14,6 +14,10 @@ VGroup {
     id: quick
     // Smooth frame pacing (row pushfps-smooth): V-Sync + variable refresh request + output capped at
     // the display (OutputRateMode FollowDisplay); off returns to Automatic, no cap, no VRR request.
+    // True once Optimise for my PC applied its choice (record pushBenchmark, applied; Undo clears it).
+    readonly property bool optimized: {
+        try { return JSON.parse(String(veyra.preferences.pushBenchmark || "{}")).applied === true } catch (e) { return false }
+    }
     readonly property bool smoothPacing: veyra.displaySync === 1 && veyra.outputRateMode === 1
     function setSmoothPacing(on) {
         veyra.displaySync = on ? 1 : 2
@@ -420,7 +424,9 @@ VGroup {
         rowSpacing: 8
         PushToolTile {
             objectName: "pushfps-optimize"
-            primary: true
+            // Grey until Optimise for my PC has chosen and applied settings (green would read as
+            // "already on"); green while that result is kept, grey again after Undo.
+            primary: quick.optimized
             iconName: "zap"
             text: qsTr("为我的电脑优化")
             sub: qsTr("测试每种组合，选出最好的")

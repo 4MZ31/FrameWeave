@@ -256,6 +256,17 @@ Item {
                 verify(control(n).visible, n)
             verify(quick.height > 0)
         }
+        function test_optimise_tile_is_green_only_after_optimising() {
+            const tile = control("pushfps-optimize")
+            veyra.setPreference("pushBenchmark", "")
+            verify(!tile.primary, "grey before Optimise for my PC has run (green would look already on)")
+            veyra.setPreference("pushBenchmark", JSON.stringify({ v: 3, applied: false, best: "" }))
+            verify(!tile.primary, "grey when nothing was applied or it was undone")
+            veyra.setPreference("pushBenchmark", JSON.stringify({ v: 3, applied: true, best: "VFG 4X" }))
+            verify(tile.primary, "green while the optimised settings are kept")
+            veyra.setPreference("pushBenchmark", "{not json")
+            verify(!tile.primary)
+        }
         function test_smooth_frame_pacing() {
             veyra.displaySync = 2; veyra.variableRefresh = false; veyra.outputRateMode = 0
             const sw = findChild(quick, "pushfps-smooth")
