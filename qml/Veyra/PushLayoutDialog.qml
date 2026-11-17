@@ -391,11 +391,22 @@ DialogLayer {
                 }
             }
         }
-        Text {
-            anchors.centerIn: parent
+        // Along the bottom edge, so it never runs into the labels of the boxes in the middle.
+        Rectangle {
+            objectName: "layout-no-picture"
             visible: lay.picture.length === 0 && !veyra.hasSource
-            text: qsTr("没有画面：方框仍可以摆放，连接画面后会显示游戏")
-            color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 11
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 8
+            width: noPictureText.implicitWidth + 16; height: noPictureText.implicitHeight + 8
+            radius: height / 2
+            color: Theme.card2
+            Text {
+                id: noPictureText
+                anchors.centerIn: parent
+                text: qsTr("没有画面：方框仍可以摆放，连接画面后会显示游戏")
+                color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 11
+            }
         }
     }
 
