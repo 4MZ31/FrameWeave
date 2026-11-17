@@ -112,7 +112,7 @@ bool NvencLiveEncoder::open(ID3D12Device* device,const Config& config,const std:
     auto& cfg=preset.presetCfg;
     const uint32_t fps=std::clamp(config.fps,1u,480u);
     cfg.frameIntervalP=1;cfg.gopLength=fps*std::clamp(config.keyframeSeconds,1u,10u);cfg.rcParams.enableLookahead=0;
-    const uint32_t bits=std::clamp(config.bitrateMbps,1u,400u)*1000000u;
+    const uint32_t bits=config.bitrateKbps?std::clamp(config.bitrateKbps,300u,400000u)*1000u:std::clamp(config.bitrateMbps,1u,400u)*1000000u;
     if(config.rateControl==0){
         // CBR: the same bitrate every second (streaming-style files).
         cfg.rcParams.rateControlMode=NV_ENC_PARAMS_RC_CBR;

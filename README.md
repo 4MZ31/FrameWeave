@@ -22,12 +22,12 @@ Nothing changes on the console or in the game: you need a capture card and a gra
 [![Latest release](https://img.shields.io/github/v/release/DosukaSOL/PushFPS?include_prereleases&style=flat-square&color=89F52A&label=release)](https://github.com/DosukaSOL/PushFPS/releases)
 [![Build](https://img.shields.io/github/actions/workflow/status/DosukaSOL/PushFPS/build-windows.yml?branch=main&event=push&style=flat-square&label=build)](https://github.com/DosukaSOL/PushFPS/actions/workflows/build-windows.yml)
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-89F52A?style=flat-square)](LICENSE)
-[![Based on Veyra](https://img.shields.io/badge/based%20on-Veyra%20by%20Likely7-89F52A?style=flat-square)](https://github.com/Likely7/Veyra-NRVideo)
+[![Built on Veyra](https://img.shields.io/badge/built%20on-Veyra%20by%20Likely7-89F52A?style=flat-square)](https://github.com/Likely7/Veyra-NRVideo)
 
 <table>
   <tr>
     <td align="center" width="300">
-      <a href="https://github.com/Likely7/Veyra-NRVideo"><img src="assets/credits/veyra-logo.png" alt="Veyra" height="64"></a><br>
+      <a href="https://github.com/Likely7/Veyra-NRVideo"><img src="assets/credits/veyra-logo.png" alt="Veyra" height="72"></a><br>
       <sub>Built on <a href="https://github.com/Likely7/Veyra-NRVideo"><b>Veyra</b></a> by <a href="https://github.com/Likely7">Likely7</a></sub>
     </td>
     <td align="center" width="300">
@@ -97,15 +97,21 @@ GPL-3.0, no account needed. Built on Veyra, the open-source video enhancer by Li
 ## Only in PushFPS
 
 PushFPS is built on [Veyra](https://github.com/Likely7/Veyra-NRVideo), a general video enhancer. On top of
-everything Veyra does, PushFPS adds what console players need:
+that, PushFPS adds what console players need:
 
 | Feature | What it does |
 |---|---|
+| **PushFlow** | PushFPS's own frame generation: the RIFE neural network on DirectML, on NVIDIA, AMD and Intel graphics cards, 2× to 4×, Fast / Balanced / Quality tiers ([more](#pushflow-our-own-frame-generation)) |
+| **Frame quality test** | Holds back every second real frame, lets frame generation rebuild it and compares it with the original: accuracy (PSNR), pixel errors, HUD smearing, gain over a simple blend, and whether generated frames are on time. *Optimise for my PC* uses it |
+| **PS5 latency test** | Presses the PS button over Remote Play, times the response on screen and splits the PS5, network and decoding part from PushFPS's own processing |
+| **One-click signed updates** | New versions download and install from the app; every release is signed (RSA-3072, SHA-256) and the app refuses anything that doesn't match |
+| **Frame input API** | Other programs can send video straight into PushFPS through shared memory ([docs/FRAME-INPUT-API.md](docs/FRAME-INPUT-API.md)) |
 | **Optimise for my PC** | Tests every frame generation method your PC has, AI enhancement and the upscalers on your real game picture, measures frame rate, 1% low, latency and jitter, and keeps the best combination for your goal (balanced, lowest latency, smoothest or best picture), up to 144 or 240 Hz |
-| **Streaming mode** | An OBS-style page: preview, PushFPS features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards) with webcam, window and video sources and cut or fade transitions, go live and record controls, an audio mixer for game sound, microphone, desktop audio, an extra input and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
+| **Streaming mode** | An OBS-style page: preview, PushFPS features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards) with webcam, window and video sources and cut or fade transitions, a layout editor (move, resize and crop the game picture and every source), go live and record controls, an audio mixer for game sound, microphone, desktop audio, an extra input and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
 | **Video playback mode** | Frame generation, super resolution, AI enhancement and SDR to HDR on any video on your PC: a browser window with YouTube, a video app, a screen or a file |
 | **Lowest latency in one tap** | Every latency setting that costs no picture quality, switched on together; off restores your previous settings |
-| **Go live** | Stream the boosted picture straight to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or any RTMP server, to several platforms at once from one encode. Stream keys are stored encrypted |
+| **Go live** | Stream the boosted picture straight to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or any RTMP server, to several platforms at once from one encode, at its own resolution (vertical for TikTok LIVE). Stream keys are stored encrypted |
+| **Output presets** | Platform settings per resolution and frame rate for going live (Twitch, YouTube, Kick, Facebook, TikTok LIVE, Trovo) and for uploads (YouTube SDR and HDR, Shorts, TikTok, Instagram Reels, X, editing). Every value stays editable |
 | **Frame Pacing Repair** | Evens out the uneven frame timing many 30 FPS console games have before frames are generated |
 | **Live HUD Lock** | Finds still text, crosshairs and bars on every frame and keeps them sharp in generated frames, no boxes needed |
 | **Adaptive multiplier** | Follows the game when its frame rate drops, so the output stays even |
@@ -297,13 +303,36 @@ still gives the sharpest picture and the lowest latency.
 > Only one program can use a capture card at a time. To show PushFPS in OBS, use the
 > [OBS Studio plugin](#obs-studio-plugin) instead.
 
+## PushFlow: our own frame generation
+
+<img src="assets/pushflow-logo.png" alt="PushFlow" height="64">
+
+PushFlow is PushFPS's own frame generation. It runs **RIFE** (Real-Time Intermediate Flow Estimation, an open
+neural network for in-between frames, MIT-licensed, by hzwer) through **ONNX Runtime on DirectML**, so it works
+on every DirectX 12 graphics card: NVIDIA, AMD and Intel. Choose it under *Frame generation* in Professional
+mode or in streaming mode.
+
+- **2×, 3× or 4×**: each frame is made for its own moment between the two real frames.
+- **Tiers**: *Fast* (lite model, motion estimated at half resolution), *Balanced* (lite model, full resolution)
+  and *Quality* (full model, full resolution).
+- **Everything stays on the graphics card**: a compute pass packs the two frames into the network's input,
+  the network runs on PushFPS's own GPU queue, and a second pass turns the result back into a picture, with
+  no copies through the CPU.
+- Works with HUD protection, Live HUD Lock, the adaptive multiplier, recording and going live.
+- *Optimise for my PC* tests PushFlow like the other methods, and the frame quality test can score it on your
+  own game.
+
+How fast it is depends on your graphics card, the tier and the resolution; it has been tested in CI on
+Windows' software renderer, not yet measured on real graphics cards. TensorRT isn't bundled (its runtime is
+over a gigabyte and NVIDIA-only); DirectML covers every vendor.
+
 ## Optimise for my PC
 
 Click **Optimise for my PC** in the quick setup while your game is on screen, and pick a goal: **Balanced**,
 **Lowest latency**, **Smoothest** or **Best picture**. In one to three minutes PushFPS:
 
 1. measures the picture without effects, to find the game's frame rate (30, 40 or 60) and the base latency;
-2. tries every frame generation method your PC can run (DLSS, NVIDIA VFG, ANR, FSR 4/3.1, XeSS, AMD FRC) at
+2. tries every frame generation method your PC can run (PushFlow, DLSS, NVIDIA VFG, ANR, FSR 4/3.1, XeSS, AMD FRC) at
    the highest frame rate your screen shows: your monitor's own rate on 144, 165 or 240 Hz screens when the game
    divides into it evenly, otherwise 120 FPS, and 60 FPS if none holds that;
 3. adds AI enhancement to the best one, then the upscalers when your screen is larger than the capture;
@@ -495,6 +524,17 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
   quality with a 1–51 level), encoder preset 1–7, keyframe interval, audio bitrate and MP4 or MKV, like OBS's
   output settings. Off, recordings use the standard settings. If the graphics card can't use a combination,
   the recording falls back to the standard settings and says so.
+- **Upload presets** (*Settings, Playback*): YouTube (2160p to 720p, 30 or 60 FPS, and HDR), YouTube Shorts,
+  TikTok, Instagram Reels (1080 × 1920), X and two for editing (the picture's own size at constant quality).
+  A preset fills in resolution, frame rate, bitrate, codec, encoder preset, keyframes and audio; change any of
+  them afterwards and the setting shows *modified*. Bitrates follow YouTube's upload recommendations; TikTok,
+  Reels and X publish no exact bitrate, so those use the commonly recommended 8–15 Mbps within their limits.
+- **Output resolution**: recordings have their own size (the picture's, 4K, 1440p, 1080p, 720p, vertical
+  1080 × 1920, 4:5 or square), separate from the stream. **Fit** keeps the whole picture with bars, **Fill**
+  crops the edges, **Stretch** distorts.
+- **Split files** every 30, 60 or 120 minutes during long recordings, without stopping.
+- **Encoders**: NVENC on NVIDIA; on AMD and Intel the card's own hardware encoder through Windows Media
+  Foundation. Both do H.264 and HEVC; HDR recordings need NVIDIA (HEVC 10-bit).
 - **Standard settings**: about 37 Mbps for 1080p at 60 FPS, 66 Mbps at 1440p and 150 Mbps at 4K (H.264,
   less with HEVC), with room for fast motion. Pick a fixed bitrate under *Settings, Playback* for smaller files.
 - **Works in video editors**: a finished MP4 recording is rewritten as a standard MP4 (no re-encoding), so it
@@ -527,6 +567,11 @@ features built in:
   square, rounded or round (cameras can be mirrored). Sources run while streaming mode is on screen or a
   recording or stream is going, so your camera is not on while you just play. A minimised window has no
   picture; video files play without their sound.
+- **Layout editor** (*Layout*): the output picture with the game and every source on it. Drag to move, drag a
+  corner to resize: sizes keep their proportions, hold **Ctrl** to stretch freely. Edges and the middle snap,
+  the arrow keys nudge (Shift for bigger steps), each item can be cropped on every side, the game picture can
+  be shrunk into a box on a background colour, and **Ctrl+Z** / **Ctrl+Y** undo and redo. Switch between the
+  stream's and the recording's shape to check both; changes apply at once while you are live or recording.
 - **Transitions** between scenes: *Cut*, *Fade* or *Slow fade*.
 - **Microphone filters** (the sliders button on the microphone): rumble filter, 5-band equaliser with voice
   presets, noise gate and compressor, then a -1 dB limiter that is always on.
@@ -552,9 +597,14 @@ included, straight from PushFPS. No OBS needed.
 - **Several platforms at once.** Add up to eight outputs (Twitch, YouTube, Kick, TikTok, Facebook Live, Trovo or
   any RTMP/RTMPS server) and switch on the ones you want. One encode feeds them all, so streaming to three
   platforms costs no more graphics card time than one; each platform gets its own upload.
-- **OBS's settings.** Server lists and recommended limits come from OBS Studio's service list. The bitrate
-  follows the strictest platform you stream to (Twitch 6 Mbps, Kick 8 Mbps), at 30 or 60 FPS, H.264 with
-  constant bitrate and a keyframe every 2 seconds, as the platforms ask.
+- **Platform presets.** Pick Twitch, YouTube, Kick, Facebook, TikTok LIVE or Trovo at the resolution and frame
+  rate you want, and the stream's size, bitrate, keyframe interval and audio are set from that platform's own
+  guidelines (for example Twitch 1080p60 at 6 Mbps, YouTube 1080p60 at 17 Mbps, TikTok LIVE 1080 × 1920).
+  Everything stays adjustable: resolution (the picture's, 4K to 720p, or vertical), fit, bitrate from 1 to
+  51 Mbps, 30 or 60 FPS, keyframe every 1–4 seconds, audio 96–320 kbps and the encoder preset.
+- **OBS's settings.** Server lists and limits come from OBS Studio's service list. The bitrate never goes above
+  the strictest platform you stream to (Twitch 6 Mbps, Kick 8 Mbps); streams are H.264 with constant bitrate,
+  as the platforms ask.
 - **Stream keys stay private.** A key is encrypted for your Windows user (DPAPI), never shown again, never
   written to logs, and only sent to the server it belongs to.
 - **Keeps going.** Each output reconnects by itself when the connection drops; the others keep streaming. The
@@ -773,6 +823,10 @@ In your user folder, next to Veyra's settings. Updating PushFPS keeps them.
 - [x] Go live to Twitch, YouTube, Kick, TikTok and more, several platforms at once
 - [x] Optimiser goals, every frame generation method tested, 144-240 Hz targets
 - [x] Linux and macOS preview with PushFPS's own frame generation
+- [x] PushFlow, PushFPS's own frame generation (RIFE on DirectML)
+- [x] Measured frame quality in the optimiser, automatic PS5 latency test
+- [x] One-click signed updates, frame input API for other apps
+- [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)
 
@@ -813,12 +867,10 @@ Veyra keep merging cleanly. The PushFPS name and links live in
 
 ## Credits and license
 
-PushFPS is a modified version of **[Veyra](https://github.com/Likely7/Veyra-NRVideo)** by
-**[Likely7](https://github.com/Likely7)**, forked on 2026-11-12. Nearly all of the engine, the capture
-support and the frame generation integration is their work. If PushFPS helps you, consider
-[supporting Veyra's author](https://www.patreon.com/cw/Likely7). Likely7 is on
-[X](https://x.com/likely2002) and [YouTube](https://www.youtube.com/@Likely7Ai), with a
-[Veyra video tutorial in English](https://www.youtube.com/watch?v=ZJ42jzNAbik).
+PushFPS is built on **[Veyra](https://github.com/Likely7/Veyra-NRVideo)** by
+**[Likely7](https://github.com/Likely7)** (GPL-3.0). It started from Veyra on 2026-11-12 and is now its own
+project; Veyra's engine, capture support and streaming sources are still at its core. Likely7 is on
+[X](https://x.com/likely2002) and [YouTube](https://www.youtube.com/@Likely7Ai).
 
 ANR frame generation is **[Apex Neural Rendering](https://github.com/apex-compute/ANR)** by
 **[Apex Compute](https://apexcompute.com)**. PushFPS contains Veyra's own ANR host code (GPL-3.0) and no ANR files;

@@ -31,6 +31,23 @@ int QmlPlayerBridge::replaySeconds() const { return std::clamp(impl_->prefInt("r
 QVariantMap QmlPlayerBridge::replayState() const { return impl_->replayState; }
 
 // 设置 → 录制: what a recording and the replay buffer both follow.
+// PushFPS canvas (engine/PushCanvas.h) from preferences, with an output's own fit.
+engine::PushCanvas QmlPlayerBridge::pushCanvas(int fit) const {
+    engine::PushCanvas c;
+    c.x = float(impl_->prefInt("canvasX", 0)) / 1000.0f;
+    c.y = float(impl_->prefInt("canvasY", 0)) / 1000.0f;
+    c.w = float(impl_->prefInt("canvasW", 1000)) / 1000.0f;
+    c.h = float(impl_->prefInt("canvasH", 1000)) / 1000.0f;
+    c.cropLeft = float(impl_->prefInt("canvasCropL", 0)) / 1000.0f;
+    c.cropTop = float(impl_->prefInt("canvasCropT", 0)) / 1000.0f;
+    c.cropRight = float(impl_->prefInt("canvasCropR", 0)) / 1000.0f;
+    c.cropBottom = float(impl_->prefInt("canvasCropB", 0)) / 1000.0f;
+    // canvasStretch: the layout editor stretched the game picture to its box (Ctrl resize).
+    c.fit = impl_->prefBool("canvasStretch", false) ? engine::PushCanvasFit::Stretch : engine::PushCanvasFit(std::clamp(fit, 0, 2));
+    c.background = uint32_t(impl_->prefInt("canvasBackground", 0)) & 0xFFFFFFu;
+    return c.sanitized();
+}
+
 engine::RecordingSettings QmlPlayerBridge::recordingOptions() const {
     engine::RecordingSettings options;
     options.directory = wideOf(recordingDirectory());
@@ -42,6 +59,12 @@ engine::RecordingSettings QmlPlayerBridge::recordingOptions() const {
     options.microphoneId = recordingMicrophoneId().toStdWString();
     options.microphoneTrack = recordingMicrophoneTrack();
     options.replaySeconds = uint32_t(replaySeconds());
+    // PushFPS outputs and canvas: the recording's own size and the game picture's place on it.
+    options.outputWidth = uint32_t(std::clamp(impl_->prefInt("recordWidth", 0), 0, 8192));
+    options.outputHeight = uint32_t(std::clamp(impl_->prefInt("recordHeight", 0), 0, 8192));
+    options.canvas = pushCanvas(impl_->prefInt("recordFit", 0));
+    options.splitMinutes = uint32_t(std::clamp(impl_->prefInt("recordSplitMinutes", 0), 0, 240));
+    if (const int kbps = impl_->prefInt("recordBitrateKbps", 0); kbps > 0) options.bitrateKbps = uint32_t(std::clamp(kbps, 300, 400000));
     // PushFPS advanced recording: only while 设置 → 录制 → 高级 is on; otherwise
     // the standard encoding (the RecordingSettings defaults).
     if (impl_->prefBool("recordAdvanced", false)) {

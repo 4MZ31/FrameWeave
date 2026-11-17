@@ -45,11 +45,6 @@ Window {
     // node configuration is active, so the dock never drops into the list UI.
     function goPageTarget(p) { return p === "pro" && veyra.nodeMode === 1 ? "node" : p }
     function goPage(p) { page = goPageTarget(p) }
-    // 设置 → 赞助作者, from the home page's coffee line.
-    function showSponsor() {
-        settingsPage.section = "sponsor"
-        goPage("set")
-    }
     // Test switches from the command line (main.cpp, G0.3); empty in normal use.
     readonly property var test: typeof vyTest !== "undefined" ? vyTest : ({})
     readonly property real testAspect: test.aspect !== undefined ? test.aspect : 0
@@ -273,7 +268,7 @@ Window {
         visible: !root.fullscreen || root.page === "home" || root.page === "set" || root.quickPanelShown
         // Each page is shown while current or while sinking out; the sinking one
         // takes no input (.page.leave { pointer-events: none }).
-        HomePage { id: homePage; pageId: "home"; home: pages; topInset: dock.pinned && !homePage.sunset ? 40 : 0; onRequestPage: p => root.goPage(p); onRequestSponsor: root.showSponsor() }
+        HomePage { id: homePage; pageId: "home"; home: pages; topInset: dock.pinned && !homePage.sunset ? 40 : 0; onRequestPage: p => root.goPage(p) }
         MinimalPage {
             id: minPage
             pageId: "min"
@@ -328,6 +323,7 @@ Window {
             home: pages
             onVideoViewportChanged: if (root.page === "live" && !root.fullscreen) videoHost.syncRect()
             onRequestPage: p => root.goPage(p)
+            onRequestLayout: id => { dialogs.layoutScene = id; dialogs.open("layout") }
         }
         SettingsPage { id: settingsPage; pageId: "set"; home: pages; onRequestPage: p => root.goPage(p) }
     }
@@ -843,7 +839,9 @@ Window {
         anchors.topMargin: 12
         anchors.horizontalCenter: parent.horizontalCenter
         width: Math.min(500, root.width - 32)
-        onOpenRequested: veyra.updates.openRelease()
+        installable: veyra.updates.canInstall
+        // Signed releases install in one click (UpdateChecker::installUpdate); others open the release page.
+        onOpenRequested: veyra.updates.canInstall ? veyra.updates.installUpdate() : veyra.updates.openRelease()
     }
     Connections {
         target: veyra.updates
@@ -930,7 +928,7 @@ Window {
         function onNavigate(p) {
             // A dialog key opens the dialog; anything else is a page.
             if (p === "network" || p === "capture" || p === "ps5" || p === "moonlight" || p === "xbox" || p === "screen"
-                || p === "subtitle" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud" || p === "latencyguide" || p === "stream" || p === "compare" || p === "micfilters") {
+                || p === "subtitle" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud" || p === "latencyguide" || p === "stream" || p === "compare" || p === "micfilters" || p === "layout" || p === "frameinput" || p === "qualitytest" || p === "latencytest") {
                 dialogs.open(p)
                 return
             }

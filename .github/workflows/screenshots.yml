@@ -131,7 +131,17 @@ jobs:
             @{ name = '60-streaming-mode'; args = @('--page', 'live', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '61-video-playback'; args = @('--page', 'watch', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '62-compare-vertical'; args = @('--page', 'home', '--dialog', 'compare', '--lang', 'en', '--pref', 'pushCompareLayout=2', '--pref', 'pushSunset=false') },
-            @{ name = '63-streaming-mode-sunset'; args = @('--page', 'live', '--lang', 'en') }
+            @{ name = '63-streaming-mode-sunset'; args = @('--page', 'live', '--lang', 'en') },
+            # PushFPS 3.2: the layout editor with a webcam on a game scene, the stream dialog with a platform
+            # preset, a vertical TikTok LIVE layout, and the recording upload presets.
+            @{ name = '64-layout-editor'; args = @('--page', 'live', '--dialog', 'layout', '--lang', 'en', '--pref', ('studioScenes=' + '[{"id":"game","name":"Game","type":"game","sources":[{"id":"c1","kind":"camera","target":"cam","name":"Webcam","corner":"custom","x":0.72,"y":0.62,"size":0.25,"shape":"round"}]},{"id":"brb","name":"Be right back","type":"card","title":"Be right back"}]'.Replace('"', '\"'))) },
+            @{ name = '65-layout-vertical'; args = @('--page', 'live', '--dialog', 'layout', '--lang', 'en', '--pref', 'streamWidth=1080', '--pref', 'streamHeight=1920', '--pref', 'canvasY=300', '--pref', ('studioScenes=' + '[{"id":"game","name":"Game","type":"game","sources":[{"id":"c1","kind":"camera","target":"cam","name":"Webcam","corner":"custom","x":0.1,"y":0.04,"size":0.8,"shape":"round"}]}]'.Replace('"', '\"'))) },
+            @{ name = '66-stream-presets'; args = @('--page', 'live', '--dialog', 'stream', '--lang', 'en', '--pref', 'streamProfile=youtube-1080p60', '--pref', 'streamWidth=1920', '--pref', 'streamHeight=1080', '--pref', 'streamBitrateKbps=17000', '--pref', 'streamAudioKbps=128', '--pref', 'streamFps=60', '--pref', ('streamTargets=' + '[{"id":"o1","platform":"youtube","name":"","server":"","enabled":true}]'.Replace('"', '\"'))) },
+            @{ name = '67-recording-presets'; args = @('--page', 'set', '--tab', 'play', '--lang', 'en', '--scroll-to', 'set-recprofile', '--pref', 'recordProfile=shorts-60', '--pref', 'recordWidth=1080', '--pref', 'recordHeight=1920', '--pref', 'recordFit=1', '--pref', 'recordFps=60', '--pref', 'recordBitrateKbps=12000', '--pref', 'recordAdvanced=true', '--pref', 'recordAudioKbps=320', '--pref', 'recordKeyframe=1', '--pref', 'recordPreset=5') },
+            @{ name = '68-quality-test'; args = @('--page', 'pro', '--dialog', 'qualitytest', '--lang', 'en', '--pref', 'pushSunset=false') },
+            @{ name = '69-latency-test'; args = @('--page', 'live', '--dialog', 'latencytest', '--lang', 'en', '--pref', 'pushSunset=false') },
+            @{ name = '70-frame-input'; args = @('--page', 'home', '--dialog', 'frameinput', '--lang', 'en', '--pref', 'pushSunset=false') },
+            @{ name = '71-about'; args = @('--page', 'set', '--tab', 'about', '--lang', 'en', '--pref', 'pushSunset=false') }
           )
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"

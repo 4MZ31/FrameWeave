@@ -33,6 +33,8 @@
 #include "veyra/engine/EffectChain.h"
 #include "veyra/engine/ExportJobManager.h"
 #include "veyra/engine/EnhancementSettings.h"
+#include "veyra/engine/PushCanvas.h"
+#include "veyra/remoteplay/Types.h"
 #include "veyra/ui/PlayerUiFacade.h"
 
 class QQmlEngine;
@@ -1514,7 +1516,7 @@ public:
     Q_INVOKABLE QString pushPickImage();
     // Streaming mode sources (engine/PushLayerSources.h): webcams, windows and video files a scene
     // adds. pushSetSceneSources([{id, kind: "camera"|"window"|"media", target, mirror, loop,
-    // shape: "rect"|"round"|"circle", corner: "tl"|"tr"|"bl"|"br"|"c", size: 0.05..1, margin}]).
+    // shape: "rect"|"round"|"circle", corner: "tl"|"tr"|"bl"|"br"|"c"|"custom" (+ x, y), size: 0.05..1, margin, cropL/T/R/B}]).
     Q_INVOKABLE QVariantList pushCameras();
     Q_INVOKABLE QVariantList pushWindows();
     Q_INVOKABLE QString pushPickMedia();
@@ -1522,9 +1524,27 @@ public:
     Q_INVOKABLE QVariantList pushSourceStatus();
     // A small JPEG data URL of a running source's newest frame (the editor's preview), or "".
     Q_INVOKABLE QString pushSourcePreview(const QString& id);
+    // PushFPS Frame Input API (source/FrameInputSource.h): senders found on the usual channels
+    // ([{channel, name, width, height, fps, alive, frames, pid}]) and opening one as the source.
+    Q_INVOKABLE QVariantList pushFrameInputSenders();
+    Q_INVOKABLE bool pushStartFrameInput(const QString& channel);
     Q_INVOKABLE QString pushLinkUrl(const QString& key) const;
     // PushFPS automatic HUD detection (engine/PushHudSampler.h): samples=1 only
     // takes a fresh picture for the box editor. pushHudDetection() polls it.
+    // PushFPS ground-truth quality test (engine/PushQualityProbe.h): withholds every second frame from
+    // frame generation for `seconds` and compares what it made with the originals. Polled with
+    // pushQualityStatus(): running, done, failed, error, samples, psnr, blendPsnr, gainOverBlend,
+    // realPsnr, hudPsnr, hudSamples, meanError, badShare, onTime, generatedShown, score.
+    // PushFPS automatic Remote Play latency test (engine/PushInputLatency.h, PushLatencyTest.cpp):
+    // presses the PS button `trials` times and times the picture's answer. Status: state
+    // idle|running|done|failed, error, trial, trials, answered, results, meanMs, medianMs, minMs,
+    // maxMs, pushfpsMs (PushFPS's own processing), remoteMs (median minus PushFPS's share).
+    Q_INVOKABLE bool pushLatencyTestBegin(int trials);
+    Q_INVOKABLE void pushLatencyTestCancel();
+    Q_INVOKABLE QVariantMap pushLatencyTestStatus() const;
+    Q_INVOKABLE bool pushQualityBegin(int seconds);
+    Q_INVOKABLE void pushQualityCancel();
+    Q_INVOKABLE QVariantMap pushQualityStatus();
     Q_INVOKABLE bool pushStartHudDetection(int samples);
     Q_INVOKABLE void pushCancelHudDetection();
     Q_INVOKABLE QVariantMap pushHudDetection();
@@ -1601,6 +1621,10 @@ signals:
     void gameModeStopped(const QString& reason);
 
 private:
+    // PushFPS Remote Play latency test helpers (PushLatencyTest.cpp).
+    remoteplay::ControllerState pushLatencyPress() const;
+    void pushLatencyTick();
+
     // Structural change: every chain-derived property notifies.
     void emitChainChanged();
     // Value edit of one group; a change of the chain's validity notifies everything.
@@ -1647,6 +1671,7 @@ private:
     // audio endpoint). Called after load and after every accepted change.
     void applyPreference(const QString& key);
     void applyPushMix();   // PushFPS mixer preferences -> engine::setPushMix (PushStudio.cpp)
+    engine::PushCanvas pushCanvas(int fit) const;   // PushFPS canvas preferences (Recording.cpp)
     void scheduleEnhancementPrewarm();
     // Hold-to-compare key (press/release), handled for the whole application.
     bool eventFilter(QObject* watched, QEvent* event) override;

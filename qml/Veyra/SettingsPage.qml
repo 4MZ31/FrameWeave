@@ -10,6 +10,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "PushOutputPresets.js" as OutputPresets
 
 VPage {
     id: root
@@ -41,7 +42,7 @@ VPage {
         // render(true): 480 ms, i*40 ms, y 12).
         Qt.callLater(() => stagger(sectionColumns[section] || null))
     }
-    readonly property var sectionColumns: ({ look: secLook, window: secWindow, play: secPlay, audio: secAudio, perf: secPerf, compat: secCompat, ps5: secPs5, keys: secKeys, comp: secComp, about: secAbout, sponsor: secSponsor })
+    readonly property var sectionColumns: ({ look: secLook, window: secWindow, play: secPlay, audio: secAudio, perf: secPerf, compat: secCompat, ps5: secPs5, keys: secKeys, comp: secComp, about: secAbout })
     Component { id: staggerComp; VRise.Stagger {} }
     function stagger(col) {
         if (Theme.reduced || !col) return
@@ -65,9 +66,7 @@ VPage {
         { id: "ps5",   label: qsTr("PS5 串流"), icon: "gamepad" },
         { id: "keys",  label: qsTr("快捷键"), icon: "zap" },
         { id: "comp",  label: qsTr("组件与许可"), icon: "box" },
-        { id: "about", label: qsTr("关于"), icon: "info" },
-        // The one entry with a coloured icon, so it can be found.
-        { id: "sponsor", label: qsTr("赞助作者"), icon: "heart", tint: "#FF6B81" }
+        { id: "about", label: qsTr("关于"), icon: "info" }
     ].filter(s => s.id !== "ps5" || (!!veyra.ps5 && veyra.ps5.available === true))
 
     // --- nav ---------------------------------------------------------------
@@ -687,14 +686,95 @@ VPage {
                                 VButton { objectName: "set-recdir"; text: qsTr("更改…"); onClicked: veyra.chooseRecordingDirectory() }
                             }
                         }
+                        // PushFPS upload presets (PushOutputPresets.js): YouTube, Shorts, TikTok, Reels, X and
+                        // editing, per resolution and frame rate. Every value below stays editable.
+                        VRow {
+                            id: recPresetRow
+                            readonly property var preset: OutputPresets.recordPreset(String(veyra.preferences.recordProfile || ""))
+                            readonly property var platform: preset ? OutputPresets.platformOf(OutputPresets.recordPlatforms, preset.id) : null
+                            readonly property var changed: preset ? OutputPresets.differences(veyra.preferences, preset, false) : []
+                            function platformName(pl) { return pl.id === "edit" ? qsTr("剪辑用") : pl.name }
+                            function presetText(pl, pr) {
+                                const size = OutputPresets.sizeLabel(pr.width, pr.height) || qsTr("画面原尺寸")
+                                if (pl.id === "edit") return platformName(pl) + " · " + size + " · " + (pr.hevc ? qsTr("HEVC 恒定质量") : qsTr("H.264 恒定质量"))
+                                return pl.name + " · " + OutputPresets.presetLabel(pr, size)
+                            }
+                            label: qsTr("上传预设")
+                            help: qsTr("按平台推荐的分辨率、帧率、码率、编码和音频一次填好。之后每一项都可以自己改")
+                            hint: !preset ? qsTr("手动设置")
+                                : changed.length > 0 ? qsTr("基于 %1，已修改").arg(presetText(platform, preset))
+                                : preset.hevc && platform.hdr ? qsTr("HDR 需要 NVIDIA 显卡和 HDR 输出（HEVC 10bit）")
+                                : qsTr("使用中：%1").arg(presetText(platform, preset))
+                            VSelect {
+                                objectName: "set-recprofile"
+                                implicitWidth: 240
+                                title: qsTr("上传预设")
+                                options: {
+                                    const out = [{ id: "", label: qsTr("手动设置") }]
+                                    for (const pl of OutputPresets.recordPlatforms)
+                                        for (const pr of pl.presets) out.push({ id: pr.id, label: recPresetRow.presetText(pl, pr) })
+                                    return out
+                                }
+                                value: recPresetRow.preset ? recPresetRow.presetText(recPresetRow.platform, recPresetRow.preset) : qsTr("手动设置")
+                                onPicked: id => {
+                                    const pr = OutputPresets.recordPreset(id)
+                                    if (!pr) { veyra.setPreference("recordProfile", ""); return }
+                                    const prefs = OutputPresets.recordPrefs(pr)
+                                    for (const k in prefs) veyra.setPreference(k, prefs[k])
+                                }
+                            }
+                        }
+                        VRow {
+                            label: qsTr("输出分辨率")
+                            hint: qsTr("录制文件的尺寸，与直播分别设置。比画面大时会放大，不会更清晰")
+                            VSelect {
+                                objectName: "set-recsize"
+                                implicitWidth: 180
+                                readonly property int w: Number(veyra.preferences.recordWidth || 0)
+                                readonly property int h: Number(veyra.preferences.recordHeight || 0)
+                                function sizeText(sw, sh) { return sw > 0 ? (sh > sw ? sw + " × " + sh + qsTr("（竖屏）") : sw + " × " + sh) : qsTr("画面原尺寸") }
+                                options: OutputPresets.recordSizes.map(z => ({ id: z[0] + "x" + z[1], label: sizeText(z[0], z[1]) }))
+                                value: sizeText(w, h)
+                                onPicked: id => { const z = id.split("x"); veyra.setPreference("recordWidth", Number(z[0])); veyra.setPreference("recordHeight", Number(z[1])) }
+                            }
+                        }
+                        VRow {
+                            visible: Number(veyra.preferences.recordWidth || 0) > 0
+                            label: qsTr("画面填充")
+                            hint: qsTr("形状不同时：适应保留整个画面（有黑边），填满裁掉边缘，拉伸会变形。位置和裁剪在直播模式的布局里调整")
+                            VSeg {
+                                objectName: "set-recfit"
+                                options: [{ id: "0", label: qsTr("适应") }, { id: "1", label: qsTr("填满") }, { id: "2", label: qsTr("拉伸") }]
+                                current: String(Number(veyra.preferences.recordFit || 0))
+                                onPicked: id => veyra.setPreference("recordFit", Number(id))
+                            }
+                        }
                         VRow {
                             label: qsTr("录制码率")
                             hint: qsTr("自动按画面尺寸和帧率选择；数字为 Mbps，越高越清晰、文件也越大")
                             VSeg {
                                 objectName: "set-recbitrate"
-                                options: [{ id: "0", label: qsTr("自动") }, { id: "8", label: "8" }, { id: "16", label: "16" }, { id: "20", label: "20" }, { id: "40", label: "40" }, { id: "80", label: "80" }]
-                                current: String(veyra.recordingBitrateMbps)
-                                onPicked: id => veyra.setPreference("recordBitrateMbps", Number(id))
+                                readonly property int presetKbps: Number(veyra.preferences.recordBitrateKbps || 0)
+                                options: {
+                                    const base = [{ id: "0", label: qsTr("自动") }, { id: "8", label: "8" }, { id: "16", label: "16" }, { id: "20", label: "20" }, { id: "40", label: "40" }, { id: "80", label: "80" }]
+                                    return presetKbps > 0 ? base.concat([{ id: "k", label: String(Math.round(presetKbps / 100) / 10) }]) : base
+                                }
+                                current: presetKbps > 0 ? "k" : String(veyra.recordingBitrateMbps)
+                                onPicked: id => {
+                                    if (id === "k") return
+                                    veyra.setPreference("recordBitrateKbps", 0)
+                                    veyra.setPreference("recordBitrateMbps", Number(id))
+                                }
+                            }
+                        }
+                        VRow {
+                            label: qsTr("自动分段")
+                            hint: qsTr("长时间录制时每隔一段时间开始一个新文件，不中断录制；单个文件更小，出问题时损失更少")
+                            VSeg {
+                                objectName: "set-recsplit"
+                                options: [{ id: "0", label: qsTr("关") }, { id: "30", label: qsTr("%1 分钟").arg(30) }, { id: "60", label: qsTr("%1 分钟").arg(60) }, { id: "120", label: qsTr("%1 分钟").arg(120) }]
+                                current: String([0, 30, 60, 120].indexOf(Number(veyra.preferences.recordSplitMinutes || 0)) >= 0 ? Number(veyra.preferences.recordSplitMinutes || 0) : 0)
+                                onPicked: id => veyra.setPreference("recordSplitMinutes", Number(id))
                             }
                         }
                         VRow {
@@ -1493,7 +1573,7 @@ VPage {
                             }
                             Text {
                                 objectName: "about-upstream-credit"
-                                text: qsTr("基于开源项目 Veyra（GPL-3.0）打造，感谢原作者 Likely7")
+                                text: qsTr("基于 Veyra 构建（GPL-3.0，作者 Likely7）")
                                 color: Theme.t2
                                 font.family: Theme.fontUi
                                 font.pixelSize: Theme.fsBody
@@ -1562,6 +1642,16 @@ VPage {
                             }
                         }
                         VRow {
+                            label: "PushFlow · RIFE"
+                            hint: qsTr("PushFlow 补帧使用 RIFE 神经网络（MIT，作者 hzwer），经 ONNX Runtime 与 DirectML 运行")
+                            VButton {
+                                objectName: "about-open-rife"
+                                text: qsTr("访问页面")
+                                iconName: "external"
+                                onClicked: veyra.pushOpenLink("rife")
+                            }
+                        }
+                        VRow {
                             label: qsTr("源代码")
                             hint: "github.com/DosukaSOL/PushFPS"
                             VButton {
@@ -1575,13 +1665,26 @@ VPage {
                     VGroup {
                         VRow {
                             label: qsTr("检查更新")
-                            hint: veyra.updates.latestVersion.length > 0
-                                  ? qsTr("发现新版本 %1").arg(veyra.updates.latestVersion)
+                            // PushFPS signed updates (UpdateVerify.h): one click when the release is signed.
+                            hint: veyra.updates.installState === "downloading" ? qsTr("正在下载更新… %1%").arg(Math.round(veyra.updates.installProgress * 100))
+                                  : veyra.updates.installState === "verifying" ? qsTr("正在验证签名…")
+                                  : veyra.updates.installState === "installing" ? qsTr("签名和校验通过，正在启动安装程序；PushFPS 会自动关闭并重新打开")
+                                  : veyra.updates.latestVersion.length > 0
+                                  ? (veyra.updates.canInstall ? qsTr("发现新版本 %1，已签名，可以一键安装").arg(veyra.updates.latestVersion)
+                                                              : qsTr("发现新版本 %1").arg(veyra.updates.latestVersion))
                                   : qsTr("启动时自动检查，有更新时提示")
                             VButton {
                                 text: veyra.updates.checking ? qsTr("检查中…") : qsTr("检查")
                                 enabled: !veyra.updates.checking
                                 onClicked: veyra.updates.check(true)
+                            }
+                            VButton {
+                                objectName: "about-install-update"
+                                visible: veyra.updates.latestVersion.length > 0 && veyra.updates.canInstall
+                                primary: true
+                                enabled: ["downloading", "verifying", "installing"].indexOf(veyra.updates.installState) < 0
+                                text: qsTr("安装更新")
+                                onClicked: veyra.updates.installUpdate()
                             }
                             VButton {
                                 visible: veyra.updates.latestVersion.length > 0
@@ -1593,11 +1696,6 @@ VPage {
                             label: qsTr("反馈问题")
                             hint: qsTr("打开 GitHub Issues，诊断信息已自动复制")
                             VButton { text: qsTr("打开"); onClicked: veyra.openFeedbackPage() }
-                        }
-                        VRow {
-                            label: qsTr("赞助作者")
-                            hint: qsTr("Patreon、微信与支付宝")
-                            VButton { objectName: "about-sponsor"; text: qsTr("前往"); onClicked: root.section = "sponsor" }
                         }
                         VRow {
                             label: qsTr("交流群")
@@ -1644,15 +1742,6 @@ VPage {
                             }
                         }
                     }
-                }
-
-                // --- 赞助作者 ------------------------------------------------
-                SponsorPanel {
-                    id: secSponsor
-                    objectName: "set-sponsor"
-                    Layout.fillWidth: true
-                    visible: root.section === "sponsor"
-                    onOpenLink: id => veyra.openSponsorLink(id)
                 }
 
                 Item { Layout.preferredHeight: 12 }

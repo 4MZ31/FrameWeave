@@ -16,16 +16,23 @@
 //    picture, a generated frame takes the HUD pixels from the held real frame
 //    and keeps its own everywhere else; a HUD that disappears is released on
 //    that frame; a reset starts over.
+//  - PushFlow (PushFPS's own frame generation, RIFE on DirectML): when VEYRA_PUSHFLOW_TEST_RUNTIME names a
+//    folder holding pushflow\ (the release's runtime), two identical frames give the same picture back,
+//    and a square that moves 16 px lands near the middle at t = 0.5, far closer than a blend of the two
+//    frames, in both tiers' models. Without the variable the test is skipped (and says so).
+#include "veyra/pushflow/PushFlowBackend.h"
 #include "veyra/engine/PushHudSampler.h"
 #include "veyra/pipeline/PushHudLock.h"
 #include "veyra/engine/RecordingCompare.h"
 #include "veyra/engine/PushStreamOverlay.h"
+#include "veyra/engine/PushCanvas.h"
 #include "veyra/pipeline/GpuPassUtils.h"
 
 #include <d3d12sdklayers.h>
 #include <dxgi1_6.h>
 
 #include <algorithm>
+#include <bit>
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
@@ -33,6 +40,7 @@
 #include <cstring>
 #include <string>
 #include <thread>
+#include <format>
 #include <functional>
 #include <vector>
 
@@ -513,6 +521,81 @@ void testStreamOverlay(Gpu& gpu, bool hdr) {
     check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
 }
 
+// PushFPS outputs and canvas (engine/PushCanvas.h, shaders/PushCanvasConvert.hlsl): the presented
+// picture sampled into an output of another size and layout, as the recorder does for each output.
+void testCanvasConvert(Gpu& gpu) {
+    const std::string tag = "canvas convert";
+    auto* device = gpu.device.Get();
+    constexpr uint32_t SW = 128, SH = 72;
+    Plane src{pipeline::makeTexture(device, SW, SH, DXGI_FORMAT_R32G32B32A32_FLOAT, false), DXGI_FORMAT_R32G32B32A32_FLOAT, SW, SH, 16};
+    // White picture with a black left quarter (so a crop is visible).
+    std::vector<uint8_t> pixels(size_t(SW) * SH * 16);
+    for (uint32_t y = 0; y < SH; ++y)
+        for (uint32_t x = 0; x < SW; ++x) {
+            const float v = x < SW / 4 ? 0.0f : 1.0f;
+            const float px[4] = {v, v, v, 1.0f};
+            std::memcpy(pixels.data() + (size_t(y) * SW + x) * 16, px, 16);
+        }
+    if (!gpu.begin()) return;
+    auto srcUpload = recordFill(gpu, src, pixels, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    check(gpu.submitAndWait(), tag + ": picture uploaded");
+    pipeline::ComputePass pass;
+    pipeline::DescriptorStager stager;
+    std::vector<uint8_t> shader;
+    check(pass.loadShader("PushCanvasConvert.dxil", shader) && pass.create(device, shader, 3, 1, 2, 16) && stager.initialize(device, 2), tag + ": shader loaded");
+    D3D12_SHADER_RESOURCE_VIEW_DESC view{};
+    view.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; view.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    view.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; view.Texture2D.MipLevels = 1;
+    stager.stageSrv(src.texture.Get(), &view, pass.heap.Get(), 0);
+    // Runs one layout into a W x H output; returns the Y plane.
+    const auto run = [&](const engine::PushCanvas& canvas, uint32_t W, uint32_t H, std::vector<uint8_t>& py) {
+        Plane y{pipeline::makeTexture(device, W, H, DXGI_FORMAT_R8_UNORM, true), DXGI_FORMAT_R8_UNORM, W, H, 1};
+        Plane uv{pipeline::makeTexture(device, W / 2, H / 2, DXGI_FORMAT_R8G8_UNORM, true), DXGI_FORMAT_R8G8_UNORM, W / 2, H / 2, 2};
+        if (!y.texture || !uv.texture) return false;
+        pipeline::makeUav(device, y.texture.Get(), DXGI_FORMAT_R8_UNORM, pipeline::cpuHandleOf(pass, 1));
+        pipeline::makeUav(device, uv.texture.Get(), DXGI_FORMAT_R8G8_UNORM, pipeline::cpuHandleOf(pass, 2));
+        const auto map = engine::mapPushCanvas(canvas, SW, SH, W, H);
+        const uint32_t taps = engine::pushCanvasTaps(map.srcW, map.dstW) | (engine::pushCanvasTaps(map.srcH, map.dstH) << 8);
+        const float constants[16] = {std::bit_cast<float>(W), std::bit_cast<float>(H), 0.0f, 0.0f,
+            float(map.dstX), float(map.dstY), float(map.dstW), float(map.dstH), float(map.srcX), float(map.srcY), float(map.srcW), float(map.srcH),
+            std::bit_cast<float>(SW), std::bit_cast<float>(SH), std::bit_cast<float>(taps), std::bit_cast<float>(canvas.background)};
+        if (!gpu.begin()) return false;
+        D3D12_RESOURCE_BARRIER b[2]{};
+        for (int i = 0; i < 2; ++i) {
+            b[i].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; b[i].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+            b[i].Transition.pResource = i ? uv.texture.Get() : y.texture.Get();
+            b[i].Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON; b[i].Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        }
+        gpu.list->ResourceBarrier(2, b);
+        pass.bind(gpu.list.Get(), constants, pipeline::gpuHandleOf(pass, 0).ptr, pipeline::gpuHandleOf(pass, 1).ptr);
+        gpu.list->Dispatch((W + 15) / 16, (H + 15) / 16, 1);
+        auto ry = recordRead(gpu, y, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        if (!gpu.submitAndWait()) return false;
+        py = mapRead(y, ry.Get());
+        return py.size() == size_t(W) * H;
+    };
+    std::vector<uint8_t> py;
+    // Same shape, half size (box filtered): white right of the black quarter, black in it.
+    engine::PushCanvas full;
+    check(run(full, 64, 36, py), tag + ": half size runs");
+    check(py[size_t(18) * 64 + 40] == 235 && py[size_t(18) * 64 + 4] == 16, tag + ": half size keeps the picture");
+    // 16:9 into 9:16, fit: picture in the middle band, black bars above and below.
+    engine::PushCanvas fit; fit.fit = engine::PushCanvasFit::Fit;
+    check(run(fit, 36, 64, py), tag + ": vertical fit runs");
+    check(py[size_t(32) * 36 + 30] == 235 && py[size_t(2) * 36 + 30] == 16 && py[size_t(61) * 36 + 30] == 16, tag + ": fit leaves bars above and below");
+    // Fill: the middle of the picture covers the output (the black quarter is cropped away).
+    engine::PushCanvas fill; fill.fit = engine::PushCanvasFit::Fill;
+    check(run(fill, 36, 64, py), tag + ": vertical fill runs");
+    check(py[size_t(2) * 36 + 2] == 235 && py[size_t(61) * 36 + 33] == 235, tag + ": fill covers the whole output");
+    // A crop of the black quarter and a green background around a box.
+    engine::PushCanvas box; box.x = 0.5f; box.y = 0.5f; box.w = 0.5f; box.h = 0.5f; box.fit = engine::PushCanvasFit::Stretch;
+    box.cropLeft = 0.25f; box.background = 0x00FF00;
+    check(run(box, 64, 36, py), tag + ": box runs");
+    check(py[size_t(27) * 64 + 34] == 235, tag + ": the cropped picture (no black quarter) in its box");
+    check(std::abs(int(py[size_t(4) * 64 + 4]) - 173) <= 1, tag + ": green background around it");
+    check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
+}
+
 // PushFPS streaming mode: scene transitions (the scene picture at part opacity) and live layers (a
 // webcam, window or video frame scaled into a rectangle, engine/PushStreamOverlay.h LiveLayerBlend).
 void testLiveLayers(Gpu& gpu, bool hdr) {
@@ -903,6 +986,141 @@ void testHudLock(Gpu& gpu) {
 }
 } // namespace
 
+// PushFlow: RGBA8 frames with a textured square on a soft gradient.
+std::vector<uint8_t> flowFrame(uint32_t w, uint32_t h, double squareX) {
+    std::vector<uint8_t> px(size_t(w) * h * 4);
+    for (uint32_t y = 0; y < h; ++y)
+        for (uint32_t x = 0; x < w; ++x) {
+            uint8_t* p = &px[(size_t(y) * w + x) * 4];
+            const int base = 60 + int(40.0 * x / w) + int(30.0 * y / h);
+            int r = base, g = base + 10, b = base + 20;
+            const double dx = x - squareX, dy = double(y) - h * 0.35;
+            if (dx >= 0 && dx < 40 && dy >= 0 && dy < 40) {
+                const bool light = ((int(dx) / 8) + (int(dy) / 8)) % 2 == 0;
+                r = light ? 235 : 40; g = light ? 200 : 30; b = light ? 60 : 20;
+            }
+            p[0] = uint8_t(r); p[1] = uint8_t(g); p[2] = uint8_t(b); p[3] = 255;
+        }
+    return px;
+}
+double flowPsnr(const std::vector<uint8_t>& a, const std::vector<uint8_t>& b) {
+    double se = 0; size_t n = 0;
+    for (size_t i = 0; i < a.size() && i < b.size(); ++i) { if (i % 4 == 3) continue; const double d = double(a[i]) - b[i]; se += d * d; ++n; }
+    const double mse = n ? se / n : 0;
+    return mse <= 1e-9 ? 99.0 : 10.0 * std::log10(255.0 * 255.0 / mse);
+}
+// Reads `count` floats from a UAV buffer (left in UNORDERED_ACCESS).
+std::vector<float> readFloats(Gpu& gpu, ID3D12Resource* buffer, uint64_t count) {
+    std::vector<float> out;
+    auto rb = makeBuffer(gpu.device.Get(), count * 4, D3D12_HEAP_TYPE_READBACK);
+    if (!rb || !gpu.begin()) return out;
+    D3D12_RESOURCE_BARRIER b{}; b.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; b.Transition.pResource = buffer;
+    b.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    b.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS; b.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
+    gpu.list->ResourceBarrier(1, &b);
+    gpu.list->CopyBufferRegion(rb.Get(), 0, buffer, 0, count * 4);
+    std::swap(b.Transition.StateBefore, b.Transition.StateAfter);
+    gpu.list->ResourceBarrier(1, &b);
+    if (!gpu.submitAndWait()) return out;
+    float* mapped = nullptr;
+    if (FAILED(rb->Map(0, nullptr, reinterpret_cast<void**>(&mapped)))) return out;
+    out.assign(mapped, mapped + count);
+    const D3D12_RANGE none{0, 0}; rb->Unmap(0, &none);
+    return out;
+}
+void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict);
+void testPushFlow(Gpu& gpu) {
+    wchar_t dir[1024]{}, full[1024]{};
+    if (GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_TEST_RUNTIME_FP32", full, 1024)) { std::printf("INFO pushflow: full-precision models (diagnostic)\n"); testPushFlowRuntime(gpu, full, false); }
+    if (!GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_TEST_RUNTIME", dir, 1024)) { std::printf("SKIP pushflow: VEYRA_PUSHFLOW_TEST_RUNTIME not set\n"); return; }
+    testPushFlowRuntime(gpu, dir, true);
+}
+void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
+    const auto checkOr = [&](bool ok, const std::string& label) { if (strict) check(ok, label); else std::printf("INFO %s %s\n", ok ? "ok" : "not ok", label.c_str()); };
+    std::wstring why;
+    checkOr(pushflow::runtimeInstalled(dir, &why), "pushflow: runtime installed");
+    if (!pushflow::runtimeInstalled(dir)) return;
+    constexpr uint32_t W = 256, H = 160;
+    auto* device = gpu.device.Get();
+    const auto fmt = DXGI_FORMAT_R8G8B8A8_UNORM;
+    Plane a{pipeline::makeTexture(device, W, H, fmt, false), fmt, W, H, 4};
+    Plane b{pipeline::makeTexture(device, W, H, fmt, false), fmt, W, H, 4};
+    Plane out{pipeline::makeTexture(device, W, H, fmt, false), fmt, W, H, 4};
+    checkOr(a.texture && b.texture && out.texture, "pushflow: textures created");
+    const auto run = [&](const std::vector<uint8_t>& pa, const std::vector<uint8_t>& pb, float t, pushflow::PushFlowBackend& flow, double* ms) {
+        std::vector<uint8_t> result;
+        if (!gpu.begin()) return result;
+        auto ua = recordFill(gpu, a, pa, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        auto ub = recordFill(gpu, b, pb, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        // Wait for the pack list before resetting the allocator for the next one.
+        if (!flow.pack(gpu.list.Get(), a.texture.Get(), b.texture.Get(), t) || !gpu.submitAndWait()) return result;
+        const auto start = std::chrono::steady_clock::now();
+        if (!flow.infer()) return result;
+        if (!gpu.begin()) return result;
+        D3D12_RESOURCE_BARRIER bar{}; bar.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; bar.Transition.pResource = out.texture.Get();
+        bar.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        bar.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON; bar.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
+        gpu.list->ResourceBarrier(1, &bar);
+        if (!flow.resolve(gpu.list.Get(), out.texture.Get())) return result;
+        auto rb = recordRead(gpu, out, D3D12_RESOURCE_STATE_COPY_DEST);
+        bar.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST; bar.Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
+        gpu.list->ResourceBarrier(1, &bar);
+        // Back to COMMON for the next fill.
+        D3D12_RESOURCE_BARRIER back[2]{};
+        for (int i = 0; i < 2; ++i) {
+            back[i].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; back[i].Transition.pResource = (i ? b : a).texture.Get();
+            back[i].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+            back[i].Transition.StateBefore = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; back[i].Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
+        }
+        gpu.list->ResourceBarrier(2, back);
+        if (!gpu.submitAndWait()) return result;
+        if (ms) *ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+        return mapRead(out, rb.Get());
+    };
+    for (uint32_t tier : {0u, 2u}) {
+        pushflow::PushFlowBackend flow;
+        const bool ready = flow.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, tier);
+        checkOr(ready, "pushflow: tier " + std::to_string(tier) + " initializes (" + flow.status().model + ")");
+        if (!ready) continue;
+        const auto first = flowFrame(W, H, 100), second = flowFrame(W, H, 116), middle = flowFrame(W, H, 108);
+        double ms = 0;
+        const auto same = run(first, first, 0.5f, flow, &ms);
+        {
+            const auto st = flow.status();
+            const uint64_t plane = uint64_t(st.padW) * st.padH;
+            const auto in = readFloats(gpu, flow.tensorBuffer(true), plane * flow.inputChannels());
+            const auto outT = readFloats(gpu, flow.tensorBuffer(false), plane * 3);
+            const uint32_t mx = uint32_t(110.0 * st.modelW / W), my = uint32_t((H * 0.35 + 10) * st.modelH / H);
+            const uint64_t at = uint64_t(my) * st.padW + mx;
+            if (!in.empty() && !outT.empty())
+                std::printf("INFO pushflow tier %u tensor at square: in %.3f %.3f %.3f | %.3f %.3f %.3f | t %.3f; out %.3f %.3f %.3f\n", tier,
+                    in[at], in[plane + at], in[2 * plane + at], in[3 * plane + at], in[4 * plane + at], in[5 * plane + at], in[6 * plane + at],
+                    outT[at], outT[plane + at], outT[2 * plane + at]);
+        }
+        if (!same.empty()) {
+            // Diagnostics: channel means and two sample pixels, output vs input.
+            double mo[3]{}, mi[3]{};
+            for (size_t i = 0; i < same.size(); i += 4) for (int k = 0; k < 3; ++k) { mo[k] += same[i + k]; mi[k] += first[i + k]; }
+            const double n = double(same.size() / 4);
+            const size_t sq = (size_t(H * 0.35 + 10) * W + 110) * 4, bg = (size_t(10) * W + 10) * 4;
+            std::printf("INFO pushflow tier %u means out %.0f %.0f %.0f in %.0f %.0f %.0f; square out %d %d %d in %d %d %d; corner out %d %d %d in %d %d %d\n", tier,
+                mo[0] / n, mo[1] / n, mo[2] / n, mi[0] / n, mi[1] / n, mi[2] / n, same[sq], same[sq + 1], same[sq + 2], first[sq], first[sq + 1], first[sq + 2],
+                same[bg], same[bg + 1], same[bg + 2], first[bg], first[bg + 1], first[bg + 2]);
+        }
+        checkOr(!same.empty() && flowPsnr(same, first) > 30.0, std::format("pushflow: tier {} identical frames come back ({:.1f} dB, {:.0f} ms on {})", tier,
+            same.empty() ? 0.0 : flowPsnr(same, first), ms, gpu.adapter));
+        const auto mid = run(first, second, 0.5f, flow, &ms);
+        std::vector<uint8_t> blend(first.size());
+        for (size_t i = 0; i < blend.size(); ++i) blend[i] = uint8_t((int(first[i]) + second[i] + 1) / 2);
+        const double flowDb = mid.empty() ? 0.0 : flowPsnr(mid, middle), blendDb = flowPsnr(blend, middle);
+        checkOr(!mid.empty() && flowDb > blendDb + 2.0, std::format("pushflow: tier {} moving square lands in the middle ({:.1f} dB vs blend {:.1f} dB)", tier, flowDb, blendDb));
+        const auto early = run(first, second, 0.25f, flow, nullptr);
+        const auto quarter = flowFrame(W, H, 104);
+        checkOr(!early.empty() && flowPsnr(early, quarter) > flowPsnr(early, middle), "pushflow: tier " + std::to_string(tier) + " t = 0.25 is closer to the quarter position");
+        checkOr(!gpu.debugErrors(), "pushflow: no debug layer errors");
+    }
+}
+
 int main() {
     Gpu gpu;
     if (!gpu.create()) { std::printf("FAIL no D3D12 device\n"); return 1; }
@@ -915,6 +1133,7 @@ int main() {
     testCompareVertical(gpu, true);
     testStreamOverlay(gpu, false);
     testStreamOverlay(gpu, true);
+    testCanvasConvert(gpu);
     testLiveLayers(gpu, false);
     testLiveLayers(gpu, true);
     testLabelScale();
@@ -926,6 +1145,7 @@ int main() {
     testCompareBadges(gpu, true);
     testHudSampler(gpu);
     testHudLock(gpu);
+    testPushFlow(gpu);
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "OK", failures);
     return failures ? 1 : 0;
 }

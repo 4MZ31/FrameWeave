@@ -128,26 +128,36 @@ bool QmlPlayerBridge::pushStartStream() {
         names << name;
     }
     if (options.streams.empty()) { emit notice(tr("请先添加并开启至少一个直播平台"), true); return false; }
-    // One encode feeds every output, so it follows the strictest platform.
-    int mbps = std::clamp(impl_->prefInt("streamBitrateMbps", 6), 1, 50);
-    const int capMbps = std::max(1, int(capKbps / 1000));
-    if (mbps > capMbps) {
-        emit notice(tr("码率已按平台上限降到 %1 Mbps").arg(capMbps), false);
-        mbps = capMbps;
+    // One encode feeds every output, so it follows the strictest platform. The bitrate is in kbps
+    // (output presets, PushOutputPresets.js); older settings kept whole Mbps.
+    int kbps = impl_->prefInt("streamBitrateKbps", 0);
+    if (kbps <= 0) kbps = std::clamp(impl_->prefInt("streamBitrateMbps", 6), 1, 50) * 1000;
+    kbps = std::clamp(kbps, 500, 51000);
+    if (kbps > int(capKbps)) {
+        emit notice(tr("码率已按平台上限降到 %1 Mbps").arg(QString::number(double(capKbps) / 1000.0, 'f', capKbps % 1000 ? 1 : 0)), false);
+        kbps = int(capKbps);
     }
+    const int mbps = std::max(1, (kbps + 500) / 1000);
     options.bitrateMbps = uint32_t(mbps);
+    options.bitrateKbps = uint32_t(kbps);
     options.fpsLimit = uint32_t(impl_->prefInt("streamFps", 60) >= 60 ? 60 : 30);
+    // PushFPS outputs and canvas: the stream's own size and layout, keyframe interval, encoder speed.
+    options.outputWidth = uint32_t(std::clamp(impl_->prefInt("streamWidth", 0), 0, 4096));
+    options.outputHeight = uint32_t(std::clamp(impl_->prefInt("streamHeight", 0), 0, 4096));
+    options.canvas = pushCanvas(impl_->prefInt("streamFit", 0));
+    options.keyframeSeconds = uint32_t(std::clamp(impl_->prefInt("streamKeyframe", 2), 1, 4));
     options.audio = impl_->prefBool("streamAudio", true);
     options.microphone = impl_->prefBool("streamMic", false);
     options.microphoneId = recordingMicrophoneId().toStdWString();
     options.microphoneTrack = false;
-    options.audioKbps = std::min(160u, audioCap);
-    options.preset = 4;
+    options.audioKbps = std::min(uint32_t(std::clamp(impl_->prefInt("streamAudioKbps", 160), 64, 320)), audioCap);
+    options.preset = uint32_t(std::clamp(impl_->prefInt("streamEncoderPreset", 4), 1, 7));
     std::wstring error;
     if (!impl_->engine.requestStreaming(options, error)) { emit notice(uiText(error), true); return false; }
-    veyra::log::info("ui-stream", std::format("go live outputs={} [{}] bitrateMbps={} fps={} audio={} microphone={}",
-                                              options.streams.size(), names.join(QStringLiteral(", ")).toStdString(), mbps,
-                                              options.fpsLimit, options.audio, options.microphone));
+    veyra::log::info("ui-stream", std::format("go live outputs={} [{}] bitrateKbps={} fps={} size={}x{} keyframe={}s audioKbps={} preset={} audio={} microphone={}",
+                                              options.streams.size(), names.join(QStringLiteral(", ")).toStdString(), kbps,
+                                              options.fpsLimit, options.outputWidth, options.outputHeight, options.keyframeSeconds,
+                                              options.audioKbps, options.preset, options.audio, options.microphone));
     return true;
 }
 

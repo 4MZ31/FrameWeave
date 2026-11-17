@@ -118,6 +118,8 @@ QtObject {
     // PushFPS optimiser, game presets, latency readout and sharing (src/ui/bridge/PushFps.cpp).
     property string fgBackendName: "dlss"
     property var fgBackendChoices: [{id: "dlss", label: "DLSS"}]
+    property string fgProviderText: ""
+    property int vfgQuality: 1
     property bool srEnabled: false
     property string captureDeviceLabel: ""
     property var exclusionState: ({enabled: false, feather: 6, regions: []})
@@ -135,6 +137,21 @@ QtObject {
     function pushLiveStats() { return liveStats }
     function pushBenchmarkBegin() { benchmarkWindows++ }
     function pushBenchmarkEnd() { return benchmarkModel ? benchmarkModel() : ({valid: false}) }
+    // PushFPS ground-truth quality test (tst_push_optimize.qml). qualityModel(backend) returns the status
+    // the test ends with; null: the source can't be tested.
+    property var qualityModel: null
+    property int qualityStarts: 0
+    property int qualityCancels: 0
+    property var qualityState: ({running: false, done: false, failed: false})
+    function pushQualityBegin(seconds) {
+        qualityStarts++
+        const r = qualityModel ? qualityModel(String(fgBackendName || "")) : null
+        qualityState = r ? Object.assign({running: false, done: true, failed: false, samples: 20}, r)
+                         : ({running: false, done: false, failed: true, error: "unsupported source"})
+        return true
+    }
+    function pushQualityCancel() { qualityCancels++ }
+    function pushQualityStatus() { return qualityState }
     function pushSetExclusionRegions(regions, feather) {
         lastRegions = regions
         exclusionState = ({enabled: regions.length > 0, feather: feather, regions: regions})
@@ -248,6 +265,14 @@ QtObject {
     function pushSetSceneSources(list) { lastSources = list; sourceCalls++ }
     function pushSourceStatus() { return sourceStatus }
     function pushSourcePreview(id) { return "" }
+    // PushFPS Frame Input API (tst_push_frame_input.qml).
+    property var frameInputSenders: []
+    property string frameInputStarted: ""
+    function pushFrameInputSenders() { return frameInputSenders }
+    function pushStartFrameInput(channel) {
+        if (!frameInputSenders.some(s => s.channel === channel && s.alive)) return false
+        frameInputStarted = channel; return true
+    }
     property var screenOptions: ({kind: 0, passthrough: false, method: 0, fps: 0, cursor: true, left: 0, top: 0, right: 0, bottom: 0, fill: false})
     property var screenTargets: [{id: "w1", label: "Browser - YouTube"}]
     property string screenTargetId: "w1"

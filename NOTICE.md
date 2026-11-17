@@ -64,8 +64,8 @@ by Veyra's authors (see below).
 If you modify PushFPS, or any covered work, by linking or combining it with any of the following, containing
 parts covered by the terms of their own licenses: the NVIDIA RTX SDKs (DLSS SDK and NGX SDK), the NVIDIA
 Video Effects and Video Frame Generation SDKs, the NVIDIA Optical Flow SDK, the NVIDIA CUDA driver API
-headers, the Intel XeSS SDK, the AMD FidelityFX SDK, or the unmodified runtime libraries and models these SDKs
-provide (together, "the SDKs"), the licensors of PushFPS grant you additional permission to convey the
+headers, the Intel XeSS SDK, the AMD FidelityFX SDK, Microsoft DirectML (used by PushFlow through ONNX Runtime),
+or the unmodified runtime libraries and models these SDKs provide (together, "the SDKs"), the licensors of PushFPS grant you additional permission to convey the
 resulting work. Corresponding Source for a non-source form of such a combination does not need to include
 the source code of the parts of the SDKs used, but shall include the source code of PushFPS. The SDKs remain
 under their own licenses, and nothing here places them under the GPL.

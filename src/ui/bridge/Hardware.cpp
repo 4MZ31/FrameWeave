@@ -7,6 +7,7 @@
 #include "veyra/Brand.h"
 #include "veyra/ngx/AnrProvider.h"
 #include "veyra/gfx/AmfFrcBackend.h"
+#include "veyra/pushflow/PushFlowBackend.h"
 
 namespace veyra::ui {
 
@@ -122,6 +123,10 @@ static QVariantMap scanEffectCapabilities() {
     add("fsr4", H::Fsr4, fsrLoader && exists(fsr / "amd_fidelityfx_framegeneration_dx12.dll"), QObject::tr("需要 AMD RX 9000"));
     // AMD FRC uses the AMF runtime the AMD driver installs; nothing ships with Veyra.
     add("amdfrc", H::AmdFrc, gfx::AmfFrcBackend::runtimeInstalled(), QObject::tr("需要 AMD 显卡（驱动自带 AMF 运行库）"));
+    // PushFPS: PushFlow (RIFE on DirectML) runs on any DirectX 12 GPU; its runtime ships in runtime\experimental\pushflow.
+    add("pushflow", H::CrossVendor, pushflow::runtimeInstalled(nr.wstring()),
+        pushflow::runtimeInstalled(nr.wstring()) ? QObject::tr("需要支持 DirectX 12 的硬件显卡")
+                                                                        : QObject::tr("缺少 PushFlow 运行组件，请重新安装 PushFPS"));
     add("hdr", H::Nvidia, exists(nr / "nvngx_truehdr.dll"), QObject::tr("需要 NVIDIA RTX 显卡"));
     // PushFPS: a build without the NVIDIA Optical Flow SDK reports NVOF unavailable, and the
     // sanitizer then runs every chain on AMD FidelityFX optical flow (flow1).
@@ -153,6 +158,7 @@ QString fgEffectId(engine::FrameGenerationBackend backend) {
     case engine::FrameGenerationBackend::Vfg: return "vfg";
     case engine::FrameGenerationBackend::Anr: return "anr";
     case engine::FrameGenerationBackend::AmdFrc: return "amdfrc";
+    case engine::FrameGenerationBackend::PushFlow: return "pushflow";
     }
     return {};
 }
@@ -175,7 +181,7 @@ QString disableUnavailableEffects(engine::ChainConfiguration& configuration) {
     const auto caps = currentEffectCapabilities();
     const auto available = [&](const char* id) { return caps.value(id).toMap().value("available").toBool(); };
     const engine::FrameGenerationAvailability fgAvailable{
-        available("dlss"),available("xess"),available("fsr3"),available("fsr4"),available("vfg"),available("anr"),available("amdfrc")};
+        available("dlss"),available("xess"),available("fsr3"),available("fsr4"),available("vfg"),available("anr"),available("amdfrc"),available("pushflow")};
     QStringList reasons;
     const auto sanitize = [&](engine::EffectChain& chain, engine::ChainGlobalSettings& globals) {
         // Also migrate disabled stages: keeping an unavailable DLSS selection
@@ -186,7 +192,7 @@ QString disableUnavailableEffects(engine::ChainConfiguration& configuration) {
             if (engine::twoXFrameGeneration(globals.fgBackend)) chain.fgMultiplier=2;
             else if (globals.fgBackend==engine::FrameGenerationBackend::XeSS)
                 chain.fgMultiplier=normalizeFgMultiplier(chain.fgMultiplier,globals.fgBackend,2);
-            else chain.fgMultiplier=normalizeFgMultiplier(chain.fgMultiplier,globals.fgBackend,6);
+            else chain.fgMultiplier=normalizeFgMultiplier(chain.fgMultiplier,globals.fgBackend,globals.fgBackend==engine::FrameGenerationBackend::PushFlow?4:6);
             veyra::log::warn("fg-default",std::format("unavailable saved backend={} selected={} rememberedMultiplier={} enabled flags preserved",
                 engine::frameGenerationBackendName(savedBackend),engine::frameGenerationBackendName(globals.fgBackend),chain.fgMultiplier));
         }
@@ -239,7 +245,7 @@ QVariantMap QmlPlayerBridge::effectAvailability(const QString& id) const {
         id == "sr" ? "sr" + QString::number(s.videoSrQuality) : id == "video-hdr" ? QString("hdr") :
         id == "frame-generation" ? fgEffectId(s.frameGenerationBackend) :
         id == "dlss-fg" ? QString("dlss") : id == "xess-fg" ? QString("xess") :
-        id == "fsr3-fg" ? QString("fsr3") : id == "fsr4-fg" ? QString("fsr4") : id == "vfg-fg" ? QString("vfg") : id == "anr-fg" ? QString("anr") : id == "amdfrc-fg" ? QString("amdfrc") : id;
+        id == "fsr3-fg" ? QString("fsr3") : id == "fsr4-fg" ? QString("fsr4") : id == "vfg-fg" ? QString("vfg") : id == "anr-fg" ? QString("anr") : id == "amdfrc-fg" ? QString("amdfrc") : id == "pushflow-fg" ? QString("pushflow") : id;
     const auto caps = effectCapabilities();
     return caps.contains(key) ? caps.value(key).toMap() : QVariantMap{{"available", true}, {"reason", QString{}}};
 }

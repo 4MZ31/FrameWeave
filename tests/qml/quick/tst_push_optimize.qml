@@ -53,11 +53,38 @@ Item {
                                  captureReceived: 1000, captureDropped: 0, backendWarning: "" })
             veyra.benchmarkModel = root.model
             root.broken = ""
+            veyra.qualityModel = null
             host.dialog = "optimize"
             opt.phase = "idle"
         }
         function cleanup() { if (opt.phase === "running") opt.cancel(); init() }
 
+        // Ground-truth quality (PushQualityProbe): measured scores replace the fixed quality order.
+        function test_measured_quality_picks_the_winner() {
+            veyra.preferences = ({ pushGameFps: 30, pushOptimizeGoal: "picture" })
+            veyra.qualityModel = function(backend) {
+                return { score: backend === "dlss" ? 91 : backend === "vfg" ? 42 : 30, psnr: backend === "dlss" ? 36.5 : 29.0, blendPsnr: 27.0,
+                         gainOverBlend: 2, realPsnr: 44, hudPsnr: 33, hudSamples: 10, badShare: 0.02, onTime: 0.99 }
+            }
+            const startsBefore = veyra.qualityStarts
+            opt.start()
+            tryCompare(opt, "phase", "done", 15000)
+            veyra.qualityModel = null
+            verify(veyra.qualityStarts > startsBefore, "the quality test ran")
+            compare(opt.best.config.backend, "dlss", "the best measured picture wins, not the fixed order")
+            const dlss = opt.steps.find(s => s.config.backend === "dlss" && s.result && s.result.quality)
+            verify(dlss && dlss.result.quality.psnr === 36.5, "the result keeps the measured PSNR")
+            const record = JSON.parse(veyra.preferences.pushBenchmark)
+            compare(record.v, 3)
+            verify(record.steps.some(x => x.quality === 91), "the record keeps the scores")
+        }
+        function test_untestable_source_falls_back_to_the_order() {
+            veyra.qualityModel = null
+            opt.start()
+            tryCompare(opt, "phase", "done", 15000)
+            verify(opt.qualityUnsupported, "an untestable source is remembered")
+            compare(opt.best.config.backend, "vfg", "the fixed order decides")
+        }
         function test_needs_a_picture() {
             veyra.liveStats = ({ running: false })
             opt.start()

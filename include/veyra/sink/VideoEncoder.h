@@ -51,6 +51,7 @@ struct EncoderConfig {
     // Export target bitrate in Mbps; 0 keeps the backend's constant-quality
     // default (NVENC CONSTQP / MFT quality mode).
     uint32_t bitrateMbps=0;
+    uint32_t bitrateKbps=0;   // PushFPS output presets: kbps precision (wins when set)
     ExportRateControl rateControl=ExportRateControl::Cq;
     // Active adapter identity. A machine can have several vendors' hardware
     // MFTs registered at once (an AMD driver's MFT is visible on an NVIDIA

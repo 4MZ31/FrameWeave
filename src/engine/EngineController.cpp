@@ -33,6 +33,7 @@
 #include "veyra/source/CaptureCardSource.h"
 #include "veyra/source/DeckLinkCapture.h"
 #include "veyra/source/ScreenCaptureSource.h"
+#include "veyra/source/FrameInputSource.h"
 #include "veyra/xbox/DisconnectPolicy.h"
 #ifdef VEYRA_ENABLE_REMOTEPLAY
 #include "veyra/source/RemotePlaySessionSource.h"
@@ -490,7 +491,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
     stream_->sessionEnded({});
     auto extension=std::filesystem::path(path).extension().wstring();for(auto& c:extension)c=towlower(c);
     const bool ordinaryFile=!remoteRequest&&!moonlightRequest&&!xboxRequest&&
-        !path.starts_with(L"capture:")&&!path.starts_with(L"capture2:")&&!path.starts_with(L"screen:")&&
+        !path.starts_with(L"capture:")&&!path.starts_with(L"capture2:")&&!path.starts_with(L"screen:")&&!path.starts_with(L"frameinput:")&&
         extension!=L".png"&&extension!=L".jpg"&&extension!=L".jpeg";
     if(!prewarmEnabled_||!ordinaryFile)prewarmed_.reset();
     // A prewarmed session belongs to the adapter that was preferred when it
@@ -509,6 +510,8 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
     AVFrame* imageFrame=nullptr;AVFrame* cachedFrame=nullptr;pipeline::FramePacket cachedPacket;
    source::CaptureCardSource captureSource;const bool physicalCapture=path.starts_with(L"capture:")||path.starts_with(L"capture2:");
     source::ScreenCaptureSource screenSource;const bool isScreen=path.starts_with(L"screen:");
+    // PushFPS Frame Input API: another application's frames over shared memory, live like a card.
+    source::FrameInputSource frameInputSource;const bool isFrameInput=path.starts_with(L"frameinput:");
     // Set when a live parameter change arrives while paused (or on a still
     // image): the cached source frame must be re-rendered before the next
     // present, otherwise the new colour tables never reach the GPU.
@@ -537,14 +540,15 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
 #endif
     // PS5, Moonlight and Xbox are all decoded network streams with the same live scheduling.
     const bool isStream=isRemote||isMoonlight||isXbox;
-    const bool isCapture=physicalCapture||options.captureReplayForTest||isStream||isScreen;
+    const bool isCapture=physicalCapture||options.captureReplayForTest||isStream||isScreen||isFrameInput;
     // File replay has no hardware arrival clock; retain its continuous PTS anchor.
     // VEYRA_TEST_REPLAY_AS_CARD=1 delivers it like a capture card instead (see below).
     const bool testReplayAsCard=options.captureReplayForTest&&GetEnvironmentVariableW(L"VEYRA_TEST_REPLAY_AS_CARD",nullptr,0)>0;
     const bool cardTiming=physicalCapture||testReplayAsCard;
-    const bool pairAnchoredLive=physicalCapture||isStream||isScreen||testReplayAsCard;
+    const bool pairAnchoredLive=physicalCapture||isStream||isScreen||isFrameInput||testReplayAsCard;
     source::IFrameSource* activeSource=physicalCapture?static_cast<source::IFrameSource*>(&captureSource):&source;
     if(isScreen)activeSource=&screenSource;
+    if(isFrameInput)activeSource=&frameInputSource;
 #ifdef VEYRA_ENABLE_REMOTEPLAY
     if(remote)activeSource=remote.get();
 #endif
@@ -675,7 +679,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     if(stop_||!cachedFrame)break;
                 }else{
 #endif
-                if(!isMoonlight&&!isXbox&&!(physicalCapture?captureSource.configure(od):activeSource->open(od))){status(isScreen?screenSource.status():physicalCapture&&!captureSource.errorMessage().empty()?captureSource.errorMessage():!isCapture&&!source.errorMessage().empty()?source.errorMessage():L"无法打开视频，请查看诊断",true);break;}
+                if(!isMoonlight&&!isXbox&&!(physicalCapture?captureSource.configure(od):activeSource->open(od))){status(isScreen?screenSource.status():isFrameInput?frameInputSource.status():physicalCapture&&!captureSource.errorMessage().empty()?captureSource.errorMessage():!isCapture&&!source.errorMessage().empty()?source.errorMessage():L"无法打开视频，请查看诊断",true);break;}
 #ifdef VEYRA_ENABLE_REMOTEPLAY
                 }
 #endif
@@ -902,6 +906,9 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     else if(reduced.frameGenerationBackend==FrameGenerationBackend::AmdFrc){
                         capabilityGeneratedFrames=int((graph->amfFrcActive()?1u:0u));
                     }
+                    else if(reduced.frameGenerationBackend==FrameGenerationBackend::PushFlow){
+                        capabilityGeneratedFrames=graph->pushFlowActive()?3:0;
+                    }
                 }
                 if(capabilityGeneratedFrames>0&&int(reduced.multiplier)-1>capabilityGeneratedFrames){
                     const uint32_t clamped=uint32_t(capabilityGeneratedFrames+1);
@@ -922,6 +929,8 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                         backendRecoveryWarning+=L"NVIDIA VFG 未能启用（需要 Ada / Blackwell 显卡、VFG 运行组件和支持的输出格式），已关闭补帧；原因见日志";
                     else if(selected.settings.frameGenerationBackend==FrameGenerationBackend::AmdFrc&&failure==FailedBackend::Fg)
                         backendRecoveryWarning+=L"AMD FRC 未能启用（需要 AMD 显卡和驱动自带的 AMF 运行库），已关闭补帧；原因见日志";
+                    else if(selected.settings.frameGenerationBackend==FrameGenerationBackend::PushFlow&&failure==FailedBackend::Fg)
+                        backendRecoveryWarning+=L"PushFlow 未能启用（需要 DirectX 12 显卡和 PushFlow 运行组件），已关闭补帧；原因见日志";
                     else if(selected.settings.frameGenerationBackend==FrameGenerationBackend::Fsr4&&failure==FailedBackend::Fg)
                     {
                         backendRecoveryWarning+=L"FSR 4 ML 提供方不可用（需要支持的 RX 9000 和驱动），已改用 FSR 3.1；原因见日志";
@@ -1856,7 +1865,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     }
                     else {
                         finishReset(diagnostics::ResetOutcome::RolledBack);
-                        std::lock_guard lock(mutex_);if(desired_.revision==requested.revision)desiredNodeOrder_=previousOrder;desired_.rejectVideoRequest(requested,previous);snapshot_.desired=desired_;snapshot_.rejectedRevision=requested.revision;snapshot_.applying=desired_!=previous;snapshot_.status=L"设置应用失败，已恢复上一套参数";snapshot_.backendWarning=requested.nrRuntime!=previous.nrRuntime?L"NR运行版本切换失败，已恢复上一套参数":requested.frameGenerationBackend==FrameGenerationBackend::XeSS?L"XeSS 未能启用，已恢复上一套参数":requested.frameGenerationBackend==FrameGenerationBackend::AmdFrc?L"AMD FRC 未能启用（需要 AMD 显卡和驱动自带的 AMF 运行库），已恢复上一套参数":
+                        std::lock_guard lock(mutex_);if(desired_.revision==requested.revision)desiredNodeOrder_=previousOrder;desired_.rejectVideoRequest(requested,previous);snapshot_.desired=desired_;snapshot_.rejectedRevision=requested.revision;snapshot_.applying=desired_!=previous;snapshot_.status=L"设置应用失败，已恢复上一套参数";snapshot_.backendWarning=requested.nrRuntime!=previous.nrRuntime?L"NR运行版本切换失败，已恢复上一套参数":requested.frameGenerationBackend==FrameGenerationBackend::XeSS?L"XeSS 未能启用，已恢复上一套参数":requested.frameGenerationBackend==FrameGenerationBackend::AmdFrc?L"AMD FRC 未能启用（需要 AMD 显卡和驱动自带的 AMF 运行库），已恢复上一套参数":requested.frameGenerationBackend==FrameGenerationBackend::PushFlow?L"PushFlow 未能启用（需要 DirectX 12 显卡和 PushFlow 运行组件），已恢复上一套参数":
                             requested.frameGenerationBackend==FrameGenerationBackend::Fsr4?L"FSR 4 ML 未能启用（需要支持的 RX 9000 和驱动），已恢复上一套参数":fsrFrameGeneration(requested.frameGenerationBackend)?L"FSR 3.1 帧生成未能启用，已恢复上一套参数":L"后端切换失败，已恢复上一套参数";}
                 }
                 // Live uniform update. The revision identifies the graph *shape*
@@ -2083,7 +2092,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                         advanceLive();publishWaitingProgress();waitLive();rs=physicalCapture?captureSource.tryRead(pkt,&frame):activeSource->read(pkt,&frame);
                     }
                     if(stop_)break;
-                    if(rs==source::SourceReadStatus::Waiting){if(isScreen){std::lock_guard lock(mutex_);snapshot_.sourceNotice=screenSource.status();}advanceLive();publishWaitingProgress();waitLive();continue;}
+                    if(rs==source::SourceReadStatus::Waiting){if(isScreen){std::lock_guard lock(mutex_);snapshot_.sourceNotice=screenSource.status();}if(isFrameInput){std::lock_guard lock(mutex_);snapshot_.sourceNotice=frameInputSource.status();}advanceLive();publishWaitingProgress();waitLive();continue;}
                     if(rs==source::SourceReadStatus::Eos){
                         fileInputEnded=true;
                         while(liveScheduler&&liveScheduler->occupancy()&&!stop_&&(!paused_||seekPreviewPending)&&!liveScheduler->failed()){advanceLive();if(liveScheduler->occupancy())waitLive();}
@@ -2146,11 +2155,12 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                             status(failure.message.empty()?L"Xbox 串流中断，请重新连接。":failure.message,true);break;
                         }
 #endif
-                        status(isScreen?screenSource.status():isCapture?L"采集信号中断，请检查设备连接或格式":source.errorMessage().empty()?L"视频解码或时间戳错误":source.errorMessage(),true);break;}
+                        status(isScreen?screenSource.status():isFrameInput?frameInputSource.status():isCapture?L"采集信号中断，请检查设备连接或格式":source.errorMessage().empty()?L"视频解码或时间戳错误":source.errorMessage(),true);break;}
                 }
                 if(isScreen){std::lock_guard lock(mutex_);snapshot_.sourceNotice=screenSource.status();}
+                if(isFrameInput){std::lock_guard lock(mutex_);snapshot_.sourceNotice=frameInputSource.status();}
                 const bool nativeCapture=physicalCapture&&activeSource->info().videoDecodePath=="decklink";
-                if((isStream||isScreen||nativeCapture)&&frame&&(uint32_t(frame->width)!=width||uint32_t(frame->height)!=height||(isScreen&&gd.hdrInput!=activeSource->info().color.isHdrPath())||
+                if((isStream||isScreen||isFrameInput||nativeCapture)&&frame&&(uint32_t(frame->width)!=width||uint32_t(frame->height)!=height||(isScreen&&gd.hdrInput!=activeSource->info().color.isHdrPath())||
                     (nativeCapture&&!source::decklink::sameColor(captureGraphColor,activeSource->info().color)))){
                     drainLivePresentation();if(!ring.drainQueue()){status(L"串流尺寸切换排空失败",true);break;}
                     width=uint32_t(frame->width);height=uint32_t(frame->height);
@@ -2166,7 +2176,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     }
                     // Window capture publishes the same geometry used to rebuild
                     // the graph, rather than retaining its opening DAR.
-                    if(isScreen||nativeCapture){
+                    if(isScreen||isFrameInput||nativeCapture){
                         std::lock_guard lock(mutex_);snapshot_.sourceWidth=width;snapshot_.sourceHeight=height;snapshot_.sourceHdr=gd.hdrInput;snapshot_.sourceMasteringPeakNits=resizeMastering;snapshot_.sourceMaxCllNits=resizeCll;snapshot_.sourceMaxFallNits=resizeFall;snapshot_.sourceDisplayAspect=activeSource->info().displayAspect;
                     }
                     if(!presenter.prepareGraphChange()){status(L"输入尺寸切换呈现排空失败",true);break;}
@@ -2282,6 +2292,11 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     pkt.duration={interval*2,10000000};
                 }
                 if(!halfRate)captureSampler.reset();
+                // PushFPS ground-truth quality test: every second frame is kept back while it runs;
+                // frame generation makes that moment and PushQualityProbe compares it with the original.
+                if(!rereadCached&&!pkt.pts.isUnknown()&&quality_->running()&&quality_->withhold(frame,pkt.pts.to100ns(),gd.packedInput!=0)){
+                    std::lock_guard lock(mutex_);++snapshot_.captureRateSkipped;continue;
+                }
                 if(isCapture&&!rereadCached&&veyra::log::verboseFrameLogs())
                     veyra::log::info("cadence-input",std::format("source={} driverPts100ns={} samplePts100ns={} pts100ns={} clockCorrected={} dedup={} halfRate={}",pkt.sequence,driverPts100ns,samplePts100ns,pkt.pts.isUnknown()?0:pkt.pts.to100ns(),captureClockCorrected,dedupActive,halfRate));
                 if(isImage)pkt.sequence=1;

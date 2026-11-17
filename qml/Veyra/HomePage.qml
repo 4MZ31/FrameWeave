@@ -11,8 +11,6 @@ import QtQuick.Effects
 VPage {
     id: root
     signal requestPage(string page)
-    // The coffee line under the title: Main opens 设置 → 赞助作者.
-    signal requestSponsor()
     // Opens 画面与声音 and scrolls it into view (the screenshot run's `--tab tuning`).
     function showTuning() {
         tuning.open = true
@@ -70,6 +68,7 @@ VPage {
                 case "ps5": return veyra.remotePlayHost.length > 0 ? qsTr("已保存主机 ") + veyra.remotePlayHost : qsTr("局域网串流")
                 case "moonlight": return veyra.moonlight && veyra.moonlight.state.lastLabel ? veyra.moonlight.state.lastLabel : qsTr("Sunshine 主机")
                 case "xbox": return veyra.xbox && veyra.xbox.state.lastLabel ? veyra.xbox.state.lastLabel : qsTr("账号登录 · 实验")
+                case "frameinput": return qsTr("画面输入接口")
                 default: return qsTr("窗口或显示器")
                 }
             }
@@ -301,7 +300,8 @@ VPage {
                     { glyph: "monitor", title: qsTr("屏幕捕获"), act: "screen" },
                     { glyph: "gamepad", title: qsTr("PS5 串流"), act: "ps5" },
                     { glyph: "cast", title: qsTr("PC 串流"), act: "moonlight" },
-                    { glyph: "gamepad", title: qsTr("Xbox 串流"), act: "xbox" }
+                    { glyph: "gamepad", title: qsTr("Xbox 串流"), act: "xbox" },
+                    { glyph: "import", title: qsTr("其他应用"), act: "frameinput" }
                 ]
                 readonly property int shownCount: shown.filter(c => srcGrid.available(c.act)).length
                 columns: width >= 140 * shownCount + 10 * (shownCount - 1) ? shownCount : Math.ceil(shownCount / 2)
@@ -374,6 +374,7 @@ VPage {
                                     case "moonlight": veyra.openMoonlightDialog(); break
                                     case "xbox": veyra.openXboxDialog(); break
                                     case "screen": veyra.openScreenCaptureDialog(); break
+                                    case "frameinput": veyra.navigate("frameinput"); break
                                     }
                                 }
                             }
@@ -491,48 +492,17 @@ VPage {
         }
     }
 
-    // Free and open source; the coffee goes to Veyra's author (设置 → 赞助作者).
-    Item {
-        id: sponsorLine
-        objectName: "home-sponsor"
+    // Free and open source, built on Veyra (since 3.1.3 PushFPS links no sponsor pages).
+    Text {
+        id: creditLine
+        objectName: "home-credit"
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 18
-        implicitWidth: sponsorRow.implicitWidth
-        implicitHeight: sponsorRow.implicitHeight
-        Row {
-            id: sponsorRow
-            spacing: 5
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("本软件开源免费，如果对你有帮助，你可以 →")
-                color: sponsorHover.hovered ? Theme.t2 : Theme.t3
-                font.family: Theme.fontUi
-                font.pixelSize: Theme.fsSmall
-            }
-            VIcon {
-                anchors.verticalCenter: parent.verticalCenter
-                name: "coffee"
-                size: 13
-                color: Theme.accent
-            }
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("请作者喝杯咖啡")
-                color: Theme.accent
-                font.family: Theme.fontUi
-                font.pixelSize: Theme.fsSmall
-                font.weight: Font.Medium
-                font.underline: sponsorHover.hovered
-            }
-        }
-        HoverHandler { id: sponsorHover; cursorShape: Qt.PointingHandCursor }
-        TapHandler {
-            onTapped: {
-                veyra.logUi("ui-sponsor", "home link")
-                root.requestSponsor()
-            }
-        }
+        text: qsTr("免费开源 · 基于 Veyra 构建")
+        color: Theme.t3
+        font.family: Theme.fontUi
+        font.pixelSize: Theme.fsSmall
     }
 
     // [data-in] entrance order from pages-a.js (the source cards rise from their delegate, --d 2-5).

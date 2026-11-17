@@ -38,6 +38,7 @@ VPage {
     }
     function start() {
         if (watch.kind === 2) { veyra.openFileDialog(); return }
+        if (watch.kind === 3) { veyra.navigate("frameinput"); return }   // PushFPS Frame Input API
         // A plain copy of the picture: no game mode, the whole window, fitted.
         if (watch.o.passthrough === true) veyra.setScreenOption("passthrough", false)
         if (veyra.startScreenCapture()) veyra.logUi("push-watch", "video playback started kind=" + watch.kind)
@@ -98,7 +99,7 @@ VPage {
                 VSeg {
                     objectName: "watch-kind"
                     Layout.fillWidth: true
-                    options: [{ id: "0", label: qsTr("窗口") }, { id: "1", label: qsTr("整个屏幕") }, { id: "2", label: qsTr("视频文件") }]
+                    options: [{ id: "0", label: qsTr("窗口") }, { id: "1", label: qsTr("整个屏幕") }, { id: "2", label: qsTr("视频文件") }, { id: "3", label: qsTr("其他应用") }]
                     current: String(watch.kind)
                     onPicked: id => watch.pick(Number(id))
                 }
@@ -119,6 +120,7 @@ VPage {
                     Layout.fillWidth: true
                     text: watch.kind === 0 ? qsTr("YouTube 或网页视频：先在浏览器里播放，再在这里选浏览器窗口。浏览器窗口变黑时，请在浏览器设置里关闭硬件加速（受版权保护的视频可能仍然是黑的）")
                         : watch.kind === 1 ? qsTr("整块显示器的画面，适合全屏播放的视频。PushFPS 请放在另一块屏幕上")
+                        : watch.kind === 3 ? qsTr("支持 PushFPS 画面输入接口的应用直接把画面送进来，不用捕获窗口")
                         : qsTr("打开电脑上的视频文件，补帧和画面增强同样生效")
                     color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 11
                     wrapMode: Text.WordWrap
@@ -130,9 +132,9 @@ VPage {
                         objectName: "watch-start"
                         Layout.fillWidth: true
                         primary: true
-                        iconName: watch.kind === 2 ? "folder" : "play"
-                        text: watch.kind === 2 ? qsTr("打开视频文件") : qsTr("开始播放")
-                        enabled: watch.kind === 2 || veyra.screenTargets.length > 0
+                        iconName: watch.kind === 2 ? "folder" : watch.kind === 3 ? "import" : "play"
+                        text: watch.kind === 2 ? qsTr("打开视频文件") : watch.kind === 3 ? qsTr("选择应用") : qsTr("开始播放")
+                        enabled: watch.kind >= 2 || veyra.screenTargets.length > 0
                         onClicked: watch.start()
                     }
                     VButton {

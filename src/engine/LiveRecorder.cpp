@@ -442,7 +442,17 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
     // Fixed at creation.
     ComPtr<ID3D12Device> device;
     uint32_t width=0,height=0,hdrMode=0,fps=60,bitrateMbps=20,vendor=0;   // width x height: what is encoded
+    uint32_t bitrateKbps=0;                      // PushFPS presets: kbps precision when set
     uint32_t frameWidth=0,frameHeight=0;        // the presented frame (= width x height except vertical comparison clips)
+    // PushFPS outputs and canvas: the recorder's planes are planeWidth x planeHeight (the frame for
+    // comparison clips and full-frame outputs, else the output size), filled by PushCanvasConvert.
+    uint32_t planeWidth=0,planeHeight=0;
+    bool canvasPass=false;                      // planes differ from the frame: every frame goes through PushCanvasConvert
+    PushCanvas canvas;
+    // Live layout (setPushLiveCanvas): a full-frame output can still get a box, crop or background
+    // while it runs, through layoutPass (PushCanvasConvert on its own descriptor heap).
+    bool liveLayout=false;
+    bool layoutReady=false;
     bool hevc=false,nvenc=false;
     // PushFPS advanced recording (RecordingSettings).
     uint32_t rateControl=1,quality=22,preset=4,keyframeSeconds=2,audioKbps=192;
@@ -473,6 +483,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
 
     // Engine thread: conversion into the slots.
     pipeline::ComputePass convert;
+    pipeline::ComputePass layoutPass;
     pipeline::DescriptorStager stager;
     pipeline::StateTracker states;
     ComPtr<ID3D12Resource> y,uv;
@@ -579,14 +590,27 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
     // ---- creation (engine thread) -------------------------------------------
     bool create(std::wstring& reason){
         std::vector<uint8_t> shader;
-        if(!convert.loadShader("RgbToNv12.dxil",shader)||!convert.create(device.Get(),shader,kSlots+2,1,2)){reason=L"录制转换着色器加载失败";return false;}
+        if(!planeWidth||!planeHeight){planeWidth=frameWidth;planeHeight=frameHeight;}
+        if(!convert.loadShader(canvasPass?"PushCanvasConvert.dxil":"RgbToNv12.dxil",shader)||
+           !convert.create(device.Get(),shader,kSlots+2,1,2,canvasPass?16u:8u)){reason=L"录制转换着色器加载失败";return false;}
         if(!stager.initialize(device.Get(),kSlots)){reason=L"录制描述符分配失败";return false;}
+        // A full-frame output keeps RgbToNv12 and loads the canvas pass beside it for live layout
+        // changes; without it the layout applies from the next recording.
+        if(liveLayout&&!canvasPass){
+            std::vector<uint8_t> canvasShader;
+            layoutReady=layoutPass.loadShader("PushCanvasConvert.dxil",canvasShader)&&layoutPass.create(device.Get(),canvasShader,kSlots+2,1,2,16u);
+            if(!layoutReady)veyra::log::warn("live-recorder","live layout unavailable: PushCanvasConvert did not load");
+        }
         const bool hdr=hdrMode!=0;
-        y=pipeline::makeTexture(device.Get(),frameWidth,frameHeight,hdr?DXGI_FORMAT_R16_UNORM:DXGI_FORMAT_R8_UNORM,true);
-        uv=pipeline::makeTexture(device.Get(),frameWidth/2,frameHeight/2,hdr?DXGI_FORMAT_R16G16_UNORM:DXGI_FORMAT_R8G8_UNORM,true);
+        y=pipeline::makeTexture(device.Get(),planeWidth,planeHeight,hdr?DXGI_FORMAT_R16_UNORM:DXGI_FORMAT_R8_UNORM,true);
+        uv=pipeline::makeTexture(device.Get(),planeWidth/2,planeHeight/2,hdr?DXGI_FORMAT_R16G16_UNORM:DXGI_FORMAT_R8G8_UNORM,true);
         if(!y||!uv){reason=L"录制显存分配失败";return false;}
         pipeline::makeUav(device.Get(),y.Get(),hdr?DXGI_FORMAT_R16_UNORM:DXGI_FORMAT_R8_UNORM,pipeline::cpuHandleOf(convert,kSlots));
         pipeline::makeUav(device.Get(),uv.Get(),hdr?DXGI_FORMAT_R16G16_UNORM:DXGI_FORMAT_R8G8_UNORM,pipeline::cpuHandleOf(convert,kSlots+1));
+        if(layoutReady){
+            pipeline::makeUav(device.Get(),y.Get(),hdr?DXGI_FORMAT_R16_UNORM:DXGI_FORMAT_R8_UNORM,pipeline::cpuHandleOf(layoutPass,kSlots));
+            pipeline::makeUav(device.Get(),uv.Get(),hdr?DXGI_FORMAT_R16G16_UNORM:DXGI_FORMAT_R8G8_UNORM,pipeline::cpuHandleOf(layoutPass,kSlots+1));
+        }
         for(auto& slot:slots){
             if(nvenc){
                 slot.nv12=pipeline::makeTexture(device.Get(),width,height,hdr?DXGI_FORMAT_P010:DXGI_FORMAT_NV12,false);
@@ -649,17 +673,37 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
         // a direct SRV write into a shader-visible heap can corrupt Present).
         D3D12_SHADER_RESOURCE_VIEW_DESC view{};view.Format=frame.format;view.ViewDimension=D3D12_SRV_DIMENSION_TEXTURE2D;
         view.Shader4ComponentMapping=D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;view.Texture2D.MipLevels=1;
-        stager.stageSrv(frame.texture,&view,convert.heap.Get(),UINT(index));
+        // The live layout (box, crop, background) with this output's own fit.
+        PushCanvas layout=canvas;
+        if(liveLayout){
+            PushCanvas live;
+            // A stretched game picture (layout editor, Ctrl resize) stretches in every output.
+            if(pushLiveCanvas(live)){const auto fit=layout.fit;const bool stretched=live.fit==PushCanvasFit::Stretch;layout=live;layout.fit=stretched?PushCanvasFit::Stretch:fit;}
+        }
+        const bool viaLayout=!canvasPass&&layoutReady&&!layout.fullFrame();
+        pipeline::ComputePass& pass=viaLayout?layoutPass:convert;
+        stager.stageSrv(frame.texture,&view,pass.heap.Get(),UINT(index));
         D3D12_RESOURCE_BARRIER source{};source.Type=D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;source.Transition.pResource=frame.texture;
         source.Transition.Subresource=D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         source.Transition.StateBefore=D3D12_RESOURCE_STATE_COMMON;source.Transition.StateAfter=D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
         list->ResourceBarrier(1,&source);
         states.transition(list,y.Get(),D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         states.transition(list,uv.Get(),D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-        // reserved.x = HDR mode, reserved.y = output dither step (RgbToNv12.hlsl).
-        const float constants[8]={std::bit_cast<float>(frameWidth),std::bit_cast<float>(frameHeight),std::bit_cast<float>(hdrMode),frame.ditherStep,0,0,0,0};
-        convert.bind(list,constants,pipeline::gpuHandleOf(convert,UINT(index)).ptr,pipeline::gpuHandleOf(convert,kSlots).ptr);
-        list->Dispatch((frameWidth+15)/16,(frameHeight+15)/16,1);
+        if(canvasPass||viaLayout){
+            // PushFPS outputs and canvas (PushCanvasConvert.hlsl): the picture sampled into this output.
+            const auto map=mapPushCanvas(layout,frameWidth,frameHeight,planeWidth,planeHeight);
+            const uint32_t taps=pushCanvasTaps(map.srcW,map.dstW)|(pushCanvasTaps(map.srcH,map.dstH)<<8);
+            const float constants[16]={std::bit_cast<float>(planeWidth),std::bit_cast<float>(planeHeight),std::bit_cast<float>(hdrMode),frame.ditherStep,
+                float(map.dstX),float(map.dstY),float(map.dstW),float(map.dstH),float(map.srcX),float(map.srcY),float(map.srcW),float(map.srcH),
+                std::bit_cast<float>(frameWidth),std::bit_cast<float>(frameHeight),std::bit_cast<float>(taps),std::bit_cast<float>(layout.background&0xFFFFFFu)};
+            pass.bind(list,constants,pipeline::gpuHandleOf(pass,UINT(index)).ptr,pipeline::gpuHandleOf(pass,kSlots).ptr);
+            list->Dispatch((planeWidth+15)/16,(planeHeight+15)/16,1);
+        }else{
+            // reserved.x = HDR mode, reserved.y = output dither step (RgbToNv12.hlsl).
+            const float constants[8]={std::bit_cast<float>(frameWidth),std::bit_cast<float>(frameHeight),std::bit_cast<float>(hdrMode),frame.ditherStep,0,0,0,0};
+            convert.bind(list,constants,pipeline::gpuHandleOf(convert,UINT(index)).ptr,pipeline::gpuHandleOf(convert,kSlots).ptr);
+            list->Dispatch((frameWidth+15)/16,(frameHeight+15)/16,1);
+        }
         states.uavBarrier(list,y.Get());states.uavBarrier(list,uv.Get());
         if(!compare){
             ++overlayFrames;
@@ -678,7 +722,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
                 }
                 if(image){
                     auto next=std::make_unique<FrameOverlay>();
-                    if(next->create(device.Get(),frameWidth,frameHeight,hdrMode!=0,*image))overlay=std::move(next);
+                    if(next->create(device.Get(),planeWidth,planeHeight,hdrMode!=0,*image))overlay=std::move(next);
                     else veyra::log::warn("live-recorder","scene overlay could not be prepared; recording without it");
                 }
                 veyra::log::info("live-recorder",std::format("scene overlay {} {}x{}",overlay?"on":"off",image?image->width:0,image?image->height:0));
@@ -694,7 +738,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
             if(!layersFailed&&(layers||pushLiveLayersActive())){
                 if(!layers){
                     layers=std::make_unique<LiveLayerBlend>();
-                    if(!layers->create(device.Get(),frameWidth,frameHeight,hdrMode!=0,kSlots)){
+                    if(!layers->create(device.Get(),planeWidth,planeHeight,hdrMode!=0,kSlots)){
                         layers.reset();layersFailed=true;
                         veyra::log::warn("live-recorder","live layers could not be prepared; recording without camera, window and video sources");
                     }else veyra::log::info("live-recorder","live layers on");
@@ -784,7 +828,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
     void encodeNvenc(){
         sink::NvencLiveEncoder encoder;
         sink::NvencLiveEncoder::Config config;
-        config.width=width;config.height=height;config.hevc=hevc;config.hdr=hdrMode!=0;config.fps=fps;config.bitrateMbps=bitrateMbps;
+        config.width=width;config.height=height;config.hevc=hevc;config.hdr=hdrMode!=0;config.fps=fps;config.bitrateMbps=bitrateMbps;config.bitrateKbps=bitrateKbps;
         config.rateControl=rateControl;config.qp=quality;config.preset=preset;config.keyframeSeconds=keyframeSeconds;
         std::vector<ID3D12Resource*> inputs;for(auto& slot:slots)inputs.push_back(slot.nv12.Get());
         if(!encoder.open(device.Get(),config,inputs)){
@@ -834,7 +878,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
         const bool com=SUCCEEDED(CoInitializeEx(nullptr,COINIT_MULTITHREADED));
         {
             auto encoder=sink::createMediaFoundationLiveEncoder();
-            sink::EncoderConfig config;config.hevc=hevc;config.fpsNum=fps;config.fpsDen=1;config.bitrateMbps=bitrateMbps;
+            sink::EncoderConfig config;config.hevc=hevc;config.fpsNum=fps;config.fpsDen=1;config.bitrateMbps=bitrateMbps;config.bitrateKbps=bitrateKbps;
             config.rateControl=sink::ExportRateControl(std::min(rateControl,2u));config.adapterVendorId=vendor;config.drainTimeoutMs=kGpuWaitMs;
             // PushFPS advanced recording: encoder preset 1..7 onto Media Foundation's
             // 0..100 speed/quality scale (4 is the standard 70); quality level 1..51
@@ -992,7 +1036,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
         outputs=std::make_shared<stream::Outputs>([](const std::string& line){veyra::log::info("live-stream",line);});
         stream::VideoFormat format;
         format.width=int(width);format.height=int(height);format.fps=int(fps);format.hevc=hevc;
-        format.extradata=std::move(extradata);format.bitRate=int64_t(bitrateMbps)*1000000;
+        format.extradata=std::move(extradata);format.bitRate=bitrateKbps?int64_t(bitrateKbps)*1000:int64_t(bitrateMbps)*1000000;
         std::string reason;
         if(!outputs->start(streamTargets,format,trackCount?tracks[0].parameters.get():nullptr,reason)){fail(L"无法开始直播："+wide(reason));return false;}
         std::string names;
@@ -1251,7 +1295,8 @@ bool LiveRecorder::start(const RecordingSettings& settings,std::wstring& error){
             o.audio==settings.audio&&o.microphone==settings.microphone&&o.microphoneId==settings.microphoneId&&
             o.microphoneTrack==settings.microphoneTrack&&o.replaySeconds==settings.replaySeconds&&o.replayMemoryBytes==settings.replayMemoryBytes&&
             o.rateControl==settings.rateControl&&o.quality==settings.quality&&o.preset==settings.preset&&
-            o.keyframeSeconds==settings.keyframeSeconds&&o.audioKbps==settings.audioKbps;
+            o.keyframeSeconds==settings.keyframeSeconds&&o.audioKbps==settings.audioKbps&&o.bitrateKbps==settings.bitrateKbps&&
+            o.outputWidth==settings.outputWidth&&o.outputHeight==settings.outputHeight&&o.canvas.fit==settings.canvas.fit;
         s.settings=settings;
         if(s.settings.replaySeconds==0)s.settings.replaySeconds=60;
         if(same)return true;
@@ -1458,6 +1503,15 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
             s.current->frameWidth,s.current->frameHeight,s.current->hdrMode,frame.width,frame.height,frame.hdrMode,s.replayMode?"replay buffer":"file"));
         s.retire(s.current,(s.replayMode||s.streamMode)?std::wstring{}:L"画面尺寸或 HDR 模式变化，已接着写入新文件");s.current.reset();
     }
+    // PushFPS: long recordings in parts (new file every N minutes, -2, -3, ...).
+    if(s.current&&!s.replayMode&&!s.streamMode&&s.settings.splitMinutes&&!s.current->compareClip){
+        const int64_t started=s.current->t0Us.load();
+        if(started&&now-started>=int64_t(s.settings.splitMinutes)*60000000){
+            veyra::log::info("live-recorder",std::format("split after {} minutes; continuing in a new file",s.settings.splitMinutes));
+            s.reap();
+            s.retire(s.current,{});s.current.reset();
+        }
+    }
     if(!s.current){
         // Rapid source/settings changes must not create an unbounded number
         // of encoder workers while the previous segments are draining.
@@ -1474,17 +1528,32 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         segment->vendor=adapterVendor(segment->device.Get());
         segment->nvenc=segment->vendor==0x10DE&&GetEnvironmentVariableW(L"VEYRA_TEST_FORCE_MF_ENCODER",nullptr,0)==0;
         if(frame.hdrMode&&s.streamMode)return fail(L"直播需要 SDR 画面：请关闭 HDR 输出后再开播");
-        if(s.streamMode&&(frame.width>4096||frame.height>4096))return fail(std::format(L"当前画面尺寸 {}×{} 太大，无法直播",frame.width,frame.height));
         if(frame.hdrMode&&!segment->nvenc)return fail(L"HDR 画面录制需要 NVIDIA 显卡（HEVC 10bit）；请关闭 HDR 输出后再录制");
         if(frame.width<16||frame.height<16||(frame.width&1)||(frame.height&1))
             return fail(std::format(L"当前画面尺寸 {}×{} 无法录制",frame.width,frame.height));
         segment->width=frame.width;segment->height=frame.height;segment->hdrMode=frame.hdrMode;
         segment->frameWidth=frame.width;segment->frameHeight=frame.height;
+        // PushFPS outputs and canvas: this output's own size and the game picture's place on it.
+        // Comparison clips keep their own layout. Streams stay within 4096 per side (H.264).
+        if(!(s.settings.compare&&!s.replayMode)){
+            uint32_t ow=0,oh=0;
+            pushOutputSize(s.settings.outputWidth,s.settings.outputHeight,frame.width,frame.height,s.streamMode?4096u:8192u,ow,oh);
+            segment->canvas=s.settings.canvas.sanitized();
+            segment->canvasPass=ow!=frame.width||oh!=frame.height;
+            segment->liveLayout=true;
+            segment->width=ow;segment->height=oh;
+            segment->planeWidth=ow;segment->planeHeight=oh;
+        }
+        if(s.streamMode&&(segment->width>4096||segment->height>4096))return fail(std::format(L"当前画面尺寸 {}×{} 太大，无法直播",segment->width,segment->height));
         // H.264 hardware encoders stop at 4096 pixels per side.
-        segment->hevc=s.settings.hevc||frame.hdrMode!=0||frame.width>4096||frame.height>4096;
+        segment->hevc=s.settings.hevc||frame.hdrMode!=0||segment->width>4096||segment->height>4096;
         const double hint=s.presentFps.load();
         segment->fps=s.settings.fpsLimit?s.settings.fpsLimit:uint32_t(std::clamp<long>(std::lround(hint>1?hint:60.0),10,480));
-        segment->bitrateMbps=s.settings.bitrateMbps?s.settings.bitrateMbps:s.streamMode?6u:autoBitrateMbps(frame.width,frame.height,segment->fps,segment->hevc);
+        segment->bitrateMbps=s.settings.bitrateMbps?s.settings.bitrateMbps:s.streamMode?6u:autoBitrateMbps(segment->width,segment->height,segment->fps,segment->hevc);
+        if(s.settings.bitrateKbps){
+            segment->bitrateKbps=std::clamp(s.settings.bitrateKbps,300u,400000u);
+            segment->bitrateMbps=std::max(1u,(segment->bitrateKbps+500)/1000);
+        }
         segment->sound=s.settings.audio;
         segment->microphone=s.settings.microphone;
         segment->microphoneTrack=s.settings.microphoneTrack;
@@ -1501,7 +1570,7 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         if(s.streamMode){
             // Platforms take H.264 + AAC at a constant bitrate with a keyframe every 2 s (OBS's
             // rtmp-services recommendations); the microphone is mixed into the one sound track.
-            segment->hevc=false;segment->rateControl=0;segment->keyframeSeconds=2;
+            segment->hevc=false;segment->rateControl=0;segment->keyframeSeconds=std::clamp(s.settings.keyframeSeconds,1u,4u);
             segment->microphoneTrack=false;segment->matroska=false;segment->compareClip=false;
             segment->audioKbps=std::clamp(s.settings.audioKbps,64u,320u);
             segment->streamTargets=s.settings.streams;

@@ -1,5 +1,6 @@
 // QML bridge: Preferences responsibilities.
 #include "../QmlPlayerBridge_p.h"
+#include "veyra/engine/PushStreamOverlay.h"
 #include "veyra/engine/PushAudioMix.h"
 #include "veyra/Brand.h"
 
@@ -268,8 +269,18 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         // scene transition length in ms (0 = cut).
         {"mixDesktopDb", {-60, 12}},
         {"mixAuxDb", {-60, 12}},
-        {"studioTransitionMs", {0, 2000}}};
-    static const QStringList flags{"recordHevc", "recordAdvanced", "recordAudio", "recordMic", "recordMicTrack", "replayEnabled", "subtitleEnabled", "subtitleBackground", "subtitleFit",
+        {"studioTransitionMs", {0, 2000}},
+        // PushFPS outputs and canvas (engine/PushCanvas.h): each output's size (0 = the picture's),
+        // how the game picture fills it (0 fit, 1 fill, 2 stretch), the stream's encoding, recording
+        // parts, and the game picture's box and crop on the canvas in thousandths.
+        {"recordWidth", {0, 8192}}, {"recordHeight", {0, 8192}}, {"recordFit", {0, 2}}, {"recordSplitMinutes", {0, 240}},
+        {"streamWidth", {0, 4096}}, {"streamHeight", {0, 4096}}, {"streamFit", {0, 2}},
+        {"streamBitrateKbps", {500, 51000}}, {"streamKeyframe", {1, 4}}, {"streamAudioKbps", {64, 320}}, {"streamEncoderPreset", {1, 7}},
+        {"recordBitrateKbps", {0, 400000}},
+        {"canvasX", {-1000, 1000}}, {"canvasY", {-1000, 1000}}, {"canvasW", {20, 3000}}, {"canvasH", {20, 3000}},
+        {"canvasCropL", {0, 450}}, {"canvasCropT", {0, 450}}, {"canvasCropR", {0, 450}}, {"canvasCropB", {0, 450}},
+        {"canvasBackground", {0, 0xFFFFFF}}};
+    static const QStringList flags{"canvasStretch", "recordHevc", "recordAdvanced", "recordAudio", "recordMic", "recordMicTrack", "replayEnabled", "subtitleEnabled", "subtitleBackground", "subtitleFit",
                                    "subtitleSecondLanguage", "audioForceStereo", "captureAudioMonitor", "holdCompare",
                                    "magewellLowLatency", "blackmagicNativeCapture", "captureShowAllFrameRates", "cinePillHidden", "exportStopsPlayback", "obsGameCapture", "autoResume", "fullscreenMemoryProtection", "prewarmEnhancement", "hdrFgCompatibility", "computeOnMonitorGpu", "deinterlace", "networkAutoReconnect",
                                    // 设置 → 外观 → 启动动画 (the dusk palette's intro, DuskIntro.qml); unset = on.
@@ -308,6 +319,12 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         stored = dir;
     } else if (key == QLatin1String("audioDevice")) {
         stored = value.toString();
+    } else if (key == QLatin1String("streamProfile") || key == QLatin1String("recordProfile")) {
+        // PushFPS output presets (qml/Veyra/PushOutputPresets.js): the id of the last preset applied.
+        const QString id = value.toString();
+        if (id.size() > 64) return false;
+        for (const QChar c : id) if (!(c.isLetterOrNumber() || c == QLatin1Char('-') || c == QLatin1Char('_'))) return false;
+        stored = id;
     } else if (key == QLatin1String("mixAuxDevice")) {
         // PushFPS streaming mode extra input: a recording endpoint id (empty: the default one).
         const QString id = value.toString();
@@ -499,6 +516,8 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
         impl_->engine.setCaptureAudioMonitoring(impl_->prefBool("captureAudioMonitor",true));
     // The replay buffer re-arms with what a recording would use.
     static const QStringList replayKeys{"replayEnabled", "replaySeconds", "recordBitrateMbps", "recordFps", "recordHevc",
+                                        // PushFPS outputs and canvas
+                                        "recordWidth", "recordHeight", "recordFit", "recordBitrateKbps",
                                         "recordAudio", "recordMic", "recordMicDevice", "recordMicTrack",
                                         // PushFPS advanced recording
                                         "recordAdvanced", "recordRateControl", "recordQuality", "recordPreset", "recordKeyframe", "recordAudioKbps"};
@@ -538,6 +557,8 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
              key == QLatin1String("mixDesktopMuted") || key == QLatin1String("mixAuxOn") || key == QLatin1String("mixAuxDb") ||
              key == QLatin1String("mixAuxMuted") || key == QLatin1String("mixAuxDevice"))
         applyPushMix();
+    else if (key.startsWith(QLatin1String("canvas")))
+        engine::setPushLiveCanvas(pushCanvas(0));   // PushFPS layout editor: applies to running outputs
     else if (key == QLatin1String("nisSharpness"))
         pipeline::setNisSharpness(float(impl_->prefInt("nisSharpness", int(pipeline::kNisDefaultSharpness * 100))) / 100.0f);
     else if (key == QLatin1String("magewellLowLatency")) source::magewell::setLowLatencyPreference(impl_->prefBool("magewellLowLatency", false));
@@ -935,6 +956,7 @@ QString QmlPlayerBridge::sourceTitle() const {
     if (kind == QLatin1String("ps5")) return tr("PS5 串流 · %1").arg(impl_->liveLabel);
     if (kind == QLatin1String("moonlight")) return tr("PC 串流 · %1").arg(impl_->liveLabel);
     if (kind == QLatin1String("xbox")) return tr("Xbox 串流 · %1").arg(impl_->liveLabel);
+    if (kind == QLatin1String("frameinput")) return tr("其他应用 · %1").arg(impl_->liveLabel);
     return tr("屏幕捕获 · %1").arg(impl_->liveLabel);
 }
 // "1080p60" / "1080p59.94": the reported height and nominal rate only.

@@ -490,3 +490,13 @@ html[data-theme="sunset"] .theme-switch button[aria-pressed="true"] { background
 @media (max-width: 560px) { .theme-switch button { width: 30px; } }
 html[data-theme="sunset"] .lede, html[data-theme="sunset"] .hero .fine { text-shadow: 0 1px 12px rgba(21, 10, 40, .9), 0 0 2px rgba(21, 10, 40, .8); color: #ecdcf2; }
 @media (max-width: 700px) { html[data-theme="sunset"] .hero-logo.logo-sunset { width: min(420px, 100% + 20px); margin: -14px 0 4px -14px; } }
+
+/* PushFlow band (features). */
+.pushflow { display: grid; grid-template-columns: 300px 1fr; gap: 28px; align-items: center; margin: 34px 0 8px; padding: 26px 28px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--panel); }
+.pushflow-logo img { width: 290px; height: auto; display: block; }
+.pushflow h3 { font: 700 italic 24px/1.1 var(--display); margin: 0 0 10px; }
+.pushflow p { margin: 0; color: var(--muted); font-size: 16px; max-width: 42em; }
+.pf-light { display: none !important; }
+html[data-theme="light"] .pf-light { display: block !important; }
+html[data-theme="light"] .pf-dark { display: none !important; }
+@media (max-width: 760px) { .pushflow { grid-template-columns: 1fr; gap: 14px; padding: 22px; } .pushflow-logo img { width: 230px; } }

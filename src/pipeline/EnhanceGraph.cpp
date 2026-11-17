@@ -38,6 +38,7 @@
 #include "veyra/gfx/FsrSrBackend.h"
 #include "veyra/gfx/FsrFgPresenter.h"
 #include "veyra/gfx/AmfFrcBackend.h"
+#include "veyra/pushflow/PushFlowBackend.h"
 #include "veyra/ngx/DlssNrParameters.h"
 #include "veyra/ngx/DlssNrRuntimeAdapter.h"
 #include "veyra/ngx/DlssSrBackend.h"
@@ -778,7 +779,7 @@ bool EnhanceGraph::initialize(const EnhanceGraphDesc& desc)
     fgEnabled_ = desc.enableFg && !desc.noFeatures && !desc.stillImage &&
         desc.frameGenerationBackend != engine::FrameGenerationBackend::XeSS &&
         (!desc.noNgx || engine::fsrFrameGeneration(desc.frameGenerationBackend)||desc.frameGenerationBackend==engine::FrameGenerationBackend::Vfg||desc.frameGenerationBackend==engine::FrameGenerationBackend::Anr||
-         desc.frameGenerationBackend==engine::FrameGenerationBackend::AmdFrc);
+         desc.frameGenerationBackend==engine::FrameGenerationBackend::AmdFrc||desc.frameGenerationBackend==engine::FrameGenerationBackend::PushFlow);
     nvofStandalone_ = desc.enableNvofStandalone && !desc.noFeatures;
     if(desc_.opticalFlowBackend==engine::OpticalFlowBackend::AmdFidelityFx&&desc.amdFlowHalfResolution){nvofW_=std::max(1u,nvofW_/2);nvofH_=std::max(1u,nvofH_/2);}
     wchar_t refine[4]{};
@@ -907,6 +908,7 @@ bool EnhanceGraph::initialize(const EnhanceGraphDesc& desc)
     if (!initFsrFg()) return false;
     if (!initVfg()) return false;
     if (!initAmfFrc()) return false;
+    if (!initPushFlow()) return false;
     if (!initHudLock()) return false;
     if(nrEnabled_&&GetEnvironmentVariableW(L"VEYRA_TEST_NR_INIT_FAILURE",nullptr,0)){
         failedBackend_=engine::FailedBackend::Nr;
@@ -1588,11 +1590,26 @@ bool EnhanceGraph::initVfg()
     failedBackend_=engine::FailedBackend::Fg;
     vfgBackend_=std::make_unique<VfgBackend>();
     if(!vfgBackend_->initialize(context_,desc_.runtimeAbsPath,workW_,workH_,outputFormat(),desc_.fgMultiplier,desc_.vfgQuality,desc_.vfgAsyncSubmission,desc_.vfgFastFallback))return false;
-    fgCapsAvailable_=true;fgMultiFrameMax_=int(FrameBatch::Capacity)-1;
+    fgCapsAvailable_=true;fgMultiFrameMax_=3;
     return true;
 }
 
 bool EnhanceGraph::amfFrcActive() const { return amfFrc_&&amfFrc_->ready(); }
+bool EnhanceGraph::pushFlowActive() const { return pushFlow_&&pushFlow_->status().ready; }
+// PushFlow (pushflow/PushFlowBackend.h): RIFE on DirectML, any multiplier (the time of each frame).
+bool EnhanceGraph::initPushFlow()
+{
+    if(!fgEnabled_||!pushFlowEnabled())return true;
+    failedBackend_=engine::FailedBackend::Fg;
+    const DXGI_FORMAT format=outputFormat();
+    const bool linear=format==DXGI_FORMAT_R16G16B16A16_FLOAT||format==DXGI_FORMAT_R16G16B16A16_TYPELESS;
+    const auto encoding=linear?(desc_.hdrOutput?pushflow::Encoding::ScRgbHdr:pushflow::Encoding::LinearSdr):pushflow::Encoding::Encoded;
+    pushFlow_=std::make_unique<pushflow::PushFlowBackend>();
+    if(!pushFlow_->initialize(context_.device(),ring_.queue(),desc_.runtimeAbsPath,workW_,workH_,format,encoding,desc_.vfgQuality)){pushFlow_.reset();return false;}
+    fgCapsAvailable_=true;fgMultiFrameMax_=3;
+    failedBackend_=engine::FailedBackend::None;
+    return true;
+}
 bool EnhanceGraph::initAmfFrc()
 {
     if(!fgEnabled_||!amfFrcEnabled())return true;
@@ -1650,7 +1667,7 @@ bool EnhanceGraph::initNgxFeatures()
     }
     // FSR upscaling is a FidelityFX effect: a session whose only feature is
     // FSR SR must not require (or fail on) the NGX core.
-    const bool needNgxCore = (nrEnabled_ && !lmxxfNr_) || (fgEnabled_ && !fsrEnabled() && !vfgBackend_ && !anr && !amfFrc_) || desc_.convertVideoHdr() ||
+    const bool needNgxCore = (nrEnabled_ && !lmxxfNr_) || (fgEnabled_ && !fsrEnabled() && !vfgBackend_ && !anr && !amfFrc_ && !pushFlow_) || desc_.convertVideoHdr() ||
         (srEnabled_ && (desc_.finalSrQuality()==0 || desc_.firstSrRuns(0) || ngxVideoSrPass(desc_))) || dlaaRequested();
     if (!needNgxCore) {
         veyra::log::info("graph", "NGX core skipped: lmxxf NR / AMD FSR stages use their own runtimes");
@@ -1718,7 +1735,7 @@ bool EnhanceGraph::initNgxFeatures()
     }
     }
 
-    if(!vfgBackend_&&!anr&&!amfFrc_){fgCapsAvailable_ = false;fgMultiFrameMax_ = 0;}
+    if(!vfgBackend_&&!anr&&!amfFrc_&&!pushFlow_){fgCapsAvailable_ = false;fgMultiFrameMax_ = 0;}
     if (fgEnabled_ && desc_.frameGenerationBackend==engine::FrameGenerationBackend::Dlss) {
     failedBackend_=engine::FailedBackend::Fg;
     fgBackend_ = std::make_unique<ngx::DlssFgBackend>();
@@ -4060,6 +4077,44 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
     if (runFg && fgCreated()) {
       for(uint32_t sub=1;sub<=fgCalls;++sub){
         const uint32_t generatedSlot=parity+(sub-1)*2;
+        if(pushFlow_){
+            // GPU producer -> PushFlow on the same queue (pack, network, resolve) -> GPU consumer.
+            // A reset pair has no valid previous frame: nothing is generated for it.
+            if(resetFg){
+                auto* rlist=ring_.acquireNext(slot,st);if(!rlist)return false;
+                gpuTimer_.resolve(rlist);
+                if(!submitGraph(slot))return false;
+                gpuTimer_.submitted(ring_.lastSignaledValue());
+                continue;
+            }
+            auto* plist=ring_.acquireNext(slot,st);if(!plist)return false;
+            if(sub==1){gpuTimer_.mark(plist,GpuStage::FgBatch);gpuTimer_.mark(plist,GpuStage::Fg1);}
+            tracker_.transition(plist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+            tracker_.transition(plist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+            if(!pushFlow_->pack(plist,videoFrame_[1-parity].Get(),videoFrame_[parity].Get(),float(sub)/float(outputMultiplier))){failedBackend_=engine::FailedBackend::Fg;return false;}
+            tracker_.transition(plist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_COMMON);
+            tracker_.transition(plist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COMMON);
+            if(!submitGraph(slot))return false;
+            if(!pushFlow_->infer()){failedBackend_=engine::FailedBackend::Fg;return false;}
+            auto* flist=ring_.acquireNext(slot,st);if(!flist)return false;
+            tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_COPY_DEST);
+            if(!pushFlow_->resolve(flist,genFrame_[generatedSlot].Get())){failedBackend_=engine::FailedBackend::Fg;return false;}
+            composeHudLock(flist,generatedSlot,1-parity);
+            if(!composeExclusion(flist,generatedSlot+2,1-parity,false))return false;
+            tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_COMMON);
+            if(sub==fgCalls){gpuTimer_.mark(flist,GpuStage::Fg1,true);gpuTimer_.mark(flist,GpuStage::FgBatch,true);gpuTimer_.resolve(flist);}
+            if(!submitGraph(slot))return false;
+            if(sub==fgCalls)gpuTimer_.submitted(ring_.lastSignaledValue());
+            if(previewCheckpoint&&!reset)previewCheckpoint();
+            ++out.fgEvaluated;out.hasGenerated=true;out.genSlot=parity;
+            out.genFenceValue=ring_.lastSignaledValue();out.genFenceObject=context_.fence();out.generatedPtsMs=(prevPtsMs_+ptsMs)*0.5;
+            ++metrics_.fgSubmittedCandidates;
+            BatchFrame f;f.identity=out.batch.identity;f.kind=FrameKind::Generated;f.validity=GenerationValidity::Pending;f.subframe=sub;
+            f.pts100ns=FrameBatch::interpolate(out.batch.a100ns,out.batch.b100ns,sub,outputMultiplier);
+            f.lease=std::make_shared<FrameLease>();f.lease->texture=genFrame_[generatedSlot];f.lease->slot=generatedSlot;
+            f.lease->readyFence=out.genFenceValue;f.lease->readyFenceObject=out.genFenceObject;generatedLeases_[generatedSlot]=f.lease;out.batch.append(std::move(f));
+            continue;
+        }
         if(amfFrc_){
             // GPU producer -> AMF FRC on its own queue -> GPU consumer, ordered by
             // AMF's texture fences (queue waits, no CPU wait). One frame per pair.
@@ -4242,7 +4297,7 @@ bool EnhanceGraph::resolveFrame(FrameOutputs& out,uint32_t index)
             return true;
         }
     }
-    if(fsrActive()||vfgBackend_||amfFrc_){
+    if(fsrActive()||vfgBackend_||amfFrc_||pushFlow_){
         frame.validity=GenerationValidity::Valid;++metrics_.fgGeneratedFrames;
         return true;
     }
@@ -4327,7 +4382,8 @@ bool EnhanceGraph::applySettings(const engine::EnhancementSettings& s){
     // rebuild instead of accepting a change that cannot take effect in place.
     if((desc_.enableNr&&s.nrRuntime!=desc_.nrRuntime)||
        (desc_.enableFg&&(std::max(2u,s.multiplier)!=desc_.fgMultiplier||s.frameGenerationBackend!=desc_.frameGenerationBackend||
-        (desc_.frameGenerationBackend==engine::FrameGenerationBackend::Vfg&&(s.vfgQuality!=desc_.vfgQuality||s.vfgAutoRegulate!=desc_.vfgAutoRegulate))))||
+        (desc_.frameGenerationBackend==engine::FrameGenerationBackend::Vfg&&(s.vfgQuality!=desc_.vfgQuality||s.vfgAutoRegulate!=desc_.vfgAutoRegulate))||
+        (desc_.frameGenerationBackend==engine::FrameGenerationBackend::PushFlow&&s.vfgQuality!=desc_.vfgQuality)))||
        (desc_.enableSr&&(s.videoSrQuality!=desc_.videoSrQuality||
          ((desc_.videoSrQuality==0||(desc_.dualSr&&desc_.dualSrQuality==0))&&s.dlssSrModel!=desc_.dlssSrModel)))||
        (dlaaRequested()&&s.dlssSrModel!=desc_.dlssSrModel)||
@@ -4546,6 +4602,7 @@ void EnhanceGraph::shutdown()
     fsrFgBackend_.reset();
     vfgBackend_.reset();
     amfFrc_.reset();
+    pushFlow_.reset();
     if (fgBackend_) featuresReleased=fgBackend_->release()&&featuresReleased;
     if(firstVideoSrBackend_){featuresReleased=firstVideoSrBackend_->release()&&featuresReleased;firstVideoSrBackend_.reset();}
     if(videoSrBackend_){featuresReleased=videoSrBackend_->release()&&featuresReleased;videoSrBackend_.reset();}

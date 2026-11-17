@@ -118,7 +118,7 @@
 <section class="credits-strip" aria-label="Built with">
   <div class="wrap strip-row">
     <a class="credit" href="https://github.com/Likely7/Veyra-NRVideo">
-      <img src="assets/veyra-logo.png" alt="" width="42" height="32">
+      <img src="assets/veyra-logo.png" alt="" width="45" height="36">
       <span>Built on <b>Veyra</b>, the open-source video enhancer by Likely7</span>
     </a>
     <a class="credit" href="https://github.com/apex-compute/ANR">
@@ -169,7 +169,18 @@
 <section class="section" id="features">
   <div class="wrap">
     <h2>Made for console players</h2>
-    <p class="section-lede">Veyra is a powerful video enhancer. PushFPS turns it into a console tool: three choices instead of hundreds, and tools that tune and protect the picture for you.</p>
+    <p class="section-lede">Three choices instead of hundreds, its own frame generation, and tools that tune and protect the picture for you.</p>
+
+    <div class="pushflow" id="pushflow">
+      <picture class="pushflow-logo">
+        <img class="pf-dark" src="assets/pushflow-logo.webp" width="290" height="96" alt="PushFlow">
+        <img class="pf-light" src="assets/pushflow-logo-light.webp" width="290" height="96" alt="PushFlow">
+      </picture>
+      <div>
+        <h3>PushFlow: our own frame generation</h3>
+        <p>PushFlow runs RIFE, an open neural network for in-between frames, through DirectML, so it works on NVIDIA, AMD and Intel graphics cards alike. Pick 2&times;, 3&times; or 4&times; and a tier: Fast, Balanced or Quality. It's in Professional mode and in streaming mode, and the optimiser can measure it on your own game.</p>
+      </div>
+    </div>
 
     <div class="showcase">
       <div class="tabs" role="tablist" aria-label="Features" aria-orientation="vertical">
@@ -216,16 +227,21 @@
 
     <ul class="more">
       <li><b>Video playback mode</b><span>Frame generation, sharper upscaling, AI enhancement and SDR to HDR on any video on your PC: YouTube in your browser, video apps or files.</span></li>
-      <li><b>Streaming mode</b><span>An OBS-style page: scenes (logo and text overlays, Starting soon and Be right back cards) with webcam, window and video sources and fade transitions, preview, controls, an audio mixer for game sound, microphone, desktop audio and an extra input with level meters, and microphone filters (EQ, noise gate, compressor).</span></li>
+      <li><b>Streaming mode</b><span>An OBS-style page: scenes (logo and text overlays, Starting soon and Be right back cards) with webcam, window and video sources and fade transitions, a layout editor to move, resize and crop the game picture and every source, preview, controls, an audio mixer for game sound, microphone, desktop audio and an extra input with level meters, and microphone filters (EQ, noise gate, compressor).</span></li>
+      <li><b>Output presets</b><span>Platform settings per resolution and frame rate for Twitch, YouTube, Kick, Facebook, TikTok LIVE and Trovo, and upload presets for YouTube (SDR and HDR), Shorts, TikTok, Instagram Reels and X. Every value stays editable.</span></li>
+      <li><b>One-click updates</b><span>New versions install from the app. Every update is signed (RSA, SHA-256) and checked before anything is replaced.</span></li>
+      <li><b>Frame quality test</b><span>Holds back every second real frame, lets frame generation rebuild it and compares: accuracy, pixel errors, HUD smearing, gain over blending, frames on time. The optimiser uses it.</span></li>
+      <li><b>PS5 latency test</b><span>Presses the PS button over Remote Play, times the response on screen and splits the PS5 and network part from PushFPS's own.</span></li>
+      <li><b>Frame input for other apps</b><span>A documented shared-memory interface so other programs can send their video straight into PushFPS.</span></li>
       <li><b>Lowest latency in one tap</b><span>Every latency setting that costs no picture quality, switched on together. Off brings your previous settings back.</span></li>
       <li><b>Smooth frame pacing</b><span>Every generated frame shown once, with G-SYNC/FreeSync where your screen has it, so playing looks like the recording.</span></li>
       <li><b>Adaptive multiplier</b><span>Follows the game's real frame rate as it dips and picks the multiplier closest to your target.</span></li>
-      <li><b>Go live</b><span>Stream straight to Twitch, YouTube, Kick, TikTok and more, to several platforms at once. Stream keys are stored encrypted.</span></li>
+      <li><b>Go live</b><span>Stream straight to Twitch, YouTube, Kick, TikTok and more, to several platforms at once, at its own resolution (vertical for TikTok LIVE). Stream keys are stored encrypted.</span></li>
       <li><b>Frame Pacing Repair</b><span>Evens out the uneven frame timing of many 30&nbsp;FPS console games before frames are generated.</span></li>
       <li><b>Live HUD Lock</b><span>Keeps still text, crosshairs and bars sharp in generated frames, found on every frame, no boxes needed.</span></li>
       <li><b>Latency on screen</b><span>Measured PC latency, frame rate and 1% low over the picture.</span></li>
       <li><b>OBS Studio plugin</b><span>Your boosted picture as a source in OBS, generated frames included.</span></li>
-      <li><b>Recording and instant replay</b><span>With optional OBS-style encoding settings: rate control, quality, preset, keyframes, MP4 or MKV.</span></li>
+      <li><b>Recording and instant replay</b><span>At its own resolution, with OBS-style encoding settings (rate control, quality, preset, keyframes, MP4 or MKV) and automatic file splitting. NVENC on NVIDIA, the card's own hardware encoder on AMD and Intel.</span></li>
       <li><b>NVIDIA Image Scaling</b><span>Fast upscaling and sharpening on NVIDIA, AMD and Intel graphics.</span></li>
       <li><b>Tested capture cards</b><span>See in the app which cards are known to work, and report yours.</span></li>
       <li><b>14 languages</b><span>English, Simplified and Traditional Chinese, Japanese, Dutch, German, Spanish, French, Italian, Portuguese, Turkish, Polish, Russian, Arabic.</span></li>
@@ -321,7 +337,7 @@
         </tbody>
       </table>
     </div>
-    <p class="guide-note">Which multipliers your method offers: <b>2×</b> every method; <b>3× and 4×</b> NVIDIA Video Frame Generation, NVIDIA Frame Generation for games on RTX 50, ANR and Intel XeSS; <b>6×</b> NVIDIA Video Frame Generation, NVIDIA Frame Generation for games on RTX 50 and ANR; <b>8×</b> NVIDIA Video Frame Generation only. AMD FSR stops at 2×, so a 30&nbsp;FPS game goes to 60. More generated frames per real frame show more wobble in fast motion: if you see it, step down to 120 or 60. Not sure? <b>Optimise for my PC</b> tests 120 and your monitor's rate when your PC can reach it, and keeps what passes.</p>
+    <p class="guide-note">Which multipliers your method offers: <b>2×</b> every method; <b>3× and 4×</b> NVIDIA Video Frame Generation, NVIDIA Frame Generation for games on RTX 50, ANR, Intel XeSS and PushFlow (any card); <b>6×</b> NVIDIA Video Frame Generation, NVIDIA Frame Generation for games on RTX 50 and ANR; <b>8×</b> NVIDIA Video Frame Generation only. AMD FSR stops at 2×, so a 30&nbsp;FPS game goes to 60. More generated frames per real frame show more wobble in fast motion: if you see it, step down to 120 or 60. Not sure? <b>Optimise for my PC</b> tests 120 and your monitor's rate when your PC can reach it, and keeps what passes.</p>
 
     <h3 class="sub-h">2. Then tune it to your liking</h3>
     <p class="guide-note">Change one thing at a time, play a minute, then decide.</p>
@@ -510,7 +526,7 @@
       <details><summary>Which capture cards work?</summary><p>Any card that Windows shows as a camera and that sends 1080p at 60&nbsp;FPS without compression. The Elgato 4K X, HD60 X and 4K S are tested. The app shows each card's status and has a report form for untested cards.</p></details>
       <details><summary>Can I use it without a capture card?</summary><p>Yes. PS5 streaming (Remote Play over your home network), PC streaming from a Sunshine host and Xbox streaming are built in. A capture card still gives the sharpest picture and the lowest delay.</p></details>
       <details><summary>Does it work with 60 FPS games?</summary><p>Yes. Set the game frame rate to 60 and pick 120&nbsp;FPS or <em>Match monitor</em>.</p></details>
-      <details><summary>Can I stream or record it?</summary><p>Yes. PushFPS records, keeps an instant replay and goes live itself: to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or your own RTMP server, several at once. Streaming mode lays it out like OBS, with an audio mixer for game sound and your microphone. The OBS Studio plugin adds the boosted picture to your OBS scenes if you prefer OBS.</p></details>
+      <details><summary>Can I stream or record it?</summary><p>Yes. PushFPS records, keeps an instant replay and goes live itself: to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or your own RTMP server, several at once. Streaming mode lays it out like OBS, with a layout editor, platform presets and an audio mixer for game sound, your microphone, desktop audio and an extra input. The OBS Studio plugin adds the boosted picture to your OBS scenes if you prefer OBS.</p></details>
       <details><summary>Is there a macOS or Linux version?</summary><p>Yes, as a preview. It has PushFPS's own frame generation, Frame Pacing Repair and Live HUD Lock on Vulkan, OpenGL or Metal, without NVIDIA, AMD or Intel components (those exist only for Windows). Linux comes as an AppImage, macOS as one app for Apple Silicon and Intel. Recording and going live are Windows-only for now.</p></details>
       <details><summary>Does PushFPS collect any data?</summary><p>No. There's no telemetry or analytics. It only goes online for the update check on GitHub, when you share a clip to your own Discord webhook, when you connect a streaming source and when you go live (only to the platforms you chose). See the <a href="https://github.com/DosukaSOL/PushFPS/blob/main/PRIVACY.md">privacy policy</a>.</p></details>
       <details><summary>Where do I report a problem?</summary><p>In the app, <em>Settings, Report a problem</em> copies diagnostic information and opens <a href="https://github.com/DosukaSOL/PushFPS/issues">GitHub Issues</a>. Read it before pasting.</p></details>
@@ -524,16 +540,15 @@
     <h2>Credits and license</h2>
     <div class="credit-cards">
       <article class="credit-card">
-        <img src="assets/veyra-logo.png" alt="Veyra logo" width="84" height="64">
+        <img src="assets/veyra-logo.png" alt="Veyra logo" width="95" height="76">
         <div>
           <h3>Veyra by Likely7</h3>
-          <p>PushFPS is a modified version of Veyra. Nearly all of the engine, the capture support, the streaming sources and the frame generation integration are Likely7's work.</p>
+          <p>PushFPS is built on Veyra, the open-source video enhancer by Likely7. Veyra's engine, capture support and streaming sources are still at its core.</p>
           <p class="links">
             <a href="https://github.com/Likely7/Veyra-NRVideo">Veyra on GitHub</a>
             <a href="https://www.youtube.com/watch?v=ZJ42jzNAbik">Video tutorial</a>
             <a href="https://www.youtube.com/@Likely7Ai">YouTube</a>
             <a href="https://x.com/likely2002">X</a>
-            <a href="https://www.patreon.com/cw/Likely7">Support Likely7</a>
           </p>
         </div>
       </article>

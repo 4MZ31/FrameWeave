@@ -8,6 +8,7 @@ Rectangle {
     property real coverRadius: 10
     property string version: ""
     property bool shown: false
+    property bool installable: false   // PushFPS: a signed release installs in one click
     signal openRequested()
     width: 500
     height: Math.max(54, message.implicitHeight + 24)
@@ -31,7 +32,7 @@ Rectangle {
         anchors.right: closeButton.left
         anchors.rightMargin: 8
         anchors.verticalCenter: parent.verticalCenter
-        text: qsTr("发现新版本 %1，点击查看更新").arg(banner.version)
+        text: banner.installable ? qsTr("发现新版本 %1，点击安装（已签名）").arg(banner.version) : qsTr("发现新版本 %1，点击查看更新").arg(banner.version)
         color: "#D5F3DE"
         font.family: Theme.fontUi
         font.pixelSize: Theme.fsBody

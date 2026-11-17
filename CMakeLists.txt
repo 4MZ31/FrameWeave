@@ -329,6 +329,10 @@ veyra_add_compute_shader(veyra_shader_push_compare_vertical PushCompareVertical)
 veyra_add_compute_shader(veyra_shader_push_compare_raw PushCompareRaw)
 veyra_add_compute_shader(veyra_shader_push_compare_overlay PushCompareOverlay)
 veyra_add_compute_shader(veyra_shader_push_layer_blend PushLayerBlend)
+veyra_add_compute_shader(veyra_shader_push_canvas_convert PushCanvasConvert)
+# PushFlow (PushFPS's own frame generation): network input packing and output unpacking.
+veyra_add_compute_shader(veyra_shader_push_flow_pack PushFlowPack)
+veyra_add_compute_shader(veyra_shader_push_flow_unpack PushFlowUnpack)
 # Nv12Upload: byte buffer -> luma/chroma planes (copy-free upload path).
 veyra_add_compute_shader(veyra_shader_nv12_upload Nv12Upload)
 # PresentBlit: fullscreen-triangle pixel blit onto flip-model back buffers.
@@ -419,6 +423,7 @@ add_library(veyra_pipeline STATIC
   src/pipeline/AntiAliasPass.cpp
   src/pipeline/NisPass.cpp
   src/pipeline/PushHudLock.cpp
+  src/pushflow/PushFlowBackend.cpp
   src/pipeline/SmaaLookupTables.cpp
   src/pipeline/NrInstance.cpp
   src/pipeline/AmdHipPreflight.cpp
@@ -443,6 +448,23 @@ if(EXISTS "${VEYRA_CUDA_DRIVER_INCLUDE_DIR}/cuda.h")
 endif()
 target_link_libraries(veyra_pipeline PUBLIC veyra_base veyra_gfx d3d12 dxgi dxguid d3dcompiler)
 add_dependencies(veyra_pipeline veyra_shader_rdna3_nr_decode)
+# PushFlow: ONNX Runtime (DirectML build) headers, from the Microsoft.ML.OnnxRuntime.DirectML and
+# Microsoft.AI.DirectML NuGet packages (MIT / DirectML licence). The DLLs are loaded at run time from
+# runtime\experimental\pushflow, so nothing links against them. Without the headers PushFlow is built
+# as unavailable.
+set(VEYRA_ONNXRUNTIME_ROOT "" CACHE PATH "Extracted Microsoft.ML.OnnxRuntime.DirectML NuGet package (PushFlow)")
+set(VEYRA_DIRECTML_ROOT "" CACHE PATH "Extracted Microsoft.AI.DirectML NuGet package (PushFlow)")
+if(VEYRA_ONNXRUNTIME_ROOT AND EXISTS "${VEYRA_ONNXRUNTIME_ROOT}/build/native/include/onnxruntime_c_api.h")
+  target_include_directories(veyra_pipeline PRIVATE "${VEYRA_ONNXRUNTIME_ROOT}/build/native/include")
+  if(VEYRA_DIRECTML_ROOT AND EXISTS "${VEYRA_DIRECTML_ROOT}/include/DirectML.h")
+    target_include_directories(veyra_pipeline BEFORE PRIVATE "${VEYRA_DIRECTML_ROOT}/include")
+  endif()
+  target_compile_definitions(veyra_pipeline PRIVATE VEYRA_HAVE_ONNXRUNTIME=1)
+  message(STATUS "PushFlow: ONNX Runtime headers from ${VEYRA_ONNXRUNTIME_ROOT}")
+else()
+  message(STATUS "PushFlow: ONNX Runtime headers not found; PushFlow is built as unavailable")
+endif()
+add_dependencies(veyra_pipeline veyra_shader_push_flow_pack veyra_shader_push_flow_unpack)
 
 # Optional independent RX7000 network worker. All third-party source and runtime
 # assets remain external; only our host and reproducible preparation script live here.
@@ -535,11 +557,11 @@ target_compile_options(veyra_nis_gpu_tests PRIVATE /utf-8)
 target_link_libraries(veyra_nis_gpu_tests PRIVATE veyra_pipeline)
 add_dependencies(veyra_nis_gpu_tests veyra_shader_nis_color veyra_shader_nis_scaler_sdr veyra_shader_nis_scaler_pq)
 # PushFPS comparison clips and HUD frame sampling on a real D3D12 device (hardware or WARP), run in CI.
-add_executable(veyra_push_gpu_tests tests/integration/PushGpuTests.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp src/engine/PushStreamOverlay.cpp)
+add_executable(veyra_push_gpu_tests tests/integration/PushGpuTests.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp src/engine/PushStreamOverlay.cpp src/engine/PushLayerSourcesShape.cpp)
 target_compile_features(veyra_push_gpu_tests PRIVATE cxx_std_20)
 target_compile_options(veyra_push_gpu_tests PRIVATE /utf-8)
 target_link_libraries(veyra_push_gpu_tests PRIVATE veyra_pipeline)
-add_dependencies(veyra_push_gpu_tests veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend)
+add_dependencies(veyra_push_gpu_tests veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_push_flow_pack veyra_shader_push_flow_unpack)
 
 add_executable(veyra_pipeline_tests
   tests/unit/PipelineContractTests.cpp
@@ -734,7 +756,7 @@ if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avform
 
   # veyra_sources: product input sources (Playbook R3/R7). MediaFileSource
   # composes veyra_media; no second decode implementation exists.
-  add_dependencies(veyra_pipeline veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_effect_exclusion veyra_shader_sr_resolve veyra_shader_nr_downsample veyra_shader_nr_residual veyra_shader_nr_temporal veyra_shader_nr_hold veyra_shader_nr_reuse_compose veyra_shader_nr_reuse_warp veyra_shader_flow_adapt veyra_shader_flow_refine veyra_shader_flow_fill veyra_shader_flow_claim veyra_shader_vfg_shot_change)
+  add_dependencies(veyra_pipeline veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_effect_exclusion veyra_shader_sr_resolve veyra_shader_nr_downsample veyra_shader_nr_residual veyra_shader_nr_temporal veyra_shader_nr_hold veyra_shader_nr_reuse_compose veyra_shader_nr_reuse_warp veyra_shader_flow_adapt veyra_shader_flow_refine veyra_shader_flow_fill veyra_shader_flow_claim veyra_shader_vfg_shot_change)
   add_library(veyra_sources STATIC
     src/source/NativeCaptureSink.cpp
     src/source/MediaFileSource.cpp
@@ -743,6 +765,8 @@ if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avform
     src/source/DeckLinkDriver.cpp
     src/source/ElgatoHdrControl.cpp
     src/source/ScreenCaptureSource.cpp
+    src/source/FrameInputChannel.cpp
+    src/source/FrameInputSource.cpp
     src/source/VirtualDesktop.cpp
     src/source/AverMediaAudioSwitch.cpp
     src/source/AverMediaVendorAudio.cpp
@@ -968,6 +992,19 @@ add_executable(veyra_push_pacing_repair_tests tests/unit/PushPacingRepairTests.c
 target_compile_features(veyra_push_pacing_repair_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_pacing_repair_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS ANR add-on installer: archive entry and file type checks.
+# PushFPS ground-truth frame-generation quality test (pure maths).
+add_executable(veyra_push_quality_tests tests/unit/PushQualityTests.cpp src/engine/PushQuality.cpp)
+target_compile_features(veyra_push_quality_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_quality_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS Remote Play latency test (pure part).
+add_executable(veyra_push_input_latency_tests tests/unit/PushInputLatencyTests.cpp src/engine/PushInputLatency.cpp src/engine/PushQuality.cpp)
+target_compile_features(veyra_push_input_latency_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_input_latency_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS Frame Input API: sender header and shared-memory reader.
+add_executable(veyra_frame_input_tests tests/unit/FrameInputTests.cpp src/source/FrameInputChannel.cpp)
+target_compile_features(veyra_frame_input_tests PRIVATE cxx_std_20)
+target_compile_definitions(veyra_frame_input_tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+target_include_directories(veyra_frame_input_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_push_archive_paths_tests tests/unit/PushArchivePathsTests.cpp)
 target_compile_features(veyra_push_archive_paths_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_archive_paths_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -1241,12 +1278,12 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
   target_link_libraries(veyra_startup_music PUBLIC veyra_base Qt6::Core PRIVATE ole32 oleaut32 mfplat mfuuid)
   add_executable(veyra_startup_music_tests tests/qml/StartupMusicTests.cpp)
   target_link_libraries(veyra_startup_music_tests PRIVATE veyra_startup_music)
-  add_library(veyra_update_checker STATIC src/ui/UpdateChecker.cpp include/veyra/ui/UpdateChecker.h)
+  add_library(veyra_update_checker STATIC src/ui/UpdateChecker.cpp include/veyra/ui/UpdateChecker.h src/ui/UpdateVerify.cpp include/veyra/ui/UpdateVerify.h)
   set_target_properties(veyra_update_checker PROPERTIES AUTOMOC ON)
   target_compile_features(veyra_update_checker PUBLIC cxx_std_20)
   target_compile_options(veyra_update_checker PRIVATE /utf-8)
   target_include_directories(veyra_update_checker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-  target_link_libraries(veyra_update_checker PUBLIC Qt6::Core Qt6::Gui Qt6::Network)
+  target_link_libraries(veyra_update_checker PUBLIC Qt6::Core Qt6::Gui Qt6::Network crypt32 bcrypt)
   add_library(veyra_qml_bridge STATIC src/ui/QmlExportQueueModel.cpp include/veyra/ui/QmlExportQueueModel.h src/ui/QmlPlayerBridge.cpp src/ui/ThumbnailProvider.cpp
     src/ui/PlaylistModel.cpp include/veyra/ui/PlaylistModel.h
     include/veyra/ui/QmlPlayerBridge.h include/veyra/ui/ThumbnailProvider.h
@@ -1260,6 +1297,8 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
     src/ui/bridge/PushFps.cpp
     src/ui/bridge/PushStream.cpp
     src/ui/bridge/PushStudio.cpp
+    src/ui/bridge/PushFrameInput.cpp
+    src/ui/bridge/PushLatencyTest.cpp
     src/ui/NvidiaVrrProfileController.cpp
     include/veyra/ui/NvidiaVrrProfileController.h
     src/ui/bridge/Hardware.cpp
@@ -1338,6 +1377,12 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
     set_target_properties(veyra_update_checker_tests PROPERTIES AUTOMOC ON)
     target_compile_options(veyra_update_checker_tests PRIVATE /utf-8)
     target_link_libraries(veyra_update_checker_tests PRIVATE veyra_update_checker Qt6::Test)
+    # PushFPS signed updates: OpenSSL-made RSA-PSS signature checked with Windows CNG.
+    add_executable(veyra_update_verify_tests tests/unit/UpdateVerifyTests.cpp)
+    set_target_properties(veyra_update_verify_tests PROPERTIES AUTOMOC ON)
+    target_compile_options(veyra_update_verify_tests PRIVATE /utf-8)
+    target_compile_definitions(veyra_update_verify_tests PRIVATE VEYRA_UPDATE_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/tests/data/update")
+    target_link_libraries(veyra_update_verify_tests PRIVATE veyra_update_checker Qt6::Test)
     add_executable(veyra_playlist_window_tests tests/qml/PlaylistWindowTests.cpp)
     target_compile_features(veyra_playlist_window_tests PRIVATE cxx_std_20)
     target_compile_options(veyra_playlist_window_tests PRIVATE /utf-8)
@@ -1609,7 +1654,7 @@ add_executable(veyra_sr_reconstruction_tests tests/integration/SrReconstructionT
   target_link_libraries(veyra_repair_fg_tests PRIVATE veyra_pipeline veyra_sinks veyra_nvof)
 
   # Headless quality-core runner (Playbook R3.3): the phase5 gate's quality
-  add_library(veyra_engine STATIC src/engine/EngineController.cpp src/engine/EngineWatchdog.cpp src/engine/PreviewGpuSession.cpp src/engine/EngineControllerImage.cpp src/engine/PosterFrame.cpp src/engine/EffectChain.cpp src/engine/PresetLibrary.cpp src/ui/PlayerUiFacade.cpp src/engine/TiledImageProcessor.cpp src/engine/PresetStore.cpp src/engine/VideoPresenter.cpp src/engine/DisplayStateService.cpp src/engine/VideoExportJob.cpp src/engine/ExportStreams.cpp src/engine/ExportQueue.cpp src/engine/ExportJobManager.cpp src/engine/Subtitles.cpp src/engine/FgCompatibilityProbe.cpp src/engine/LiveRecorder.cpp src/engine/ReplayBuffer.cpp src/engine/MicrophoneCapture.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp src/engine/LiveStream.cpp src/engine/Mp4Finalize.cpp src/engine/PushAudioMix.cpp src/engine/PushStreamOverlay.cpp src/engine/PushLayerSources.cpp src/engine/PushLayerSourcesShape.cpp src/engine/PushAuxAudio.cpp src/engine/PushAuxFifo.cpp)
+  add_library(veyra_engine STATIC src/engine/EngineController.cpp src/engine/EngineWatchdog.cpp src/engine/PreviewGpuSession.cpp src/engine/EngineControllerImage.cpp src/engine/PosterFrame.cpp src/engine/EffectChain.cpp src/engine/PresetLibrary.cpp src/ui/PlayerUiFacade.cpp src/engine/TiledImageProcessor.cpp src/engine/PresetStore.cpp src/engine/VideoPresenter.cpp src/engine/DisplayStateService.cpp src/engine/VideoExportJob.cpp src/engine/ExportStreams.cpp src/engine/ExportQueue.cpp src/engine/ExportJobManager.cpp src/engine/Subtitles.cpp src/engine/FgCompatibilityProbe.cpp src/engine/LiveRecorder.cpp src/engine/ReplayBuffer.cpp src/engine/MicrophoneCapture.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp src/engine/LiveStream.cpp src/engine/Mp4Finalize.cpp src/engine/PushAudioMix.cpp src/engine/PushStreamOverlay.cpp src/engine/PushLayerSources.cpp src/engine/PushLayerSourcesShape.cpp src/engine/PushAuxAudio.cpp src/engine/PushAuxFifo.cpp src/engine/PushQuality.cpp src/engine/PushQualityProbe.cpp src/engine/PushInputLatency.cpp src/engine/PushInputLatencyProbe.cpp)
   target_sources(veyra_pipeline PRIVATE src/guidance/AmdOpticalFlow.cpp
     src/guidance/GpuDisOpticalFlow.cpp third_party/gpu-dis/src/gpu/native_strict_dis_provider.cpp)
   target_include_directories(veyra_pipeline PRIVATE third_party/gpu-dis/src/gpu)

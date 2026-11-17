@@ -20,6 +20,21 @@ if [ -f docs/PushFPS-Setup-Guide.txt ]; then cp docs/PushFPS-Setup-Guide.txt dis
 # One checksum list for every file, and the pinned components this build was made from (from the
 # env block of build-windows.yml), so anyone can check what they downloaded and what is inside.
 (cd dist && sha256sum $(ls | grep -v -E '\.sha256$|^SHA256SUMS\.txt$|-components\.txt$') > SHA256SUMS.txt)
+# Signed updates: the app installs an update only when this signature over SHA256SUMS.txt verifies
+# with the public key in include/veyra/Brand.h (RSA-PSS, SHA-256, 32-byte salt). The private key
+# comes from the repository secret UPDATE_SIGNING_KEY and only ever exists in this job's memory.
+if [ -n "${UPDATE_SIGNING_KEY:-}" ]; then
+  umask 077
+  keyfile=$(mktemp -p /dev/shm 2>/dev/null || mktemp)
+  printf '%s\n' "$UPDATE_SIGNING_KEY" > "$keyfile"
+  openssl dgst -sha256 -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:32 -sign "$keyfile" -out dist/SHA256SUMS.txt.sig dist/SHA256SUMS.txt
+  openssl pkey -in "$keyfile" -pubout -out /tmp/update-public.pem
+  shred -u "$keyfile" 2>/dev/null || rm -f "$keyfile"
+  openssl dgst -sha256 -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:32 -verify /tmp/update-public.pem -signature dist/SHA256SUMS.txt.sig dist/SHA256SUMS.txt
+  echo "Signed SHA256SUMS.txt (public key fingerprint: $(openssl pkey -pubin -in /tmp/update-public.pem -outform DER | sha256sum | cut -c1-16))"
+else
+  echo "::warning::UPDATE_SIGNING_KEY is not set: this release is not signed and the app will only open its page"
+fi
 version=$(basename "$zip" | sed -E 's/^PushFPS-(.*)-win64\.zip$/\1/')
 {
   echo "PushFPS $TAG ($version), built from commit $GITHUB_SHA"

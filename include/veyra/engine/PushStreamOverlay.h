@@ -17,6 +17,7 @@
 #include <d3d12.h>
 #include <wrl/client.h>
 
+#include "veyra/engine/PushCanvas.h"
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -68,6 +69,12 @@ private:
 // so a camera stays visible on a card scene too, scaled with a box filter (LiveLayerBlend,
 // shaders/PushLayerBlend.hlsl). Showing or hiding a slot fades over `fadeMs`.
 inline constexpr int kPushLiveLayers = 4;
+// PushFPS canvas (engine/PushCanvas.h), live: the game picture's box, crop and background, which the
+// layout editor changes while a recording or stream runs. Each output keeps its own size and fit.
+// False until the shell has set it once.
+void setPushLiveCanvas(const PushCanvas& layout);
+bool pushLiveCanvas(PushCanvas& layout);
+
 struct PushLayerPlace {
     // (x, y): the anchor point; anchor says which corner of the layer sits there (0 top left, 1 top
     // right, 2 bottom left, 3 bottom right, 4 centre). h <= 0 keeps the frame's own shape.

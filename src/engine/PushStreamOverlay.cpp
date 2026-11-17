@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 #include "veyra/engine/PushStreamOverlay.h"
+#include "veyra/engine/PushLayerSources.h"
 #include "veyra/pipeline/GpuPassUtils.h"
 
 #include <algorithm>
@@ -61,8 +62,11 @@ bool FrameOverlay::create(ID3D12Device* device, uint32_t width, uint32_t height,
         image.rgba.size() < size_t(image.width) * image.height * 4) return false;
     RecordingLabel scaled;
     const RecordingLabel* src = &image;
-    if (image.width != width || image.height != height) {
-        scaled = scaleRecordingLabel(image, width, height);
+    // A scene picture made for another shape gets bars instead of being stretched (PushFPS outputs).
+    RecordingLabel padded;
+    if (padPushOverlayToShape(image, width, height, padded)) src = &padded;
+    if (src->width != width || src->height != height) {
+        scaled = scaleRecordingLabel(*src, width, height);
         if (scaled.rgba.size() < size_t(width) * height * 4) return false;
         src = &scaled;
     }
@@ -165,6 +169,25 @@ struct LayerSlot {
 std::mutex layerMutex;
 std::array<LayerSlot, kPushLiveLayers> layerSlots;
 } // namespace
+
+namespace {
+std::mutex canvasMutex;
+PushCanvas liveCanvas;
+bool liveCanvasSet = false;
+} // namespace
+
+void setPushLiveCanvas(const PushCanvas& layout) {
+    std::lock_guard lock(canvasMutex);
+    liveCanvas = layout.sanitized();
+    liveCanvasSet = true;
+}
+
+bool pushLiveCanvas(PushCanvas& layout) {
+    std::lock_guard lock(canvasMutex);
+    if (!liveCanvasSet) return false;
+    layout = liveCanvas;
+    return true;
+}
 
 PushLayerPlace resolvePushLayerPlace(const PushLayerPlace& place, uint32_t frameW, uint32_t frameH, uint32_t outW, uint32_t outH) {
     PushLayerPlace r = place;

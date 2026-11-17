@@ -204,7 +204,8 @@ private:
     std::wstring error_;
     bool check(HRESULT hr,const wchar_t* stage){if(SUCCEEDED(hr))return true;error_=std::format(L"{} HRESULT=0x{:08X}",stage,unsigned(hr));log::error("mf-encoder",narrowUtf8(error_));return false;}
     bool hevc_=false;
-    uint32_t bitrateMbps_=0;
+    uint32_t bitrateMbps_=0,bitrateKbps_=0;
+    uint32_t bitsPerSecond() const {return bitrateKbps_?bitrateKbps_*1000u:bitrateMbps_*1000000u;}
     ExportRateControl rateControl_=ExportRateControl::Cq;
     uint32_t keyframeSeconds_=2,qualityVsSpeed_=70,constantQuality_=75;
     uint32_t drainTimeoutMs_=10000;
@@ -228,7 +229,7 @@ private:
 
 bool MfVideoEncoder::open(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& ring,EnhanceGraph& graph,const EncoderConfig& config,PacketWriter writer){
     ctx_=&ctx;ring_=&ring;graph_=&graph;writer_=std::move(writer);
-    hevc_=config.hevc;bitrateMbps_=config.bitrateMbps;rateControl_=config.rateControl;keyframeSeconds_=config.keyframeSeconds;qualityVsSpeed_=config.qualityVsSpeed;constantQuality_=config.constantQuality;
+    hevc_=config.hevc;bitrateMbps_=config.bitrateMbps;bitrateKbps_=config.bitrateKbps;rateControl_=config.rateControl;keyframeSeconds_=config.keyframeSeconds;qualityVsSpeed_=config.qualityVsSpeed;constantQuality_=config.constantQuality;
     drainTimeoutMs_=config.drainTimeoutMs?config.drainTimeoutMs:10000;
     fpsNum_=std::max(1u,config.fpsNum);fpsDen_=std::max(1u,config.fpsDen);
     width_=graph.workWidth();height_=graph.workHeight();
@@ -349,14 +350,14 @@ bool MfVideoEncoder::applyRateControl(){
     value.ulVal=std::max(1u,fpsNum_*std::clamp(keyframeSeconds_,1u,10u));set(kPropGOPSize,value,"GOPSize");
     value.ulVal=std::min(qualityVsSpeed_,100u);set(kPropQualityVsSpeed,value,"QualityVsSpeed");
     if(rateControl_==ExportRateControl::Cbr){
-        const uint32_t bitsPerSecond=bitrateMbps_*1000000u;
+        const uint32_t bitsPerSecond=this->bitsPerSecond();
         value.ulVal=bitsPerSecond;set(kPropMeanBitRate,value,"MeanBitRate");
         set(kPropMaxBitRate,value,"MaxBitRate");
         value.ulVal=bitsPerSecond/2;set(kPropBufferSize,value,"BufferSize");
         value.ulVal=uint32_t(eAVEncCommonRateControlMode_CBR);set(kPropRateControlMode,value,"RateControlMode");
         log::info("mf-encoder",std::format("rate control CBR target={}Mbps",bitrateMbps_));
     }else if(rateControl_==ExportRateControl::Vbr){
-        const uint32_t bitsPerSecond=bitrateMbps_*1000000u;
+        const uint32_t bitsPerSecond=this->bitsPerSecond();
         value.ulVal=bitsPerSecond;set(kPropMeanBitRate,value,"MeanBitRate");
         set(kPropMaxBitRate,value,"MaxBitRate");
         value.ulVal=bitsPerSecond/2;set(kPropBufferSize,value,"BufferSize"); // 0.5 s CPB
@@ -387,7 +388,7 @@ bool MfVideoEncoder::setupTypes(){
             if(SUCCEEDED(MFCreateMediaType(&output))&&output){
                 output->SetGUID(MF_MT_MAJOR_TYPE,MFMediaType_Video);
                 output->SetGUID(MF_MT_SUBTYPE,hevc_?MFVideoFormat_HEVC:MFVideoFormat_H264);
-                output->SetUINT32(MF_MT_AVG_BITRATE,bitrateMbps_>0?bitrateMbps_*1000000u:(hevc_?20000000u:16000000u));
+                output->SetUINT32(MF_MT_AVG_BITRATE,(bitrateMbps_>0||bitrateKbps_>0)?bitsPerSecond():(hevc_?20000000u:16000000u));
                 output->SetUINT32(MF_MT_MPEG2_PROFILE,hevc_?eAVEncH265VProfile_Main_420_8:eAVEncH264VProfile_High);
                 frameRate(output.Get());
                 const HRESULT hr=transform_->SetOutputType(outputId_,output.Get(),0);
@@ -398,7 +399,7 @@ bool MfVideoEncoder::setupTypes(){
                     // first advertised type and stamp our geometry onto it.
                     ComPtr<IMFMediaType> advertised;
                     if(SUCCEEDED(transform_->GetOutputAvailableType(outputId_,0,&advertised))&&advertised){
-                        advertised->SetUINT32(MF_MT_AVG_BITRATE,bitrateMbps_>0?bitrateMbps_*1000000u:(hevc_?20000000u:16000000u));
+                        advertised->SetUINT32(MF_MT_AVG_BITRATE,(bitrateMbps_>0||bitrateKbps_>0)?bitsPerSecond():(hevc_?20000000u:16000000u));
                         frameRate(advertised.Get());
                         const HRESULT retry=transform_->SetOutputType(outputId_,advertised.Get(),0);
                         if(SUCCEEDED(retry)){outputType_=advertised;needOutput=false;}
@@ -701,7 +702,7 @@ bool MfVideoEncoder::submitSample(IMFSample* sample){
 
 bool MfVideoEncoder::openLive(uint32_t width,uint32_t height,const EncoderConfig& config,PacketWriter writer){
     writer_=std::move(writer);liveTimestamps_=true;
-    hevc_=config.hevc;bitrateMbps_=config.bitrateMbps;rateControl_=config.rateControl;keyframeSeconds_=config.keyframeSeconds;qualityVsSpeed_=config.qualityVsSpeed;constantQuality_=config.constantQuality;
+    hevc_=config.hevc;bitrateMbps_=config.bitrateMbps;bitrateKbps_=config.bitrateKbps;rateControl_=config.rateControl;keyframeSeconds_=config.keyframeSeconds;qualityVsSpeed_=config.qualityVsSpeed;constantQuality_=config.constantQuality;
     drainTimeoutMs_=config.drainTimeoutMs?config.drainTimeoutMs:10000;
     fpsNum_=std::max(1u,config.fpsNum);fpsDen_=std::max(1u,config.fpsDen);
     width_=width;height_=height;

@@ -43,6 +43,7 @@ struct Worker {
     std::atomic<int> slot{-1};
     std::atomic<bool> mirror{false}, loop{true};
     std::atomic<int> shape{0};
+    std::atomic<float> cropLeft{0}, cropTop{0}, cropRight{0}, cropBottom{0};
     std::atomic<bool> stop{false};
     std::mutex mutex;
     std::shared_ptr<const PushOverlayImage> latest;
@@ -68,6 +69,7 @@ struct Worker {
     }
     // Shapes and publishes one frame (any thread of this worker).
     void publish(PushOverlayImage&& raw) {
+        cropPushSourceFrame(raw, cropLeft.load(), cropTop.load(), cropRight.load(), cropBottom.load());
         shapePushSourceFrame(raw, mirror.load(), PushSourceShape(shape.load()));
         auto frame = std::make_shared<const PushOverlayImage>(std::move(raw));
         const int s = slot.load();
@@ -368,6 +370,8 @@ void setPushSources(const std::vector<PushSourceSpec>& sources, uint32_t fadeMs)
             worker->mirror = spec.mirror;
             worker->loop = spec.loop;
             worker->shape = int(spec.shape);
+            worker->cropLeft = spec.cropLeft; worker->cropTop = spec.cropTop;
+            worker->cropRight = spec.cropRight; worker->cropBottom = spec.cropBottom;
             const int previous = worker->slot.exchange(slot);
             // A source moving to another slot takes its newest frame along.
             if (!fresh && previous != slot) {

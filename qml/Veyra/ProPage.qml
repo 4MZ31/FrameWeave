@@ -1826,6 +1826,18 @@ VPage {
                                     }
                                 }
                             }
+                            // PushFPS measurements: ground-truth quality (any source with CPU frames) and the
+                            // Remote Play latency test (PS5 streaming).
+                            VRow {
+                                objectName: "list-fg-tests-row"
+                                label: qsTr("测量")
+                                hint: qsTr("画质测试：扣下真实帧再比较生成的画面。延迟测试：PS5 串流时自动按键计时")
+                                RowLayout {
+                                    spacing: 6
+                                    VButton { objectName: "list-fg-quality-test"; text: qsTr("画质测试"); enabled: veyra.hasSource && veyra.fgEnabled; onClicked: veyra.navigate("qualitytest") }
+                                    VButton { objectName: "list-fg-latency-test"; text: qsTr("延迟测试"); visible: veyra.sourceKind === "ps5"; onClicked: veyra.navigate("latencytest") }
+                                }
+                            }
                             VRow {
                                 objectName: "list-fg-pacing-row"
                                 label: qsTr("帧节奏修复")
@@ -1871,6 +1883,17 @@ VPage {
                                     objectName: "list-vfg-quality"
                                     options: [{id:"0",label:qsTr("低")},{id:"1",label:qsTr("中")},{id:"2",label:qsTr("高")},{id:"3",label:qsTr("高+中")},{id:"4",label:qsTr("高+低")},{id:"5",label:qsTr("中+低")}]
                                     value: options[veyra.vfgQuality].label
+                                    onPicked: id => veyra.vfgQuality = Number(id)
+                                }
+                            }
+                            VRow {
+                                label: qsTr("PushFlow 档位")
+                                visible: veyra.fgBackendName === "pushflow"
+                                hint: qsTr("快速：轻量模型、半分辨率估算运动；均衡：轻量模型、全分辨率；高质量：完整模型、全分辨率，最耗显卡")
+                                VSelect {
+                                    objectName: "list-pushflow-tier"
+                                    options: [{id:"0",label:qsTr("快速")},{id:"1",label:qsTr("均衡")},{id:"2",label:qsTr("高质量")}]
+                                    value: options[Math.min(veyra.vfgQuality, 2)].label
                                     onPicked: id => veyra.vfgQuality = Number(id)
                                 }
                             }

@@ -32,6 +32,7 @@ struct PushSourceSpec {
     bool mirror = false;
     bool loop = true;            // video file: start again at the end
     PushSourceShape shape = PushSourceShape::Rectangle;
+    float cropLeft = 0, cropTop = 0, cropRight = 0, cropBottom = 0;  // fractions of each side, cut first
     PushLayerPlace place;        // where (place.visible is set by setPushSources)
 };
 
@@ -57,5 +58,11 @@ std::shared_ptr<const PushOverlayImage> pushSourceFrame(const std::string& id);
 // Per-frame touches, platform free (tests/unit/PushLayerSourcesTests.cpp): mirror, then the shape.
 // rgba: straight-alpha RGBA8, width x height; a circle crops to the centred square first.
 void shapePushSourceFrame(PushOverlayImage& image, bool mirror, PushSourceShape shape);
+// A scene picture made for another shape (a 16:9 card on a 9:16 stream): padded at its own
+// resolution to width:height with bars, opaque black when the picture's corners are opaque (a
+// card keeps covering the game), clear otherwise. False when the shapes already match (within 1 %).
+bool padPushOverlayToShape(const PushOverlayImage& image, uint32_t width, uint32_t height, PushOverlayImage& out);
+// Cuts fractions off each side (each at most 0.45; at least 2 x 2 pixels stay).
+void cropPushSourceFrame(PushOverlayImage& image, float left, float top, float right, float bottom);
 
 } // namespace veyra::engine
