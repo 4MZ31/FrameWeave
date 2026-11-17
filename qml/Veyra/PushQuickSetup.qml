@@ -631,6 +631,12 @@ VGroup {
         objectName: "pushfps-pushflow-tier-row"
         visible: quick.compactPro && veyra.fgBackendName === "pushflow"
         label: qsTr("PushFlow 档位")
+        // While it runs: the precision this graphics card passed with and the network's time per frame.
+        hint: quick.liveStats.pushFlowP50Ms > 0
+              ? qsTr("正在运行：%1 · 每帧 %2 ms（95%：%3 ms）").arg(quick.liveStats.pushFlowPrecision === "fp16" ? qsTr("半精度") : qsTr("全精度"))
+                    .arg(Number(quick.liveStats.pushFlowP50Ms).toFixed(1)).arg(Number(quick.liveStats.pushFlowP95Ms).toFixed(1))
+              : ""
+        hintBelow: true
         VSeg {
             objectName: "pushfps-pushflow-tier"
             options: [{ id: "0", label: qsTr("快速") }, { id: "1", label: qsTr("均衡") }, { id: "2", label: qsTr("高质量") }]

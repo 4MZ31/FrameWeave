@@ -13,7 +13,9 @@ RWStructuredBuffer<float> tensor : register(u0);
 cbuffer Constants : register(b0) {
     uint srcW, srcH, padW, padH;
     uint modelW, modelH, encoding, channels;
-    float timestep, unused1, unused2, unused3;
+    float timestep;
+    uint timestepOnly;      // 1: the pair is already packed (2nd/3rd subframe): only the time plane changes
+    uint unused2, unused3;
 };
 float3 encodeColor(float3 c) {
     if (encoding == 1) {
@@ -38,11 +40,12 @@ float3 tap(Texture2D<float4> t, float2 p) {
 void main(uint3 id : SV_DispatchThreadID) {
     if (id.x >= padW || id.y >= padH) return;
     // The padding repeats the last model row / column.
+    const uint plane = padW * padH, i = id.y * padW + id.x;
+    if (timestepOnly != 0) { tensor[6 * plane + i] = timestep; return; }
     const float2 m = float2(min(id.x, modelW - 1), min(id.y, modelH - 1)) + 0.5;
     const float2 s = m * float2(srcW, srcH) / float2(modelW, modelH);
     const float3 a = encodeColor(tap(previous, s));
     const float3 b = encodeColor(tap(current, s));
-    const uint plane = padW * padH, i = id.y * padW + id.x;
     tensor[i] = a.r; tensor[plane + i] = a.g; tensor[2 * plane + i] = a.b;
     tensor[3 * plane + i] = b.r; tensor[4 * plane + i] = b.g; tensor[5 * plane + i] = b.b;
     tensor[6 * plane + i] = timestep;

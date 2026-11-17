@@ -1596,6 +1596,13 @@ bool EnhanceGraph::initVfg()
 
 bool EnhanceGraph::amfFrcActive() const { return amfFrc_&&amfFrc_->ready(); }
 bool EnhanceGraph::pushFlowActive() const { return pushFlow_&&pushFlow_->status().ready; }
+EnhanceGraph::PushFlowSummary EnhanceGraph::pushFlowSummary() const {
+    PushFlowSummary s;
+    if(!pushFlowActive())return s;
+    const auto t=pushFlow_->telemetry();
+    s.precision=pushFlow_->status().precision;s.rebuild=pushFlow_->status().rebuild;s.p50Ms=t.inferP50Ms;s.p95Ms=t.inferP95Ms;
+    return s;
+}
 // PushFlow (pushflow/PushFlowBackend.h): RIFE on DirectML, any multiplier (the time of each frame).
 bool EnhanceGraph::initPushFlow()
 {
@@ -4091,14 +4098,20 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
             if(sub==1){gpuTimer_.mark(plist,GpuStage::FgBatch);gpuTimer_.mark(plist,GpuStage::Fg1);}
             tracker_.transition(plist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
             tracker_.transition(plist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-            if(!pushFlow_->pack(plist,videoFrame_[1-parity].Get(),videoFrame_[parity].Get(),float(sub)/float(outputMultiplier))){failedBackend_=engine::FailedBackend::Fg;return false;}
+            // The pair is packed once; later subframes only rewrite the time plane.
+            if(!pushFlow_->pack(plist,videoFrame_[1-parity].Get(),videoFrame_[parity].Get(),float(sub)/float(outputMultiplier),sub>1)){failedBackend_=engine::FailedBackend::Fg;return false;}
             tracker_.transition(plist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_COMMON);
             tracker_.transition(plist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COMMON);
             if(!submitGraph(slot))return false;
             if(!pushFlow_->infer()){failedBackend_=engine::FailedBackend::Fg;return false;}
             auto* flist=ring_.acquireNext(slot,st);if(!flist)return false;
             tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_COPY_DEST);
-            if(!pushFlow_->resolve(flist,genFrame_[generatedSlot].Get())){failedBackend_=engine::FailedBackend::Fg;return false;}
+            // The Fast tier rebuilds the picture from the full-resolution real frames.
+            tracker_.transition(flist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+            tracker_.transition(flist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+            if(!pushFlow_->resolve(flist,videoFrame_[1-parity].Get(),videoFrame_[parity].Get(),genFrame_[generatedSlot].Get())){failedBackend_=engine::FailedBackend::Fg;return false;}
+            tracker_.transition(flist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_COMMON);
+            tracker_.transition(flist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COMMON);
             composeHudLock(flist,generatedSlot,1-parity);
             if(!composeExclusion(flist,generatedSlot+2,1-parity,false))return false;
             tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_COMMON);

@@ -33,6 +33,7 @@ std::optional<UpdatePackage> updatePackageIn(const QByteArray& sums);
 struct InstalledPushFps {
     QString gpu;            // "NVIDIA" or "AMD"
     bool extras = true;     // false when the file lists "Not installed:" items
+    QVersionNumber version; // from the "PushFPS X.Y.Z" line; null when absent
 };
 std::optional<InstalledPushFps> parseInstalledVersionFile(const QByteArray& text);
 

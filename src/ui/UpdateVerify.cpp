@@ -79,10 +79,12 @@ std::optional<InstalledPushFps> parseInstalledVersionFile(const QByteArray& text
     InstalledPushFps out;
     bool runtime = false;
     static const QRegularExpression gpu(QStringLiteral("^Runtime: Veyra-[^ ]+-(NVIDIA|AMD)-win64-portable\\.zip"));
+    static const QRegularExpression version(QStringLiteral("^PushFPS (\\d+\\.\\d+\\.\\d+)\\s*$"));
     for (const QByteArray& raw : text.split('\n')) {
         const QString l = QString::fromUtf8(raw).trimmed();
         if (const auto m = gpu.match(l); m.hasMatch()) { out.gpu = m.captured(1); runtime = true; }
         if (l.startsWith(QStringLiteral("Not installed:"))) out.extras = false;
+        if (const auto m = version.match(l); m.hasMatch() && out.version.isNull()) out.version = QVersionNumber::fromString(m.captured(1));
     }
     if (!runtime) return std::nullopt;
     return out;

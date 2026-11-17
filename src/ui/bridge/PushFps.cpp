@@ -82,6 +82,10 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     // Frame Pacing Repair: kept frames seen and re-timed since the source opened.
     m["pacingFrames"] = QVariant::fromValue(qulonglong(s.pacingFrames));
     m["hudLockState"] = s.hudLockState;
+    m["pushFlowPrecision"] = QString::fromStdString(s.pushFlowPrecision);
+    m["pushFlowRebuild"] = s.pushFlowRebuild;
+    m["pushFlowP50Ms"] = s.pushFlowP50Ms;
+    m["pushFlowP95Ms"] = s.pushFlowP95Ms;
     m["pacingRepaired"] = QVariant::fromValue(qulonglong(s.pacingRepaired));
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;

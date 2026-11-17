@@ -276,6 +276,7 @@ class QmlPlayerBridge : public QObject {
 
     Q_PROPERTY(QString appName READ appName CONSTANT)
     Q_PROPERTY(QString version READ version CONSTANT)
+    Q_PROPERTY(QString upstreamVersion READ upstreamVersion CONSTANT)
 
     // --- playback ----------------------------------------------------------
     Q_PROPERTY(bool deinterlaceAvailable READ deinterlaceAvailable CONSTANT)
@@ -904,6 +905,7 @@ public:
     Q_INVOKABLE void openDataFolder();
     QString appName() const;
     QString version() const;
+    QString upstreamVersion() const;   // the Veyra release PushFPS is built on
 
     // --- property accessors (Q_PROPERTY READ targets) -----------------------
     // Split into read-only and read-write so a reviewer can see at a glance

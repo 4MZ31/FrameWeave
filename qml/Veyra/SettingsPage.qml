@@ -1566,14 +1566,15 @@ VPage {
                             spacing: 4
                             PushWordmark { objectName: "about-wordmark"; pixelSize: 28 }
                             Text {
-                                text: qsTr("版本 ") + veyra.version
+                                objectName: "about-version"
+                                text: qsTr("版本 %1").arg(veyra.version)
                                 color: Theme.t2
                                 font.family: Theme.fontUi
                                 font.pixelSize: Theme.fsBody
                             }
                             Text {
                                 objectName: "about-upstream-credit"
-                                text: qsTr("基于 Veyra 构建（GPL-3.0，作者 Likely7）")
+                                text: qsTr("基于 Veyra %1 构建（GPL-3.0，作者 Likely7）").arg(veyra.upstreamVersion || "")
                                 color: Theme.t2
                                 font.family: Theme.fontUi
                                 font.pixelSize: Theme.fsBody
