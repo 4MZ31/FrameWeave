@@ -361,6 +361,7 @@ jobs:
           $env:VEYRA_PUSH_GPU_DEBUG = '1'
           # PushFlow runs on the release's own runtime (RIFE through DirectML, on WARP here).
           $env:VEYRA_PUSHFLOW_TEST_RUNTIME = "$env:DEPS\pushflow\runtime"
+          $env:VEYRA_PUSHFLOW_TEST_RUNTIME_FP32 = "$env:DEPS\pushflow\runtime-fp32"
           & $exe.FullName 2>&1 | Out-Host
           $code = $LASTEXITCODE
           Write-Host "veyra_push_gpu_tests exit $code"

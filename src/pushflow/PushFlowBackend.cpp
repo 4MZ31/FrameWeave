@@ -129,6 +129,8 @@ struct PushFlowBackend::Impl {
 PushFlowBackend::PushFlowBackend() : p_(std::make_unique<Impl>()) {}
 PushFlowBackend::~PushFlowBackend() = default;
 double PushFlowBackend::lastInferCpuMs() const { return p_->inferMs; }
+ID3D12Resource* PushFlowBackend::tensorBuffer(bool input) const { return input ? p_->inputBuffer.Get() : p_->outputBuffer.Get(); }
+uint32_t PushFlowBackend::inputChannels() const { return p_->channels; }
 const Status& PushFlowBackend::status() const { return p_->status; }
 void PushFlowBackend::shutdown() { p_ = std::make_unique<Impl>(); }
 

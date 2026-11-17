@@ -54,6 +54,9 @@ public:
     // Records the output: into an internal texture, then copied to `output` (left in COPY_DEST).
     bool resolve(ID3D12GraphicsCommandList* list, ID3D12Resource* output);
     double lastInferCpuMs() const;
+    // Tests: the network's input and output buffers (UNORDERED_ACCESS, planar float).
+    ID3D12Resource* tensorBuffer(bool input) const;
+    uint32_t inputChannels() const;
     const Status& status() const;
     void shutdown();
 

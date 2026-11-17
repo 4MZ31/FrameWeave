@@ -257,6 +257,14 @@ def main() -> None:
         record["models"][role] = {"file": target.name, "from": c["path"].name, "version": "%d.%d" % c["version"], "lite": c["lite"],
                                   "channels": c["channels"], "precision": precision, "sha256": sha256(target),
                                   "cpu_check_db": {k: c["check"][k] for k in ("identical_db", "moving_db", "blend_db")}}
+    # Full-precision copies for the GPU test only (never packaged): tells a DirectML fp16 problem apart.
+    test_runtime = out / "runtime-fp32" / "pushflow"
+    shutil.rmtree(test_runtime.parent, ignore_errors=True)
+    (test_runtime / "models").mkdir(parents=True)
+    for f in ("onnxruntime.dll", "DirectML.dll"):
+        shutil.copy2(runtime / f, test_runtime / f)
+    for role, c in chosen.items():
+        shutil.copy2(c["path"], test_runtime / "models" / f"pushflow-{role}.onnx")
     (runtime / "models.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(record, indent=2))
     for f in sorted(runtime.rglob("*")):

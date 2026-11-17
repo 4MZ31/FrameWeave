@@ -1009,11 +1009,36 @@ double flowPsnr(const std::vector<uint8_t>& a, const std::vector<uint8_t>& b) {
     const double mse = n ? se / n : 0;
     return mse <= 1e-9 ? 99.0 : 10.0 * std::log10(255.0 * 255.0 / mse);
 }
+// Reads `count` floats from a UAV buffer (left in UNORDERED_ACCESS).
+std::vector<float> readFloats(Gpu& gpu, ID3D12Resource* buffer, uint64_t count) {
+    std::vector<float> out;
+    auto rb = makeBuffer(gpu.device.Get(), count * 4, D3D12_HEAP_TYPE_READBACK);
+    if (!rb || !gpu.begin()) return out;
+    D3D12_RESOURCE_BARRIER b{}; b.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; b.Transition.pResource = buffer;
+    b.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    b.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS; b.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
+    gpu.list->ResourceBarrier(1, &b);
+    gpu.list->CopyBufferRegion(rb.Get(), 0, buffer, 0, count * 4);
+    std::swap(b.Transition.StateBefore, b.Transition.StateAfter);
+    gpu.list->ResourceBarrier(1, &b);
+    if (!gpu.submitAndWait()) return out;
+    float* mapped = nullptr;
+    if (FAILED(rb->Map(0, nullptr, reinterpret_cast<void**>(&mapped)))) return out;
+    out.assign(mapped, mapped + count);
+    const D3D12_RANGE none{0, 0}; rb->Unmap(0, &none);
+    return out;
+}
+void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict);
 void testPushFlow(Gpu& gpu) {
-    wchar_t dir[1024]{};
+    wchar_t dir[1024]{}, full[1024]{};
+    if (GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_TEST_RUNTIME_FP32", full, 1024)) { std::printf("INFO pushflow: full-precision models (diagnostic)\n"); testPushFlowRuntime(gpu, full, false); }
     if (!GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_TEST_RUNTIME", dir, 1024)) { std::printf("SKIP pushflow: VEYRA_PUSHFLOW_TEST_RUNTIME not set\n"); return; }
+    testPushFlowRuntime(gpu, dir, true);
+}
+void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
+    const auto checkOr = [&](bool ok, const std::string& label) { if (strict) check(ok, label); else std::printf("INFO %s %s\n", ok ? "ok" : "not ok", label.c_str()); };
     std::wstring why;
-    check(pushflow::runtimeInstalled(dir, &why), "pushflow: runtime installed");
+    checkOr(pushflow::runtimeInstalled(dir, &why), "pushflow: runtime installed");
     if (!pushflow::runtimeInstalled(dir)) return;
     constexpr uint32_t W = 256, H = 160;
     auto* device = gpu.device.Get();
@@ -1021,7 +1046,7 @@ void testPushFlow(Gpu& gpu) {
     Plane a{pipeline::makeTexture(device, W, H, fmt, false), fmt, W, H, 4};
     Plane b{pipeline::makeTexture(device, W, H, fmt, false), fmt, W, H, 4};
     Plane out{pipeline::makeTexture(device, W, H, fmt, false), fmt, W, H, 4};
-    check(a.texture && b.texture && out.texture, "pushflow: textures created");
+    checkOr(a.texture && b.texture && out.texture, "pushflow: textures created");
     const auto run = [&](const std::vector<uint8_t>& pa, const std::vector<uint8_t>& pb, float t, pushflow::PushFlowBackend& flow, double* ms) {
         std::vector<uint8_t> result;
         if (!gpu.begin()) return result;
@@ -1055,11 +1080,23 @@ void testPushFlow(Gpu& gpu) {
     for (uint32_t tier : {0u, 2u}) {
         pushflow::PushFlowBackend flow;
         const bool ready = flow.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, tier);
-        check(ready, "pushflow: tier " + std::to_string(tier) + " initializes (" + flow.status().model + ")");
+        checkOr(ready, "pushflow: tier " + std::to_string(tier) + " initializes (" + flow.status().model + ")");
         if (!ready) continue;
         const auto first = flowFrame(W, H, 100), second = flowFrame(W, H, 116), middle = flowFrame(W, H, 108);
         double ms = 0;
         const auto same = run(first, first, 0.5f, flow, &ms);
+        {
+            const auto st = flow.status();
+            const uint64_t plane = uint64_t(st.padW) * st.padH;
+            const auto in = readFloats(gpu, flow.tensorBuffer(true), plane * flow.inputChannels());
+            const auto outT = readFloats(gpu, flow.tensorBuffer(false), plane * 3);
+            const uint32_t mx = uint32_t(110.0 * st.modelW / W), my = uint32_t((H * 0.35 + 10) * st.modelH / H);
+            const uint64_t at = uint64_t(my) * st.padW + mx;
+            if (!in.empty() && !outT.empty())
+                std::printf("INFO pushflow tier %u tensor at square: in %.3f %.3f %.3f | %.3f %.3f %.3f | t %.3f; out %.3f %.3f %.3f\n", tier,
+                    in[at], in[plane + at], in[2 * plane + at], in[3 * plane + at], in[4 * plane + at], in[5 * plane + at], in[6 * plane + at],
+                    outT[at], outT[plane + at], outT[2 * plane + at]);
+        }
         if (!same.empty()) {
             // Diagnostics: channel means and two sample pixels, output vs input.
             double mo[3]{}, mi[3]{};
@@ -1070,17 +1107,17 @@ void testPushFlow(Gpu& gpu) {
                 mo[0] / n, mo[1] / n, mo[2] / n, mi[0] / n, mi[1] / n, mi[2] / n, same[sq], same[sq + 1], same[sq + 2], first[sq], first[sq + 1], first[sq + 2],
                 same[bg], same[bg + 1], same[bg + 2], first[bg], first[bg + 1], first[bg + 2]);
         }
-        check(!same.empty() && flowPsnr(same, first) > 30.0, std::format("pushflow: tier {} identical frames come back ({:.1f} dB, {:.0f} ms on {})", tier,
+        checkOr(!same.empty() && flowPsnr(same, first) > 30.0, std::format("pushflow: tier {} identical frames come back ({:.1f} dB, {:.0f} ms on {})", tier,
             same.empty() ? 0.0 : flowPsnr(same, first), ms, gpu.adapter));
         const auto mid = run(first, second, 0.5f, flow, &ms);
         std::vector<uint8_t> blend(first.size());
         for (size_t i = 0; i < blend.size(); ++i) blend[i] = uint8_t((int(first[i]) + second[i] + 1) / 2);
         const double flowDb = mid.empty() ? 0.0 : flowPsnr(mid, middle), blendDb = flowPsnr(blend, middle);
-        check(!mid.empty() && flowDb > blendDb + 2.0, std::format("pushflow: tier {} moving square lands in the middle ({:.1f} dB vs blend {:.1f} dB)", tier, flowDb, blendDb));
+        checkOr(!mid.empty() && flowDb > blendDb + 2.0, std::format("pushflow: tier {} moving square lands in the middle ({:.1f} dB vs blend {:.1f} dB)", tier, flowDb, blendDb));
         const auto early = run(first, second, 0.25f, flow, nullptr);
         const auto quarter = flowFrame(W, H, 104);
-        check(!early.empty() && flowPsnr(early, quarter) > flowPsnr(early, middle), "pushflow: tier " + std::to_string(tier) + " t = 0.25 is closer to the quarter position");
-        check(!gpu.debugErrors(), "pushflow: no debug layer errors");
+        checkOr(!early.empty() && flowPsnr(early, quarter) > flowPsnr(early, middle), "pushflow: tier " + std::to_string(tier) + " t = 0.25 is closer to the quarter position");
+        checkOr(!gpu.debugErrors(), "pushflow: no debug layer errors");
     }
 }
 
