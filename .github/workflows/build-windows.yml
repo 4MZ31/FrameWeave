@@ -271,7 +271,7 @@ jobs:
           $venv = Join-Path $env:RUNNER_TEMP 'pushflow-venv'
           & $env:PUSHFLOW_PYTHON -m venv $venv
           $py = Join-Path $venv 'Scripts\python.exe'
-          & $py -m pip install --disable-pip-version-check -q onnx==1.17.0 onnxruntime==1.20.1 numpy==1.26.4
+          & $py -m pip install --disable-pip-version-check -q onnx==1.17.0 onnxconverter-common==1.14.0 onnxruntime==1.20.1 numpy==1.26.4
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & $py -I scripts/pushflow/prepare_runtime.py --out "$env:DEPS\pushflow"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -1,0 +1,25 @@
+# PushFlow model preparation on its own (a few minutes, no Windows build): downloads the pinned runtime
+# packages and RIFE models, adds the grid and mask outputs, runs the CPU checks and prints models.json.
+# The Windows build runs the same script; this is for working on the models quickly.
+name: pushflow-models
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  models:
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare and check the models
+        run: |
+          python -m venv /tmp/pf && /tmp/pf/bin/python -m pip install --disable-pip-version-check -q onnx==1.17.0 onnxconverter-common==1.14.0 onnxruntime==1.20.1 numpy==1.26.4
+          /tmp/pf/bin/python -I scripts/pushflow/prepare_runtime.py --out /tmp/pushflow
+          cat /tmp/pushflow/runtime/pushflow/models.json

@@ -191,6 +191,85 @@ def check_model(path: Path, channels: int) -> dict:
             "blend_db": round(psnr(blend, middle), 2), "output": mid}
 
 
+def detail_frame(w, h, shift):
+    """Fine texture panning sideways (stripes, 2-pixel checker, thin lines): what the Fast tier must keep."""
+    import numpy as np
+    y, x = np.mgrid[0:h, 0:w].astype(np.float32)
+    u = x - shift
+    tex = 0.5 + 0.18 * np.sin(u * 1.3) + 0.12 * ((np.floor(u / 2) + np.floor(y / 2)) % 2) + 0.15 * (np.abs((u % 24) - 12) < 0.8)
+    img = np.stack([tex, tex * 0.9 + 0.05, tex * 0.8 + 0.1])
+    return np.clip(img, 0, 1).astype(np.float32)
+
+
+def resize_box(img, f):
+    import numpy as np
+    c, h, w = img.shape
+    return img.reshape(c, h // f, f, w // f, f).mean(axis=(2, 4)).astype(np.float32)
+
+
+def bilinear_at(field, qy, qx):
+    """field [C, h, w] sampled at continuous pixel coordinates (pixel centres at integers), clamped."""
+    import numpy as np
+    c, h, w = field.shape
+    qx = np.clip(qx, 0, w - 1); qy = np.clip(qy, 0, h - 1)
+    x0 = np.floor(qx).astype(np.int64); y0 = np.floor(qy).astype(np.int64)
+    x1 = np.minimum(x0 + 1, w - 1); y1 = np.minimum(y0 + 1, h - 1)
+    fx = qx - x0; fy = qy - y0
+    a = field[:, y0, x0] * (1 - fx) + field[:, y0, x1] * fx
+    b = field[:, y1, x0] * (1 - fx) + field[:, y1, x1] * fx
+    return a * (1 - fy) + b * fy
+
+
+def rebuild_scaled(img0, img1, grid0, grid1, mask, align, mask_for_first, model_hw):
+    """What shaders/PushFlowReconstruct.hlsl does: grids and mask from the model size, frames at full size."""
+    import numpy as np
+    import rife_graph
+    _, H, W = img0.shape
+    mh, mw = model_hw
+    ph, pw = rife_graph.to_hw2(grid0).shape[:2]
+    yo, xo = np.mgrid[0:H, 0:W].astype(np.float64)
+    qy = (yo + 0.5) * mh / H - 0.5; qx = (xo + 0.5) * mw / W - 0.5
+    out = []
+    for img, grid in ((img0, grid0), (img1, grid1)):
+        g = np.moveaxis(rife_graph.to_hw2(grid), -1, 0)
+        gx, gy = bilinear_at(g, qy, qx)
+        if align:
+            xm = (gx + 1) * 0.5 * (pw - 1); ym = (gy + 1) * 0.5 * (ph - 1)
+        else:
+            xm = ((gx + 1) * pw - 1) * 0.5; ym = ((gy + 1) * ph - 1) * 0.5
+        xs = (xm + 0.5) * W / mw - 0.5; ys = (ym + 0.5) * H / mh - 0.5
+        out.append(bilinear_at(img, ys, xs))
+    m = bilinear_at(np.asarray(mask)[0], qy, qx)[0]
+    return out[0] * m + out[1] * (1 - m) if mask_for_first else out[0] * (1 - m) + out[1] * m
+
+
+def check_exposed(path: Path, channels: int, align: int) -> dict:
+    import numpy as np
+    import onnxruntime as ort
+    import rife_graph
+    session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
+    name = session.get_inputs()[0].name
+    w, h = 256, 192
+    first, second = frame(w, h, 100), frame(w, h, 116)
+    rgb, g0, g1, m = session.run(None, {name: tensor(first, second, 0.5, channels)})[:4]
+    a = rife_graph.reconstruct(first, second, g0, g1, m, align, True)
+    b = rife_graph.reconstruct(first, second, g0, g1, m, align, False)
+    pa, pb = rife_graph.psnr(a, rgb[0]), rife_graph.psnr(b, rgb[0])
+    first_mask = pa >= pb
+    # Fast tier: the network at half size, rebuilt at full size versus the half-size picture enlarged.
+    W, H = 512, 384
+    f0, f1, gt = detail_frame(W, H, 0), detail_frame(W, H, 12), detail_frame(W, H, 6)
+    s0, s1 = resize_box(f0, 2), resize_box(f1, 2)
+    srgb, sg0, sg1, sm = session.run(None, {name: tensor(s0, s1, 0.5, channels)})[:4]
+    yo, xo = np.mgrid[0:H, 0:W].astype(np.float64)
+    old = bilinear_at(srgb[0], (yo + 0.5) / 2 - 0.5, (xo + 0.5) / 2 - 0.5)
+    new = rebuild_scaled(f0, f1, sg0, sg1, sm, align, first_mask, (H // 2, W // 2))
+    full = session.run(None, {name: tensor(f0, f1, 0.5, channels)})[0][0]
+    fast = {"old_enlarged_db": round(rife_graph.psnr(old, gt), 2), "full_res_rebuild_db": round(rife_graph.psnr(new, gt), 2),
+            "full_size_network_db": round(rife_graph.psnr(full, gt), 2), "blend_db": round(rife_graph.psnr((f0 + f1) / 2, gt), 2)}
+    return {"rebuild_db": round(max(pa, pb), 2), "mask_for_first": bool(first_mask), "fast_detail": fast, "output": rgb[0]}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
@@ -269,16 +348,49 @@ def main() -> None:
     if "fast" not in chosen:
         sys.exit("::error::no RIFE model passed the checks")
 
-    # Full precision: half-precision conversions passed the CPU check but gave wrong pictures through
-    # DirectML on WARP (2026-11-17, PushGpuTests), while the full-precision models matched; until fp16 is
-    # verified on real cards PushFlow ships fp32.
-    record = {"source": f"https://github.com/{MODELS_REPO}/releases/tag/{MODELS_TAG}", "runtime": f"{ORT_ID} {ORT_VERSION}, {DML_ID} {DML_VERSION}", "models": {}}
+    # Every shipped model is the vs-mlrt export with the final warp grids and blend mask added as outputs
+    # (rife_graph.expose), checked on the CPU: rebuilding from them reproduces the model's own picture, and
+    # for the Fast tier (network at half size) rebuilding at full size from the full-size frames keeps more
+    # detail than enlarging the network's half-size picture. Full precision is the reference; a
+    # half-precision copy (convolutions fp16, warps, resizes, sigmoid and blend fp32) ships next to it when it
+    # agrees on the CPU, and PushFlow only uses it after its own check on the user's graphics card.
+    import onnx
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import rife_graph
+    record = {"source": f"https://github.com/{MODELS_REPO}/releases/tag/{MODELS_TAG}", "runtime": f"{ORT_ID} {ORT_VERSION}, {DML_ID} {DML_VERSION}",
+              "contract": {"input": "[1, C, H, W] float32, C = 7 (img0 RGB, img1 RGB, t) or 11 (+ flow scale, grid)", "pad_to": 64,
+                           "color": "0..1, the encoding PushFlowPack writes", "outputs": "rgb [1,3,H,W]; pushflow_grid0/1 (normalized -1..1); pushflow_mask [1,1,H,W]"},
+              "models": {}}
     for role, c in chosen.items():
+        base = onnx.load(str(c["path"]))
+        exposed, info = rife_graph.expose(base)
         target = runtime / "models" / f"pushflow-{role}.onnx"
-        shutil.copy2(c["path"], target)
-        record["models"][role] = {"file": target.name, "from": c["path"].name, "version": "%d.%d" % c["version"], "lite": c["lite"],
-                                  "channels": c["channels"], "precision": "fp32", "sha256": sha256(target),
-                                  "cpu_check_db": {k: c["check"][k] for k in ("identical_db", "moving_db", "blend_db")}}
+        onnx.save(exposed, str(target))
+        verdict = check_exposed(target, c["channels"], info["align_corners"])
+        print(f"exposed {role}: {json.dumps({k: v for k, v in verdict.items() if k != 'output'})}")
+        if verdict["rebuild_db"] < 40:
+            sys.exit(f"::error::rebuilding from grids and mask does not reproduce {c['path'].name} ({verdict['rebuild_db']} dB)")
+        entry = {"file": target.name, "from": c["path"].name, "version": "%d.%d" % c["version"], "lite": c["lite"],
+                 "channels": c["channels"], "precision": "fp32", "sha256": sha256(target), "opset": [o.version for o in base.opset_import],
+                 "align_corners": info["align_corners"], "padding_mode": info["padding_mode"], "mask_for_first": verdict["mask_for_first"],
+                 "cpu_check_db": {k: c["check"][k] for k in ("identical_db", "moving_db", "blend_db")},
+                 "rebuild_db": verdict["rebuild_db"], "fast_detail": verdict["fast_detail"]}
+        try:
+            from onnxconverter_common import float16
+            half = float16.convert_float_to_float16(exposed, keep_io_types=True,
+                                                    op_block_list=list(float16.DEFAULT_OP_BLOCK_LIST) + ["GridSample", "Resize", "Sigmoid", "Softmax"])
+            half_path = runtime / "models" / f"pushflow-{role}-fp16.onnx"
+            onnx.save(half, str(half_path))
+            hv = check_exposed(half_path, c["channels"], info["align_corners"])
+            agreement = rife_graph.psnr(hv["output"], verdict["output"])
+            print(f"fp16 {role}: agreement with fp32 {agreement:.1f} dB")
+            if agreement > 40 and hv["rebuild_db"] >= 40:
+                entry["fp16"] = {"file": half_path.name, "sha256": sha256(half_path), "cpu_agreement_db": round(agreement, 2)}
+            else:
+                half_path.unlink()
+        except Exception as e:  # noqa: BLE001 - no fp16 copy; fp32 stays the only model
+            print(f"fp16 {role} skipped: {e}")
+        record["models"][role] = entry
     (runtime / "models.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(record, indent=2))
     for f in sorted(runtime.rglob("*")):
