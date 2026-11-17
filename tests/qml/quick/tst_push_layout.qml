@@ -157,7 +157,10 @@ Item {
             verify(veyra.preferences.canvasStretch !== true)
             lay.setCrop("l", 0.2); lay.commit()
             compare(Number(veyra.preferences.canvasCropL), 200)
-            mouseClick(findChild(lay, "layout-bg-8df237"))
+            const swatch = findChild(lay, "layout-bg-8df237")
+            verify(swatch, "background swatch")
+            // The swatch can sit below the dialog's visible area at this window size: trigger its handler.
+            swatch.children[0].clicked(null)
             compare(Number(veyra.preferences.canvasBackground), 0x8df237)
             mouseClick(findChild(lay, "layout-reset"))
             compare(Number(veyra.preferences.canvasW), 1000)
