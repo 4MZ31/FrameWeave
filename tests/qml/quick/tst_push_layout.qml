@@ -37,6 +37,9 @@ Item {
         function open() {
             host.dialog = "layout"
             verify(lay.shown)
+            // Pointer tests need the dialog where it ends up, not mid open-animation.
+            tryCompare(lay, "motionS", 1, 3000)
+            tryCompare(lay, "motionDy", 0, 3000)
             waitForRendering(lay)
         }
 

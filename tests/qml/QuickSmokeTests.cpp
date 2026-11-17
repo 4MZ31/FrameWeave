@@ -248,6 +248,14 @@ QtObject {
     function pushSetSceneSources(list) { lastSources = list; sourceCalls++ }
     function pushSourceStatus() { return sourceStatus }
     function pushSourcePreview(id) { return "" }
+    // PushFPS Frame Input API (tst_push_frame_input.qml).
+    property var frameInputSenders: []
+    property string frameInputStarted: ""
+    function pushFrameInputSenders() { return frameInputSenders }
+    function pushStartFrameInput(channel) {
+        if (!frameInputSenders.some(s => s.channel === channel && s.alive)) return false
+        frameInputStarted = channel; return true
+    }
     property var screenOptions: ({kind: 0, passthrough: false, method: 0, fps: 0, cursor: true, left: 0, top: 0, right: 0, bottom: 0, fill: false})
     property var screenTargets: [{id: "w1", label: "Browser - YouTube"}]
     property string screenTargetId: "w1"
