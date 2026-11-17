@@ -12598,6 +12598,23 @@
    "ru": "Заканчивайте основание SR, уменьшайте его результат, затем снова запускайте SR. Обе оценки увеличивают время и память GPU."
   },
   {
+   "zh": "先打开录制声音",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "先開啟錄製聲音",
+   "en": "Turn on Record audio first",
+   "ja": "先に「音声を録音」をオンにしてください",
+   "nl": "Turn on Record audio first",
+   "de": "Turn on Record audio first",
+   "es": "Turn on Record audio first",
+   "fr": "Turn on Record audio first",
+   "it": "Turn on Record audio first",
+   "pt-BR": "Turn on Record audio first",
+   "tr": "Turn on Record audio first",
+   "ar": "Turn on Record audio first",
+   "pl": "Turn on Record audio first",
+   "ru": "Turn on Record audio first"
+  },
+  {
    "zh": "先整理文件，再按顺序导出",
    "src": "qml/ExportPage.qml",
    "zh-TW": "先整理檔案，再按順序匯出",
@@ -27763,6 +27780,23 @@
    "ru": "Записывает выбранный аудиовход независимо от громкости, немого или локального мониторинга. Выберите аудио вход для карт захвата."
   },
   {
+   "zh": "录入电脑上除 PushFPS 以外的所有声音，例如浏览器或播放器里正在播放的视频声音。捕获窗口或屏幕时需要打开",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "錄入電腦上除 PushFPS 以外的所有聲音，例如瀏覽器或播放器裡正在播放的影片聲音。擷取視窗或螢幕時需要開啟",
+   "en": "Records all PC sound except PushFPS, such as a video playing in a browser or player. Needed when capturing a window or screen",
+   "ja": "PushFPS 以外の PC の音声をすべて録音します（ブラウザーやプレーヤーで再生中の動画の音声など）。ウィンドウや画面をキャプチャするときに必要です",
+   "nl": "Records all PC sound except PushFPS, such as a video playing in a browser or player. Needed when capturing a window or screen",
+   "de": "Records all PC sound except PushFPS, such as a video playing in a browser or player. Needed when capturing a window or screen",
+   "es": "Records all PC sound except PushFPS, such as a video playing in a browser or player. Needed when capturing a window or screen",
+   "fr": "Records all PC sound except PushFPS, such as a video playing in a browser or player. Needed when capturing a window or screen",
+   "it": "Records all PC sound except PushFPS, such as a video playing in a browser or player. Needed when capturing a window or screen",
+   "pt-BR": "Records all PC sound except PushFPS, such as a video playing in a browser or player. Needed when capturing a window or screen",
+   "tr": "Records all PC sound except PushFPS, such as a video playing in a browser or player. Needed when capturing a window or screen",
+   "ar": "Records all PC sound except PushFPS, such as a video playing in a browser or player. Needed when capturing a window or screen",
+   "pl": "Records all PC sound except PushFPS, such as a video playing in a browser or player. Needed when capturing a window or screen",
+   "ru": "Records all PC sound except PushFPS, such as a video playing in a browser or player. Needed when capturing a window or screen"
+  },
+  {
    "zh": "录制",
    "src": "qml/ProPage.qml",
    "zh-TW": "錄製",
@@ -28186,6 +28220,23 @@
    "ar": "لا يمكن تخصيص تسجيل GPU ذاكرة",
    "pl": "Nie można przypisać pamięci zapisu GPU",
    "ru": "Не удалось выделить запись GPU памяти"
+  },
+  {
+   "zh": "录制电脑声音",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "錄製電腦聲音",
+   "en": "Record PC audio",
+   "ja": "PC の音声を録音",
+   "nl": "Record PC audio",
+   "de": "Record PC audio",
+   "es": "Record PC audio",
+   "fr": "Record PC audio",
+   "it": "Record PC audio",
+   "pt-BR": "Record PC audio",
+   "tr": "Record PC audio",
+   "ar": "Record PC audio",
+   "pl": "Record PC audio",
+   "ru": "Record PC audio"
   },
   {
    "zh": "录制画面",
@@ -40682,6 +40733,23 @@
    "ar": "قياس التأخير الكلي",
    "pl": "Zmierz całkowite opóźnienie",
    "ru": "Измерить общую задержку"
+  },
+  {
+   "zh": "浏览器或播放器里的视频声音",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "瀏覽器或播放器裡的影片聲音",
+   "en": "The video's sound from your browser or player",
+   "ja": "ブラウザーやプレーヤーの動画の音声",
+   "nl": "The video's sound from your browser or player",
+   "de": "The video's sound from your browser or player",
+   "es": "The video's sound from your browser or player",
+   "fr": "The video's sound from your browser or player",
+   "it": "The video's sound from your browser or player",
+   "pt-BR": "The video's sound from your browser or player",
+   "tr": "The video's sound from your browser or player",
+   "ar": "The video's sound from your browser or player",
+   "pl": "The video's sound from your browser or player",
+   "ru": "The video's sound from your browser or player"
   },
   {
    "zh": "淡入淡出",

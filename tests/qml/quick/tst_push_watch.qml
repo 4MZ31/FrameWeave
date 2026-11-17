@@ -87,6 +87,10 @@ Item {
 
             control("watch-recaudio").toggled(false)
             compare(veyra.preferences.recordAudio, false)
+            control("watch-recaudio").toggled(true)
+            verify(control("watch-recdesktop").enabled)
+            control("watch-recdesktop").toggled(true)
+            compare(veyra.preferences.mixDesktopOn, true, "the video's sound from the browser or player")
             control("watch-recmic").toggled(true)
             compare(veyra.preferences.recordMic, true)
 

@@ -317,6 +317,19 @@ VPage {
                         }
                     }
                     VRow {
+                        objectName: "watch-recdesktop-row"
+                        label: qsTr("录制电脑声音")
+                        help: qsTr("录入电脑上除 PushFPS 以外的所有声音，例如浏览器或播放器里正在播放的视频声音。捕获窗口或屏幕时需要打开")
+                        hint: veyra.recordingAudio !== true ? qsTr("先打开录制声音") : qsTr("浏览器或播放器里的视频声音")
+                        VSwitch {
+                            objectName: "watch-recdesktop"
+                            enabled: veyra.recordingAudio === true
+                            opacity: enabled ? 1 : 0.4
+                            checked: veyra.preferences.mixDesktopOn === true
+                            onToggled: checked => veyra.setPreference("mixDesktopOn", checked)
+                        }
+                    }
+                    VRow {
                         objectName: "watch-recmic-row"
                         label: qsTr("录制麦克风")
                         VSwitch {
