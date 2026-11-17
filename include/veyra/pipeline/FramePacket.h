@@ -46,6 +46,7 @@ enum class SourceKind : uint8_t {
     ScreenCapture,
     Moonlight,    // Sunshine / GameStream host stream (moonlight-common-c transport)
     Xbox,         // Xbox home streaming (WebRTC, unofficial)
+    FrameInput,   // PushFPS Frame Input API: frames from another application (shared memory)
 };
 
 inline const char* sourceKindName(SourceKind k) {
@@ -58,6 +59,7 @@ inline const char* sourceKindName(SourceKind k) {
     case SourceKind::ScreenCapture: return "ScreenCapture";
     case SourceKind::Moonlight: return "Moonlight";
     case SourceKind::Xbox: return "Xbox";
+    case SourceKind::FrameInput: return "FrameInput";
     default: return "Unknown";
     }
 }

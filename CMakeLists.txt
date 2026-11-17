@@ -744,6 +744,8 @@ if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avform
     src/source/DeckLinkDriver.cpp
     src/source/ElgatoHdrControl.cpp
     src/source/ScreenCaptureSource.cpp
+    src/source/FrameInputChannel.cpp
+    src/source/FrameInputSource.cpp
     src/source/VirtualDesktop.cpp
     src/source/AverMediaAudioSwitch.cpp
     src/source/AverMediaVendorAudio.cpp
@@ -969,6 +971,11 @@ add_executable(veyra_push_pacing_repair_tests tests/unit/PushPacingRepairTests.c
 target_compile_features(veyra_push_pacing_repair_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_pacing_repair_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS ANR add-on installer: archive entry and file type checks.
+# PushFPS Frame Input API: sender header and shared-memory reader.
+add_executable(veyra_frame_input_tests tests/unit/FrameInputTests.cpp src/source/FrameInputChannel.cpp)
+target_compile_features(veyra_frame_input_tests PRIVATE cxx_std_20)
+target_compile_definitions(veyra_frame_input_tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+target_include_directories(veyra_frame_input_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_push_archive_paths_tests tests/unit/PushArchivePathsTests.cpp)
 target_compile_features(veyra_push_archive_paths_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_archive_paths_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -1261,6 +1268,7 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
     src/ui/bridge/PushFps.cpp
     src/ui/bridge/PushStream.cpp
     src/ui/bridge/PushStudio.cpp
+    src/ui/bridge/PushFrameInput.cpp
     src/ui/NvidiaVrrProfileController.cpp
     include/veyra/ui/NvidiaVrrProfileController.h
     src/ui/bridge/Hardware.cpp

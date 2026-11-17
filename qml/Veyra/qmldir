@@ -103,3 +103,4 @@ PushMixerStrip 1.0 PushMixerStrip.qml
 PushLevelMeter 1.0 PushLevelMeter.qml
 PushMicFiltersDialog 1.0 PushMicFiltersDialog.qml
 PushLayoutDialog 1.0 PushLayoutDialog.qml
+PushFrameInputDialog 1.0 PushFrameInputDialog.qml

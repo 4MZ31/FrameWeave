@@ -362,6 +362,7 @@ VPage {
                 VButton { iconName: "gamepad"; text: "PS5"; onClicked: veyra.navigate("ps5") }
                 VButton { iconName: "gamepad"; text: "Xbox"; onClicked: veyra.navigate("xbox") }
                 VButton { iconName: "cast"; text: "Moonlight"; onClicked: veyra.navigate("moonlight") }
+                VButton { objectName: "studio-open-frame-input"; iconName: "import"; text: qsTr("其他应用"); onClicked: veyra.navigate("frameinput") }
             }
         }
     }

@@ -160,6 +160,10 @@ Item {
         id: micFiltersDialog
         dialogHost: host
     }
+    PushFrameInputDialog {
+        id: frameInputDialog
+        dialogHost: host
+    }
     PushLayoutDialog {
         id: layoutDialog
         dialogHost: host

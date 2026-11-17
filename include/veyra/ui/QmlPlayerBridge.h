@@ -1523,6 +1523,10 @@ public:
     Q_INVOKABLE QVariantList pushSourceStatus();
     // A small JPEG data URL of a running source's newest frame (the editor's preview), or "".
     Q_INVOKABLE QString pushSourcePreview(const QString& id);
+    // PushFPS Frame Input API (source/FrameInputSource.h): senders found on the usual channels
+    // ([{channel, name, width, height, fps, alive, frames, pid}]) and opening one as the source.
+    Q_INVOKABLE QVariantList pushFrameInputSenders();
+    Q_INVOKABLE bool pushStartFrameInput(const QString& channel);
     Q_INVOKABLE QString pushLinkUrl(const QString& key) const;
     // PushFPS automatic HUD detection (engine/PushHudSampler.h): samples=1 only
     // takes a fresh picture for the box editor. pushHudDetection() polls it.

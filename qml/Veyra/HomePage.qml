@@ -70,6 +70,7 @@ VPage {
                 case "ps5": return veyra.remotePlayHost.length > 0 ? qsTr("已保存主机 ") + veyra.remotePlayHost : qsTr("局域网串流")
                 case "moonlight": return veyra.moonlight && veyra.moonlight.state.lastLabel ? veyra.moonlight.state.lastLabel : qsTr("Sunshine 主机")
                 case "xbox": return veyra.xbox && veyra.xbox.state.lastLabel ? veyra.xbox.state.lastLabel : qsTr("账号登录 · 实验")
+                case "frameinput": return qsTr("画面输入接口")
                 default: return qsTr("窗口或显示器")
                 }
             }
@@ -301,7 +302,8 @@ VPage {
                     { glyph: "monitor", title: qsTr("屏幕捕获"), act: "screen" },
                     { glyph: "gamepad", title: qsTr("PS5 串流"), act: "ps5" },
                     { glyph: "cast", title: qsTr("PC 串流"), act: "moonlight" },
-                    { glyph: "gamepad", title: qsTr("Xbox 串流"), act: "xbox" }
+                    { glyph: "gamepad", title: qsTr("Xbox 串流"), act: "xbox" },
+                    { glyph: "import", title: qsTr("其他应用"), act: "frameinput" }
                 ]
                 readonly property int shownCount: shown.filter(c => srcGrid.available(c.act)).length
                 columns: width >= 140 * shownCount + 10 * (shownCount - 1) ? shownCount : Math.ceil(shownCount / 2)
@@ -374,6 +376,7 @@ VPage {
                                     case "moonlight": veyra.openMoonlightDialog(); break
                                     case "xbox": veyra.openXboxDialog(); break
                                     case "screen": veyra.openScreenCaptureDialog(); break
+                                    case "frameinput": veyra.navigate("frameinput"); break
                                     }
                                 }
                             }

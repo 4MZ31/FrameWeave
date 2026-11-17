@@ -956,6 +956,7 @@ QString QmlPlayerBridge::sourceTitle() const {
     if (kind == QLatin1String("ps5")) return tr("PS5 串流 · %1").arg(impl_->liveLabel);
     if (kind == QLatin1String("moonlight")) return tr("PC 串流 · %1").arg(impl_->liveLabel);
     if (kind == QLatin1String("xbox")) return tr("Xbox 串流 · %1").arg(impl_->liveLabel);
+    if (kind == QLatin1String("frameinput")) return tr("其他应用 · %1").arg(impl_->liveLabel);
     return tr("屏幕捕获 · %1").arg(impl_->liveLabel);
 }
 // "1080p60" / "1080p59.94": the reported height and nominal rate only.
