@@ -28,6 +28,7 @@
 #include "veyra/engine/ExportOptions.h"
 #include "veyra/engine/LiveRecorder.h"
 #include "veyra/engine/PushHudSampler.h"
+#include "veyra/engine/PushQualityProbe.h"
 #include "veyra/engine/DisplayStateService.h"
 namespace veyra::source { struct RemotePlayConnectDesc; class RemotePlaySessionSource; struct MoonlightConnectDesc; class MoonlightSessionSource; struct XboxConnectDesc; class XboxSessionSource; }
 namespace veyra::remoteplay { struct ControllerState;struct ControllerFeedback; }
@@ -292,6 +293,11 @@ public:
     void startHudDetection(uint32_t samples,uint32_t intervalMs){hud_->start(samples,intervalMs);}
     void cancelHudDetection(){hud_->cancel();}
     PushHudSampler::Status hudDetection(){return hud_->status();}
+    // PushFPS ground-truth quality test (PushQualityProbe.h): withholds every second frame from frame
+    // generation for a few seconds and compares what it made with the originals.
+    void startQualityTest(const PushQualityProbe::Options& o){quality_->start(o);}
+    void cancelQualityTest(){quality_->cancel();}
+    PushQualityProbe::Status qualityTest(){return quality_->status();}
     // Refresh/VRR state of monitors, shared by every session's presenter and
     // the UI; queried in the background on events only. Any thread.
     DisplayStateService& displayStates(){return displayStates_;}
@@ -339,7 +345,9 @@ private:
     std::unique_ptr<LiveRecorder> stream_=std::make_unique<LiveRecorder>(LiveRecorder::Mode::Stream);
     PresentCaptureFanout recordings_{*recorder_,*replay_};
     PresentCaptureFanout liveOutputs_{recordings_,*stream_};
-    PresentCaptureFanout captures_{liveOutputs_,*hud_};
+    std::unique_ptr<PushQualityProbe> quality_=std::make_unique<PushQualityProbe>();
+    PresentCaptureFanout hudAndQuality_{*hud_,*quality_};
+    PresentCaptureFanout captures_{liveOutputs_,hudAndQuality_};
     // Declared before worker_: it outlives the engine thread's presenters.
     DisplayStateService displayStates_;
     std::thread worker_;

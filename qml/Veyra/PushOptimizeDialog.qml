@@ -40,13 +40,19 @@ DialogLayer {
     property real settleHold: 0.5
     property real warmSeconds: 2.5
     property real measureSeconds: 6
+    // Ground-truth quality test after each passing frame generation step (PushQualityProbe.h): every
+    // second frame is withheld, regenerated and compared with the original. Its score replaces the
+    // fixed quality order where it ran; a source that can't be tested falls back to the order.
+    property real qualitySeconds: 5
+    property bool qualityUnsupported: false
+    property var pendingResult: null
     property int tickMs: 250
 
     property string phase: "idle"      // idle | running | done | failed
     property string failure: ""
     property var steps: []             // {label, config, result}
     property int current: -1
-    property string stepState: ""      // settle | warm | measure
+    property string stepState: ""      // settle | warm | measure | quality
     property real stepStarted: 0
     property real settledSince: 0
     property var startStats: ({})
@@ -58,8 +64,7 @@ DialogLayer {
     property real refreshHz: 60
     property bool applied: false
 
-    // Picture-quality order of the methods: a heuristic (not measured), used only as a tie-breaker in
-    // "balanced" and as the main key in "best picture".
+    // Picture-quality order of the methods: a heuristic, used when the ground-truth test could not run.
     readonly property var qualityRank: ({ vfg: 6, dlss: 5, anr: 4, fsr4: 3, xess: 2, fsr3: 2, amdfrc: 1 })
     readonly property var backendLabel: ({ vfg: "NVIDIA VFG", dlss: qsTr("DLSS 帧生成"), anr: "ANR", fsr4: "FSR 4", xess: "XeSS", fsr3: "FSR 3.1", amdfrc: "AMD FRC" })
     // Goal (preference pushOptimizeGoal): balanced | latency | smooth | picture.
@@ -174,6 +179,7 @@ DialogLayer {
         opt.refreshHz = Number(s.displayRefreshHz) > 0 ? Number(s.displayRefreshHz) : (veyra.displayRefreshHz > 0 ? veyra.displayRefreshHz : 60)
         opt.gameFps = opt.original.gameFps === 40 || opt.original.gameFps === 60 ? opt.original.gameFps : 30
         opt.baselineResult = null
+        opt.qualityUnsupported = false
         opt.best = null
         opt.applied = false
         opt.steps = [{ label: "", config: { backend: "", enhance: false, sr: 0, kind: "baseline" }, result: null }]
@@ -182,7 +188,7 @@ DialogLayer {
         opt.beginStep(0)
     }
     function cancel() {
-        if (opt.phase === "running") { veyra.pushBenchmarkEnd(); runner.stop(); opt.restoreOriginal(); opt.phase = "idle" }
+        if (opt.phase === "running") { veyra.pushBenchmarkEnd(); veyra.pushQualityCancel(); runner.stop(); opt.restoreOriginal(); opt.phase = "idle" }
         opt.dialogHost.close()
     }
     function beginStep(i) {
@@ -216,8 +222,44 @@ DialogLayer {
         } else if (opt.stepState === "measure") {
             if (s.gpuUtilization !== undefined && s.gpuUtilization !== null) opt.gpuSamples.push(Number(s.gpuUtilization))
             if (!s.settled) { veyra.pushBenchmarkEnd(); opt.finishStep({ ok: false, reason: qsTr("测量中设置被改变") }); return }
-            if (t - opt.stepStarted >= opt.measureSeconds) opt.finishStep(opt.evaluate(veyra.pushBenchmarkEnd(), opt.startStats, s))
+            if (t - opt.stepStarted >= opt.measureSeconds) {
+                const res = opt.evaluate(veyra.pushBenchmarkEnd(), opt.startStats, s)
+                if (res.ok && opt.qualityWanted(opt.steps[opt.current]) && veyra.pushQualityBegin(opt.qualitySeconds)) {
+                    opt.pendingResult = res
+                    opt.stepState = "quality"
+                    opt.stepStarted = t
+                    return
+                }
+                opt.finishStep(res)
+            }
+        } else if (opt.stepState === "quality") {
+            const q = veyra.pushQualityStatus() || {}
+            if (q.done || q.failed || t - opt.stepStarted > opt.qualitySeconds + 8) {
+                if (!q.done && !q.failed) veyra.pushQualityCancel()
+                const res = opt.pendingResult
+                opt.pendingResult = null
+                res.quality = q.done ? { score: Number(q.score), psnr: Number(q.psnr), blendPsnr: Number(q.blendPsnr), gain: Number(q.gainOverBlend),
+                                         realPsnr: Number(q.realPsnr), hudPsnr: Number(q.hudPsnr), hudSamples: Number(q.hudSamples),
+                                         bad: Number(q.badShare), onTime: Number(q.onTime), samples: Number(q.samples) } : null
+                res.qualityNote = q.failed ? String(q.error || "") : q.done ? "" : qsTr("画质测试超时")
+                // A source whose pictures can't be read for the test (hardware-decoded streams) stays so.
+                if (q.failed) opt.qualityUnsupported = true
+                veyra.logUi("push-optimize", "quality " + (res.quality ? "score=" + res.quality.score.toFixed(1) + " psnr=" + res.quality.psnr.toFixed(2) +
+                            " blend=" + res.quality.blendPsnr.toFixed(2) : "none " + res.qualityNote))
+                opt.finishStep(res)
+            }
         }
+    }
+    function qualityWanted(step) {
+        return !opt.qualityUnsupported && (step.config.kind === "fg-high" || step.config.kind === "fg-low")
+    }
+    // The measured quality when the ground-truth test ran (0..6, the order's scale), else the order.
+    function qualityOf(step) {
+        const q = step.result && step.result.quality
+        if (q && q.samples > 0) return q.score / 100 * 6
+        const of = step.config.of !== undefined ? opt.steps[step.config.of] : null
+        if (of && of.result && of.result.quality && of.result.quality.samples > 0) return of.result.quality.score / 100 * 6
+        return opt.qualityRank[step.config.backend] || 0
     }
     function evaluate(r, before, after) {
         const step = opt.steps[opt.current]
@@ -253,7 +295,7 @@ DialogLayer {
     function score(step) {
         const c = step.config, r = step.result
         const fps = Math.min(r.fps || 0, opt.refreshHz + 0.5)
-        const rank = opt.qualityRank[c.backend] || 0
+        const rank = opt.qualityOf(step)
         const extras = (c.enhance ? 12 : 0) + (c.sr === 2 ? 6 : c.sr === 6 ? 4 : 0)
         switch (opt.goal) {
         case "latency": return -r.latency * 100 + fps / 10 + rank
@@ -348,10 +390,12 @@ DialogLayer {
                                        : qsTr("无法测量")
             opt.phase = "failed"
         }
-        const record = { v: 2, at: new Date().toISOString(), refreshHz: opt.refreshHz, gameFps: opt.gameFps, goal: opt.goal,
+        const record = { v: 3, at: new Date().toISOString(), refreshHz: opt.refreshHz, gameFps: opt.gameFps, goal: opt.goal,
                          best: winner ? opt.describe(winner.config) : "",
                          skipped: opt.skipped,
                          steps: opt.steps.map(s => ({ label: s.label, ok: !!(s.result && s.result.ok), reason: s.result ? s.result.reason : "",
+                                                      quality: s.result && s.result.quality ? +s.result.quality.score.toFixed(1) : null,
+                                                      psnr: s.result && s.result.quality ? +s.result.quality.psnr.toFixed(2) : null,
                                                       fps: s.result ? +(s.result.fps || 0).toFixed(1) : 0, low1: s.result ? +(s.result.low1 || 0).toFixed(1) : 0,
                                                       latency: s.result ? +(s.result.latency || 0).toFixed(1) : 0,
                                                       latencyP95: s.result ? +(s.result.latencyP95 || 0).toFixed(1) : 0,
@@ -362,6 +406,7 @@ DialogLayer {
     function abort(message) {
         runner.stop()
         veyra.pushBenchmarkEnd()
+        veyra.pushQualityCancel()
         opt.restoreOriginal()
         opt.failure = message
         opt.phase = "failed"
@@ -435,7 +480,7 @@ DialogLayer {
             Text {
                 visible: opt.phase === "running" && opt.current >= 0
                 Layout.fillWidth: true
-                text: opt.current >= 0 && opt.steps[opt.current] ? (opt.stepState === "measure" ? qsTr("正在测量：") : qsTr("准备：")) + opt.steps[opt.current].label : ""
+                text: opt.current >= 0 && opt.steps[opt.current] ? (opt.stepState === "measure" ? qsTr("正在测量：") : opt.stepState === "quality" ? qsTr("正在测试画质：") : qsTr("准备：")) + opt.steps[opt.current].label : ""
                 color: Theme.t1; font.family: Theme.fontUi; font.pixelSize: 13; elide: Text.ElideRight
             }
             // Results, one line per configuration.
@@ -456,6 +501,12 @@ DialogLayer {
                               ? qsTr("%1 FPS · 1% %2 · %3 ms").arg(modelData.result.fps.toFixed(0)).arg(modelData.result.low1.toFixed(0)).arg(modelData.result.latency.toFixed(0))
                               : ""
                         color: Theme.t2; font.family: Theme.fontMono; font.pixelSize: 11
+                    }
+                    Text {
+                        objectName: "pushfps-optimize-quality"
+                        visible: !!modelData.result.quality
+                        text: modelData.result.quality ? qsTr("画质 %1 · %2 dB").arg(modelData.result.quality.score.toFixed(0)).arg(modelData.result.quality.psnr.toFixed(1)) : ""
+                        color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 11
                     }
                     Text {
                         visible: !modelData.result.ok && modelData.result.reason.length > 0
@@ -482,7 +533,7 @@ DialogLayer {
             Text {
                 Layout.fillWidth: true
                 visible: opt.phase !== "idle"
-                text: qsTr("ms = 电脑处理延迟：采集卡画面到达电脑到交给显示器的时间，不含采集卡、显示器、手柄和游戏本身，不是从按键到画面的总延迟。1% 低帧越接近平均帧率越流畅。补帧方式的画质顺序是经验值，不是测量结果。")
+                text: qsTr("ms = 电脑处理延迟：采集卡画面到达电脑到交给显示器的时间，不含采集卡、显示器、手柄和游戏本身，不是从按键到画面的总延迟。1% 低帧越接近平均帧率越流畅。画质分数来自实测：每隔一帧扣下真实画面，让补帧重新生成，再和原画面比较（PSNR、像素误差、HUD 区域、与简单混合相比，以及生成帧是否准时）。无法测试画质的来源按经验顺序排序。")
                 color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 11; wrapMode: Text.WordWrap
             }
         }

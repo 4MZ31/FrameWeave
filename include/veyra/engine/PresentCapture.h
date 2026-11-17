@@ -25,6 +25,9 @@ public:
         // in HDR (RTX Video HDR), as the presenter's comparison view scales it.
         ID3D12Resource* raw=nullptr;
         bool rawSdrInHdr=false;
+        // PushFPS quality test (PushQualityProbe.h): the frame's presentation timestamp (100 ns, the
+        // source clock; generated frames carry their in-between time), 0 when unknown.
+        int64_t pts100ns=0;
     };
     // Whether the next frames should carry `raw` (the graph keeps it only when asked).
     virtual bool wantsRawFrames() const { return false; }

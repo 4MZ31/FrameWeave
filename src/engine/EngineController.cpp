@@ -2287,6 +2287,11 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     pkt.duration={interval*2,10000000};
                 }
                 if(!halfRate)captureSampler.reset();
+                // PushFPS ground-truth quality test: every second frame is kept back while it runs;
+                // frame generation makes that moment and PushQualityProbe compares it with the original.
+                if(!rereadCached&&!pkt.pts.isUnknown()&&quality_->running()&&quality_->withhold(frame,pkt.pts.to100ns(),gd.packedInput!=0)){
+                    std::lock_guard lock(mutex_);++snapshot_.captureRateSkipped;continue;
+                }
                 if(isCapture&&!rereadCached&&veyra::log::verboseFrameLogs())
                     veyra::log::info("cadence-input",std::format("source={} driverPts100ns={} samplePts100ns={} pts100ns={} clockCorrected={} dedup={} halfRate={}",pkt.sequence,driverPts100ns,samplePts100ns,pkt.pts.isUnknown()?0:pkt.pts.to100ns(),captureClockCorrected,dedupActive,halfRate));
                 if(isImage)pkt.sequence=1;

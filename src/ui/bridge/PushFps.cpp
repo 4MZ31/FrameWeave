@@ -599,3 +599,34 @@ bool QmlPlayerBridge::pushSetAlwaysOnTop(QObject* window, bool onTop) {
 }
 
 }
+
+// --- PushFPS ground-truth quality test (engine/PushQualityProbe.h) -----------------------------
+namespace veyra::ui {
+bool QmlPlayerBridge::pushQualityBegin(int seconds) {
+    if (!hasSource()) { emit notice(tr("请先连接画面"), true); return false; }
+    engine::PushQualityProbe::Options o;
+    o.seconds = uint32_t(std::clamp(seconds, 2, 30));
+    // The HUD boxes: the exclusion regions already set (game preset, HUD detection or by hand).
+    const QVariantMap ex = exclusionState();
+    if (ex.value(QStringLiteral("enabled")).toBool())
+        for (const auto& v : ex.value(QStringLiteral("regions")).toList()) {
+            const auto r = v.toMap();
+            o.hud.push_back({float(r.value("left").toDouble()), float(r.value("top").toDouble()), float(r.value("right").toDouble()), float(r.value("bottom").toDouble())});
+        }
+    impl_->engine.startQualityTest(o);
+    return true;
+}
+void QmlPlayerBridge::pushQualityCancel() { impl_->engine.cancelQualityTest(); }
+QVariantMap QmlPlayerBridge::pushQualityStatus() {
+    const auto st = impl_->engine.qualityTest();
+    const auto& r = st.report;
+    return QVariantMap{
+        {"running", st.running}, {"done", st.done}, {"failed", st.failed},
+        {"error", st.error.empty() ? QString() : uiText(st.error)},
+        {"samples", int(st.samples)}, {"target", int(st.target)}, {"withheld", qulonglong(st.withheld)},
+        {"psnr", r.psnr}, {"blendPsnr", r.blendPsnr}, {"gainOverBlend", r.gainOverBlend()}, {"realPsnr", r.realPsnr},
+        {"hudPsnr", r.hudPsnr}, {"hudSamples", int(r.hudSamples)}, {"meanError", r.meanError}, {"badShare", r.badShare},
+        {"onTime", r.onTimeShare()}, {"generatedShown", qulonglong(r.generatedShown)}, {"score", r.score()},
+        {"revision", qulonglong(st.revision)}};
+}
+} // namespace veyra::ui

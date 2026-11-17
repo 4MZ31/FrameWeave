@@ -135,6 +135,21 @@ QtObject {
     function pushLiveStats() { return liveStats }
     function pushBenchmarkBegin() { benchmarkWindows++ }
     function pushBenchmarkEnd() { return benchmarkModel ? benchmarkModel() : ({valid: false}) }
+    // PushFPS ground-truth quality test (tst_push_optimize.qml). qualityModel(backend) returns the status
+    // the test ends with; null: the source can't be tested.
+    property var qualityModel: null
+    property int qualityStarts: 0
+    property int qualityCancels: 0
+    property var qualityState: ({running: false, done: false, failed: false})
+    function pushQualityBegin(seconds) {
+        qualityStarts++
+        const r = qualityModel ? qualityModel(String(fgBackendName || "")) : null
+        qualityState = r ? Object.assign({running: false, done: true, failed: false, samples: 20}, r)
+                         : ({running: false, done: false, failed: true, error: "unsupported source"})
+        return true
+    }
+    function pushQualityCancel() { qualityCancels++ }
+    function pushQualityStatus() { return qualityState }
     function pushSetExclusionRegions(regions, feather) {
         lastRegions = regions
         exclusionState = ({enabled: regions.length > 0, feather: feather, regions: regions})

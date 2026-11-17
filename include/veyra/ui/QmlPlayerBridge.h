@@ -1530,6 +1530,13 @@ public:
     Q_INVOKABLE QString pushLinkUrl(const QString& key) const;
     // PushFPS automatic HUD detection (engine/PushHudSampler.h): samples=1 only
     // takes a fresh picture for the box editor. pushHudDetection() polls it.
+    // PushFPS ground-truth quality test (engine/PushQualityProbe.h): withholds every second frame from
+    // frame generation for `seconds` and compares what it made with the originals. Polled with
+    // pushQualityStatus(): running, done, failed, error, samples, psnr, blendPsnr, gainOverBlend,
+    // realPsnr, hudPsnr, hudSamples, meanError, badShare, onTime, generatedShown, score.
+    Q_INVOKABLE bool pushQualityBegin(int seconds);
+    Q_INVOKABLE void pushQualityCancel();
+    Q_INVOKABLE QVariantMap pushQualityStatus();
     Q_INVOKABLE bool pushStartHudDetection(int samples);
     Q_INVOKABLE void pushCancelHudDetection();
     Q_INVOKABLE QVariantMap pushHudDetection();
