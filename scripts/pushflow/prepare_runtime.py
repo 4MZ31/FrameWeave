@@ -386,18 +386,31 @@ def main() -> None:
               "models": {}}
     for role, c in chosen.items():
         base = onnx.load(str(c["path"]))
-        exposed, info = rife_graph.expose(base)
         target = runtime / "models" / f"pushflow-{role}.onnx"
+        best = None
+        for batched in (True, False):
+            exposed, info = rife_graph.expose(base, batched)
+            onnx.save(exposed, str(target))
+            try:
+                verdict = check_exposed(target, c["channels"], info["align_corners"])
+            except Exception as e:  # noqa: BLE001 - this reading of the graph does not run
+                print(f"{role} batched={batched}: {e}")
+                continue
+            print(f"{role} batched={batched}: rebuild {verdict['rebuild_db']} dB")
+            if best is None or verdict["rebuild_db"] > best[2]["rebuild_db"]:
+                best = (exposed, info, verdict)
+        if best is None:
+            sys.exit(f"::error::no way to expose the grids of {c['path'].name}")
+        exposed, info, verdict = best
         onnx.save(exposed, str(target))
-        verdict = check_exposed(target, c["channels"], info["align_corners"])
         print(f"exposed {role}: {json.dumps({k: v for k, v in verdict.items() if k != 'output'})}")
         if verdict["rebuild_db"] < 45:
             print(rife_graph.describe_tail(base))
-        if verdict["rebuild_db"] < 40:
+        if verdict["rebuild_db"] < 45:
             sys.exit(f"::error::rebuilding from grids and mask does not reproduce {c['path'].name} ({verdict['rebuild_db']} dB)")
         entry = {"file": target.name, "from": c["path"].name, "version": "%d.%d" % c["version"], "lite": c["lite"],
                  "channels": c["channels"], "precision": "fp32", "sha256": sha256(target), "opset": [o.version for o in base.opset_import],
-                 "align_corners": info["align_corners"], "padding_mode": info["padding_mode"], "mask_for_first": verdict["mask_for_first"], "pad": verdict["pad"],
+                 "align_corners": info["align_corners"], "padding_mode": info["padding_mode"], "batched_warp": info["batched"], "mask_for_first": verdict["mask_for_first"], "pad": verdict["pad"],
                  "cpu_check_db": {k: c["check"][k] for k in ("identical_db", "moving_db", "blend_db")},
                  "rebuild_db": verdict["rebuild_db"], "fast_detail": verdict["fast_detail"]}
         try:

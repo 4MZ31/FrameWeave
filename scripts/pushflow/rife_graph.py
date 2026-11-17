@@ -50,17 +50,31 @@ def find_final_blend(model):
     return w0.input[1], w1.input[1], sigmoids[0].output[0], align, pad, (w0.input[0], w1.input[0])
 
 
-def expose(model):
-    """A copy of the model with grid0, grid1 and mask as outputs 1-3 (named pushflow_grid0/1, pushflow_mask)."""
+def expose(model, batched=True):
+    """A copy of the model with grid0, grid1 and mask as outputs 1-3 (named pushflow_grid0/1, pushflow_mask).
+
+    batched: vs-mlrt's exports warp both frames in ONE GridSample (the two frames stacked on the batch axis,
+    grid [2, H, W, 2]); grid0/grid1 are its two batch entries. Otherwise the two closest GridSample nodes
+    are the two warps. prepare_runtime.py tries both and keeps the one that reproduces the model exactly."""
     import onnx
-    from onnx import helper
+    from onnx import helper, numpy_helper
     m = onnx.ModelProto()
     m.CopyFrom(model)
     g0, g1, mask, align, pad, _ = find_final_blend(m)
-    for src, name in ((g0, "pushflow_grid0"), (g1, "pushflow_grid1"), (mask, "pushflow_mask")):
-        m.graph.node.append(helper.make_node("Identity", [src], [name], name=name + "_out"))
+    if batched:
+        def const(name, values):
+            m.graph.initializer.append(numpy_helper.from_array(np.array(values, dtype=np.int64), name))
+            return name
+        const("pushflow_axis0", [0]); const("pushflow_b0", [0]); const("pushflow_b1", [1]); const("pushflow_b2", [2])
+        m.graph.node.append(helper.make_node("Slice", [g0, "pushflow_b0", "pushflow_b1", "pushflow_axis0"], ["pushflow_grid0"], name="pushflow_grid0_out"))
+        m.graph.node.append(helper.make_node("Slice", [g0, "pushflow_b1", "pushflow_b2", "pushflow_axis0"], ["pushflow_grid1"], name="pushflow_grid1_out"))
+        m.graph.node.append(helper.make_node("Identity", [mask], ["pushflow_mask"], name="pushflow_mask_out"))
+    else:
+        for src, name in ((g0, "pushflow_grid0"), (g1, "pushflow_grid1"), (mask, "pushflow_mask")):
+            m.graph.node.append(helper.make_node("Identity", [src], [name], name=name + "_out"))
+    for name in ("pushflow_grid0", "pushflow_grid1", "pushflow_mask"):
         m.graph.output.append(helper.make_tensor_value_info(name, onnx.TensorProto.FLOAT, None))
-    return m, {"align_corners": align, "padding_mode": pad}
+    return m, {"align_corners": align, "padding_mode": pad, "batched": batched}
 
 
 def grid_sample(img, grid, align_corners, padding="border"):
