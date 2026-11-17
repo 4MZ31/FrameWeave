@@ -609,9 +609,10 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
         veyra::log::info("app", std::format("NVIDIA overlay running={} GamePP running={} Douyin companion running={} interface={}", nvidiaOverlay, gamePP, douyin, softwareUi ? "software" : "GPU"));
     }
     {
-        // PushFPS: NVIDIA VFG on RTX 30 runs retargeted CUDA kernels (VfgAmpereCompat.cpp) that the
-        // driver compiles from PTX when they load. A hang dump from 2026-11-16 (engine frozen, one
-        // thread inside nvptxJitCompiler64.dll) showed that compile stalling the picture. The driver
+        // PushFPS: CUDA code that ships without machine code for the card (NVIDIA's runtimes on a new
+        // architecture such as an RTX 5090, or VFG's retargeted kernels on RTX 30, VfgAmpereCompat.cpp)
+        // is compiled from PTX by the driver when it loads. A hang dump from an RTX 5090 (2026-11-16:
+        // engine frozen, one thread inside nvptxJitCompiler64.dll) showed that compile stalling the picture. The driver
         // keeps compiled kernels in its compute cache, but the default size is too small for these
         // models, so they were compiled again in later sessions. Raise the cache to its 4 GiB
         // maximum (only when the user has not set it) and never let it be disabled for us.
