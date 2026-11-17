@@ -1059,6 +1059,16 @@ void testPushFlow(Gpu& gpu) {
         const auto first = flowFrame(W, H, 100), second = flowFrame(W, H, 116), middle = flowFrame(W, H, 108);
         double ms = 0;
         const auto same = run(first, first, 0.5f, flow, &ms);
+        if (!same.empty()) {
+            // Diagnostics: channel means and two sample pixels, output vs input.
+            double mo[3]{}, mi[3]{};
+            for (size_t i = 0; i < same.size(); i += 4) for (int k = 0; k < 3; ++k) { mo[k] += same[i + k]; mi[k] += first[i + k]; }
+            const double n = double(same.size() / 4);
+            const size_t sq = (size_t(H * 0.35 + 10) * W + 110) * 4, bg = (size_t(10) * W + 10) * 4;
+            std::printf("INFO pushflow tier %u means out %.0f %.0f %.0f in %.0f %.0f %.0f; square out %d %d %d in %d %d %d; corner out %d %d %d in %d %d %d\n", tier,
+                mo[0] / n, mo[1] / n, mo[2] / n, mi[0] / n, mi[1] / n, mi[2] / n, same[sq], same[sq + 1], same[sq + 2], first[sq], first[sq + 1], first[sq + 2],
+                same[bg], same[bg + 1], same[bg + 2], first[bg], first[bg + 1], first[bg + 2]);
+        }
         check(!same.empty() && flowPsnr(same, first) > 30.0, std::format("pushflow: tier {} identical frames come back ({:.1f} dB, {:.0f} ms on {})", tier,
             same.empty() ? 0.0 : flowPsnr(same, first), ms, gpu.adapter));
         const auto mid = run(first, second, 0.5f, flow, &ms);

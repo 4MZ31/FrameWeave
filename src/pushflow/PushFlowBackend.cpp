@@ -278,7 +278,10 @@ bool PushFlowBackend::infer() {
     if (!p.status.ready) return false;
 #ifdef VEYRA_HAVE_ONNXRUNTIME
     const auto start = std::chrono::steady_clock::now();
-    const bool done = p.ok(p.api->RunWithBinding(p.session, nullptr, p.binding), "RunWithBinding");
+    // DirectML records the network into its own command lists and may hold them back; synchronizing the
+    // bound outputs submits them to the queue and waits, so resolve() reads the finished output.
+    const bool done = p.ok(p.api->RunWithBinding(p.session, nullptr, p.binding), "RunWithBinding") &&
+                      p.ok(p.api->SynchronizeBoundOutputs(p.binding), "SynchronizeBoundOutputs");
     p.inferMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
     return done;
 #else
