@@ -307,10 +307,11 @@ VGroup {
         if (p.game === name) p.game = ""
         writeProfiles(p)
     }
-    // A capture card that takes 120 Hz (1080p/1440p on the 4K X, 4K S, HD60 X and similar) gets each
+    // A capture card that captures 120 Hz (the 4K X; the 4K S at 1080p/1440p) gets each
     // frame in 8 ms instead of 17, and lets 40 FPS (120 Hz mode) games through; Switch 2 docked
-    // output tops out at 60 Hz at 4K, so the extra line is for PlayStation and Xbox.
-    readonly property string hz120Tip: qsTr("采集卡支持 120 Hz 时（如 1080p/1440p 下的 4K X、4K S、HD60 X），也可输出 120 Hz：每帧早约 8 毫秒到达，40 FPS 的 120 Hz 模式也能使用。")
+    // output tops out at 60 Hz at 4K, so the extra line is for PlayStation and Xbox. A card that only
+    // passes 120 Hz through (HD60 X: 60 Hz capture) stays at 60 Hz.
+    readonly property string hz120Tip: qsTr("采集卡能以 120 Hz 采集时（如 4K X，或 1080p/1440p 下的 4K S），也可输出 120 Hz：每帧早约 8 毫秒到达，40 FPS 的 120 Hz 模式也能使用。只支持 120 Hz 直通的采集卡请保持 60 Hz。")
     readonly property string setupTip: quick.consoleTip + (quick.consoleId === "ps5" || quick.consoleId === "xbox" ? " " + quick.hz120Tip : "")
     readonly property string consoleTip: {
         switch (quick.consoleId) {

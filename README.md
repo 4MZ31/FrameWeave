@@ -232,7 +232,7 @@ pinned components in `PushFPS-<version>-components.txt`. In PowerShell: `Get-Fil
 | **Graphics card** | NVIDIA RTX 30 series (frame generation is experimental there) | NVIDIA RTX 40 or 50 series |
 | **Capture card** | Any card that shows up as a camera in Windows and sends 1080p at 60 FPS without compression, or [stream instead](#no-capture-card-stream-instead) | A card with 4K60 capture and passthrough |
 | **Connection** | USB 3 port directly on the PC (no hub) | USB 3.2 Gen 2 or a PCIe card |
-| **Console** | Any console with HDMI out | 60 Hz output, or 120 Hz if your capture card takes it |
+| **Console** | Any console with HDMI out | 60 Hz output, or 120 Hz if your capture card captures 120 Hz (passthrough doesn't count) |
 
 AMD Radeon cards can use FSR frame generation (2× only, so 60 FPS from a 30 FPS game). AI picture
 enhancement on Radeon and on RTX 30 cards is an optional experimental extra (see below).
@@ -698,9 +698,11 @@ For fast competitive games, use **Off** and play on the console's own display pa
 
 Ways to lower it:
 
-- **120 Hz output.** If your capture card takes 120 Hz (for example the Elgato 4K X, 4K S or HD60 X at 1080p or
+- **120 Hz output.** If your capture card captures 120 Hz (for example the Elgato 4K X, or the 4K S at 1080p or
   1440p), set the console to 120 Hz: each frame reaches the PC about 8 ms sooner, and 40 FPS games in a 120 Hz
-  mode work too (pick 40 as the game frame rate).
+  mode work too (pick 40 as the game frame rate). Passthrough doesn't count: a card that only passes 120 Hz
+  through to your TV (such as the HD60 X, which captures 60 Hz) needs a 60 Hz console output. This is the same
+  on every console, PS5 Pro included.
 - **NVIDIA low latency** in the quick setup on NVIDIA graphics.
 - **One graphics card for everything.** With two graphics cards, connect the monitor to the one PushFPS
   processes on; PushFPS warns when every frame has to be copied between cards.

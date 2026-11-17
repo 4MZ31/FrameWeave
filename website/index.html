@@ -137,7 +137,7 @@
       <li class="pipe-step">
         <div class="pipe-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="14" width="36" height="22" rx="7"/><circle cx="16" cy="25" r="3"/><path d="M30 22h6M33 19v6"/></svg></div>
         <h3>Console</h3>
-        <p>PS5, Xbox Series or Switch 2, set to 60&nbsp;Hz output.</p>
+        <p>PS5, Xbox Series or Switch 2, set to 60&nbsp;Hz output (120&nbsp;Hz if your capture card captures 120&nbsp;Hz).</p>
       </li>
       <li class="pipe-link" aria-hidden="true"><span>HDMI</span></li>
       <li class="pipe-step">
@@ -269,7 +269,7 @@
           <tr><th scope="row">Graphics card</th><td data-label="Minimum">Any DirectX 12 card for 2× with AMD FSR; NVIDIA RTX 30 for NVIDIA's methods</td><td data-label="Recommended">NVIDIA RTX 40 or 50 series</td></tr>
           <tr><th scope="row">Capture card</th><td data-label="Minimum">Shows up as a camera in Windows, 1080p at 60&nbsp;FPS without compression, or stream instead</td><td data-label="Recommended">4K60 capture with HDMI passthrough</td></tr>
           <tr><th scope="row">Connection</th><td data-label="Minimum">USB 3 port directly on the PC</td><td data-label="Recommended">USB 3.2 Gen 2 or a PCIe card</td></tr>
-          <tr><th scope="row">Console</th><td data-label="Minimum">Any console with HDMI out</td><td data-label="Recommended">60&nbsp;Hz output, or 120&nbsp;Hz if your capture card takes it</td></tr>
+          <tr><th scope="row">Console</th><td data-label="Minimum">Any console with HDMI out</td><td data-label="Recommended">60&nbsp;Hz output, or 120&nbsp;Hz if your capture card captures 120&nbsp;Hz (<a href="#guide-hz">60 or 120&nbsp;Hz?</a>)</td></tr>
         </tbody>
       </table>
     </div>
@@ -332,7 +332,7 @@
           <tr><th scope="row">Smeared HUD or text in fast motion</th><td data-label="Try">Live HUD Lock on, the game preset or Automatic HUD detection, or a lower target (60 instead of 120)</td></tr>
           <tr><th scope="row">Wobbly edges in fast motion</th><td data-label="Try">A lower target, or a higher frame generation quality in Pro mode</td></tr>
           <tr><th scope="row">Stutter or uneven motion</th><td data-label="Try">Smooth frame pacing on, G-SYNC/FreeSync on in your driver, capture card at exactly 60&nbsp;FPS, fullscreen (F11)</td></tr>
-          <tr><th scope="row">The game feels slow to react</th><td data-label="Try">Lowest latency on, 120&nbsp;Hz console output if your card takes it, or target Off for competitive games</td></tr>
+          <tr><th scope="row">The game feels slow to react</th><td data-label="Try">Lowest latency on, 120&nbsp;Hz console output if your card captures 120&nbsp;Hz, or target Off for competitive games</td></tr>
           <tr><th scope="row">Soft or blocky picture</th><td data-label="Try">AI picture enhancement on (RTX 40/50), or NVIDIA Image Scaling sharpening in Pro mode</td></tr>
           <tr><th scope="row">Frame rate drops with AI enhancement</th><td data-label="Try">AI enhancement off, or a lower target</td></tr>
           <tr><th scope="row">Washed-out or too dark picture</th><td data-label="Try">Match the capture dialog's colour settings to the console: HDR or SDR, Limited or Full range</td></tr>
@@ -341,7 +341,19 @@
     </div>
 
     <h3 class="sub-h">3. Console settings</h3>
-    <p class="guide-note">For every console: output <b>60&nbsp;Hz</b> (120&nbsp;Hz only if your capture card captures 120&nbsp;Hz at that resolution), <b>VRR off</b> (capture needs a steady signal), and the resolution your card captures at 60&nbsp;FPS. A 30&nbsp;FPS quality mode gives the sharpest picture; a 60&nbsp;FPS mode gives less delay.</p>
+    <p class="guide-note">For every console: <b>VRR off</b> (capture needs a steady signal), and the resolution your card captures at 60&nbsp;FPS. A 30&nbsp;FPS quality mode gives the sharpest picture; a 60&nbsp;FPS mode gives less delay.</p>
+    <h4 class="guide-h4" id="guide-hz">60 or 120&nbsp;Hz? It depends on your capture card, not your console</h4>
+    <div class="table-wrap">
+      <table class="spec hz">
+        <thead><tr><th scope="col">Your capture card</th><th scope="col">Console output</th><th scope="col">Why</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Captures 120&nbsp;Hz at your resolution<br><small>e.g. Elgato 4K X; Elgato 4K S at 1080p or 1440p</small></th><td data-label="Console output"><b>120&nbsp;Hz</b></td><td data-label="Why">Each frame reaches the PC about 8&nbsp;ms sooner, and 40&nbsp;FPS modes (which need 120&nbsp;Hz) work.</td></tr>
+          <tr><th scope="row">Captures 60&nbsp;Hz<br><small>most cards, many cards at 4K, and cards that only pass 120&nbsp;Hz through to your TV, like the Elgato HD60 X</small></th><td data-label="Console output"><b>60&nbsp;Hz</b></td><td data-label="Why">The card can't capture more. With passthrough, the console may still pick 120&nbsp;Hz from your TV: you then get a black picture or stutter.</td></tr>
+          <tr><th scope="row">Not sure</th><td data-label="Console output"><b>60&nbsp;Hz</b> first</td><td data-label="Why">Then try 120&nbsp;Hz and check the picture stays steady. Check your card's <b>capture</b> rates; passthrough rates don't count.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="guide-note">This is the same on PS5, PS5 Pro, Xbox Series X|S and Switch 2. A 120&nbsp;Hz signal doesn't make the game run faster: a 30&nbsp;FPS game stays 30&nbsp;FPS, so the game frame rate in PushFPS stays 30.</p>
     <div class="console-tabs">
       <div class="ctabs" role="tablist" aria-label="Console">
         <button role="tab" id="ct-ps5" aria-controls="cp-ps5" aria-selected="true">PS5 and PS5 Pro</button>
@@ -352,7 +364,7 @@
         <ul class="setlist">
           <li><span>System → HDMI → <b>Enable HDCP</b></span><span class="chip off">Off</span><small>Required: with HDCP on the capture card shows black</small></li>
           <li><span>Screen and Video → Video Output → <b>Resolution</b></span><span class="chip">Match your card</span></li>
-          <li><span><b>120 Hz Output</b></span><span class="chip">Off / Automatic</span><small>Automatic only with a 120&nbsp;Hz capture card (4K X, 4K S, HD60 X at 1080p or 1440p)</small></li>
+          <li><span><b>120 Hz Output</b></span><span class="chip">Off / Automatic</span><small>Automatic only if your card captures 120&nbsp;Hz (<a href="#guide-hz">which cards</a>); otherwise Off</small></li>
           <li><span><b>VRR</b></span><span class="chip off">Off</span></li>
           <li><span><b>HDR</b></span><span class="chip">See HDR below</span></li>
           <li><span><b>RGB Range</b></span><span class="chip">Automatic</span><small>Match it in PushFPS's capture dialog</small></li>
@@ -361,7 +373,7 @@
       <div class="cpanel" role="tabpanel" id="cp-xbox" aria-labelledby="ct-xbox" hidden>
         <ul class="setlist">
           <li><span>General → TV &amp; display options → <b>Resolution</b></span><span class="chip">Match your card</span></li>
-          <li><span><b>Refresh rate</b></span><span class="chip">60 Hz</span><small>120&nbsp;Hz only with a 120&nbsp;Hz capture card</small></li>
+          <li><span><b>Refresh rate</b></span><span class="chip">60 Hz</span><small>120&nbsp;Hz only if your card captures 120&nbsp;Hz (<a href="#guide-hz">which cards</a>)</small></li>
           <li><span>Video modes → <b>Allow variable refresh rate</b></span><span class="chip off">Off</span></li>
           <li><span>Video modes → <b>Allow 24 Hz</b></span><span class="chip off">Off</span></li>
           <li><span><b>HDR10</b> and <b>Auto HDR</b></span><span class="chip">See HDR below</span></li>
@@ -441,7 +453,7 @@
     <ol class="steps">
       <li><h3>Download and extract</h3><p>Get <code>PushFPS-…-win64.zip</code> from the latest release and extract it anywhere.</p></li>
       <li><h3>Run the installer</h3><p>Double-click <code>Install-PushFPS.cmd</code>. It downloads Veyra's runtime package from Veyra's own GitHub release, checks it, and installs PushFPS to your user folder with Start menu and desktop shortcuts.</p></li>
-      <li><h3>Connect your console</h3><p>Console HDMI into the capture card, the card into your PC. Set the console to 60&nbsp;Hz. On PlayStation, turn off <em>Enable HDCP</em> in Settings, System, HDMI, or the picture stays black.</p></li>
+      <li><h3>Connect your console</h3><p>Console HDMI into the capture card, the card into your PC. Set the console to 60&nbsp;Hz, or 120&nbsp;Hz if your card captures 120&nbsp;Hz. On PlayStation, turn off <em>Enable HDCP</em> in Settings, System, HDMI, or the picture stays black.</p></li>
       <li><h3>Pick your frame rate</h3><p>Open PushFPS, click <b>Connect</b> on the capture card and fill in the quick setup, or let <b>Optimise for my PC</b> do it. Press F11 for fullscreen.</p></li>
     </ol>
     <div class="note">
@@ -458,7 +470,7 @@
     <div class="faq">
       <details><summary>Is PushFPS really free?</summary><p>Yes. It's free and open source under the GPL-3.0, like Veyra. There are no accounts, ads or paid tiers.</p></details>
       <details><summary>Does it change my console or the game?</summary><p>No. PushFPS only processes the video coming out of the capture card. Nothing is installed on the console and the game isn't touched.</p></details>
-      <details><summary>Does it add input lag?</summary><p>A little. To place a frame between two real frames, PushFPS waits for the second one: up to one game frame, about 33&nbsp;ms at 30&nbsp;FPS, on top of your capture card's own delay. Motion looks smoother, but the game doesn't react faster. Turn on <em>Lowest latency</em> for every setting that cuts delay without costing picture quality, and <em>Show latency on screen</em> to see PushFPS's part measured, and use <em>Measure total delay</em> for the whole chain. If your capture card takes 120&nbsp;Hz, a 120&nbsp;Hz console output gets each frame to the PC about 8&nbsp;ms sooner.</p></details>
+      <details><summary>Does it add input lag?</summary><p>A little. To place a frame between two real frames, PushFPS waits for the second one: up to one game frame, about 33&nbsp;ms at 30&nbsp;FPS, on top of your capture card's own delay. Motion looks smoother, but the game doesn't react faster. Turn on <em>Lowest latency</em> for every setting that cuts delay without costing picture quality, and <em>Show latency on screen</em> to see PushFPS's part measured, and use <em>Measure total delay</em> for the whole chain. If your capture card captures 120&nbsp;Hz (passthrough doesn't count), a 120&nbsp;Hz console output gets each frame to the PC about 8&nbsp;ms sooner.</p></details>
       <details><summary>Do I need an NVIDIA card?</summary><p>No. AMD FSR frame generation runs on any DirectX 12 card, and ANR by Apex Compute supports GTX 16 and newer, Radeon RX 5000 and newer and Intel Arc. AMD cards also get AMD FRC through the AMD driver. NVIDIA RTX 40 and 50 cards get the most options, including up to 8× frame generation and AI picture enhancement.</p></details>
       <details><summary>Which capture cards work?</summary><p>Any card that Windows shows as a camera and that sends 1080p at 60&nbsp;FPS without compression. The Elgato 4K X, HD60 X and 4K S are tested. The app shows each card's status and has a report form for untested cards.</p></details>
       <details><summary>Can I use it without a capture card?</summary><p>Yes. PS5 streaming (Remote Play over your home network), PC streaming from a Sunshine host and Xbox streaming are built in. A capture card still gives the sharpest picture and the lowest delay.</p></details>

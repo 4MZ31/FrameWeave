@@ -69,7 +69,7 @@ Change one thing at a time, play a minute, then decide.
   Stutter or uneven motion                    Smooth frame pacing on, G-SYNC/FreeSync on in your driver,
                                               capture card set to exactly 60 FPS, fullscreen (F11)
   The game feels slow to react                Lowest latency on, 120 Hz console output (if your capture
-                                              card takes it), or Target "Off" for competitive games
+                                              card captures 120 Hz), or Target "Off" for competitive games
   Soft or blocky picture                      AI picture enhancement on (RTX 40/50), or NVIDIA Image
                                               Scaling sharpening in Pro mode
   Frame rate drops with AI enhancement on     AI enhancement off, or a lower target
@@ -87,17 +87,31 @@ picture". Want the lowest delay? Goal "Lowest latency" plus the Lowest latency s
 All consoles
   - Connect the console's HDMI out to the capture card's input, and the card to a USB 3 port directly
     on the PC (or a PCIe slot).
-  - Output 60 Hz. Use 120 Hz only if your capture card captures 120 Hz at that resolution (for example
-    Elgato 4K X, 4K S or HD60 X at 1080p or 1440p): each frame then arrives about 8 ms sooner.
+  - Output 60 Hz or 120 Hz: this depends on your capture card, not on your console (see below).
   - Variable refresh rate (VRR) OFF on the console. Capture needs a steady 60 or 120 Hz signal.
   - Resolution: what your capture card captures at 60 FPS (4K if it does 4K60, otherwise 1080p or 1440p).
   - In-game: a mode locked to 30 FPS gives the sharpest picture, and PushFPS adds the smoothness.
     A 60 FPS performance mode gives less delay.
 
+60 or 120 Hz? It depends on your capture card (same on PS5, PS5 Pro, Xbox Series X|S, Switch 2)
+  Your capture card                                   Console output   Why
+  Captures 120 Hz at your resolution                  120 Hz           Each frame reaches the PC about
+    (e.g. Elgato 4K X; Elgato 4K S at 1080p/1440p)                     8 ms sooner; 40 FPS modes work
+  Captures 60 Hz (most cards, many cards at 4K, and   60 Hz            The card can't capture more
+    cards that only pass 120 Hz through to your TV,
+    like the Elgato HD60 X)
+  Not sure                                            60 Hz first      Then try 120 Hz and check the
+                                                                       picture stays steady
+  - Look at your card's capture rates, not its passthrough rates. With passthrough, the console may
+    still pick 120 Hz from your TV even though the card can't capture it: you then get a black
+    picture or stutter. Set 60 Hz by hand in that case.
+  - 120 Hz doesn't make the game run faster: a 30 FPS game stays 30 FPS, so the game frame rate in
+    PushFPS stays 30.
+
 PlayStation 5 and PS5 Pro
   - Settings > System > HDMI > Enable HDCP: OFF (required, otherwise the capture card shows black).
   - Settings > Screen and Video > Video Output > Resolution: match your capture card.
-  - 120 Hz Output: Automatic only if your capture card captures 120 Hz; otherwise Off.
+  - 120 Hz Output: Automatic only if your capture card captures 120 Hz (see above); otherwise Off.
   - VRR: Off.
   - HDR: see section 5. "On When Supported" for HDR play, "Off" for streaming and SDR clips.
   - RGB range: Automatic, and match it in PushFPS's capture dialog (Limited or Full).
@@ -105,7 +119,7 @@ PlayStation 5 and PS5 Pro
 Xbox Series X|S
   - Settings > General > TV & display options:
       Resolution: match your capture card.
-      Refresh rate: 60 Hz (120 Hz only if your capture card captures 120 Hz).
+      Refresh rate: 60 Hz (120 Hz only if your capture card captures 120 Hz, see above).
   - Video modes: Allow variable refresh rate OFF, Allow 24 Hz OFF. HDR10 and Auto HDR: see section 5.
   - Xbox games are not HDCP protected, so nothing else is needed.
 
@@ -179,7 +193,7 @@ Tips
 ------------------
 
   [ ] HDCP off (PlayStation)
-  [ ] Console at 60 Hz (120 Hz only with a 120 Hz capture card), VRR off
+  [ ] Console at 60 Hz (120 Hz only if your capture card captures 120 Hz), VRR off
   [ ] Capture card on a USB 3 port directly on the PC, set to exactly 60 FPS (or 120)
   [ ] Quick setup: console, game frame rate 30, target from the monitor table (60 or 120), game preset
   [ ] Smooth frame pacing, Frame Pacing Repair and Live HUD Lock on

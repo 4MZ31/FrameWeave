@@ -53196,23 +53196,6 @@
    "ru": "Переходит в полноэкранный режим, когда появляется картинка с карты захвата или трансляции; F11 или Esc для выхода"
   },
   {
-   "zh": "采集卡支持 120 Hz 时（如 1080p/1440p 下的 4K X、4K S、HD60 X），也可输出 120 Hz：每帧早约 8 毫秒到达，40 FPS 的 120 Hz 模式也能使用。",
-   "src": "qml/PushQuickSetup.qml",
-   "zh-TW": "擷取卡支援 120 Hz 時（如 1080p/1440p 下的 4K X、4K S、HD60 X），也可輸出 120 Hz：每幀早約 8 毫秒到達，40 FPS 的 120 Hz 模式也能使用。",
-   "en": "If your capture card takes 120 Hz (such as the 4K X, 4K S or HD60 X at 1080p/1440p), you can also output 120 Hz: each frame arrives about 8 ms sooner, and 40 FPS 120 Hz modes work too.",
-   "ja": "キャプチャーボードが 120 Hz に対応していれば（1080p/1440p の 4K X、4K S、HD60 X など）、120 Hz 出力も使えます。各フレームが約 8 ms 早く届き、40 FPS の 120 Hz モードも使えます。",
-   "nl": "Ondersteunt je capturekaart 120 Hz (zoals de 4K X, 4K S of HD60 X op 1080p/1440p), dan kun je ook 120 Hz uitvoeren: elk beeld komt ongeveer 8 ms eerder aan en 40 FPS-modi op 120 Hz werken ook.",
-   "de": "Unterstützt deine Capture-Karte 120 Hz (etwa 4K X, 4K S oder HD60 X bei 1080p/1440p), kannst du auch 120 Hz ausgeben: Jedes Bild kommt etwa 8 ms früher an, und 40-FPS-Modi mit 120 Hz funktionieren ebenfalls.",
-   "es": "Si tu capturadora admite 120 Hz (como la 4K X, 4K S o HD60 X a 1080p/1440p), también puedes enviar 120 Hz: cada fotograma llega unos 8 ms antes y los modos de 40 FPS a 120 Hz también funcionan.",
-   "fr": "Si votre carte d'acquisition accepte le 120 Hz (comme la 4K X, la 4K S ou la HD60 X en 1080p/1440p), vous pouvez aussi sortir en 120 Hz : chaque image arrive environ 8 ms plus tôt, et les modes 40 FPS en 120 Hz fonctionnent aussi.",
-   "it": "Se la tua scheda di acquisizione supporta i 120 Hz (come 4K X, 4K S o HD60 X a 1080p/1440p), puoi uscire anche a 120 Hz: ogni fotogramma arriva circa 8 ms prima e funzionano anche le modalità a 40 FPS a 120 Hz.",
-   "pt-BR": "Se a sua placa de captura aceita 120 Hz (como a 4K X, 4K S ou HD60 X em 1080p/1440p), você também pode usar saída de 120 Hz: cada quadro chega cerca de 8 ms antes, e os modos de 40 FPS em 120 Hz também funcionam.",
-   "tr": "Yakalama kartınız 120 Hz destekliyorsa (1080p/1440p'de 4K X, 4K S veya HD60 X gibi), 120 Hz çıkış da kullanabilirsiniz: her kare yaklaşık 8 ms daha erken gelir ve 120 Hz'deki 40 FPS modları da çalışır.",
-   "ar": "إذا كانت بطاقة الالتقاط تدعم 120 هرتز (مثل 4K X أو 4K S أو HD60 X بدقة 1080p/1440p)، يمكنك الإخراج بتردد 120 هرتز أيضًا: يصل كل إطار أبكر بنحو 8 ملي ثانية، وتعمل أوضاع 40 إطارًا بتردد 120 هرتز أيضًا.",
-   "pl": "Jeśli Twoja karta przechwytująca obsługuje 120 Hz (np. 4K X, 4K S lub HD60 X w 1080p/1440p), możesz też ustawić wyjście 120 Hz: każda klatka dociera o około 8 ms wcześniej, a tryby 40 FPS przy 120 Hz też działają.",
-   "ru": "Если карта захвата поддерживает 120 Гц (например, 4K X, 4K S или HD60 X в 1080p/1440p), можно выводить и 120 Гц: каждый кадр приходит примерно на 8 мс раньше, и режимы 40 FPS при 120 Гц тоже работают."
-  },
-  {
    "zh": "采集卡收到 64 行就开始传，整帧更早到达（官方：1080p60 约省 5 ms，4K60 约省 15 ms）。开关后点「连接」重新连接生效",
    "src": "qml/CaptureSourceDialog.qml",
    "zh-TW": "擷取卡收到 64 行就開始傳，整幀更早到達（官方：1080p60 約省 5 ms，4K60 約省 15 ms）。開關後點「連接」重新連接生效",
@@ -53279,6 +53262,23 @@
    "ar": "يُشغَّل صوت بطاقة الالتقاط بتأخير الصورة نفسه ليبقى متزامنًا",
    "pl": "Dźwięk karty jest opóźniany razem z obrazem, więc pozostaje zsynchronizowany",
    "ru": "Звук карты захвата задерживается вместе с изображением и остаётся синхронным"
+  },
+  {
+   "zh": "采集卡能以 120 Hz 采集时（如 4K X，或 1080p/1440p 下的 4K S），也可输出 120 Hz：每帧早约 8 毫秒到达，40 FPS 的 120 Hz 模式也能使用。只支持 120 Hz 直通的采集卡请保持 60 Hz。",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "擷取卡能以 120 Hz 擷取時（如 4K X，或 1080p/1440p 下的 4K S），也可輸出 120 Hz：每幀早約 8 毫秒到達，40 FPS 的 120 Hz 模式也能使用。只支援 120 Hz 直通的擷取卡請保持 60 Hz。",
+   "en": "If your capture card captures 120 Hz (such as the 4K X, or the 4K S at 1080p/1440p), you can also output 120 Hz: each frame arrives about 8 ms sooner, and 40 FPS 120 Hz modes work too. If your card only passes 120 Hz through to your TV, keep 60 Hz.",
+   "ja": "キャプチャーボードが 120 Hz でキャプチャーできれば（4K X、または 1080p/1440p の 4K S など）、120 Hz 出力も使えます。各フレームが約 8 ms 早く届き、40 FPS の 120 Hz モードも使えます。120 Hz がパススルーのみのボードは 60 Hz のままにしてください。",
+   "nl": "Kan je capturekaart 120 Hz opnemen (zoals de 4K X, of de 4K S op 1080p/1440p), dan kun je ook 120 Hz uitvoeren: elk beeld komt ongeveer 8 ms eerder aan en 40 FPS-modi op 120 Hz werken ook. Geeft je kaart 120 Hz alleen door aan je tv, houd dan 60 Hz aan.",
+   "de": "Kann deine Capture-Karte 120 Hz aufnehmen (etwa die 4K X oder die 4K S bei 1080p/1440p), kannst du auch 120 Hz ausgeben: Jedes Bild kommt etwa 8 ms früher an, und 40-FPS-Modi mit 120 Hz funktionieren ebenfalls. Reicht deine Karte 120 Hz nur an den Fernseher durch, bleib bei 60 Hz.",
+   "es": "Si tu capturadora captura a 120 Hz (como la 4K X, o la 4K S a 1080p/1440p), también puedes enviar 120 Hz: cada fotograma llega unos 8 ms antes y los modos de 40 FPS a 120 Hz también funcionan. Si tu capturadora solo pasa los 120 Hz a la tele, deja 60 Hz.",
+   "fr": "Si votre carte d'acquisition capture en 120 Hz (comme la 4K X, ou la 4K S en 1080p/1440p), vous pouvez aussi sortir en 120 Hz : chaque image arrive environ 8 ms plus tôt, et les modes 40 FPS en 120 Hz fonctionnent aussi. Si votre carte ne fait que transmettre le 120 Hz à la TV, restez en 60 Hz.",
+   "it": "Se la tua scheda di acquisizione cattura a 120 Hz (come la 4K X, o la 4K S a 1080p/1440p), puoi uscire anche a 120 Hz: ogni fotogramma arriva circa 8 ms prima e funzionano anche le modalità a 40 FPS a 120 Hz. Se la scheda passa i 120 Hz solo alla TV, resta a 60 Hz.",
+   "pt-BR": "Se a sua placa de captura captura em 120 Hz (como a 4K X, ou a 4K S em 1080p/1440p), você também pode usar saída de 120 Hz: cada quadro chega cerca de 8 ms antes, e os modos de 40 FPS em 120 Hz também funcionam. Se a placa só repassa 120 Hz para a TV, mantenha 60 Hz.",
+   "tr": "Yakalama kartınız 120 Hz'de yakalayabiliyorsa (4K X veya 1080p/1440p'de 4K S gibi), 120 Hz çıkış da kullanabilirsiniz: her kare yaklaşık 8 ms daha erken gelir ve 120 Hz'deki 40 FPS modları da çalışır. Kartınız 120 Hz'i yalnızca TV'ye aktarıyorsa 60 Hz'de kalın.",
+   "ar": "إذا كانت بطاقة الالتقاط تلتقط بتردد 120 هرتز (مثل 4K X، أو 4K S بدقة 1080p/1440p)، يمكنك الإخراج بتردد 120 هرتز أيضًا: يصل كل إطار أبكر بنحو 8 ملي ثانية، وتعمل أوضاع 40 إطارًا بتردد 120 هرتز أيضًا. إذا كانت البطاقة تمرّر 120 هرتز إلى التلفاز فقط، فابقَ على 60 هرتز.",
+   "pl": "Jeśli Twoja karta przechwytująca nagrywa 120 Hz (np. 4K X albo 4K S w 1080p/1440p), możesz też ustawić wyjście 120 Hz: każda klatka dociera o około 8 ms wcześniej, a tryby 40 FPS przy 120 Hz też działają. Jeśli karta tylko przekazuje 120 Hz do telewizora, zostań przy 60 Hz.",
+   "ru": "Если карта захвата записывает 120 Гц (например, 4K X или 4K S в 1080p/1440p), можно выводить и 120 Гц: каждый кадр приходит примерно на 8 мс раньше, и режимы 40 FPS при 120 Гц тоже работают. Если карта только передаёт 120 Гц на телевизор, оставьте 60 Гц."
   },
   {
    "zh": "采集卡设置",
