@@ -24,18 +24,7 @@ Nothing changes on the console or in the game: you need a capture card and a gra
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-89F52A?style=flat-square)](LICENSE)
 [![Built on Veyra](https://img.shields.io/badge/built%20on-Veyra%20by%20Likely7-89F52A?style=flat-square)](https://github.com/Likely7/Veyra-NRVideo)
 
-<table>
-  <tr>
-    <td align="center" width="300">
-      <a href="https://github.com/Likely7/Veyra-NRVideo"><img src="assets/credits/veyra-logo.png" alt="Veyra" height="72"></a><br>
-      <sub>Built on <a href="https://github.com/Likely7/Veyra-NRVideo"><b>Veyra</b></a> by <a href="https://github.com/Likely7">Likely7</a></sub>
-    </td>
-    <td align="center" width="300">
-      <a href="https://github.com/apex-compute/ANR"><b>Apex Neural Rendering (ANR)</b></a><br>
-      <sub>ANR frame generation by <a href="https://github.com/apex-compute/ANR"><b>Apex Neural Rendering</b></a> from <a href="https://apexcompute.com">Apex Compute</a></sub>
-    </td>
-  </tr>
-</table>
+<sub>Built on <a href="https://github.com/Likely7/Veyra-NRVideo">Veyra</a> by Likely7 · ANR frame generation by <a href="https://apexcompute.com">Apex Compute</a></sub>
 
 <br>
 
