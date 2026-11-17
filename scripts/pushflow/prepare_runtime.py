@@ -243,13 +243,30 @@ def rebuild_scaled(img0, img1, grid0, grid1, mask, align, mask_for_first, model_
     return out[0] * m + out[1] * (1 - m) if mask_for_first else out[0] * (1 - m) + out[1] * m
 
 
+def pad_multiple(session, name, channels) -> int:
+    """The block size the model pads to inside (its grids have the padded size): PushFlow pads to it itself."""
+    import numpy as np
+    import rife_graph
+    seen = []
+    for w, h in ((256, 192), (320, 200), (448, 320)):
+        z = np.zeros((3, h, w), np.float32)
+        g = rife_graph.to_hw2(session.run(None, {name: tensor(z, z, 0.5, channels)})[1])
+        seen.append((w, h, g.shape[1], g.shape[0]))
+    for m in (8, 16, 32, 64, 128, 256):
+        if all(-(-w // m) * m == gw and -(-h // m) * m == gh for w, h, gw, gh in seen):
+            print(f"internal padding to multiples of {m}: {seen}")
+            return m
+    sys.exit(f"::error::cannot work out the model's padding from {seen}")
+
+
 def check_exposed(path: Path, channels: int, align: int) -> dict:
     import numpy as np
     import onnxruntime as ort
     import rife_graph
     session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
     name = session.get_inputs()[0].name
-    w, h = 256, 192
+    pad = pad_multiple(session, name, channels)
+    w, h = 256, 256
     first, second = frame(w, h, 100), frame(w, h, 116)
     rgb, g0, g1, m = session.run(None, {name: tensor(first, second, 0.5, channels)})[:4]
     a = rife_graph.reconstruct(first, second, g0, g1, m, align, True)
@@ -257,7 +274,8 @@ def check_exposed(path: Path, channels: int, align: int) -> dict:
     pa, pb = rife_graph.psnr(a, rgb[0]), rife_graph.psnr(b, rgb[0])
     first_mask = pa >= pb
     # Fast tier: the network at half size, rebuilt at full size versus the half-size picture enlarged.
-    W, H = 512, 384
+    # Full size twice a padded half size, so both the half-size network input and the full frames fit.
+    H, W = 2 * (-(-192 // pad) * pad), 2 * (-(-256 // pad) * pad)
     f0, f1, gt = detail_frame(W, H, 0), detail_frame(W, H, 12), detail_frame(W, H, 6)
     s0, s1 = resize_box(f0, 2), resize_box(f1, 2)
     srgb, sg0, sg1, sm = session.run(None, {name: tensor(s0, s1, 0.5, channels)})[:4]
@@ -267,7 +285,7 @@ def check_exposed(path: Path, channels: int, align: int) -> dict:
     full = session.run(None, {name: tensor(f0, f1, 0.5, channels)})[0][0]
     fast = {"old_enlarged_db": round(rife_graph.psnr(old, gt), 2), "full_res_rebuild_db": round(rife_graph.psnr(new, gt), 2),
             "full_size_network_db": round(rife_graph.psnr(full, gt), 2), "blend_db": round(rife_graph.psnr((f0 + f1) / 2, gt), 2)}
-    return {"rebuild_db": round(max(pa, pb), 2), "mask_for_first": bool(first_mask), "fast_detail": fast, "output": rgb[0]}
+    return {"rebuild_db": round(max(pa, pb), 2), "mask_for_first": bool(first_mask), "fast_detail": fast, "pad": pad, "output": rgb[0]}
 
 
 def main() -> None:
@@ -372,7 +390,7 @@ def main() -> None:
             sys.exit(f"::error::rebuilding from grids and mask does not reproduce {c['path'].name} ({verdict['rebuild_db']} dB)")
         entry = {"file": target.name, "from": c["path"].name, "version": "%d.%d" % c["version"], "lite": c["lite"],
                  "channels": c["channels"], "precision": "fp32", "sha256": sha256(target), "opset": [o.version for o in base.opset_import],
-                 "align_corners": info["align_corners"], "padding_mode": info["padding_mode"], "mask_for_first": verdict["mask_for_first"],
+                 "align_corners": info["align_corners"], "padding_mode": info["padding_mode"], "mask_for_first": verdict["mask_for_first"], "pad": verdict["pad"],
                  "cpu_check_db": {k: c["check"][k] for k in ("identical_db", "moving_db", "blend_db")},
                  "rebuild_db": verdict["rebuild_db"], "fast_detail": verdict["fast_detail"]}
         try:
@@ -390,6 +408,9 @@ def main() -> None:
                 half_path.unlink()
         except Exception as e:  # noqa: BLE001 - no fp16 copy; fp32 stays the only model
             print(f"fp16 {role} skipped: {e}")
+        # Facts the native backend needs to rebuild the picture (PushFlowBackend.cpp readFacts).
+        (runtime / "models" / f"pushflow-{role}.onnx.txt").write_text(
+            f"align_corners={info['align_corners']}\nmask_for_first={1 if verdict['mask_for_first'] else 0}\npad={verdict['pad']}\n", encoding="ascii")
         record["models"][role] = entry
     (runtime / "models.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(record, indent=2))
