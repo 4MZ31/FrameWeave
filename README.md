@@ -102,10 +102,11 @@ everything Veyra does, PushFPS adds what console players need:
 | Feature | What it does |
 |---|---|
 | **Optimise for my PC** | Tests every frame generation method your PC has, AI enhancement and the upscalers on your real game picture, measures frame rate, 1% low, latency and jitter, and keeps the best combination for your goal (balanced, lowest latency, smoothest or best picture), up to 144 or 240 Hz |
-| **Streaming mode** | An OBS-style page: preview, PushFPS features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards) with webcam, window and video sources and cut or fade transitions, go live and record controls, an audio mixer for game sound, microphone, desktop audio, an extra input and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
+| **Streaming mode** | An OBS-style page: preview, PushFPS features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards) with webcam, window and video sources and cut or fade transitions, a layout editor (move, resize and crop the game picture and every source), go live and record controls, an audio mixer for game sound, microphone, desktop audio, an extra input and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
 | **Video playback mode** | Frame generation, super resolution, AI enhancement and SDR to HDR on any video on your PC: a browser window with YouTube, a video app, a screen or a file |
 | **Lowest latency in one tap** | Every latency setting that costs no picture quality, switched on together; off restores your previous settings |
-| **Go live** | Stream the boosted picture straight to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or any RTMP server, to several platforms at once from one encode. Stream keys are stored encrypted |
+| **Go live** | Stream the boosted picture straight to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or any RTMP server, to several platforms at once from one encode, at its own resolution (vertical for TikTok LIVE). Stream keys are stored encrypted |
+| **Output presets** | Platform settings per resolution and frame rate for going live (Twitch, YouTube, Kick, Facebook, TikTok LIVE, Trovo) and for uploads (YouTube SDR and HDR, Shorts, TikTok, Instagram Reels, X, editing). Every value stays editable |
 | **Frame Pacing Repair** | Evens out the uneven frame timing many 30 FPS console games have before frames are generated |
 | **Live HUD Lock** | Finds still text, crosshairs and bars on every frame and keeps them sharp in generated frames, no boxes needed |
 | **Adaptive multiplier** | Follows the game when its frame rate drops, so the output stays even |
@@ -495,6 +496,17 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
   quality with a 1–51 level), encoder preset 1–7, keyframe interval, audio bitrate and MP4 or MKV, like OBS's
   output settings. Off, recordings use the standard settings. If the graphics card can't use a combination,
   the recording falls back to the standard settings and says so.
+- **Upload presets** (*Settings, Playback*): YouTube (2160p to 720p, 30 or 60 FPS, and HDR), YouTube Shorts,
+  TikTok, Instagram Reels (1080 × 1920), X and two for editing (the picture's own size at constant quality).
+  A preset fills in resolution, frame rate, bitrate, codec, encoder preset, keyframes and audio; change any of
+  them afterwards and the setting shows *modified*. Bitrates follow YouTube's upload recommendations; TikTok,
+  Reels and X publish no exact bitrate, so those use the commonly recommended 8–15 Mbps within their limits.
+- **Output resolution**: recordings have their own size (the picture's, 4K, 1440p, 1080p, 720p, vertical
+  1080 × 1920, 4:5 or square), separate from the stream. **Fit** keeps the whole picture with bars, **Fill**
+  crops the edges, **Stretch** distorts.
+- **Split files** every 30, 60 or 120 minutes during long recordings, without stopping.
+- **Encoders**: NVENC on NVIDIA; on AMD and Intel the card's own hardware encoder through Windows Media
+  Foundation. Both do H.264 and HEVC; HDR recordings need NVIDIA (HEVC 10-bit).
 - **Standard settings**: about 37 Mbps for 1080p at 60 FPS, 66 Mbps at 1440p and 150 Mbps at 4K (H.264,
   less with HEVC), with room for fast motion. Pick a fixed bitrate under *Settings, Playback* for smaller files.
 - **Works in video editors**: a finished MP4 recording is rewritten as a standard MP4 (no re-encoding), so it
@@ -527,6 +539,11 @@ features built in:
   square, rounded or round (cameras can be mirrored). Sources run while streaming mode is on screen or a
   recording or stream is going, so your camera is not on while you just play. A minimised window has no
   picture; video files play without their sound.
+- **Layout editor** (*Layout*): the output picture with the game and every source on it. Drag to move, drag a
+  corner to resize: sizes keep their proportions, hold **Ctrl** to stretch freely. Edges and the middle snap,
+  the arrow keys nudge (Shift for bigger steps), each item can be cropped on every side, the game picture can
+  be shrunk into a box on a background colour, and **Ctrl+Z** / **Ctrl+Y** undo and redo. Switch between the
+  stream's and the recording's shape to check both; changes apply at once while you are live or recording.
 - **Transitions** between scenes: *Cut*, *Fade* or *Slow fade*.
 - **Microphone filters** (the sliders button on the microphone): rumble filter, 5-band equaliser with voice
   presets, noise gate and compressor, then a -1 dB limiter that is always on.
@@ -552,9 +569,14 @@ included, straight from PushFPS. No OBS needed.
 - **Several platforms at once.** Add up to eight outputs (Twitch, YouTube, Kick, TikTok, Facebook Live, Trovo or
   any RTMP/RTMPS server) and switch on the ones you want. One encode feeds them all, so streaming to three
   platforms costs no more graphics card time than one; each platform gets its own upload.
-- **OBS's settings.** Server lists and recommended limits come from OBS Studio's service list. The bitrate
-  follows the strictest platform you stream to (Twitch 6 Mbps, Kick 8 Mbps), at 30 or 60 FPS, H.264 with
-  constant bitrate and a keyframe every 2 seconds, as the platforms ask.
+- **Platform presets.** Pick Twitch, YouTube, Kick, Facebook, TikTok LIVE or Trovo at the resolution and frame
+  rate you want, and the stream's size, bitrate, keyframe interval and audio are set from that platform's own
+  guidelines (for example Twitch 1080p60 at 6 Mbps, YouTube 1080p60 at 17 Mbps, TikTok LIVE 1080 × 1920).
+  Everything stays adjustable: resolution (the picture's, 4K to 720p, or vertical), fit, bitrate from 1 to
+  51 Mbps, 30 or 60 FPS, keyframe every 1–4 seconds, audio 96–320 kbps and the encoder preset.
+- **OBS's settings.** Server lists and limits come from OBS Studio's service list. The bitrate never goes above
+  the strictest platform you stream to (Twitch 6 Mbps, Kick 8 Mbps); streams are H.264 with constant bitrate,
+  as the platforms ask.
 - **Stream keys stay private.** A key is encrypted for your Windows user (DPAPI), never shown again, never
   written to logs, and only sent to the server it belongs to.
 - **Keeps going.** Each output reconnects by itself when the connection drops; the others keep streaming. The
