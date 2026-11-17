@@ -32,6 +32,16 @@ Item {
             control("watch-stop").clicked()
             verify(!veyra.hasSource)
         }
+        // Frame generation already on (e.g. from a console) without duplicate removal: starting a
+        // video switches it to Auto, or generated frames would sit between identical pictures.
+        function test_start_turns_on_duplicate_removal_for_video() {
+            veyra.fgEnabled = true; veyra.contentRate = 0
+            watch.pick(0)
+            control("watch-start").clicked()
+            compare(veyra.contentRate, 1)
+            control("watch-stop").clicked()
+            veyra.fgEnabled = false
+        }
         function test_screen_and_file() {
             watch.pick(1)
             compare(veyra.screenOptions.kind, 1)

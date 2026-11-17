@@ -24601,6 +24601,23 @@
    "ru": "Вкл. · автоматически"
   },
   {
+   "zh": "已开启去除重复帧（自动）：视频在捕获中会重复帧，否则补帧看不出差别",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "已開啟去除重複幀（自動）：影片在擷取中會重複幀，否則補幀看不出差別",
+   "en": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference",
+   "ja": "重複フレーム除去をオン（自動）にしました：キャプチャした動画はフレームが重複するため、そのままではフレーム生成の違いが出ません",
+   "nl": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference",
+   "de": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference",
+   "es": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference",
+   "fr": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference",
+   "it": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference",
+   "pt-BR": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference",
+   "tr": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference",
+   "ar": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference",
+   "pl": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference",
+   "ru": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference"
+  },
+  {
    "zh": "已开启，将在播放时请求可变刷新；是否生效以驱动报告为准",
    "src": "src/ui/bridge/FrameGeneration.cpp",
    "zh-TW": "已開啟，將在播放時請求可變更新率；是否生效以驅動回報為準",

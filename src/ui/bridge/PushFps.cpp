@@ -541,6 +541,17 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     }
     seconds = std::clamp(seconds, 5, 120);
     layout = std::clamp(layout, 0, 2);
+    // Video playback (a window, a screen, a file, a web video): the picture repeats each video frame
+    // inside the capture's refresh. Without duplicate removal frame generation interpolates between
+    // identical pictures and both halves of the clip look equally smooth, so Auto is switched on.
+    const QString kindNow = sourceKind();
+    const bool videoNow = kindNow == QLatin1String("file") || kindNow == QLatin1String("url") || kindNow == QLatin1String("screen")
+        || kindNow == QLatin1String("frameinput");
+    if (videoNow && contentRate() == int(engine::ContentRate::Transport)) {
+        setContentRate(int(engine::ContentRate::Auto));
+        emit notice(tr("已开启去除重复帧（自动）：视频在捕获中会重复帧，否则补帧看不出差别"), false);
+        veyra::log::info("push-compare", "duplicate removal set to auto for a video source");
+    }
     auto options = recordingOptions();
     options.compare = true;
     options.compareLayout = layout == 2 ? engine::CompareLayout::Vertical

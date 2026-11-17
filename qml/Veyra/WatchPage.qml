@@ -38,7 +38,17 @@ VPage {
         watch.kind = k
         if (k < 2) veyra.setScreenOption("kind", k)
     }
+    // Videos repeat frames inside the capture's refresh (a 30 FPS video in a 60 Hz window): without
+    // duplicate removal frame generation would interpolate between identical pictures and nothing
+    // would look smoother, in the picture or in comparison clips. Auto finds the real frames.
+    function ensureVideoCadence() {
+        if (veyra.fgEnabled === true && Number(veyra.contentRate) === 0) {
+            veyra.contentRate = 1
+            veyra.logUi("push-watch", "duplicate removal set to auto for video")
+        }
+    }
     function start() {
+        watch.ensureVideoCadence()
         if (watch.kind === 2) { veyra.openFileDialog(); return }
         if (watch.kind === 3) { veyra.navigate("frameinput"); return }   // PushFPS Frame Input API
         // A plain copy of the picture: no game mode, the whole window, fitted.
@@ -51,7 +61,7 @@ VPage {
             if (Number(veyra.fgMultiplier) < 2) veyra.fgMultiplier = m
             veyra.fgEnabled = true
             // Videos repeat frames inside the screen's refresh: duplicate removal finds the real ones.
-            if (Number(veyra.contentRate) === 0) veyra.contentRate = 1
+            watch.ensureVideoCadence()
         } else veyra.fgEnabled = false
     }
     function setEnhancement(on) {
@@ -60,7 +70,7 @@ VPage {
             else veyra.setAllNrEnabled(true)
         } else if ((veyra.nrLayers || []).length > 0) veyra.setAllNrEnabled(false)
     }
-    onCurrentChanged: if (current) veyra.refreshCaptureTargets()
+    onCurrentChanged: if (current) { veyra.refreshCaptureTargets(); watch.ensureVideoCadence() }
 
     // Recording, as in Professional mode: the same recorder, instant replay and comparison clips
     // (dialog "compare", same layouts and lengths); the options are the shared recording settings.
