@@ -465,6 +465,8 @@ bool QmlPlayerBridge::ps5Connect() {
                     const auto s = j.engine.snapshot();
                     if (s.remotePlay && (s.running || s.transport == engine::TransportState::Opening)) {
                         const bool focused = QGuiApplication::focusWindow() != nullptr;
+                        // PushFPS latency test: its own presses go out instead of the pad.
+                        if (j.latency.active) { j.engine.remotePlayController(pushLatencyPress()); return; }
                         j.engine.remotePlayController(j.controller.poll(focused));
                         j.controller.feedback(j.engine.remotePlayFeedback(), focused);
                     } else {

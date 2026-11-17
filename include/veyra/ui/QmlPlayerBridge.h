@@ -34,6 +34,7 @@
 #include "veyra/engine/ExportJobManager.h"
 #include "veyra/engine/EnhancementSettings.h"
 #include "veyra/engine/PushCanvas.h"
+#include "veyra/remoteplay/Types.h"
 #include "veyra/ui/PlayerUiFacade.h"
 
 class QQmlEngine;
@@ -1534,6 +1535,13 @@ public:
     // frame generation for `seconds` and compares what it made with the originals. Polled with
     // pushQualityStatus(): running, done, failed, error, samples, psnr, blendPsnr, gainOverBlend,
     // realPsnr, hudPsnr, hudSamples, meanError, badShare, onTime, generatedShown, score.
+    // PushFPS automatic Remote Play latency test (engine/PushInputLatency.h, PushLatencyTest.cpp):
+    // presses the PS button `trials` times and times the picture's answer. Status: state
+    // idle|running|done|failed, error, trial, trials, answered, results, meanMs, medianMs, minMs,
+    // maxMs, pushfpsMs (PushFPS's own processing), remoteMs (median minus PushFPS's share).
+    Q_INVOKABLE bool pushLatencyTestBegin(int trials);
+    Q_INVOKABLE void pushLatencyTestCancel();
+    Q_INVOKABLE QVariantMap pushLatencyTestStatus() const;
     Q_INVOKABLE bool pushQualityBegin(int seconds);
     Q_INVOKABLE void pushQualityCancel();
     Q_INVOKABLE QVariantMap pushQualityStatus();
@@ -1613,6 +1621,10 @@ signals:
     void gameModeStopped(const QString& reason);
 
 private:
+    // PushFPS Remote Play latency test helpers (PushLatencyTest.cpp).
+    remoteplay::ControllerState pushLatencyPress() const;
+    void pushLatencyTick();
+
     // Structural change: every chain-derived property notifies.
     void emitChainChanged();
     // Value edit of one group; a change of the chain's validity notifies everything.

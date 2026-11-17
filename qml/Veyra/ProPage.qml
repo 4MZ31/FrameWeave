@@ -1826,6 +1826,18 @@ VPage {
                                     }
                                 }
                             }
+                            // PushFPS measurements: ground-truth quality (any source with CPU frames) and the
+                            // Remote Play latency test (PS5 streaming).
+                            VRow {
+                                objectName: "list-fg-tests-row"
+                                label: qsTr("测量")
+                                hint: qsTr("画质测试：扣下真实帧再比较生成的画面。延迟测试：PS5 串流时自动按键计时")
+                                RowLayout {
+                                    spacing: 6
+                                    VButton { objectName: "list-fg-quality-test"; text: qsTr("画质测试"); enabled: veyra.hasSource && veyra.fgEnabled; onClicked: veyra.navigate("qualitytest") }
+                                    VButton { objectName: "list-fg-latency-test"; text: qsTr("延迟测试"); visible: veyra.sourceKind === "ps5"; onClicked: veyra.navigate("latencytest") }
+                                }
+                            }
                             VRow {
                                 objectName: "list-fg-pacing-row"
                                 label: qsTr("帧节奏修复")

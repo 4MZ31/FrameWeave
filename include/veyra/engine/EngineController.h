@@ -29,6 +29,7 @@
 #include "veyra/engine/LiveRecorder.h"
 #include "veyra/engine/PushHudSampler.h"
 #include "veyra/engine/PushQualityProbe.h"
+#include "veyra/engine/PushInputLatencyProbe.h"
 #include "veyra/engine/DisplayStateService.h"
 namespace veyra::source { struct RemotePlayConnectDesc; class RemotePlaySessionSource; struct MoonlightConnectDesc; class MoonlightSessionSource; struct XboxConnectDesc; class XboxSessionSource; }
 namespace veyra::remoteplay { struct ControllerState;struct ControllerFeedback; }
@@ -298,6 +299,8 @@ public:
     void startQualityTest(const PushQualityProbe::Options& o){quality_->start(o);}
     void cancelQualityTest(){quality_->cancel();}
     PushQualityProbe::Status qualityTest(){return quality_->status();}
+    // PushFPS Remote Play latency test (PushInputLatencyProbe.h): presented-frame readback around a press.
+    PushInputLatencyProbe& inputLatencyProbe(){return *inputLatency_;}
     // Refresh/VRR state of monitors, shared by every session's presenter and
     // the UI; queried in the background on events only. Any thread.
     DisplayStateService& displayStates(){return displayStates_;}
@@ -346,7 +349,9 @@ private:
     PresentCaptureFanout recordings_{*recorder_,*replay_};
     PresentCaptureFanout liveOutputs_{recordings_,*stream_};
     std::unique_ptr<PushQualityProbe> quality_=std::make_unique<PushQualityProbe>();
-    PresentCaptureFanout hudAndQuality_{*hud_,*quality_};
+    std::unique_ptr<PushInputLatencyProbe> inputLatency_=std::make_unique<PushInputLatencyProbe>();
+    PresentCaptureFanout probes_{*quality_,*inputLatency_};
+    PresentCaptureFanout hudAndQuality_{*hud_,probes_};
     PresentCaptureFanout captures_{liveOutputs_,hudAndQuality_};
     // Declared before worker_: it outlives the engine thread's presenters.
     DisplayStateService displayStates_;

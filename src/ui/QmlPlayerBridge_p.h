@@ -472,6 +472,17 @@ struct QmlPlayerBridge::Impl {
     std::atomic<bool> ps5Done{false};
     bool ps5Busy = false;
     QTimer* controllerTimer = nullptr;
+    // PushFPS Remote Play latency test (PushLatencyTest.cpp): while it runs, its own presses replace
+    // the pad (the controller timer sends latencyPress instead of the pad's state).
+    struct LatencyTest {
+        bool active = false, pressing = false;
+        int trials = 8, trial = 0, phase = 0;   // phase: 0 baseline, 1 pressed, 2 waiting, 3 closing
+        qint64 phaseStart = 0;
+        std::vector<double> results;
+        double pushfpsMs = 0; int pushfpsSamples = 0;
+        QString state = QStringLiteral("idle"), error;
+        QTimer* timer = nullptr;
+    } latency;
     // PS5 手柄控制 (capture card dialog).
     QTimer* ps5ControlTimer = nullptr;
     QVariantMap ps5ControlState;

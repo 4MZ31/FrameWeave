@@ -312,6 +312,13 @@ VPage {
                     compact: true
                     compactPro: true
                 }
+                // PushFPS measurements (quality test, PS5 latency test).
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+                    VButton { objectName: "studio-quality-test"; Layout.fillWidth: true; ghost: true; iconName: "activity"; text: qsTr("画质测试"); enabled: veyra.hasSource && veyra.fgEnabled; onClicked: veyra.navigate("qualitytest") }
+                    VButton { objectName: "studio-latency-test"; Layout.fillWidth: true; ghost: true; iconName: "gauge"; text: qsTr("延迟测试"); visible: veyra.sourceKind === "ps5"; onClicked: veyra.navigate("latencytest") }
+                }
             }
         }
     }

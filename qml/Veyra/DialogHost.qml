@@ -164,6 +164,14 @@ Item {
         id: frameInputDialog
         dialogHost: host
     }
+    PushQualityTestDialog {
+        id: qualityTestDialog
+        dialogHost: host
+    }
+    PushLatencyTestDialog {
+        id: latencyTestDialog
+        dialogHost: host
+    }
     PushLayoutDialog {
         id: layoutDialog
         dialogHost: host
