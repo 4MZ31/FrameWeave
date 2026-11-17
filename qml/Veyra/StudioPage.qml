@@ -860,21 +860,6 @@ VPage {
                     TapHandler { onTapped: studio.toggleMicStreaming() }
                 }
             }
-            PushMixerStrip {
-                objectName: "mixer-monitor"
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                title: qsTr("监听")
-                subtitle: qsTr("只改变你听到的声音")
-                iconName: "vol"
-                decibels: false
-                from: 0; to: 1
-                value: Number(veyra.volume ?? 1)
-                muted: veyra.muted === true
-                meterActive: false
-                onMoved: v => veyra.volume = v
-                onMuteToggled: veyra.muted = !veyra.muted
-            }
             // Desktop audio: everything Windows plays except PushFPS (Discord, music, a browser).
             PushMixerStrip {
                 objectName: "mixer-desktop"
@@ -896,7 +881,7 @@ VPage {
                 onMuteToggled: veyra.setPreference("mixDesktopMuted", !(veyra.preferences.mixDesktopMuted === true))
                 VTag {
                     objectName: "mixer-desktop-on"
-                    text: veyra.preferences.mixDesktopOn === true ? qsTr("开启") : qsTr("关闭")
+                    text: veyra.preferences.mixDesktopOn === true ? qsTr("开") : qsTr("关")
                     kind: veyra.preferences.mixDesktopOn === true ? "ok" : ""
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler { onTapped: veyra.setPreference("mixDesktopOn", !(veyra.preferences.mixDesktopOn === true)) }
@@ -930,11 +915,26 @@ VPage {
                 }
                 VTag {
                     objectName: "mixer-aux-on"
-                    text: veyra.preferences.mixAuxOn === true ? qsTr("开启") : qsTr("关闭")
+                    text: veyra.preferences.mixAuxOn === true ? qsTr("开") : qsTr("关")
                     kind: veyra.preferences.mixAuxOn === true ? "ok" : ""
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler { onTapped: veyra.setPreference("mixAuxOn", !(veyra.preferences.mixAuxOn === true)) }
                 }
+            }
+            PushMixerStrip {
+                objectName: "mixer-monitor"
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                title: qsTr("监听")
+                subtitle: qsTr("只改变你听到的声音")
+                iconName: "vol"
+                decibels: false
+                from: 0; to: 1
+                value: Number(veyra.volume ?? 1)
+                muted: veyra.muted === true
+                meterActive: false
+                onMoved: v => veyra.volume = v
+                onMuteToggled: veyra.muted = !veyra.muted
             }
             }
         }
