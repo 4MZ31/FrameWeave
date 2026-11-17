@@ -317,8 +317,7 @@ mode or in streaming mode.
   and *Quality* (full model, full resolution).
 - **Everything stays on the graphics card**: a compute pass packs the two frames into the network's input,
   the network runs on PushFPS's own GPU queue, and a second pass turns the result back into a picture, with
-  no copies through the CPU. The models are converted to half precision when the release is built, when that
-  gives the same picture.
+  no copies through the CPU.
 - Works with HUD protection, Live HUD Lock, the adaptive multiplier, recording and going live.
 - *Optimise for my PC* tests PushFlow like the other methods, and the frame quality test can score it on your
   own game.

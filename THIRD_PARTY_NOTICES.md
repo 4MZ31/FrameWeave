@@ -1172,7 +1172,6 @@ ship it in `runtime\experimental\pushflow` with each licence in its `licenses` f
   [MIT License](https://github.com/hzwer/Practical-RIFE/blob/main/LICENSE). The ONNX conversions come from
   [vs-mlrt](https://github.com/AmusementClub/vs-mlrt)'s `external-models` release (vs-mlrt is GPL-3.0):
   RIFE v4.25 lite (Fast and Balanced tiers) and RIFE v4.26 (Quality tier), both in vs-mlrt's 7-channel layout.
-  The release build checks each model on a test pattern and may convert it to half precision with
-  onnxconverter-common (MIT); `models.json` next to the models records the source archive, version, SHA-256
-  and precision of each file.
+  The release build checks each model on a test pattern and ships it unchanged; `models.json` next to the
+  models records the source archive, version and SHA-256 of each file.
 

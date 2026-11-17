@@ -7,9 +7,9 @@
 // (NVIDIA, AMD, Intel). Everything stays on the GPU: a compute pass packs the two frames into the
 // network's input buffer, ONNX Runtime runs the network on the graph's own command queue (so no CPU
 // waits or copies), and a second pass turns the output back into a picture. Speed-ups over a plain
-// RIFE run: half-precision weights (converted when the release is built), I/O bound straight to
-// D3D12 buffers, padding only to the network's block size, and a reduced model size in the faster
-// tiers. The runtime (onnxruntime.dll, DirectML.dll, the models) is in runtime\pushflow; without it
+// RIFE run: I/O bound straight to D3D12 buffers, padding only to the network's block size, and a
+// reduced model size in the faster tiers. (Half-precision models gave wrong pictures through DirectML
+// on WARP, so the release ships full precision until fp16 is verified on real cards.) The runtime (onnxruntime.dll, DirectML.dll, the models) is in runtime\pushflow; without it
 // PushFlow reports itself unavailable. Tiers (EnhancementSettings::vfgQuality, shared with VFG):
 //   0 Fast: the lite model at 50 % size;  1 Balanced: the lite model at full size;
 //   2 Quality: the full model at full size.

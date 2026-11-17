@@ -9,8 +9,7 @@
      pinned archives in MODEL_ARCHIVES; the newest lite model becomes pushflow-fast.onnx and the newest
      full model (no ensemble) pushflow-quality.onnx.
   3. Each model is checked on the CPU with a moving test pattern (identical frames come back, a moving
-     square lands in the middle, well ahead of a plain blend) and converted to half precision when the
-     half model gives the same picture; otherwise the full-precision model is kept.
+     square lands in the middle, well ahead of a plain blend) and shipped in full precision.
 
 Writes:
   <out>/ort, <out>/dml               the extracted packages (headers for CMake)
@@ -235,36 +234,16 @@ def main() -> None:
     if "fast" not in chosen:
         sys.exit("::error::no RIFE model passed the checks")
 
-    import onnx
-    from onnxconverter_common import float16
+    # Full precision: half-precision conversions passed the CPU check but gave wrong pictures through
+    # DirectML on WARP (2026-11-17, PushGpuTests), while the full-precision models matched; until fp16 is
+    # verified on real cards PushFlow ships fp32.
     record = {"source": f"https://github.com/{MODELS_REPO}/releases/tag/{MODELS_TAG}", "runtime": f"{ORT_ID} {ORT_VERSION}, {DML_ID} {DML_VERSION}", "models": {}}
     for role, c in chosen.items():
         target = runtime / "models" / f"pushflow-{role}.onnx"
-        precision = "fp32"
-        try:
-            half = float16.convert_float_to_float16(onnx.load(str(c["path"])), keep_io_types=True)
-            onnx.save(half, str(target))
-            check = check_model(target, c["channels"])
-            agreement = psnr(check["output"], c["check"]["output"])
-            print(f"fp16 {role}: moving {check['moving_db']} dB, agreement with fp32 {agreement:.1f} dB")
-            if check["identical_db"] > 30 and check["moving_db"] > check["blend_db"] + 2 and agreement > 35:
-                precision = "fp16"
-            else:
-                shutil.copy2(c["path"], target)
-        except Exception as e:  # noqa: BLE001 - any conversion failure keeps the full-precision model
-            print(f"fp16 conversion of {role} failed ({e}); keeping fp32")
-            shutil.copy2(c["path"], target)
+        shutil.copy2(c["path"], target)
         record["models"][role] = {"file": target.name, "from": c["path"].name, "version": "%d.%d" % c["version"], "lite": c["lite"],
-                                  "channels": c["channels"], "precision": precision, "sha256": sha256(target),
+                                  "channels": c["channels"], "precision": "fp32", "sha256": sha256(target),
                                   "cpu_check_db": {k: c["check"][k] for k in ("identical_db", "moving_db", "blend_db")}}
-    # Full-precision copies for the GPU test only (never packaged): tells a DirectML fp16 problem apart.
-    test_runtime = out / "runtime-fp32" / "pushflow"
-    shutil.rmtree(test_runtime.parent, ignore_errors=True)
-    (test_runtime / "models").mkdir(parents=True)
-    for f in ("onnxruntime.dll", "DirectML.dll"):
-        shutil.copy2(runtime / f, test_runtime / f)
-    for role, c in chosen.items():
-        shutil.copy2(c["path"], test_runtime / "models" / f"pushflow-{role}.onnx")
     (runtime / "models.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(record, indent=2))
     for f in sorted(runtime.rglob("*")):
