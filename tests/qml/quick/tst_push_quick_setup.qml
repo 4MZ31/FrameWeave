@@ -267,6 +267,26 @@ Item {
             veyra.setPreference("pushBenchmark", "{not json")
             verify(!tile.primary)
         }
+        // A 60 FPS target and smooth pacing together (3.1.6): turning it on keeps the cap, the switch
+        // reads on with the cap, and turning it off keeps the target.
+        function test_smooth_frame_pacing_keeps_a_target() {
+            veyra.displaySync = 2; veyra.variableRefresh = false
+            veyra.outputCustomFps = 60; veyra.outputRateMode = 2
+            const sw = findChild(quick, "pushfps-smooth")
+            verify(!sw.checked)
+            sw.toggled(true)
+            compare(veyra.displaySync, 1)
+            compare(veyra.outputRateMode, 2, "the 60 FPS target stays")
+            verify(sw.checked, "on with a target")
+            verify(!quick.unevenTarget, "60 divides 240 Hz")
+            veyra.displayRefreshHz = 144
+            verify(quick.unevenTarget, "60 on 144 Hz without VRR is uneven")
+            veyra.displayRefreshHz = 240
+            sw.toggled(false)
+            compare(veyra.displaySync, 2)
+            compare(veyra.outputRateMode, 2, "off keeps the target")
+            veyra.outputRateMode = 0
+        }
         function test_smooth_frame_pacing() {
             veyra.displaySync = 2; veyra.variableRefresh = false; veyra.outputRateMode = 0
             const sw = findChild(quick, "pushfps-smooth")

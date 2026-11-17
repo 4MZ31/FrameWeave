@@ -12,18 +12,30 @@ import "PushGamePresets.js" as Presets
 // shows exactly what was chosen and nothing here adds engine state.
 VGroup {
     id: quick
-    // Smooth frame pacing (row pushfps-smooth): V-Sync + variable refresh request + output capped at
-    // the display (OutputRateMode FollowDisplay); off returns to Automatic, no cap, no VRR request.
     // True once Optimise for my PC applied its choice (record pushBenchmark, applied; Undo clears it).
     readonly property bool optimized: {
         try { return JSON.parse(String(veyra.preferences.pushBenchmark || "{}")).applied === true } catch (e) { return false }
     }
-    readonly property bool smoothPacing: veyra.displaySync === 1 && veyra.outputRateMode === 1
+    // Smooth frame pacing (row pushfps-smooth): V-Sync + a variable refresh request, with the output
+    // capped (at the display when no target is set; a chosen target such as 60 FPS stays). Off returns
+    // to Automatic, no VRR request, and drops only the follow-the-display cap. Before 3.1.6 the switch
+    // also needed the follow-the-display cap, so choosing a 60 FPS target turned it off and live play
+    // skipped frames the recording still had (field report 2026-11-17).
+    readonly property bool smoothPacing: veyra.displaySync === 1 && veyra.variableRefresh === true && veyra.outputRateMode !== 0
     function setSmoothPacing(on) {
         veyra.displaySync = on ? 1 : 2
         veyra.variableRefresh = on
-        veyra.outputRateMode = on ? 1 : 0
+        if (on && veyra.outputRateMode === 0) veyra.outputRateMode = 1
+        else if (!on && veyra.outputRateMode === 1) veyra.outputRateMode = 0
         veyra.setPreference("pushSmoothPacing", on)
+    }
+    // A capped target that does not divide the refresh rate (60 on 144 Hz) without a variable refresh
+    // display: frames stay on screen for uneven times however well they are made.
+    readonly property bool unevenTarget: {
+        const hz = Number(veyra.displayRefreshHz || 0)
+        if (veyra.outputRateMode !== 2 || hz < 1 || Number(veyra.vrrState || 0) >= 2) return false
+        const ratio = hz / Math.max(1, Number(veyra.outputCustomFps))
+        return Math.abs(ratio - Math.round(ratio)) > 0.05
     }
     // One-tap lowest latency (row pushfps-lowest-latency): only switches that cut waiting without
     // touching the picture: the one-frame present queue (NVIDIA low latency on NVIDIA, the low
@@ -789,8 +801,10 @@ VGroup {
         visible: !quick.compact
         label: qsTr("流畅帧同步")
         help: qsTr("等屏幕刷新再显示每一帧，并把输出限制在屏幕刷新率：补出来的每一帧都完整显示，玩起来和录像一样流畅。屏幕支持 G-SYNC/FreeSync 时会请求可变刷新，几乎不增加延迟")
-        hint: quick.smoothPacing ? qsTr("每一帧都完整显示；没有可变刷新时最多多等一次屏幕刷新")
-                                 : qsTr("延迟最低，但补帧画面可能偶尔跳帧")
+        hint: quick.smoothPacing && quick.unevenTarget
+              ? qsTr("%1 FPS 不能整除 %2 Hz：每帧显示时间不均匀。请选「匹配显示器」，或把屏幕设为 %1 的整数倍").arg(Math.round(veyra.outputCustomFps)).arg(Math.round(veyra.displayRefreshHz))
+              : quick.smoothPacing ? qsTr("每一帧都完整显示；没有可变刷新时最多多等一次屏幕刷新")
+                                   : qsTr("延迟最低，但补帧画面可能偶尔跳帧，直播画面比录像卡顿")
         VSwitch {
             objectName: "pushfps-smooth"
             checked: quick.smoothPacing

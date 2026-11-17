@@ -386,6 +386,25 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
             veyra::log::info("ui-presentation", std::format("smooth frame pacing default applied={} display={} outputRate={} variableRefresh={}",
                 apply, int(pr.display), int(pr.outputRate), pr.variableRefresh));
         }
+        // 3.1.6, once more: a 60 FPS target turned the old switch off (it needed the follow-the-display
+        // cap) and live play skipped frames the recording kept (field report 2026-11-17). Any display sync
+        // still on Automatic gets V-Sync and a VRR request once; a chosen cap stays.
+        if (!impl_->prefs.contains(QStringLiteral("pushSmoothPacing2"))) {
+            const bool apply = pr.display == engine::DisplaySync::Automatic;
+            if (apply) {
+                pr.display = engine::DisplaySync::Vsync;
+                pr.variableRefresh = true;
+                if (pr.outputRate == engine::OutputRateMode::Off) pr.outputRate = engine::OutputRateMode::FollowDisplay;
+                impl_->prefs[QStringLiteral("presentation")] = QVariantMap{
+                    {"lowQueue", pr.enabled}, {"nvidiaLowLatency", int(pr.nvidiaLowLatency)}, {"display", int(pr.display)},
+                    {"outputRate", int(pr.outputRate)}, {"customFps", pr.customFps}, {"vrr", pr.variableRefresh}};
+                impl_->prefs[QStringLiteral("pushSmoothPacing")] = true;
+            }
+            impl_->prefs[QStringLiteral("pushSmoothPacing2")] = apply;
+            if (!impl_->savePrefs()) veyra::log::warn("ui-prefs", "smooth frame pacing 3.1.6 default not saved");
+            veyra::log::info("ui-presentation", std::format("smooth frame pacing 3.1.6 default applied={} display={} outputRate={} variableRefresh={}",
+                apply, int(pr.display), int(pr.outputRate), pr.variableRefresh));
+        }
         if (pr.valid()) impl_->engine.requestPresentation(pr);
         impl_->aspectMode = std::clamp(impl_->prefs.value(QStringLiteral("aspect")).toInt(), 0, 6);
     }
