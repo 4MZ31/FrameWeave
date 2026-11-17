@@ -4026,6 +4026,9 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
     // For VFG a budget seed is a hidden reset Run whose only purpose is to keep
     // history; recording B below keeps it without any Run.
     if(vfgBackend_&&decision==FgDecision::Seed&&historyValid&&!vfgSkipResetsHistory)decision=FgDecision::Skip;
+    // PushFlow reads its A/B pair from the graph's own real frames (videoFrame_), which every real
+    // frame rewrites whether or not it was interpolated: a seed would be a lost group, never needed.
+    if(pushFlow_&&decision==FgDecision::Seed&&historyValid)decision=FgDecision::Skip;
     const bool runFg=decision!=FgDecision::Skip;
     // An overloaded preview pair may afford one reset evaluation now. Seed
     // on this real input so the following pair does not lose another group.
@@ -4052,7 +4055,12 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
     // skipped for budget still records B, so the next pair interpolates from a
     // valid A: no reset, no hidden seed Run, no second lost group.
     const bool vfgRecordOnly=vfgBackend_&&fgBackendAvailable&&!runFg&&historyValid&&!vfgSkipResetsHistory;
-    if(fgBackendAvailable&&!runFg){out.fgSkippedBeforeEval=out.fgCandidates;fgHistorySkipped_=!vfgRecordOnly;}
+    // The same holds for PushFlow without any recording: its previous frame is still in videoFrame_.
+    // Before 3.1.8 a skipped pair marked history lost, so the next pair was a reset that generated
+    // nothing and only counted as a warmup sample: every skip cost two groups, and the first
+    // evaluation after it was the lone over-budget probe described at FgCostSettling.
+    const bool pushFlowKeepsHistory=pushFlow_&&fgBackendAvailable&&!runFg&&historyValid;
+    if(fgBackendAvailable&&!runFg){out.fgSkippedBeforeEval=out.fgCandidates;fgHistorySkipped_=!vfgRecordOnly&&!pushFlowKeepsHistory;}
     if((runFg||vfgRecordOnly)&&vfgBackend_){
         // First timestamp precedes the producer signal/CUDA dependency wait;
         // the matching end follows the consumer copy. The direct-queue span

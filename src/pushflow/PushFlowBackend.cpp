@@ -47,8 +47,8 @@ bool sehFreeAllocation(const OrtDmlApi* dml, void* a) { __try { dml->FreeGPUAllo
 OrtStatus* sehCreateSession(const OrtApi* api, const OrtEnv* env, const wchar_t* model, const OrtSessionOptions* options, OrtSession** out, bool* faulted) {
     __try { return api->CreateSession(env, model, options, out); } __except (EXCEPTION_EXECUTE_HANDLER) { *faulted = true; *out = nullptr; return nullptr; }
 }
-OrtStatus* sehRun(const OrtApi* api, OrtSession* s, OrtIoBinding* b, bool* faulted) {
-    __try { return api->RunWithBinding(s, nullptr, b); } __except (EXCEPTION_EXECUTE_HANDLER) { *faulted = true; return nullptr; }
+OrtStatus* sehRun(const OrtApi* api, OrtSession* s, const OrtRunOptions* o, OrtIoBinding* b, bool* faulted) {
+    __try { return api->RunWithBinding(s, o, b); } __except (EXCEPTION_EXECUTE_HANDLER) { *faulted = true; return nullptr; }
 }
 OrtStatus* sehSync(const OrtApi* api, OrtIoBinding* b, bool* faulted) {
     __try { return api->SynchronizeBoundOutputs(b); } __except (EXCEPTION_EXECUTE_HANDLER) { *faulted = true; return nullptr; }
@@ -58,6 +58,14 @@ OrtStatus* sehSync(const OrtApi* api, OrtIoBinding* b, bool* faulted) {
 using Microsoft::WRL::ComPtr;
 
 namespace {
+ComPtr<ID3D12Resource> readbackBuffer(ID3D12Device* device, uint64_t size) {
+    D3D12_HEAP_PROPERTIES hp{}; hp.Type = D3D12_HEAP_TYPE_READBACK;
+    D3D12_RESOURCE_DESC bd{}; bd.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER; bd.Width = size; bd.Height = 1; bd.DepthOrArraySize = 1;
+    bd.MipLevels = 1; bd.SampleDesc.Count = 1; bd.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    ComPtr<ID3D12Resource> r;
+    if (FAILED(device->CreateCommittedResource(&hp, D3D12_HEAP_FLAG_NONE, &bd, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&r)))) return nullptr;
+    return r;
+}
 constexpr uint32_t kBlock = 64;   // RIFE v4 works on 1/32-size features; 64 keeps every level whole
 constexpr size_t kTelemetry = 240;
 const wchar_t* modelFile(uint32_t tier, bool half) {
@@ -152,7 +160,7 @@ struct PushFlowBackend::Impl {
     double inferMs = 0;
     mutable std::mutex telemetryMutex;
     std::array<float, kTelemetry> inferRing{};
-    size_t inferCount = 0;
+    size_t inferCount = 0, inferSamples = 0;
     bool markerArmed = false;   // crash guard file written, not yet cleared
     uint64_t fullPacks = 0, timePacks = 0;
     std::chrono::steady_clock::time_point lastSummary = std::chrono::steady_clock::now();
@@ -171,6 +179,17 @@ struct PushFlowBackend::Impl {
     pipeline::StateTracker states;
     UINT packRing = 0, rebuildRing = 0;
     bool haveGrids = false;
+    // The network's span on the queue: a timestamp after the pack, one before the resolve. Read a few
+    // inferences later from a persistently mapped readback ring (queued inference has no CPU time
+    // that means anything). Telemetry falls back to CPU time when the timestamps are unavailable.
+    static constexpr UINT kTimeRing = 8;
+    ComPtr<ID3D12QueryHeap> timeQueries;
+    ComPtr<ID3D12Resource> timeReadback;
+    uint64_t* timeMapped = nullptr;
+    double tickMs = 0;
+    uint64_t timeWritten = 0;   // timestamp pairs recorded (pack + resolve)
+    bool timePending = false;   // pack recorded its stamp; resolve has not yet
+    double lastNetworkMs = 0;
 #ifdef VEYRA_HAVE_ONNXRUNTIME
     HMODULE ortModule = nullptr, dmlModule = nullptr;
     const OrtApi* api = nullptr;
@@ -182,6 +201,17 @@ struct PushFlowBackend::Impl {
     std::array<OrtValue*, 5> values{};
     std::array<void*, 5> allocations{};
     ComPtr<IDMLDevice> dmlDevice;
+    // Queued inference: ONNX Runtime records the network onto the graph's own queue and returns without
+    // waiting for the GPU. The resolve list that reads the outputs is submitted after it on the same
+    // queue, so the queue's order is the only synchronisation needed. Until 3.1.7 every inference
+    // waited on the CPU (Run synchronises the providers, then SynchronizeBoundOutputs): the engine
+    // thread stood still for the whole network once per generated frame, and the queue ran dry between
+    // the pack, network and resolve lists, gaps that counted as frame generation cost and made the
+    // budget skip pairs. VEYRA_PUSHFLOW_SYNC=1 brings the waits back for comparison.
+    OrtRunOptions* runOptions = nullptr;
+    bool queued = false;
+    uint64_t sinceSync = 0;
+    static constexpr uint64_t kSyncEvery = 120;   // a full wait now and then lets the provider release finished work
 
     bool ok(OrtStatus* s, const char* what) {
         if (!s) return true;
@@ -201,8 +231,22 @@ struct PushFlowBackend::Impl {
         binding = nullptr;
         for (auto*& v : values) { if (v && !sehReleaseValue(api, v)) fault("ReleaseValue"); v = nullptr; }
     }
+    // Waits until the queue has finished everything submitted so far (teardown: queued inferences
+    // may still be reading the buffers about to be freed). Bounded: a removed device completes at once.
+    void drainQueue() {
+        if (!device || !queue) return;
+        ComPtr<ID3D12Fence> fence;
+        if (FAILED(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence))) || FAILED(queue->Signal(fence.Get(), 1))) return;
+        if (fence->GetCompletedValue() >= 1) return;
+        HANDLE event = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+        if (!event) return;
+        if (SUCCEEDED(fence->SetEventOnCompletion(1, event))) WaitForSingleObject(event, 5000);
+        CloseHandle(event);
+    }
     void release() {
+        if (queued) drainQueue();
         if (api) {
+            if (runOptions) { api->ReleaseRunOptions(runOptions); runOptions = nullptr; }
             // Values and binding, then the allocations they wrapped, then the session (Microsoft's
             // samples free GPU allocations before the session that used them goes).
             releaseBinding();
@@ -223,7 +267,12 @@ struct PushFlowBackend::Impl {
         if (!ok(api->CreateSessionOptions(&options), "CreateSessionOptions")) return false;
         bool good = ok(api->SetSessionGraphOptimizationLevel(options, ORT_ENABLE_ALL), "optimization level") &&
                     ok(api->DisableMemPattern(options), "DisableMemPattern") &&
-                    ok(api->SetSessionExecutionMode(options, ORT_SEQUENTIAL), "execution mode");
+                    ok(api->SetSessionExecutionMode(options, ORT_SEQUENTIAL), "execution mode") &&
+                    // The network runs on the GPU; the few CPU nodes are tiny. One thread that sleeps when
+                    // idle keeps ONNX Runtime's spinning thread pool off the cores the capture, engine and
+                    // presentation threads need.
+                    ok(api->SetIntraOpNumThreads(options, 1), "intra-op threads") &&
+                    ok(api->AddSessionConfigEntry(options, "session.intra_op.allow_spinning", "0"), "no spinning");
         for (const auto& [name, value] : overrides)
             if (good) good = ok(api->AddFreeDimensionOverrideByName(options, name.c_str(), value), "free dimension override");
         if (good) good = ok(dml->SessionOptionsAppendExecutionProvider_DML1(options, dmlDevice.Get(), q), "DirectML provider");
@@ -412,11 +461,14 @@ struct PushFlowBackend::Impl {
     }
     // DirectML records the network into its own command lists and may hold them back; synchronizing the
     // bound outputs submits them to the queue and waits, so the next list reads the finished output.
-    bool run() {
+    // wait=true: the call returns only after the GPU finished the network (start-up checks).
+    bool run(bool wait = false) {
         if (faulted) return false;
         bool crashed = false;
-        const bool done = ok(sehRun(api, session, binding, &crashed), "RunWithBinding") && !crashed &&
-                          ok(sehSync(api, binding, &crashed), "SynchronizeBoundOutputs") && !crashed;
+        const bool async = queued && !wait && ++sinceSync < kSyncEvery;
+        if (!async) sinceSync = 0;
+        const bool done = ok(sehRun(api, session, async ? runOptions : nullptr, binding, &crashed), "RunWithBinding") && !crashed &&
+                          (async || (ok(sehSync(api, binding, &crashed), "SynchronizeBoundOutputs") && !crashed));
         if (crashed) fault("RunWithBinding");
         return done;
     }
@@ -465,7 +517,7 @@ Telemetry PushFlowBackend::telemetry() const {
     std::lock_guard lock(p.telemetryMutex);
     Telemetry t;
     t.inferences = p.inferCount; t.fullPacks = p.fullPacks; t.timePacks = p.timePacks;
-    const size_t n = std::min(p.inferCount, kTelemetry);
+    const size_t n = std::min(p.inferSamples, kTelemetry);
     if (!n) return t;
     std::vector<float> v(p.inferRing.begin(), p.inferRing.begin() + ptrdiff_t(n));
     std::sort(v.begin(), v.end());
@@ -623,6 +675,43 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
     // The rebuild is what keeps the Fast tier sharp; at full size the network's own picture is used.
     p.status.rebuild = p.haveGrids && (p.status.modelW != width || p.status.modelH != height);
     p.status.provider = "DirectML";
+    {
+        D3D12_QUERY_HEAP_DESC qd{}; qd.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP; qd.Count = 2 * Impl::kTimeRing;
+        UINT64 frequency = 0;
+        if (SUCCEEDED(queue->GetTimestampFrequency(&frequency)) && frequency && SUCCEEDED(device->CreateQueryHeap(&qd, IID_PPV_ARGS(&p.timeQueries))) &&
+            (p.timeReadback = readbackBuffer(device, 2 * Impl::kTimeRing * sizeof(uint64_t))) &&
+            SUCCEEDED(p.timeReadback->Map(0, nullptr, reinterpret_cast<void**>(&p.timeMapped)))) {
+            p.tickMs = 1000.0 / double(frequency);
+            std::memset(p.timeMapped, 0, 2 * Impl::kTimeRing * sizeof(uint64_t));
+        } else {
+            p.timeQueries.Reset(); p.timeReadback.Reset(); p.timeMapped = nullptr;
+        }
+    }
+    // Warm-up: DirectML prepares the network on its first runs (shader compilation, weight upload).
+    // Done here, while the graph is being built, those runs never reach the frame budget. Until 3.1.7
+    // the first live inference carried them, and its time made the budget skip every pair until it
+    // aged out, after which the next lone evaluation came back slow again (see FgCostSettling).
+    {
+        const auto input = selfCheckInput(p.status.padW, p.status.padH, p.channels);
+        double first = 0, second = 0;
+        for (int i = 0; i < 2; ++i) {
+            const auto start = std::chrono::steady_clock::now();
+            if (!p.uploadInput(input) || !p.run(true)) {
+                veyra::log::error("pushflow", std::format("warm-up run failed; device state 0x{:08X}", uint32_t(device->GetDeviceRemovedReason())));
+                return false;
+            }
+            (i == 0 ? first : second) = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+        }
+        p.status.warmupMs = second;
+        veyra::log::info("pushflow", std::format("warm-up runs {:.1f} ms, then {:.1f} ms", first, second));
+    }
+    // Queued inference (see Impl::runOptions); a failure here only keeps the waits.
+    if (GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_SYNC", nullptr, 0) == 0) {
+        if (p.ok(p.api->CreateRunOptions(&p.runOptions), "CreateRunOptions") &&
+            p.ok(p.api->AddRunConfigEntry(p.runOptions, "disable_synchronize_execution_providers", "1"), "run option")) p.queued = true;
+    }
+    p.status.queued = p.queued;
+    veyra::log::info("pushflow", p.queued ? "inference queued on the graph's queue (no CPU wait per frame)" : "inference waits for the GPU each frame");
     p.status.ready = true;
     veyra::log::info("pushflow", std::format("ready runtime={} model={} precision={} tier={} size={}x{} model={}x{} padded={}x{} channels={} "
         "rebuild={} grids={} encoding={} loadMs={:.0f}", base->GetVersionString(), p.status.model, p.status.precision, tier, width, height,
@@ -655,6 +744,7 @@ bool PushFlowBackend::pack(ID3D12GraphicsCommandList* list, ID3D12Resource* prev
     list->Dispatch((p.status.padW + 15) / 16, (p.status.padH + 15) / 16, 1);
     D3D12_RESOURCE_BARRIER barrier{}; barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV; barrier.UAV.pResource = p.buffers[0].Get();
     list->ResourceBarrier(1, &barrier);
+    if (p.timeQueries) { list->EndQuery(p.timeQueries.Get(), D3D12_QUERY_TYPE_TIMESTAMP, UINT(2 * (p.timeWritten % Impl::kTimeRing))); p.timePending = true; }
     std::lock_guard lock(p.telemetryMutex);
     ++(timeOnly ? p.timePacks : p.fullPacks);
     return true;
@@ -667,10 +757,27 @@ bool PushFlowBackend::infer() {
     const auto start = std::chrono::steady_clock::now();
     const bool done = p.run();
     p.inferMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+    // Earlier pairs the GPU has written back (a slot not yet written reads 0 and waits for a later
+    // call); each is cleared once counted. The newest finished one is this call's sample.
+    double network = -1;
+    if (p.timeMapped) {
+        for (uint64_t back = std::min<uint64_t>(p.timeWritten, Impl::kTimeRing - 1); back >= 1; --back) {
+            uint64_t* pair = p.timeMapped + 2 * ((p.timeWritten - back) % Impl::kTimeRing);
+            const uint64_t a = pair[0], b = pair[1];
+            if (!a || b <= a) continue;
+            const double ms = double(b - a) * p.tickMs;
+            pair[0] = pair[1] = 0;
+            if (ms < 2000) network = ms;
+        }
+    }
+    if (network >= 0) p.lastNetworkMs = network;
     bool summarize = false;
     {
         std::lock_guard lock(p.telemetryMutex);
-        p.inferRing[p.inferCount % kTelemetry] = float(p.inferMs);
+        // GPU span when measured; CPU time only without timestamps (queued runs return at once).
+        const bool useGpu = p.timeMapped != nullptr;
+        // (The very first call has no finished pair yet: its CPU time stands in until one arrives.)
+        if (!useGpu || network >= 0 || p.inferSamples == 0) p.inferRing[p.inferSamples++ % kTelemetry] = float(network >= 0 ? network : p.inferMs);
         ++p.inferCount;
         if (p.markerArmed && done && p.inferCount >= kSteadyInferences) { p.markerArmed = false; clearCrashMarker(); }
         if (std::chrono::steady_clock::now() - p.lastSummary > std::chrono::seconds(30)) { p.lastSummary = std::chrono::steady_clock::now(); summarize = true; }
@@ -695,6 +802,12 @@ bool PushFlowBackend::infer() {
 bool PushFlowBackend::resolve(ID3D12GraphicsCommandList* list, ID3D12Resource* previous, ID3D12Resource* current, ID3D12Resource* output) {
     auto& p = *p_;
     if (!p.status.ready || !list || !output) return false;
+    if (p.timeQueries && p.timePending) {
+        const UINT slot = UINT(p.timeWritten % Impl::kTimeRing);
+        list->EndQuery(p.timeQueries.Get(), D3D12_QUERY_TYPE_TIMESTAMP, 2 * slot + 1);
+        list->ResolveQueryData(p.timeQueries.Get(), D3D12_QUERY_TYPE_TIMESTAMP, 2 * slot, 2, p.timeReadback.Get(), 2 * slot * sizeof(uint64_t));
+        ++p.timeWritten; p.timePending = false;
+    }
     const UINT outputs = p.haveGrids ? 4 : 1;
     D3D12_RESOURCE_BARRIER barriers[4]{};
     for (UINT i = 0; i < outputs; ++i) { barriers[i].Type = D3D12_RESOURCE_BARRIER_TYPE_UAV; barriers[i].UAV.pResource = p.buffers[i + 1].Get(); }

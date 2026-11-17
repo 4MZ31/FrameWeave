@@ -1354,8 +1354,11 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     const bool currentCost=batch.batch.identity.settingsRevision==fgBudgetRevision&&
                         watch.presentationGeneration==presentationGeneration.load();
                     const auto vfgHeldUntil=vfgCostSettling.holdUntil();
-                    const bool costSettling=currentCost&&isCapture&&!legacyLivePacing&&options.settings.frameGenerationBackend==FrameGenerationBackend::Vfg&&
-                        vfgCostSettling.observe((batch.fgCandidates>0&&batch.fgEvaluated==0)||batch.fgFastForBudget,batch.fgEvaluated>0&&!batch.fgFast,host100ns());
+                    // PushFlow keeps its A/B history across skipped pairs like VFG, so its first
+                    // evaluation after a skip is the same slow probe (clocks and caches gone cold).
+                    const bool costSettling=currentCost&&isCapture&&!legacyLivePacing&&
+                        (options.settings.frameGenerationBackend==FrameGenerationBackend::Vfg||options.settings.frameGenerationBackend==FrameGenerationBackend::PushFlow)&&
+                        vfgCostSettling.observe((batch.fgCandidates>0&&batch.fgEvaluated==0&&!(batch.historyReset&&options.settings.frameGenerationBackend==FrameGenerationBackend::PushFlow))||batch.fgFastForBudget,batch.fgEvaluated>0&&!batch.fgFast,host100ns());
                     // Each model's own time. The steady time is the low envelope: an
                     // evaluation after skips can cost 1.7x (see FgCostSettling).
                     if(currentCost&&watch.fgExecutionMs&&batch.fgEvaluated>0&&!batch.fgReduced&&!batch.historyReset&&!batch.fgRecovery){
@@ -1363,7 +1366,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                         cost=cost>0&&ms>=cost?cost+.1*(ms-cost):ms;
                         if(!batch.fgFast){vfgChosenAt=host100ns();++vfgChosenPairs;}
                     }
-                    if(vfgCostSettling.holdUntil()!=vfgHeldUntil)veyra::log::info("vfg-probe",std::format("revision={} retryInMs={} (a VFG probe after a long skip stayed over budget; failed probes retry after 2, 4, then every 8 s)",options.settings.revision,(vfgCostSettling.holdUntil()-host100ns())/10000));
+                    if(vfgCostSettling.holdUntil()!=vfgHeldUntil)veyra::log::info("vfg-probe",std::format("revision={} retryInMs={} (a VFG/PushFlow probe after a long skip stayed over budget; failed probes retry after 2, 4, then every 8 s)",options.settings.revision,(vfgCostSettling.holdUntil()-host100ns())/10000));
                     if(currentCost)fgBudget.complete(watch.gpuExecutionMs,batch.fgEvaluated>0,batch.historyReset||batch.fgRecovery||costSettling,host100ns(),watch.fgExecutionMs,!batch.fgReduced&&!batch.fgFast);
                     if(options.settings.frameGenerationBackend==FrameGenerationBackend::Vfg&&currentCost){
                         if(batch.historyReset)vfgOverload.reset();

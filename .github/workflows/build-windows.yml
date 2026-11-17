@@ -368,7 +368,7 @@ jobs:
           # PushFlowBench (shipped next to PushFPS.exe): a short smoke run on WARP; the JSON goes in the log.
           cmake --build $env:BUILD --target veyra_pushflow_bench --parallel
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & "$env:BUILD\PushFlowBench.exe" --warp --sizes 640x360 --pairs 2 --compare-shapes --runtime "$env:DEPS\pushflow\runtime" --out "$env:RUNNER_TEMP\pushflow-bench.json" 2>&1 | Out-Host
+          & "$env:BUILD\PushFlowBench.exe" --warp --sizes 640x360 --pairs 2 --compare-shapes --compare-sync --runtime "$env:DEPS\pushflow\runtime" --out "$env:RUNNER_TEMP\pushflow-bench.json" 2>&1 | Out-Host
           if ($LASTEXITCODE -ne 0) { Write-Host "::error::PushFlowBench failed"; exit 1 }
           Get-Content "$env:RUNNER_TEMP\pushflow-bench.json" | Out-Host
 

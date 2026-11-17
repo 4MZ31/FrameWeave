@@ -57,6 +57,8 @@ struct Status {
     bool ready = false;
     bool rebuild = false;          // the full-resolution rebuild from grids and mask is used
     bool staticShapes = false;     // the session's input size is fixed (free dimensions overridden)
+    bool queued = false;           // inference returns without waiting for the GPU (VEYRA_PUSHFLOW_SYNC=1: waits)
+    double warmupMs = 0;           // the second warm-up run at start (network and upload, CPU wall time)
     std::string provider;          // "DirectML"
     std::string model;             // file name of the model in use
     std::string precision;         // "fp32" or "fp16"
@@ -66,7 +68,7 @@ struct Status {
 
 struct Telemetry {
     uint64_t inferences = 0, fullPacks = 0, timePacks = 0;
-    double inferP50Ms = 0, inferP95Ms = 0, inferMaxMs = 0;   // CPU time of Run + output synchronization
+    double inferP50Ms = 0, inferP95Ms = 0, inferMaxMs = 0;   // the network's GPU span on the queue (CPU time of the call without timestamps)
 };
 
 // Whether runtime\pushflow has the files PushFlow needs (file check only).
