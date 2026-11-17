@@ -102,7 +102,7 @@ everything Veyra does, PushFPS adds what console players need:
 | Feature | What it does |
 |---|---|
 | **Optimise for my PC** | Tests every frame generation method your PC has, AI enhancement and the upscalers on your real game picture, measures frame rate, 1% low, latency and jitter, and keeps the best combination for your goal (balanced, lowest latency, smoothest or best picture), up to 144 or 240 Hz |
-| **Streaming mode** | An OBS-style page: preview, PushFPS features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards), go live and record controls, an audio mixer for game sound, microphone and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
+| **Streaming mode** | An OBS-style page: preview, PushFPS features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards) with webcam, window and video sources and cut or fade transitions, go live and record controls, an audio mixer for game sound, microphone, desktop audio, an extra input and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
 | **Video playback mode** | Frame generation, super resolution, AI enhancement and SDR to HDR on any video on your PC: a browser window with YouTube, a video app, a screen or a file |
 | **Lowest latency in one tap** | Every latency setting that costs no picture quality, switched on together; off restores your previous settings |
 | **Go live** | Stream the boosted picture straight to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or any RTMP server, to several platforms at once from one encode. Stream keys are stored encrypted |
@@ -513,11 +513,21 @@ features built in:
 - **Audio mixer** across the bottom, like OBS's: *Game sound* and *Microphone* faders with level meters and
   mute, for what recordings and streams take, and *Monitor* (what you hear yourself). Choose whether the
   microphone goes into recordings, streams or both.
+  - *Desktop audio*: everything Windows plays except PushFPS (Discord, music, a browser). PushFPS leaves
+    itself out, so the game is never in the mix twice.
+  - *Extra input*: a second microphone, a line-in or an audio interface.
+  Both are off until you switch them on, and go into recordings and streams you start after that.
 - **Scenes**, like OBS's, switched with one click or **Ctrl+1** to **Ctrl+9**:
   - *game scenes* show the picture, optionally with a corner picture (your logo) or a text tag;
   - *card scenes* (*Starting soon*, *Be right back*, *Thanks for watching*, or your own with a background
     picture) replace the game in recordings and streams and mute the game sound.
   Scenes change only what recordings and streams show; you keep seeing the game.
+- **Sources** in a scene (up to four): a **webcam**, another **window** (a browser with alerts or chat, a
+  music player) or a looping **video file**. Put each in a corner or the middle, pick its size, and make it
+  square, rounded or round (cameras can be mirrored). Sources run while streaming mode is on screen or a
+  recording or stream is going, so your camera is not on while you just play. A minimised window has no
+  picture; video files play without their sound.
+- **Transitions** between scenes: *Cut*, *Fade* or *Slow fade*.
 - **Microphone filters** (the sliders button on the microphone): rumble filter, 5-band equaliser with voice
   presets, noise gate and compressor, then a -1 dB limiter that is always on.
 - **Status bar**: live time, bitrate and dropped frames, recording time, processing latency and the encoder.
