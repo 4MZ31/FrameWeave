@@ -190,6 +190,11 @@ VGroup {
         const m = quick.adaptive ? Presets.adaptiveCeiling(quick.offeredMultipliers, fps) : multiplierFor(fps, gameFps)
         if (m < 2) return
         veyra.fgMultiplier = m
+        // A console game below the capture rate repeats every picture (30 FPS in a 60 Hz
+        // signal: AABBCC). Generating between two identical pictures wastes the work and
+        // smears, so the quick setup always removes duplicates first; automatic removal
+        // passes a game that has none untouched. A chosen mode (60->30) stays.
+        if (Number(veyra.contentRate) === 0) veyra.contentRate = 1
         // XeSS paces its own presentation (presentationOwned); the cap is then
         // greyed in Professional mode too, and the multiplier alone decides.
         if (!veyra.presentationOwned) {

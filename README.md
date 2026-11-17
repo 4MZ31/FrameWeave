@@ -277,8 +277,8 @@ enhancement on Radeon and on RTX 30 cards is an optional experimental extra (see
 > Close other apps that use the capture card (OBS, the card's own software) before connecting.
 
 > [!TIP]
-> **Setup guide:** the recommended settings to start from, how to tune them, console and Windows settings,
-> and when to use HDR: [on the website](https://dosukasol.github.io/PushFPS/#guide) or as
+> **Setup guide:** the recommended settings to start from, how to tune them, console, capture card and
+> Windows settings, and when to use HDR: [on the website](https://dosukasol.github.io/PushFPS/#guide) or as
 > [PushFPS-Setup-Guide.txt](docs/PushFPS-Setup-Guide.txt) (also attached to every release).
 
 ## No capture card? Stream instead
@@ -608,7 +608,13 @@ the window.</sub>
 | Blackmagic DeckLink / UltraStudio | Not tested yet (Blackmagic's own interface from Veyra) |
 
 Any card that Windows shows as a camera and that sends uncompressed 1080p60 or 4K60 should work. The quick
-setup shows whether your card is on this list. Tested yours?
+setup shows whether your card is on this list.
+
+Capture at 60 FPS, even for 30 FPS games (PushFPS removes the repeated pictures), in uncompressed NV12 or
+P010 rather than MJPEG. Delay measured by Veyra's developer: about 10-20 ms at 1440p60 NV12, 30-40 ms at
+4K60 NV12 (10 Gbps or PCIe cards) and 80-100 ms at 4K30 HDR. For the lowest delay, capture 1440p60 and let
+RTX Video Super Resolution upscale it. Which card to buy (5 Gbps, 10 Gbps, PCIe) is in the
+[setup guide](https://dosukasol.github.io/PushFPS/#guide-capture). Tested yours?
 [Send a capture card report](https://github.com/DosukaSOL/PushFPS/issues/new?template=capture-card-report.yml).
 
 ## Languages and appearance

@@ -75,7 +75,8 @@ DialogLayer {
     function saveOriginal() {
         return { fgEnabled: veyra.fgEnabled === true, backend: veyra.fgBackendName, multiplier: veyra.fgMultiplier,
                  rateMode: veyra.outputRateMode, customFps: veyra.outputCustomFps, nr: veyra.nrAnyEnabled === true,
-                 sr: veyra.srEnabled === true, srQuality: veyra.videoSrQuality, gameFps: Number(veyra.preferences.pushGameFps || 30) }
+                 sr: veyra.srEnabled === true, srQuality: veyra.videoSrQuality, gameFps: Number(veyra.preferences.pushGameFps || 30),
+                 contentRate: Number(veyra.contentRate) }
     }
     function restoreOriginal() {
         const o = opt.original
@@ -91,6 +92,7 @@ DialogLayer {
             veyra.outputRateMode = o.rateMode
         }
         veyra.setPreference("pushGameFps", o.gameFps === 40 || o.gameFps === 60 ? o.gameFps : 30)
+        if (o.contentRate !== undefined && Number(veyra.contentRate) !== o.contentRate) veyra.contentRate = o.contentRate
     }
     function setEnhancement(on) {
         if (on) { if (veyra.nrLayers.length === 0) veyra.addEffect("nr"); else veyra.setAllNrEnabled(true) }
@@ -120,6 +122,9 @@ DialogLayer {
         if (m < 2) return false
         veyra.fgMultiplier = m
         if (veyra.fgMultiplier !== m) return false
+        // Every method is measured on the game's own pictures, not on the capture's repeats
+        // (same rule as the quick setup's targets); Undo restores the previous mode.
+        if (Number(veyra.contentRate) === 0) veyra.contentRate = 1
         if (!veyra.presentationOwned) {
             if (c.target === "monitor") veyra.outputRateMode = 1
             else { veyra.outputCustomFps = opt.targetFps(c.target); veyra.outputRateMode = 2 }

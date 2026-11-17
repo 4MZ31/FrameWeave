@@ -51,6 +51,17 @@ Item {
             verify(!veyra.fgEnabled)
             compare(quick.currentTarget, "off")
         }
+        function test_target_removes_duplicate_frames() {
+            compare(veyra.contentRate, 0)
+            quick.applyTarget("120")
+            compare(veyra.contentRate, 1, "a 30 FPS game in a 60 Hz capture: duplicates removed before generating")
+            veyra.contentRate = 5
+            quick.applyTarget("60")
+            compare(veyra.contentRate, 5, "60->30 stays as chosen")
+            veyra.contentRate = 0
+            quick.applyTarget("off")
+            compare(veyra.contentRate, 0, "nothing generated: nothing changed")
+        }
         function test_game_fps_recomputes_the_multiplier() {
             quick.applyTarget("120")
             compare(veyra.fgMultiplier, 4)

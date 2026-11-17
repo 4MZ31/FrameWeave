@@ -8,15 +8,17 @@ Contents
   1. Start here: recommended PushFPS settings
   2. Then tune it to your liking
   3. Console settings (PS5, PS5 Pro, Xbox Series X|S, Switch, Switch 2)
-  4. Windows settings
-  5. When to use HDR (playing, recording, streaming)
-  6. Quick checklist
+  4. Capture card settings (frame rate, format, delay, which card)
+  5. Windows settings
+  6. When to use HDR (playing, recording, streaming)
+  7. Quick checklist
 
 
 1. START HERE: RECOMMENDED PUSHFPS SETTINGS
 -------------------------------------------
 
-Get the game on screen first, then set these in the Quick setup (Home or Pro mode):
+Get the game on screen first (capture card at 60 FPS, even for a 30 FPS game: see section 4), then
+set these in the Quick setup (Home or Pro mode):
 
   Console ................ your console (each console remembers its own choices)
   Game frame rate ........ 30 for most games (GTA VI), 40 for 40 FPS modes, 60 for performance modes
@@ -70,8 +72,11 @@ Change one thing at a time, play a minute, then decide.
                                               capture card set to exactly 60 FPS, fullscreen (F11)
   The game feels slow to react                Lowest latency on, 120 Hz console output (if your capture
                                               card captures 120 Hz), or Target "Off" for competitive games
-  Soft or blocky picture                      AI picture enhancement on (RTX 40/50), or NVIDIA Image
-                                              Scaling sharpening in Pro mode
+  Ghosting or "jelly" with a 30 FPS game      On an RTX 40/50: NVIDIA Video Frame Generation, quality
+                                              Medium to start, High at 2x if your card keeps up (section 4)
+  Soft or blocky picture                      RTX Video Super Resolution at Medium (the default) on
+                                              NVIDIA, NVIDIA Image Scaling on any card, or AI picture
+                                              enhancement (RTX 40/50)
   Frame rate drops with AI enhancement on     AI enhancement off, or a lower target
   Washed-out or too dark picture              Match the colour settings in the capture dialog to the
                                               console: HDR or SDR, Limited or Full range
@@ -113,14 +118,14 @@ PlayStation 5 and PS5 Pro
   - Settings > Screen and Video > Video Output > Resolution: match your capture card.
   - 120 Hz Output: Automatic only if your capture card captures 120 Hz (see above); otherwise Off.
   - VRR: Off.
-  - HDR: see section 5. "On When Supported" for HDR play, "Off" for streaming and SDR clips.
+  - HDR: see section 6. "On When Supported" for HDR play, "Off" for streaming and SDR clips.
   - RGB range: Automatic, and match it in PushFPS's capture dialog (Limited or Full).
 
 Xbox Series X|S
   - Settings > General > TV & display options:
       Resolution: match your capture card.
       Refresh rate: 60 Hz (120 Hz only if your capture card captures 120 Hz, see above).
-  - Video modes: Allow variable refresh rate OFF, Allow 24 Hz OFF. HDR10 and Auto HDR: see section 5.
+  - Video modes: Allow variable refresh rate OFF, Allow 24 Hz OFF. HDR10 and Auto HDR: see section 6.
   - Xbox games are not HDCP protected, so nothing else is needed.
 
 Nintendo Switch
@@ -129,7 +134,7 @@ Nintendo Switch
 
 Nintendo Switch 2
   - Docked, 60 Hz output. TV resolution 1080p, or 4K if your capture card captures 4K60.
-  - HDR: see section 5.
+  - HDR: see section 6.
   - Switch games are not HDCP protected.
 
 Videos on your PC (YouTube in a browser, video apps, files): use Video playback mode (the play
@@ -139,7 +144,55 @@ No capture card? Streaming sources work too (PS5 Remote Play, Moonlight from a S
 For PS5 Remote Play pick 1080p 60 FPS with H.265 (the default for new pairings).
 
 
-4. WINDOWS SETTINGS
+4. CAPTURE CARD SETTINGS
+------------------------
+
+With thanks to Likely7, Veyra's developer: the delay figures and card picks in this section are his,
+checked against the makers' specs and corrected where needed.
+
+  Frame rate ...... 60 FPS, also for a 30 FPS game. Each new picture reaches the PC sooner than with
+                    a 30 FPS capture. Half the frames are then repeats (AABBCC), so PushFPS removes
+                    them before generating frames: the Quick setup and "Optimise for my PC" do this
+                    for you; in Pro mode it is "Remove duplicate frames" (Automatic removal or 60->30).
+                    120 FPS only if your card captures 120 Hz (section 3).
+  Format .......... uncompressed NV12 (SDR) or P010 (HDR). Avoid MJPEG where you can: it is
+                    compressed and has to be decoded. On a 5 Gbps card, 4K60 only exists as MJPEG
+                    (the Elgato 4K S, for example).
+  Lowest delay .... capture 1440p60 NV12 and let RTX Video Super Resolution (Medium) or NVIDIA Image
+                    Scaling upscale it. HDR monitor but no HDR capture? RTX Video HDR in Pro mode
+                    turns the SDR picture into HDR (NVIDIA RTX).
+
+Delay of the capture step (measured by Veyra's developer; your card can differ a little)
+  1440p 60 FPS NV12 ........ 10-20 ms   the lowest; works on 5 Gbps cards
+  4K 60 FPS NV12 ........... 30-40 ms   needs a 10 Gbps card on a 10 Gbps port, or PCIe
+  4K 30 FPS P010 (HDR) ..... 80-100 ms  avoid for playing: most delay, only 30 pictures a second.
+                                        4K60 HDR needs a PCIe card
+  Cards with the same chip differ by about 5 ms or less, whatever the brand.
+
+Which capture card
+  USB 5 Gbps ... uncompressed 1440p60 and 4K30 NV12; 1080p60 HDR on some.
+                 Elgato HD60 X, Elgato 4K S (4K60 only as MJPEG), AVerMedia GC553 Pro / GC551G2,
+                 MICHENSEN T800 / T900, KUHAIMI 27P / 26P, ACASIS 007 Pro / 009 Pro
+  USB 10 Gbps .. uncompressed 4K60 NV12, 1440p60 HDR, 4K30 HDR.
+                 Elgato 4K X, AVerMedia GC553G2 (both also capture 120 Hz), MICHENSEN T911,
+                 KUHAIMI G50. Plug into a real 10 Gbps port (USB 3.2 Gen 2) on the PC: on 5 Gbps
+                 they capture less.
+  PCIe ......... 4K60 HDR. AVerMedia GC573, Elgato 4K Pro
+  Tested with PushFPS: Elgato 4K X, HD60 X and 4K S. The other models are Veyra's developer's picks
+  and are not tested with PushFPS yet. Any card that shows up as a camera in Windows works.
+
+NVIDIA Video Frame Generation: Medium or High?
+  For 30 FPS games it gives the least ghosting and wobble of the methods (RTX 40/50; RTX 30
+  experimental). High is the cleanest but heavy: Veyra's developer measured about 20 ms per
+  generated 4K frame on an RTX 5070. That fits 2x (one new frame per 33 ms game frame) but not 4x,
+  which needs three. Medium costs about a third to a quarter of High and still beats the other
+  methods at 30 FPS, so it is the default. High+Medium uses High only for the middle frame of each
+  pair. At 2x, "VFG auto regulation" drops a pair to the next tier when it can't keep up instead
+  of dropping frames. All in Pro mode under Frame generation, or let "Optimise for my PC" test
+  what your card keeps up with.
+
+
+5. WINDOWS SETTINGS
 -------------------
 
   Hardware-accelerated GPU scheduling ... ON  (Settings > System > Display > Graphics > Advanced
@@ -150,7 +203,7 @@ For PS5 Remote Play pick 1080p 60 FPS with H.265 (the default for new pairings).
                                           Advanced display)
   G-SYNC / FreeSync ..................... ON in the NVIDIA Control Panel or AMD Software, for
                                           fullscreen and windowed mode
-  Windows HDR ........................... see section 5
+  Windows HDR ........................... see section 6
   Game Mode ............................. ON (the Windows default)
   Graphics driver ....................... up to date
   Power ................................. laptops: plugged in, "Best performance" power mode
@@ -161,7 +214,7 @@ For PS5 Remote Play pick 1080p 60 FPS with H.265 (the default for new pairings).
   PushFPS window ........................ play fullscreen (F11): it skips the desktop compositor
 
 
-5. WHEN TO USE HDR
+6. WHEN TO USE HDR
 ------------------
 
 HDR only works end to end when every step is HDR: console, capture card, Windows and your monitor.
@@ -170,7 +223,9 @@ One SDR step means SDR.
   What you do                          Console HDR   Windows HDR   PushFPS
   -----------------------------------  -----------   -----------   ---------------------------------------
   Play on an HDR monitor               On            On            Default (HDR output). Capture card set
-  (capture card captures HDR)                                      to HDR in the capture dialog
+  (capture card captures HDR)                                      to HDR at 60 FPS (1080p or 1440p on
+                                                                   USB cards; 4K60 HDR needs PCIe). No
+                                                                   HDR capture: RTX Video HDR (NVIDIA)
   Play on an SDR monitor               Off           Off           Default
   Record clips to share (Discord,      Off           Off           SDR recording (H.264). Or keep the
   TikTok, Shorts, Reels, most editors)                             console on HDR and turn on "Show as
@@ -189,12 +244,12 @@ Tips
   - Xbox Auto HDR adds HDR to SDR games: leave it off when you want SDR clips or streams.
 
 
-6. QUICK CHECKLIST
+7. QUICK CHECKLIST
 ------------------
 
   [ ] HDCP off (PlayStation)
   [ ] Console at 60 Hz (120 Hz only if your capture card captures 120 Hz), VRR off
-  [ ] Capture card on a USB 3 port directly on the PC, set to exactly 60 FPS (or 120)
+  [ ] Capture card on a USB 3 port directly on the PC, 60 FPS (or 120), NV12 or P010, not MJPEG
   [ ] Quick setup: console, game frame rate 30, target from the monitor table (60 or 120), game preset
   [ ] Smooth frame pacing, Frame Pacing Repair and Live HUD Lock on
   [ ] Optimise for my PC with the game on screen

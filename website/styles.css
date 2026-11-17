@@ -361,7 +361,11 @@ dialog#lightbox[open] { animation: pop .2s ease; }
 .hz tbody th { width: 34%; }
 .hz tbody th small { display: block; font-weight: 400; font-size: 14px; color: var(--faint); margin-top: 4px; }
 .hz td b { color: var(--text); }
-@media (max-width: 560px) { .hz tbody th, .rates tbody th { width: auto; } }
+.capfmt tbody th, .cards tbody th { width: 22%; }
+.capfmt td b { color: var(--text); }
+.cards td:last-child { color: var(--muted); }
+.cards td:nth-child(2) { color: var(--text); }
+@media (max-width: 560px) { .hz tbody th, .rates tbody th, .capfmt tbody th, .cards tbody th { width: auto; } }
 .hdr td { color: var(--muted); }
 .hdr td:last-child { color: var(--muted); }
 .chip { display: inline-flex; align-items: center; justify-content: center; min-width: 46px; height: 26px; padding: 0 10px; border-radius: 999px; font: 600 13px/1 var(--body); border: 1px solid var(--line-2); color: var(--text); background: var(--ink-2); white-space: nowrap; }

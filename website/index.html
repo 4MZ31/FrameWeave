@@ -295,11 +295,11 @@
 <section class="section" id="guide">
   <div class="wrap">
     <h2>Setup guide: the best settings</h2>
-    <p class="section-lede">Where to start in PushFPS, how to tune it from there, and what to set on your console and in Windows. Also as a text file: <a href="https://github.com/DosukaSOL/PushFPS/blob/main/docs/PushFPS-Setup-Guide.txt">PushFPS-Setup-Guide.txt</a>, attached to every release.</p>
+    <p class="section-lede">Where to start in PushFPS, how to tune it from there, and what to set on your console, your capture card and in Windows. Also as a text file: <a href="https://github.com/DosukaSOL/PushFPS/blob/main/docs/PushFPS-Setup-Guide.txt">PushFPS-Setup-Guide.txt</a>, attached to every release.</p>
 
     <h3 class="sub-h">1. Start here</h3>
     <ol class="steps guide-steps">
-      <li><h3>Get the game on screen</h3><p>Connect the capture card and start your game, so PushFPS can see the real picture.</p></li>
+      <li><h3>Get the game on screen</h3><p>Connect the capture card and start your game, so PushFPS can see the real picture. Capture at <b>60&nbsp;FPS</b>, even for a 30&nbsp;FPS game (<a href="#guide-capture">why</a>).</p></li>
       <li><h3>Fill in the quick setup</h3><p>Your console, game frame rate <b>30</b> (40 or 60 for those modes), and the target for your monitor from <a href="#guide-rates">the table below</a>: <b>60</b> on a 60&nbsp;Hz monitor, <b>120&nbsp;FPS</b> on 120&nbsp;Hz and faster. Pick the game preset if it's listed.</p></li>
       <li><h3>Keep these on</h3><p><b>Smooth frame pacing</b>, <b>Frame Pacing Repair</b> and <b>Live HUD Lock</b>. <b>Adaptive multiplier</b> for games that dip. <b>Lowest latency</b> for action games. AI enhancement off to start.</p></li>
       <li><h3>Optimise for my PC</h3><p>With the game on screen, goal <b>Balanced</b>. PushFPS tests every method your PC has and keeps the best. Undo puts everything back.</p></li>
@@ -333,7 +333,8 @@
           <tr><th scope="row">Wobbly edges in fast motion</th><td data-label="Try">A lower target, or a higher frame generation quality in Pro mode</td></tr>
           <tr><th scope="row">Stutter or uneven motion</th><td data-label="Try">Smooth frame pacing on, G-SYNC/FreeSync on in your driver, capture card at exactly 60&nbsp;FPS, fullscreen (F11)</td></tr>
           <tr><th scope="row">The game feels slow to react</th><td data-label="Try">Lowest latency on, 120&nbsp;Hz console output if your card captures 120&nbsp;Hz, or target Off for competitive games</td></tr>
-          <tr><th scope="row">Soft or blocky picture</th><td data-label="Try">AI picture enhancement on (RTX 40/50), or NVIDIA Image Scaling sharpening in Pro mode</td></tr>
+          <tr><th scope="row">Ghosting or wobbly "jelly" with a 30&nbsp;FPS game</th><td data-label="Try">On an RTX 40/50: NVIDIA Video Frame Generation, which handles low frame rates best. Quality <b>Medium</b> to start; <b>High</b> at 2× if your card keeps up (<a href="#guide-vfg">how heavy</a>)</td></tr>
+          <tr><th scope="row">Soft or blocky picture</th><td data-label="Try">RTX Video Super Resolution at <b>Medium</b> (PushFPS's default) on NVIDIA, NVIDIA Image Scaling on any card, or AI picture enhancement (RTX 40/50)</td></tr>
           <tr><th scope="row">Frame rate drops with AI enhancement</th><td data-label="Try">AI enhancement off, or a lower target</td></tr>
           <tr><th scope="row">Washed-out or too dark picture</th><td data-label="Try">Match the capture dialog's colour settings to the console: HDR or SDR, Limited or Full range</td></tr>
         </tbody>
@@ -392,7 +393,41 @@
       </div>
     </div>
 
-    <h3 class="sub-h">4. Windows settings</h3>
+    <h3 class="sub-h" id="guide-capture">4. Capture card settings</h3>
+    <p class="guide-note">With thanks to Likely7, Veyra's developer: the delay figures and card picks below are his, checked against the makers' specs and corrected where needed.</p>
+    <ul class="setlist">
+      <li><span><b>Frame rate</b></span><span class="chip on">60 FPS</span><small>Also for a 30&nbsp;FPS game: each new picture reaches the PC sooner than with a 30&nbsp;FPS capture. Half the captured frames are then repeats (AABBCC), so PushFPS removes them before generating frames. The quick setup and Optimise for my PC do this for you; in Pro mode it's <i>Remove duplicate frames</i> (Automatic removal or 60→30). 120&nbsp;FPS only if your card captures 120&nbsp;Hz.</small></li>
+      <li><span><b>Format</b></span><span class="chip">NV12, or P010 for HDR</span><small>Uncompressed. Avoid MJPEG where you can: it's compressed and has to be decoded. On a 5&nbsp;Gbps card, 4K60 only exists as MJPEG (the Elgato 4K S, for example).</small></li>
+      <li><span><b>Resolution for the lowest delay</b></span><span class="chip">1440p60 NV12</span><small>Then let RTX Video Super Resolution (Medium) or NVIDIA Image Scaling upscale it. Want HDR on an HDR monitor without HDR capture? RTX Video HDR in Pro mode turns SDR into HDR (NVIDIA RTX).</small></li>
+    </ul>
+    <div class="table-wrap">
+      <table class="spec capfmt">
+        <thead><tr><th scope="col">Capture format</th><th scope="col">Delay</th><th scope="col">Good to know</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">1440p 60&nbsp;FPS NV12</th><td data-label="Delay"><b>10–20&nbsp;ms</b></td><td data-label="Good to know">The lowest delay. Works on 5&nbsp;Gbps cards.</td></tr>
+          <tr><th scope="row">4K 60&nbsp;FPS NV12</th><td data-label="Delay"><b>30–40&nbsp;ms</b></td><td data-label="Good to know">Needs a 10&nbsp;Gbps card on a 10&nbsp;Gbps port, or PCIe.</td></tr>
+          <tr><th scope="row">4K 30&nbsp;FPS P010 (HDR)</th><td data-label="Delay"><b>80–100&nbsp;ms</b></td><td data-label="Good to know">Avoid for playing: the most delay, and only 30 pictures a second reach the PC. For 4K60 HDR you need a PCIe card.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="guide-note">Delay measured by Veyra's developer for the capture step alone; your card can differ a little. Cards with the same chip differ by about 5&nbsp;ms or less, whatever the brand.</p>
+    <h4 class="guide-h4">Which capture card</h4>
+    <div class="table-wrap">
+      <table class="spec cards">
+        <thead><tr><th scope="col">Connection</th><th scope="col">Uncompressed capture</th><th scope="col">Examples</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">USB 5&nbsp;Gbps</th><td data-label="Uncompressed capture">1440p60 and 4K30 NV12; 1080p60 HDR on some</td><td data-label="Examples">Elgato HD60 X, Elgato 4K S (4K60 only as MJPEG), AVerMedia GC553 Pro / GC551G2, MICHENSEN T800 / T900, KUHAIMI 27P / 26P, ACASIS 007 Pro / 009 Pro</td></tr>
+          <tr><th scope="row">USB 10&nbsp;Gbps</th><td data-label="Uncompressed capture">4K60 NV12, 1440p60 HDR, 4K30 HDR</td><td data-label="Examples">Elgato 4K X, AVerMedia GC553G2 (both also capture 120&nbsp;Hz), MICHENSEN T911, KUHAIMI G50. Plug into a real 10&nbsp;Gbps port (USB 3.2 Gen 2) on the PC; on 5&nbsp;Gbps they capture less.</td></tr>
+          <tr><th scope="row">PCIe</th><td data-label="Uncompressed capture">4K60 HDR</td><td data-label="Examples">AVerMedia GC573, Elgato 4K Pro</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="guide-note">Tested with PushFPS: Elgato 4K X, HD60 X and 4K S. The other models are Veyra's developer's picks and aren't tested with PushFPS yet. Any card that shows up as a camera in Windows works.</p>
+
+    <h4 class="guide-h4" id="guide-vfg">NVIDIA Video Frame Generation: Medium or High?</h4>
+    <p class="guide-note">For 30&nbsp;FPS games it gives the least ghosting and wobble of the methods (RTX 40/50; RTX 30 experimental). <b>High</b> is the cleanest but heavy: Veyra's developer measured about 20&nbsp;ms per generated 4K frame on an RTX 5070. That fits 2× (one new frame per 33&nbsp;ms game frame) but not 4×, which needs three. <b>Medium</b> costs about a third to a quarter of High and still beats the other methods at 30&nbsp;FPS, so it's the default. In between, <b>High+Medium</b> uses High only for the middle frame of each pair. At 2×, <i>VFG auto regulation</i> drops a pair to the next tier when it can't keep up, instead of dropping frames. Find these in Pro mode under Frame generation, or let <b>Optimise for my PC</b> test what your card keeps up with.</p>
+
+    <h3 class="sub-h">5. Windows settings</h3>
     <ul class="setlist wingrid">
       <li><span><b>Hardware-accelerated GPU scheduling</b><br>Settings → System → Display → Graphics</span><span class="chip on">On</span><small>Required for NVIDIA's frame generation; on by default in Windows 11. Restart after changing it</small></li>
       <li><span><b>Monitor refresh rate</b><br>Settings → System → Display → Advanced display</span><span class="chip">Highest</span></li>
@@ -404,7 +439,7 @@
       <li><span><b>Play fullscreen</b> (F11)</span><span class="chip on">On</span><small>Skips the desktop compositor: less delay</small></li>
     </ul>
 
-    <h3 class="sub-h">5. When to use HDR</h3>
+    <h3 class="sub-h">6. When to use HDR</h3>
     <p class="guide-note">HDR only works when every step is HDR. One SDR step means SDR.</p>
     <figure class="hdr-chain" aria-label="HDR needs every step: console, capture card, Windows and monitor">
       <svg viewBox="0 0 760 92" role="img" aria-hidden="true">
@@ -419,7 +454,7 @@
       <table class="spec hdr">
         <thead><tr><th scope="col">What you do</th><th scope="col">Console HDR</th><th scope="col">Windows HDR</th><th scope="col">Notes</th></tr></thead>
         <tbody>
-          <tr><th scope="row">Play on an HDR monitor</th><td data-label="Console HDR"><span class="chip on">On</span></td><td data-label="Windows HDR"><span class="chip on">On</span></td><td data-label="Notes">Capture card set to HDR in the capture dialog</td></tr>
+          <tr><th scope="row">Play on an HDR monitor</th><td data-label="Console HDR"><span class="chip on">On</span></td><td data-label="Windows HDR"><span class="chip on">On</span></td><td data-label="Notes">Capture card set to HDR in the capture dialog, at 60&nbsp;FPS (1080p or 1440p on USB cards; 4K60 HDR needs PCIe). No HDR capture? RTX Video HDR on NVIDIA</td></tr>
           <tr><th scope="row">Play on an SDR monitor</th><td data-label="Console HDR"><span class="chip off">Off</span></td><td data-label="Windows HDR"><span class="chip off">Off</span></td><td data-label="Notes">Nothing else to change</td></tr>
           <tr><th scope="row">Record clips to share (Discord, TikTok, Shorts, Reels)</th><td data-label="Console HDR"><span class="chip off">Off</span></td><td data-label="Windows HDR"><span class="chip off">Off</span></td><td data-label="Notes">SDR H.264 plays everywhere. Or keep console HDR and turn on <i>Show as SDR</i> in the capture dialog</td></tr>
           <tr><th scope="row">Record in HDR (YouTube HDR, HDR editing)</th><td data-label="Console HDR"><span class="chip on">On</span></td><td data-label="Windows HDR"><span class="chip on">On</span></td><td data-label="Notes">Needs an NVIDIA graphics card: HEVC 10-bit HDR files</td></tr>
