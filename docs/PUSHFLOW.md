@@ -47,6 +47,11 @@ On the CPU, when the release is built (`scripts/pushflow/prepare_runtime.py`, nu
 On WARP (Windows' software renderer, `tests/integration/PushGpuTests.cpp`): the whole path through DirectML,
 identical frames, the moving square, t = 0.25, fine texture in motion and the Fast tier's rebuild.
 
+One finding from WARP: on per-pixel noise panning 8 pixels at 640×360, the Fast tier's rebuild scores 22.1 dB
+against 15.2 dB for a blend, but the Quality model run at full size does not track that pattern (14.6 dB). Real
+pictures are not per-pixel noise, and the moving-square check passes at 51.6 dB, but it is on the list: tests
+with real game and video footage, and whether the Quality tier should also estimate motion at a lower scale.
+
 **Not measured yet:** speed on real NVIDIA, AMD and Intel cards. PushFlowBench (below) exists so these
 numbers come from real hardware, not estimates.
 
