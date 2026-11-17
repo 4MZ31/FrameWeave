@@ -33,6 +33,7 @@
 #include <cstring>
 #include <string>
 #include <thread>
+#include <functional>
 #include <vector>
 
 using namespace veyra;
@@ -512,6 +513,95 @@ void testStreamOverlay(Gpu& gpu, bool hdr) {
     check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
 }
 
+// PushFPS streaming mode: scene transitions (the scene picture at part opacity) and live layers (a
+// webcam, window or video frame scaled into a rectangle, engine/PushStreamOverlay.h LiveLayerBlend).
+void testLiveLayers(Gpu& gpu, bool hdr) {
+    constexpr uint32_t W = 128, H = 64;
+    const std::string tag = hdr ? "live layers HDR" : "live layers";
+    auto* device = gpu.device.Get();
+    const auto yFormat = hdr ? DXGI_FORMAT_R16_UNORM : DXGI_FORMAT_R8_UNORM;
+    const auto uvFormat = hdr ? DXGI_FORMAT_R16G16_UNORM : DXGI_FORMAT_R8G8_UNORM;
+    const uint32_t bpp = hdr ? 2 : 1;
+    Plane y{pipeline::makeTexture(device, W, H, yFormat, true), yFormat, W, H, bpp};
+    Plane uv{pipeline::makeTexture(device, W / 2, H / 2, uvFormat, true), uvFormat, W / 2, H / 2, bpp * 2};
+    const auto code = [&](uint32_t v8, uint32_t v10) { return hdr ? v10 << 6 : v8; };
+    const auto plane = [&](uint32_t value, uint32_t w, uint32_t h, uint32_t channels) {
+        std::vector<uint8_t> out(size_t(w) * h * channels * bpp);
+        for (size_t i = 0; i < size_t(w) * h * channels; ++i) {
+            if (hdr) { const uint16_t v = uint16_t(value); std::memcpy(out.data() + i * 2, &v, 2); } else out[i] = uint8_t(value);
+        }
+        return out;
+    };
+    const auto read = [&](const std::vector<uint8_t>& b, size_t i) { return hdr ? int(word(b, i)) >> 6 : int(b[i]); };
+    const auto within = [](int a, int b, int tolerance) { return std::abs(a - b) <= tolerance; };
+
+    // Placement maths.
+    uint32_t x0 = 0, y0 = 0, w = 0, h = 0;
+    engine::PushLayerPlace place{0.5f, 0.25f, 0.25f, 0.0f, 0, true};
+    check(engine::pushLayerRect(engine::resolvePushLayerPlace(place, 32, 16, W, H), W, H, x0, y0, w, h) && x0 == 64 && y0 == 16 && w == 32 && h == 16,
+          tag + ": automatic height keeps the frame's shape");
+    engine::PushLayerPlace corner{1.0f, 1.0f, 0.25f, 0.0f, 3, true};
+    check(engine::pushLayerRect(engine::resolvePushLayerPlace(corner, 32, 16, W, H), W, H, x0, y0, w, h) && x0 == 96 && y0 == 48 && w == 32 && h == 16,
+          tag + ": bottom-right anchor");
+    engine::PushLayerPlace off{1.2f, 0.0f, 0.2f, 0.2f, 0, true};
+    check(!engine::pushLayerRect(off, W, H, x0, y0, w, h), tag + ": a place off the picture draws nothing");
+    check(engine::pushTransitionProgress(0, 300) == 0.0f && engine::pushTransitionProgress(300, 300) == 1.0f &&
+          std::abs(engine::pushTransitionProgress(150, 300) - 0.5f) < 1e-4f && engine::pushTransitionProgress(5, 0) == 1.0f,
+          tag + ": transition progress eases from 0 to 1 (0 ms: a cut)");
+
+    // An opaque white 32 x 16 frame at (64, 16).
+    auto frame = std::make_shared<engine::PushOverlayImage>(engine::PushOverlayImage{32, 16, {}, std::vector<uint8_t>(32 * 16 * 4, 255)});
+    std::array<engine::PushLiveLayerState, engine::kPushLiveLayers> layers{};
+    layers[0].frame = frame; layers[0].frameVersion = 1; layers[0].place = place; layers[0].opacity = 1.0f;
+    engine::LiveLayerBlend blend;
+    check(blend.create(device, W, H, hdr, 2), tag + ": created");
+    pipeline::StateTracker states;
+    const auto run = [&](const std::function<void()>& draw, std::vector<uint8_t>& py, std::vector<uint8_t>& puv) {
+        if (!gpu.begin()) return false;
+        auto a = recordFill(gpu, y, plane(code(100, 400), W, H, 1), states.get(y.texture.Get()), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        states.set(y.texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        auto b = recordFill(gpu, uv, plane(code(90, 300), W / 2, H / 2, 2), states.get(uv.texture.Get()), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        states.set(uv.texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        draw();
+        auto ry = recordRead(gpu, y, states.get(y.texture.Get()));
+        auto ruv = recordRead(gpu, uv, states.get(uv.texture.Get()));
+        if (!gpu.submitAndWait()) return false;
+        py = mapRead(y, ry.Get()); puv = mapRead(uv, ruv.Get());
+        return py.size() == size_t(W) * H * bpp;
+    };
+    std::vector<uint8_t> py, puv;
+    check(run([&] { blend.apply(gpu.list.Get(), states, y.texture.Get(), uv.texture.Get(), layers); }, py, puv), tag + ": runs");
+    const int white = hdr ? 573 : 235, base = hdr ? 400 : 100;
+    check(read(py, size_t(20) * W + 70) == white && read(py, size_t(31) * W + 95) == white, tag + ": the frame fills its rectangle");
+    check(read(py, size_t(20) * W + 97) == base && read(py, size_t(10) * W + 10) == base && read(py, size_t(33) * W + 70) == base,
+          tag + ": the picture is kept around it");
+    check(read(puv, (size_t(10) * (W / 2) + 36) * 2) == (hdr ? 512 : 128), tag + ": white is neutral in chroma");
+    // Half opacity: halfway between the picture and white (the same uploaded frame).
+    layers[0].opacity = 0.5f;
+    check(run([&] { blend.apply(gpu.list.Get(), states, y.texture.Get(), uv.texture.Get(), layers); }, py, puv), tag + ": half opacity runs");
+    check(within(read(py, size_t(20) * W + 70), (white + base) / 2, 2), tag + ": half opacity blends halfway");
+    // A larger frame drawn smaller (box-filtered): still white inside, nothing outside.
+    auto big = std::make_shared<engine::PushOverlayImage>(engine::PushOverlayImage{128, 64, {}, std::vector<uint8_t>(128 * 64 * 4, 255)});
+    layers[0].frame = big; layers[0].frameVersion = 2; layers[0].opacity = 1.0f;
+    for (int i = 0; i < 6; ++i) { // past the guard that delays a second size change
+        std::vector<uint8_t> ty, tuv;
+        run([&] { blend.apply(gpu.list.Get(), states, y.texture.Get(), uv.texture.Get(), layers); }, ty, tuv);
+        py = ty; puv = tuv;
+    }
+    check(read(py, size_t(20) * W + 70) == white && read(py, size_t(20) * W + 97) == base, tag + ": a 4x larger frame is scaled into the same place");
+    // Transitions: a black card at half opacity over the picture.
+    engine::PushOverlayImage card{W, H, {}, std::vector<uint8_t>(size_t(W) * H * 4, 0)};
+    for (size_t i = 0; i < size_t(W) * H; ++i) card.rgba[i * 4 + 3] = 255;
+    engine::FrameOverlay overlay;
+    check(overlay.create(device, W, H, hdr, card), tag + ": card created");
+    check(run([&] { overlay.apply(gpu.list.Get(), states, y.texture.Get(), uv.texture.Get(), 0.5f); }, py, puv), tag + ": faded card runs");
+    const int black = hdr ? 64 : 16;
+    check(within(read(py, size_t(40) * W + 90), (black + base) / 2, 2), tag + ": a card at half opacity shows half the picture (scene fade)");
+    check(run([&] { overlay.apply(gpu.list.Get(), states, y.texture.Get(), uv.texture.Get(), 0.0f); }, py, puv) &&
+          read(py, size_t(40) * W + 90) == base, tag + ": opacity 0 leaves the picture alone");
+    check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
+}
+
 // The console side from the raw picture (linear BT.709, float RGBA, here half the recorded size):
 // no enhancement, only scaled and coded like the recorder's own conversion.
 void testCompareRaw(Gpu& gpu, bool hdr, engine::CompareLayout layout) {
@@ -825,6 +915,8 @@ int main() {
     testCompareVertical(gpu, true);
     testStreamOverlay(gpu, false);
     testStreamOverlay(gpu, true);
+    testLiveLayers(gpu, false);
+    testLiveLayers(gpu, true);
     testLabelScale();
     testCompareSkipRule();
     testCompareRaw(gpu, false, engine::CompareLayout::Split);

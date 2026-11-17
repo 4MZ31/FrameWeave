@@ -263,7 +263,12 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         // PushFPS streaming mode mixer (engine/PushAudioMix.h): faders in dB, the noise gate threshold.
         {"mixGameDb", {-60, 12}},
         {"mixMicDb", {-60, 20}},
-        {"micGateDb", {-80, -10}}};
+        {"micGateDb", {-80, -10}},
+        // PushFPS streaming mode: desktop audio and the extra input (engine/PushAuxAudio.h), and the
+        // scene transition length in ms (0 = cut).
+        {"mixDesktopDb", {-60, 12}},
+        {"mixAuxDb", {-60, 12}},
+        {"studioTransitionMs", {0, 2000}}};
     static const QStringList flags{"recordHevc", "recordAdvanced", "recordAudio", "recordMic", "recordMicTrack", "replayEnabled", "subtitleEnabled", "subtitleBackground", "subtitleFit",
                                    "subtitleSecondLanguage", "audioForceStereo", "captureAudioMonitor", "holdCompare",
                                    "magewellLowLatency", "blackmagicNativeCapture", "captureShowAllFrameRates", "cinePillHidden", "exportStopsPlayback", "obsGameCapture", "autoResume", "fullscreenMemoryProtection", "prewarmEnhancement", "hdrFgCompatibility", "computeOnMonitorGpu", "deinterlace", "networkAutoReconnect",
@@ -278,7 +283,9 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    // PushFPS going live: sound and microphone in the stream.
                                    "streamAudio", "streamMic",
                                    // PushFPS streaming mode mixer: mutes and the microphone filters.
-                                   "mixGameMuted", "mixMicMuted", "micHighPass", "micEqOn", "micGate", "micCompressor"};
+                                   "mixGameMuted", "mixMicMuted", "micHighPass", "micEqOn", "micGate", "micCompressor",
+                                   // PushFPS streaming mode: desktop audio and the extra input on / muted.
+                                   "mixDesktopOn", "mixDesktopMuted", "mixAuxOn", "mixAuxMuted"};
     QVariant stored;
     if (ranges.contains(key)) {
         bool ok = false; const int n = value.toInt(&ok);
@@ -301,6 +308,11 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         stored = dir;
     } else if (key == QLatin1String("audioDevice")) {
         stored = value.toString();
+    } else if (key == QLatin1String("mixAuxDevice")) {
+        // PushFPS streaming mode extra input: a recording endpoint id (empty: the default one).
+        const QString id = value.toString();
+        if (id.size() > 512) return false;
+        stored = id;
     } else if (key == QLatin1String("recordMicDevice")) {
         // A recording endpoint id (empty: the default recording device).
         const QString id = value.toString();
@@ -522,7 +534,9 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
     else if (key == QLatin1String("mixGameDb") || key == QLatin1String("mixGameMuted") || key == QLatin1String("mixMicDb") ||
              key == QLatin1String("mixMicMuted") || key == QLatin1String("micHighPass") || key == QLatin1String("micEqOn") ||
              key == QLatin1String("micEq") || key == QLatin1String("micGate") || key == QLatin1String("micGateDb") ||
-             key == QLatin1String("micCompressor"))
+             key == QLatin1String("micCompressor") || key == QLatin1String("mixDesktopOn") || key == QLatin1String("mixDesktopDb") ||
+             key == QLatin1String("mixDesktopMuted") || key == QLatin1String("mixAuxOn") || key == QLatin1String("mixAuxDb") ||
+             key == QLatin1String("mixAuxMuted") || key == QLatin1String("mixAuxDevice"))
         applyPushMix();
     else if (key == QLatin1String("nisSharpness"))
         pipeline::setNisSharpness(float(impl_->prefInt("nisSharpness", int(pipeline::kNisDefaultSharpness * 100))) / 100.0f);

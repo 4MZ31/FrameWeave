@@ -8,7 +8,7 @@ function calculate(width, height) {
     const compact = width < 1100 || height < 640
     const margin = 12, top = 56, gap = 10
     const statusHeight = 28
-    const mixerHeight = compact ? 150 : 178
+    const mixerHeight = compact ? 170 : 196   // three rows of two strips (game, mic, monitor, desktop, extra input)
     const leftWidth = compact ? 0 : 300
     const rightWidth = compact ? 236 : 286
     const bodyHeight = Math.max(1, height - top - margin - statusHeight - gap - mixerHeight - gap)

@@ -9096,6 +9096,23 @@
    "ru": "Средний серый (нит)"
   },
   {
+   "zh": "中间",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "中間",
+   "en": "Center",
+   "ja": "中央",
+   "nl": "Midden",
+   "de": "Mitte",
+   "es": "Centro",
+   "fr": "Centre",
+   "it": "Centro",
+   "pt-BR": "Centro",
+   "tr": "Orta",
+   "ar": "الوسط",
+   "pl": "Środek",
+   "ru": "Центр"
+  },
+  {
    "zh": "中间调",
    "src": "qml/ColourPanel.qml",
    "zh-TW": "中間調",
@@ -10828,6 +10845,23 @@
    "ar": "Bitstream first (Dolby/DTS passthrough decoding)",
    "pl": "Bitstream pierwszy (Dolby / DTS passthrough decoding)",
    "ru": "Bitstream first Dolby / DTS Прохождение декодирования"
+  },
+  {
+   "zh": "位置和外观",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "位置和外觀",
+   "en": "Position and look",
+   "ja": "位置と見た目",
+   "nl": "Positie en uiterlijk",
+   "de": "Position und Aussehen",
+   "es": "Posición y aspecto",
+   "fr": "Position et apparence",
+   "it": "Posizione e aspetto",
+   "pt-BR": "Posição e aparência",
+   "tr": "Konum ve görünüm",
+   "ar": "الموضع والمظهر",
+   "pl": "Pozycja i wygląd",
+   "ru": "Положение и вид"
   },
   {
    "zh": "低",
@@ -12956,6 +12990,23 @@
    "ru": "Без компенсации"
   },
   {
+   "zh": "关闭：不进入录制和直播",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "關閉：不進入錄製和直播",
+   "en": "Off: not in recordings or streams",
+   "ja": "オフ：録画と配信に入りません",
+   "nl": "Uit: niet in opnames of streams",
+   "de": "Aus: nicht in Aufnahmen oder Streams",
+   "es": "Desactivado: no entra en grabaciones ni directos",
+   "fr": "Désactivé : absent des enregistrements et des diffusions",
+   "it": "Disattivato: non entra in registrazioni e dirette",
+   "pt-BR": "Desligado: fora das gravações e transmissões",
+   "tr": "Kapalı: kayıtlara ve yayınlara girmez",
+   "ar": "متوقف: لا يدخل في التسجيلات أو البث",
+   "pl": "Wyłączone: nie trafia do nagrań ani transmisji",
+   "ru": "Выключено: не попадает в записи и трансляции"
+  },
+  {
    "zh": "其他主机",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "其他主機",
@@ -13974,6 +14025,23 @@
    "ar": "Allocate converted subtitle",
    "pl": "Przydziel konwertowany podtytuł",
    "ru": "Выделить преобразованный подзаголовок"
+  },
+  {
+   "zh": "切换",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "切換",
+   "en": "Cut",
+   "ja": "カット",
+   "nl": "Direct",
+   "de": "Schnitt",
+   "es": "Corte",
+   "fr": "Coupe",
+   "it": "Taglio",
+   "pt-BR": "Corte",
+   "tr": "Kesme",
+   "ar": "قطع",
+   "pl": "Cięcie",
+   "ru": "Склейка"
   },
   {
    "zh": "切换会重建处理链，画面可能停顿几百毫秒。",
@@ -18039,6 +18107,23 @@
    "ru": "Распределение ресурсов изображения провалилось"
   },
   {
+   "zh": "圆形",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "圓形",
+   "en": "Circle",
+   "ja": "円",
+   "nl": "Cirkel",
+   "de": "Kreis",
+   "es": "Círculo",
+   "fr": "Cercle",
+   "it": "Cerchio",
+   "pt-BR": "Círculo",
+   "tr": "Daire",
+   "ar": "دائرة",
+   "pl": "Koło",
+   "ru": "Круг"
+  },
+  {
    "zh": "圆形 ",
    "src": "qml/MaskEditor.qml",
    "zh-TW": "圓形 ",
@@ -18054,6 +18139,23 @@
    "ar": "دائرة ",
    "pl": "Koło ",
    "ru": "Круг "
+  },
+  {
+   "zh": "圆角",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "圓角",
+   "en": "Rounded",
+   "ja": "角丸",
+   "nl": "Afgerond",
+   "de": "Abgerundet",
+   "es": "Redondeado",
+   "fr": "Arrondi",
+   "it": "Arrotondato",
+   "pt-BR": "Arredondado",
+   "tr": "Yuvarlak",
+   "ar": "مستدير الحواف",
+   "pl": "Zaokrąglony",
+   "ru": "Скруглённый"
   },
   {
    "zh": "在 PSNTools 网页获取 Account ID，再到 PS5 串流窗口填写并配对。",
@@ -19873,6 +19975,23 @@
    "ar": "تعمل معظم ألعاب الأجهزة بمعدل 30 إطارًا، وغالبًا 40 في وضع 120 هرتز؛ اختر 60 لأوضاع الأداء",
    "pl": "Większość gier konsolowych działa w 30 FPS, w trybie 120 Hz często w 40; dla trybów wydajności wybierz 60",
    "ru": "Большинство консольных игр идут в 30 FPS, в режиме 120 Гц часто в 40; для режимов производительности выберите 60"
+  },
+  {
+   "zh": "大小",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "大小",
+   "en": "Size",
+   "ja": "サイズ",
+   "nl": "Grootte",
+   "de": "Größe",
+   "es": "Tamaño",
+   "fr": "Taille",
+   "it": "Dimensione",
+   "pt-BR": "Tamanho",
+   "tr": "Boyut",
+   "ar": "الحجم",
+   "pl": "Rozmiar",
+   "ru": "Размер"
   },
   {
    "zh": "失败 · 点击重试",
@@ -27321,6 +27440,23 @@
    "ru": "Многие консольные игры с лимитом 30 FPS выдают кадры неравномерно: одни держатся на экране 17 мс, другие 50 мс, и картинка дёргается, хотя частота кадров правильная. PushFPS возвращает каждый кадр на равномерное место перед генерацией кадров — консоль так сама не умеет. Кадр показывается не более чем на одно обновление позже"
   },
   {
+   "zh": "循环播放",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "循環播放",
+   "en": "Loop",
+   "ja": "ループ再生",
+   "nl": "Herhalen",
+   "de": "Endlos abspielen",
+   "es": "Reproducir en bucle",
+   "fr": "Lire en boucle",
+   "it": "Riproduci in loop",
+   "pt-BR": "Repetir",
+   "tr": "Döngüde oynat",
+   "ar": "تشغيل متكرر",
+   "pl": "Odtwarzaj w pętli",
+   "ru": "Повторять"
+  },
+  {
    "zh": "微信扫码",
    "src": "qml/SponsorPanel.qml",
    "zh-TW": "微信掃碼",
@@ -27625,6 +27761,23 @@
    "ar": "شكرًا للمشاهدة",
    "pl": "Dzięki za oglądanie",
    "ru": "Спасибо за просмотр"
+  },
+  {
+   "zh": "慢速淡入",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "慢速淡入",
+   "en": "Slow fade",
+   "ja": "ゆっくりフェード",
+   "nl": "Langzaam vervagen",
+   "de": "Langsame Blende",
+   "es": "Fundido lento",
+   "fr": "Fondu lent",
+   "it": "Dissolvenza lenta",
+   "pt-BR": "Fade lento",
+   "tr": "Yavaş geçiş",
+   "ar": "تلاشٍ بطيء",
+   "pl": "Wolne przenikanie",
+   "ru": "Медленное затухание"
   },
   {
    "zh": "我的",
@@ -29701,6 +29854,23 @@
    "ru": "Поиск, напр. 1920 60 NV12"
   },
   {
+   "zh": "摄像头",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "攝影機",
+   "en": "Camera",
+   "ja": "カメラ",
+   "nl": "Camera",
+   "de": "Kamera",
+   "es": "Cámara",
+   "fr": "Caméra",
+   "it": "Webcam",
+   "pt-BR": "Câmera",
+   "tr": "Kamera",
+   "ar": "كاميرا",
+   "pl": "Kamera",
+   "ru": "Камера"
+  },
+  {
    "zh": "撤销",
    "src": "qml/ColourPanel.qml",
    "zh-TW": "撤銷",
@@ -30975,6 +31145,23 @@
    "ar": "الطريقة",
    "pl": "Metoda",
    "ru": "Способ"
+  },
+  {
+   "zh": "方形",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "方形",
+   "en": "Square",
+   "ja": "四角",
+   "nl": "Rechthoek",
+   "de": "Eckig",
+   "es": "Rectangular",
+   "fr": "Rectangle",
+   "it": "Rettangolo",
+   "pt-BR": "Retângulo",
+   "tr": "Köşeli",
+   "ar": "مستطيل",
+   "pl": "Prostokąt",
+   "ru": "Прямоугольник"
   },
   {
    "zh": "旋转显示器请使用 Windows 采集方式",
@@ -35329,6 +35516,23 @@
    "ru": "Это бесплатная программа с открытым исходным кодом. Если она вам помогает, вы можете →"
   },
   {
+   "zh": "来源（摄像头、窗口、视频）",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "來源（攝影機、視窗、影片）",
+   "en": "Sources (camera, window, video)",
+   "ja": "ソース（カメラ、ウィンドウ、動画）",
+   "nl": "Bronnen (camera, venster, video)",
+   "de": "Quellen (Kamera, Fenster, Video)",
+   "es": "Fuentes (cámara, ventana, vídeo)",
+   "fr": "Sources (caméra, fenêtre, vidéo)",
+   "it": "Sorgenti (webcam, finestra, video)",
+   "pt-BR": "Fontes (câmera, janela, vídeo)",
+   "tr": "Kaynaklar (kamera, pencere, video)",
+   "ar": "المصادر (كاميرا، نافذة، فيديو)",
+   "pl": "Źródła (kamera, okno, wideo)",
+   "ru": "Источники (камера, окно, видео)"
+  },
+  {
    "zh": "松开以追加到播放列表",
    "src": "qml/PlaylistWindow.qml",
    "zh-TW": "放開以追加至播放清單",
@@ -35667,6 +35871,23 @@
    "ar": "سطح المكتب %1 · %2",
    "pl": "Pulpit %1 · %2",
    "ru": "Рабочий стол %1 · %2"
+  },
+  {
+   "zh": "桌面音频",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "桌面音訊",
+   "en": "Desktop audio",
+   "ja": "デスクトップ音声",
+   "nl": "Desktopgeluid",
+   "de": "Desktop-Audio",
+   "es": "Audio del escritorio",
+   "fr": "Son du bureau",
+   "it": "Audio del desktop",
+   "pt-BR": "Áudio da área de trabalho",
+   "tr": "Masaüstü sesi",
+   "ar": "صوت سطح المكتب",
+   "pl": "Dźwięk pulpitu",
+   "ru": "Звук рабочего стола"
   },
   {
    "zh": "档位",
@@ -36415,6 +36636,23 @@
    "ar": "طلب رمز إشارة من ميكروسوفت",
    "pl": "Żądanie podpisu w kodzie od Microsoft...",
    "ru": "Запрос кода входа от Microsoft..."
+  },
+  {
+   "zh": "正在启动…",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "正在啟動…",
+   "en": "Starting…",
+   "ja": "起動中…",
+   "nl": "Starten…",
+   "de": "Wird gestartet…",
+   "es": "Iniciando…",
+   "fr": "Démarrage…",
+   "it": "Avvio…",
+   "pt-BR": "Iniciando…",
+   "tr": "Başlatılıyor…",
+   "ar": "جارٍ التشغيل…",
+   "pl": "Uruchamianie…",
+   "ru": "Запуск…"
   },
   {
    "zh": "正在唤醒主机并准备串流…",
@@ -38049,6 +38287,23 @@
    "ru": "Нет доступных направлений трансляции"
   },
   {
+   "zh": "没有可用的窗口",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "沒有可用的視窗",
+   "en": "No windows available",
+   "ja": "使えるウィンドウがありません",
+   "nl": "Geen vensters beschikbaar",
+   "de": "Keine Fenster verfügbar",
+   "es": "No hay ventanas disponibles",
+   "fr": "Aucune fenêtre disponible",
+   "it": "Nessuna finestra disponibile",
+   "pt-BR": "Nenhuma janela disponível",
+   "tr": "Kullanılabilir pencere yok",
+   "ar": "لا توجد نوافذ متاحة",
+   "pl": "Brak dostępnych okien",
+   "ru": "Нет доступных окон"
+  },
+  {
    "zh": "没有可用的美乐威运行库（",
    "src": "src/source/MagewellCapture.cpp",
    "zh-TW": "沒有可用的美樂威執行庫（",
@@ -38132,6 +38387,23 @@
    "ar": "لم يُعثر على HUD. يمكنك السحب على الصورة لرسم المربعات يدويًا",
    "pl": "Nie znaleziono HUD. Możesz przeciągnąć po obrazie, aby narysować ramki ręcznie",
    "ru": "HUD не найден. Проведите по изображению, чтобы нарисовать рамки вручную"
+  },
+  {
+   "zh": "没有找到摄像头",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "沒有找到攝影機",
+   "en": "No camera found",
+   "ja": "カメラが見つかりません",
+   "nl": "Geen camera gevonden",
+   "de": "Keine Kamera gefunden",
+   "es": "No se encontró ninguna cámara",
+   "fr": "Aucune caméra trouvée",
+   "it": "Nessuna webcam trovata",
+   "pt-BR": "Nenhuma câmera encontrada",
+   "tr": "Kamera bulunamadı",
+   "ar": "لم يتم العثور على كاميرا",
+   "pl": "Nie znaleziono kamery",
+   "ru": "Камера не найдена"
   },
   {
    "zh": "没有收到画面。请确认画面正在播放，并且 PushFPS 窗口没有最小化",
@@ -38659,6 +38931,23 @@
    "ar": "قياس التأخير الكلي",
    "pl": "Zmierz całkowite opóźnienie",
    "ru": "Измерить общую задержку"
+  },
+  {
+   "zh": "淡入淡出",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "淡入淡出",
+   "en": "Fade",
+   "ja": "フェード",
+   "nl": "Vervagen",
+   "de": "Blende",
+   "es": "Fundido",
+   "fr": "Fondu",
+   "it": "Dissolvenza",
+   "pt-BR": "Fade",
+   "tr": "Geçiş",
+   "ar": "تلاشٍ",
+   "pl": "Przenikanie",
+   "ru": "Затухание"
   },
   {
    "zh": "深黑底上的极轻渐变与抖动（防色带）",
@@ -42025,6 +42314,23 @@
    "ar": "إزالة الصورة",
    "pl": "Usuń obraz",
    "ru": "Убрать изображение"
+  },
+  {
+   "zh": "移除来源",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "移除來源",
+   "en": "Remove source",
+   "ja": "ソースを削除",
+   "nl": "Bron verwijderen",
+   "de": "Quelle entfernen",
+   "es": "Quitar fuente",
+   "fr": "Retirer la source",
+   "it": "Rimuovi sorgente",
+   "pt-BR": "Remover fonte",
+   "tr": "Kaynağı kaldır",
+   "ar": "إزالة المصدر",
+   "pl": "Usuń źródło",
+   "ru": "Удалить источник"
   },
   {
    "zh": "程序启动时的页面、窗口和恢复行为。",
@@ -46838,6 +47144,23 @@
    "ru": "Видео"
   },
   {
+   "zh": "视频 (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)",
+   "src": "src/ui/bridge/PushStudio.cpp",
+   "zh-TW": "影片 (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)",
+   "en": "Videos (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)",
+   "ja": "動画 (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)",
+   "nl": "Video's (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)",
+   "de": "Videos (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)",
+   "es": "Vídeos (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)",
+   "fr": "Vidéos (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)",
+   "it": "Video (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)",
+   "pt-BR": "Vídeos (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)",
+   "tr": "Videolar (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)",
+   "ar": "مقاطع فيديو (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)",
+   "pl": "Filmy (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)",
+   "ru": "Видео (*.mp4 *.mov *.mkv *.webm *.avi *.wmv)"
+  },
+  {
    "zh": "视频中途改变分辨率，当前文件处理不支持，已安全停止",
    "src": "src/source/MediaFileSource.cpp",
    "zh-TW": "影片中途改變解析度，當前檔案處理不支援，已安全停止",
@@ -50153,6 +50476,23 @@
    "ru": "Поворачивайте камеру или ходите: HUD стоит на месте, а остальное движется"
   },
   {
+   "zh": "转场",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "轉場",
+   "en": "Transition",
+   "ja": "トランジション",
+   "nl": "Overgang",
+   "de": "Übergang",
+   "es": "Transición",
+   "fr": "Transition",
+   "it": "Transizione",
+   "pt-BR": "Transição",
+   "tr": "Geçiş",
+   "ar": "الانتقال",
+   "pl": "Przejście",
+   "ru": "Переход"
+  },
+  {
    "zh": "转换为 ASS 文本字幕",
    "src": "src/engine/ExportStreams.cpp",
    "zh-TW": "轉換為 ASS 文字字幕",
@@ -52550,6 +52890,23 @@
    "ru": "Выбрать изображения для обработки"
   },
   {
+   "zh": "选择视频",
+   "src": "src/ui/bridge/PushStudio.cpp",
+   "zh-TW": "選擇影片",
+   "en": "Choose a video",
+   "ja": "動画を選択",
+   "nl": "Kies een video",
+   "de": "Video auswählen",
+   "es": "Elegir un vídeo",
+   "fr": "Choisir une vidéo",
+   "it": "Scegli un video",
+   "pt-BR": "Escolher um vídeo",
+   "tr": "Video seç",
+   "ar": "اختر فيديو",
+   "pl": "Wybierz wideo",
+   "ru": "Выберите видео"
+  },
+  {
    "zh": "选择设备和格式后连接",
    "src": "qml/CaptureSourceDialog.qml",
    "zh-TW": "選擇裝置和格式後連接",
@@ -54148,6 +54505,23 @@
    "ru": "Клавиатура и мышь не захвачены · щелкните картинку для захвата"
   },
   {
+   "zh": "镜像",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "鏡像",
+   "en": "Mirror",
+   "ja": "左右反転",
+   "nl": "Spiegelen",
+   "de": "Spiegeln",
+   "es": "Espejo",
+   "fr": "Miroir",
+   "it": "Specchia",
+   "pt-BR": "Espelhar",
+   "tr": "Ayna",
+   "ar": "انعكاس",
+   "pl": "Lustro",
+   "ru": "Отразить"
+  },
+  {
    "zh": "长句自动缩小",
    "src": "qml/SubtitleSettingsDialog.qml",
    "zh-TW": "長句自動縮小",
@@ -54299,6 +54673,23 @@
    "ar": "This reduces the base SR result, not the original input. Select a size below both the base result and the second SR target.",
    "pl": "Zmniejsza to wynik bazowy SR, a nie pierwotne wejście. Wybierz rozmiar poniżej zarówno wyniku podstawowego, jak i drugiego celu SR.",
    "ru": "Это уменьшает исходный результат SR, а не исходный ввод. Выберите размер ниже базового результата и второй цели SR."
+  },
+  {
+   "zh": "除 PushFPS 外的所有声音",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "除 PushFPS 外的所有聲音",
+   "en": "Everything except PushFPS",
+   "ja": "PushFPS 以外のすべての音",
+   "nl": "Alles behalve PushFPS",
+   "de": "Alles außer PushFPS",
+   "es": "Todo menos PushFPS",
+   "fr": "Tout sauf PushFPS",
+   "it": "Tutto tranne PushFPS",
+   "pt-BR": "Tudo exceto o PushFPS",
+   "tr": "PushFPS dışındaki her şey",
+   "ar": "كل شيء عدا PushFPS",
+   "pl": "Wszystko poza PushFPS",
+   "ru": "Всё, кроме PushFPS"
   },
   {
    "zh": "隐藏播放条",
@@ -56934,6 +57325,23 @@
    "ar": "The color preset library cannot be read: %1",
    "pl": "Nie można odczytać ustawionej biblioteki kolorów: %1",
    "ru": "Цветную библиотеку нельзя читать: %1"
+  },
+  {
+   "zh": "额外输入",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "額外輸入",
+   "en": "Extra input",
+   "ja": "追加入力",
+   "nl": "Extra invoer",
+   "de": "Zusätzlicher Eingang",
+   "es": "Entrada adicional",
+   "fr": "Entrée supplémentaire",
+   "it": "Ingresso aggiuntivo",
+   "pt-BR": "Entrada extra",
+   "tr": "Ek giriş",
+   "ar": "إدخال إضافي",
+   "pl": "Dodatkowe wejście",
+   "ru": "Доп. вход"
   },
   {
    "zh": "风格 · 实验",

@@ -1512,6 +1512,16 @@ public:
     // scene: {type: "game"|"card", title, subtitle, image, overlayImage, overlayText, corner}.
     Q_INVOKABLE bool pushSetStreamScene(const QVariantMap& scene);
     Q_INVOKABLE QString pushPickImage();
+    // Streaming mode sources (engine/PushLayerSources.h): webcams, windows and video files a scene
+    // adds. pushSetSceneSources([{id, kind: "camera"|"window"|"media", target, mirror, loop,
+    // shape: "rect"|"round"|"circle", corner: "tl"|"tr"|"bl"|"br"|"c", size: 0.05..1, margin}]).
+    Q_INVOKABLE QVariantList pushCameras();
+    Q_INVOKABLE QVariantList pushWindows();
+    Q_INVOKABLE QString pushPickMedia();
+    Q_INVOKABLE void pushSetSceneSources(const QVariantList& sources);
+    Q_INVOKABLE QVariantList pushSourceStatus();
+    // A small JPEG data URL of a running source's newest frame (the editor's preview), or "".
+    Q_INVOKABLE QString pushSourcePreview(const QString& id);
     Q_INVOKABLE QString pushLinkUrl(const QString& key) const;
     // PushFPS automatic HUD detection (engine/PushHudSampler.h): samples=1 only
     // takes a fresh picture for the box editor. pushHudDetection() polls it.
