@@ -1027,7 +1027,8 @@ void testPushFlow(Gpu& gpu) {
         if (!gpu.begin()) return result;
         auto ua = recordFill(gpu, a, pa, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
         auto ub = recordFill(gpu, b, pb, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-        if (!flow.pack(gpu.list.Get(), a.texture.Get(), b.texture.Get(), t) || !gpu.submit()) return result;
+        // Wait for the pack list before resetting the allocator for the next one.
+        if (!flow.pack(gpu.list.Get(), a.texture.Get(), b.texture.Get(), t) || !gpu.submitAndWait()) return result;
         const auto start = std::chrono::steady_clock::now();
         if (!flow.infer()) return result;
         if (!gpu.begin()) return result;

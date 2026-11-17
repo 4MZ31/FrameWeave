@@ -27,7 +27,7 @@ Nothing changes on the console or in the game: you need a capture card and a gra
 <table>
   <tr>
     <td align="center" width="300">
-      <a href="https://github.com/Likely7/Veyra-NRVideo"><img src="assets/credits/veyra-logo.png" alt="Veyra" height="64"></a><br>
+      <a href="https://github.com/Likely7/Veyra-NRVideo"><img src="assets/credits/veyra-logo.png" alt="Veyra" height="72"></a><br>
       <sub>Built on <a href="https://github.com/Likely7/Veyra-NRVideo"><b>Veyra</b></a> by <a href="https://github.com/Likely7">Likely7</a></sub>
     </td>
     <td align="center" width="300">
