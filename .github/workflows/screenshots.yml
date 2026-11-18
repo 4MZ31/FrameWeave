@@ -209,14 +209,15 @@ jobs:
           else { 'No QML errors or warnings in any screenshot run.' | Set-Content shots\qml-report.txt; Write-Host 'No QML errors or warnings.' }
 
       - name: Publish to the screenshots branch
-        # A subset (input "only") is for looking at; it must not replace the full set on the branch.
-        if: ${{ inputs.only == '' }}
+        # The full set replaces the `screenshots` branch. A subset (input "only") is for looking at: it goes
+        # to `screenshots-preview`, so it never replaces the full set.
         run: |
+          $branch = if ($env:ONLY) { 'screenshots-preview' } else { 'screenshots' }
           Set-Location shots
-          git init -q -b screenshots
+          git init -q -b $branch
           git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com add *.png qml-report.txt
           git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -q -m "PushFPS screenshots"
-          git push -q --force "https://x-access-token:$env:GH_TOKEN@github.com/$env:GITHUB_REPOSITORY.git" screenshots
+          git push -q --force "https://x-access-token:$env:GH_TOKEN@github.com/$env:GITHUB_REPOSITORY.git" $branch
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - uses: actions/upload-artifact@v4
