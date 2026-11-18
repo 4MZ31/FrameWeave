@@ -2075,6 +2075,57 @@
    "ru": "ИИ-улучшение изображения"
   },
   {
+   "zh": "AI 画面增强改动画面的力度。「强烈」是完整效果，也是一直以来的默认值；觉得画面不像原作、过于锐利或人脸不自然时，选「均衡」或「柔和」。也可以用下面两个滑块自己调",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "AI 畫面增強改動畫面的力度。「強烈」是完整效果，也是一直以來的預設值；覺得畫面不像原作、過於銳利或人臉不自然時，選「均衡」或「柔和」。也可以用下面兩個滑桿自己調",
+   "en": "How strongly AI picture enhancement changes the picture. Strong is the full effect and has always been the default. If the picture no longer looks like the game, looks too sharp, or faces look unnatural, pick Balanced or Subtle. You can also set it yourself with the two sliders below.",
+   "ja": "AI 画質強化が映像を変える強さです。「強い」は完全な効果で、これまでの既定値です。映像が元のゲームらしくない、シャープすぎる、顔が不自然だと感じたら「バランス」か「控えめ」を選んでください。下の 2 つのスライダーで自分で調整することもできます",
+   "nl": "How strongly AI picture enhancement changes the picture. Strong is the full effect and has always been the default. If the picture no longer looks like the game, looks too sharp, or faces look unnatural, pick Balanced or Subtle. You can also set it yourself with the two sliders below.",
+   "de": "How strongly AI picture enhancement changes the picture. Strong is the full effect and has always been the default. If the picture no longer looks like the game, looks too sharp, or faces look unnatural, pick Balanced or Subtle. You can also set it yourself with the two sliders below.",
+   "es": "How strongly AI picture enhancement changes the picture. Strong is the full effect and has always been the default. If the picture no longer looks like the game, looks too sharp, or faces look unnatural, pick Balanced or Subtle. You can also set it yourself with the two sliders below.",
+   "fr": "How strongly AI picture enhancement changes the picture. Strong is the full effect and has always been the default. If the picture no longer looks like the game, looks too sharp, or faces look unnatural, pick Balanced or Subtle. You can also set it yourself with the two sliders below.",
+   "it": "How strongly AI picture enhancement changes the picture. Strong is the full effect and has always been the default. If the picture no longer looks like the game, looks too sharp, or faces look unnatural, pick Balanced or Subtle. You can also set it yourself with the two sliders below.",
+   "pt-BR": "How strongly AI picture enhancement changes the picture. Strong is the full effect and has always been the default. If the picture no longer looks like the game, looks too sharp, or faces look unnatural, pick Balanced or Subtle. You can also set it yourself with the two sliders below.",
+   "tr": "How strongly AI picture enhancement changes the picture. Strong is the full effect and has always been the default. If the picture no longer looks like the game, looks too sharp, or faces look unnatural, pick Balanced or Subtle. You can also set it yourself with the two sliders below.",
+   "ar": "How strongly AI picture enhancement changes the picture. Strong is the full effect and has always been the default. If the picture no longer looks like the game, looks too sharp, or faces look unnatural, pick Balanced or Subtle. You can also set it yourself with the two sliders below.",
+   "pl": "How strongly AI picture enhancement changes the picture. Strong is the full effect and has always been the default. If the picture no longer looks like the game, looks too sharp, or faces look unnatural, pick Balanced or Subtle. You can also set it yourself with the two sliders below.",
+   "ru": "How strongly AI picture enhancement changes the picture. Strong is the full effect and has always been the default. If the picture no longer looks like the game, looks too sharp, or faces look unnatural, pick Balanced or Subtle. You can also set it yourself with the two sliders below."
+  },
+  {
+   "zh": "AI 补充细小纹理、接触阴影和反光的程度。0% 不添加细节",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "AI 補充細小紋理、接觸陰影和反光的程度。0% 不添加細節",
+   "en": "How much fine texture, contact shadow and reflection the AI adds. 0% adds no detail.",
+   "ja": "AI が細かな質感、接地の影、反射を加える度合いです。0% ではディテールを加えません",
+   "nl": "How much fine texture, contact shadow and reflection the AI adds. 0% adds no detail.",
+   "de": "How much fine texture, contact shadow and reflection the AI adds. 0% adds no detail.",
+   "es": "How much fine texture, contact shadow and reflection the AI adds. 0% adds no detail.",
+   "fr": "How much fine texture, contact shadow and reflection the AI adds. 0% adds no detail.",
+   "it": "How much fine texture, contact shadow and reflection the AI adds. 0% adds no detail.",
+   "pt-BR": "How much fine texture, contact shadow and reflection the AI adds. 0% adds no detail.",
+   "tr": "How much fine texture, contact shadow and reflection the AI adds. 0% adds no detail.",
+   "ar": "How much fine texture, contact shadow and reflection the AI adds. 0% adds no detail.",
+   "pl": "How much fine texture, contact shadow and reflection the AI adds. 0% adds no detail.",
+   "ru": "How much fine texture, contact shadow and reflection the AI adds. 0% adds no detail."
+  },
+  {
+   "zh": "AI 重新处理明暗和色彩的程度。0% 保持原画的光影和颜色",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "AI 重新處理明暗和色彩的程度。0% 保持原畫的光影和顏色",
+   "en": "How far the AI reworks light and colour. 0% keeps the light and colours of the original picture.",
+   "ja": "AI が明暗と色を作り直す度合いです。0% では元の映像の光と色を保ちます",
+   "nl": "How far the AI reworks light and colour. 0% keeps the light and colours of the original picture.",
+   "de": "How far the AI reworks light and colour. 0% keeps the light and colours of the original picture.",
+   "es": "How far the AI reworks light and colour. 0% keeps the light and colours of the original picture.",
+   "fr": "How far the AI reworks light and colour. 0% keeps the light and colours of the original picture.",
+   "it": "How far the AI reworks light and colour. 0% keeps the light and colours of the original picture.",
+   "pt-BR": "How far the AI reworks light and colour. 0% keeps the light and colours of the original picture.",
+   "tr": "How far the AI reworks light and colour. 0% keeps the light and colours of the original picture.",
+   "ar": "How far the AI reworks light and colour. 0% keeps the light and colours of the original picture.",
+   "pl": "How far the AI reworks light and colour. 0% keeps the light and colours of the original picture.",
+   "ru": "How far the AI reworks light and colour. 0% keeps the light and colours of the original picture."
+  },
+  {
    "zh": "AMD FRC · 视频补帧 · 2X",
    "src": "src/ui/bridge/FrameGeneration.cpp",
    "zh-TW": "AMD FRC · 影片補幀 · 2X",
@@ -9368,6 +9419,23 @@
    "ru": "Связь с хозяином была потеряна."
   },
   {
+   "zh": "与原画对比",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "與原畫對比",
+   "en": "Compare with the original",
+   "ja": "オリジナルと比較",
+   "nl": "Compare with the original",
+   "de": "Compare with the original",
+   "es": "Compare with the original",
+   "fr": "Compare with the original",
+   "it": "Compare with the original",
+   "pt-BR": "Compare with the original",
+   "tr": "Compare with the original",
+   "ar": "Compare with the original",
+   "pl": "Compare with the original",
+   "ru": "Compare with the original"
+  },
+  {
    "zh": "专业模式",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "專業模式",
@@ -12972,6 +13040,23 @@
    "ru": "Test this graphics card first; it can be turned on once the test passes. Test while nothing is playing"
   },
   {
+   "zh": "先连接画面",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "先連接畫面",
+   "en": "Connect a picture first",
+   "ja": "先に映像を接続してください",
+   "nl": "Connect a picture first",
+   "de": "Connect a picture first",
+   "es": "Connect a picture first",
+   "fr": "Connect a picture first",
+   "it": "Connect a picture first",
+   "pt-BR": "Connect a picture first",
+   "tr": "Connect a picture first",
+   "ar": "Connect a picture first",
+   "pl": "Connect a picture first",
+   "ru": "Connect a picture first"
+  },
+  {
    "zh": "先连接画面，再开始直播或录制",
    "src": "qml/StudioPage.qml",
    "zh-TW": "先連接畫面，再開始直播或錄製",
@@ -13038,6 +13123,23 @@
    "ar": "اختيار قرار أولا، ثم معدل إطاري وشكل بيكسل مؤيدين في ذلك القرار.",
    "pl": "Wybierz rozdzielczość najpierw, a następnie frame rate i format pikseli obsługiwany w tej rozdzielczości.",
    "ru": "Сначала выберите разрешение, затем частоту кадров и формат пикселей, поддерживаемый этим разрешением."
+  },
+  {
+   "zh": "光影",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "光影",
+   "en": "Lighting",
+   "ja": "ライティング",
+   "nl": "Lighting",
+   "de": "Lighting",
+   "es": "Lighting",
+   "fr": "Lighting",
+   "it": "Lighting",
+   "pt-BR": "Lighting",
+   "tr": "Lighting",
+   "ar": "Lighting",
+   "pl": "Lighting",
+   "ru": "Lighting"
   },
   {
    "zh": "光流",
@@ -20317,6 +20419,23 @@
    "ru": "Пресет улучшения"
   },
   {
+   "zh": "增强风格",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "增強風格",
+   "en": "Enhancement look",
+   "ja": "強化の仕上がり",
+   "nl": "Enhancement look",
+   "de": "Enhancement look",
+   "es": "Enhancement look",
+   "fr": "Enhancement look",
+   "it": "Enhancement look",
+   "pt-BR": "Enhancement look",
+   "tr": "Enhancement look",
+   "ar": "Enhancement look",
+   "pl": "Enhancement look",
+   "ru": "Enhancement look"
+  },
+  {
    "zh": "声道",
    "src": "qml/PcSourceDialog.qml",
    "zh-TW": "聲道",
@@ -21983,6 +22102,23 @@
    "ru": "Полная копия настроек, размещенных в стороне, не подключенных"
   },
   {
+   "zh": "完整效果（默认）",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "完整效果（預設）",
+   "en": "Full effect (the default)",
+   "ja": "完全な効果（既定）",
+   "nl": "Full effect (the default)",
+   "de": "Full effect (the default)",
+   "es": "Full effect (the default)",
+   "fr": "Full effect (the default)",
+   "it": "Full effect (the default)",
+   "pt-BR": "Full effect (the default)",
+   "tr": "Full effect (the default)",
+   "ar": "Full effect (the default)",
+   "pl": "Full effect (the default)",
+   "ru": "Full effect (the default)"
+  },
+  {
    "zh": "完整画面并排两份：左边是原帧率，右边是 PushFPS",
    "src": "qml/PushCompareDialog.qml",
    "zh-TW": "完整畫面並排兩份：左邊是原幀率，右邊是 PushFPS",
@@ -22287,6 +22423,23 @@
    "ar": "توقف الجيل الخماسي بينما يقارن ويستأنف عندما تنتهي المقارنة",
    "pl": "Ramka generacja pauzy podczas porównywania i wznowienia gdy porównanie jest wyłączone",
    "ru": "Поколение кадров приостанавливается при сравнении и возобновляется, когда сравнение отключено"
+  },
+  {
+   "zh": "对比时补帧暂停；关闭对比后自动恢复。两分钟后自动关闭",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "對比時補幀暫停；關閉對比後自動恢復。兩分鐘後自動關閉",
+   "en": "Frame generation pauses while comparing and resumes when you turn this off. It turns itself off after two minutes.",
+   "ja": "比較中はフレーム生成を一時停止し、オフにすると再開します。2 分後に自動でオフになります",
+   "nl": "Frame generation pauses while comparing and resumes when you turn this off. It turns itself off after two minutes.",
+   "de": "Frame generation pauses while comparing and resumes when you turn this off. It turns itself off after two minutes.",
+   "es": "Frame generation pauses while comparing and resumes when you turn this off. It turns itself off after two minutes.",
+   "fr": "Frame generation pauses while comparing and resumes when you turn this off. It turns itself off after two minutes.",
+   "it": "Frame generation pauses while comparing and resumes when you turn this off. It turns itself off after two minutes.",
+   "pt-BR": "Frame generation pauses while comparing and resumes when you turn this off. It turns itself off after two minutes.",
+   "tr": "Frame generation pauses while comparing and resumes when you turn this off. It turns itself off after two minutes.",
+   "ar": "Frame generation pauses while comparing and resumes when you turn this off. It turns itself off after two minutes.",
+   "pl": "Frame generation pauses while comparing and resumes when you turn this off. It turns itself off after two minutes.",
+   "ru": "Frame generation pauses while comparing and resumes when you turn this off. It turns itself off after two minutes."
   },
   {
    "zh": "对比模式下补帧暂停（对比只能用真实帧），关闭对比后自动恢复",
@@ -24038,6 +24191,23 @@
    "ar": "الصحة أسفل اليسار، والسلاح والذخيرة أسفل اليمين",
    "pl": "Zdrowie w lewym dolnym rogu, broń i amunicja w prawym dolnym",
    "ru": "Здоровье внизу слева, оружие и патроны внизу справа"
+  },
+  {
+   "zh": "左边原画，右边增强后",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "左邊原畫，右邊增強後",
+   "en": "Original on the left, enhanced on the right",
+   "ja": "左がオリジナル、右が強化後",
+   "nl": "Original on the left, enhanced on the right",
+   "de": "Original on the left, enhanced on the right",
+   "es": "Original on the left, enhanced on the right",
+   "fr": "Original on the left, enhanced on the right",
+   "it": "Original on the left, enhanced on the right",
+   "pt-BR": "Original on the left, enhanced on the right",
+   "tr": "Original on the left, enhanced on the right",
+   "ar": "Original on the left, enhanced on the right",
+   "pl": "Original on the left, enhanced on the right",
+   "ru": "Original on the left, enhanced on the right"
   },
   {
    "zh": "已从上次位置 %1 继续",
@@ -27610,6 +27780,23 @@
    "ru": "Сила "
   },
   {
+   "zh": "强烈",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "強烈",
+   "en": "Strong",
+   "ja": "強い",
+   "nl": "Strong",
+   "de": "Strong",
+   "es": "Strong",
+   "fr": "Strong",
+   "it": "Strong",
+   "pt-BR": "Strong",
+   "tr": "Strong",
+   "ar": "Strong",
+   "pl": "Strong",
+   "ru": "Strong"
+  },
+  {
    "zh": "强调色",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "強調色",
@@ -30974,6 +31161,23 @@
    "ar": "إستعمل هذا PC ' متحكم كa متحكم على القنصلِ",
    "pl": "Użyj tego kontrolera PC jako kontrolera na konsoli",
    "ru": "Используйте этот контроллер PC в качестве контроллера на консоли."
+  },
+  {
+   "zh": "把画面分成两半：左边是没有 AI 画面增强的原画，右边是增强后的画面，方便边调边看。在专业模式的画面上可以拖动分割线",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "把畫面分成兩半：左邊是沒有 AI 畫面增強的原畫，右邊是增強後的畫面，方便邊調邊看。在專業模式的畫面上可以拖動分割線",
+   "en": "Splits the picture in two: the original without AI picture enhancement on the left, the enhanced picture on the right, so you can watch while you tune. In Pro mode you can drag the dividing line on the picture.",
+   "ja": "映像を左右に分けます。左は AI 画質強化なしのオリジナル、右は強化後の映像で、調整しながら見比べられます。プロモードでは映像上の分割線をドラッグできます",
+   "nl": "Splits the picture in two: the original without AI picture enhancement on the left, the enhanced picture on the right, so you can watch while you tune. In Pro mode you can drag the dividing line on the picture.",
+   "de": "Splits the picture in two: the original without AI picture enhancement on the left, the enhanced picture on the right, so you can watch while you tune. In Pro mode you can drag the dividing line on the picture.",
+   "es": "Splits the picture in two: the original without AI picture enhancement on the left, the enhanced picture on the right, so you can watch while you tune. In Pro mode you can drag the dividing line on the picture.",
+   "fr": "Splits the picture in two: the original without AI picture enhancement on the left, the enhanced picture on the right, so you can watch while you tune. In Pro mode you can drag the dividing line on the picture.",
+   "it": "Splits the picture in two: the original without AI picture enhancement on the left, the enhanced picture on the right, so you can watch while you tune. In Pro mode you can drag the dividing line on the picture.",
+   "pt-BR": "Splits the picture in two: the original without AI picture enhancement on the left, the enhanced picture on the right, so you can watch while you tune. In Pro mode you can drag the dividing line on the picture.",
+   "tr": "Splits the picture in two: the original without AI picture enhancement on the left, the enhanced picture on the right, so you can watch while you tune. In Pro mode you can drag the dividing line on the picture.",
+   "ar": "Splits the picture in two: the original without AI picture enhancement on the left, the enhanced picture on the right, so you can watch while you tune. In Pro mode you can drag the dividing line on the picture.",
+   "pl": "Splits the picture in two: the original without AI picture enhancement on the left, the enhanced picture on the right, so you can watch while you tune. In Pro mode you can drag the dividing line on the picture.",
+   "ru": "Splits the picture in two: the original without AI picture enhancement on the left, the enhanced picture on the right, so you can watch while you tune. In Pro mode you can drag the dividing line on the picture."
   },
   {
    "zh": "把采集卡的 HDMI 输出（直通）接到电视或第二台显示器，PushFPS 画面放在电脑显示器上，两块屏幕并排",
@@ -37726,6 +37930,23 @@
    "ru": "Ультра"
   },
   {
+   "zh": "柔和",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "柔和",
+   "en": "Subtle",
+   "ja": "控えめ",
+   "nl": "Subtle",
+   "de": "Subtle",
+   "es": "Subtle",
+   "fr": "Subtle",
+   "it": "Subtle",
+   "pt-BR": "Subtle",
+   "tr": "Subtle",
+   "ar": "Subtle",
+   "pl": "Subtle",
+   "ru": "Subtle"
+  },
+  {
    "zh": "查找",
    "src": "qml/Ps5SourceDialog.qml",
    "zh-TW": "查找",
@@ -40427,6 +40648,23 @@
    "ar": "ويقارن المصدر بالإطار السابق: &quot; بيكسل &quot; دون تغيير واضح في استخدام الناتج السابق؛ ومن الواضح أن المجالات التي تغيرت تأخذ النتيجة الجديدة مباشرة.",
    "pl": "Poprawia źródło z poprzednią ramą: piksele bez wyraźnej zmiany ponownie wykorzystują poprzednie wyjście; wyraźnie zmienione obszary biorą nowy wynik bezpośrednio.",
    "ru": "Сравнивает источник с предыдущим кадром: пиксели без четкого изменения повторно используют предыдущий вывод; четко измененные области принимают новый результат напрямую."
+  },
+  {
+   "zh": "比默认更接近原画",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "比預設更接近原畫",
+   "en": "Closer to the original picture than the default",
+   "ja": "既定より元の映像に近い仕上がり",
+   "nl": "Closer to the original picture than the default",
+   "de": "Closer to the original picture than the default",
+   "es": "Closer to the original picture than the default",
+   "fr": "Closer to the original picture than the default",
+   "it": "Closer to the original picture than the default",
+   "pt-BR": "Closer to the original picture than the default",
+   "tr": "Closer to the original picture than the default",
+   "ar": "Closer to the original picture than the default",
+   "pl": "Closer to the original picture than the default",
+   "ru": "Closer to the original picture than the default"
   },
   {
    "zh": "没有一种补帧组合能稳定达到目标，已保留原来的设置。可降低目标帧率或关闭其他效果后再试",
@@ -46719,6 +46957,23 @@
    "ru": "Тонкий"
   },
   {
+   "zh": "细节",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "細節",
+   "en": "Detail",
+   "ja": "ディテール",
+   "nl": "Detail",
+   "de": "Detail",
+   "es": "Detail",
+   "fr": "Detail",
+   "it": "Detail",
+   "pt-BR": "Detail",
+   "tr": "Detail",
+   "ar": "Detail",
+   "pl": "Detail",
+   "ru": "Detail"
+  },
+  {
    "zh": "细节保护",
    "src": "qml/BeautyEditor.qml",
    "zh-TW": "細節保護",
@@ -48621,6 +48876,23 @@
    "ar": "Custom: adjusted with the sliders below.",
    "pl": "Własny: ustawiony za pomocą suwaków poniżej.",
    "ru": "Обычай: отрегулирован с помощью ползунок ниже."
+  },
+  {
+   "zh": "自定义：已用滑块调整",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "自定義：已用滑桿調整",
+   "en": "Custom: set with the sliders",
+   "ja": "カスタム：スライダーで調整済み",
+   "nl": "Custom: set with the sliders",
+   "de": "Custom: set with the sliders",
+   "es": "Custom: set with the sliders",
+   "fr": "Custom: set with the sliders",
+   "it": "Custom: set with the sliders",
+   "pt-BR": "Custom: set with the sliders",
+   "tr": "Custom: set with the sliders",
+   "ar": "Custom: set with the sliders",
+   "pl": "Custom: set with the sliders",
+   "ru": "Custom: set with the sliders"
   },
   {
    "zh": "自然",

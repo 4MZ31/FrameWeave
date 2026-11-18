@@ -44,6 +44,9 @@ Item {
             veyra.contentRate = 0
             veyra.fgMultiplierChoices = [{id:"1"},{id:"2"},{id:"3"},{id:"4"}]
             veyra.liveStats = ({running: false})
+            veyra.nrLayers = [{index: 1}]
+            veyra.compareMode = 0
+            veyra.hasSource = true
         }
         function cleanup() { init() }
         function control(name) { const c = findChild(quick, name); verify(c !== null, name); return c }
@@ -354,6 +357,139 @@ Item {
             veyra.vrrState = 0; veyra.displaySync = 2; veyra.variableRefresh = false
             veyra.nvidiaVrrProfile = null
             tools.destroy()
+        }
+
+        // The look of AI picture enhancement: presets, two sliders, reset, every layer.
+        function test_look_presets_sliders_and_reset() {
+            verify(!quick.lookShown, "enhancement off: no look controls")
+            verify(!control("pushfps-look-row").visible)
+            verify(!control("pushfps-look-tone-row").visible)
+            veyra.nrAnyEnabled = true
+            verify(quick.lookShown)
+            verify(control("pushfps-look-row").visible)
+            compare(quick.lookId, "strong", "a layer that was never tuned is at the model's full strength")
+            verify(!control("pushfps-look-reset").enabled, "nothing to reset at the default")
+            control("pushfps-look").picked("subtle")
+            compare(veyra.nrLayers[0].tone, 0.4)
+            compare(veyra.nrLayers[0].structure, 0.5)
+            compare(quick.lookId, "subtle")
+            compare(control("pushfps-look").current, "subtle")
+            control("pushfps-look").picked("balanced")
+            compare(veyra.nrLayers[0].tone, 0.7)
+            compare(veyra.nrLayers[0].structure, 0.8)
+            // A slider moves one value and leaves the other.
+            control("pushfps-look-tone").moved(0.55)
+            compare(veyra.nrLayers[0].tone, 0.55)
+            compare(veyra.nrLayers[0].structure, 0.8)
+            compare(quick.lookId, "", "no preset matches: custom")
+            compare(control("pushfps-look").current, "")
+            compare(control("pushfps-look-tone-row").value, "55%")
+            control("pushfps-look-detail").moved(0.25)
+            compare(veyra.nrLayers[0].structure, 0.25)
+            compare(veyra.nrLayers[0].tone, 0.55)
+            // Out-of-range input is clamped, never passed on.
+            control("pushfps-look-tone").moved(7)
+            compare(veyra.nrLayers[0].tone, 1)
+            control("pushfps-look-detail").moved(-3)
+            compare(veyra.nrLayers[0].structure, 0)
+            verify(control("pushfps-look-reset").enabled)
+            control("pushfps-look-reset").clicked()
+            compare(veyra.nrLayers[0].tone, 1)
+            compare(veyra.nrLayers[0].structure, 1)
+            compare(quick.lookId, "strong")
+            // Turning the enhancement off hides the controls and keeps the values.
+            control("pushfps-look").picked("subtle")
+            control("pushfps-enhance").toggled(false)
+            verify(!quick.lookShown)
+            compare(veyra.nrLayers[0].tone, 0.4)
+        }
+        function test_look_reaches_every_enhancement_layer() {
+            veyra.nrLayers = [{index: 1, tone: 1, structure: 1}, {index: 4, tone: 0.2, structure: 0.9}]
+            veyra.nrAnyEnabled = true
+            compare(quick.lookTone, 1, "the first layer is the one shown")
+            verify(quick.applyLook("balanced"))
+            compare(veyra.nrLayers[0].tone, 0.7); compare(veyra.nrLayers[1].tone, 0.7)
+            compare(veyra.nrLayers[0].structure, 0.8); compare(veyra.nrLayers[1].structure, 0.8)
+            verify(!quick.applyLook("no-such-look"))
+            // A profile whose look is the one already shown writes nothing: layers given different
+            // values in Professional mode stay different.
+            veyra.nrLayers = [{index: 1, tone: 1, structure: 1}, {index: 4, tone: 0.2, structure: 0.9}]
+            quick.applySnapshot({fps: 30, target: "off", enhance: true, look: {tone: 1, structure: 1}})
+            compare(veyra.nrLayers[1].tone, 0.2); compare(veyra.nrLayers[1].structure, 0.9)
+            quick.applySnapshot({fps: 30, target: "off", enhance: true, look: {tone: 0.4, structure: 0.5}})
+            compare(veyra.nrLayers[0].tone, 0.4); compare(veyra.nrLayers[1].tone, 0.4)
+            compare(veyra.nrLayers[1].structure, 0.5)
+            veyra.nrLayers = []
+            verify(!quick.lookShown, "no layer: nothing to tune")
+            verify(!quick.setLook(0.5, 0.5))
+        }
+        function test_look_is_kept_per_game_and_console_profile() {
+            veyra.nrAnyEnabled = true
+            quick.applyLook("subtle")
+            verify(quick.saveGame("Quiet game"))
+            compare(quick.games[0].look.tone, 0.4)
+            compare(quick.games[0].look.structure, 0.5)
+            quick.setLook(0.9, 0.3)
+            verify(quick.saveGame("Loud game"))
+            quick.applyGame("Quiet game")
+            compare(quick.lookId, "subtle")
+            quick.applyGame("Loud game")
+            compare(veyra.nrLayers[0].tone, 0.9); compare(veyra.nrLayers[0].structure, 0.3)
+            // Each console remembers its own look too.
+            quick.applyLook("balanced")
+            quick.switchConsole("xbox")
+            quick.applyLook("strong")
+            quick.switchConsole("ps5")
+            compare(quick.lookId, "balanced", "PS5 look restored")
+            quick.switchConsole("xbox")
+            compare(quick.lookId, "strong", "Xbox look restored")
+            // A profile saved before the look existed leaves the look alone.
+            quick.applyLook("subtle")
+            quick.applySnapshot({fps: 30, target: "off", enhance: true})
+            compare(quick.lookId, "subtle")
+            quick.applySnapshot({fps: 30, target: "off", enhance: true, look: {tone: "x", structure: 0.5}})
+            compare(quick.lookId, "subtle", "a broken look is ignored")
+            quick.deleteGame("Quiet game"); quick.deleteGame("Loud game")
+        }
+        function test_look_compare_splits_the_picture_and_never_stays_on() {
+            veyra.nrAnyEnabled = true
+            const sw = control("pushfps-look-compare")
+            verify(control("pushfps-look-compare-row").visible)
+            verify(sw.enabled && !sw.checked)
+            sw.toggled(true)
+            compare(veyra.compareMode, 2, "split view: original left, enhanced right")
+            verify(sw.checked && quick.lookCompare)
+            verify(control("pushfps-look-compare-timer").running, "it ends by itself")
+            sw.toggled(false)
+            compare(veyra.compareMode, 0)
+            verify(!quick.lookCompare && !control("pushfps-look-compare-timer").running)
+            // Turned off somewhere else (Professional mode's display panel): this panel follows.
+            sw.toggled(true)
+            veyra.compareMode = 0
+            verify(!quick.lookCompare && !sw.checked)
+            // Enhancement turned off while comparing: the split ends with it.
+            sw.toggled(true)
+            compare(veyra.compareMode, 2)
+            control("pushfps-enhance").toggled(false)
+            compare(veyra.compareMode, 0)
+            // The timer ends it.
+            veyra.nrAnyEnabled = true
+            sw.toggled(true)
+            control("pushfps-look-compare-timer").triggered()
+            compare(veyra.compareMode, 0)
+            // A split the user set elsewhere is shown as on, and is not this panel's to end by itself.
+            veyra.compareMode = 2
+            verify(sw.checked && !quick.lookCompare)
+            verify(!control("pushfps-look-compare-timer").running)
+            veyra.nrAnyEnabled = false
+            compare(veyra.compareMode, 2, "left as the user set it")
+            veyra.compareMode = 0
+            // Nothing playing: nothing to compare.
+            veyra.nrAnyEnabled = true
+            veyra.hasSource = false
+            verify(!sw.enabled)
+            quick.setLookCompare(true)
+            compare(veyra.compareMode, 0)
         }
 
         function test_lowest_latency_one_tap_keeps_quality_and_restores() {
