@@ -36,7 +36,7 @@ Every model ships in full precision (fp32, the reference) and, where it agrees o
 every start, inside PushFPS. Since 3.1.7 fp32 is the default: on Windows' software renderer the fp16 model
 removed the D3D12 device, and a crash report from an RTX 5090 ended inside ONNX Runtime right after the check.
 
-Since 3.1.8 half precision is tested **in a separate process**: *Professional → PushFlow half precision →
+Since 3.2.0 half precision is tested **in a separate process**: *Professional → PushFlow half precision →
 Test* runs `PushFlowBench.exe --fp16-probe` on the graphics card PushFPS renders on (Balanced, 1280×720). It
 times fp32, then the fp16 model with PushFlow's own comparison, and passes only when fp16 matches (38 dB or
 better) and is at least 10% faster. If the driver or DirectML faults, that process ends and PushFPS keeps
@@ -48,7 +48,7 @@ forces the half model for developers.
 
 PushFlow never refuses to run: the frame budget (`FgRecoveryBudget`) skips every pair whose generated frames
 would arrive too late, so a PushFlow that is too slow, or only looks too slow, shows as "stuck at 30 FPS"
-with no error. 3.1.8 removed every cause found in the code:
+with no error. 3.2.0 removed every cause found in the code:
 
 | Cause | Fix |
 |---|---|
@@ -97,11 +97,11 @@ PushFlowBench.exe --sizes 1920x1080,2560x1440 --tiers 0,1,2 --pairs 40
 It writes `pushflow-bench.json`: per size and tier, the precision your card passed, GPU time of the pack, the
 network and the rebuild (D3D12 timestamps), CPU time of the inference call, and the wall time of a whole pair
 at 2X, 3X and 4X. Share it in a GitHub issue to help build the hardware table. `--compare-shapes` adds a run
-with dynamic shapes and `--compare-sync` one that waits after every inference (the behaviour before 3.1.8).
+with dynamic shapes and `--compare-sync` one that waits after every inference (the behaviour before 3.2.0).
 
 ## Roadmap status
 
-The engineering roadmap (17 November 2026) lists 31 items. Where PushFlow stands after 3.1.8:
+The engineering roadmap (17 November 2026) lists 31 items. Where PushFlow stands after 3.2.0:
 
 | Item | Status |
 |---|---|
@@ -111,12 +111,12 @@ The engineering roadmap (17 November 2026) lists 31 items. Where PushFlow stands
 | PF-004 split encoder / feature cache | Open: needs a split export of the network |
 | PF-005 combined warps | The vs-mlrt export already warps both frames in one batched GridSample (found while exposing the grids) |
 | PF-006 memory traffic | Done in part: per-pair packing (time plane only for later frames), preallocated bound buffers |
-| PF-007 mixed precision | Done: fp16 convolutions with fp32 warps/blend; tested per card in a separate process since 3.1.8, fp32 fallback. Hardware reports: open |
+| PF-007 mixed precision | Done: fp16 convolutions with fp32 warps/blend; tested per card in a separate process since 3.2.0, fp32 fallback. Hardware reports: open |
 | PF-008 buffer pool | Buffers are preallocated at start-up; multi-slot rings for concurrency: open |
 | PF-009/010 TensorRT, CUDA Graphs | Open (optional NVIDIA plugin; not bundled) |
-| PF-011 asynchronous inference | Done (3.1.8): queued on the graph's own queue, ordered by the queue, a full wait every 120 inferences |
+| PF-011 asynchronous inference | Done (3.2.0): queued on the graph's own queue, ordered by the queue, a full wait every 120 inferences |
 | PF-012 full-resolution Fast tier | Done: grids + mask rebuild at full size |
 | PF-013 multiple frames per pair | Done in part: the pair is packed once; the network still runs once per frame |
-| PF-014 automatic selection | The optimiser tests PushFlow with the other methods; the too-slow watch lowers the tier live (3.1.8); half precision per card through the isolated probe (3.1.8) |
+| PF-014 automatic selection | The optimiser tests PushFlow with the other methods; the too-slow watch lowers the tier live (3.2.0); half precision per card through the isolated probe (3.2.0) |
 | PF-017 cut handling | Scene cuts and cadence breaks reset the pair: no generated frame across a cut |
 | Others (presenter thread, latency policies, GPU-only quality probe, NLE, …) | Open |

@@ -155,6 +155,7 @@ int main(int argc, char** argv) {
     int pairs = 40;
     bool warp = false, compareShapes = false, compareSync = false, fp16Probe = false;
     uint64_t adapterLuid = 0;
+    bool sizesGiven = false, pairsGiven = false;
     std::string out = "pushflow-bench.json";
     std::wstring runtimeOverride;
     for (int i = 1; i < argc; ++i) {
@@ -166,7 +167,7 @@ int main(int argc, char** argv) {
         else if (a == "--fp16-probe") fp16Probe = true;
         else if (a == "--adapter-luid" && !next.empty()) { adapterLuid = std::strtoull(next.c_str(), nullptr, 10); ++i; }
         else if (a == "--runtime" && !next.empty()) { runtimeOverride.assign(next.begin(), next.end()); ++i; }
-        else if (a == "--pairs" && !next.empty()) { pairs = std::clamp(std::atoi(next.c_str()), 1, 1000); ++i; }
+        else if (a == "--pairs" && !next.empty()) { pairs = std::clamp(std::atoi(next.c_str()), 1, 1000); pairsGiven = true; ++i; }
         else if (a == "--out" && !next.empty()) { out = next; ++i; }
         else if (a == "--tiers" && !next.empty()) {
             tiers.clear();
@@ -174,6 +175,7 @@ int main(int argc, char** argv) {
             ++i;
         } else if (a == "--sizes" && !next.empty()) {
             sizes.clear();
+            sizesGiven = true;
             size_t pos = 0;
             while (pos < next.size()) {
                 const size_t comma = next.find(',', pos);
@@ -199,7 +201,9 @@ int main(int argc, char** argv) {
         // separate process (Settings -> PushFlow half precision -> Test), so a driver or DirectML fault
         // with the fp16 model ends this process, never PushFPS. Balanced at 1280x720: full precision
         // timed, then the fp16 model with PushFlow's own comparison against full precision.
-        const uint32_t w = 1280, h = 720, tier = 1;
+        // (--sizes and --pairs shrink it for the software renderer in CI.)
+        const uint32_t w = sizesGiven && !sizes.empty() ? sizes[0].first : 1280, h = sizesGiven && !sizes.empty() ? sizes[0].second : 720, tier = 1;
+        const int runs = pairsGiven ? std::max(pairs, 4) : 20, skip = std::min(4, runs / 2);
         auto a = frameTexture(gpu, w, h, 0), b = frameTexture(gpu, w, h, 8);
         auto output = pipeline::makeTexture(gpu.device.Get(), w, h, DXGI_FORMAT_R8G8B8A8_UNORM, false);
         if (!a || !b || !output) { std::printf("textures failed\n"); return 1; }
@@ -209,7 +213,7 @@ int main(int argc, char** argv) {
             if (!flow.initialize(gpu.device.Get(), gpu.queue.Get(), runtimeDir, w, h, DXGI_FORMAT_R8G8B8A8_UNORM, pushflow::Encoding::Encoded, tier)) return -1;
             bool outputState = false;
             Samples network;
-            for (int i = 0; i < 20; ++i) {
+            for (int i = 0; i < runs; ++i) {
                 if (!gpu.begin()) return -1;
                 gpu.stamp(0);
                 if (!flow.pack(gpu.list.Get(), a.Get(), b.Get(), 0.5f, false)) return -1;
@@ -224,7 +228,7 @@ int main(int argc, char** argv) {
                 if (!gpu.submit() || !gpu.wait()) return -1;
                 uint64_t* ts = nullptr;
                 gpu.readback->Map(0, nullptr, reinterpret_cast<void**>(&ts));
-                if (i >= 4) network.add(double(ts[2] - ts[1]) * 1000.0 / double(gpu.frequency));
+                if (i >= skip) network.add(double(ts[2] - ts[1]) * 1000.0 / double(gpu.frequency));
                 const D3D12_RANGE none{0, 0}; gpu.readback->Unmap(0, &none);
             }
             if (status) *status = flow.status();
@@ -256,7 +260,7 @@ int main(int argc, char** argv) {
         for (uint32_t tier : tiers)
           for (int variant = 0; variant < 3; ++variant) {
             // 0: the product's settings (static shapes, queued inference); --compare-shapes adds 1
-            // (dynamic shapes), --compare-sync adds 2 (a CPU wait after every inference, as before 3.1.8).
+            // (dynamic shapes), --compare-sync adds 2 (a CPU wait after every inference, as before 3.2.0).
             if ((variant == 1 && !compareShapes) || (variant == 2 && !compareSync)) continue;
             SetEnvironmentVariableW(L"VEYRA_PUSHFLOW_DYNAMIC", variant == 1 ? L"1" : nullptr);
             SetEnvironmentVariableW(L"VEYRA_PUSHFLOW_SYNC", variant == 2 ? L"1" : nullptr);

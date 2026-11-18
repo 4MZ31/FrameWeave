@@ -4056,7 +4056,7 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
     // valid A: no reset, no hidden seed Run, no second lost group.
     const bool vfgRecordOnly=vfgBackend_&&fgBackendAvailable&&!runFg&&historyValid&&!vfgSkipResetsHistory;
     // The same holds for PushFlow without any recording: its previous frame is still in videoFrame_.
-    // Before 3.1.8 a skipped pair marked history lost, so the next pair was a reset that generated
+    // Before 3.2.0 a skipped pair marked history lost, so the next pair was a reset that generated
     // nothing and only counted as a warmup sample: every skip cost two groups, and the first
     // evaluation after it was the lone over-budget probe described at FgCostSettling.
     const bool pushFlowKeepsHistory=pushFlow_&&fgBackendAvailable&&!runFg&&historyValid;
