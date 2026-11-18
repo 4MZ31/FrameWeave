@@ -174,4 +174,6 @@ function presetLabel(p, sourceLabel) {
 }
 // The output sizes offered for manual choice: [w, h] (0 x 0 = the picture's own size).
 var streamSizes = [[0, 0], [3840, 2160], [2560, 1440], [1920, 1080], [1600, 900], [1280, 720], [1080, 1920], [720, 1280]]
-var recordSizes = [[0, 0], [3840, 2160], [2560, 1440], [1920, 1080], [1280, 720], [1080, 1920], [1080, 1350], [1080, 1080]]
+// Recordings also come in the two common ultrawide (21:9) sizes; how a 16:9 picture sits in them
+// is the "picture fill" choice beside the size (fit with bars, fill and crop, stretch).
+var recordSizes = [[0, 0], [3840, 2160], [2560, 1440], [1920, 1080], [1280, 720], [3440, 1440], [2560, 1080], [1080, 1920], [1080, 1350], [1080, 1080]]

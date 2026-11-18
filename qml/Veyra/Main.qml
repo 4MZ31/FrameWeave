@@ -933,7 +933,7 @@ Window {
         function onNavigate(p) {
             // A dialog key opens the dialog; anything else is a page.
             if (p === "network" || p === "capture" || p === "ps5" || p === "moonlight" || p === "xbox" || p === "screen"
-                || p === "subtitle" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud" || p === "latencyguide" || p === "stream" || p === "compare" || p === "micfilters" || p === "layout" || p === "frameinput" || p === "qualitytest" || p === "latencytest") {
+                || p === "subtitle" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud" || p === "latencyguide" || p === "stream" || p === "compare" || p === "micfilters" || p === "layout" || p === "frameinput" || p === "qualitytest" || p === "latencytest" || p === "crash" || p === "cardtest") {
                 dialogs.open(p)
                 return
             }
@@ -1187,7 +1187,7 @@ Window {
         ToolTip.text: qsTr("停止本次启动音乐")
     }
     // PushFPS (screenshots): --scroll-to <objectName> once the settings page is laid out.
-    Timer { id: testScrollTimer; interval: 1500; onTriggered: settingsPage.scrollToObject(root.test.scrollTo) }
+    Timer { id: testScrollTimer; interval: 1500; onTriggered: (root.page === "home" ? homePage : settingsPage).scrollToObject(root.test.scrollTo) }
     // The menu anchors on laid-out buttons, so it opens once the page has settled.
     // --full-bar shown|hidden: enter fullscreen with the control window held shown
     // or held hidden, for the present-timing comparison (G2.5).

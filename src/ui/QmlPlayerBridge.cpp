@@ -186,6 +186,8 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     applyPushMix();   // PushFPS streaming mode mixer (PushStudio.cpp)
     engine::setPushLiveCanvas(pushCanvas(0));   // PushFPS layout (Recording.cpp)
     applyPreference(QStringLiteral("nisSharpness"));
+    applyPreference(QStringLiteral("pushAmbientFill"));
+    applyPreference(QStringLiteral("pushShapeShadows"));   // all six fine-tune values (Preferences.cpp)
     applyPreference(QStringLiteral("pushFlowHalf"));
     applyPreference(QStringLiteral("magewellLowLatency"));
     const bool presetsLoaded = impl_->facade.importLegacyStores();
@@ -410,6 +412,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
         if (pr.valid()) impl_->engine.requestPresentation(pr);
         impl_->aspectMode = std::clamp(impl_->prefs.value(QStringLiteral("aspect")).toInt(), 0, 6);
     }
+    pushRememberPreviousRun();   // PushFPS crash notice (bridge/PushTools.cpp): before this run overwrites anything
     // PushFPS crash guard (PushFlowBackend.h): PushFPS stopped inside PushFlow last time. Switch to
     // another method before anything connects, so the next connect does not crash again.
     if (pushflow::crashedLastTime()) {
@@ -772,6 +775,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
             ? QString::fromUtf16(reinterpret_cast<const char16_t*>(raw.constData()), raw.size() / 2) : QString::fromUtf8(raw);
         const QStringList lines = text.split(QLatin1Char('\n'));
         const QString kind = lines.value(0), modules = lines.value(1);
+        pushLoadCrashReport(text);   // PushFPS: every crash is said, with a summary to copy (bridge/PushTools.cpp)
         QString advice = injectionAdvice(kind + QLatin1Char(',') + modules);
         veyra::log::info("overlay-hooks", std::format("previous run: {} injected={}", kind.toStdString(), modules.toStdString()));
         if (advice.isEmpty()) return;

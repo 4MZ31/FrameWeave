@@ -180,7 +180,7 @@ QtObject {
     function pushAnrState() { return { installed: anrInstalled, folder: "C:/PushFPS/runtime/experimental/anr", name: "Apex Neural Rendering (ANR)", maker: "Apex Compute", url: "anr-url" } }
     function pushInstallAnr() { anrInstallCalls++; anrInstalled = true; return true }
     function pushOpenAnrFolder() { return true }
-    function pushLinkUrl(key) { return ["repo", "veyra", "anr", "anrReleases", "apex"].indexOf(key) >= 0 ? "link-" + key : "" }
+    function pushLinkUrl(key) { return ["repo", "issues", "veyra", "anr", "anrReleases", "apex"].indexOf(key) >= 0 ? "link-" + key : "" }
     function pushOpenLink(key) { lastOpenedLink = key; return pushLinkUrl(key).length > 0 }
     function pushImportTextFile(title) { return importFileText }
     function pushExportTextFile(title, name, text) { lastExportText = text; return true }
@@ -341,6 +341,24 @@ QtObject {
     }
     function logUi(category, text) {}
     function observeHdrCoverage(on) {}
+)qml"
+    // A third piece (see the note above on the size of one literal): 3.2.2.
+    R"qml(    // PushFPS wide-screen fill (tst_push_quick_setup.qml): Veyra's aspect choice; the ambient fill is a preference.
+    property int aspectMode: 0
+    // PushFPS crash notice and graphics card test (tst_push_tools.qml; bridge/PushTools.cpp).
+    property var crashReport: ({present: false})
+    property int crashDismissed: 0
+    function pushCrashReport() { return crashReport }
+    function pushDismissCrashReport() { crashDismissed++; crashReport = ({present: false}) }
+    property int logFolderOpened: 0
+    function openLogFolder() { logFolderOpened++ }
+    property var cardTestState: ({running: false, done: false})
+    property var cardTestNext: ({running: true, done: false})
+    property int cardTestStarts: 0
+    property int cardTestCancels: 0
+    function pushStartCardTest() { cardTestStarts++; cardTestState = cardTestNext; return cardTestNext.running === true }
+    function pushCancelCardTest() { cardTestCancels++; cardTestState = ({running: false, done: true, ok: false, reason: "cancelled"}) }
+    function pushCardTestStatus() { return cardTestState }
 })qml", QUrl());
         auto* model = snapshot.create(engine->rootContext());
         if (!model) qFatal("Cannot create explicit component snapshot: %s", qPrintable(snapshot.errorString()));

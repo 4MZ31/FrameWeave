@@ -48,10 +48,12 @@ Item {
         }
         function test_apply_gta_vi() {
             games.apply(games.selected)
-            compare(veyra.lastRegions.length, 2, "minimap and money/wanted areas")
+            compare(veyra.lastRegions.length, 3, "minimap, health/focus and weapon/wanted/cash areas")
             compare(veyra.fgMultiplier, 4, "auto target on a 240 Hz screen: 120 FPS from 30")
             compare(veyra.outputCustomFps, 120)
             compare(veyra.preferences.pushGameFps, 30)
+            verify(veyra.fgAdaptive, "the base PS5 dips below 30: adaptive multiplier")
+            compare(veyra.contentRate, 1, "which needs the measured game frame rate")
             verify(games.message.indexOf("GTA VI") >= 0)
             verify(!games.messageError)
         }
@@ -63,15 +65,44 @@ Item {
         function test_auto_target_on_a_60_hz_screen() {
             veyra.displayRefreshHz = 60
             games.apply(games.selected)
+            compare(veyra.fgMultiplier, 3, "adaptive: the ceiling a 20 FPS dip needs for 60")
+            compare(veyra.outputCustomFps, 60)
+            // A preset without the adaptive multiplier: plain 2X.
+            games.selectedName = "Open world · minimap bottom left"
+            games.apply(games.selected)
             compare(veyra.fgMultiplier, 2)
             compare(veyra.outputCustomFps, 60)
+            verify(!veyra.fgAdaptive)
+        }
+        function test_auto_target_on_a_90_hz_screen() {
+            veyra.displayRefreshHz = 90
+            compare(Presets.resolveTarget("auto", 90), "90")
+            compare(Presets.resolveTarget("auto", 89.95), "90")
+            compare(Presets.resolveTarget("auto", 100), "60")
+            compare(Presets.resolveTarget("120", 90), "120", "a chosen target stays")
+            games.selectedName = "Open world · minimap bottom left"
+            games.apply(games.selected)
+            compare(veyra.fgMultiplier, 3, "30 FPS x 3 = 90")
+            compare(veyra.outputCustomFps, 90)
+            compare(veyra.outputRateMode, 2)
+            // Frame generation that only doubles cannot reach 90: 60 instead.
+            veyra.fgMultiplierChoices = [{id:"1"},{id:"2"}]
+            games.apply(games.selected)
+            compare(veyra.fgMultiplier, 2)
+            compare(veyra.outputCustomFps, 60)
+            // The current settings saved as a preset keep the 90 FPS target.
+            veyra.fgMultiplierChoices = [{id:"1"},{id:"2"},{id:"3"},{id:"4"}]
+            games.apply(games.selected)
+            compare(games.currentAsPreset("Mine").target, "90")
+            compare(Presets.sanitize({name: "x", fps: 30, target: "90", regions: []}).target, "90")
         }
         function test_share_code_round_trip() {
             const code = games.shareCode(games.selected)
             verify(code.indexOf("PUSHFPS1:") === 0)
             const back = Presets.decode(code, Qt.atob)
             compare(back.name, "GTA VI")
-            compare(back.regions.length, 2)
+            compare(back.regions.length, 3)
+            compare(back.adaptive, true)
             fuzzyCompare(back.regions[0].left, 0.012, 0.001)
             const unicode = Presets.decode(Presets.encode({ name: "原神 ★ test", fps: 60, regions: [] }, Qt.btoa), Qt.atob)
             compare(unicode.name, "原神 ★ test")

@@ -7,6 +7,7 @@
 // views are created last. Per-frame execution uses the shared command slot
 // ring (NR evaluates on a fresh list - snippet constraint).
 #include "veyra/pipeline/NisSettings.h"
+#include "veyra/pipeline/PushEnhanceShape.h"
 #include "veyra/pipeline/EnhanceGraph.h"
 #include "veyra/pipeline/Rdna3NrBackend.h"
 #include "veyra/pipeline/AmdNrProvider.h"
@@ -3655,6 +3656,10 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
         for(size_t i=0;i<4;++i){const auto q=engine::protectionConstants(protection.regions[i]);c[8+i*4]=q[0];c[9+i*4]=q[1];c[10+i*4]=q[2];c[11+i*4]=q[3];}
         const auto controls=r.correction.constants(desc_.hdrWorking(),layer->model.style);
         std::copy(controls.begin(),controls.end(),c+24);
+        // PushFPS fine-tuning of the change (pipeline/PushEnhanceShape.h): live, the same for every
+        // layer, in the correction block's four spare constants (zeros when neutral).
+        const auto shape=pushEnhanceShape().constants();
+        std::copy(shape.begin(),shape.end(),c+36);
         const UINT residualLayers=UINT(std::max<size_t>(1,nrInstances_.size()));
         residualPass_.bind(list,c,gpuHandleOf(residualPass_,3u*UINT(layerIndex)).ptr,
                            gpuHandleOf(residualPass_,3u*residualLayers+UINT(layerIndex)).ptr);
@@ -4546,7 +4551,10 @@ uint32_t EnhanceGraph::actualFlowPerf()const{return nvof_?nvof_->caps().actualPe
 bool EnhanceGraph::vfgFastReady() const { return vfgBackend_&&vfgBackend_->fastReady(); }
 bool EnhanceGraph::fgCreated() const
 {
-    return (vfgBackend_&&vfgBackend_->created()) || fsrActive() || amfFrcActive() || (fgBackend_ && fgBackend_->created());
+    // PushFlow too: at f306f570 it was missing here, so fgCandidates stayed 0 and a live PushFlow session
+    // presented no generated frame (PS Remote Play window, RTX 4090, 2026-11-18; the GPU tests drive
+    // PushFlowBackend directly, not through the graph).
+    return (vfgBackend_&&vfgBackend_->created()) || fsrActive() || amfFrcActive() || pushFlowActive() || (fgBackend_ && fgBackend_->created());
 }
 
 uint64_t EnhanceGraph::lastNvofSignal() const

@@ -148,6 +148,14 @@ Item {
         id: latencyGuideDialog
         dialogHost: host
     }
+    PushCrashDialog {
+        id: crashDialog
+        dialogHost: host
+    }
+    PushCardTestDialog {
+        id: cardTestDialog
+        dialogHost: host
+    }
     PushStreamDialog {
         id: streamDialog
         dialogHost: host

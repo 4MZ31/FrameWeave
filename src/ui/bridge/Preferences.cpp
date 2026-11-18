@@ -2,11 +2,13 @@
 #include "../QmlPlayerBridge_p.h"
 #include "veyra/engine/PushStreamOverlay.h"
 #include "veyra/engine/PushAudioMix.h"
+#include "veyra/engine/PushAmbient.h"
 #include "veyra/Brand.h"
 
 #include <QJsonDocument>
 #include "veyra/sink/SoundProfile.h"
 #include "veyra/pipeline/NisSettings.h"
+#include "veyra/pipeline/PushEnhanceShape.h"
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonParseError>
@@ -238,6 +240,11 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"soundPreset", {0, 6}},
         // PushFPS NVIDIA Image Scaling sharpness in percent (pipeline::setNisSharpness).
         {"nisSharpness", {0, 100}},
+        // PushFPS fine-tuning of AI picture enhancement (pipeline/PushEnhanceShape.h), whole percentages:
+        // how much of the change is kept in the shadows, midtones and highlights and how far hues may
+        // turn (100 = as the model made it), and the soft limits on brightening and darkening (0 = none).
+        {"pushShapeShadows", {0, 200}}, {"pushShapeMidtones", {0, 200}}, {"pushShapeHighlights", {0, 200}}, {"pushShapeHue", {0, 200}},
+        {"pushShapeMaxBrighten", {0, 100}}, {"pushShapeMaxDarken", {0, 100}},
         // PushFPS comparison clip: length in seconds, layout 0 split picture / 1 side by side.
         {"pushCompareSeconds", {5, 120}},
         {"pushCompareLayout", {0, 2}},
@@ -289,6 +296,10 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    "introMusic", "exclusionOverlay",
                                    // PushFPS: on-screen latency readout, fullscreen on connect, window on top.
                                    "pushLatencyOverlay", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset",
+                                   // PushFPS ambient fill (engine/PushAmbient.h): the bars beside the picture.
+                                   "pushAmbientFill",
+                                   // PushFPS quick setup: the fine-tuning sliders of AI picture enhancement are unfolded.
+                                   "pushFineTuneOpen",
                                    // PushFPS: smooth frame pacing (quick setup); set once by the 2.9.7 default.
                                    "pushSmoothPacing", "pushSmoothPacing2",
                                    // PushFPS: the quick setup's G-SYNC row was used (driver profile checked, nothing left to set).
@@ -575,6 +586,16 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
         if (n == 0 || std::wstring_view(current) == L"fp16-checked")
             SetEnvironmentVariableW(L"VEYRA_PUSHFLOW_PRECISION", impl_->prefBool("pushFlowHalf", false) ? L"fp16-checked" : nullptr);
     }
+    else if (key.startsWith(QLatin1String("pushShape"))) {
+        // Live: the graph reads these at every frame (no rebuild).
+        pipeline::PushEnhanceShape shape;
+        shape.shadows = impl_->prefInt("pushShapeShadows", 100); shape.midtones = impl_->prefInt("pushShapeMidtones", 100);
+        shape.highlights = impl_->prefInt("pushShapeHighlights", 100); shape.hue = impl_->prefInt("pushShapeHue", 100);
+        shape.maxBrighten = impl_->prefInt("pushShapeMaxBrighten", 0); shape.maxDarken = impl_->prefInt("pushShapeMaxDarken", 0);
+        pipeline::setPushEnhanceShape(shape);
+    }
+    else if (key == QLatin1String("pushAmbientFill"))
+        engine::setPushAmbientFill(impl_->prefBool("pushAmbientFill", false));   // read by the presenter at every frame
     else if (key == QLatin1String("nisSharpness"))
         pipeline::setNisSharpness(float(impl_->prefInt("nisSharpness", int(pipeline::kNisDefaultSharpness * 100))) / 100.0f);
     else if (key == QLatin1String("magewellLowLatency")) source::magewell::setLowLatencyPreference(impl_->prefBool("magewellLowLatency", false));

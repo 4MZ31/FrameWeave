@@ -449,8 +449,14 @@ LONG WINAPI crashFilter(EXCEPTION_POINTERS* info) {
     }
     // What crashed and which known-risky injected components were loaded, for the next
     // start to explain (QmlPlayerBridge reads and deletes it).
+    // PushFPS (3.2.2): a third line for the crash notice at the next start (engine/PushCrashNote.h):
+    // the exception code, the offset inside the module, the crash file's name and the time.
+    wchar_t detail[192]{};
+    swprintf_s(detail, L"code=0x%08X offset=0x%llX dump=%s time=%04u-%02u-%02u %02u:%02u", unsigned(code),
+               static_cast<unsigned long long>(module ? address - reinterpret_cast<uintptr_t>(module) : uintptr_t(0)), name,
+               unsigned(st.wYear), unsigned(st.wMonth), unsigned(st.wDay), unsigned(st.wHour), unsigned(st.wMinute));
     const std::wstring note = L"crash " + std::filesystem::path(moduleName).filename().wstring() + L"\n" +
-                              veyra::gfx::riskyInjections() + L"\n";
+                              veyra::gfx::riskyInjections() + L"\n" + detail + L"\n";
     HANDLE marker = CreateFileW((std::filesystem::path(g_crashDumpDirectory) / L"veyra-last-failure.txt").c_str(),
                                 GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (marker != INVALID_HANDLE_VALUE) {
@@ -907,7 +913,11 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
                                             testSize.width(), testSize.height()));
     veyra::log::info("qml-window", std::format("probe mode={}", videoProbeName()));
     engine.rootContext()->setContextProperty(QStringLiteral("vyTest"), testOptions);
-    if (!openPath.isEmpty()) {
+    if (openPath.startsWith(QLatin1String("frameinput:"))) {
+        // PushFPS: "frameinput:<channel>" opens a Frame Input channel (docs/FRAME-INPUT-API.md), so a
+        // sending app, or a test, can start PushFPS on its own picture.
+        QTimer::singleShot(600, &bridge, [&bridge, openPath] { bridge.pushStartFrameInput(openPath.mid(11)); });
+    } else if (!openPath.isEmpty()) {
         QTimer::singleShot(600, &bridge, [&bridge, openPath] { bridge.openPath(openPath); });
     } else {
         QTimer::singleShot(600, &bridge, [&bridge] { bridge.autoResumeLastSource(); });

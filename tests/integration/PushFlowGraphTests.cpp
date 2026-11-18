@@ -1,0 +1,180 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
+//
+// PushFlow through the real enhancement graph (pipeline/EnhanceGraph), the way the program runs it.
+//
+// The other PushFlow tests drive PushFlowBackend directly. That is how 3.2.0 shipped with the graph
+// never offering PushFlow a pair: EnhanceGraph::fgCreated() left it out, so fgCandidates stayed 0 and
+// the picture stayed at the source's frame rate (found and fixed by PichotM, 18 November 2026). This
+// test is the one that would have caught it: a textured square moves 16 px per frame over a gradient,
+// and every pair after the first must be offered to PushFlow, must come back with its generated
+// frames, and each generated frame must show the square between its two real neighbours (closer to
+// the true in-between picture than a blend of the two frames is). At 2X and at 3X.
+//
+// usage: veyra_push_flow_graph_tests OUTDIR RUNTIMEDIR     (RUNTIMEDIR holds the "pushflow" folder)
+#include "veyra/pipeline/EnhanceGraph.h"
+#include "veyra/gfx/D3D12DeviceContext.h"
+#include "veyra/gfx/CommandSlotRing.h"
+#include "veyra/sink/ImageExportSink.h"
+#include "veyra/Log.h"
+#include <d3d12sdklayers.h>
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstring>
+#include <filesystem>
+#include <iostream>
+#include <vector>
+extern "C" {
+#include <libavutil/frame.h>
+#include <libavutil/pixfmt.h>
+}
+
+namespace {
+constexpr unsigned W = 640, H = 360, Step = 16, Start = 120;
+
+// The picture of PushGpuTests' flowFrame: a gradient with a 40 px checkered square at squareX.
+std::vector<uint8_t> picture(double squareX) {
+    std::vector<uint8_t> px(size_t(W) * H * 4);
+    for (unsigned y = 0; y < H; ++y)
+        for (unsigned x = 0; x < W; ++x) {
+            uint8_t* p = &px[(size_t(y) * W + x) * 4];
+            const int base = 60 + int(40.0 * x / W) + int(30.0 * y / H);
+            int r = base, g = base + 10, b = base + 20;
+            const double dx = x - squareX, dy = double(y) - H * 0.35;
+            if (dx >= 0 && dx < 40 && dy >= 0 && dy < 40) {
+                const bool light = ((int(dx) / 8) + (int(dy) / 8)) % 2 == 0;
+                r = light ? 235 : 40; g = light ? 200 : 30; b = light ? 60 : 20;
+            }
+            p[0] = uint8_t(r); p[1] = uint8_t(g); p[2] = uint8_t(b); p[3] = 255;
+        }
+    return px;
+}
+// PSNR over the colour channels, in the band of rows the square crosses (the rest never changes).
+double psnr(const std::vector<uint8_t>& a, const std::vector<uint8_t>& b) {
+    if (a.size() != b.size() || a.empty()) return 0.0;
+    double sum = 0; size_t n = 0;
+    for (unsigned y = unsigned(H * 0.35) - 4; y < unsigned(H * 0.35) + 44; ++y)
+        for (unsigned x = 0; x < W; ++x)
+            for (int c = 0; c < 3; ++c) {
+                const double d = double(a[(size_t(y) * W + x) * 4 + c]) - double(b[(size_t(y) * W + x) * 4 + c]);
+                sum += d * d; ++n;
+            }
+    const double mse = sum / double(n);
+    return mse < 1e-9 ? 99.0 : 10.0 * std::log10(255.0 * 255.0 / mse);
+}
+std::vector<uint8_t> blend(const std::vector<uint8_t>& a, const std::vector<uint8_t>& b) {
+    std::vector<uint8_t> out(a.size());
+    for (size_t i = 0; i < a.size(); ++i) out[i] = uint8_t((unsigned(a[i]) + unsigned(b[i]) + 1) / 2);
+    return out;
+}
+double squareAt(unsigned frame) { return double(Start + frame * Step); }
+}  // namespace
+
+int wmain(int argc, wchar_t** argv) {
+    using namespace veyra;
+    if (argc != 3) { std::cout << "usage: veyra_push_flow_graph_tests OUTDIR RUNTIMEDIR" << std::endl; return 2; }
+    std::filesystem::create_directories(argv[1]);
+    veyra::Logger::instance().openFile((std::filesystem::path(argv[1]) / L"engine.log").wstring());
+    veyra::Logger::instance().setConsoleEnabled(false);
+    if (FAILED(CoInitializeEx(nullptr, COINIT_MULTITHREADED))) return 2;
+    gfx::D3D12DeviceContext ctx; gfx::CommandSlotRing ring; Status st = Status::Ok;
+    gfx::DeviceContextDesc device; device.enableDebugLayer = true;
+    if (!ctx.initialize(device, st) || !ring.initialize(ctx.device(), ctx.directQueue(), ctx.fence(), ctx.fenceEvent(), 6, st)) {
+        std::cout << "PUSHFLOW_GRAPH no D3D12 adapter the engine accepts" << std::endl; CoUninitialize(); return 3;
+    }
+    Microsoft::WRL::ComPtr<ID3D12InfoQueue> info; ctx.device()->QueryInterface(IID_PPV_ARGS(&info));
+    int failures = 0;
+    auto check = [&](bool pass, const std::string& name) { std::cout << "PUSHFLOW_GRAPH " << (pass ? "PASS " : "FAIL ") << name << std::endl; failures += !pass; return pass; };
+
+    AVFrame* frame = av_frame_alloc();
+    frame->format = AV_PIX_FMT_RGBA; frame->width = W; frame->height = H;
+    frame->color_range = AVCOL_RANGE_JPEG; frame->color_trc = AVCOL_TRC_IEC61966_2_1;
+    if (av_frame_get_buffer(frame, 32) < 0) { std::cout << "PUSHFLOW_GRAPH no frame buffer" << std::endl; return 2; }
+    auto fill = [&](const std::vector<uint8_t>& px) {
+        for (unsigned y = 0; y < H; ++y) std::memcpy(frame->data[0] + size_t(y) * frame->linesize[0], px.data() + size_t(y) * W * 4, size_t(W) * 4);
+    };
+
+    for (unsigned multiplier : {2u, 3u}) {
+        const std::string tag = std::to_string(multiplier) + "X";
+        const unsigned frames = multiplier == 2 ? 12 : 7;
+        pipeline::EnhanceGraph graph(ctx, ring);
+        pipeline::EnhanceGraphDesc desc; desc.sourceWidth = desc.workWidth = W; desc.sourceHeight = desc.workHeight = H;
+        desc.rgbInput = true; desc.enableNr = desc.enableSr = false; desc.enableFg = true; desc.fgMultiplier = multiplier;
+        desc.frameGenerationBackend = engine::FrameGenerationBackend::PushFlow;
+        desc.vfgQuality = 0;  // the Fast tier: the software renderer in CI is slow
+        desc.runtimeAbsPath = argv[2]; desc.settingsRevision = multiplier;
+        const bool opened = graph.initialize(desc) && graph.createViews();
+        if (!check(opened, tag + ": the graph opens with PushFlow") || !check(graph.pushFlowActive(), tag + ": PushFlow is ready")) {
+            std::cout << "PUSHFLOW_GRAPH failedBackend=" << int(graph.failedBackend()) << std::endl;
+            graph.shutdown(); continue;
+        }
+        check(graph.fgCreated(), tag + ": the graph counts PushFlow as a frame generation method");
+        unsigned offered = 0, pairs = 0, generated = 0, checked = 0, between = 0, ordered = 0, resetsWithoutFrame = 0;
+        double worstMargin = 1e9, realDb = 0, slowestMs = 0; bool ok = true;
+        std::vector<uint8_t> previous;
+        for (unsigned i = 0; ok && i < frames; ++i) {
+            const auto now = picture(squareAt(i));
+            fill(now);
+            pipeline::EnhanceGraph::FrameOutputs out;
+            const bool reset = i == 0;
+            const auto t0 = std::chrono::steady_clock::now();
+            ok = graph.process(frame, double(i) * 1000.0 / 30.0, reset, out, i + 1);
+            if (!ok) { std::cout << "PUSHFLOW_GRAPH " << tag << " process failed frame=" << i << " failedBackend=" << int(graph.failedBackend()) << std::endl; break; }
+            ok = ctx.waitForFenceValue(std::max(out.videoFenceValue, out.genFenceValue), 120000) && graph.resolveGeneration(out);
+            if (!ok) { std::cout << "PUSHFLOW_GRAPH " << tag << " frame " << i << " did not finish" << std::endl; break; }
+            slowestMs = std::max(slowestMs, std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count());
+            if (i == 1) {
+                // The real frame comes back as it went in (no enhancement is on): the comparisons below rely on it.
+                sink::RgbaImage real;
+                if (sink::readRgba8(ctx, ring, graph.videoFrameResource(out.videoSlot), real) && real.width == W && real.height == H) realDb = psnr(real.pixels, now);
+            }
+            if (reset) { resetsWithoutFrame += !out.hasGenerated; previous = now; continue; }
+            ++pairs;
+            offered += out.fgCandidates == multiplier - 1;
+            if (out.hasGenerated && out.fgEvaluated == multiplier - 1) {
+                ++generated;
+                const auto mix = blend(previous, now);
+                std::vector<std::vector<uint8_t>> subs;
+                for (unsigned sub = 1; sub < multiplier; ++sub) {
+                    sink::RgbaImage image;
+                    if (!sink::readRgba8(ctx, ring, graph.generatedFrameResource(out.genSlot + (sub - 1) * 2), image) || image.width != W || image.height != H) { ok = false; break; }
+                    if (i == 3) sink::saveImage((std::filesystem::path(argv[1]) / (L"generated-" + std::to_wstring(multiplier) + L"x-" + std::to_wstring(sub) + L".png")).wstring(), image);
+                    // Where the square truly is at this subframe's time, against a plain blend of the two frames.
+                    const auto truth = picture(squareAt(i - 1) + double(Step) * double(sub) / double(multiplier));
+                    const double flowDb = psnr(image.pixels, truth), blendDb = psnr(mix, truth);
+                    ++checked; between += flowDb > blendDb + 2.0; worstMargin = std::min(worstMargin, flowDb - blendDb);
+                    if (i <= 2) std::cout << "PUSHFLOW_GRAPH " << tag << " frame=" << i << " sub=" << sub << " generated " << flowDb << " dB, blend " << blendDb << " dB" << std::endl;
+                    subs.push_back(std::move(image.pixels));
+                }
+                if (ok && multiplier == 3 && subs.size() == 2) {
+                    // The two generated frames are in order: each is closer to its own moment than to the other's.
+                    const auto third = picture(squareAt(i - 1) + Step / 3.0), twoThirds = picture(squareAt(i - 1) + 2.0 * Step / 3.0);
+                    ordered += psnr(subs[0], third) > psnr(subs[0], twoThirds) && psnr(subs[1], twoThirds) > psnr(subs[1], third);
+                }
+            }
+            previous = now;
+        }
+        check(ok, tag + ": every frame processed");
+        check(realDb > 40.0, tag + ": a real frame comes back as it went in (" + std::to_string(realDb) + " dB)");
+        check(resetsWithoutFrame == 1, tag + ": the first frame (a reset) has no generated frame");
+        check(pairs > 0 && offered == pairs, tag + ": every pair after the first is offered to PushFlow (" + std::to_string(offered) + "/" + std::to_string(pairs) + ")");
+        check(pairs > 0 && generated == pairs, tag + ": and comes back with its generated frames (" + std::to_string(generated) + "/" + std::to_string(pairs) + ")");
+        check(checked > 0 && between == checked, tag + ": each generated frame shows the square between its neighbours (" + std::to_string(between) + "/" + std::to_string(checked) +
+                                                     ", worst margin over a blend " + std::to_string(worstMargin) + " dB)");
+        if (multiplier == 3) check(generated > 0 && ordered == generated, tag + ": the two generated frames of a pair are in order (" + std::to_string(ordered) + "/" + std::to_string(generated) + ")");
+        std::cout << "PUSHFLOW_GRAPH " << tag << " pairs=" << pairs << " offered=" << offered << " generated=" << generated << " checked=" << checked << " slowestFrameMs=" << slowestMs << std::endl;
+        ring.drainQueue(); graph.shutdown();
+    }
+    unsigned errors = 0;
+    if (info) for (UINT64 m = 0; m < info->GetNumStoredMessagesAllowedByRetrievalFilter(); ++m) {
+        SIZE_T size = 0; info->GetMessage(m, nullptr, &size); std::vector<uint8_t> data(size);
+        auto* message = reinterpret_cast<D3D12_MESSAGE*>(data.data());
+        if (SUCCEEDED(info->GetMessage(m, message, &size)) && message->Severity <= D3D12_MESSAGE_SEVERITY_ERROR) { ++errors; if (errors <= 8) std::cout << "GPU_ERROR " << message->pDescription << std::endl; }
+    }
+    check(errors == 0, "no D3D12 debug-layer error (" + std::to_string(errors) + ")");
+    std::cout << "PUSHFLOW_GRAPH " << (failures ? "FAILED" : "passed") << " failures=" << failures << std::endl;
+    av_frame_free(&frame);
+    ring.shutdown(); ctx.shutdown(); CoUninitialize();
+    return failures ? 1 : 0;
+}

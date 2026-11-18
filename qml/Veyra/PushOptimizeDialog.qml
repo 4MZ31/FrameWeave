@@ -105,6 +105,7 @@ DialogLayer {
     }
     function targetFps(target) {
         if (target === "120") return 120
+        if (target === "90") return 90
         if (target === "60") return 60
         if (target === "monitor") return opt.refreshHz
         return 0

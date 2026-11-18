@@ -14,6 +14,10 @@ on:
         description: Branch whose latest successful build-windows run is used when no release is given
         default: main
         required: false
+      only:
+        description: Take only the screenshots whose name matches this regular expression (empty = all)
+        default: ''
+        required: false
 
 # contents: write only to push the images to the `screenshots` branch (replaced on every run).
 permissions:
@@ -31,7 +35,14 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       RELEASE_TAG: ${{ inputs.release_tag }}
       BUILD_BRANCH: ${{ inputs.branch || 'main' }}
+      ONLY: ${{ inputs.only }}
     steps:
+      # Only for the test-pattern sender (tools/frame-input): the screenshots that show a playing picture.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tools/frame-input
+          path: repo
+
       - name: Screen resolution
         run: |
           try { Set-DisplayResolution -Width 1920 -Height 1080 -Force -ErrorAction Stop } catch { Write-Host "Set-DisplayResolution: $_" }
@@ -141,14 +152,37 @@ jobs:
             @{ name = '68-quality-test'; args = @('--page', 'pro', '--dialog', 'qualitytest', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '69-latency-test'; args = @('--page', 'live', '--dialog', 'latencytest', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '70-frame-input'; args = @('--page', 'home', '--dialog', 'frameinput', '--lang', 'en', '--pref', 'pushSunset=false') },
-            @{ name = '71-about'; args = @('--page', 'set', '--tab', 'about', '--lang', 'en', '--pref', 'pushSunset=false') }
+            @{ name = '71-about'; args = @('--page', 'set', '--tab', 'about', '--lang', 'en', '--pref', 'pushSunset=false') },
+            # 3.2.2. A playing picture (the Frame Input test pattern, 16:9) in a cinema window held at 2.39:1
+            # (--aspect; without it the window follows the picture's shape and there are no bars to fill):
+            # ambient fill in the bars, and the same with plain bars. Then the fill row on the home page.
+            @{ name = '72-ambient-fill'; sender = $true; size = '1280x536'; args = @('frameinput:default', '--page', 'min', '--aspect', '2.39', '--pref', 'pushAmbientFill=true', '--pref', 'pushSunset=false') },
+            @{ name = '73-black-bars'; sender = $true; size = '1280x536'; args = @('frameinput:default', '--page', 'min', '--aspect', '2.39', '--pref', 'pushAmbientFill=false', '--pref', 'pushSunset=false') },
+            @{ name = '74-wide-screen-fill'; args = @('--page', 'home', '--scroll-to', 'pushfps-fill-row', '--lang', 'en', '--pref', 'pushAmbientFill=true', '--pref', 'pushSunset=false') },
+            # The crash notice: the note the crash handler would have left, written before the start.
+            @{ name = '75-crash-notice'; crash = $true; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushSunset=false') },
+            @{ name = '76-card-test'; args = @('--page', 'home', '--dialog', 'cardtest', '--lang', 'en', '--pref', 'pushSunset=false') },
+            @{ name = '77-settings-card-test'; args = @('--page', 'set', '--tab', 'about', '--scroll-to', 'set-cardtest', '--lang', 'en', '--pref', 'pushSunset=false') }
           )
+          if ($env:ONLY) { $list = @($list | Where-Object { $_.name -match $env:ONLY }); Write-Host "Only: $($list.name -join ', ')" }
           foreach ($s in $list) {
             $data = "D:\pfdata\$($s.name)"
             $size = if ($s.size) { $s.size } else { "${w}x${h}" }
             $a = $s.args + @('--size', $size, '--data-dir', $data, '--reduced-motion', '--no-update-check')
+            $sender = $null
+            if ($s.sender) {
+              $sender = Start-Process python -ArgumentList @('repo\tools\frame-input\send_test_pattern.py', '--width', '1280', '--height', '720', '--fps', '30') -PassThru -WindowStyle Hidden
+              Start-Sleep -Seconds 3
+            }
+            if ($s.crash) {
+              # veyra-last-failure.txt as apps/veyra-qml/main.cpp writes it (UTF-16), and the session note beside it.
+              New-Item -ItemType Directory -Force D:\pf\logs | Out-Null
+              $note = "crash onnxruntime.dll`n`ncode=0xC0000005 offset=0x11B640 dump=veyra-crash-20261118-211405-1234.dmp time=2026-11-18 21:14`n"
+              [System.IO.File]::WriteAllBytes('D:\pf\logs\veyra-last-failure.txt', [System.Text.Encoding]::Unicode.GetBytes($note))
+              [System.IO.File]::WriteAllText('D:\pf\logs\veyra-last-session.txt', 'source=xbox size=1920x1080 fg=pushflow_3X_fast nr=1 sr=0 hdr=0')
+            }
             $p = Start-Process D:\pf\PushFPS.exe -ArgumentList $a -PassThru
-            Start-Sleep -Seconds 14
+            Start-Sleep -Seconds $(if ($s.sender) { 20 } else { 14 })
             $p.Refresh()
             $hwnd = $p.MainWindowHandle
             if ($p.HasExited -or $hwnd -eq [IntPtr]::Zero) { Write-Host "::warning::$($s.name): no window"; if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }; continue }
@@ -162,6 +196,7 @@ jobs:
             $g.Dispose(); $bmp.Dispose()
             Write-Host "$($s.name): ${bw}x${bh}"
             Stop-Process -Id $p.Id -Force
+            if ($sender -and -not $sender.HasExited) { Stop-Process -Id $sender.Id -Force }
             Start-Sleep -Seconds 2
           }
           Get-ChildItem shots | Format-Table Name, Length
@@ -175,12 +210,15 @@ jobs:
           else { 'No QML errors or warnings in any screenshot run.' | Set-Content shots\qml-report.txt; Write-Host 'No QML errors or warnings.' }
 
       - name: Publish to the screenshots branch
+        # The full set replaces the `screenshots` branch. A subset (input "only") is for looking at: it goes
+        # to `screenshots-preview`, so it never replaces the full set.
         run: |
+          $branch = if ($env:ONLY) { 'screenshots-preview' } else { 'screenshots' }
           Set-Location shots
-          git init -q -b screenshots
+          git init -q -b $branch
           git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com add *.png qml-report.txt
           git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -q -m "PushFPS screenshots"
-          git push -q --force "https://x-access-token:$env:GH_TOKEN@github.com/$env:GITHUB_REPOSITORY.git" screenshots
+          git push -q --force "https://x-access-token:$env:GH_TOKEN@github.com/$env:GITHUB_REPOSITORY.git" $branch
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - uses: actions/upload-artifact@v4

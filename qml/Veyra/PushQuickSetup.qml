@@ -106,10 +106,26 @@ VGroup {
         // A target the game already reaches (60 FPS for a 60 FPS game) has nothing to
         // generate, so frame generation goes off instead of doubling past it.
         const t = quick.currentTarget
-        if (t === "60" || t === "120" || t === "monitor") {
-            if (quick.targetFps(t) <= n + 0.5) veyra.fgEnabled = false
-            else quick.applyTarget(t, n)
-        }
+        if (quick.isTarget(t)) quick.applyTarget(t, n)
+    }
+    // The choices that generate frames ("off" and "" do not).
+    function isTarget(id) { return id === "60" || id === "90" || id === "120" || id === "monitor" }
+    // A 90 Hz screen (laptops, handhelds, some monitors): 120 FPS cannot be shown there, 90 can, and a
+    // 30 FPS game reaches it with exactly 3X. The 90 FPS choice is offered on such a screen, and kept
+    // visible wherever it is already the target (a profile from another screen, Professional mode).
+    readonly property bool screen90: {
+        const hz = Number(veyra.displayRefreshHz || 0)
+        return hz > 85 && hz < 95
+    }
+    readonly property var targetOptions: {
+        const list = [{ id: "off", label: qsTr("关闭", "off") }]
+        // 60 FPS is only a target when the game runs below it; 90 only for such a game too
+        // (a 60 FPS game would need one and a half frames per frame, which cannot be paced evenly).
+        if (quick.baseFps < 60) list.push({ id: "60", label: "60 FPS" })
+        if (quick.currentTarget === "90" || (quick.screen90 && quick.baseFps < 60)) list.push({ id: "90", label: "90 FPS" })
+        if (!quick.screen90 || quick.currentTarget === "120") list.push({ id: "120", label: "120 FPS" })
+        list.push({ id: "monitor", label: qsTr("匹配显示器") })
+        return list
     }
 
     readonly property bool fgPossible: Support.available(veyra, "frame-generation")
@@ -121,12 +137,14 @@ VGroup {
         if (!veyra.fgEnabled) return "off"
         if (veyra.outputRateMode === 1) return "monitor"
         if (veyra.outputRateMode === 2 && Math.abs(veyra.outputCustomFps - 60) < 0.5) return "60"
+        if (veyra.outputRateMode === 2 && Math.abs(veyra.outputCustomFps - 90) < 0.5) return "90"
         if (veyra.outputRateMode === 2 && Math.abs(veyra.outputCustomFps - 120) < 0.5) return "120"
         return ""
     }
 
     function targetFps(id) {
         if (id === "60") return 60
+        if (id === "90") return 90
         if (id === "120") return 120
         if (id === "monitor") return veyra.displayRefreshHz > 0 ? veyra.displayRefreshHz : 60
         return 0
@@ -146,7 +164,7 @@ VGroup {
         // The game's frame rate is measured by automatic duplicate removal.
         if (on && Number(veyra.contentRate) === 0) veyra.contentRate = 1
         const t = quick.currentTarget
-        if (t === "60" || t === "120" || t === "monitor") quick.applyTarget(t)
+        if (quick.isTarget(t)) quick.applyTarget(t)
     }
     // Live: the multiplier the last frame pair used, the measured game frame rate and, for
     // Frame Pacing Repair, the share of real frames it re-timed over the last second.
@@ -203,6 +221,8 @@ VGroup {
         if (id === "off") { veyra.fgEnabled = false; return }
         const fps = targetFps(id)
         if (fps <= gameFps + 0.5) { veyra.fgEnabled = false; return }
+        // 90 from a 60 FPS game is one and a half frames per frame: it cannot be paced evenly.
+        if (id === "90" && gameFps >= 60) { veyra.fgEnabled = false; return }
         const m = quick.adaptive ? Presets.adaptiveCeiling(quick.offeredMultipliers, fps) : multiplierFor(fps, gameFps)
         if (m < 2) return
         veyra.fgMultiplier = m
@@ -292,6 +312,77 @@ VGroup {
         onTriggered: quick.setLookCompare(false)
     }
 
+    // --- fine-tuning: shaping the change the enhancement makes ---------------------
+    // The enhancement is composed as a change on top of the picture, and that change can be shaped
+    // without touching the picture itself. Four of the values are Veyra's own, per enhancement layer
+    // (Professional mode shows them in each layer; here every layer gets the same value and the
+    // first one is shown): total, brighten, darken, color. Six are PushFPS's (pipeline/
+    // PushEnhanceShape.h), live preferences that apply to every layer: the tonal ranges, the hue and
+    // the two soft limits. Everything at its default is exactly the enhancement as it always was.
+    // `to` is the slider's upper end as a value (2 = 200 %), `neutral` what leaves the change alone.
+    readonly property var fineSpecs: [
+        { id: "total", layer: "total", to: 2, neutral: 1, label: qsTr("修改强度"),
+          hint: qsTr("AI 对画面的改动量：0% 完全不改，100% 是模型的原样，200% 加倍") },
+        { id: "brighten", layer: "brighten", to: 2, neutral: 1, label: qsTr("提亮"), hint: qsTr("保留多少 AI 带来的提亮。0% 取消这部分改动") },
+        { id: "darken", layer: "darken", to: 2, neutral: 1, label: qsTr("压暗"), hint: qsTr("保留多少 AI 带来的压暗。0% 取消这部分改动") },
+        { id: "maxBrighten", pref: "pushShapeMaxBrighten", to: 1, neutral: 0, label: qsTr("提亮上限"),
+          hint: qsTr("每个像素最多能被提亮多少（按黑到白的亮度范围算，柔和地限制）。0% 为不限制") },
+        { id: "maxDarken", pref: "pushShapeMaxDarken", to: 1, neutral: 0, label: qsTr("压暗上限"),
+          hint: qsTr("每个像素最多能被压暗多少。0% 为不限制") },
+        { id: "shadows", pref: "pushShapeShadows", to: 2, neutral: 1, label: qsTr("暗部"), hint: qsTr("画面暗的部分保留多少 AI 的改动") },
+        { id: "midtones", pref: "pushShapeMidtones", to: 2, neutral: 1, label: qsTr("中间调"), hint: qsTr("画面中等亮度的部分保留多少 AI 的改动") },
+        { id: "highlights", pref: "pushShapeHighlights", to: 2, neutral: 1, label: qsTr("高光"), hint: qsTr("画面亮的部分保留多少 AI 的改动") },
+        { id: "color", layer: "color", to: 2, neutral: 1, label: qsTr("色彩变化"), hint: qsTr("AI 改变色彩浓淡的程度。0% 保持原画的色彩") },
+        { id: "hue", pref: "pushShapeHue", to: 2, neutral: 1, label: qsTr("色相偏移"), hint: qsTr("AI 改变色相的程度。0% 保持原画的色相") }
+    ]
+    function fineSpec(id) { for (const f of quick.fineSpecs) if (f.id === id) return f; return null }
+    // Shown for every enhancement runtime: the change is composed the same way for all of them.
+    readonly property bool fineShown: quick.nrPossible && veyra.nrAnyEnabled === true && quick.lookLayer !== null
+    readonly property bool fineOpen: veyra.preferences.pushFineTuneOpen === true
+    function fineValue(id) {
+        const f = quick.fineSpec(id)
+        if (!f) return 0
+        let v = f.neutral
+        if (f.layer) { if (quick.lookLayer && quick.lookLayer[f.layer] !== undefined) v = Number(quick.lookLayer[f.layer]) }
+        else if (veyra.preferences[f.pref] !== undefined) v = Number(veyra.preferences[f.pref]) / 100
+        return isFinite(v) ? Math.max(0, Math.min(f.to, v)) : f.neutral
+    }
+    function setFine(id, value) {
+        const f = quick.fineSpec(id)
+        if (!f || !quick.nrPossible || !isFinite(Number(value))) return false
+        const v = Math.round(Math.max(0, Math.min(f.to, Number(value))) * 100) / 100
+        if (!f.layer) return veyra.setPreference(f.pref, Math.round(v * 100)) === true
+        let ok = true
+        const layers = veyra.nrLayers.map(l => l.index)
+        for (const index of layers) ok = veyra.setNrLayerParameter(index, f.layer, v) && ok
+        return ok && layers.length > 0
+    }
+    readonly property bool fineNeutral: {
+        for (const f of quick.fineSpecs) if (Math.abs(quick.fineValue(f.id) - f.neutral) >= 0.005) return false
+        return true
+    }
+    function resetFine() {
+        for (const f of quick.fineSpecs) if (Math.abs(quick.fineValue(f.id) - f.neutral) >= 0.005) quick.setFine(f.id, f.neutral)
+    }
+    function fineSnapshot() {
+        const o = {}
+        for (const f of quick.fineSpecs) o[f.id] = quick.fineValue(f.id)
+        return o
+    }
+    // Only values that differ are written (see the look, above).
+    function applyFine(o) {
+        if (!o || typeof o !== "object" || !quick.nrPossible) return
+        for (const f of quick.fineSpecs) {
+            const v = o[f.id]
+            if (typeof v !== "number" || !isFinite(v)) continue
+            if (Math.abs(Math.max(0, Math.min(f.to, v)) - quick.fineValue(f.id)) >= 0.005) quick.setFine(f.id, v)
+        }
+    }
+    function fineText(id) {
+        const f = quick.fineSpec(id), v = quick.fineValue(id)
+        return f && f.neutral === 0 && v < 0.005 ? qsTr("不限制") : Math.round(v * 100) + "%"
+    }
+
     // --- console and game profiles ---------------------------------------------
     // A console profile remembers the quick choices per console: switching console
     // keeps what was set for the old one and brings back the new one's. A game
@@ -324,7 +415,7 @@ VGroup {
                  adaptive: veyra.fgAdaptive === true, pacing: veyra.pacingRepair === true, hudLock: veyra.hudLock === true,
                  lowLatency: veyra.nvidiaLowLatencyAvailable === true && (veyra.nvidiaLowLatency ?? 0) > 0 }
         // The enhancement's look, when there is an enhancement layer to read it from.
-        if (quick.lookLayer !== null) s.look = { tone: quick.lookTone, structure: quick.lookStructure }
+        if (quick.lookLayer !== null) s.look = { tone: quick.lookTone, structure: quick.lookStructure, fine: quick.fineSnapshot() }
         return s
     }
     function writeProfiles(p) {
@@ -342,11 +433,11 @@ VGroup {
         }
         if (quick.ownTechPossible && typeof s.pacing === "boolean") quick.setPacingRepair(s.pacing)
         if (quick.ownTechPossible && typeof s.hudLock === "boolean") veyra.hudLock = s.hudLock
-        if (quick.fgPossible && ["off", "60", "120", "monitor"].indexOf(s.target) >= 0)
+        if (quick.fgPossible && ["off", "60", "90", "120", "monitor"].indexOf(s.target) >= 0)
             quick.applyTarget(s.target, fps)
         if (quick.nrPossible && typeof s.enhance === "boolean" && s.enhance !== (veyra.nrAnyEnabled === true))
             quick.setEnhancement(s.enhance)
-        // Profiles saved before 3.2.1 have no look: the current one stays. So does a look that already
+        // Profiles saved before 3.2.2 have no look: the current one stays. So does a look that already
         // matches: layers given different values in Professional mode are only made equal when a
         // profile really asks for another look.
         if (quick.nrPossible && s.look && typeof s.look === "object" && isFinite(Number(s.look.tone)) && isFinite(Number(s.look.structure))) {
@@ -354,6 +445,8 @@ VGroup {
             if (Math.abs(tone - quick.lookTone) >= 0.005 || Math.abs(structure - quick.lookStructure) >= 0.005)
                 quick.setLook(tone, structure)
         }
+        // The fine-tuning kept with the look (profiles saved before 3.2.2 have none: it stays as it is).
+        if (s.look && typeof s.look === "object") quick.applyFine(s.look.fine)
         if (veyra.nvidiaLowLatencyAvailable === true && typeof s.lowLatency === "boolean")
             veyra.nvidiaLowLatency = s.lowLatency ? 1 : 0
     }
@@ -428,7 +521,9 @@ VGroup {
         const m = veyra.fgMultiplier
         const reach = quick.baseFps * m
         const want = quick.targetFps(quick.currentTarget)
-        if (reach + 0.5 < want)
+        // Short of the target because this frame generation offers no more; when it does offer more,
+        // the next step would overshoot (40 FPS x 3 on a 90 FPS target), which is not its limit.
+        if (reach + 0.5 < want && !quick.offeredMultipliers.some(x => x > m))
             return qsTr("当前补帧方式最高 %1×，%2 FPS 游戏约为 %3 FPS").arg(m).arg(quick.baseFps).arg(reach)
         return qsTr("%1 FPS 游戏将以 %2 FPS 运行（%3× 补帧）").arg(quick.baseFps)
             .arg(Math.round(Math.min(reach, want))).arg(m)
@@ -714,12 +809,7 @@ VGroup {
             objectName: "pushfps-target"
             enabled: quick.fgPossible
             opacity: enabled ? 1 : 0.4
-            // 60 FPS is only a target when the game runs below it.
-            options: quick.baseFps < 60
-                ? [{ id: "off", label: qsTr("关闭", "off") }, { id: "60", label: "60 FPS" },
-                   { id: "120", label: "120 FPS" }, { id: "monitor", label: qsTr("匹配显示器") }]
-                : [{ id: "off", label: qsTr("关闭", "off") },
-                   { id: "120", label: "120 FPS" }, { id: "monitor", label: qsTr("匹配显示器") }]
+            options: quick.targetOptions
             current: quick.currentTarget
             onPicked: id => quick.applyTarget(id)
         }
@@ -903,6 +993,49 @@ VGroup {
             onToggled: checked => quick.setLookCompare(checked)
         }
     }
+    // Fine-tuning (ten sliders): folded away until asked for.
+    VRow {
+        objectName: "pushfps-fine-row"
+        visible: quick.fineShown
+        label: qsTr("精细调整")
+        help: qsTr("调整的是 AI 画面增强对画面的改动，而不是画面本身：可以只保留提亮或压暗，只让它作用于暗部、中间调或高光，限制每个像素最多变化多少，或者保持原画的色彩和色相。全部为默认值时不做任何额外处理。对所有增强层同时生效，并随每个主机和游戏的配置保存")
+        hint: quick.fineNeutral ? qsTr("默认：AI 的改动保持原样") : qsTr("已调整 AI 的改动")
+        RowLayout {
+            spacing: 8
+            VButton {
+                objectName: "pushfps-fine-reset"
+                text: qsTr("重置")
+                visible: !quick.fineNeutral
+                onClicked: quick.resetFine()
+            }
+            VButton {
+                objectName: "pushfps-fine-toggle"
+                ghost: true
+                text: quick.fineOpen ? qsTr("收起") : qsTr("展开")
+                onClicked: veyra.setPreference("pushFineTuneOpen", !quick.fineOpen)
+            }
+        }
+    }
+    Repeater {
+        model: quick.fineShown && quick.fineOpen ? quick.fineSpecs : []
+        delegate: VRow {
+            required property var modelData
+            objectName: "pushfps-fine-row-" + modelData.id
+            label: modelData.label
+            hint: modelData.hint
+            value: quick.fineText(modelData.id)
+            VSlider {
+                objectName: "pushfps-fine-" + modelData.id
+                valueFromModel: true
+                implicitWidth: 150
+                from: 0; to: modelData.to; stepSize: 0.01
+                inputScale: 100
+                value: quick.fineValue(modelData.id)
+                resettable: true; defaultValue: modelData.neutral
+                onMoved: v => { if (quick.fineShown) quick.setFine(modelData.id, v) }
+            }
+        }
+    }
 
     VRow {
         objectName: "pushfps-lowest-latency-row"
@@ -959,6 +1092,67 @@ VGroup {
             objectName: "pushfps-auto-fullscreen"
             checked: veyra.preferences.pushAutoFullscreen === true
             onToggled: v => veyra.setPreference("pushAutoFullscreen", v)
+        }
+    }
+
+    // --- a screen wider than the picture (ultrawide) -----------------------------
+    // A console sends a 16:9 picture whatever screen it is shown on, so a 21:9 or 32:9 screen has room
+    // left over at the sides. What to do with it is Veyra's aspect choice (Professional mode, Display):
+    // Fit (bars), Fill and crop, Stretch. PushFPS adds ambient fill (engine/PushAmbient.h, preference
+    // pushAmbientFill): Fit with a soft, dimmed copy of the picture in the bars. The row is shown on a
+    // screen clearly wider than 16:9, and wherever one of these is already on, so it can be undone;
+    // on the home page too (it is rare enough not to crowd it), but not beside streaming mode's preview.
+    property real screenAspectOverride: 0   // tests
+    readonly property real screenAspect: quick.screenAspectOverride > 0 ? quick.screenAspectOverride
+                                         : (Screen.height > 0 ? Screen.width / Screen.height : 0)
+    readonly property bool wideScreen: quick.screenAspect > 1.9
+    readonly property bool ambientOn: veyra.preferences.pushAmbientFill === true
+    // XeSS frame generation presents through its own path, which has no ambient fill.
+    readonly property bool ambientPossible: veyra.presentationOwned !== true
+    readonly property int aspectNow: Number(veyra.aspectMode || 0)
+    readonly property string fillId: quick.aspectNow === 0 ? (quick.ambientOn && quick.ambientPossible ? "ambient" : "fit")
+                                     : quick.aspectNow === 2 ? "crop" : quick.aspectNow === 3 ? "stretch" : ""
+    readonly property bool fillShown: quick.wideScreen || quick.aspectNow !== 0 || quick.ambientOn
+    readonly property var fillOptions: {
+        const list = [{ id: "fit", label: qsTr("黑边") }]
+        if (quick.ambientPossible) list.push({ id: "ambient", label: qsTr("氛围填充") })
+        list.push({ id: "crop", label: qsTr("裁切") })
+        list.push({ id: "stretch", label: qsTr("拉伸") })
+        return list
+    }
+    function setFill(id) {
+        if (id !== "fit" && id !== "ambient" && id !== "crop" && id !== "stretch") return
+        if (id === "ambient" && !quick.ambientPossible) return
+        const mode = id === "crop" ? 2 : id === "stretch" ? 3 : 0
+        if (quick.aspectNow !== mode) veyra.aspectMode = mode
+        if (quick.ambientOn !== (id === "ambient")) veyra.setPreference("pushAmbientFill", id === "ambient")
+    }
+    // How much of a 16:9 picture is lost (crop: of its height) or how much wider it becomes (stretch).
+    readonly property int fillCropPercent: quick.screenAspect > 16 / 9 ? Math.round((1 - (16 / 9) / quick.screenAspect) * 100) : 0
+    readonly property int fillStretchPercent: quick.screenAspect > 16 / 9 ? Math.round((quick.screenAspect / (16 / 9) - 1) * 100) : 0
+    readonly property string fillHint: {
+        if (quick.fillId === "fit") return qsTr("主机输出的是 16:9 画面：完整显示，两侧留黑边")
+        if (quick.fillId === "ambient") return qsTr("完整显示，不裁切也不变形；黑边换成画面本身柔和、变暗的延伸")
+        if (quick.fillId === "crop") return quick.fillCropPercent > 0
+            ? qsTr("铺满屏幕，但上下共裁掉约 %1% 的画面，顶部和底部的 HUD 可能看不到").arg(quick.fillCropPercent)
+            : qsTr("铺满窗口，超出的部分被裁掉")
+        if (quick.fillId === "stretch") return quick.fillStretchPercent > 0
+            ? qsTr("铺满屏幕，但画面被横向拉宽约 %1%").arg(quick.fillStretchPercent)
+            : qsTr("铺满窗口，画面比例会改变")
+        return qsTr("已在专业模式中手动设置")
+    }
+    VRow {
+        objectName: "pushfps-fill-row"
+        visible: quick.fillShown && !(quick.compact && quick.compactPro)
+        label: qsTr("宽屏填充")
+        help: qsTr("主机只输出 16:9 画面，带鱼屏两侧会空出来。这里选择怎么处理：留黑边、用画面本身的柔和延伸填满（氛围填充）、裁掉上下铺满，或者拉伸铺满。游戏本身不会显示更宽的视野。录像和直播不受影响")
+        hint: quick.fillHint
+        hintBelow: true
+        VSeg {
+            objectName: "pushfps-fill"
+            options: quick.fillOptions
+            current: quick.fillId
+            onPicked: id => quick.setFill(id)
         }
     }
 

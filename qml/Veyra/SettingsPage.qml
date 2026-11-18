@@ -732,7 +732,7 @@ VPage {
                                 implicitWidth: 180
                                 readonly property int w: Number(veyra.preferences.recordWidth || 0)
                                 readonly property int h: Number(veyra.preferences.recordHeight || 0)
-                                function sizeText(sw, sh) { return sw > 0 ? (sh > sw ? sw + " × " + sh + qsTr("（竖屏）") : sw + " × " + sh) : qsTr("画面原尺寸") }
+                                function sizeText(sw, sh) { return sw > 0 ? (sh > sw ? sw + " × " + sh + qsTr("（竖屏）") : sw * 9 > sh * 20 ? sw + " × " + sh + "（21:9）" : sw + " × " + sh) : qsTr("画面原尺寸") }
                                 options: OutputPresets.recordSizes.map(z => ({ id: z[0] + "x" + z[1], label: sizeText(z[0], z[1]) }))
                                 value: sizeText(w, h)
                                 onPicked: id => { const z = id.split("x"); veyra.setPreference("recordWidth", Number(z[0])); veyra.setPreference("recordHeight", Number(z[1])) }
@@ -1759,6 +1759,13 @@ VPage {
                             label: qsTr("诊断信息")
                             hint: qsTr("复制后附在反馈里")
                             VButton { text: qsTr("复制"); onClicked: veyra.copyDiagnostics() }
+                        }
+                        // PushFPS: PushFlow's benchmark on this PC's graphics card (PushCardTestDialog.qml).
+                        VRow {
+                            objectName: "set-cardtest"
+                            label: qsTr("测试我的显卡")
+                            hint: qsTr("测出 PushFlow 在这块显卡上的速度，结果可以复制发给我们。大约一分钟，测试时不能有画面在播放")
+                            VButton { objectName: "set-cardtest-open"; text: qsTr("测试"); onClicked: veyra.navigate("cardtest") }
                         }
                         VRow {
                             label: qsTr("日志")

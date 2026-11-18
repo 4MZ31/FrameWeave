@@ -46,6 +46,19 @@ forces the half model for developers.
 
 ## Why PushFlow could stay at the game's frame rate
 
+**The cause none of the work below found (fixed in 3.2.2).** Until 3.2.2 PushFlow never generated a frame
+inside PushFPS. The engine's graph asks `EnhanceGraph::fgCreated()` whether a frame generation method exists
+before it offers a pair of frames to one, and that function listed every method except PushFlow. With
+PushFlow selected the graph offered nothing (`fgCandidates` = 0), no error was raised, and the picture stayed
+at the source's frame rate. PichotM found it on an RTX 4090 (PS5 Remote Play) and fixed it with one line;
+with the fix he measured 60 → about 120 FPS.
+
+Every PushFlow test at the time drove `PushFlowBackend` directly, so they all passed, and the causes in the
+table below were found by reading code rather than by watching PushFlow fail in the program. They are real
+and worth having, but none of them could matter while the graph never asked for a frame.
+`tests/integration/PushFlowGraphTests.cpp` now runs PushFlow through the graph in every build (a moving
+square at 2X and 3X: every pair offered, every generated frame back and between its neighbours).
+
 PushFlow never refuses to run: the frame budget (`FgRecoveryBudget`) skips every pair whose generated frames
 would arrive too late, so a PushFlow that is too slow, or only looks too slow, shows as "stuck at 30 FPS"
 with no error. 3.2.0 removed every cause found in the code:
@@ -130,7 +143,7 @@ with real game and video footage, and whether the Quality tier should also estim
 **Not measured yet:** speed on real NVIDIA, AMD and Intel cards. PushFlowBench (below) exists so these
 numbers come from real hardware, not estimates.
 
-## Shutting a session down (3.2.1)
+## Shutting a session down (3.2.2)
 
 A crash file from the field (17 November 2026, version 3.1.5, Xbox streaming) ends inside ONNX Runtime while
 PushFlow is shut down for a live settings rebuild. Read against the pinned ONNX Runtime 1.20.1:
@@ -143,7 +156,7 @@ PushFlow is shut down for a live settings rebuild. Read against the pinned ONNX 
   make the provider release its queue after each run, so a session that ends between two full waits can still
   hold some.
 
-What PushFlow does since 3.2.1, for every source:
+What PushFlow does since 3.2.2, for every source:
 
 - before a session is released it asks the provider to finish and release its queue
   (`SynchronizeBoundOutputs`), while the pool is still there;
@@ -158,7 +171,7 @@ queued pairs (or none) and shuts it down at once, N times in four session kinds.
 
 | Teardown | Sessions | Faults caught | Pool held |
 |---|---|---|---|
-| 3.2.1 | 24 | 0 | yes |
+| 3.2.2 | 24 | 0 | yes |
 | As 3.2.0 (`VEYRA_PUSHFLOW_TEST_UNGUARDED=1`) | 24 | 0 | no |
 
 So the check did **not** reproduce the crash: the old teardown ran clean on WARP too. It shows that the new
@@ -186,7 +199,7 @@ with dynamic shapes and `--compare-sync` one that waits after every inference (t
 
 ## Roadmap status
 
-The engineering roadmap (17 November 2026) lists 31 items. Where PushFlow stands after 3.2.1:
+The engineering roadmap (17 November 2026) lists 31 items. Where PushFlow stands after 3.2.2:
 
 | Item | Status |
 |---|---|
