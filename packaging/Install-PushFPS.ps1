@@ -33,6 +33,17 @@ param(
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
+# Windows PowerShell that was started from PowerShell 7 (PushFPS launched from a PowerShell 7 window, or
+# by a tool running under it, then updating itself) inherits PowerShell 7's module path and cannot load
+# its own modules: "Get-FileHash is not recognized", and the update stopped there with its window
+# closing at once (found by the update test in CI, November 2026). Use Windows PowerShell's own paths.
+if ($PSVersionTable.PSVersion.Major -le 5 -and $env:PSModulePath -match '\\PowerShell\\') {
+    $env:PSModulePath = @(
+        (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'WindowsPowerShell\Modules'),
+        (Join-Path $env:ProgramFiles 'WindowsPowerShell\Modules'),
+        (Join-Path $PSHOME 'Modules')) -join ';'
+}
+
 # Filled in by packaging/make-release.ps1 when the release is built.
 $PushFpsVersion = '@PUSHFPS_VERSION@'
 $UpstreamRepo = '@UPSTREAM_REPO@'
@@ -63,6 +74,10 @@ function Fail([string]$text) {
     }
     exit 1
 }
+
+# Anything unexpected ends through Fail too: in an update the window stays open with the reason and the
+# installed copy starts again, where it used to close at once with PushFPS already gone.
+trap { Fail ("Unexpected error: " + $_.Exception.Message) }
 
 Write-Host ''
 Write-Host "  PushFPS $PushFpsVersion" -ForegroundColor Green
@@ -104,7 +119,14 @@ $cacheDir = Join-Path $env:TEMP 'PushFPS-download'
 $zip = Join-Path $cacheDir $asset
 New-Item -ItemType Directory -Force $cacheDir | Out-Null
 
-function Test-Download { (Test-Path $zip) -and ((Get-FileHash $zip -Algorithm SHA256).Hash -ieq $expected) }
+# SHA-256 through .NET: no PowerShell module is needed for it (see the module path note at the top).
+function Get-Sha256([string]$path) {
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    $stream = [System.IO.File]::OpenRead($path)
+    try { return ([System.BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '') }
+    finally { $stream.Dispose(); $sha.Dispose() }
+}
+function Test-Download { (Test-Path $zip) -and ((Get-Sha256 $zip) -ieq $expected) }
 
 if (Test-Download) {
     Step "Using the runtime package downloaded earlier"
