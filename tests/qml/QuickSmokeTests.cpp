@@ -135,7 +135,9 @@ QtObject {
     property string importFileText: ""
     property string lastExportText: ""
     signal pushShareFinished(bool ok, string message)
-    function pushLiveStats() { return liveStats }
+)qml"
+    // MSVC limits one string literal to about 16 KB (C2026); adjacent literals are joined.
+    R"qml(    function pushLiveStats() { return liveStats }
     property int halfTests: 0
     function pushTestPushFlowHalf() { halfTests++; return true }
     function pushFlowHalfTesting() { return false }
