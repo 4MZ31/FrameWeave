@@ -9,6 +9,21 @@ Item {
     id: root
     width: 640; height: 640
     PushQuickSetup { id: quick; x: 10; y: 10; width: 560 }
+    Component {
+        id: gsyncMock
+        QtObject {
+            property bool busy: false
+            property bool canRepair: false
+            property bool canRestore: false
+            property string summary: ""
+            property string detail: ""
+            property int checks: 0
+            property int repairs: 0
+            signal changed()
+            function check() { checks++; busy = true }
+            function repair() { repairs++ }
+        }
+    }
     TestCase {
         name: "PushQuickSetup"
         when: windowShown
@@ -318,6 +333,28 @@ Item {
             compare(veyra.outputRateMode, 0, "off: no output cap")
             compare(veyra.preferences.pushSmoothPacing, false)
         }
+        // G-SYNC set-up row: shown while the driver has not confirmed variable refresh; the button checks
+        // the driver profile and repairs it when that is possible.
+        function test_gsync_row_checks_then_repairs() {
+            const tools = gsyncMock.createObject(root)
+            veyra.nvidiaVrrProfile = tools
+            veyra.hasSource = true
+            veyra.displaySync = 1; veyra.variableRefresh = true; veyra.outputRateMode = 1
+            veyra.vrrState = 3
+            const row = findChild(root, "pushfps-gsync-row"), button = findChild(root, "pushfps-gsync-fix")
+            verify(row && button, "the row exists")
+            tryVerify(() => row.visible, 2000, "shown while variable refresh is requested but not confirmed")
+            button.clicked()
+            compare(tools.checks, 1, "the button starts with a check")
+            tools.canRepair = true; tools.busy = false; tools.changed()
+            compare(tools.repairs, 1, "a profile that can be set is repaired")
+            tools.canRepair = false; tools.changed()
+            tryVerify(() => !row.visible, 2000, "nothing left to set: the row goes")
+            veyra.vrrState = 0; veyra.displaySync = 2; veyra.variableRefresh = false
+            veyra.nvidiaVrrProfile = null
+            tools.destroy()
+        }
+
         function test_lowest_latency_one_tap_keeps_quality_and_restores() {
             // A G-SYNC/FreeSync screen on an NVIDIA card, display sync Automatic before.
             veyra.nvidiaLowLatencyAvailable = true; veyra.nvidiaLowLatency = 0; veyra.vrrState = 4

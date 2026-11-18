@@ -8365,6 +8365,23 @@
    "ru": "Устанавливает переключатели и значения за один раз; диапазон кожи и обнаружение лица остаются такими, какие они есть."
   },
   {
+   "zh": "一键设置",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "一鍵設定",
+   "en": "Set up",
+   "ja": "設定する",
+   "nl": "Set up",
+   "de": "Set up",
+   "es": "Set up",
+   "fr": "Set up",
+   "it": "Set up",
+   "pt-BR": "Set up",
+   "tr": "Set up",
+   "ar": "Set up",
+   "pl": "Set up",
+   "ru": "Set up"
+  },
+  {
    "zh": "一键还原",
    "src": "qml/ColourPanel.qml",
    "zh-TW": "一鍵還原",
@@ -23683,6 +23700,23 @@
    "ru": "Захват экрана…"
   },
   {
+   "zh": "屏幕支持可变刷新时，画面一准备好屏幕就刷新：不撕裂，每一帧显示的时间都一样长。NVIDIA 驱动要为每个程序单独允许窗口和全屏 G-SYNC",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "螢幕支援可變更新時，畫面一準備好螢幕就更新：不撕裂，每一幀顯示的時間都一樣長。NVIDIA 驅動程式要為每個程式單獨允許視窗和全螢幕 G-SYNC",
+   "en": "With variable refresh, the screen refreshes the moment a frame is ready: no tearing, and every frame stays on screen equally long. The NVIDIA driver has to allow G-SYNC for each program, in a window and in full screen",
+   "ja": "可変リフレッシュでは、フレームの準備ができた瞬間に画面が更新されます。ティアリングがなく、どのフレームも同じ時間だけ表示されます。NVIDIA ドライバーでは、プログラムごとにウィンドウとフルスクリーンの G-SYNC を許可する必要があります",
+   "nl": "With variable refresh, the screen refreshes the moment a frame is ready: no tearing, and every frame stays on screen equally long. The NVIDIA driver has to allow G-SYNC for each program, in a window and in full screen",
+   "de": "With variable refresh, the screen refreshes the moment a frame is ready: no tearing, and every frame stays on screen equally long. The NVIDIA driver has to allow G-SYNC for each program, in a window and in full screen",
+   "es": "With variable refresh, the screen refreshes the moment a frame is ready: no tearing, and every frame stays on screen equally long. The NVIDIA driver has to allow G-SYNC for each program, in a window and in full screen",
+   "fr": "With variable refresh, the screen refreshes the moment a frame is ready: no tearing, and every frame stays on screen equally long. The NVIDIA driver has to allow G-SYNC for each program, in a window and in full screen",
+   "it": "With variable refresh, the screen refreshes the moment a frame is ready: no tearing, and every frame stays on screen equally long. The NVIDIA driver has to allow G-SYNC for each program, in a window and in full screen",
+   "pt-BR": "With variable refresh, the screen refreshes the moment a frame is ready: no tearing, and every frame stays on screen equally long. The NVIDIA driver has to allow G-SYNC for each program, in a window and in full screen",
+   "tr": "With variable refresh, the screen refreshes the moment a frame is ready: no tearing, and every frame stays on screen equally long. The NVIDIA driver has to allow G-SYNC for each program, in a window and in full screen",
+   "ar": "With variable refresh, the screen refreshes the moment a frame is ready: no tearing, and every frame stays on screen equally long. The NVIDIA driver has to allow G-SYNC for each program, in a window and in full screen",
+   "pl": "With variable refresh, the screen refreshes the moment a frame is ready: no tearing, and every frame stays on screen equally long. The NVIDIA driver has to allow G-SYNC for each program, in a window and in full screen",
+   "ru": "With variable refresh, the screen refreshes the moment a frame is ready: no tearing, and every frame stays on screen equally long. The NVIDIA driver has to allow G-SYNC for each program, in a window and in full screen"
+  },
+  {
    "zh": "屏幕支持可变刷新，但当前显示模式不可用；请检查连接、刷新率及驱动设置",
    "src": "src/ui/bridge/FrameGeneration.cpp",
    "zh-TW": "螢幕支援可變更新率，但目前顯示模式不可用；請檢查連接、更新率及驅動設定",
@@ -23698,6 +23732,23 @@
    "ar": "ويدعم العرض VRR، لكنه غير متاح في طريقة العرض الحالية. تحقق من الرابط، ومعدل التجديد، وضغوط برنامج التعريف.",
    "pl": "Wyświetlacz obsługuje VRR, ale jest niedostępny w bieżącym trybie wyświetlania. Sprawdź ustawienia połączenia, odświeżania i sterownika.",
    "ru": "Дисплей поддерживает VRR, но он недоступен в текущем режиме отображения. Проверьте соединение, частоту обновления и настройки драйвера."
+  },
+  {
+   "zh": "屏幕支持可变刷新，但驱动还没有确认对 PushFPS 生效，画面可能不如录像流畅。点「一键设置」为 PushFPS 允许窗口和全屏 G-SYNC，然后重启 PushFPS",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "螢幕支援可變更新，但驅動程式還沒有確認對 PushFPS 生效，畫面可能不如錄影流暢。點「一鍵設定」為 PushFPS 允許視窗和全螢幕 G-SYNC，然後重新啟動 PushFPS",
+   "en": "Your screen can do variable refresh, but the driver hasn't confirmed it for PushFPS, so live play can be less smooth than a recording. Click Set up to allow G-SYNC for PushFPS in a window and in full screen, then restart PushFPS",
+   "ja": "画面は可変リフレッシュに対応していますが、ドライバーが PushFPS で有効になったことを確認していないため、ライブ映像が録画ほど滑らかでない場合があります。「設定する」をクリックして PushFPS のウィンドウとフルスクリーンの G-SYNC を許可し、PushFPS を再起動してください",
+   "nl": "Your screen can do variable refresh, but the driver hasn't confirmed it for PushFPS, so live play can be less smooth than a recording. Click Set up to allow G-SYNC for PushFPS in a window and in full screen, then restart PushFPS",
+   "de": "Your screen can do variable refresh, but the driver hasn't confirmed it for PushFPS, so live play can be less smooth than a recording. Click Set up to allow G-SYNC for PushFPS in a window and in full screen, then restart PushFPS",
+   "es": "Your screen can do variable refresh, but the driver hasn't confirmed it for PushFPS, so live play can be less smooth than a recording. Click Set up to allow G-SYNC for PushFPS in a window and in full screen, then restart PushFPS",
+   "fr": "Your screen can do variable refresh, but the driver hasn't confirmed it for PushFPS, so live play can be less smooth than a recording. Click Set up to allow G-SYNC for PushFPS in a window and in full screen, then restart PushFPS",
+   "it": "Your screen can do variable refresh, but the driver hasn't confirmed it for PushFPS, so live play can be less smooth than a recording. Click Set up to allow G-SYNC for PushFPS in a window and in full screen, then restart PushFPS",
+   "pt-BR": "Your screen can do variable refresh, but the driver hasn't confirmed it for PushFPS, so live play can be less smooth than a recording. Click Set up to allow G-SYNC for PushFPS in a window and in full screen, then restart PushFPS",
+   "tr": "Your screen can do variable refresh, but the driver hasn't confirmed it for PushFPS, so live play can be less smooth than a recording. Click Set up to allow G-SYNC for PushFPS in a window and in full screen, then restart PushFPS",
+   "ar": "Your screen can do variable refresh, but the driver hasn't confirmed it for PushFPS, so live play can be less smooth than a recording. Click Set up to allow G-SYNC for PushFPS in a window and in full screen, then restart PushFPS",
+   "pl": "Your screen can do variable refresh, but the driver hasn't confirmed it for PushFPS, so live play can be less smooth than a recording. Click Set up to allow G-SYNC for PushFPS in a window and in full screen, then restart PushFPS",
+   "ru": "Your screen can do variable refresh, but the driver hasn't confirmed it for PushFPS, so live play can be less smooth than a recording. Click Set up to allow G-SYNC for PushFPS in a window and in full screen, then restart PushFPS"
   },
   {
    "zh": "屏幕正处于可变刷新（驱动已开启）",
@@ -39271,6 +39322,23 @@
    "ar": "تحقق من المضيف",
    "pl": "Sprawdzam gospodarza...",
    "ru": "Проверить хозяина..."
+  },
+  {
+   "zh": "正在检查驱动配置…",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "正在檢查驅動程式設定…",
+   "en": "Checking the driver profile…",
+   "ja": "ドライバーの設定を確認しています…",
+   "nl": "Checking the driver profile…",
+   "de": "Checking the driver profile…",
+   "es": "Checking the driver profile…",
+   "fr": "Checking the driver profile…",
+   "it": "Checking the driver profile…",
+   "pt-BR": "Checking the driver profile…",
+   "tr": "Checking the driver profile…",
+   "ar": "Checking the driver profile…",
+   "pl": "Checking the driver profile…",
+   "ru": "Checking the driver profile…"
   },
   {
    "zh": "正在测试…",

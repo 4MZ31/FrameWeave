@@ -833,6 +833,45 @@ VGroup {
         }
     }
 
+    // G-SYNC set-up. The screen can do variable refresh and PushFPS asks for it, but the NVIDIA driver
+    // has not confirmed it for this program: usually the driver only allows G-SYNC in full screen, or
+    // not for PushFPS at all, and frames then stay on screen for uneven times (a 60 FPS output on a
+    // 144 Hz screen: 2-3-2-3 refreshes). The button runs the driver-profile check and, when the profile
+    // can be set for PushFPS alone, the repair (NvidiaVrrProfileController; a restart is needed after).
+    // Field report 2026-11-18: an RTX 5090 user could not get G-SYNC until he found "Repair" under
+    // Professional -> Display.
+    readonly property var gsyncTools: ("nvidiaVrrProfile" in veyra) ? veyra.nvidiaVrrProfile : null
+    property bool gsyncWanted: false     // the button was pressed; the check is running
+    property bool gsyncChecked: false    // a check has finished since the button was pressed
+    readonly property bool gsyncUnconfirmed: quick.gsyncTools !== null && veyra.hasSource === true && quick.smoothPacing
+                                             && Number(veyra.vrrState || 0) === 3
+    Connections {
+        target: quick.gsyncTools
+        ignoreUnknownSignals: true
+        function onChanged() {
+            if (!quick.gsyncWanted || quick.gsyncTools.busy) return
+            quick.gsyncWanted = false
+            quick.gsyncChecked = true
+            if (quick.gsyncTools.canRepair) quick.gsyncTools.repair()
+        }
+    }
+    VRow {
+        objectName: "pushfps-gsync-row"
+        // Once checked with nothing left to set, the row goes: the driver's report is then all there is.
+        visible: !quick.compact && quick.gsyncUnconfirmed && (!quick.gsyncChecked || quick.gsyncWanted || quick.gsyncTools.busy || quick.gsyncTools.canRepair)
+        label: "G-SYNC"
+        help: qsTr("屏幕支持可变刷新时，画面一准备好屏幕就刷新：不撕裂，每一帧显示的时间都一样长。NVIDIA 驱动要为每个程序单独允许窗口和全屏 G-SYNC")
+        hint: quick.gsyncWanted || (quick.gsyncTools && quick.gsyncTools.busy) ? qsTr("正在检查驱动配置…")
+            : qsTr("屏幕支持可变刷新，但驱动还没有确认对 PushFPS 生效，画面可能不如录像流畅。点「一键设置」为 PushFPS 允许窗口和全屏 G-SYNC，然后重启 PushFPS")
+        hintBelow: true
+        VButton {
+            objectName: "pushfps-gsync-fix"
+            text: qsTr("一键设置")
+            enabled: quick.gsyncTools !== null && !quick.gsyncTools.busy && !quick.gsyncWanted
+            onClicked: { quick.gsyncWanted = true; quick.gsyncTools.check() }
+        }
+    }
+
     VRow {
         objectName: "pushfps-low-latency-row"
         visible: !quick.compact

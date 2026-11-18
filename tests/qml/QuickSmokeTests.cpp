@@ -81,6 +81,7 @@ QtObject {
     property bool hudLock: false
     property int contentRate: 0
     property string version: ""
+    property var nvidiaVrrProfile: null
     property int outputRateMode: 0
     property int displaySync: 2
     property bool variableRefresh: false

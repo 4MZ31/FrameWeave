@@ -422,8 +422,9 @@ even grid before frames are generated. It fits a line through the arrival times 
 game becomes 33/33. It only acts on what it can explain as uneven delivery of a locked frame rate. A stall
 restarts it, and a game whose frame rate genuinely varies keeps its own timing. A frame is shown at most one
 capture refresh later; for the common 17/50 ms pattern about half a refresh. The quick setup shows how much of the
-picture it is re-timing. It needs automatic duplicate removal, which it turns on. Since 3.2.0 it is on by
-default; the switch stays in the quick setup.
+picture it is re-timing. It needs automatic duplicate removal, which it turns on. It is a
+choice, off by default: for a locked 30 or 40 FPS game, duplicate removal alone already spaces the frames evenly,
+and a game whose frame time really varies should keep its own timing.
 
 ## Live HUD Lock
 

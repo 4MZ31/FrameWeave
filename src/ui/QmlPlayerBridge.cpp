@@ -305,16 +305,6 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
         if (p.contains(QStringLiteral("pacingRepair"))) {
             const bool on = p.value(QStringLiteral("pacingRepair")).toBool();
             if (s.pacingRepair != on) { s.pacingRepair = on; changed = true; }
-        } else if (!p.contains(QStringLiteral("pushPacingRepair1"))) {
-            // 3.2.0, once: Frame Pacing Repair on for everyone who never touched the switch. Console
-            // games locked to 30 FPS often show their frames 17/50 ms apart; live play then judders
-            // where a recording played back from its file looks even. It only acts on a locked rate
-            // with repeated pictures (PushPacingRepair.h) and the switch stays in the quick setup.
-            if (!s.pacingRepair) { s.pacingRepair = true; changed = true; }
-            impl_->prefs[QStringLiteral("pacingRepair")] = true;
-            impl_->prefs[QStringLiteral("pushPacingRepair1")] = true;
-            if (!impl_->savePrefs()) veyra::log::warn("ui-prefs", "frame pacing repair 3.2.0 default not saved");
-            veyra::log::info("ui-presentation", "frame pacing repair 3.2.0 default applied");
         }
         if (p.contains(QStringLiteral("hudLock"))) {
             const bool on = p.value(QStringLiteral("hudLock")).toBool();
