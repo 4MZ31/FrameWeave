@@ -156,8 +156,8 @@ jobs:
             # 3.2.2. A playing picture (the Frame Input test pattern, 16:9) in a cinema window held at 2.39:1
             # (--aspect; without it the window follows the picture's shape and there are no bars to fill):
             # ambient fill in the bars, and the same with plain bars. Then the fill row on the home page.
-            @{ name = '72-ambient-fill'; sender = $true; size = '1500x640'; args = @('frameinput:default', '--page', 'min', '--aspect', '2.39', '--pref', 'pushAmbientFill=true', '--pref', 'pushSunset=false') },
-            @{ name = '73-black-bars'; sender = $true; size = '1500x640'; args = @('frameinput:default', '--page', 'min', '--aspect', '2.39', '--pref', 'pushAmbientFill=false', '--pref', 'pushSunset=false') },
+            @{ name = '72-ambient-fill'; sender = $true; size = '1280x536'; args = @('frameinput:default', '--page', 'min', '--aspect', '2.39', '--pref', 'pushAmbientFill=true', '--pref', 'pushSunset=false') },
+            @{ name = '73-black-bars'; sender = $true; size = '1280x536'; args = @('frameinput:default', '--page', 'min', '--aspect', '2.39', '--pref', 'pushAmbientFill=false', '--pref', 'pushSunset=false') },
             @{ name = '74-wide-screen-fill'; args = @('--page', 'home', '--scroll-to', 'pushfps-fill-row', '--lang', 'en', '--pref', 'pushAmbientFill=true', '--pref', 'pushSunset=false') },
             # The crash notice: the note the crash handler would have left, written before the start.
             @{ name = '75-crash-notice'; crash = $true; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushSunset=false') },
