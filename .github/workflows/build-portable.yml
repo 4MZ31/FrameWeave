@@ -175,10 +175,10 @@ jobs:
           ./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt --output appimage \
             --desktop-file AppDir/usr/share/applications/pushfps.desktop \
             --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/pushfps.png
-          # What the file itself says about updates (read by the runtime, no FUSE needed).
-          info=$(./PushFPS-$version-x86_64.AppImage --appimage-updateinformation 2>/dev/null || true)
-          echo "update information: $info"
-          case "$info" in gh-releases-zsync*) ;; *) echo "::warning::the AppImage carries no update information" ;; esac
+          # The update information is a string in the file's own .upd_info section. (The runtime's
+          # --appimage-updateinformation prints nothing while APPIMAGE_EXTRACT_AND_RUN is set, as it is here.)
+          if grep -a -q "gh-releases-zsync|${GITHUB_REPOSITORY%/*}|" PushFPS-$version-x86_64.AppImage; then echo "update information is embedded"
+          else echo "::warning::the AppImage carries no update information"; fi
           ls -la PushFPS-$version-x86_64.AppImage.zsync 2>/dev/null || echo "::warning::no .zsync file was written"
           # The same folder as a portable download: unpack, run ./PushFPS (AppRun).
           cp -r AppDir PushFPS-$version-linux-x86_64
