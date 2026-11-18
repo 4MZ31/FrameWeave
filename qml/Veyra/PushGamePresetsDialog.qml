@@ -73,7 +73,7 @@ DialogLayer {
         if (!p) return ""
         if (!p.mine && (p.console === "switch" || p.console === "switch2")) return games.switchNote(p)
         switch (p.mine ? "" : p.id) {
-        case "gta6": return qsTr("小地图在左下，金钱和通缉等级在右上。位置按 GTA 系列推测，开始玩后请检查一下")
+        case "gta6": return qsTr("小地图在左下，生命和专注条在左上，武器、通缉等级和金钱在右上（来自 Rockstar 发售前公开的画面）。边缘位置是估计的，开始玩后请用「调整 HUD 区域」检查一下。基础版 PS5 的帧率会波动，已开启自适应倍率")
         case "open-world-bl": return qsTr("左下角的圆形或方形小地图")
         case "open-world-tr": return qsTr("右上角的小地图或指南针")
         case "action-corners": return qsTr("左下角血量，右下角武器和弹药")
@@ -87,7 +87,7 @@ DialogLayer {
     function writeMine(list) { return veyra.setPreference("pushGamePresets", JSON.stringify(list.slice(0, 100))) }
 
     // --- apply ---------------------------------------------------------------
-    function targetFps(id, refresh) { return id === "120" ? 120 : id === "60" ? 60 : id === "monitor" ? refresh : 0 }
+    function targetFps(id, refresh) { return id === "120" ? 120 : id === "90" ? 90 : id === "60" ? 60 : id === "monitor" ? refresh : 0 }
     function multiplierFor(fps, gameFps) {
         const offered = (veyra.fgMultiplierChoices || []).map(o => parseInt(o.id)).filter(m => m >= 2).sort((a, b) => a - b)
         let pick = 0
@@ -112,8 +112,8 @@ DialogLayer {
             else {
                 let fps = games.targetFps(target, refresh)
                 let m = adaptive ? Presets.adaptiveCeiling(games.offered(), fps) : games.multiplierFor(fps, p.fps)
-                // "auto" falls back to 60 when this frame generation cannot reach 120.
-                if (p.target === "auto" && target === "120" && p.fps * m + 0.5 < 120) {
+                // "auto" falls back to 60 when this frame generation cannot reach 120 (or 90 on a 90 Hz screen).
+                if (p.target === "auto" && (target === "120" || target === "90") && p.fps * m + 0.5 < fps) {
                     target = "60"; fps = 60
                     m = adaptive ? Presets.adaptiveCeiling(games.offered(), 60) : games.multiplierFor(60, p.fps)
                 }
@@ -139,7 +139,8 @@ DialogLayer {
         const ex = veyra.exclusionState || {}
         const regions = ex.enabled ? (ex.regions || []).map(r => ({ left: r.left, top: r.top, right: r.right, bottom: r.bottom, ellipse: r.ellipse === true })) : []
         const target = !veyra.fgEnabled ? "off" : veyra.outputRateMode === 1 ? "monitor"
-                     : Math.abs(veyra.outputCustomFps - 120) < 0.5 ? "120" : Math.abs(veyra.outputCustomFps - 60) < 0.5 ? "60" : "auto"
+                     : Math.abs(veyra.outputCustomFps - 120) < 0.5 ? "120" : Math.abs(veyra.outputCustomFps - 90) < 0.5 ? "90"
+                     : Math.abs(veyra.outputCustomFps - 60) < 0.5 ? "60" : "auto"
         return Presets.sanitize({ name: name, fps: Number(veyra.preferences.pushGameFps || 30), target: target,
                                   feather: ex.feather !== undefined ? ex.feather : 6, regions: regions,
                                   adaptive: veyra.fgEnabled && veyra.fgAdaptive === true,

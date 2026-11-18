@@ -47,6 +47,9 @@ Item {
             veyra.nrLayers = [{index: 1}]
             veyra.compareMode = 0
             veyra.hasSource = true
+            veyra.displayRefreshHz = 240
+            veyra.aspectMode = 0
+            quick.screenAspectOverride = 0
         }
         function cleanup() { init() }
         function control(name) { const c = findChild(quick, name); verify(c !== null, name); return c }
@@ -99,6 +102,262 @@ Item {
             verify(ids.indexOf("60") < 0, "60 FPS is not offered for a 60 FPS game")
             quick.applyTarget("60")
             verify(!veyra.fgEnabled)
+        }
+        function test_90_fps_target_on_a_90_hz_screen() {
+            const seg = control("pushfps-target")
+            compare(seg.options.map(o => o.id).join(","), "off,60,120,monitor", "240 Hz: as before")
+            veyra.displayRefreshHz = 90
+            compare(seg.options.map(o => o.id).join(","), "off,60,90,monitor", "a 90 Hz screen cannot show 120")
+            seg.picked("90")
+            verify(veyra.fgEnabled)
+            compare(veyra.fgMultiplier, 3, "30 FPS x 3")
+            compare(veyra.outputRateMode, 2)
+            compare(veyra.outputCustomFps, 90)
+            compare(quick.currentTarget, "90")
+            compare(seg.current, "90")
+            verify(quick.targetHint.indexOf("90") >= 0, quick.targetHint)
+            compare(veyra.contentRate, 1, "duplicates removed before generating")
+            // 40 FPS game: 2X = 80, the largest that does not overshoot; the hint says 80, not "this method's limit".
+            quick.setGameFps("40")
+            compare(veyra.fgMultiplier, 2)
+            compare(veyra.outputCustomFps, 90)
+            compare(quick.currentTarget, "90")
+            verify(quick.targetHint.indexOf("80") >= 0 && quick.targetHint.indexOf("90") < 0, quick.targetHint)
+            // 60 FPS game: 90 would be one and a half frames per frame, so nothing is generated.
+            quick.setGameFps("60")
+            verify(!veyra.fgEnabled, "no uneven 1.5x")
+            compare(seg.options.map(o => o.id).join(","), "off,monitor")
+            quick.applyTarget("90")
+            verify(!veyra.fgEnabled)
+            // Back to a 30 FPS game on another screen: a 90 FPS target that is set stays offered beside 120.
+            quick.setGameFps("30")
+            quick.applyTarget("90")
+            veyra.displayRefreshHz = 144
+            compare(seg.options.map(o => o.id).join(","), "off,60,90,120,monitor")
+            quick.applyTarget("120")
+            compare(seg.options.map(o => o.id).join(","), "off,60,120,monitor")
+            // A 120 FPS target carried to a 90 Hz screen stays visible until changed.
+            veyra.displayRefreshHz = 90
+            compare(seg.options.map(o => o.id).join(","), "off,60,90,120,monitor")
+            // 89.9 and 90.1 Hz are 90 Hz screens; 100 Hz is not.
+            quick.applyTarget("off")
+            veyra.displayRefreshHz = 89.91; verify(quick.screen90)
+            veyra.displayRefreshHz = 100; verify(!quick.screen90)
+        }
+        function test_90_fps_target_in_profiles_and_adaptive() {
+            veyra.displayRefreshHz = 90
+            quick.applyTarget("90")
+            verify(quick.saveGame("Ninety"))
+            compare(quick.games[0].target, "90")
+            quick.applyTarget("off")
+            quick.applyGame("Ninety")
+            compare(quick.currentTarget, "90")
+            compare(veyra.fgMultiplier, 3)
+            quick.setAdaptive(true)
+            compare(veyra.fgMultiplier, 4, "adaptive ceiling: a 20 FPS dip needs 4X to stay near 90")
+            compare(veyra.outputCustomFps, 90)
+            quick.setAdaptive(false)
+            compare(veyra.fgMultiplier, 3)
+            quick.deleteGame("Ninety")
+        }
+        // --- fine-tuning the enhancement's change ----------------------------------
+        readonly property var fineIds: ["total", "brighten", "darken", "maxBrighten", "maxDarken", "shadows", "midtones", "highlights", "color", "hue"]
+        function test_fine_tune_is_folded_until_asked_for() {
+            verify(!control("pushfps-fine-row").visible, "nothing to tune while the enhancement is off")
+            veyra.nrAnyEnabled = true
+            verify(control("pushfps-fine-row").visible)
+            verify(findChild(quick, "pushfps-fine-total") === null, "folded")
+            verify(quick.fineNeutral)
+            verify(!control("pushfps-fine-reset").visible)
+            control("pushfps-fine-toggle").clicked()
+            compare(veyra.preferences.pushFineTuneOpen, true)
+            for (const id of fineIds) {
+                const slider = control("pushfps-fine-" + id)
+                const limit = id === "maxBrighten" || id === "maxDarken"
+                compare(slider.to, limit ? 1 : 2, id)
+                compare(slider.value, limit ? 0 : 1, id + " starts where it changes nothing")
+                compare(slider.defaultValue, limit ? 0 : 1, id)
+                verify(control("pushfps-fine-row-" + id).visible)
+            }
+            compare(control("pushfps-fine-row-total").value, "100%")
+            verify(control("pushfps-fine-row-maxBrighten").value.indexOf("%") < 0, "no limit is said in words")
+            control("pushfps-fine-toggle").clicked()
+            compare(veyra.preferences.pushFineTuneOpen, false)
+            verify(findChild(quick, "pushfps-fine-total") === null, "folded again")
+            // Unfolded and the enhancement goes off: the sliders go with it.
+            veyra.setPreference("pushFineTuneOpen", true)
+            verify(findChild(quick, "pushfps-fine-total") !== null)
+            veyra.nrAnyEnabled = false
+            verify(findChild(quick, "pushfps-fine-total") === null)
+        }
+        function test_fine_tune_strength_and_direction_reach_every_layer() {
+            veyra.nrLayers = [{index: 1}, {index: 4, total: 0.5, brighten: 1.4}]
+            veyra.nrAnyEnabled = true
+            veyra.setPreference("pushFineTuneOpen", true)
+            control("pushfps-fine-total").moved(2)
+            compare(veyra.nrLayers[0].total, 2); compare(veyra.nrLayers[1].total, 2)
+            control("pushfps-fine-brighten").moved(0.78)
+            compare(veyra.nrLayers[0].brighten, 0.78); compare(veyra.nrLayers[1].brighten, 0.78)
+            control("pushfps-fine-darken").moved(0.789)
+            compare(veyra.nrLayers[0].darken, 0.79, "two decimals")
+            control("pushfps-fine-color").moved(0.59)
+            compare(veyra.nrLayers[1].color, 0.59)
+            compare(quick.fineValue("color"), 0.59)
+            compare(control("pushfps-fine-row-total").value, "200%")
+            verify(!quick.fineNeutral)
+            verify(control("pushfps-fine-reset").visible)
+            compare(veyra.preferences.pushShapeShadows, undefined, "the layer values are not preferences")
+            // Professional mode allows a strength of 5: shown at the slider's end, not changed.
+            veyra.nrLayers = [{index: 1, total: 5}]
+            compare(quick.fineValue("total"), 2)
+            compare(veyra.nrLayers[0].total, 5)
+            // Out of range, not a number, not a control.
+            verify(quick.setFine("total", 9)); compare(veyra.nrLayers[0].total, 2)
+            verify(quick.setFine("total", -1)); compare(veyra.nrLayers[0].total, 0)
+            verify(!quick.setFine("total", NaN)); compare(veyra.nrLayers[0].total, 0)
+            verify(!quick.setFine("nothing", 1))
+            veyra.nrLayers = []
+            verify(!quick.fineShown)
+            verify(!quick.setFine("total", 1), "no layer to set")
+        }
+        function test_fine_tune_ranges_hue_and_limits_are_live_preferences() {
+            veyra.nrAnyEnabled = true
+            veyra.setPreference("pushFineTuneOpen", true)
+            control("pushfps-fine-shadows").moved(1.11)
+            control("pushfps-fine-midtones").moved(1.5)
+            control("pushfps-fine-highlights").moved(0.28)
+            control("pushfps-fine-hue").moved(0.43)
+            control("pushfps-fine-maxBrighten").moved(0.1)
+            control("pushfps-fine-maxDarken").moved(0.05)
+            compare(veyra.preferences.pushShapeShadows, 111)
+            compare(veyra.preferences.pushShapeMidtones, 150)
+            compare(veyra.preferences.pushShapeHighlights, 28)
+            compare(veyra.preferences.pushShapeHue, 43)
+            compare(veyra.preferences.pushShapeMaxBrighten, 10)
+            compare(veyra.preferences.pushShapeMaxDarken, 5)
+            compare(control("pushfps-fine-row-shadows").value, "111%")
+            compare(control("pushfps-fine-row-maxBrighten").value, "10%")
+            fuzzyCompare(control("pushfps-fine-hue").value, 0.43, 0.0001)
+            compare(veyra.nrLayers[0].total, undefined, "the preferences do not touch the layers")
+            verify(!quick.fineNeutral)
+            // Reset: everything back to where it changes nothing, layer values included.
+            control("pushfps-fine-total").moved(1.6)
+            control("pushfps-fine-reset").clicked()
+            verify(quick.fineNeutral)
+            compare(veyra.preferences.pushShapeShadows, 100); compare(veyra.preferences.pushShapeHue, 100)
+            compare(veyra.preferences.pushShapeMaxBrighten, 0); compare(veyra.preferences.pushShapeMaxDarken, 0)
+            compare(veyra.nrLayers[0].total, 1)
+            verify(!control("pushfps-fine-reset").visible)
+            // A limit cannot pass 100 %, a range not 200 %.
+            verify(quick.setFine("maxBrighten", 3)); compare(veyra.preferences.pushShapeMaxBrighten, 100)
+            verify(quick.setFine("shadows", 3)); compare(veyra.preferences.pushShapeShadows, 200)
+        }
+        function test_fine_tune_is_kept_per_game_and_console_profile() {
+            veyra.nrAnyEnabled = true
+            quick.setFine("total", 1.5); quick.setFine("shadows", 0.4); quick.setFine("maxDarken", 0.2); quick.setFine("hue", 0)
+            verify(quick.saveGame("Tuned"))
+            compare(quick.games[0].look.fine.total, 1.5)
+            compare(quick.games[0].look.fine.shadows, 0.4)
+            compare(quick.games[0].look.fine.hue, 0)
+            quick.resetFine()
+            verify(quick.fineNeutral)
+            quick.applyGame("Tuned")
+            compare(veyra.nrLayers[0].total, 1.5)
+            compare(veyra.preferences.pushShapeShadows, 40)
+            compare(veyra.preferences.pushShapeMaxDarken, 20)
+            compare(veyra.preferences.pushShapeHue, 0)
+            compare(quick.fineValue("midtones"), 1, "what was left alone stays alone")
+            // Each console keeps its own.
+            quick.switchConsole("xbox")
+            quick.resetFine()
+            quick.switchConsole("ps5")
+            compare(quick.fineValue("total"), 1.5, "PS5 tuning restored")
+            quick.switchConsole("xbox")
+            verify(quick.fineNeutral, "Xbox tuning restored")
+            // A profile from before 3.2.2 (a look without fine-tuning, or no look) leaves it alone; junk is ignored.
+            quick.setFine("total", 0.7)
+            quick.applySnapshot({fps: 30, target: "off", enhance: true, look: {tone: 1, structure: 1}})
+            quick.applySnapshot({fps: 30, target: "off", enhance: true})
+            quick.applySnapshot({fps: 30, target: "off", enhance: true, look: {tone: 1, structure: 1, fine: {total: "x", shadows: null, other: 3}}})
+            quick.applySnapshot({fps: 30, target: "off", enhance: true, look: {tone: 1, structure: 1, fine: 7}})
+            compare(veyra.nrLayers[0].total, 0.7)
+            // A value already in place is not written again (layers given different values in Professional mode stay different).
+            veyra.nrLayers = [{index: 1, total: 0.7}, {index: 4, total: 1.9}]
+            quick.applySnapshot({fps: 30, target: "off", enhance: true, look: {tone: 1, structure: 1, fine: {total: 0.7}}})
+            compare(veyra.nrLayers[1].total, 1.9)
+            quick.deleteGame("Tuned")
+        }
+        function test_fine_tune_shows_for_every_enhancement_runtime() {
+            veyra.nrLayers = [{index: 1, runtime: 4}]
+            veyra.nrAnyEnabled = true
+            verify(!quick.lookShown, "the AMD runtime has no look values")
+            verify(control("pushfps-fine-row").visible, "but its change is composed the same way")
+            verify(quick.setFine("total", 0.5))
+            compare(veyra.nrLayers[0].total, 0.5)
+        }
+        function test_fill_row_for_a_screen_wider_than_the_picture() {
+            const row = control("pushfps-fill-row"), seg = control("pushfps-fill")
+            verify(!row.visible, "not on the test screen")
+            quick.screenAspectOverride = 16 / 9
+            verify(!row.visible, "a 16:9 screen has nothing to fill")
+            quick.screenAspectOverride = 3440 / 1440
+            verify(row.visible, "a 21:9 screen")
+            compare(seg.options.map(o => o.id).join(","), "fit,ambient,crop,stretch")
+            compare(seg.current, "fit")
+            seg.picked("ambient")
+            compare(veyra.aspectMode, 0, "ambient fill is Fit with the bars filled")
+            compare(veyra.preferences.pushAmbientFill, true)
+            compare(seg.current, "ambient")
+            seg.picked("crop")
+            compare(veyra.aspectMode, 2)
+            compare(veyra.preferences.pushAmbientFill, false, "one choice at a time")
+            compare(seg.current, "crop")
+            compare(quick.fillCropPercent, 26, "a 16:9 picture on 3440 x 1440 loses a quarter of its height")
+            verify(quick.fillHint.indexOf("26") >= 0, quick.fillHint)
+            seg.picked("stretch")
+            compare(veyra.aspectMode, 3)
+            compare(quick.fillStretchPercent, 34)
+            verify(quick.fillHint.indexOf("34") >= 0, quick.fillHint)
+            seg.picked("fit")
+            compare(veyra.aspectMode, 0)
+            compare(veyra.preferences.pushAmbientFill, false)
+            compare(seg.current, "fit")
+            quick.setFill("something else")
+            compare(veyra.aspectMode, 0)
+            // 32:9: half the picture would be cut.
+            quick.screenAspectOverride = 32 / 9
+            compare(quick.fillCropPercent, 50)
+            compare(quick.fillStretchPercent, 100)
+            // XeSS presents on its own path: no ambient fill there, and a saved choice reads as Fit.
+            seg.picked("ambient")
+            veyra.presentationOwned = true
+            compare(seg.options.map(o => o.id).join(","), "fit,crop,stretch")
+            compare(seg.current, "fit")
+            quick.setFill("ambient")
+            compare(seg.current, "fit")
+            veyra.presentationOwned = false
+            compare(seg.current, "ambient")
+            // Back on a 16:9 screen the row stays while a choice other than Fit is on, so it can be undone.
+            quick.screenAspectOverride = 16 / 9
+            verify(row.visible, "ambient fill is still on")
+            seg.picked("fit")
+            verify(!row.visible)
+            veyra.aspectMode = 2
+            verify(row.visible && seg.current === "crop")
+            verify(quick.fillHint.length > 0 && quick.fillHint.indexOf("%") < 0, "no made-up percentage without a wide screen")
+            // A ratio forced in Professional mode is not one of the four: shown as set there.
+            veyra.aspectMode = 6
+            verify(row.visible)
+            compare(seg.current, "")
+            seg.picked("fit")
+            compare(veyra.aspectMode, 0)
+            // The home page's short form shows it too; streaming mode (short form beside its own preview) does not.
+            quick.screenAspectOverride = 3440 / 1440
+            quick.compact = true
+            verify(row.visible)
+            quick.compactPro = true
+            verify(!row.visible)
+            quick.compact = false; quick.compactPro = false
         }
         function test_console_profiles_keep_their_own_choices() {
             compare(quick.consoleId, "ps5")

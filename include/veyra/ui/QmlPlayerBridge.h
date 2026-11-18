@@ -1557,6 +1557,16 @@ public:
     // PushFlow half precision: PushFlowBench --fp16-probe in its own process; the result goes to the
     // preference pushFlowHalfProbe and, when half precision matches and is faster, pushFlowHalf.
     Q_INVOKABLE bool pushTestPushFlowHalf();
+    // PushFPS crash notice (bridge/PushTools.cpp, engine/PushCrashNote.h): what the previous run left
+    // when it stopped unexpectedly. { present, module, dump, summary }: summary is the text to copy,
+    // built without the Windows user name, any path or any address. Dismiss forgets it.
+    Q_INVOKABLE QVariantMap pushCrashReport() const;
+    Q_INVOKABLE void pushDismissCrashReport();
+    // PushFPS graphics card test: PushFlowBench.exe in its own process, 1080p and 4K, every tier.
+    // Status: { running, done, ok, reason, adapter, vramMB, runs: [...], text } (text: what to copy).
+    Q_INVOKABLE bool pushStartCardTest();
+    Q_INVOKABLE void pushCancelCardTest();
+    Q_INVOKABLE QVariantMap pushCardTestStatus() const;
     Q_INVOKABLE bool pushFlowHalfTesting() const;
     // PushFPS 窗口置顶: keeps a top-level window above others (SetWindowPos, no window recreation).
     Q_INVOKABLE bool pushSetAlwaysOnTop(QObject* window, bool onTop);
@@ -1678,6 +1688,11 @@ private:
     void applyPreference(const QString& key);
     void applyPushMix();   // PushFPS mixer preferences -> engine::setPushMix (PushStudio.cpp)
     void pushFlowBudgetWatch();   // PushFlow too slow for the frame budget -> a faster tier (PushFps.cpp)
+    // PushFPS crash notice (PushTools.cpp): the previous run's notes read at start, this run's session
+    // note kept current, and the report built from the crash handler's note.
+    void pushRememberPreviousRun();
+    void pushNoteSession();
+    void pushLoadCrashReport(const QString& markerText);
     engine::PushCanvas pushCanvas(int fit) const;   // PushFPS canvas preferences (Recording.cpp)
     void scheduleEnhancementPrewarm();
     // Hold-to-compare key (press/release), handled for the whole application.

@@ -15,10 +15,17 @@ var kMaxName = 40
 // Layouts here are estimates, said so in each description: a preset is a start
 // that the player adjusts by drawing the areas in Professional mode.
 var builtIn = [
-    { id: "gta6", name: "GTA VI", fps: 30, target: "auto", feather: 6,
-      note: "Minimap bottom left, money and wanted level top right. Layout estimated from the GTA series; check it once you play.",
-      regions: [ { left: 0.012, top: 0.735, right: 0.178, bottom: 0.965, ellipse: false },
-                 { left: 0.80, top: 0.02, right: 0.99, bottom: 0.14, ellipse: false } ] },
+    // GTA VI (checked 18 November 2026, the day before release). Which corner holds what comes from
+    // Rockstar's pre-release gameplay footage as written up by allthings.how, bo3.gg and gtanerd.com:
+    // health, focus and stamina bars top left; weapon, ammo, wanted stars and cash top right; the
+    // minimap bottom left (a rounded rectangle while driving; parts of the HUD fade out when unused).
+    // The exact edges are NOT measured from the game. 30 FPS on every console, and the base PS5 dips
+    // below it in busy scenes (Digital Foundry's review), so the adaptive multiplier is on.
+    { id: "gta6", name: "GTA VI", fps: 30, target: "auto", feather: 6, adaptive: true,
+      note: "Minimap bottom left, health and focus bars top left, weapon, wanted level and cash top right (from Rockstar's pre-release footage). The edges are estimates; check them with Adjust HUD areas once you play. The frame rate dips on the base PS5, so the adaptive multiplier is on.",
+      regions: [ { left: 0.012, top: 0.72, right: 0.19, bottom: 0.97, ellipse: false },
+                 { left: 0.80, top: 0.02, right: 0.99, bottom: 0.14, ellipse: false },
+                 { left: 0.012, top: 0.02, right: 0.20, bottom: 0.10, ellipse: false } ] },
     { id: "open-world-bl", name: "Open world · minimap bottom left", fps: 30, target: "auto", feather: 6,
       note: "Round or square minimap in the bottom left corner.",
       regions: [ { left: 0.012, top: 0.72, right: 0.20, bottom: 0.97, ellipse: false } ] },
@@ -126,7 +133,7 @@ function sanitize(p) {
         id: typeof p.id === "string" ? p.id.slice(0, 60) : "",
         name: name,
         fps: fps === 40 || fps === 60 ? fps : 30,
-        target: ["auto", "off", "60", "120", "monitor"].indexOf(p.target) >= 0 ? p.target : "auto",
+        target: ["auto", "off", "60", "90", "120", "monitor"].indexOf(p.target) >= 0 ? p.target : "auto",
         feather: isFinite(feather) ? Math.min(64, Math.max(0, feather)) : 6,
         note: String(p.note || "").slice(0, 200),
         console: consoleIds.indexOf(p.console) >= 0 ? p.console : "",
@@ -172,8 +179,9 @@ function adaptiveCeiling(offered, targetFps) {
     return pick
 }
 
-// "auto": 120 FPS on a 120 Hz+ screen when the frame generation offers enough, else 60.
+// "auto": 120 FPS on a 120 Hz+ screen when the frame generation offers enough, 90 FPS on a
+// 90 Hz screen (3X of a 30 FPS game, 2X of a 40 FPS one), else 60.
 function resolveTarget(target, refreshHz) {
     if (target !== "auto") return target
-    return refreshHz >= 119 ? "120" : "60"
+    return refreshHz >= 119 ? "120" : refreshHz > 85 && refreshHz < 95 ? "90" : "60"
 }

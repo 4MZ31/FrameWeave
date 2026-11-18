@@ -230,6 +230,13 @@ struct QmlPlayerBridge::Impl {
         uint64_t cadenceSession = 0;
     } pushFlowWatch;
     QProcess* pushFlowHalfTest = nullptr;   // PushFlowBench --fp16-probe while it runs
+    // PushFPS crash notice and graphics card test (bridge/PushTools.cpp).
+    QVariantMap pushCrashReport;            // what the previous run left behind; empty: it did not crash
+    QString pushPreviousSession;            // the previous run's session note, read at start
+    QString pushSessionNote;                // the session note last written (engine/PushCrashNote.h)
+    QString pushOptimiseAtStart;            // pref pushOptimizeRestore as found at start: the optimiser was running
+    QProcess* pushCardTest = nullptr;       // PushFlowBench while the card test runs
+    QVariantMap pushCardTestResult;         // its last result
 
     // The chain the UI edits, kept in step with the facade's pending settings.
     engine::EffectChain chain;

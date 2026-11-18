@@ -1,5 +1,6 @@
 #include "veyra/engine/VideoPresenter.h"
 #include "veyra/engine/PresentationGeometry.h"
+#include "veyra/engine/PushAmbient.h"
 #include "veyra/pipeline/EnhanceGraph.h"
 #include "veyra/gfx/D3D12DeviceContext.h"
 #include "veyra/gfx/CommandSlotRing.h"
@@ -85,12 +86,12 @@ bool VideoPresenter::open(gfx::D3D12DeviceContext& ctx,HWND window,pipeline::Enh
     }
     if(!reuse&&!sink_.initialize(ctx.device(),queue,d,st))return false;
     if(reuse)veyra::log::info("present-reuse",std::format("retained native swapchain generation={} format={} fg={} output={}x{}; rebinding drained graph descriptors",generation_,unsigned(graph.outputFormat()),graph.fgEnabled(),graph.workWidth(),graph.workHeight()));
-    pass_={};rtvs_.Reset();compositeTarget_.Reset();exclusionUiTarget_.Reset();exclusionHudlessTarget_.Reset();
+    pass_={};ambient_={};rtvs_.Reset();compositeTarget_.Reset();exclusionUiTarget_.Reset();exclusionHudlessTarget_.Reset();
     exclusionUiEnabled_=graph.xessEnabled()&&graph.exclusionEnabled();
     std::vector<uint8_t> vs,ps;
     // The output pool contains both parities of every generated subframe.
     // Comparison references follow it; derive offsets to cover VFG through 8X.
-    if(!pipeline::loadShaderBytes("PresentBlit_vs.dxil",vs)||!pipeline::loadShaderBytes("PresentBlit_ps.dxil",ps)||!pass_.create(ctx.device(),vs,ps,pipeline::kOutputPoolSlots+8,graph.outputFormat(),16))return false;
+    if(!pipeline::loadShaderBytes("PresentBlit_vs.dxil",vs)||!pipeline::loadShaderBytes("PresentBlit_ps.dxil",ps)||!pass_.create(ctx.device(),vs,ps,pipeline::kOutputPoolSlots+9,graph.outputFormat(),16))return false;
     if(sink_.xess()){
         std::vector<uint8_t> cs;
         if(!pipeline::loadShaderBytes("PresentMotion.dxil",cs)||!presentMotionPass_.create(ctx.device(),cs,4,1,1,16))return false;
@@ -123,6 +124,13 @@ bool VideoPresenter::open(gfx::D3D12DeviceContext& ctx,HWND window,pipeline::Enh
     if(exclusionUiEnabled_)for(unsigned i=0;i<2;++i)
         pipeline::makeSrv(ctx.device(),graph.unmaskedVideo(i),graph.outputFormat(),
             {pass_.heap->GetCPUDescriptorHandleForHeapStart().ptr+size_t(pipeline::kOutputPoolSlots+6+i)*pass_.increment});
+    // PushFPS ambient fill (engine/PushAmbient.h): a blurred copy of each frame for the bars beside the
+    // picture, one more view after the eight above. Optional: if it cannot be made the bars stay black.
+    // XeSS presents through its own swap chain proxy and draws the frame differently: not there.
+    if(!sink_.xess()&&ambient_.initialize(ctx.device(),pipeline::kOutputPoolSlots)){
+        for(unsigned i=0;i<pipeline::kOutputPoolSlots;++i)ambient_.setSource(ctx.device(),i,i<2?graph.videoFrameResource(i):graph.generatedFrameResource(i-2),graph.outputFormat());
+        ambient_.stageResult(pass_.heap.Get(),pipeline::kOutputPoolSlots+8);
+    }
     if(!reuse)startDisplayState();
     return true;
 }
@@ -239,7 +247,7 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
     applyHdrMetadata(graph,hdrMetadata,hdrCurve,identity);
     const RetainedFrame retained{graph.presentationReadyFenceObject(slot,generated),graph.presentationReadyFence(slot,generated),
         slot,unsigned(rc.right),unsigned(rc.bottom),generated,referencesValid,baseReference,IsWindowVisible(window_)!=FALSE,
-        comparison,split,view,identity,MonitorFromWindow(window_,MONITOR_DEFAULTTONEAREST),graph.hdrOutput()?hdrCurve:HdrCurveSettings{}};
+        comparison,split,view,identity,MonitorFromWindow(window_,MONITOR_DEFAULTTONEAREST),graph.hdrOutput()?hdrCurve:HdrCurveSettings{},pushAmbientFill()};
     // Pausing keeps the last flip-model buffer visible. Re-submit only when
     // its producer fence, view, comparison, visibility, monitor or size changes.
     // Deferred resize must keep polling until the actual buffers match.
@@ -288,6 +296,10 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
     const auto [renderW,renderH]=view.renderedSize(float(rc.right),float(rc.bottom),float(graph.workWidth()),float(graph.workHeight()));
     D3D12_VIEWPORT viewport{0,0,float(sink_.bufferWidth()),float(sink_.bufferHeight()),0,1};
     D3D12_RECT rect{0,0,LONG(sink_.bufferWidth()),LONG(sink_.bufferHeight())};list->RSSetViewports(1,&viewport);list->RSSetScissorRects(1,&rect);
+    // PushFPS ambient fill: only where the picture leaves bars, never beside a comparison (its reference
+    // draw paints the bars itself). The blurred copy is made here, before this pass's state is set.
+    const bool ambientFill=pushAmbientFill()&&ambient_.ready()&&comparison==0&&pushAmbientBars(float(rc.right),float(rc.bottom),renderW,renderH)&&
+        ambient_.render(list,slot+(generated?2:0),source);
     ID3D12DescriptorHeap* heaps[]={pass_.heap.Get()};list->SetDescriptorHeaps(1,heaps);list->SetGraphicsRootSignature(pass_.rootSig.Get());list->SetPipelineState(pass_.pso.Get());
     const float rotationFlags=float(view.quarterTurns()<<6);
     const float samplingFlags=(graph.highQualityPresentation()?2.0f:0.0f)+rotationFlags;
@@ -313,9 +325,23 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
         dims[13]=float(hdrCurve.peakCapNits);
     }
     dims[14]=0.0f;dims[15]=0.0f;
+    if(ambientFill){
+        // The backdrop: the blurred copy at the size that covers the window, centred, dimmed (in linear
+        // light where the output is linear or PQ, which is decoded and encoded again around the gain).
+        float backdrop[16];std::copy(std::begin(dims),std::end(dims),backdrop);
+        const auto [coverW,coverH]=pushAmbientCover(float(rc.right),float(rc.bottom),renderW,renderH);
+        backdrop[0]=coverW;backdrop[1]=coverH;backdrop[2]=2.0f+rotationFlags+(graph.hdr10Output()?36.0f:0.0f);
+        backdrop[3]=1.0f/std::min(float(rc.right)/coverW,float(rc.bottom)/coverH);backdrop[6]=.5f;backdrop[7]=.5f;
+        backdrop[14]=graph.hdrOutput()?kPushAmbientLinearGain:kPushAmbientEncodedGain;
+        list->SetGraphicsRoot32BitConstants(0,16,backdrop,0);
+        list->SetGraphicsRootDescriptorTable(1,{pass_.heap->GetGPUDescriptorHandleForHeapStart().ptr+size_t(pipeline::kOutputPoolSlots+8)*pass_.increment});
+        list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);list->DrawInstanced(3,1,0,0);
+        dims[15]=1.0f; // the picture's draw leaves the bars as drawn
+    }
     list->SetGraphicsRoot32BitConstants(0,16,dims,0);
     list->SetGraphicsRootDescriptorTable(1,{pass_.heap->GetGPUDescriptorHandleForHeapStart().ptr+size_t(slot+(generated?2:0))*pass_.increment});
     list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);list->DrawInstanced(3,1,0,0);
+    if(ambientFill){dims[15]=0.0f;list->SetGraphicsRoot32BitConstants(0,16,dims,0);}
     bool probeIssued=false;
     const bool observe=probeObserved_&&curveFlag!=0.0f;
     const bool sameScope=probeCurve_==hdrCurve&&probeIdentity_.epoch==identity.epoch&&probeIdentity_.settingsRevision==identity.settingsRevision;

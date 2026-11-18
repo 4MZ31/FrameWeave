@@ -3,6 +3,7 @@
 #include "veyra/gfx/PresentSink.h"
 #include <dxgi1_6.h> // DXGI_HDR_METADATA_HDR10 (custom: HDR static metadata)
 #include "veyra/pipeline/GpuPassUtils.h"
+#include "veyra/pipeline/PushAmbientPass.h"
 #include "veyra/engine/PreviewView.h"
 #include "veyra/engine/HdrOutputTuning.h"
 #include "veyra/gfx/CommandSlotRing.h"
@@ -172,6 +173,7 @@ private:
         pipeline::FrameIdentity identity{};
         HMONITOR monitor=nullptr;
         HdrCurveSettings displayCurve{};
+        bool ambient=false; // PushFPS ambient fill on when the frame was drawn
         bool operator==(const RetainedFrame&)const=default;
     };
     std::optional<RetainedFrame> retainedFrame_;
@@ -203,5 +205,7 @@ private:
     std::array<XessWork,4> xessWork_{};
     size_t xessWorkPosition_=0;
     bool refresh(ID3D12Device*);
+    // PushFPS ambient fill (engine/PushAmbient.h): the blurred copy of the frame behind the picture.
+    pipeline::PushAmbientPass ambient_;
 };
 }

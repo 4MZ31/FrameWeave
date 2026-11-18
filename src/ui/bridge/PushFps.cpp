@@ -376,6 +376,7 @@ bool QmlPlayerBridge::pushOpenAnrFolder() {
 
 QString QmlPlayerBridge::pushLinkUrl(const QString& key) const {
     if (key == QLatin1String("repo")) return QString::fromLatin1(brand::kRepositoryUrl);
+    if (key == QLatin1String("issues")) return QString::fromLatin1(brand::kIssuesUrl);
     if (key == QLatin1String("veyra")) return QString::fromLatin1(brand::kUpstreamUrl);
     if (key == QLatin1String("anr")) return QString::fromLatin1(brand::kAnrUrl);
     if (key == QLatin1String("rife")) return QString::fromLatin1(brand::kRifeUrl);
@@ -673,6 +674,7 @@ void QmlPlayerBridge::pushFlowBudgetWatch() {
     const auto now = std::chrono::steady_clock::now();
     if (now - w.last < std::chrono::seconds(1)) return;
     w.last = now;
+    pushNoteSession();   // what is playing, for the crash notice (PushTools.cpp)
     const auto& s = impl_->snapshot;
     // The cadence notice (same second tick): the game is set to 30 FPS, the capture runs at 60 and
     // automatic duplicate removal still sees a new picture in every sample. Some capture cards add

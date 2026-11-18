@@ -16,6 +16,8 @@ cbuffer PresentBlitConstants : register(b0)
     // a no-op at its default (lift 0, mid 203, start 0, cap 0).
     float4 curve0;  // x=shadow lift EV, y=shadow range nits, z=mid-gray nits, w=highlight start nits
     float4 curve1;  // x=roll-off scale nits, y=peak cap nits (0 = off)
+                    // PushFPS ambient fill (engine/PushAmbient.h), both 0 when it is off:
+                    // z=gain on the colour (the dimmed backdrop draw), w>0.5: leave what is behind the bars
 };
 
 // Lift the shadows without touching the highlights, move the mid-gray reference
@@ -112,7 +114,10 @@ float4 psMain(VSOut input) : SV_Target
     if(srcDims.w>0){
         float fit=min(dstDims.x/srcDims.x,dstDims.y/srcDims.y)*srcDims.w;
         uv=(input.uv-.5)*dstDims.xy/(srcDims.xy*fit)+dstDims.zw;
-        if(any(uv<0)||any(uv>1))return float4(0,0,0,(uint(srcDims.z+0.5)&256)?0:1);
+        if(any(uv<0)||any(uv>1)){
+            if(curve1.w>0.5)discard; // PushFPS ambient fill: the bars were drawn before the picture
+            return float4(0,0,0,(uint(srcDims.z+0.5)&256)?0:1);
+        }
     }
     uint flags=uint(srcDims.z+0.5);
     uv=PresentationSourceUv(uv,(flags>>6)&3);
@@ -123,6 +128,7 @@ float4 psMain(VSOut input) : SV_Target
     // Custom: static HDR curve, on absolute nits (the working space is linear
     // scRGB, 1.0 = 80 nits), before the transfer function is encoded.
     if(flags&16)color.rgb=HdrCurve(color.rgb*80.0,curve0,curve1)/80.0;
+    if(curve1.z>0.0)color.rgb*=curve1.z; // PushFPS ambient fill: the backdrop, dimmed
     if(flags&1){float3 c=max(color.rgb,0);color.rgb=lerp(1.055*pow(c,1.0/2.4)-0.055,c*12.92,step(c,0.0031308));}
     if(flags&4)color.rgb=HdrEncodePq(color.rgb);
     if(flags&256)color.rgb*=color.a;

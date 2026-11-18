@@ -330,6 +330,9 @@ veyra_add_compute_shader(veyra_shader_push_compare_raw PushCompareRaw)
 veyra_add_compute_shader(veyra_shader_push_compare_overlay PushCompareOverlay)
 veyra_add_compute_shader(veyra_shader_push_layer_blend PushLayerBlend)
 veyra_add_compute_shader(veyra_shader_push_canvas_convert PushCanvasConvert)
+# PushFPS ambient fill (engine/PushAmbient.h): the frame averaged down and blurred for the bars beside the picture.
+veyra_add_compute_shader(veyra_shader_push_ambient_down PushAmbientDown)
+veyra_add_compute_shader(veyra_shader_push_ambient_blur PushAmbientBlur)
 # PushFlow (PushFPS's own frame generation): network input packing and output unpacking.
 veyra_add_compute_shader(veyra_shader_push_flow_pack PushFlowPack)
 veyra_add_compute_shader(veyra_shader_push_flow_unpack PushFlowUnpack)
@@ -424,6 +427,7 @@ add_library(veyra_pipeline STATIC
   src/pipeline/AntiAliasPass.cpp
   src/pipeline/NisPass.cpp
   src/pipeline/PushHudLock.cpp
+  src/pipeline/PushAmbientPass.cpp
   src/pushflow/PushFlowBackend.cpp
   src/pipeline/SmaaLookupTables.cpp
   src/pipeline/NrInstance.cpp
@@ -562,7 +566,7 @@ add_executable(veyra_push_gpu_tests tests/integration/PushGpuTests.cpp src/engin
 target_compile_features(veyra_push_gpu_tests PRIVATE cxx_std_20)
 target_compile_options(veyra_push_gpu_tests PRIVATE /utf-8)
 target_link_libraries(veyra_push_gpu_tests PRIVATE veyra_pipeline)
-add_dependencies(veyra_push_gpu_tests veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct)
+add_dependencies(veyra_push_gpu_tests veyra_shader_nr_residual veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_push_ambient_down veyra_shader_push_ambient_blur veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct)
 
 # PushFlowBench (tools/pushflow_bench): PushFlow timings on this PC's GPU, as JSON; shipped next to PushFPS.exe.
 add_executable(veyra_pushflow_bench tools/pushflow_bench/main.cpp)
@@ -765,7 +769,7 @@ if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avform
 
   # veyra_sources: product input sources (Playbook R3/R7). MediaFileSource
   # composes veyra_media; no second decode implementation exists.
-  add_dependencies(veyra_pipeline veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_effect_exclusion veyra_shader_sr_resolve veyra_shader_nr_downsample veyra_shader_nr_residual veyra_shader_nr_temporal veyra_shader_nr_hold veyra_shader_nr_reuse_compose veyra_shader_nr_reuse_warp veyra_shader_flow_adapt veyra_shader_flow_refine veyra_shader_flow_fill veyra_shader_flow_claim veyra_shader_vfg_shot_change)
+  add_dependencies(veyra_pipeline veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_push_ambient_down veyra_shader_push_ambient_blur veyra_shader_effect_exclusion veyra_shader_sr_resolve veyra_shader_nr_downsample veyra_shader_nr_residual veyra_shader_nr_temporal veyra_shader_nr_hold veyra_shader_nr_reuse_compose veyra_shader_nr_reuse_warp veyra_shader_flow_adapt veyra_shader_flow_refine veyra_shader_flow_fill veyra_shader_flow_claim veyra_shader_vfg_shot_change)
   add_library(veyra_sources STATIC
     src/source/NativeCaptureSink.cpp
     src/source/MediaFileSource.cpp
@@ -1017,6 +1021,10 @@ target_include_directories(veyra_frame_input_tests PRIVATE ${CMAKE_CURRENT_SOURC
 add_executable(veyra_push_archive_paths_tests tests/unit/PushArchivePathsTests.cpp)
 target_compile_features(veyra_push_archive_paths_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_archive_paths_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS crash notice: the summary a user can copy holds nothing personal (engine/PushCrashNote.h, pure).
+add_executable(veyra_push_crash_note_tests tests/unit/PushCrashNoteTests.cpp)
+target_compile_features(veyra_push_crash_note_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_crash_note_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS adaptive frame generation: per-pair multiplier choice and its hold.
 add_executable(veyra_push_adaptive_fg_tests tests/unit/PushAdaptiveFgTests.cpp)
 target_compile_features(veyra_push_adaptive_fg_tests PRIVATE cxx_std_20)
@@ -1304,6 +1312,7 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
   # Keep bridge domains explicit: no source glob or duplicate runtime state.
   target_sources(veyra_qml_bridge PRIVATE
     src/ui/bridge/PushFps.cpp
+    src/ui/bridge/PushTools.cpp
     src/ui/bridge/PushStream.cpp
     src/ui/bridge/PushStudio.cpp
     src/ui/bridge/PushFrameInput.cpp

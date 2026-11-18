@@ -23,6 +23,9 @@
 #include "veyra/pushflow/PushFlowBackend.h"
 #include "veyra/engine/PushHudSampler.h"
 #include "veyra/pipeline/PushHudLock.h"
+#include "veyra/pipeline/PushAmbientPass.h"
+#include "veyra/pipeline/PushEnhanceShape.h"
+#include "veyra/engine/PushAmbient.h"
 #include "veyra/engine/RecordingCompare.h"
 #include "veyra/engine/PushStreamOverlay.h"
 #include "veyra/engine/PushCanvas.h"
@@ -1046,6 +1049,283 @@ std::vector<float> readFloats(Gpu& gpu, ID3D12Resource* buffer, uint64_t count) 
     const D3D12_RANGE none{0, 0}; rb->Unmap(0, &none);
     return out;
 }
+// PushFPS ambient fill (engine/PushAmbient.h, pipeline/PushAmbientPass.h): when the bars are drawn, at
+// what size, and the blurred copy of a frame itself: a red left half and a blue right half must come
+// out red on the left, blue on the right, an even mix in the middle, and exactly as bright as it went in.
+float halfToFloat(uint16_t h) {
+    const uint32_t sign = (h >> 15) & 1u, exp = (h >> 10) & 0x1Fu, man = h & 0x3FFu;
+    float v;
+    if (exp == 0) v = std::ldexp(float(man), -24);
+    else if (exp == 31) v = man ? std::nanf("") : INFINITY;
+    else v = std::ldexp(float(man | 0x400u), int(exp) - 25);
+    return sign ? -v : v;
+}
+void testAmbient(Gpu& gpu) {
+    using namespace engine;
+    check(!pushAmbientFill(), "ambient: off unless asked for");
+    setPushAmbientFill(true); check(pushAmbientFill(), "ambient: the switch turns on"); setPushAmbientFill(false);
+    check(pushAmbientBars(3440, 1440, 2560, 1440), "ambient: a 16:9 picture on a 21:9 window leaves bars");
+    check(pushAmbientBars(1920, 1200, 1920, 1080), "ambient: a 16:9 picture on a 16:10 window leaves bars");
+    check(!pushAmbientBars(2560, 1440, 2560, 1440) && !pushAmbientBars(1920, 1080, 1919.2f, 1080), "ambient: no bars, nothing drawn");
+    check(!pushAmbientBars(3440, 1440, 3440, 1935) && !pushAmbientBars(0, 0, 100, 100), "ambient: a cropped picture or no window: nothing drawn");
+    const auto cover = pushAmbientCover(3440, 1440, 2560, 1440);
+    check(std::abs(cover.first - 3440.0f) < 0.5f && std::abs(cover.second - 1935.0f) < 0.5f, "ambient: the backdrop covers a 21:9 window");
+    const auto tall = pushAmbientCover(1920, 1200, 1920, 1080);
+    check(std::abs(tall.second - 1200.0f) < 0.5f && tall.first > 2133.0f && tall.first < 2134.0f, "ambient: and a 16:10 one");
+
+    constexpr uint32_t W = 640, H = 360;
+    constexpr DXGI_FORMAT F = DXGI_FORMAT_R8G8B8A8_UNORM;
+    auto* device = gpu.device.Get();
+    Plane frame{pipeline::makeTexture(device, W, H, F, false), F, W, H, 4};
+    pipeline::PushAmbientPass pass;
+    check(frame.texture && pass.initialize(device, 4), "ambient: pass and frame created");
+    if (!frame.texture || !pass.ready()) return;
+    pass.setSource(device, 0, nullptr, F);
+    pass.setSource(device, 1, frame.texture.Get(), F);
+    const uint32_t SW = pipeline::PushAmbientPass::kWidth, SH = pipeline::PushAmbientPass::kHeight;
+    Plane blurred{pass.result(), pipeline::PushAmbientPass::kFormat, SW, SH, 8};
+    auto run = [&](const std::vector<uint8_t>& px, D3D12_RESOURCE_STATES before, std::vector<float>& out) {
+        gpu.begin();
+        auto up = recordFill(gpu, frame, px, before, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        const bool ok = pass.render(gpu.list.Get(), 1, frame.texture.Get());
+        auto rb = recordRead(gpu, blurred, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        if (!ok || !gpu.submitAndWait()) return false;
+        const auto raw = mapRead(blurred, rb.Get());
+        out.resize(size_t(SW) * SH * 4);
+        for (size_t i = 0; i < out.size() && i * 2 + 1 < raw.size(); ++i) out[i] = halfToFloat(uint16_t(raw[i * 2] | (raw[i * 2 + 1] << 8)));
+        return raw.size() == size_t(SW) * SH * 8;
+    };
+    std::vector<uint8_t> px(size_t(W) * H * 4);
+    for (uint32_t y = 0; y < H; ++y)
+        for (uint32_t x = 0; x < W; ++x) {
+            uint8_t* p = px.data() + (size_t(y) * W + x) * 4;
+            p[0] = x < W / 2 ? 255 : 0; p[1] = 0; p[2] = x < W / 2 ? 0 : 255; p[3] = 255;
+        }
+    std::vector<float> out;
+    check(run(px, D3D12_RESOURCE_STATE_COMMON, out), "ambient: the blurred copy of a frame is made");
+    if (out.size() != size_t(SW) * SH * 4) return;
+    auto at = [&](uint32_t x, uint32_t y, int c) { return out[(size_t(y) * SW + x) * 4 + c]; };
+    bool finite = true;
+    for (float v : out) finite = finite && std::isfinite(v);
+    check(finite, "ambient: every value is a number");
+    check(at(4, SH / 2, 0) > 0.97f && at(4, SH / 2, 2) < 0.03f, std::format("ambient: red stays on the left (r {:.3f} b {:.3f})", at(4, SH / 2, 0), at(4, SH / 2, 2)));
+    check(at(SW - 5, SH / 2, 2) > 0.97f && at(SW - 5, SH / 2, 0) < 0.03f, "ambient: blue stays on the right");
+    const float midR = (at(SW / 2 - 1, SH / 2, 0) + at(SW / 2, SH / 2, 0)) * 0.5f;
+    check(std::abs(midR - 0.5f) < 0.03f, std::format("ambient: an even mix across the middle (r {:.3f})", midR));
+    check(at(SW / 2 - 4, SH / 2, 0) > at(SW / 2 + 3, SH / 2, 0) + 0.3f && at(SW / 2 - 4, SH / 2, 0) < 0.97f, "ambient: a soft edge, not a sharp one");
+    double sum = 0;
+    for (uint32_t y = 0; y < SH; ++y) for (uint32_t x = 0; x < SW; ++x) sum += at(x, y, 0) + at(x, y, 2);
+    check(std::abs(sum / (double(SW) * SH) - 1.0) < 0.01, std::format("ambient: as bright as the frame (mean {:.4f})", sum / (double(SW) * SH)));
+    check(std::abs(at(10, 2, 0) - at(10, SH - 3, 0)) < 0.01f && at(0, 0, 3) > 0.99f, "ambient: even from top to bottom, opaque");
+    // A second frame through the same pass (its textures rest in their states between calls): plain grey in, plain grey out.
+    std::fill(px.begin(), px.end(), uint8_t(128));
+    for (size_t i = 3; i < px.size(); i += 4) px[i] = 255;
+    check(run(px, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, out), "ambient: a second frame");
+    bool flat = out.size() == size_t(SW) * SH * 4;
+    for (uint32_t y = 0; flat && y < SH; ++y) for (uint32_t x = 0; x < SW; ++x) flat = flat && std::abs(at(x, y, 1) - 128.0f / 255.0f) < 0.004f;
+    check(flat, "ambient: a flat picture stays flat, edges included");
+    check(!pass.render(gpu.list.Get(), 9, frame.texture.Get()) && !pass.render(nullptr, 1, frame.texture.Get()), "ambient: a bad index or list is refused");
+    check(!gpu.debugErrors(), "ambient: no D3D12 debug errors");
+}
+
+// PushFPS fine-tuning of AI picture enhancement (pipeline/PushEnhanceShape.h): the production shader
+// that composes the enhancement's change (NrResidualComposite) against the reference maths, pixel by
+// pixel, for every control on its own and together, in SDR and HDR; and that with nothing to shape
+// (zeros, as every other caller passes, or neutral values) the result is the plain composite.
+uint16_t floatToHalf(float f) {
+    uint32_t x; std::memcpy(&x, &f, 4);
+    const uint32_t sign = (x >> 16) & 0x8000u; const int exp = int((x >> 23) & 0xFF) - 127 + 15; uint32_t man = x & 0x7FFFFFu;
+    if (exp <= 0) { if (exp < -10) return uint16_t(sign); man = (man | 0x800000u) >> (1 - exp); return uint16_t(sign | ((man + 0x1000u) >> 13)); }
+    if (exp >= 31) return uint16_t(sign | 0x7C00u);
+    return uint16_t(sign | (uint32_t(exp) << 10) | ((man + 0x1000u) >> 13));
+}
+void testEnhanceShape(Gpu& gpu) {
+    using pipeline::PushEnhanceShape;
+    namespace ref = pipeline::push_shape_ref;
+    // The values the interface sends, and how they are packed.
+    PushEnhanceShape neutral;
+    check(neutral.neutral() && neutral.constants() == std::array<float, 4>{0, 0, 0, 0}, "enhance shape: neutral is sent as zeros");
+    PushEnhanceShape wild; wild.shadows = 999; wild.midtones = -5; wild.highlights = 150; wild.hue = 40; wild.maxBrighten = 250; wild.maxDarken = 7;
+    const auto packed = wild.constants();
+    check(packed[0] == float(200 + 256 * 0 + 65536 * 150) && packed[1] == float(40 + 256 * 100 + 65536 * 7) && packed[3] == 1.0f, "enhance shape: values are clamped and packed as whole percentages");
+    pipeline::setPushEnhanceShape(wild);
+    check(pipeline::pushEnhanceShape() == wild.clamped(), "enhance shape: the live values round-trip");
+    pipeline::setPushEnhanceShape(neutral);
+    check(pipeline::pushEnhanceShape().neutral(), "enhance shape: and go back to neutral");
+
+    constexpr uint32_t W = 64, H = 16;
+    constexpr DXGI_FORMAT F = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    auto* device = gpu.device.Get();
+    Plane base{pipeline::makeTexture(device, W, H, F, false), F, W, H, 8}, input{pipeline::makeTexture(device, W, H, F, false), F, W, H, 8},
+          fin{pipeline::makeTexture(device, W, H, F, false), F, W, H, 8}, out{pipeline::makeTexture(device, W, H, F, true), F, W, H, 8};
+    pipeline::ComputePass pass;
+    pipeline::DescriptorStager stager;
+    std::vector<uint8_t> cs;
+    const bool made = base.texture && input.texture && fin.texture && out.texture && stager.initialize(device, 8) &&
+                      pass.loadShader("NrResidualComposite.dxil", cs) && pass.create(device, cs, 4, 3, 1, 40);
+    check(made, "enhance shape: the production composite shader loads");
+    if (!made) return;
+    stager.stageSrv(base.texture.Get(), nullptr, pass.heap.Get(), 0);
+    stager.stageSrv(input.texture.Get(), nullptr, pass.heap.Get(), 1);
+    stager.stageSrv(fin.texture.Get(), nullptr, pass.heap.Get(), 2);
+    pipeline::makeUav(device, out.texture.Get(), F, pipeline::cpuHandleOf(pass, 3));
+
+    // Pictures in values a 16-bit float holds exactly (multiples of 1/1024 below 2; 1/256 below 8 for HDR).
+    struct Data { std::vector<ref::Rgb> base, input, fin; };
+    auto makeData = [&](bool hdr, uint32_t seed) {
+        Data d; d.base.resize(W * H); d.input.resize(W * H); d.fin.resize(W * H);
+        uint32_t state = seed;
+        auto next = [&state](uint32_t n) { state = state * 1664525u + 1013904223u; return (state >> 8) % n; };
+        const float unit = hdr ? 1.0f / 256.0f : 1.0f / 1024.0f;
+        for (uint32_t i = 0; i < W * H; ++i) {
+            // A grey level plus a colour offset, so dark, middle and bright pixels and greys all occur.
+            const int level = int(next(hdr ? 1000 : 960)) + 30;
+            auto channel = [&](int spread) { return float(std::max(0, level + int(next(2 * spread + 1)) - spread)) * unit; };
+            const int spread = i % 5 == 0 ? 0 : 220;
+            d.base[i] = {channel(spread), channel(spread), channel(spread)};
+            auto pair = [&](float& a, float& b) { const int lo = int(next(900)) + 40; a = float(lo) * unit; b = float(std::max(0, lo + int(next(601)) - 300)) * unit; };
+            pair(d.input[i].r, d.fin[i].r); pair(d.input[i].g, d.fin[i].g); pair(d.input[i].b, d.fin[i].b);
+        }
+        return d;
+    };
+    auto bytes = [&](const std::vector<ref::Rgb>& px) {
+        std::vector<uint8_t> raw(size_t(W) * H * 8);
+        for (size_t i = 0; i < px.size(); ++i) {
+            const uint16_t h[4] = {floatToHalf(px[i].r), floatToHalf(px[i].g), floatToHalf(px[i].b), floatToHalf(1.0f)};
+            std::memcpy(raw.data() + i * 8, h, 8);
+        }
+        return raw;
+    };
+    D3D12_RESOURCE_STATES inState = D3D12_RESOURCE_STATE_COMMON, outState = D3D12_RESOURCE_STATE_COMMON;
+    auto barrier = [&](ID3D12Resource* r, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to) {
+        D3D12_RESOURCE_BARRIER b{}; b.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; b.Transition.pResource = r;
+        b.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES; b.Transition.StateBefore = from; b.Transition.StateAfter = to;
+        gpu.list->ResourceBarrier(1, &b);
+    };
+    // Runs the shader on `d` with the given strength and shape constants; returns the result as floats (rgb per pixel).
+    auto run = [&](const Data& d, float total, const std::array<float, 4>& shape, bool hdr, std::vector<ref::Rgb>& result) {
+        gpu.begin();
+        auto u0 = recordFill(gpu, base, bytes(d.base), inState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        auto u1 = recordFill(gpu, input, bytes(d.input), inState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        auto u2 = recordFill(gpu, fin, bytes(d.fin), inState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        inState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        barrier(out.texture.Get(), outState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        float c[40]{};
+        c[0] = total; c[1] = 1; c[2] = 1; c[3] = 1; c[4] = 1; c[7] = hdr ? 1.0f : 0.0f; c[31] = hdr ? 1.0f : 0.0f;
+        std::copy(shape.begin(), shape.end(), c + 36);
+        pass.bind(gpu.list.Get(), c, pipeline::gpuHandleOf(pass, 0).ptr, pipeline::gpuHandleOf(pass, 3).ptr);
+        gpu.list->Dispatch((W + 15) / 16, (H + 15) / 16, 1);
+        barrier(out.texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE);
+        outState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+        auto rb = recordRead(gpu, out, D3D12_RESOURCE_STATE_COPY_SOURCE);
+        if (!gpu.submitAndWait()) return false;
+        const auto raw = mapRead(out, rb.Get());
+        if (raw.size() != size_t(W) * H * 8) return false;
+        result.resize(W * H);
+        for (size_t i = 0; i < result.size(); ++i) {
+            uint16_t h[4]; std::memcpy(h, raw.data() + i * 8, 8);
+            result[i] = {halfToFloat(h[0]), halfToFloat(h[1]), halfToFloat(h[2])};
+        }
+        return true;
+    };
+    // The shader's own safeguard for a strengthened darkening (NrResidualComposite.hlsl, shadowSafe).
+    auto shadowSafe = [](float b, float raw, float requested) {
+        const float anchorDelta = std::min(raw, 0.0f), anchor = b + anchorDelta;
+        if (b >= 0 && anchor > 0 && requested < anchorDelta) return anchor / (1.0f + (anchorDelta - requested) / anchor);
+        return b + requested;
+    };
+    auto expected = [&](const Data& d, float total, const PushEnhanceShape& shape, bool hdr, size_t i) {
+        const ref::Rgb raw{d.fin[i].r - d.input[i].r, d.fin[i].g - d.input[i].g, d.fin[i].b - d.input[i].b};
+        ref::Rgb delta = shape.neutral() ? raw : ref::shapeDelta(d.base[i], raw, shape, hdr);
+        delta = {delta.r * total, delta.g * total, delta.b * total};
+        if (!shape.neutral() && (shape.maxBrighten > 0 || shape.maxDarken > 0)) delta = ref::capDelta(d.base[i], delta, shape, hdr);
+        ref::Rgb r{shadowSafe(d.base[i].r, raw.r, delta.r), shadowSafe(d.base[i].g, raw.g, delta.g), shadowSafe(d.base[i].b, raw.b, delta.b)};
+        if (!hdr) r = {std::max(0.0f, r.r), std::max(0.0f, r.g), std::max(0.0f, r.b)};
+        return r;
+    };
+    auto worst = [&](const Data& d, float total, const PushEnhanceShape& shape, bool hdr, const std::vector<ref::Rgb>& got) {
+        float w = 0;
+        for (size_t i = 0; i < got.size(); ++i) {
+            const ref::Rgb e = expected(d, total, shape, hdr, i);
+            for (const auto [a, b] : {std::pair{got[i].r, e.r}, std::pair{got[i].g, e.g}, std::pair{got[i].b, e.b}})
+                w = std::max(w, std::abs(a - b) / (1.0f + std::abs(b)));
+        }
+        return w;
+    };
+    const Data sdr = makeData(false, 20261118u), hdrData = makeData(true, 322u);
+    std::vector<ref::Rgb> plain, got;
+    bool ran = run(sdr, 1.0f, {0, 0, 0, 0}, false, plain);
+    check(ran && worst(sdr, 1.0f, neutral, false, plain) < 0.002f, std::format("enhance shape: zeros give the plain composite (worst {:.5f})", ran ? worst(sdr, 1.0f, neutral, false, plain) : -1.0f));
+    // Neutral percentages sent with the flag set (the interface never does; the shader must still agree).
+    ran = run(sdr, 1.0f, {float(100 + 256 * 100 + 65536 * 100), 100.0f, 0.0f, 1.0f}, false, got);
+    float differ = 0;
+    for (size_t i = 0; ran && i < got.size(); ++i) differ = std::max({differ, std::abs(got[i].r - plain[i].r), std::abs(got[i].g - plain[i].g), std::abs(got[i].b - plain[i].b)});
+    check(ran && differ < 0.002f, std::format("enhance shape: neutral values change nothing (worst {:.5f})", differ));
+
+    struct Case { const char* name; PushEnhanceShape shape; float total; bool hdr; };
+    auto make = [](int shadows, int midtones, int highlights, int hue, int maxBrighten, int maxDarken) {
+        PushEnhanceShape s; s.shadows = shadows; s.midtones = midtones; s.highlights = highlights; s.hue = hue; s.maxBrighten = maxBrighten; s.maxDarken = maxDarken; return s;
+    };
+    const Case cases[] = {
+        {"shadows off", make(0, 100, 100, 100, 0, 0), 1.0f, false},
+        {"shadows doubled", make(200, 100, 100, 100, 0, 0), 1.0f, false},
+        {"midtones halved", make(100, 50, 100, 100, 0, 0), 1.0f, false},
+        {"highlights off", make(100, 100, 0, 100, 0, 0), 1.0f, false},
+        {"hue kept", make(100, 100, 100, 0, 0, 0), 1.0f, false},
+        {"hue doubled", make(100, 100, 100, 200, 0, 0), 1.0f, false},
+        {"brightening limited", make(100, 100, 100, 100, 10, 0), 1.0f, false},
+        {"darkening limited", make(100, 100, 100, 100, 0, 5), 1.0f, false},
+        {"everything at once, double strength", make(150, 50, 20, 40, 15, 10), 2.0f, false},
+        {"everything at once, HDR", make(150, 50, 20, 40, 15, 10), 1.5f, true},
+        {"hue kept, HDR", make(100, 100, 100, 0, 0, 0), 1.0f, true},
+    };
+    for (const Case& k : cases) {
+        const Data& d = k.hdr ? hdrData : sdr;
+        ran = run(d, k.total, k.shape.constants(), k.hdr, got);
+        const float w = ran ? worst(d, k.total, k.shape, k.hdr, got) : -1.0f;
+        check(ran && w < 0.004f, std::format("enhance shape: {} matches the reference (worst {:.5f})", k.name, w));
+    }
+    // What the controls promise, checked on the shader's own output.
+    ran = run(sdr, 1.0f, make(0, 0, 0, 100, 0, 0).constants(), false, got);
+    float moved = 0;
+    for (size_t i = 0; ran && i < got.size(); ++i) moved = std::max({moved, std::abs(got[i].r - sdr.base[i].r), std::abs(got[i].g - sdr.base[i].g), std::abs(got[i].b - sdr.base[i].b)});
+    check(ran && moved < 0.002f, std::format("enhance shape: all three ranges at zero leave the picture as it was (worst {:.5f})", moved));
+    const PushEnhanceShape limits = make(100, 100, 100, 100, 10, 5);
+    ran = run(sdr, 1.0f, limits.constants(), false, got);
+    float brightest = 0, darkest = 0; int limited = 0;
+    for (size_t i = 0; ran && i < got.size(); ++i) {
+        // The limits are on the change itself. A channel the result clips at black, or one the shader's
+        // shadow safeguard reshapes, ends a little brighter than that; those pixels are not measured here.
+        const ref::Rgb e = expected(sdr, 1.0f, limits, false, i);
+        const ref::Rgb raw{sdr.fin[i].r - sdr.input[i].r, sdr.fin[i].g - sdr.input[i].g, sdr.fin[i].b - sdr.input[i].b};
+        const ref::Rgb d = ref::capDelta(sdr.base[i], ref::shapeDelta(sdr.base[i], raw, limits, false), limits, false);
+        if (e.r <= 0.001f || e.g <= 0.001f || e.b <= 0.001f) continue;
+        if (std::abs(e.r - (sdr.base[i].r + d.r)) > 1e-5f || std::abs(e.g - (sdr.base[i].g + d.g)) > 1e-5f || std::abs(e.b - (sdr.base[i].b + d.b)) > 1e-5f) continue;
+        const float change = ref::perceptual(ref::luma(got[i]), false) - ref::perceptual(ref::luma(sdr.base[i]), false);
+        brightest = std::max(brightest, change); darkest = std::max(darkest, -change); ++limited;
+    }
+    check(ran && limited > 500 && brightest < 0.105f && darkest < 0.055f && brightest > 0.05f && darkest > 0.02f,
+          std::format("enhance shape: no pixel passes the limits ({} pixels, brightest +{:.3f} of 0.10, darkest -{:.3f} of 0.05)", limited, brightest, darkest));
+    ran = run(sdr, 1.0f, make(100, 100, 100, 0, 0, 0).constants(), false, got);
+    float turned = 0; int coloured = 0;
+    for (size_t i = 0; ran && i < got.size(); ++i) {
+        // A clearly coloured pixel that stayed clearly coloured: its colour direction is the picture's own.
+        const float yb = ref::luma(sdr.base[i]), yo = ref::luma(got[i]);
+        const ref::Rgb cb{sdr.base[i].r - yb, sdr.base[i].g - yb, sdr.base[i].b - yb}, co{got[i].r - yo, got[i].g - yo, got[i].b - yo};
+        const float lb = std::sqrt(cb.r * cb.r + cb.g * cb.g + cb.b * cb.b), lo = std::sqrt(co.r * co.r + co.g * co.g + co.b * co.b);
+        if (lb / std::max(yb, 1e-4f) < 0.2f || lo < 0.05f || got[i].r <= 0.001f || got[i].g <= 0.001f || got[i].b <= 0.001f) continue;
+        // Only where the shader's shadow safeguard did not step in (it works per channel).
+        const ref::Rgb e = expected(sdr, 1.0f, make(100, 100, 100, 0, 0, 0), false, i);
+        const ref::Rgb raw{sdr.fin[i].r - sdr.input[i].r, sdr.fin[i].g - sdr.input[i].g, sdr.fin[i].b - sdr.input[i].b};
+        const ref::Rgb shaped = ref::shapeDelta(sdr.base[i], raw, make(100, 100, 100, 0, 0, 0), false);
+        if (std::abs(e.r - (sdr.base[i].r + shaped.r)) > 1e-5f || std::abs(e.g - (sdr.base[i].g + shaped.g)) > 1e-5f || std::abs(e.b - (sdr.base[i].b + shaped.b)) > 1e-5f) continue;
+        const float cosine = (cb.r * co.r + cb.g * co.g + cb.b * co.b) / (lb * lo);
+        turned = std::max(turned, 1.0f - std::abs(cosine)); ++coloured;
+    }
+    check(ran && coloured > 50 && turned < 0.01f, std::format("enhance shape: with hue at zero coloured pixels keep their hue ({} pixels, worst turn {:.4f})", coloured, turned));
+    check(!gpu.debugErrors(), "enhance shape: no D3D12 debug errors");
+}
+
 void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict);
 // Network size per tier (no runtime needed): 4K never runs RIFE at 4K, small pictures stay full size
 // (Fast stays at half), and every scale keeps at least the tier's pixel budget order.
@@ -1192,6 +1472,8 @@ int main() {
     testCompareBadges(gpu, true);
     testHudSampler(gpu);
     testHudLock(gpu);
+    testAmbient(gpu);
+    testEnhanceShape(gpu);
     testPushFlowSizes();
     testPushFlow(gpu);
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "OK", failures);
