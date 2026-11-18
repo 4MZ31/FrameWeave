@@ -311,8 +311,13 @@ mode or in streaming mode.
 - **Everything stays on the graphics card**: a compute pass packs the two frames into the network's input
   (once per pair; later frames only change the time), the network runs on PushFPS's own GPU queue, and a
   second pass turns the result back into a picture, with no copies through the CPU.
-- **Half precision when your card gets it right**: a start-up self-check compares fp16 with fp32 on your
-  graphics card and falls back to fp32 when they differ.
+- **Never waits on the CPU**: each generated frame is queued on the GPU and the next step follows it there,
+  so the engine thread keeps running while the network works (since 3.2.0).
+- **Tells you when your card can't keep up**: if nearly every frame pair has to be skipped, PushFlow steps
+  down one tier and says why, where it used to sit at the game's frame rate without a word.
+- **Half precision, tested safely**: *Professional → Frame generation → PushFlow half precision → Test* tries
+  the faster fp16 model in a separate process and turns it on only when the picture matches and it really
+  is faster on your card. A driver fault in that test can't touch PushFPS.
 - **Measure your card**: `PushFlowBench.exe`, next to `PushFPS.exe`, writes PushFlow's timings on your card
   as JSON. Details: [docs/PUSHFLOW.md](docs/PUSHFLOW.md).
 - Works with HUD protection, Live HUD Lock, the adaptive multiplier, recording and going live.
@@ -343,6 +348,11 @@ Every number is measured on the real picture: PushFPS times each frame it hands 
 frame's latency, after the settings are applied and warmed up, over a 6-second window per combination. A
 combination only counts when it really generated frames, reached 95 % of its target, kept its 1% low at
 80 % of the target, dropped under 1 % of the capture card's frames, and added no more than 60 ms of latency.
+
+It works the same with a capture card and with PS5 or Xbox Remote Play: it measures whatever picture is on
+screen. If PushFPS ever stops while it is testing a method, your settings from before the run come back at the
+next start, and that method is not tested again in that version, so one method that fails on your PC can't
+break the optimisation (since 3.2.0).
 
 ## Game presets
 
@@ -412,7 +422,8 @@ even grid before frames are generated. It fits a line through the arrival times 
 game becomes 33/33. It only acts on what it can explain as uneven delivery of a locked frame rate. A stall
 restarts it, and a game whose frame rate genuinely varies keeps its own timing. A frame is shown at most one
 capture refresh later; for the common 17/50 ms pattern about half a refresh. The quick setup shows how much of the
-picture it is re-timing. It needs automatic duplicate removal, which it turns on.
+picture it is re-timing. It needs automatic duplicate removal, which it turns on. Since 3.2.0 it is on by
+default; the switch stays in the quick setup.
 
 ## Live HUD Lock
 
@@ -427,9 +438,11 @@ generates inside its own presenter, so it can't be combined.
 ## Automatic HUD detection
 
 Click **HUD protection** in the quick setup while your game is playing, then **Detect automatically** and
-turn the camera or walk around for about five seconds. PushFPS looks for the parts of the picture that keep
-their detail while everything else moves (minimap, health, ammo, prompts) and draws up to four green boxes
-around them on a frame of your own game.
+turn the camera or walk around for about five seconds. PushFPS looks for the parts of the picture that hold
+still while everything else moves (minimap, health, ammo, prompts) and draws up to four green boxes
+around them on a frame of your own game. Since 3.2.0 it looks at every pixel of a 1080p copy of the picture,
+so it also finds text drawn straight over the game, thin bars and a minimap whose map scrolls; the first
+version only found HUD elements on solid panels, which few games have.
 
 If a box is off, fix it by hand: drag a box to move it, drag its corners to resize it, drag on an empty spot
 to draw a new one, and use the **×** on the selected box to delete it. **Apply** protects the boxes: those
@@ -864,6 +877,8 @@ Veyra keep merging cleanly. The PushFPS name and links live in
 [`include/veyra/Brand.h`](include/veyra/Brand.h).
 
 ## Credits and license
+
+PushFPS is made by **DosukaSOL** ([@DosukaSOL on X](https://x.com/DosukaSOL)).
 
 PushFPS is built on **[Veyra](https://github.com/Likely7/Veyra-NRVideo)** by
 **[Likely7](https://github.com/Likely7)** (GPL-3.0). It started from Veyra on 2026-11-12 and is now its own

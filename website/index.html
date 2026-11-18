@@ -171,7 +171,7 @@
       </picture>
       <div>
         <h3>PushFlow: our own frame generation</h3>
-        <p>PushFlow runs RIFE, an open neural network for in-between frames, through DirectML, so it works on NVIDIA, AMD and Intel graphics cards alike. Pick 2&times;, 3&times; or 4&times; and a tier: Fast, Balanced or Quality. It's in Professional mode and in streaming mode, and the optimiser can measure it on your own game.</p>
+        <p>PushFlow runs RIFE, an open neural network for in-between frames, through DirectML, so it works on NVIDIA, AMD and Intel graphics cards alike. Pick 2&times;, 3&times; or 4&times; and a tier: Fast, Balanced or Quality. It never waits on the CPU for a frame, and if your card can't keep up with a tier it steps down and tells you. It's in Professional mode and in streaming mode, and the optimiser can measure it on your own game.</p>
       </div>
     </div>
 
@@ -187,7 +187,7 @@
         </button>
         <button role="tab" id="t-hud" aria-controls="p-show" aria-selected="false" data-shot="hud-protection" data-alt="HUD protection dialog with automatic detection and editable boxes">
           <b>HUD that stays sharp</b>
-          <span>Automatic HUD detection finds the minimap, health and ammo, and keeps the console's own pixels there. Drag the boxes to correct them, or start from a game preset such as GTA VI.</span>
+          <span>Automatic HUD detection finds the minimap, health, ammo and text drawn straight over the game, and keeps the console's own pixels there. Drag the boxes to correct them, or start from a game preset such as GTA VI.</span>
         </button>
         <button role="tab" id="t-presets" aria-controls="p-show" aria-selected="false" data-shot="game-presets" data-alt="Game presets dialog with GTA VI selected">
           <b>Game presets</b>
@@ -531,7 +531,7 @@
 <section class="section" id="credits">
   <div class="wrap">
     <h2>Credits and license</h2>
-    <p class="credit-note">PushFPS is built on <a href="https://github.com/Likely7/Veyra-NRVideo">Veyra</a>, the open-source video enhancer by Likely7. ANR frame generation is Apex Neural Rendering from <a href="https://apexcompute.com">Apex Compute</a>; PushFPS contains no ANR files (you download ANR from Apex) and isn't affiliated with Apex Compute. PushFlow runs <a href="https://github.com/hzwer/Practical-RIFE">RIFE</a> by hzwer (MIT).</p>
+    <p class="credit-note">PushFPS is made by <a href="https://x.com/DosukaSOL" rel="noopener">DosukaSOL</a>. It is built on <a href="https://github.com/Likely7/Veyra-NRVideo">Veyra</a>, the open-source video enhancer by Likely7. ANR frame generation is Apex Neural Rendering from <a href="https://apexcompute.com">Apex Compute</a>; PushFPS contains no ANR files (you download ANR from Apex) and isn't affiliated with Apex Compute. PushFlow runs <a href="https://github.com/hzwer/Practical-RIFE">RIFE</a> by hzwer (MIT).</p>
     <div class="license">
       <p><b>License.</b> PushFPS is free software under the <a href="https://github.com/DosukaSOL/PushFPS/blob/main/LICENSE">GNU GPL-3.0</a>. PS5 streaming uses chiaki-ng (AGPL-3.0 with an OpenSSL exception), PC streaming uses moonlight-common-c (GPL-3.0), and Xbox streaming uses libdatachannel (MPL-2.0); each release attaches the exact source of these libraries. Modification notice and third-party notices: <a href="https://github.com/DosukaSOL/PushFPS/blob/main/NOTICE.md">NOTICE.md</a>, <a href="https://github.com/DosukaSOL/PushFPS/blob/main/THIRD_PARTY_NOTICES.md">THIRD_PARTY_NOTICES.md</a>.</p>
       <p>PushFPS incorporates the NVIDIA DLSS SDK and NGX SDK under the NVIDIA RTX SDKs License. NVIDIA, NVIDIA RTX and DLSS are trademarks of NVIDIA Corporation. PushFPS isn't sponsored or endorsed by NVIDIA, AMD, Intel, Sony, Microsoft, Nintendo or any game publisher. PlayStation, Xbox and Nintendo Switch are trademarks of their owners. This website uses the Barlow typeface (SIL Open Font License).</p>
