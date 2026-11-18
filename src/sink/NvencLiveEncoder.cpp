@@ -139,6 +139,14 @@ bool NvencLiveEncoder::open(ID3D12Device* device,const Config& config,const std:
         cfg.rcParams.vbvBufferSize=bits/2;
         cfg.rcParams.vbvInitialDelay=cfg.rcParams.vbvBufferSize;
     }
+    if(config.multipass&&config.rateControl!=2)
+        cfg.rcParams.multiPass=config.multipass>=2?NV_ENC_TWO_PASS_FULL_RESOLUTION:NV_ENC_TWO_PASS_QUARTER_RESOLUTION;
+    if(config.psychoAq){
+        cfg.rcParams.enableAQ=1;
+        int temporal=0;caps.capsToQuery=NV_ENC_CAPS_SUPPORT_TEMPORAL_AQ;
+        p.api.nvEncGetEncodeCaps(p.encoder,codec,&caps,&temporal);
+        if(temporal)cfg.rcParams.enableTemporalAQ=1;
+    }
     if(config.hevc){
         auto& hevc=cfg.encodeCodecConfig.hevcConfig;
         hevc.idrPeriod=cfg.gopLength;hevc.repeatSPSPPS=1;

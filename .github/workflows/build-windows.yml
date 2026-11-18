@@ -564,6 +564,25 @@ jobs:
             Write-Host "$($pa -join ' '): no QML errors"
           }
           Remove-Item Env:VEYRA_LOG_FILE
+          # The in-app update path, with the same tools and arguments PushFPS uses (UpdateChecker.cpp
+          # unpackAndLaunch): Windows' tar unpacks the release zip, then the installer from that folder
+          # installs over the running copy's folder and waits for the old process. Only the download
+          # and signature check are left out here (unit-tested in UpdateVerifyTests).
+          $old = Start-Process D:\pf-install\PushFPS.exe -PassThru -ArgumentList @('--data-dir', 'D:\pf-pages\data-update', '--exit-after', '8000')
+          New-Item -ItemType Directory -Force D:\pf-update\files | Out-Null
+          & "$env:SystemRoot\System32\tar.exe" -xf $zip -C D:\pf-update\files
+          if ($LASTEXITCODE -ne 0) { throw "tar could not unpack the release zip (exit $LASTEXITCODE)" }
+          if (-not (Test-Path D:\pf-update\files\Install-PushFPS.ps1)) { throw 'the installer is not at the top of the release zip' }
+          Set-Content D:\pf-install\PushFPS-update-marker.txt 'kept'
+          Set-Content D:\pf-update\empty.txt ''
+          $u = Start-Process powershell.exe -PassThru -Wait -RedirectStandardInput D:\pf-update\empty.txt -RedirectStandardOutput D:\pf-update\out.txt -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'D:\pf-update\files\Install-PushFPS.ps1',
+            '-Gpu', 'NVIDIA', '-InstallDir', 'D:\pf-install', '-NoShortcuts', '-ExperimentalExtras', 'No', '-WaitForPid', "$($old.Id)", '-NoLaunch')
+          Get-Content D:\pf-update\out.txt -ErrorAction SilentlyContinue | Out-Host
+          if ($u.ExitCode -ne 0) { throw "the update install failed (exit $($u.ExitCode))" }
+          if (-not $old.HasExited) { throw 'the installer did not wait for the running PushFPS' }
+          if (-not (Test-Path D:\pf-install\PushFPS-update-marker.txt)) { throw 'the update removed a file it should have kept' }
+          if ((Get-Content D:\pf-install\PushFPS-VERSION.txt -Raw) -notmatch "PushFPS $([regex]::Escape($env:PUSHFPS_VERSION))") { throw 'PushFPS-VERSION.txt does not name this version after the update' }
+          Write-Host 'Update path: tar unpack, install over the old copy while it closes, version record written.'
 
       # Corresponding source of the streaming libraries compiled into PushFPS.exe: Chiaki-ng with
       # Veyra's patches applied (AGPL-3.0 with the OpenSSL exception), moonlight-common-c with ENet

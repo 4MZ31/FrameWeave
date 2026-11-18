@@ -56,4 +56,7 @@ inline constexpr const char* kAnrReleasesUrl = "https://github.com/apex-compute/
 // PushFlow (PushFPS's own frame generation) runs RIFE (MIT, hzwer); credited in About.
 inline constexpr const char* kRifeUrl = "https://github.com/hzwer/Practical-RIFE";
 inline constexpr const char* kApexUrl = "https://apexcompute.com";
+// PushFPS is made by DosukaSOL; credited in About with a link to X.
+inline constexpr const char* kCreatorName = "DosukaSOL";
+inline constexpr const char* kCreatorUrl = "https://x.com/DosukaSOL";
 }

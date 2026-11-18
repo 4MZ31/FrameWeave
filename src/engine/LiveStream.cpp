@@ -275,6 +275,7 @@ struct Outputs::Connection {
             }
             say("live");
             setState(State::Live);
+            const auto wentLive = std::chrono::steady_clock::now();
             { std::lock_guard lk(m); needKey = true; rateSince = std::chrono::steady_clock::now(); rateBytes = 0; }
             int64_t base = INT64_MIN, lastVideo = INT64_MIN, lastAudio = INT64_MIN;
             bool ok = true, ending = false;
@@ -337,9 +338,18 @@ struct Outputs::Connection {
             { std::lock_guard lk(m); ++st.reconnects; }
             if (failures >= kMaxReconnects) { setState(State::Failed, "too many reconnects"); break; }
             setState(State::Reconnecting);
+            // A connection that held (kStableSeconds) starts the back-off low again. One the server
+            // closed right after accepting it (a wrong or expired stream key, a second stream on the
+            // same key) is a failed attempt like any other: it backs off 2, 4, 8 ... 30 s and ends as
+            // Failed, where it used to reconnect every 2 s for as long as the stream ran.
+            const bool held = std::chrono::steady_clock::now() - wentLive >= std::chrono::seconds(kStableSeconds);
+            if (held) failures = 1;
+            const auto wait = std::chrono::seconds(std::min(30, 1 << std::min(failures, 5u)));
             std::unique_lock lk(m);
-            cv.wait_for(lk, std::chrono::seconds(2), [&] { return stopping; });
-            failures = std::min(failures, 3u);  // a connection that was live starts the back-off low again
+            if (!held && st.error.rfind("connection lost", 0) == 0) st.error += " right after connecting (check the stream key)";
+            cv.wait_for(lk, wait, [&] { return stopping; });
+            st.framesDropped += std::count_if(queue.begin(), queue.end(), [](const Packet& p) { return p.video; });
+            queue.clear(); queuedBytes = 0; needKey = true;
         }
         std::lock_guard lk(m);
         if (st.state != State::Failed) st.state = State::Stopped;

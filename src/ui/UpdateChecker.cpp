@@ -100,13 +100,16 @@ void UpdateChecker::finish() {
         failure_ = QStringLiteral("http-%1-network-%2").arg(status).arg(int(reply->error()));
     reply_ = nullptr;
     reply->deleteLater();
-    QString result;
+    QString result, versions;
     if (failure_.isEmpty()) {
         QJsonParseError error;
         const auto document = QJsonDocument::fromJson(body_, &error);
         const auto obj = document.object();
         const auto tag = obj.value(QStringLiteral("tag_name")).toString();
         const auto remote = versionNumber(tag, false), local = localVersion();
+        // Both versions in the log: "an update is offered although I am on the latest" can then be
+        // answered from a user's log file.
+        versions = QStringLiteral(" installed=%1 build=%2 latest=%3").arg(local.toString(), currentVersion_, remote.toString());
         const QUrl url(obj.value(QStringLiteral("html_url")).toString());
         const bool validUrl = url.scheme() == QStringLiteral("https") && url.host() == QStringLiteral("github.com")
             && url.userInfo().isEmpty() && url.port(-1) == -1 && !url.hasQuery() && !url.hasFragment()
@@ -144,7 +147,7 @@ void UpdateChecker::finish() {
         result = failure_;
     }
     body_.clear();
-    qInfo().noquote() << "[update-check]" << result;
+    qInfo().noquote() << "[update-check]" << result + versions;
     emit checkingChanged();
     emit completed(result);
 }

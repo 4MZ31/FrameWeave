@@ -457,6 +457,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
     bool hevc=false,nvenc=false;
     // PushFPS advanced recording (RecordingSettings).
     uint32_t rateControl=1,quality=22,preset=4,keyframeSeconds=2,audioKbps=192;
+    uint32_t multipass=0;bool psychoAq=false;   // PushFPS encoder tuning (NVENC)
     bool matroska=false;
     bool compareClip=false;                     // RecordingCompare: split comparison picture
     RecordingLabelRenderer compareLabels;
@@ -831,14 +832,27 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
         sink::NvencLiveEncoder::Config config;
         config.width=width;config.height=height;config.hevc=hevc;config.hdr=hdrMode!=0;config.fps=fps;config.bitrateMbps=bitrateMbps;config.bitrateKbps=bitrateKbps;
         config.rateControl=rateControl;config.qp=quality;config.preset=preset;config.keyframeSeconds=keyframeSeconds;
+        config.multipass=multipass;config.psychoAq=psychoAq;
         std::vector<ID3D12Resource*> inputs;for(auto& slot:slots)inputs.push_back(slot.nv12.Get());
-        if(!encoder.open(device.Get(),config,inputs)){
+        bool opened=encoder.open(device.Get(),config,inputs);
+        if(!opened&&(config.multipass||config.psychoAq)){
+            // The tuning first: a GPU that refuses two-pass or AQ keeps the other chosen settings.
+            veyra::log::warn("live-recorder",std::format("encoder tuning refused ({}); encoding without two-pass and AQ",utf8(encoder.lastError())));
+            encoder.close();
+            config.multipass=0;config.psychoAq=false;
+            opened=encoder.open(device.Get(),config,inputs);
+            if(opened)setNote(L"显卡不支持二次编码或心理视觉调优，已按不带这两项的设置编码");
+        }
+        if(!opened){
             // PushFPS: advanced settings this GPU refuses fall back to the standard ones.
-            const bool standard=config.rateControl==1&&config.preset==4&&config.keyframeSeconds==2;
+            // Going live stays on a constant bitrate: the platforms need it (this fallback used to
+            // switch a refused stream encoder to VBR).
+            const uint32_t standardRate=streamTargets.empty()?1u:0u;
+            const bool standard=config.rateControl==standardRate&&config.preset==4&&config.keyframeSeconds==2;
             if(standard){fail(L"NVENC 无法开始录制："+encoder.lastError());return;}
             veyra::log::warn("live-recorder",std::format("advanced encoder settings refused ({}); using the standard ones",utf8(encoder.lastError())));
             encoder.close();
-            config.rateControl=1;config.preset=4;config.keyframeSeconds=2;
+            config.rateControl=standardRate;config.preset=4;config.keyframeSeconds=2;
             if(!encoder.open(device.Get(),config,inputs)){fail(L"NVENC 无法开始录制："+encoder.lastError());return;}
             setNote(L"显卡不支持所选的高级编码设置，已改用标准设置录制");
         }
@@ -1015,6 +1029,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
         veyra::log::info("live-recorder",std::format("file open path={} extent={}x{} codec={} hdr={} fps={} bitrateMbps={} audio={} sound={} microphone={} tracks={} rc={} quality={} preset={} keyframeS={} audioKbps={} container={}",
             utf8(path),width,height,hevc?"HEVC":"H264",hdrMode,fps,bitrateMbps,audio.load(),sound,microphone?(microphoneTrack?"track":"mixed"):"off",trackCount,
             rateControl,quality,preset,keyframeSeconds,audioKbps,matroska?"mkv":"mp4"));
+        if(multipass||psychoAq)veyra::log::info("live-recorder",std::format("encoder tuning multipass={} psychoAq={} (NVENC only)",multipass,psychoAq));
         return true;
     }
     // The instant replay buffer takes what a file would: the encoder's
@@ -1297,6 +1312,7 @@ bool LiveRecorder::start(const RecordingSettings& settings,std::wstring& error){
             o.microphoneTrack==settings.microphoneTrack&&o.replaySeconds==settings.replaySeconds&&o.replayMemoryBytes==settings.replayMemoryBytes&&
             o.rateControl==settings.rateControl&&o.quality==settings.quality&&o.preset==settings.preset&&
             o.keyframeSeconds==settings.keyframeSeconds&&o.audioKbps==settings.audioKbps&&o.bitrateKbps==settings.bitrateKbps&&
+            o.multipass==settings.multipass&&o.psychoAq==settings.psychoAq&&
             o.outputWidth==settings.outputWidth&&o.outputHeight==settings.outputHeight&&o.canvas.fit==settings.canvas.fit;
         s.settings=settings;
         if(s.settings.replaySeconds==0)s.settings.replaySeconds=60;
@@ -1573,6 +1589,7 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         segment->rateControl=std::min(s.settings.rateControl,2u);segment->quality=std::clamp(s.settings.quality,1u,51u);
         segment->preset=std::clamp(s.settings.preset,1u,7u);segment->keyframeSeconds=std::clamp(s.settings.keyframeSeconds,1u,10u);
         segment->audioKbps=std::clamp(s.settings.audioKbps,64u,320u);
+        segment->multipass=std::min(s.settings.multipass,2u);segment->psychoAq=s.settings.psychoAq;
         segment->matroska=s.settings.matroska&&!s.replayMode;
         segment->compareClip=s.settings.compare&&!s.replayMode;
         segment->compareLabels=s.settings.compareLabels;

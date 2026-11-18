@@ -74,6 +74,9 @@ engine::RecordingSettings QmlPlayerBridge::recordingOptions() const {
         options.keyframeSeconds = uint32_t(std::clamp(impl_->prefInt("recordKeyframe", 2), 1, 10));
         options.audioKbps = uint32_t(std::clamp(impl_->prefInt("recordAudioKbps", 192), 64, 320));
         options.matroska = impl_->prefInt("recordContainer", 0) == 1;
+        // Encoder tuning (NVENC): two-pass and psycho-visual AQ.
+        options.multipass = uint32_t(std::clamp(impl_->prefInt("recordMultipass", 0), 0, 2));
+        options.psychoAq = impl_->prefBool("recordPsychoAq", false);
     }
     // Tests only: a small memory cap shows what the cap does.
     if (const int mb = qEnvironmentVariableIntValue("VEYRA_TEST_REPLAY_MEMORY_MB"); mb > 0) options.replayMemoryBytes = uint64_t(mb) << 20;

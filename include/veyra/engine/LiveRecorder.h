@@ -58,6 +58,11 @@ struct RecordingSettings {
     uint32_t keyframeSeconds=2;  // keyframe interval
     uint32_t audioKbps=192;      // AAC bitrate per track
     bool matroska=false;         // MKV instead of fragmented MP4 (recordings; replays stay MP4)
+    // PushFPS encoder tuning (NVENC; other encoders ignore it): a two-pass encode (1 quarter, 2 full
+    // resolution first pass) and psycho-visual tuning (spatial and temporal AQ). Recordings, replays
+    // and going live.
+    uint32_t multipass=0;
+    bool psychoAq=false;
     // PushFPS before/after comparison clip (RecordingCompare.h): left half the
     // console's real frames, right half every presented frame. Recordings only.
     bool compare=false;

@@ -28,6 +28,11 @@ public:
         uint32_t qp=22;          // constant QP (1..51, lower is better)
         uint32_t preset=4;       // NVENC P1 (fastest) .. P7 (best quality)
         uint32_t keyframeSeconds=2;
+        // PushFPS encoder tuning (off = the settings above, unchanged). multipass: 1 a first pass
+        // at quarter resolution, 2 at full resolution (better bit distribution, more encoder
+        // load; not with constant QP). psychoAq: spatial AQ, plus temporal AQ where this GPU has it.
+        uint32_t multipass=0;
+        bool psychoAq=false;
     };
     struct Packet {
         std::vector<uint8_t> data;

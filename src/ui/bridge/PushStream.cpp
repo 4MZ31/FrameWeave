@@ -152,6 +152,9 @@ bool QmlPlayerBridge::pushStartStream() {
     options.microphoneTrack = false;
     options.audioKbps = std::min(uint32_t(std::clamp(impl_->prefInt("streamAudioKbps", 160), 64, 320)), audioCap);
     options.preset = uint32_t(std::clamp(impl_->prefInt("streamEncoderPreset", 4), 1, 7));
+    // Encoder tuning (NVENC): two-pass rate control and psycho-visual AQ, as streaming software offers.
+    options.multipass = uint32_t(std::clamp(impl_->prefInt("streamMultipass", 0), 0, 2));
+    options.psychoAq = impl_->prefBool("streamPsychoAq", false);
     std::wstring error;
     if (!impl_->engine.requestStreaming(options, error)) { emit notice(uiText(error), true); return false; }
     veyra::log::info("ui-stream", std::format("go live outputs={} [{}] bitrateKbps={} fps={} size={}x{} keyframe={}s audioKbps={} preset={} audio={} microphone={}",

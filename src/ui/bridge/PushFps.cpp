@@ -381,6 +381,7 @@ QString QmlPlayerBridge::pushLinkUrl(const QString& key) const {
     if (key == QLatin1String("rife")) return QString::fromLatin1(brand::kRifeUrl);
     if (key == QLatin1String("anrReleases")) return QString::fromLatin1(brand::kAnrReleasesUrl);
     if (key == QLatin1String("apex")) return QString::fromLatin1(brand::kApexUrl);
+    if (key == QLatin1String("creator")) return QString::fromLatin1(brand::kCreatorUrl);
     if (key == QLatin1String("frameInputDocs")) return QString::fromLatin1(brand::kRepositoryUrl) + QStringLiteral("/blob/main/docs/FRAME-INPUT-API.md");
     return {};
 }
@@ -673,6 +674,21 @@ void QmlPlayerBridge::pushFlowBudgetWatch() {
     if (now - w.last < std::chrono::seconds(1)) return;
     w.last = now;
     const auto& s = impl_->snapshot;
+    // The cadence notice (same second tick): the game is set to 30 FPS, the capture runs at 60 and
+    // automatic duplicate removal still sees a new picture in every sample. Some capture cards add
+    // noise to repeated pictures; frame generation then works on 17 ms pairs and live play judders.
+    // The quick setup has the one-click fix; this says so once per source, on whatever page is open.
+    // It is not switched automatically: a game that really runs at 60 would be halved.
+    {
+        const bool mismatch = s.running && s.capture && s.fgActive && contentRate() == int(engine::ContentRate::Auto) &&
+            impl_->prefs.value(QStringLiteral("pushGameFps")).toInt() == 30 && std::abs(s.captureFps - 60.0) < 3.0 && s.contentFps > 45;
+        w.cadenceSeconds = mismatch ? w.cadenceSeconds + 1 : 0;
+        if (w.cadenceSeconds >= 8 && w.cadenceSession != s.sessionId) {
+            w.cadenceSession = s.sessionId;
+            veyra::log::warn("push-cadence", std::format("game set to 30 but content measured {} at capture {:.1f}; suggested the fixed 60->30 mode", s.contentFps, s.captureFps));
+            emit notice(tr("游戏帧率设为 30，但每一帧采集画面都被当作新画面（%1 FPS），实时画面会不如录像流畅。如果游戏确实是 30 FPS，请在快速设置里把去重改为「60→30」").arg(s.contentFps), false);
+        }
+    }
     const auto reset = [&] { w.starved = 0; w.settledSeconds = 0; };
     if (!s.running || !s.fgActive || s.pushFlowPrecision.empty() || fgBackendName() != QLatin1String("pushflow")) { reset(); return; }
     // "Optimise for my PC" measures every tier itself: never change one under it.
@@ -750,20 +766,20 @@ bool QmlPlayerBridge::pushTestPushFlowHalf() {
         const bool crashed = status != QProcess::NormalExit || code != 0 || r.isEmpty();
         veyra::log::info("pushflow", std::format("fp16 probe exit={} crashed={} result={} output={}", code, crashed ? 1 : 0,
             QJsonDocument(r).toJson(QJsonDocument::Compact).toStdString(), console.left(400).simplified().toStdString()));
-        if (crashed) { r = QJsonObject{{"ok", false}, {"reason", "probe-stopped"}}; }
-        r["when"] = QDateTime::currentDateTime().toString(Qt::ISODate);
-        const bool ok = r.value("ok").toBool();
+        if (crashed) { r = QJsonObject{{QStringLiteral("ok"), false}, {QStringLiteral("reason"), QStringLiteral("probe-stopped")}}; }
+        r[QStringLiteral("when")] = QDateTime::currentDateTime().toString(Qt::ISODate);
+        const bool ok = r.value(QStringLiteral("ok")).toBool();
         setPreference(QStringLiteral("pushFlowHalfProbe"), QString::fromUtf8(QJsonDocument(r).toJson(QJsonDocument::Compact)));
         setPreference(QStringLiteral("pushFlowHalf"), ok);
-        const QString reason = r.value("reason").toString();
-        const QString full = QString::number(r.value("fullMs").toDouble(), 'f', 1), half = QString::number(r.value("halfMs").toDouble(), 'f', 1);
+        const QString reason = r.value(QStringLiteral("reason")).toString();
+        const QString full = QString::number(r.value(QStringLiteral("fullMs")).toDouble(), 'f', 1), half = QString::number(r.value(QStringLiteral("halfMs")).toDouble(), 'f', 1);
         if (ok)
             emit notice(tr("半精度在这块显卡上可用：每帧 %1 ms，全精度 %2 ms，画面一致（%3 dB）。已开启，下次启动 PushFlow 时生效")
-                .arg(half, full, QString::number(r.value("matchDb").toDouble(), 'f', 1)), false);
+                .arg(half, full, QString::number(r.value(QStringLiteral("matchDb")).toDouble(), 'f', 1)), false);
         else if (reason == QLatin1String("not-faster"))
             emit notice(tr("半精度在这块显卡上没有更快（%1 ms，全精度 %2 ms），继续使用全精度").arg(half, full), false);
         else if (reason == QLatin1String("fp16-mismatch"))
-            emit notice(tr("半精度的画面和全精度不一致（%1 dB），继续使用全精度").arg(QString::number(r.value("matchDb").toDouble(), 'f', 1)), false);
+            emit notice(tr("半精度的画面和全精度不一致（%1 dB），继续使用全精度").arg(QString::number(r.value(QStringLiteral("matchDb")).toDouble(), 'f', 1)), false);
         else
             emit notice(tr("半精度测试没有完成（显卡驱动或 DirectML 在半精度下出错），继续使用全精度。PushFPS 不受影响"), false);
     });

@@ -256,7 +256,7 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"recordRateControl", {0, 2}},
         {"recordQuality", {1, 51}},
         {"recordPreset", {1, 7}},
-        {"recordKeyframe", {1, 10}},
+        {"recordKeyframe", {1, 10}}, {"recordMultipass", {0, 2}}, {"streamMultipass", {0, 2}},
         {"recordAudioKbps", {64, 320}},
         {"recordContainer", {0, 1}},
         // Instant replay (#103): seconds the buffer keeps.
@@ -290,7 +290,7 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    // PushFPS: on-screen latency readout, fullscreen on connect, window on top.
                                    "pushLatencyOverlay", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset",
                                    // PushFPS: smooth frame pacing (quick setup); set once by the 2.9.7 default.
-                                   "pushSmoothPacing", "pushSmoothPacing2",
+                                   "pushSmoothPacing", "pushSmoothPacing2", "pushPacingRepair1",
                                    // PushFPS going live: sound and microphone in the stream.
                                    "streamAudio", "streamMic",
                                    // PushFPS streaming mode mixer: mutes and the microphone filters.
@@ -298,7 +298,9 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    // PushFPS streaming mode: desktop audio and the extra input on / muted.
                                    "mixDesktopOn", "mixDesktopMuted", "mixAuxOn", "mixAuxMuted",
                                    // PushFPS: PushFlow half precision, turned on after PushFlowBench --fp16-probe passed.
-                                   "pushFlowHalf"};
+                                   "pushFlowHalf",
+                                   // PushFPS encoder tuning (NVENC): psycho-visual AQ for recordings and streams.
+                                   "recordPsychoAq", "streamPsychoAq"};
     QVariant stored;
     if (ranges.contains(key)) {
         bool ok = false; const int n = value.toInt(&ok);
@@ -522,7 +524,8 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
                                         "recordWidth", "recordHeight", "recordFit", "recordBitrateKbps",
                                         "recordAudio", "recordMic", "recordMicDevice", "recordMicTrack",
                                         // PushFPS advanced recording
-                                        "recordAdvanced", "recordRateControl", "recordQuality", "recordPreset", "recordKeyframe", "recordAudioKbps"};
+                                        "recordAdvanced", "recordRateControl", "recordQuality", "recordPreset", "recordKeyframe", "recordAudioKbps",
+                                        "recordMultipass", "recordPsychoAq"};
     if (replayKeys.contains(key)) syncReplay();
     if(key==QLatin1String("hdrFgCompatibility")){
         impl_->presentation.hdrFgCompatibility=impl_->prefBool("hdrFgCompatibility",false);

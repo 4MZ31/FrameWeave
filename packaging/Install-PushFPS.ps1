@@ -49,7 +49,20 @@ $desktop = Join-Path ([Environment]::GetFolderPath('Desktop')) 'PushFPS.lnk'
 
 function Step([string]$text) { Write-Host ''; Write-Host "  $text" -ForegroundColor Green }
 function Info([string]$text) { Write-Host "    $text" }
-function Fail([string]$text) { Write-Host ''; Write-Host "  $text" -ForegroundColor Red; exit 1 }
+function Fail([string]$text) {
+    Write-Host ''; Write-Host "  $text" -ForegroundColor Red
+    if ($WaitForPid -gt 0) {
+        # An update started inside PushFPS: the program has closed by now. Say what happened, start the
+        # copy that is still installed and keep this window open so the reason can be read.
+        Write-Host '  The update did not finish. You can run it again from PushFPS, or download the release by hand.' -ForegroundColor Yellow
+        try {
+            $existing = Join-Path $InstallDir 'PushFPS.exe'
+            if ((Test-Path $existing) -and -not (Get-Process -Name 'PushFPS' -ErrorAction SilentlyContinue)) { Start-Process -FilePath $existing -WorkingDirectory $InstallDir }
+        } catch { }
+        if (-not [Console]::IsInputRedirected) { Read-Host '  Press Enter to close this window' | Out-Null }
+    }
+    exit 1
+}
 
 Write-Host ''
 Write-Host "  PushFPS $PushFpsVersion" -ForegroundColor Green

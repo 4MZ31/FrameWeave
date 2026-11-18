@@ -86,6 +86,7 @@ struct VideoFormat {
 class Outputs {
 public:
     static constexpr unsigned kMaxReconnects = 20;
+    static constexpr unsigned kStableSeconds = 20;   // a connection live this long was a working one
     using Logger = std::function<void(const std::string&)>;
     explicit Outputs(Logger log = {});
     ~Outputs();

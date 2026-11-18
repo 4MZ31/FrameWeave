@@ -916,6 +916,27 @@ VPage {
                                 }
                             }
                             VRow {
+                                label: qsTr("二次编码")
+                                help: qsTr("编码器先快速分析一遍画面，再决定每一帧用多少码率。同样的码率下，快速运动和复杂画面更清晰")
+                                hint: qsTr("仅 NVIDIA（NVENC）。四分之一分辨率的首遍负担小；完整分辨率最好但最重。恒定质量模式下不起作用；标准为关闭")
+                                VSeg {
+                                    objectName: "set-recmultipass"
+                                    options: [{ id: "0", label: qsTr("关闭", "off") }, { id: "1", label: qsTr("四分之一") }, { id: "2", label: qsTr("完整") }]
+                                    current: String(veyra.preferences.recordMultipass !== undefined ? veyra.preferences.recordMultipass : 0)
+                                    onPicked: id => veyra.setPreference("recordMultipass", Number(id))
+                                }
+                            }
+                            VRow {
+                                label: qsTr("心理视觉调优")
+                                help: qsTr("自适应量化：把码率从看不出差别的地方挪到眼睛更敏感的地方（平坦的天空、暗部、静止的细节），减少色块")
+                                hint: qsTr("仅 NVIDIA（NVENC）：空间自适应量化，显卡支持时加上时间自适应量化；标准为关闭")
+                                VSwitch {
+                                    objectName: "set-recpsychoaq"
+                                    checked: veyra.preferences.recordPsychoAq === true
+                                    onToggled: v => veyra.setPreference("recordPsychoAq", v)
+                                }
+                            }
+                            VRow {
                                 label: qsTr("恢复标准设置")
                                 hint: qsTr("显卡不支持某个组合时，录制会自动改用标准设置并提示")
                                 VButton {
@@ -926,6 +947,7 @@ VPage {
                                         veyra.setPreference("recordRateControl", 1); veyra.setPreference("recordQuality", 22)
                                         veyra.setPreference("recordPreset", 4); veyra.setPreference("recordKeyframe", 2)
                                         veyra.setPreference("recordAudioKbps", 192); veyra.setPreference("recordContainer", 0)
+                                        veyra.setPreference("recordMultipass", 0); veyra.setPreference("recordPsychoAq", false)
                                     }
                                 }
                             }
@@ -1628,6 +1650,17 @@ VPage {
                         wrapMode: Text.WordWrap
                     }
                     VGroup {
+                        VRow {
+                            objectName: "about-creator-row"
+                            label: "PushFPS"
+                            hint: qsTr("由 DosukaSOL 制作 · X：@DosukaSOL")
+                            VButton {
+                                objectName: "about-open-creator"
+                                text: qsTr("在 X 上关注")
+                                iconName: "external"
+                                onClicked: veyra.pushOpenLink("creator")
+                            }
+                        }
                         VRow {
                             label: qsTr("许可证")
                             hint: "GNU GPL-3.0"

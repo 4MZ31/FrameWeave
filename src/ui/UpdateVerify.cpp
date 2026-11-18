@@ -81,7 +81,9 @@ std::optional<InstalledPushFps> parseInstalledVersionFile(const QByteArray& text
     static const QRegularExpression gpu(QStringLiteral("^Runtime: Veyra-[^ ]+-(NVIDIA|AMD)-win64-portable\\.zip"));
     static const QRegularExpression version(QStringLiteral("^PushFPS (\\d+\\.\\d+\\.\\d+)\\s*$"));
     for (const QByteArray& raw : text.split('\n')) {
-        const QString l = QString::fromUtf8(raw).trimmed();
+        // Windows PowerShell writes the file with a byte order mark: never part of the first line.
+        QString l = QString::fromUtf8(raw).trimmed();
+        if (l.startsWith(QChar(0xFEFF))) l = l.mid(1).trimmed();
         if (const auto m = gpu.match(l); m.hasMatch()) { out.gpu = m.captured(1); runtime = true; }
         if (l.startsWith(QStringLiteral("Not installed:"))) out.extras = false;
         if (const auto m = version.match(l); m.hasMatch() && out.version.isNull()) out.version = QVersionNumber::fromString(m.captured(1));
