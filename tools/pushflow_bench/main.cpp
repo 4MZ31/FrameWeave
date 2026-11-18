@@ -12,6 +12,8 @@
 #include "veyra/pipeline/GpuPassUtils.h"
 #include "veyra/RuntimePaths.h"
 
+#include <windows.h>
+#include <psapi.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
 
@@ -156,6 +158,7 @@ int main(int argc, char** argv) {
     bool warp = false, compareShapes = false, compareSync = false, fp16Probe = false;
     uint64_t adapterLuid = 0;
     bool sizesGiven = false, pairsGiven = false;
+    int leakCheck = 0;
     std::string out = "pushflow-bench.json";
     std::wstring runtimeOverride;
     for (int i = 1; i < argc; ++i) {
@@ -165,6 +168,7 @@ int main(int argc, char** argv) {
         else if (a == "--compare-shapes") compareShapes = true;
         else if (a == "--compare-sync") compareSync = true;
         else if (a == "--fp16-probe") fp16Probe = true;
+        else if (a == "--leak-check" && !next.empty()) { leakCheck = std::clamp(std::atoi(next.c_str()), 40, 5000); ++i; }
         else if (a == "--adapter-luid" && !next.empty()) { adapterLuid = std::strtoull(next.c_str(), nullptr, 10); ++i; }
         else if (a == "--runtime" && !next.empty()) { runtimeOverride.assign(next.begin(), next.end()); ++i; }
         else if (a == "--pairs" && !next.empty()) { pairs = std::clamp(std::atoi(next.c_str()), 1, 1000); pairsGiven = true; ++i; }
@@ -196,6 +200,42 @@ int main(int argc, char** argv) {
     if (!gpu.create(warp, adapterLuid)) { std::printf("No D3D12 device\n"); return 1; }
     // The folder holding pushflow\ (runtime\experimental next to PushFPS.exe), or --runtime <folder>.
     const std::wstring runtimeDir = !runtimeOverride.empty() ? runtimeOverride : runtime::localRuntimeDirectory().wstring();
+    if (leakCheck) {
+        // --leak-check N: N queued inferences with no full wait at all (VEYRA_PUSHFLOW_SYNC_EVERY=0), and
+        // this process's committed memory after the first quarter and at the end. On the software
+        // renderer graphics memory is process memory, so work the provider never released shows here.
+        const uint32_t w = sizes.empty() ? 256 : sizes[0].first, h = sizes.empty() ? 160 : sizes[0].second, tier = tiers.empty() ? 0 : tiers[0];
+        SetEnvironmentVariableW(L"VEYRA_PUSHFLOW_SYNC_EVERY", L"0");
+        auto a = frameTexture(gpu, w, h, 0), b = frameTexture(gpu, w, h, 8);
+        auto output = pipeline::makeTexture(gpu.device.Get(), w, h, DXGI_FORMAT_R8G8B8A8_UNORM, false);
+        pushflow::PushFlowBackend flow;
+        if (!a || !b || !output || !flow.initialize(gpu.device.Get(), gpu.queue.Get(), runtimeDir, w, h, DXGI_FORMAT_R8G8B8A8_UNORM, pushflow::Encoding::Encoded, tier)) {
+            std::printf("leak-check: PushFlow did not start\n"); return 1;
+        }
+        const auto committed = [] {
+            PROCESS_MEMORY_COUNTERS_EX pmc{}; pmc.cb = sizeof(pmc);
+            GetProcessMemoryInfo(GetCurrentProcess(), reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&pmc), sizeof(pmc));
+            return double(pmc.PrivateUsage) / 1048576.0;
+        };
+        bool outputState = false;
+        double early = 0;
+        const int quarter = leakCheck / 4;
+        for (int i = 0; i < leakCheck; ++i) {
+            if (!gpu.begin() || !flow.pack(gpu.list.Get(), a.Get(), b.Get(), 0.5f, false) || !gpu.submit() || !flow.infer() || !gpu.begin()) { std::printf("leak-check: run %d failed\n", i); return 1; }
+            D3D12_RESOURCE_BARRIER bar{}; bar.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; bar.Transition.pResource = output.Get();
+            bar.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+            if (!outputState) { bar.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON; bar.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST; gpu.list->ResourceBarrier(1, &bar); outputState = true; }
+            if (!flow.resolve(gpu.list.Get(), a.Get(), b.Get(), output.Get()) || !gpu.submit() || !gpu.wait()) { std::printf("leak-check: run %d failed\n", i); return 1; }
+            if (i + 1 == quarter) early = committed();
+        }
+        const double late = committed();
+        const double perInference = (late - early) * 1024.0 / double(leakCheck - quarter);
+        std::printf("leak-check %ux%u tier %u, %d queued inferences without a full wait: committed %.1f MB after %d, %.1f MB at the end (%+.1f KB per inference) -> %s\n",
+                    w, h, tier, leakCheck, early, quarter, late, perInference, perInference > 64.0 ? "GROWS" : "steady");
+        std::ofstream(out) << std::format("{{\"tool\": \"PushFlowBench\", \"probe\": \"leak\", \"inferences\": {}, \"earlyMB\": {:.1f}, \"lateMB\": {:.1f}, \"kbPerInference\": {:.1f}}}\n",
+                                          leakCheck, early, late, perInference);
+        return 0;
+    }
     if (fp16Probe) {
         // --fp16-probe: is half precision safe and faster on this graphics card? PushFPS runs this in a
         // separate process (Settings -> PushFlow half precision -> Test), so a driver or DirectML fault

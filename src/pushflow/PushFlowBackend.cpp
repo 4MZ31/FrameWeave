@@ -211,7 +211,11 @@ struct PushFlowBackend::Impl {
     OrtRunOptions* runOptions = nullptr;
     bool queued = false;
     uint64_t sinceSync = 0;
-    static constexpr uint64_t kSyncEvery = 120;   // a full wait now and then lets the provider release finished work
+    // A full wait every N inferences (0: never) in case the provider only releases finished work
+    // there. VEYRA_PUSHFLOW_SYNC_EVERY overrides it; PushFlowBench --leak-check measures whether memory
+    // grows without any.
+    static constexpr uint64_t kSyncEvery = 120;
+    uint64_t syncEvery = kSyncEvery;
 
     bool ok(OrtStatus* s, const char* what) {
         if (!s) return true;
@@ -465,7 +469,7 @@ struct PushFlowBackend::Impl {
     bool run(bool wait = false) {
         if (faulted) return false;
         bool crashed = false;
-        const bool async = queued && !wait && ++sinceSync < kSyncEvery;
+        const bool async = queued && !wait && (syncEvery == 0 || ++sinceSync < syncEvery);
         if (!async) sinceSync = 0;
         const bool done = ok(sehRun(api, session, async ? runOptions : nullptr, binding, &crashed), "RunWithBinding") && !crashed &&
                           (async || (ok(sehSync(api, binding, &crashed), "SynchronizeBoundOutputs") && !crashed));
@@ -713,8 +717,14 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
         if (p.ok(p.api->CreateRunOptions(&p.runOptions), "CreateRunOptions") &&
             p.ok(p.api->AddRunConfigEntry(p.runOptions, "disable_synchronize_execution_providers", "1"), "run option")) p.queued = true;
     }
+    {
+        wchar_t every[16]{};
+        const DWORD n = GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_SYNC_EVERY", every, 16);
+        if (n > 0 && n < 16) p.syncEvery = uint64_t(std::clamp(_wtoi(every), 0, 100000));
+    }
     p.status.queued = p.queued;
-    veyra::log::info("pushflow", p.queued ? "inference queued on the graph's queue (no CPU wait per frame)" : "inference waits for the GPU each frame");
+    veyra::log::info("pushflow", p.queued ? std::format("inference queued on the graph's queue (no CPU wait per frame; a full wait every {} inferences)", p.syncEvery)
+                                          : std::string("inference waits for the GPU each frame"));
     p.status.ready = true;
     veyra::log::info("pushflow", std::format("ready runtime={} model={} precision={} tier={} size={}x{} model={}x{} padded={}x{} channels={} "
         "rebuild={} grids={} encoding={} loadMs={:.0f}", base->GetVersionString(), p.status.model, p.status.precision, tier, width, height,

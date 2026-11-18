@@ -568,7 +568,7 @@ add_dependencies(veyra_push_gpu_tests veyra_shader_push_hud_lock_update veyra_sh
 add_executable(veyra_pushflow_bench tools/pushflow_bench/main.cpp)
 target_compile_features(veyra_pushflow_bench PRIVATE cxx_std_20)
 target_compile_options(veyra_pushflow_bench PRIVATE /utf-8)
-target_link_libraries(veyra_pushflow_bench PRIVATE veyra_pipeline)
+target_link_libraries(veyra_pushflow_bench PRIVATE veyra_pipeline psapi)
 set_target_properties(veyra_pushflow_bench PROPERTIES OUTPUT_NAME PushFlowBench)
 add_dependencies(veyra_pushflow_bench veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct)
 
