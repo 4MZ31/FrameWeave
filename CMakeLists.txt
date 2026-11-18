@@ -1693,6 +1693,13 @@ add_executable(veyra_sr_reconstruction_tests tests/integration/SrReconstructionT
   target_link_libraries(veyra_engine PUBLIC veyra_pipeline veyra_sources veyra_sinks veyra_ngx veyra_nvof)
   # PushFPS streaming mode sources: Media Foundation source reader (webcam, video file), GDI (windows).
   target_link_libraries(veyra_engine PRIVATE mfreadwrite mfplat mfuuid mf gdi32 user32 mmdevapi)
+  # PushFPS: PushFlow through the real enhancement graph, as the program runs it (the test 3.2.0 lacked:
+  # the graph never offered PushFlow a pair, and the tests that drive PushFlowBackend directly could not see it).
+  add_executable(veyra_push_flow_graph_tests tests/integration/PushFlowGraphTests.cpp)
+  target_compile_features(veyra_push_flow_graph_tests PRIVATE cxx_std_20)
+  target_compile_options(veyra_push_flow_graph_tests PRIVATE /utf-8)
+  target_include_directories(veyra_push_flow_graph_tests PRIVATE ${FFMPEG_INCLUDE_DIRS})
+  target_link_libraries(veyra_push_flow_graph_tests PRIVATE veyra_engine)
   # PushFPS going live: RTMP/RTMPS outputs against a local MediaMTX (tests/data/stream/run-live-stream-tests.sh).
   add_executable(veyra_live_stream_tests tests/integration/LiveStreamTests.cpp src/engine/LiveStream.cpp)
   target_compile_features(veyra_live_stream_tests PRIVATE cxx_std_20)

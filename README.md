@@ -328,9 +328,14 @@ mode or in streaming mode.
 - *Optimise for my PC* tests PushFlow like the other methods, and the frame quality test can score it on your
   own game.
 
-How fast it is depends on your graphics card, the tier and the resolution; it has been tested in CI on
-Windows' software renderer, not yet measured on real graphics cards (PushFlowBench is how we will get those
-numbers). TensorRT isn't bundled (its runtime is
+**Before 3.2.2 PushFlow did not generate frames inside PushFPS**: one line in the engine left it out of the
+methods that are given frames to work on, so the picture stayed at the console's frame rate. PichotM found
+and fixed it; with the fix he measured 60 → about 120 FPS on an RTX 4090 over PS5 Remote Play. If you tried
+PushFlow before and saw no difference, try it again.
+
+How fast it is depends on your graphics card, the tier and the resolution. Our own tests run in CI on
+Windows' software renderer; apart from that one report it has not been measured on real graphics cards
+(*Settings → About → Test my graphics card* and PushFlowBench are how we will get those numbers). TensorRT isn't bundled (its runtime is
 over a gigabyte and NVIDIA-only); DirectML covers every vendor.
 
 ## Optimise for my PC

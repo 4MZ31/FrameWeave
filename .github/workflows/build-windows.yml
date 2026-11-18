@@ -399,6 +399,24 @@ jobs:
           if (Test-Path "$env:RUNNER_TEMP\pushflow-fp16.json") { Get-Content "$env:RUNNER_TEMP\pushflow-fp16.json" | Out-Host } else { Write-Host "::warning::fp16 probe wrote no result" }
           Get-Content "$env:RUNNER_TEMP\pushflow-bench.json" | Out-Host
 
+      # PushFlow through the engine's own graph, the way the program runs it: every pair must be offered to
+      # PushFlow and come back with its generated frames, at 2X and 3X. (The step above drives PushFlow on its
+      # own; 3.2.0 shipped with the graph never asking it for a frame, and only a test like this one sees that.)
+      - name: PushFlow through the enhancement graph, as the program runs it
+        run: |
+          cmake --build $env:BUILD --target veyra_push_flow_graph_tests --parallel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $exe = Get-ChildItem $env:BUILD -Recurse -Filter 'veyra_push_flow_graph_tests.exe' | Select-Object -First 1
+          if (-not $exe) { Write-Host "::error::veyra_push_flow_graph_tests.exe not built"; exit 1 }
+          $env:PATH = "$env:DEPS\vcpkg\installed\x64-windows\bin;$env:QT_ROOT_DIR\bin;$env:PATH"
+          & $exe.FullName "$env:RUNNER_TEMP\pushflow-graph" "$env:DEPS\pushflow\runtime" 2>&1 | Out-Host
+          $code = $LASTEXITCODE
+          Write-Host "veyra_push_flow_graph_tests exit $code"
+          if ($code -ne 0) {
+            Get-Content "$env:RUNNER_TEMP\pushflow-graph\engine.log" -Tail 60 -ErrorAction SilentlyContinue | Out-Host
+            Write-Host "::error::PushFlow did not generate frames through the enhancement graph"; exit 1
+          }
+
       # Going live: two outputs at once (RTMP + RTMPS through Schannel) to a local MediaMTX, read back,
       # server restart, a closed port, key redaction. Proves the FFmpeg build has rtmp/rtmps.
       - name: Going-live tests (local RTMP/RTMPS server)
