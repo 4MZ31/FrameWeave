@@ -117,18 +117,27 @@ inline Rgb shapeDelta(Rgb base, Rgb delta, const PushEnhanceShape& in, bool hdr)
     }
     return delta;
 }
-// After the layer's own strength: the soft limits on brightening and darkening.
+// After the layer's own strength: the soft limits on brightening and darkening. The change in the
+// pixel's brightness is limited to limit * tanh(change / limit), on the perceptual scale, and the
+// whole change is scaled to match. tanh is written out from exp with a clamped argument, and the
+// scale is the first-order one where brightness hardly changes: see the shader for why.
+inline float softKeep(float x) {
+    return x < 0.1f ? 1.0f - x * x / 3.0f + 2.0f * x * x * x * x / 15.0f : (1.0f - 2.0f / (std::exp(2.0f * std::min(x, 10.0f)) + 1.0f)) / std::max(x, 0.1f);
+}
 inline Rgb capDelta(Rgb base, Rgb delta, const PushEnhanceShape& in, bool hdr) {
     const PushEnhanceShape s = in.clamped();
     const float yb = luma(base), dy = luma(delta);
-    const float pb = perceptual(yb, hdr), change = perceptual(yb + dy, hdr) - pb;
-    const float cap = (change > 0 ? s.maxBrighten : s.maxDarken) / 100.0f;
-    if (cap > 0 && std::abs(change) > 1e-6f && std::abs(dy) > 1e-7f) {
-        const float limited = (change > 0 ? 1.0f : -1.0f) * cap * std::tanh(std::abs(change) / cap);
-        const float k = std::clamp((linear(pb + limited, hdr) - yb) / dy, 0.0f, 1.0f);
-        delta = {delta.r * k, delta.g * k, delta.b * k};
+    const float cap = (dy > 0 ? s.maxBrighten : s.maxDarken) / 100.0f;
+    if (cap <= 0 || std::abs(dy) <= 1e-7f) return delta;
+    const float pb = perceptual(yb, hdr), change = std::abs(perceptual(yb + dy, hdr) - pb);
+    float keep = softKeep(change / cap);
+    const float blend = smoothstep(0.01f, 0.03f, change);
+    if (blend > 0) {
+        const float limited = (dy > 0 ? 1.0f : -1.0f) * change * keep;
+        const float exact = std::clamp((linear(pb + limited, hdr) - yb) / dy, 0.0f, 1.0f);
+        keep = keep + (exact - keep) * blend;
     }
-    return delta;
+    return {delta.r * keep, delta.g * keep, delta.b * keep};
 }
 }  // namespace push_shape_ref
 }  // namespace veyra::pipeline

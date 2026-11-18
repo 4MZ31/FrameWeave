@@ -1284,6 +1284,19 @@ void testEnhanceShape(Gpu& gpu) {
         ran = run(d, k.total, k.shape.constants(), k.hdr, got);
         const float w = ran ? worst(d, k.total, k.shape, k.hdr, got) : -1.0f;
         check(ran && w < 0.004f, std::format("enhance shape: {} matches the reference (worst {:.5f})", k.name, w));
+        if (ran && w >= 0.004f) {
+            // Which pixel, so a difference between a card's arithmetic and the reference can be read from the log.
+            size_t at = 0; float most = -1;
+            for (size_t i = 0; i < got.size(); ++i) {
+                const ref::Rgb e = expected(d, k.total, k.shape, k.hdr, i);
+                const float here = std::max({std::abs(got[i].r - e.r) / (1 + std::abs(e.r)), std::abs(got[i].g - e.g) / (1 + std::abs(e.g)), std::abs(got[i].b - e.b) / (1 + std::abs(e.b))});
+                if (here > most) { most = here; at = i; }
+            }
+            const ref::Rgb e = expected(d, k.total, k.shape, k.hdr, at);
+            std::printf("INFO enhance shape: pixel %zu base %.5f %.5f %.5f change %.5f %.5f %.5f got %.5f %.5f %.5f expected %.5f %.5f %.5f\n", at,
+                        d.base[at].r, d.base[at].g, d.base[at].b, d.fin[at].r - d.input[at].r, d.fin[at].g - d.input[at].g, d.fin[at].b - d.input[at].b,
+                        got[at].r, got[at].g, got[at].b, e.r, e.g, e.b);
+        }
     }
     // What the controls promise, checked on the shader's own output.
     ran = run(sdr, 1.0f, make(0, 0, 0, 100, 0, 0).constants(), false, got);

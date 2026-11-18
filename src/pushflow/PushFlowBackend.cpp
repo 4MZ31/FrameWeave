@@ -343,7 +343,7 @@ struct PushFlowBackend::Impl {
             const bool held = good && holdPool(*out);
             if (good) {
                 // False with a runtime other than the pinned one would mean it no longer hands out its
-                // pool this way: PushFlow still runs, as it did before 3.2.1.
+                // pool this way: PushFlow still runs, as it did before 3.2.2.
                 status.poolHeld = held;
                 if (!held && !unguardedForTest())
                     veyra::log::warn("pushflow", "the provider's buffer pool is not held (the ONNX Runtime in runtime\\pushflow is not the pinned 1.20.1?)");

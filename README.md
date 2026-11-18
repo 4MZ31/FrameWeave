@@ -98,6 +98,10 @@ that, PushFPS adds what console players need:
 | **Optimise for my PC** | Tests every frame generation method your PC has, AI enhancement and the upscalers on your real game picture, measures frame rate, 1% low, latency and jitter, and keeps the best combination for your goal (balanced, lowest latency, smoothest or best picture), up to 144 or 240 Hz |
 | **Streaming mode** | An OBS-style page: preview, PushFPS features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards) with webcam, window and video sources and cut or fade transitions, a layout editor (move, resize and crop the game picture and every source), go live and record controls, an audio mixer for game sound, microphone, desktop audio, an extra input and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
 | **Video playback mode** | Frame generation, super resolution, AI enhancement and SDR to HDR on any video on your PC: a browser window with YouTube, a video app, a screen or a file |
+| **Ultrawide screens** | A console only sends 16:9. On a 21:9 or 32:9 screen choose black bars, **ambient fill** (a soft, dimmed extension of the picture in the bars, nothing cut or distorted), crop or stretch ([more](#ultrawide-screens)) |
+| **Fine-tune AI picture enhancement** | Shape the change the enhancement makes: its strength, brightening and darkening, shadows, midtones and highlights, colour, hue, and limits per pixel ([more](#enhancement-look)) |
+| **Crash notice** | If PushFPS ever closes unexpectedly, the next start says so and offers a summary to copy, with no user name, folder path or stream address in it |
+| **Test my graphics card** | Measures how fast PushFlow runs on your card at 1080p and 4K and says what that means for 30 and 60 FPS games; the result can be copied and sent to us |
 | **Lowest latency in one tap** | Every latency setting that costs no picture quality, switched on together; off restores your previous settings |
 | **Go live** | Stream the boosted picture straight to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or any RTMP server, to several platforms at once from one encode, at its own resolution (vertical for TikTok LIVE). Stream keys are stored encrypted |
 | **Output presets** | Platform settings per resolution and frame rate for going live (Twitch, YouTube, Kick, Facebook, TikTok LIVE, Trovo) and for uploads (YouTube SDR and HDR, Shorts, TikTok, Instagram Reels, X, editing). Every value stays editable |
@@ -262,7 +266,7 @@ enhancement on Radeon and on RTX 30 cards is an optional experimental extra (see
    | **Console** | PlayStation 5, PS5 Pro, Xbox Series X\|S, Nintendo Switch 2 or Other. Each console remembers its own choices |
    | **Game profile** | Optional: save the current settings under a game's name, switch to them later in one click |
    | **Game frame rate** | 30 for most games (GTA VI), 40 for 40 FPS modes, 60 for performance modes |
-   | **Target frame rate** | Off, 60 FPS, 120 FPS or Match monitor. PushFPS picks the frame generation multiplier. 60 on a 60 Hz monitor, 120 on 120 Hz and faster ([target for every refresh rate](https://dosukasol.github.io/PushFPS/#guide-rates)) |
+   | **Target frame rate** | Off, 60 FPS, 120 FPS or Match monitor (on a 90 Hz screen: 90 FPS in place of 120). PushFPS picks the frame generation multiplier. 60 on a 60 Hz monitor, 120 on 120 Hz and faster ([target for every refresh rate](https://dosukasol.github.io/PushFPS/#guide-rates)) |
    | **AI picture enhancement** | Off: frame generation only. On: every frame also goes through AI enhancement on RTX 40/50 cards (RTX 30 and Radeon: experimental extra). Uses a lot more GPU, so start with it off |
 
 5. **Click Connect** on the capture card. Choose your card, its resolution, 60 FPS and the card's audio input.
@@ -360,7 +364,7 @@ Click **Game presets** in the quick setup and pick a game:
 
 | Preset | Protected areas |
 |---|---|
-| **GTA VI** | Minimap bottom left; money and wanted level top right (estimated from the GTA series, check it once you play) |
+| **GTA VI** | Minimap bottom left; health and focus bars top left; weapon, wanted level and cash top right. Which corner holds what comes from the footage Rockstar showed before release; the edges are estimates, so check them with **Adjust HUD areas** once you play. The adaptive multiplier is on, because the base PS5 dips below 30 FPS in busy scenes |
 | Open world, minimap bottom left / top right | The minimap |
 | Action, HUD in the bottom corners | Health, weapon and ammo |
 | Racing, speedometer bottom right | Speed, gear and minimap |
@@ -475,6 +479,23 @@ refresh the display sync is left alone, so the picture never tears. Turning it o
 settings. The row shows the measured processing latency, and suggests 120 Hz console output where it would
 save about 8 ms per frame.
 
+## Ultrawide screens
+
+A PS5, Xbox or Switch sends a 16:9 picture whatever screen it ends up on, so a 21:9 or 32:9 screen has room
+left over at the sides. On such a screen the quick setup shows **Wide-screen fill**:
+
+| Choice | What you get |
+|---|---|
+| **Bars** | The whole picture, with black bars at the sides |
+| **Ambient** | The whole picture, not cut and not distorted; the bars become a soft, dimmed extension of the picture itself |
+| **Crop** | The screen filled, with about a quarter of the picture's height cut on 21:9 (half on 32:9). A HUD at the top or bottom can be lost |
+| **Stretch** | The screen filled, with the picture pulled about a third wider on 21:9 |
+
+None of them shows more of the game: the console does not render it. Recordings, streams and comparison clips
+are made from the frames, not from the window, so they are never affected; recordings have their own 21:9
+sizes (3440 × 1440 and 2560 × 1080) under *Output resolution*. Ambient fill is not available with XeSS frame
+generation, which presents through its own path.
+
 ## Before/after comparison clips
 
 **Comparison clip** in the quick setup opens a small dialog: pick the layout and the length (10, 15, 30 or 60
@@ -510,6 +531,26 @@ quick setup has four controls for it, shown while AI picture enhancement is on:
 The look is saved with every console and game profile. Lighting and Detail are the two values Professional mode
 shows for each enhancement layer (*Local tone* and *Local structure*); the quick setup sets them on every
 layer. They are hidden with the AMD enhancement runtime, which has no such values.
+
+### Fine-tune
+
+The enhancement is applied as a change on top of the console's picture, and that change can be shaped without
+touching the picture itself. **Fine-tune** (under the look, folded until you open it) has ten sliders:
+
+| Slider | What it does |
+|---|---|
+| **Edit strength** | How much of the change is applied: 0% none, 100% as the model made it, 200% double |
+| **Brightening**, **Darkening** | How much of the change that makes pixels brighter, or darker, is kept |
+| **Max brightening**, **Max darkening** | A soft limit on how far any pixel may get brighter or darker. 0% is no limit |
+| **Shadows**, **Midtones**, **Highlights** | How much of the change is kept in the dark, middle and bright parts of the picture |
+| **Colour change** | How far the enhancement changes how strong colours are. 0% keeps the console's colours |
+| **Hue shift** | How far it may turn hues. 0% keeps the console's hues |
+
+With everything at its default nothing extra is done. The values apply to every enhancement layer and are saved
+with each console and game profile; they work with every enhancement runtime. Edit strength, Brightening,
+Darkening and Colour change are the values Professional mode shows per layer; the other six are new.
+The limits act on the change itself: a colour that the change pushes out of range can still end slightly
+brighter than the limit says.
 
 ## Profiles
 
@@ -558,8 +599,8 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
   A preset fills in resolution, frame rate, bitrate, codec, encoder preset, keyframes and audio; change any of
   them afterwards and the setting shows *modified*. Bitrates follow YouTube's upload recommendations; TikTok,
   Reels and X publish no exact bitrate, so those use the commonly recommended 8–15 Mbps within their limits.
-- **Output resolution**: recordings have their own size (the picture's, 4K, 1440p, 1080p, 720p, vertical
-  1080 × 1920, 4:5 or square), separate from the stream. **Fit** keeps the whole picture with bars, **Fill**
+- **Output resolution**: recordings have their own size (the picture's, 4K, 1440p, 1080p, 720p, ultrawide
+  3440 × 1440 or 2560 × 1080, vertical 1080 × 1920, 4:5 or square), separate from the stream. **Fit** keeps the whole picture with bars, **Fill**
   crops the edges, **Stretch** distorts.
 - **Split files** every 30, 60 or 120 minutes during long recordings, without stopping.
 - **Encoders**: NVENC on NVIDIA; on AMD and Intel the card's own hardware encoder through Windows Media
@@ -810,6 +851,19 @@ the capture card's passthrough screen and PushFPS side by side in slow motion an
 **Does it work with games that already run at 60 FPS?**
 Yes. Set *Game frame rate* to 60 and pick 120 FPS or Match monitor: a 60 FPS game gets one generated frame
 in between (two on a 240 Hz monitor).
+
+**Does it work on an ultrawide monitor?**
+Yes. The console's picture stays 16:9, and you choose what fills the rest: see
+[Ultrawide screens](#ultrawide-screens).
+
+**I have a 90 Hz screen. Can I get 90 FPS?**
+Yes. On a 90 Hz screen the quick setup offers 90 FPS (three frames for every frame of a 30 FPS game).
+
+**PushFPS closed by itself. What now?**
+Start it again: it tells you what it knows and offers a summary to copy into a
+[GitHub issue](https://github.com/DosukaSOL/PushFPS/issues). The summary holds no user name, folder path or
+stream address. The crash file in the log folder does contain your Windows user name, so send that one
+privately.
 
 **Does it change the console or the game?**
 No. PushFPS only processes the video coming out of the capture card. Nothing is installed on the console.

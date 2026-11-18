@@ -130,7 +130,7 @@ with real game and video footage, and whether the Quality tier should also estim
 **Not measured yet:** speed on real NVIDIA, AMD and Intel cards. PushFlowBench (below) exists so these
 numbers come from real hardware, not estimates.
 
-## Shutting a session down (3.2.1)
+## Shutting a session down (3.2.2)
 
 A crash file from the field (17 November 2026, version 3.1.5, Xbox streaming) ends inside ONNX Runtime while
 PushFlow is shut down for a live settings rebuild. Read against the pinned ONNX Runtime 1.20.1:
@@ -143,7 +143,7 @@ PushFlow is shut down for a live settings rebuild. Read against the pinned ONNX 
   make the provider release its queue after each run, so a session that ends between two full waits can still
   hold some.
 
-What PushFlow does since 3.2.1, for every source:
+What PushFlow does since 3.2.2, for every source:
 
 - before a session is released it asks the provider to finish and release its queue
   (`SynchronizeBoundOutputs`), while the pool is still there;
@@ -158,7 +158,7 @@ queued pairs (or none) and shuts it down at once, N times in four session kinds.
 
 | Teardown | Sessions | Faults caught | Pool held |
 |---|---|---|---|
-| 3.2.1 | 24 | 0 | yes |
+| 3.2.2 | 24 | 0 | yes |
 | As 3.2.0 (`VEYRA_PUSHFLOW_TEST_UNGUARDED=1`) | 24 | 0 | no |
 
 So the check did **not** reproduce the crash: the old teardown ran clean on WARP too. It shows that the new
@@ -186,7 +186,7 @@ with dynamic shapes and `--compare-sync` one that waits after every inference (t
 
 ## Roadmap status
 
-The engineering roadmap (17 November 2026) lists 31 items. Where PushFlow stands after 3.2.1:
+The engineering roadmap (17 November 2026) lists 31 items. Where PushFlow stands after 3.2.2:
 
 | Item | Status |
 |---|---|

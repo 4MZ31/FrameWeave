@@ -21,7 +21,7 @@ int main() {
     check(m.code == "0xC0000005" && m.offset == "0x11B640", "exception code and offset");
     check(m.dump == "veyra-crash-20261118-211405-1234.dmp", "the crash file's name");
     check(m.time == "2026-11-18 21:14", "when");
-    // The note of 3.2.1 and earlier: two lines.
+    // The note of 3.2.0 and earlier: two lines.
     const Marker old = parseMarker("crash nvngx_dlssg.dll\r\n\r\n");
     check(old.crash && old.module == "nvngx_dlssg.dll" && old.code.empty() && old.dump.empty() && old.injected.empty(), "an older note without the third line");
     const Marker device = parseMarker("device\nRTSSHooks64.dll\n");

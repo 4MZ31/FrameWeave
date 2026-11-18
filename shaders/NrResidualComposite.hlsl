@@ -50,17 +50,29 @@ float3 PushShapeDelta(float3 base,float3 delta,uint zones,uint more,bool hdr){
     }
     return delta;
 }
-// After the layer's own strength: the soft limits on brightening and darkening.
+// After the layer's own strength: the soft limits on brightening and darkening. The change in the
+// pixel's brightness is limited to limit*tanh(change/limit), on the perceptual scale, and the whole
+// change is scaled to match. Two things are written out here on purpose:
+// - tanh, from exp with its argument clamped: with the intrinsic, the test on Windows' software
+//   renderer passed a 5 % limit by 14 % (it was given arguments up to 20), and exp-based versions
+//   of it overflow for large arguments;
+// - the scale. The exact one divides by the change in luminance, so where brightness hardly changes
+//   but colour does it would multiply pow's rounding by thousands. There the scale that is right to
+//   first order is used, which is well conditioned, and the two are blended in between.
 float3 PushCapDelta(float3 base,float3 delta,uint more,bool hdr){
     const float3 k=float3(0.2126,0.7152,0.0722);
     float yb=dot(base,k),dy=dot(delta,k);
-    float pb=PushPerceptual(yb,hdr),change=PushPerceptual(yb+dy,hdr)-pb;
-    float cap=float(change>0?(more>>8)&255:(more>>16)&255)/100.0;
-    if(cap>0&&abs(change)>1e-6&&abs(dy)>1e-7){
-        float limited=(change>0?1.0:-1.0)*cap*tanh(abs(change)/cap);
-        delta*=saturate((PushLinear(pb+limited,hdr)-yb)/dy);
+    float cap=float(dy>0?(more>>8)&255:(more>>16)&255)/100.0;
+    if(cap<=0||abs(dy)<=1e-7)return delta;
+    float pb=PushPerceptual(yb,hdr),change=abs(PushPerceptual(yb+dy,hdr)-pb);
+    float x=change/cap;
+    float keep=x<0.1?1.0-x*x/3.0+2.0*x*x*x*x/15.0:(1.0-2.0/(exp(2.0*min(x,10.0))+1.0))/max(x,0.1);
+    float blend=smoothstep(0.01,0.03,change);
+    if(blend>0){
+        float limited=(dy>0?1.0:-1.0)*change*keep;
+        keep=lerp(keep,saturate((PushLinear(pb+limited,hdr)-yb)/dy),blend);
     }
-    return delta;
+    return delta*keep;
 }
 // Bilateral resampling of the change uses the preserved high-resolution base
 // as the edge guide. It never interpolates the high-resolution base itself.

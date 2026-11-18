@@ -437,7 +437,7 @@ VGroup {
             quick.applyTarget(s.target, fps)
         if (quick.nrPossible && typeof s.enhance === "boolean" && s.enhance !== (veyra.nrAnyEnabled === true))
             quick.setEnhancement(s.enhance)
-        // Profiles saved before 3.2.1 have no look: the current one stays. So does a look that already
+        // Profiles saved before 3.2.2 have no look: the current one stays. So does a look that already
         // matches: layers given different values in Professional mode are only made equal when a
         // profile really asks for another look.
         if (quick.nrPossible && s.look && typeof s.look === "object" && isFinite(Number(s.look.tone)) && isFinite(Number(s.look.structure))) {

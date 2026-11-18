@@ -21,6 +21,10 @@ every application sending on the usual channels (`default`, `1`-`8`); click **Us
 channel name, type it under **Other channel**. Opened this way, the picture behaves like any other
 source: Professional mode, the quick setup, recording and streaming all apply.
 
+Since 3.2.2 PushFPS can also be started on a channel: `PushFPS.exe frameinput:default` (or
+`frameinput:<channel>`) opens it as soon as the window is up, so a sending program can launch PushFPS
+on its own picture.
+
 ## Quick start (C++)
 
 ```cpp
