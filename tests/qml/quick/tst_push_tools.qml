@@ -44,7 +44,8 @@ Item {
             host.dialog = "crash"
             verify(crash.shown && crash.present)
             compare(control(crash, "pushfps-crash-summary").text, summary)
-            verify(control(crash, "pushfps-crash-file-row").visible)
+            // The dialog fades in, and a row inside it only reads visible once the dialog does.
+            tryVerify(function() { return control(crash, "pushfps-crash-file-row").visible })
             verify(control(crash, "pushfps-crash-file-row").hint.indexOf("veyra-crash-20261118-211405-1234.dmp") >= 0, "the crash file is named")
             compare(crash.actions.length, 3)
             crash.actionTriggered(labels(crash)[2])
@@ -64,7 +65,8 @@ Item {
         function test_crash_notice_without_a_crash_says_so() {
             host.dialog = "crash"
             verify(crash.shown && !crash.present)
-            verify(!control(crash, "pushfps-crash-file-row").visible)
+            tryVerify(function() { return crash.visible })
+            verify(!control(crash, "pushfps-crash-file-row").visible, "nothing about a crash file without a crash")
             compare(crash.actions.length, 1)
             crash.actionTriggered(labels(crash)[0])
             compare(host.dialog, "")
