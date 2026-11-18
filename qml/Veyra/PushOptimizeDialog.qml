@@ -154,6 +154,20 @@ DialogLayer {
         const version = String(veyra.version || "")
         return (Array.isArray(list) ? list : []).filter(e => e && typeof e.backend === "string" && String(e.version || "") === version).map(e => e.backend)
     }
+    // What a step adds over the steps before it, and so what is blamed if PushFPS stops in it: the
+    // frame generation method, or the extra put on top ("+enhance", "+sr2", "+sr6").
+    function blame(c) {
+        if (!c || !c.backend) return ""
+        if (c.kind === "sr" || (c.kind === "confirm" && c.sr)) return "+sr" + c.sr
+        if (c.kind === "enhance" || (c.kind === "confirm" && c.enhance)) return "+enhance"
+        return String(c.backend)
+    }
+    function blameLabel(id) {
+        if (id === "+enhance") return qsTr("AI 增强")
+        if (id === "+sr6") return "NIS"
+        if (id === "+sr2") return qsTr("RTX 视频超分")
+        return opt.backendLabel[id] || id
+    }
     // Every method the engine reports as available on this PC, best picture first.
     function backends() {
         const skip = opt.crashed()
@@ -169,6 +183,9 @@ DialogLayer {
         for (const o of (veyra.fgBackendChoices || []))
             if (!o.disabled && skip.indexOf(o.id) >= 0)
                 list.push({ label: opt.backendLabel[o.id] || o.label || o.id, reason: qsTr("上次测试这种方式时 PushFPS 意外退出，这个版本不再测试它") })
+        for (const extra of ["+enhance", "+sr2", "+sr6"])
+            if (skip.indexOf(extra) >= 0)
+                list.push({ label: opt.blameLabel(extra), reason: qsTr("上次测试这种方式时 PushFPS 意外退出，这个版本不再测试它") })
         return list
     }
     // A whole multiplier lands within 5 % of the refresh (30 FPS: 180 Hz = 6X, 240 Hz = 8X).
@@ -228,7 +245,7 @@ DialogLayer {
         opt.clearRestore()
         veyra.logUi("push-optimize", "restored the settings from before an interrupted run" + (testing ? " (was testing " + testing + ")" : ""))
         if (typeof veyra.notice === "function")
-            veyra.notice(testing ? qsTr("上次「为我的电脑优化」在测试 %1 时意外中断，已恢复优化前的设置；这个版本不再测试 %1").arg(opt.backendLabel[testing] || testing)
+            veyra.notice(testing ? qsTr("上次「为我的电脑优化」在测试 %1 时意外中断，已恢复优化前的设置；这个版本不再测试 %1").arg(opt.blameLabel(testing))
                                  : qsTr("上次「为我的电脑优化」没有完成，已恢复优化前的设置"), false)
     }
     function cancel() {
@@ -240,7 +257,7 @@ DialogLayer {
         opt.current = i
         const step = opt.steps[i]
         // On disk before the method starts: which one was running, should PushFPS stop in it.
-        if (opt.original) veyra.setPreference("pushOptimizeRestore", JSON.stringify(Object.assign({}, opt.original, { testing: String(step.config.backend || "") })))
+        if (opt.original) veyra.setPreference("pushOptimizeRestore", JSON.stringify(Object.assign({}, opt.original, { testing: opt.blame(step.config) })))
         if (!opt.apply(step.config)) { opt.finishStep({ ok: false, reason: qsTr("这台电脑不支持此组合") }); return }
         step.label = opt.describe(step.config)
         opt.steps = opt.steps.slice()
@@ -394,7 +411,7 @@ DialogLayer {
         }
         if (opt.pending().length === 0 && !steps.some(s => s.config.kind === "enhance")) {
             const top = opt.bestOf(opt.passed())
-            if (top && Support.available(veyra, "nr"))
+            if (top && Support.available(veyra, "nr") && opt.crashed().indexOf("+enhance") < 0)
                 add({ backend: top.config.backend, target: top.config.target, enhance: true, sr: 0, kind: "enhance" })
         }
         if (opt.pending().length === 0 && !steps.some(s => s.config.kind === "sr")) {
@@ -403,8 +420,8 @@ DialogLayer {
             const screenHeight = Screen.height * Screen.devicePixelRatio
             const sourceHeight = Number(opt.stats().sourceHeight || 0)
             if (top && sourceHeight > 0 && screenHeight >= 1440 && sourceHeight + 100 < screenHeight) {
-                if ((caps.sr2 || {}).available) add({ backend: top.config.backend, target: top.config.target, enhance: top.config.enhance, sr: 2, kind: "sr" })
-                if ((caps.sr6 || {}).available) add({ backend: top.config.backend, target: top.config.target, enhance: top.config.enhance, sr: 6, kind: "sr" })
+                if ((caps.sr2 || {}).available && opt.crashed().indexOf("+sr2") < 0) add({ backend: top.config.backend, target: top.config.target, enhance: top.config.enhance, sr: 2, kind: "sr" })
+                if ((caps.sr6 || {}).available && opt.crashed().indexOf("+sr6") < 0) add({ backend: top.config.backend, target: top.config.target, enhance: top.config.enhance, sr: 6, kind: "sr" })
             }
         }
         if (opt.pending().length === 0 && !steps.some(s => s.config.kind === "confirm")) {

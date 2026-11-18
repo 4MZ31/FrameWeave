@@ -681,7 +681,8 @@ void QmlPlayerBridge::pushFlowBudgetWatch() {
     // It is not switched automatically: a game that really runs at 60 would be halved.
     {
         const bool mismatch = s.running && s.capture && s.fgActive && contentRate() == int(engine::ContentRate::Auto) &&
-            impl_->prefs.value(QStringLiteral("pushGameFps")).toInt() == 30 && std::abs(s.captureFps - 60.0) < 3.0 && s.contentFps > 45;
+            // (An unset game frame rate is the quick setup's default, 30.)
+            impl_->prefs.value(QStringLiteral("pushGameFps"), 30).toInt() == 30 && std::abs(s.captureFps - 60.0) < 3.0 && s.contentFps > 45;
         w.cadenceSeconds = mismatch ? w.cadenceSeconds + 1 : 0;
         if (w.cadenceSeconds >= 8 && w.cadenceSession != s.sessionId) {
             w.cadenceSession = s.sessionId;
@@ -705,7 +706,9 @@ void QmlPlayerBridge::pushFlowBudgetWatch() {
     if (++w.settledSeconds <= 4) return;   // the budget learns its costs first
     const double content = double(s.contentFps), output = s.submissionFps.value_or(0);
     const bool starved = s.fgBudgetLimited && content > 1 && output > 0 && output < content * 1.25;
-    w.starved = starved ? w.starved + 1 : 0;
+    // One second in which a probe got a few frames through (FgCostSettling retries after 2, 4, then
+    // every 8 s) takes two off instead of starting the count again.
+    w.starved = starved ? w.starved + 1 : std::max(0, w.starved - 2);
     if (w.starved < 8 || w.userChose) return;
     w.starved = 0;
     const int tier = std::clamp(vfgQuality(), 0, 2);

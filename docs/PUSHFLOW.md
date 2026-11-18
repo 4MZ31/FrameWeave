@@ -80,6 +80,13 @@ What CI measured for these changes, on Windows' software renderer (WARP, 640×36
   the second tier failed with a removed device.
 - The half precision probe ran in its own process and ended with a result: on WARP fp16 does not match
   (27.7 dB), so it stays off there.
+- Queued inference does not pile up memory: 160 inferences with no full wait at all left the process's
+  committed memory where it was (139.0 MB after 40, 138.9 MB at the end; `PushFlowBench --leak-check`,
+  run 44213229154). The full wait every 120 inferences stays as a margin for drivers WARP cannot stand in for.
+- Queued inference relies on ONNX Runtime's DirectML provider submitting its command list before the run
+  returns, which the pinned version (1.20) does: in queued mode the test pictures are correct and the
+  network's GPU span lies between the pack and the resolve. A newer ONNX Runtime has to pass the same
+  tests before it is pinned.
 
 **Still not measured:** any of this on a real graphics card. WARP shows the new paths are correct and how
 much CPU time they give back; it cannot show the network's speed on an RTX, Radeon or Arc card.

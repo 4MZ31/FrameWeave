@@ -184,6 +184,12 @@ Item {
             tryVerify(() => opt.current >= 1 && opt.phase === "running", 5000)
             const saved = JSON.parse(veyra.preferences.pushOptimizeRestore)
             compare(saved.testing, opt.steps[opt.current].config.backend, "the method under test is recorded")
+            // A step that adds something on top blames what it added, not the method under it.
+            compare(opt.blame({ backend: "vfg", kind: "enhance", enhance: true, sr: 0 }), "+enhance")
+            compare(opt.blame({ backend: "vfg", kind: "sr", enhance: true, sr: 6 }), "+sr6")
+            compare(opt.blame({ backend: "vfg", kind: "confirm", enhance: true, sr: 0 }), "+enhance")
+            compare(opt.blame({ backend: "vfg", kind: "confirm", enhance: false, sr: 0 }), "vfg")
+            compare(opt.blame({ backend: "", kind: "baseline" }), "")
             tryVerify(() => opt.phase !== "running", 15000)
             compare(veyra.preferences.pushOptimizeRestore, "{}", "nothing to restore after a finished run")
             // As after a crash while VFG was being tested (the list a restart would write).
@@ -194,6 +200,12 @@ Item {
             opt.start()
             tryVerify(() => opt.phase !== "running", 15000)
             verify(!opt.steps.some(s => s.config.backend === "vfg"), "no VFG step in the next run")
+            // AI enhancement crashed last time: no enhance step, and it is listed.
+            veyra.preferences = Object.assign({}, veyra.preferences, { pushOptimizeSkip: JSON.stringify([{ backend: "+enhance", version: "9.9.9" }]) })
+            opt.start()
+            tryVerify(() => opt.phase !== "running", 15000)
+            verify(!opt.steps.some(s => s.config.kind === "enhance"), "no AI enhancement step after it crashed")
+            verify(opt.steps.some(s => s.config.backend === "vfg"), "the methods themselves are tested again")
         }
         function test_notes_a_30_fps_game_measured_as_60() {
             veyra.liveStats = Object.assign({}, veyra.liveStats, { contentFps: 60, captureFps: 60 })
