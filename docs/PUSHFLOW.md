@@ -63,6 +63,42 @@ with no error. 3.2.0 removed every cause found in the code:
 The network's time per frame is now its GPU span on the queue (timestamps after the pack and before the
 resolve), shown live in the quick setup and in the log every 30 seconds.
 
+What CI measured for these changes, on Windows' software renderer (WARP, 640×360, build run 44202258035,
+18 November 2026; the times are a CPU pretending to be a graphics card, so only the comparisons mean anything):
+
+| | Fast | Balanced | Quality |
+|---|---|---|---|
+| Time the engine thread spends in the inference call, waiting (3.1.7) | 1573 ms | 3706 ms | 4903 ms |
+| The same, queued (3.2.0) | 2.4 ms | 2.5 ms | 3.1 ms |
+| The same, queued, dynamic shapes | 4.5 ms | 4.6 ms | 5.9 ms |
+| Network span, static shapes | 1572 ms | 3697 ms | 4894 ms |
+| Network span, dynamic shapes | 1616 ms | 3798 ms | 5017 ms |
+
+- With static shapes ONNX Runtime no longer prints "Some nodes were not assigned to the preferred execution
+  providers": every node runs on DirectML. With dynamic shapes it prints it for every session.
+- All three tiers now start one after the other in one process. With the automatic fp16 self-check (3.1.6)
+  the second tier failed with a removed device.
+- The half precision probe ran in its own process and ended with a result: on WARP fp16 does not match
+  (27.7 dB), so it stays off there.
+
+**Still not measured:** any of this on a real graphics card. WARP shows the new paths are correct and how
+much CPU time they give back; it cannot show the network's speed on an RTX, Radeon or Arc card.
+
+### What PushFlow does not do (yet), and why
+
+A comparison with SmoovPlay's RIFE path (November 2026) listed TensorRT, CUDA Graphs, engine caching and
+feature reuse between pairs as its advantages. Where PushFlow stands:
+
+- **TensorRT, CUDA Graphs, engine caching**: NVIDIA only, and TensorRT's runtime is over a gigabyte that
+  PushFPS may not bundle. PushFlow's equivalents on every vendor are the fixed-size session (DirectML
+  compiles the whole network once, when PushFlow starts) and queued inference. A TensorRT backend cannot be
+  written responsibly without an NVIDIA card to test it on; it stays on the roadmap (PF-009/010).
+- **Feature reuse between pairs**: RIFE's encoder runs on both frames of a pair, and the newer frame's
+  features could be kept for the next pair. It needs the network split into two models and checked to
+  reproduce the original exactly. Not done; the encoder is a small part of the network (an estimate from
+  its layer sizes, not a measurement).
+- **Asynchronous inference**: done in 3.2.0 (queued inference, above).
+
 ## What was measured, and where
 
 On the CPU, when the release is built (`scripts/pushflow/prepare_runtime.py`, numbers from the 2026-11-17 run):
