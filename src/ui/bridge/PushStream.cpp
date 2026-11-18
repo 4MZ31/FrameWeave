@@ -120,7 +120,10 @@ bool QmlPlayerBridge::pushStartStream() {
         if (!keys.contains(id)) { emit notice(tr("%1 还没有串流密钥").arg(name), true); return false; }
         const QByteArray key = unprotect(QByteArray::fromBase64(keys.value(id).toString().toLatin1()));
         if (key.isEmpty()) { emit notice(tr("%1 的串流密钥无法读取，请重新输入").arg(name), true); return false; }
-        const std::string url = engine::stream::joinUrl(server.toStdString(), key.toStdString());
+        // Twitch test stream (the output's "test" switch): Twitch takes it without showing it publicly.
+        const bool testStream = std::string_view(platform->id) == "twitch" && o.value(QStringLiteral("test")).toBool(false);
+        const std::string url = engine::stream::joinUrl(server.toStdString(), testStream ? engine::stream::twitchTestKey(key.toStdString()) : key.toStdString());
+        if (testStream) name += tr("（测试）");
         if (url.empty()) { emit notice(tr("%1 的服务器地址或串流密钥无效").arg(name), true); return false; }
         options.streams.push_back({name.toStdString(), url});
         capKbps = std::min(capKbps, platform->maxVideoKbps);

@@ -58,6 +58,10 @@ static void testUrls() {
     check(joinUrl("rtmp://h/app", "").empty(), "empty key refused");
     check(joinUrl("rtmp://h/app", "a b").empty(), "key with a space refused");
     check(joinUrl("ftp://h/app", "k").empty(), "bad server refused");
+    check(twitchTestKey("live_123_abc") == "live_123_abc?bandwidthtest=true", "Twitch test stream key");
+    check(twitchTestKey("live_123?x=1") == "live_123?x=1" && twitchTestKey("").empty(), "a key with a query, or no key, is left alone");
+    check(joinUrl("rtmp://live.twitch.tv/app", twitchTestKey("live_1")) == "rtmp://live.twitch.tv/app/live_1?bandwidthtest=true", "test key joins into the URL");
+    check(redact(joinUrl("rtmp://live.twitch.tv/app", twitchTestKey("live_1"))).find("live_1") == std::string::npos, "the test key is redacted like any other");
     check(redact("rtmp://h:1935/app/live_123_secret") == "rtmp://h:1935/app/****", "key redacted");
     check(redact("rtmps://h/live2/abcd-efgh?x=1") == "rtmps://h/live2/****", "key and query redacted");
     check(redact("rtmp://h/app").find("****") != std::string::npos, "no key: still nothing secret");

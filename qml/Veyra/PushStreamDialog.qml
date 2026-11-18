@@ -228,6 +228,19 @@ DialogLayer {
                     }
                 }
             }
+            // Twitch only: a test stream checks the connection and bitrate without going public.
+            VRow {
+                visible: row.platform.id === "twitch"
+                label: qsTr("测试直播")
+                hint: qsTr("Twitch 会接收这次直播，但不在频道上显示，也不通知关注者。用来检查连接和码率；正式开播前记得关掉")
+                hintBelow: true
+                VSwitch {
+                    objectName: "pushfps-stream-test-" + row.index
+                    checked: row.modelData.test === true
+                    enabled: !live.streaming
+                    onToggled: checked => live.update(row.index, { test: checked })
+                }
+            }
         }
     }
     RowLayout {

@@ -7073,6 +7073,23 @@
    "ru": "Поставьте Switch в док-станцию с выводом 1080p 60 Гц. В играх нет HDCP, их можно захватывать напрямую."
   },
   {
+   "zh": "Twitch 会接收这次直播，但不在频道上显示，也不通知关注者。用来检查连接和码率；正式开播前记得关掉",
+   "src": "qml/PushStreamDialog.qml",
+   "zh-TW": "Twitch 會接收這次直播，但不在頻道上顯示，也不通知追隨者。用來檢查連線和碼率；正式開播前記得關掉",
+   "en": "Twitch takes the stream but doesn't show it on your channel or notify followers. Use it to check the connection and bitrate; turn it off before you go live for real",
+   "ja": "Twitch は配信を受け取りますが、チャンネルには表示せず、フォロワーにも通知しません。接続とビットレートの確認に使い、本番の前にオフにしてください",
+   "nl": "Twitch takes the stream but doesn't show it on your channel or notify followers. Use it to check the connection and bitrate; turn it off before you go live for real",
+   "de": "Twitch takes the stream but doesn't show it on your channel or notify followers. Use it to check the connection and bitrate; turn it off before you go live for real",
+   "es": "Twitch takes the stream but doesn't show it on your channel or notify followers. Use it to check the connection and bitrate; turn it off before you go live for real",
+   "fr": "Twitch takes the stream but doesn't show it on your channel or notify followers. Use it to check the connection and bitrate; turn it off before you go live for real",
+   "it": "Twitch takes the stream but doesn't show it on your channel or notify followers. Use it to check the connection and bitrate; turn it off before you go live for real",
+   "pt-BR": "Twitch takes the stream but doesn't show it on your channel or notify followers. Use it to check the connection and bitrate; turn it off before you go live for real",
+   "tr": "Twitch takes the stream but doesn't show it on your channel or notify followers. Use it to check the connection and bitrate; turn it off before you go live for real",
+   "ar": "Twitch takes the stream but doesn't show it on your channel or notify followers. Use it to check the connection and bitrate; turn it off before you go live for real",
+   "pl": "Twitch takes the stream but doesn't show it on your channel or notify followers. Use it to check the connection and bitrate; turn it off before you go live for real",
+   "ru": "Twitch takes the stream but doesn't show it on your channel or notify followers. Use it to check the connection and bitrate; turn it off before you go live for real"
+  },
+  {
    "zh": "Twitch 最高 6 Mbps，Kick 8 Mbps，YouTube 更高；同时推多个平台时按最严格的平台",
    "src": "qml/PushStreamDialog.qml",
    "zh-TW": "Twitch 最高 6 Mbps，Kick 8 Mbps，YouTube 更高；同時推多個平台時依最嚴格的平台",
@@ -41347,6 +41364,23 @@
    "ru": "Тестовое изображение"
   },
   {
+   "zh": "测试直播",
+   "src": "qml/PushStreamDialog.qml",
+   "zh-TW": "測試直播",
+   "en": "Test stream",
+   "ja": "テスト配信",
+   "nl": "Test stream",
+   "de": "Test stream",
+   "es": "Test stream",
+   "fr": "Test stream",
+   "it": "Test stream",
+   "pt-BR": "Test stream",
+   "tr": "Test stream",
+   "ar": "Test stream",
+   "pl": "Test stream",
+   "ru": "Test stream"
+  },
+  {
    "zh": "测量",
    "src": "qml/ProPage.qml",
    "zh-TW": "測量",
@@ -62136,6 +62170,23 @@
    "ar": " (6 طبقات كحد أقصى)",
    "pl": " (maks. 6 warstw)",
    "ru": " (не больше 6 слоёв)"
+  },
+  {
+   "zh": "（测试）",
+   "src": "src/ui/bridge/PushStream.cpp",
+   "zh-TW": "（測試）",
+   "en": " (test)",
+   "ja": "（テスト）",
+   "nl": " (test)",
+   "de": " (test)",
+   "es": " (test)",
+   "fr": " (test)",
+   "it": " (test)",
+   "pt-BR": " (test)",
+   "tr": " (test)",
+   "ar": " (test)",
+   "pl": " (test)",
+   "ru": " (test)"
   },
   {
    "zh": "（片源最亮 %1 nit、最亮帧平均 %2 nit）",

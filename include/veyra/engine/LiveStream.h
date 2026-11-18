@@ -34,6 +34,9 @@ bool validServer(std::string_view server);
 // Server + "/" + key (one slash between them). Empty if the server is invalid or the key is empty
 // or contains spaces / control characters.
 std::string joinUrl(std::string_view server, std::string_view key);
+// Twitch's test stream: the key with "?bandwidthtest=true", so Twitch takes the stream without showing it
+// on the channel or notifying followers. A key that already carries a query is returned unchanged.
+std::string twitchTestKey(std::string_view key);
 // The URL with everything after the application path replaced by "****" (for logs and the interface).
 std::string redact(std::string_view url);
 

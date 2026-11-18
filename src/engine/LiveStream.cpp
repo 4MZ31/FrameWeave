@@ -58,6 +58,12 @@ std::string joinUrl(std::string_view server, std::string_view key) {
     return url + "/" + std::string(key);
 }
 
+std::string twitchTestKey(std::string_view key) {
+    std::string out(key);
+    if (!out.empty() && out.find('?') == std::string::npos) out += "?bandwidthtest=true";
+    return out;
+}
+
 std::string redact(std::string_view url) {
     // scheme://host[:port]/app/KEY -> scheme://host[:port]/app/****
     const size_t scheme = url.find("://");
