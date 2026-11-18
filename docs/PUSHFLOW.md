@@ -130,6 +130,47 @@ with real game and video footage, and whether the Quality tier should also estim
 **Not measured yet:** speed on real NVIDIA, AMD and Intel cards. PushFlowBench (below) exists so these
 numbers come from real hardware, not estimates.
 
+## Shutting a session down (3.2.1)
+
+A crash file from the field (17 November 2026, version 3.1.5, Xbox streaming) ends inside ONNX Runtime while
+PushFlow is shut down for a live settings rebuild. Read against the pinned ONNX Runtime 1.20.1:
+
+- When a session is released, the DirectML provider lets go of its pool of GPU buffers first and only then
+  releases the objects still waiting in its queue of GPU work. A pooled buffer among them hands itself back to
+  a pool that was destroyed a moment earlier. The crash file shows exactly that: the pool's memory already torn
+  down when the buffer arrives.
+- Whether such a buffer is still queued depends on when the session ends. Queued inference (3.2.0) does not
+  make the provider release its queue after each run, so a session that ends between two full waits can still
+  hold some.
+
+What PushFlow does since 3.2.1, for every source:
+
+- before a session is released it asks the provider to finish and release its queue
+  (`SynchronizeBoundOutputs`), while the pool is still there;
+- it holds the pool itself, through an allocator handle, until the session is gone (`Status::poolHeld`).
+
+Since 3.1.7 the fault was already caught rather than ending PushFPS, at the price of leaving that session's
+memory behind.
+
+**What the tests show, and what they do not.** `PushFlowBench --teardown-check N` starts PushFlow, runs a few
+queued pairs (or none) and shuts it down at once, N times in four session kinds. In CI on WARP (run of
+2026-11-18, 6 cycles):
+
+| Teardown | Sessions | Faults caught | Pool held |
+|---|---|---|---|
+| 3.2.1 | 24 | 0 | yes |
+| As 3.2.0 (`VEYRA_PUSHFLOW_TEST_UNGUARDED=1`) | 24 | 0 | no |
+
+So the check did **not** reproduce the crash: the old teardown ran clean on WARP too. It shows that the new
+teardown works and that the pinned runtime hands out its pool the way PushFlow relies on (the build fails if
+a later pin stops doing so). That the change removes the crash rests on the crash file and on reading the
+runtime, not on a reproduction, and nothing was run on a real graphics card.
+
+One reading that was wrong, kept here so it is not made again: the provider also has a mode in which one
+execution context is stored on the D3D12 device and shared by every session. That mode is only for ONNX
+Runtime's Python API. Through the C API PushFlow uses, every session has a context of its own (checked in the
+runtime and in CI: the device carries no such context).
+
 ## Measure your card
 
 `PushFlowBench.exe` is next to `PushFPS.exe`. Run it from a command prompt in the PushFPS folder:
@@ -145,7 +186,7 @@ with dynamic shapes and `--compare-sync` one that waits after every inference (t
 
 ## Roadmap status
 
-The engineering roadmap (17 November 2026) lists 31 items. Where PushFlow stands after 3.2.0:
+The engineering roadmap (17 November 2026) lists 31 items. Where PushFlow stands after 3.2.1:
 
 | Item | Status |
 |---|---|
