@@ -565,7 +565,7 @@
         $("#release-line").textContent = `Version ${version}. Works with NVIDIA, AMD and Intel graphics.`;
       }
       if (obs) $("#dl-obs").href = obs.browser_download_url;
-      const linux = assets.find((a) => /^PushFPS-[^/]*-linux-x86_64\.AppImage$/i.test(a.name));
+      const linux = assets.find((a) => /^PushFPS-[^/]*-x86_64\.AppImage$/i.test(a.name));
       const mac = assets.find((a) => /^PushFPS-[^/]*-macos-universal\.zip$/i.test(a.name));
       if (linux) $("#dl-linux").href = linux.browser_download_url;
       if (mac) $("#dl-mac").href = mac.browser_download_url;

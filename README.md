@@ -725,7 +725,7 @@ Metal.
 
 | | Linux | macOS |
 |---|---|---|
-| Download | `PushFPS-<version>-linux-x86_64.AppImage` or `.tar.gz` | `PushFPS-<version>-macos-universal.zip` (Apple Silicon and Intel) |
+| Download | `PushFPS-<version>-x86_64.AppImage` (updates itself with AppImageUpdate) or `PushFPS-<version>-linux-x86_64.tar.gz` | `PushFPS-<version>-macos-universal.zip` (Apple Silicon and Intel) |
 | Needs | x86-64, glibc 2.31+ (Ubuntu 20.04+, Debian 11+, Fedora 33+), X11 or Wayland, OpenGL (`libopengl0`, present on desktop systems) | macOS 12 or newer |
 | Capture cards | Any UVC card (`/dev/video*`): almost every USB card | Any card macOS lists as a camera |
 | Portable | Put an empty `portable.txt` next to the program | Put an empty `portable.txt` next to PushFPS.app |

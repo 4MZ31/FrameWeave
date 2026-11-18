@@ -165,17 +165,28 @@ jobs:
           export QML_SOURCES_PATHS=$PWD/portable/app/qml
           # xcb is deployed by default; offscreen too, for --selftest without a display (and the container test).
           export EXTRA_PLATFORM_PLUGINS=libqoffscreen.so
-          export LDAI_OUTPUT=PushFPS-$version-linux-x86_64.AppImage
+          # AppImage conventions (the AppImage catalog's test, November 2026): no "linux" in the name,
+          # and update information inside the file, so AppImageUpdate and similar tools can update it
+          # from the latest GitHub release through the .zsync file published beside it.
+          sudo apt-get install -y -qq zsync >/dev/null || echo "::warning::zsync not installed; the AppImage gets no .zsync file"
+          export LDAI_OUTPUT=PushFPS-$version-x86_64.AppImage
+          export LDAI_UPDATE_INFORMATION="gh-releases-zsync|${GITHUB_REPOSITORY%/*}|${GITHUB_REPOSITORY#*/}|latest|PushFPS-*-x86_64.AppImage.zsync"
+          export UPDATE_INFORMATION="$LDAI_UPDATE_INFORMATION"
           ./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt --output appimage \
             --desktop-file AppDir/usr/share/applications/pushfps.desktop \
             --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/pushfps.png
+          # What the file itself says about updates (read by the runtime, no FUSE needed).
+          info=$(./PushFPS-$version-x86_64.AppImage --appimage-updateinformation 2>/dev/null || true)
+          echo "update information: $info"
+          case "$info" in gh-releases-zsync*) ;; *) echo "::warning::the AppImage carries no update information" ;; esac
+          ls -la PushFPS-$version-x86_64.AppImage.zsync 2>/dev/null || echo "::warning::no .zsync file was written"
           # The same folder as a portable download: unpack, run ./PushFPS (AppRun).
           cp -r AppDir PushFPS-$version-linux-x86_64
           cp LICENSE PushFPS-$version-linux-x86_64/LICENSE.txt
           cp portable/app/packaging/README-linux.txt PushFPS-$version-linux-x86_64/README.txt
           ln -sf AppRun PushFPS-$version-linux-x86_64/PushFPS
           tar -czf PushFPS-$version-linux-x86_64.tar.gz PushFPS-$version-linux-x86_64
-          ls -la *.AppImage *.tar.gz
+          ls -la PushFPS-*.AppImage *.tar.gz
 
       - name: Package test in a clean Ubuntu 24.04 container
         run: |
@@ -215,10 +226,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           sha256sum PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz > PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz.sha256
-          sha256sum PushFPS-$PORTABLE_VERSION-linux-x86_64.AppImage > PushFPS-$PORTABLE_VERSION-linux-x86_64.AppImage.sha256
-          gh release upload "$RELEASE_TAG" --clobber \
-            PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz.sha256 \
-            PushFPS-$PORTABLE_VERSION-linux-x86_64.AppImage PushFPS-$PORTABLE_VERSION-linux-x86_64.AppImage.sha256
+          sha256sum PushFPS-$PORTABLE_VERSION-x86_64.AppImage > PushFPS-$PORTABLE_VERSION-x86_64.AppImage.sha256
+          files="PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz.sha256 PushFPS-$PORTABLE_VERSION-x86_64.AppImage PushFPS-$PORTABLE_VERSION-x86_64.AppImage.sha256"
+          # The .zsync file is what AppImage update tools read; without it they report "no update".
+          if [ -f PushFPS-$PORTABLE_VERSION-x86_64.AppImage.zsync ]; then files="$files PushFPS-$PORTABLE_VERSION-x86_64.AppImage.zsync"; fi
+          gh release upload "$RELEASE_TAG" --clobber $files
 
   macos:
     runs-on: macos-15
