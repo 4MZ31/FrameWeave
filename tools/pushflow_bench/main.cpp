@@ -158,7 +158,7 @@ int main(int argc, char** argv) {
     bool warp = false, compareShapes = false, compareSync = false, fp16Probe = false;
     uint64_t adapterLuid = 0;
     bool sizesGiven = false, pairsGiven = false;
-    int leakCheck = 0;
+    int leakCheck = 0, teardownCheck = 0;
     std::string out = "pushflow-bench.json";
     std::wstring runtimeOverride;
     for (int i = 1; i < argc; ++i) {
@@ -169,6 +169,7 @@ int main(int argc, char** argv) {
         else if (a == "--compare-sync") compareSync = true;
         else if (a == "--fp16-probe") fp16Probe = true;
         else if (a == "--leak-check" && !next.empty()) { leakCheck = std::clamp(std::atoi(next.c_str()), 40, 5000); ++i; }
+        else if (a == "--teardown-check" && !next.empty()) { teardownCheck = std::clamp(std::atoi(next.c_str()), 1, 200); ++i; }
         else if (a == "--adapter-luid" && !next.empty()) { adapterLuid = std::strtoull(next.c_str(), nullptr, 10); ++i; }
         else if (a == "--runtime" && !next.empty()) { runtimeOverride.assign(next.begin(), next.end()); ++i; }
         else if (a == "--pairs" && !next.empty()) { pairs = std::clamp(std::atoi(next.c_str()), 1, 1000); pairsGiven = true; ++i; }
@@ -192,7 +193,8 @@ int main(int argc, char** argv) {
             ++i;
         } else if (a == "--help" || a == "-h") {
             std::printf("PushFlowBench [--sizes 1920x1080,2560x1440] [--tiers 0,1,2] [--pairs 40] [--out file.json] [--warp] [--compare-shapes] [--compare-sync]\n"
-                        "PushFlowBench --fp16-probe [--adapter-luid <n>] --out result.json   (is half precision safe and faster here?)\n");
+                        "PushFlowBench --fp16-probe [--adapter-luid <n>] --out result.json   (is half precision safe and faster here?)\n"
+                        "PushFlowBench --teardown-check 10 --out result.json   (start, run and shut PushFlow down at once, 10 times per session kind)\n");
             return 0;
         }
     }
@@ -200,6 +202,63 @@ int main(int argc, char** argv) {
     if (!gpu.create(warp, adapterLuid)) { std::printf("No D3D12 device\n"); return 1; }
     // The folder holding pushflow\ (runtime\experimental next to PushFPS.exe), or --runtime <folder>.
     const std::wstring runtimeDir = !runtimeOverride.empty() ? runtimeOverride : runtime::localRuntimeDirectory().wstring();
+    if (teardownCheck) {
+        // --teardown-check N: N times per session kind PushFlow is started, runs a few queued inferences
+        // (or none) and is shut down at once with its work still on the queue: how a settings rebuild,
+        // an optimiser step or a stream that changes size right after connecting ends it. Counts the
+        // ONNX Runtime faults caught on the way (each one ended PushFPS before 3.1.7; field dump of
+        // 2026-11-17). Dynamic sessions keep one DirectML kernel per node, as every session did in 3.1.x.
+        // VEYRA_PUSHFLOW_TEST_UNGUARDED=1 runs the teardown of 3.2.0 for comparison.
+        const uint32_t w = sizes.empty() || !sizesGiven ? 256 : sizes[0].first, h = sizes.empty() || !sizesGiven ? 160 : sizes[0].second, tier = tiers.empty() ? 0 : tiers[0];
+        auto a = frameTexture(gpu, w, h, 0), b = frameTexture(gpu, w, h, 8);
+        auto output = pipeline::makeTexture(gpu.device.Get(), w, h, DXGI_FORMAT_R8G8B8A8_UNORM, false);
+        if (!a || !b || !output) { std::printf("teardown-check: textures failed\n"); return 1; }
+        struct Kind { const char* name; bool dynamic; int runs; };
+        const Kind kinds[] = {{"static, 3 runs", false, 3}, {"static, never run", false, 0}, {"dynamic, 3 runs", true, 3}, {"dynamic, 1 run", true, 1}};
+        const bool unguarded = GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_TEST_UNGUARDED", nullptr, 0) > 0;
+        bool outputState = false, poolHeld = true;
+        uint64_t started = 0, notStarted = 0, runFailures = 0;
+        const uint64_t faultsBefore = pushflow::faultCount();
+        std::string rows;
+        for (const Kind& kind : kinds) {
+            SetEnvironmentVariableW(L"VEYRA_PUSHFLOW_DYNAMIC", kind.dynamic ? L"1" : nullptr);
+            const uint64_t before = pushflow::faultCount();
+            uint64_t kindStarted = 0;
+            for (int i = 0; i < teardownCheck; ++i) {
+                if (gpu.device->GetDeviceRemovedReason() != S_OK) break;
+                {
+                    pushflow::PushFlowBackend flow;
+                    if (!flow.initialize(gpu.device.Get(), gpu.queue.Get(), runtimeDir, w, h, DXGI_FORMAT_R8G8B8A8_UNORM, pushflow::Encoding::Encoded, tier)) { ++notStarted; continue; }
+                    ++started; ++kindStarted;
+                    poolHeld = poolHeld && flow.status().poolHeld;
+                    for (int r = 0; r < kind.runs; ++r) {
+                        bool good = gpu.begin() && flow.pack(gpu.list.Get(), a.Get(), b.Get(), 0.5f, false) && gpu.submit() && flow.infer() && gpu.begin();
+                        if (good) {
+                            D3D12_RESOURCE_BARRIER bar{}; bar.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; bar.Transition.pResource = output.Get();
+                            bar.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+                            if (!outputState) { bar.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON; bar.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST; gpu.list->ResourceBarrier(1, &bar); outputState = true; }
+                            good = flow.resolve(gpu.list.Get(), a.Get(), b.Get(), output.Get()) && gpu.submit();   // not waited for
+                        }
+                        if (!good) { ++runFailures; break; }
+                    }
+                }   // PushFlow shuts down here
+                gpu.wait();
+            }
+            const uint64_t faults = pushflow::faultCount() - before;
+            std::printf("teardown-check %-18s %llu started, %llu faults\n", kind.name, static_cast<unsigned long long>(kindStarted), static_cast<unsigned long long>(faults));
+            rows += std::format("{}{{\"kind\": \"{}\", \"started\": {}, \"faults\": {}}}", rows.empty() ? "" : ", ", kind.name, kindStarted, faults);
+        }
+        SetEnvironmentVariableW(L"VEYRA_PUSHFLOW_DYNAMIC", nullptr);
+        const uint64_t faults = pushflow::faultCount() - faultsBefore;
+        const HRESULT removed = gpu.device->GetDeviceRemovedReason();
+        std::printf("teardown-check %ux%u tier %u (%s): %llu sessions, %llu faults, %llu did not start, %llu runs failed, pool held %s, device 0x%08X\n",
+                    w, h, tier, unguarded ? "UNGUARDED, as 3.2.0" : "guarded", static_cast<unsigned long long>(started), static_cast<unsigned long long>(faults),
+                    static_cast<unsigned long long>(notStarted), static_cast<unsigned long long>(runFailures), poolHeld ? "yes" : "no", unsigned(removed));
+        std::ofstream(out) << std::format("{{\"tool\": \"PushFlowBench\", \"probe\": \"teardown\", \"guarded\": {}, \"cycles\": {}, \"started\": {}, \"faults\": {}, \"notStarted\": {}, "
+            "\"runFailures\": {}, \"poolHeld\": {}, \"deviceState\": {}, \"kinds\": [{}]}}\n", unguarded ? "false" : "true", teardownCheck, started, faults, notStarted,
+            runFailures, poolHeld && started ? "true" : "false", unsigned(removed), rows);
+        return 0;
+    }
     if (leakCheck) {
         // --leak-check N: N queued inferences with no full wait at all (VEYRA_PUSHFLOW_SYNC_EVERY=0), and
         // this process's committed memory after the first quarter and at the end. On the software
@@ -361,9 +420,9 @@ int main(int argc, char** argv) {
                 st.staticShapes ? "static" : "dynamic", st.queued ? "queued" : "waits", st.precision.c_str(), st.rebuild ? 1 : 0, network.pct(0.5), network.pct(0.95), inferCpu.pct(0.5),
                 pair[0].pct(0.5), pair[1].pct(0.5), pair[2].pct(0.5), st.warmupMs);
             json += std::format("{}    {{\"width\": {}, \"height\": {}, \"tier\": \"{}\", \"shapes\": \"{}\", \"queued\": {}, \"model\": \"{}\", \"precision\": \"{}\", \"selfCheckDb\": {:.1f}, "
-                "\"rebuild\": {}, \"modelSize\": \"{}x{}\", \"initMs\": {:.0f},\n      \"packMs\": {}, \"timeOnlyPackMs\": {}, \"networkMs\": {}, \"rebuildMs\": {}, \"inferCpuMs\": {},\n"
+                "\"rebuild\": {}, \"poolHeld\": {}, \"modelSize\": \"{}x{}\", \"initMs\": {:.0f},\n      \"packMs\": {}, \"timeOnlyPackMs\": {}, \"networkMs\": {}, \"rebuildMs\": {}, \"inferCpuMs\": {},\n"
                 "      \"pairWallMs\": {{\"2x\": {}, \"3x\": {}, \"4x\": {}}}}}",
-                firstRun ? "" : ",\n", w, h, tierName[tier], st.staticShapes ? "static" : "dynamic", st.queued ? "true" : "false", st.model, st.precision, st.selfCheckDb, st.rebuild ? "true" : "false", st.modelW, st.modelH, initMs,
+                firstRun ? "" : ",\n", w, h, tierName[tier], st.staticShapes ? "static" : "dynamic", st.queued ? "true" : "false", st.model, st.precision, st.selfCheckDb, st.rebuild ? "true" : "false", st.poolHeld ? "true" : "false", st.modelW, st.modelH, initMs,
                 stats(pack), stats(timePack), stats(network), stats(rebuild), stats(inferCpu), stats(pair[0]), stats(pair[1]), stats(pair[2]));
             firstRun = false;
           }
