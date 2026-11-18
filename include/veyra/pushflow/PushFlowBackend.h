@@ -59,6 +59,7 @@ struct Status {
     bool staticShapes = false;     // the session's input size is fixed (free dimensions overridden)
     bool queued = false;           // inference returns without waiting for the GPU (VEYRA_PUSHFLOW_SYNC=1: waits)
     double warmupMs = 0;           // the second warm-up run at start (network and upload, CPU wall time)
+    bool poolHeld = false;         // the provider's GPU buffer pool is kept alive until the session is released
     std::string provider;          // "DirectML"
     std::string model;             // file name of the model in use
     std::string precision;         // "fp32" or "fp16"
@@ -71,6 +72,8 @@ struct Telemetry {
     double inferP50Ms = 0, inferP95Ms = 0, inferMaxMs = 0;   // the network's GPU span on the queue (CPU time of the call without timestamps)
 };
 
+// ONNX Runtime faults caught since the process started (each one turned PushFlow off for its session).
+uint64_t faultCount();
 // Whether runtime\pushflow has the files PushFlow needs (file check only).
 bool runtimeInstalled(const std::wstring& runtimeDir, std::wstring* reason = nullptr);
 // runtimeDir\pushflow

@@ -494,6 +494,23 @@ Each side has a badge at the top: *Console · 30 FPS* and the PushFPS logo with 
 are shown, after the recorder has read the picture). Click the tile again to stop early. The card that appears
 afterwards can share the clip to Discord.
 
+## Enhancement look
+
+AI picture enhancement reworks light, colour and fine detail. How far it should go is a matter of taste, so the
+quick setup has four controls for it, shown while AI picture enhancement is on:
+
+- **Enhancement look**: Subtle, Balanced or Strong. Strong is the full effect and what PushFPS has always
+  used. Balanced and Subtle stay closer to the original picture. **Reset** returns to Strong.
+- **Lighting**: how far the AI reworks light and colour. At 0% the original's light and colours stay.
+- **Detail**: how much fine texture, contact shadow and reflection the AI adds.
+- **Compare with the original**: splits the picture while you tune, original on the left, enhanced on the
+  right. Frame generation pauses while it is on, so it turns itself off after two minutes, and when you turn
+  the enhancement off or leave the page.
+
+The look is saved with every console and game profile. Lighting and Detail are the two values Professional mode
+shows for each enhancement layer (*Local tone* and *Local structure*); the quick setup sets them on every
+layer. They are hidden with the AMD enhancement runtime, which has no such values.
+
 ## Profiles
 
 **Console profiles.** Switching the console in the quick setup keeps what you set for the previous console

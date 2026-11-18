@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <bit>
 #include <chrono>
 #include <cmath>
@@ -53,8 +54,18 @@ OrtStatus* sehRun(const OrtApi* api, OrtSession* s, const OrtRunOptions* o, OrtI
 OrtStatus* sehSync(const OrtApi* api, OrtIoBinding* b, bool* faulted) {
     __try { return api->SynchronizeBoundOutputs(b); } __except (EXCEPTION_EXECUTE_HANDLER) { *faulted = true; return nullptr; }
 }
+OrtStatus* sehCreateAllocator(const OrtApi* api, const OrtSession* s, const OrtMemoryInfo* m, OrtAllocator** out, bool* faulted) {
+    __try { return api->CreateAllocator(s, m, out); } __except (EXCEPTION_EXECUTE_HANDLER) { *faulted = true; *out = nullptr; return nullptr; }
+}
+bool sehReleaseAllocator(const OrtApi* api, OrtAllocator* a) { __try { api->ReleaseAllocator(a); return true; } __except (EXCEPTION_EXECUTE_HANDLER) { return false; } }
+
+// VEYRA_PUSHFLOW_TEST_UNGUARDED=1 (PushFlowBench --teardown-check): the session teardown of 3.2.0,
+// to measure what the guard changes. Never set in the product.
+bool unguardedForTest() { static const bool v = GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_TEST_UNGUARDED", nullptr, 0) > 0; return v; }
 }
 #endif
+namespace { std::atomic<uint64_t> g_faults{0}; }
+uint64_t faultCount() { return g_faults.load(std::memory_order_relaxed); }
 using Microsoft::WRL::ComPtr;
 
 namespace {
@@ -227,8 +238,46 @@ struct PushFlowBackend::Impl {
     void fault(const char* what) {
         if (!faulted) veyra::log::error("pushflow", std::format("ONNX Runtime faulted in {}; PushFlow is turned off for this session", what));
         faulted = true; status.ready = false;
+        g_faults.fetch_add(1, std::memory_order_relaxed);
     }
-    void releaseSession(OrtSession* s) { if (s && !sehReleaseSession(api, s)) fault("ReleaseSession"); }
+    // The provider's GPU buffer pool of each open session, held through an OrtAllocator.
+    //
+    // When a session closes, ONNX Runtime 1.20.1's DirectML provider first lets go of its buffer pool
+    // and only then releases the objects still waiting in its queue of finished GPU work
+    // (ExecutionProviderImpl::Close: allocator reset, then ExecutionContext::Close). A pooled buffer
+    // among them returns itself to a pool that was destroyed a moment earlier. That is the access
+    // violation of the 2026-11-17 field dump (Xbox streaming, PushFlow shut down for a settings
+    // rebuild): BucketizedBufferAllocator::FreeResource on an allocator whose pool and context were
+    // already gone. Whether such a buffer is still queued depends on when the session ends (that it
+    // struck a source that rebuilds soon after connecting fits, but is not proven). An allocator held
+    // here keeps the pool alive until the session is gone (the provider marks a pool that outlives
+    // it as closed, a case it handles), so the late release is an ordinary one.
+    // Not a cause, checked 2026-11-18: the provider's execution context is its own per session here.
+    // The one it stores on the D3D12 device and shares between sessions is only for ONNX Runtime's
+    // Python API (DMLProviderFactory::CreateProvider, python_api_).
+    std::vector<std::pair<OrtSession*, OrtAllocator*>> pools;
+    bool holdPool(OrtSession* s) {
+        if (!s || !memory || unguardedForTest()) return false;
+        for (const auto& [session_, pool] : pools) if (session_ == s) return true;
+        OrtAllocator* pool = nullptr;
+        bool crashed = false;
+        OrtStatus* st = sehCreateAllocator(api, s, memory, &pool, &crashed);
+        if (st) { veyra::log::warn("pushflow", std::format("provider buffer pool not held: {}", api->GetErrorMessage(st))); api->ReleaseStatus(st); pool = nullptr; }
+        if (crashed) { fault("CreateAllocator"); pool = nullptr; }
+        if (!pool) return false;
+        pools.emplace_back(s, pool);
+        return true;
+    }
+    void releaseSession(OrtSession* s) {
+        if (!s) return;
+        holdPool(s);
+        if (!sehReleaseSession(api, s)) fault("ReleaseSession");
+        for (auto it = pools.begin(); it != pools.end();) {
+            if (it->first != s) { ++it; continue; }
+            if (!sehReleaseAllocator(api, it->second)) fault("ReleaseAllocator");
+            it = pools.erase(it);
+        }
+    }
     void releaseBinding() {
         if (!api) return;
         if (binding && !sehReleaseIoBinding(api, binding)) fault("ReleaseIoBinding");
@@ -250,6 +299,13 @@ struct PushFlowBackend::Impl {
     void release() {
         if (queued) drainQueue();
         if (api) {
+            // The provider waits for its work and releases what it queued while everything it refers to
+            // is still there (with queued inference nothing else does that after the last run).
+            if (session && binding && !faulted && !unguardedForTest()) {
+                bool crashed = false;
+                if (OrtStatus* st = sehSync(api, binding, &crashed)) api->ReleaseStatus(st);
+                if (crashed) fault("SynchronizeBoundOutputs");
+            }
             if (runOptions) { api->ReleaseRunOptions(runOptions); runOptions = nullptr; }
             // Values and binding, then the allocations they wrapped, then the session (Microsoft's
             // samples free GPU allocations before the session that used them goes).
@@ -284,6 +340,14 @@ struct PushFlowBackend::Impl {
             bool crashed = false;
             good = ok(sehCreateSession(api, env, model.c_str(), options, out, &crashed), "CreateSession") && !crashed;
             if (crashed) fault("CreateSession");
+            const bool held = good && holdPool(*out);
+            if (good) {
+                // False with a runtime other than the pinned one would mean it no longer hands out its
+                // pool this way: PushFlow still runs, as it did before 3.2.1.
+                status.poolHeld = held;
+                if (!held && !unguardedForTest())
+                    veyra::log::warn("pushflow", "the provider's buffer pool is not held (the ONNX Runtime in runtime\\pushflow is not the pinned 1.20.1?)");
+            }
         }
         api->ReleaseSessionOptions(options);
         return good;

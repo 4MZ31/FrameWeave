@@ -97,6 +97,12 @@ QtObject {
     onFgEnabledChanged: if (!fgEnabled && fgMultiplier > 1) fgMultiplier = 1
     function addEffect(type) { if (type === "nr") nrAnyEnabled = true }
     function setAllNrEnabled(on) { nrAnyEnabled = on }
+    property int compareMode: 0
+    function setNrLayerParameter(index, key, value) {
+        if (!nrLayers.some(l => l.index === index)) return false
+        nrLayers = nrLayers.map(l => { if (l.index !== index) return l; const c = Object.assign({}, l); c[key] = value; return c })
+        return true
+    }
     function applyPresetIndex(index) { lastAppliedPreset = index; return true }
     // PushFPS picture editor, sound profile and recording card (tst_push_picture_sound.qml).
     property var colourState: ({index: 0, enabled: false, exposure: 0, contrast: 0, highlights: 0, shadows: 0,

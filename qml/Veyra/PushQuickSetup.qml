@@ -228,6 +228,70 @@ VGroup {
         }
     }
 
+    // --- the look of AI picture enhancement --------------------------------------
+    // Two of the enhancement model's own controls: how far it reworks light and colour ("tone") and
+    // how much fine detail it adds ("structure"), both 0..1 with 1 the model's full strength (what
+    // PushFPS has always used, and what Reset returns to). Professional mode shows the same two
+    // values per layer; here every enhancement layer gets the same pair, and the first one is shown.
+    // Nothing is stored apart from those layer values and the look kept in each profile.
+    readonly property var looks: [
+        { id: "subtle", label: qsTr("柔和"), tone: 0.4, structure: 0.5 },
+        { id: "balanced", label: qsTr("均衡"), tone: 0.7, structure: 0.8 },
+        { id: "strong", label: qsTr("强烈"), tone: 1, structure: 1 }
+    ]
+    readonly property var lookLayer: quick.nrPossible && veyra.nrLayers.length > 0 ? veyra.nrLayers[0] : null
+    function lookValue(v) { const n = Number(v); return isFinite(n) ? Math.max(0, Math.min(1, n)) : 1 }
+    readonly property real lookTone: lookLayer && lookLayer.tone !== undefined ? lookValue(lookLayer.tone) : 1
+    readonly property real lookStructure: lookLayer && lookLayer.structure !== undefined ? lookValue(lookLayer.structure) : 1
+    readonly property string lookId: {
+        for (const l of quick.looks)
+            if (Math.abs(l.tone - quick.lookTone) < 0.005 && Math.abs(l.structure - quick.lookStructure) < 0.005) return l.id
+        return ""
+    }
+    // The AMD enhancement runtime (4) has no such controls (Professional mode greys them out there too).
+    readonly property bool lookShown: quick.nrPossible && veyra.nrAnyEnabled === true && quick.lookLayer !== null && Number(quick.lookLayer.runtime) !== 4
+    // undefined leaves that value as it is.
+    function setLook(tone, structure) {
+        if (!quick.nrPossible) return false
+        let ok = true
+        const layers = veyra.nrLayers.map(l => l.index)
+        for (const index of layers) {
+            if (tone !== undefined) ok = veyra.setNrLayerParameter(index, "tone", Math.round(quick.lookValue(tone) * 100) / 100) && ok
+            if (structure !== undefined) ok = veyra.setNrLayerParameter(index, "structure", Math.round(quick.lookValue(structure) * 100) / 100) && ok
+        }
+        return ok && layers.length > 0
+    }
+    function applyLook(id) {
+        for (const l of quick.looks) if (l.id === id) return quick.setLook(l.tone, l.structure)
+        return false
+    }
+    function resetLook() { return quick.setLook(1, 1) }
+    // Split view while tuning: the picture without the enhancement on the left, with it on the right
+    // (the comparison Professional mode has under Display). Frame generation pauses while it is on,
+    // so a split this panel turned on never stays: it ends when the look controls go away, when this
+    // panel is hidden, and after two minutes.
+    readonly property bool lookSplit: veyra.compareMode === 2
+    property bool lookCompare: false
+    function setLookCompare(on) {
+        if (on) {
+            if (veyra.hasSource !== true) return
+            quick.lookCompare = true
+            veyra.compareMode = 2
+        } else {
+            quick.lookCompare = false
+            if (veyra.compareMode === 2) veyra.compareMode = 0
+        }
+    }
+    onLookSplitChanged: if (!lookSplit) lookCompare = false
+    onLookShownChanged: if (!lookShown && lookCompare) setLookCompare(false)
+    onVisibleChanged: if (!visible && lookCompare) setLookCompare(false)
+    Timer {
+        objectName: "pushfps-look-compare-timer"
+        interval: 120000
+        running: quick.lookCompare && quick.lookSplit
+        onTriggered: quick.setLookCompare(false)
+    }
+
     // --- console and game profiles ---------------------------------------------
     // A console profile remembers the quick choices per console: switching console
     // keeps what was set for the old one and brings back the new one's. A game
@@ -256,9 +320,12 @@ VGroup {
     readonly property int maxGames: 50
 
     function snapshot() {
-        return { fps: quick.baseFps, target: quick.currentTarget, enhance: veyra.nrAnyEnabled === true,
+        const s = { fps: quick.baseFps, target: quick.currentTarget, enhance: veyra.nrAnyEnabled === true,
                  adaptive: veyra.fgAdaptive === true, pacing: veyra.pacingRepair === true, hudLock: veyra.hudLock === true,
                  lowLatency: veyra.nvidiaLowLatencyAvailable === true && (veyra.nvidiaLowLatency ?? 0) > 0 }
+        // The enhancement's look, when there is an enhancement layer to read it from.
+        if (quick.lookLayer !== null) s.look = { tone: quick.lookTone, structure: quick.lookStructure }
+        return s
     }
     function writeProfiles(p) {
         p.v = 1
@@ -279,6 +346,14 @@ VGroup {
             quick.applyTarget(s.target, fps)
         if (quick.nrPossible && typeof s.enhance === "boolean" && s.enhance !== (veyra.nrAnyEnabled === true))
             quick.setEnhancement(s.enhance)
+        // Profiles saved before 3.2.1 have no look: the current one stays. So does a look that already
+        // matches: layers given different values in Professional mode are only made equal when a
+        // profile really asks for another look.
+        if (quick.nrPossible && s.look && typeof s.look === "object" && isFinite(Number(s.look.tone)) && isFinite(Number(s.look.structure))) {
+            const tone = quick.lookValue(s.look.tone), structure = quick.lookValue(s.look.structure)
+            if (Math.abs(tone - quick.lookTone) >= 0.005 || Math.abs(structure - quick.lookStructure) >= 0.005)
+                quick.setLook(tone, structure)
+        }
         if (veyra.nvidiaLowLatencyAvailable === true && typeof s.lowLatency === "boolean")
             veyra.nvidiaLowLatency = s.lowLatency ? 1 : 0
     }
@@ -752,6 +827,80 @@ VGroup {
             opacity: enabled ? 1 : 0.4
             checked: veyra.nrAnyEnabled
             onToggled: checked => quick.setEnhancement(checked)
+        }
+    }
+
+    // The enhancement's look (shown while AI picture enhancement is on).
+    VRow {
+        objectName: "pushfps-look-row"
+        visible: quick.lookShown
+        label: qsTr("增强风格")
+        help: qsTr("AI 画面增强改动画面的力度。「强烈」是完整效果，也是一直以来的默认值；觉得画面不像原作、过于锐利或人脸不自然时，选「均衡」或「柔和」。也可以用下面两个滑块自己调")
+        hint: quick.lookId === "" ? qsTr("自定义：已用滑块调整") : quick.lookId === "strong" ? qsTr("完整效果（默认）") : qsTr("比默认更接近原画")
+        RowLayout {
+            spacing: 8
+            VSeg {
+                objectName: "pushfps-look"
+                options: quick.looks.map(l => ({ id: l.id, label: l.label }))
+                current: quick.lookId
+                onPicked: id => quick.applyLook(id)
+            }
+            VButton {
+                objectName: "pushfps-look-reset"
+                text: qsTr("重置")
+                enabled: quick.lookId !== "strong"
+                opacity: enabled ? 1 : 0.4
+                onClicked: quick.resetLook()
+            }
+        }
+    }
+    VRow {
+        objectName: "pushfps-look-tone-row"
+        visible: quick.lookShown
+        label: qsTr("光影")
+        hint: qsTr("AI 重新处理明暗和色彩的程度。0% 保持原画的光影和颜色")
+        value: Math.round(quick.lookTone * 100) + "%"
+        VSlider {
+            objectName: "pushfps-look-tone"
+            valueFromModel: true
+            implicitWidth: 150
+            from: 0; to: 1; stepSize: 0.01
+            inputScale: 100
+            value: quick.lookTone
+            resettable: true; defaultValue: 1
+            onMoved: v => { if (quick.lookShown) quick.setLook(v, undefined) }
+        }
+    }
+    VRow {
+        objectName: "pushfps-look-detail-row"
+        visible: quick.lookShown
+        label: qsTr("细节")
+        hint: qsTr("AI 补充细小纹理、接触阴影和反光的程度。0% 不添加细节")
+        value: Math.round(quick.lookStructure * 100) + "%"
+        VSlider {
+            objectName: "pushfps-look-detail"
+            valueFromModel: true
+            implicitWidth: 150
+            from: 0; to: 1; stepSize: 0.01
+            inputScale: 100
+            value: quick.lookStructure
+            resettable: true; defaultValue: 1
+            onMoved: v => { if (quick.lookShown) quick.setLook(undefined, v) }
+        }
+    }
+    VRow {
+        objectName: "pushfps-look-compare-row"
+        visible: quick.lookShown
+        label: qsTr("与原画对比")
+        help: qsTr("把画面分成两半：左边是没有 AI 画面增强的原画，右边是增强后的画面，方便边调边看。在专业模式的画面上可以拖动分割线")
+        hint: quick.lookSplit ? qsTr("对比时补帧暂停；关闭对比后自动恢复。两分钟后自动关闭")
+                              : veyra.hasSource === true ? qsTr("左边原画，右边增强后") : qsTr("先连接画面")
+        VSwitch {
+            objectName: "pushfps-look-compare"
+            enabled: veyra.hasSource === true || quick.lookSplit
+            opacity: enabled ? 1 : 0.4
+            checked: quick.lookSplit
+            onToggled: checked => quick.setLookCompare(checked)
         }
     }
 

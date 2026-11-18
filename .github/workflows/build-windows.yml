@@ -375,6 +375,23 @@ jobs:
           # Does memory grow when queued inference never does a full wait? (decides PushFlowBackend's kSyncEvery)
           & "$env:BUILD\PushFlowBench.exe" --warp --sizes 256x160 --tiers 0 --leak-check 160 --runtime "$env:DEPS\pushflow\runtime" --out "$env:RUNNER_TEMP\pushflow-leak.json" 2>&1 | Out-Host
           Write-Host "leak check exit $LASTEXITCODE"
+          # PushFlow started and shut down at once with its work still queued (a settings rebuild, an optimiser
+          # step, a stream that changes size right after connecting; field dump of 2026-11-17). Guarded: no
+          # ONNX Runtime fault and every session's buffer pool held until the session is gone. The guard
+          # relies on the pinned ONNX Runtime, so a new pin that changes it fails here.
+          & "$env:BUILD\PushFlowBench.exe" --warp --teardown-check 6 --runtime "$env:DEPS\pushflow\runtime" --out "$env:RUNNER_TEMP\pushflow-teardown.json" 2>&1 | Out-Host
+          if (-not (Test-Path "$env:RUNNER_TEMP\pushflow-teardown.json")) { Write-Host "::error::PushFlow teardown check wrote no result"; exit 1 }
+          Get-Content "$env:RUNNER_TEMP\pushflow-teardown.json" | Out-Host
+          $td = Get-Content "$env:RUNNER_TEMP\pushflow-teardown.json" -Raw | ConvertFrom-Json
+          if ($td.faults -ne 0 -or -not $td.poolHeld -or $td.started -lt 20 -or $td.runFailures -ne 0 -or $td.deviceState -ne 0) {
+            Write-Host "::error::PushFlow teardown check failed (faults=$($td.faults) started=$($td.started) poolHeld=$($td.poolHeld))"; exit 1
+          }
+          # The same without the guard (session teardown as in 3.2.0), for the log only.
+          $env:VEYRA_PUSHFLOW_TEST_UNGUARDED = "1"
+          & "$env:BUILD\PushFlowBench.exe" --warp --teardown-check 6 --runtime "$env:DEPS\pushflow\runtime" --out "$env:RUNNER_TEMP\pushflow-teardown-unguarded.json" 2>&1 | Out-Host
+          Write-Host "unguarded teardown check exit $LASTEXITCODE"
+          if (Test-Path "$env:RUNNER_TEMP\pushflow-teardown-unguarded.json") { Get-Content "$env:RUNNER_TEMP\pushflow-teardown-unguarded.json" | Out-Host }
+          Remove-Item Env:VEYRA_PUSHFLOW_TEST_UNGUARDED
           # The half precision probe PushFPS runs in its own process (Settings: PushFlow half precision -> Test).
           # It must end with a result whatever fp16 does on WARP (2026-11-17: fp16 removed the WARP device).
           & "$env:BUILD\PushFlowBench.exe" --warp --fp16-probe --sizes 320x180 --pairs 4 --runtime "$env:DEPS\pushflow\runtime" --out "$env:RUNNER_TEMP\pushflow-fp16.json" 2>&1 | Out-Host
