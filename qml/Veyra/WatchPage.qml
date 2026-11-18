@@ -298,7 +298,17 @@ VPage {
                         objectName: "watch-replay-row"
                         label: qsTr("即时回放")
                         help: qsTr("一直保留最近的画面和声音，按下保存时写成视频文件")
-                        hint: veyra.replayEnabled ? qsTr("保存最近的画面和声音（%1）").arg(veyra.shortcuts.replay || qsTr("未设置快捷键")) : qsTr("关闭")
+                        hint: {
+                            if (!veyra.replayEnabled) return qsTr("关闭")
+                            const s = veyra.replayState || {}
+                            const key = qsTr("保存最近的画面和声音（%1）").arg(veyra.shortcuts.replay || qsTr("未设置快捷键"))
+                            // Live: the memory the buffer uses now, and when the chosen length is full.
+                            if (s.active && s.seconds > 0 && s.fullMegabytes > 0)
+                                return key + " · " + qsTr("内存约 %1 MB，存满后约 %2 MB").arg(s.megabytes).arg(s.fullMegabytes)
+                            if (s.fullMegabytes > 0) return key + " · " + qsTr("存满后约占用 %1 MB 内存").arg(s.fullMegabytes)
+                            return key
+                        }
+                        hintBelow: true
                         RowLayout {
                             spacing: 8
                             VButton {

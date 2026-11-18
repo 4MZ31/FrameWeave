@@ -1280,6 +1280,9 @@ struct LiveRecorder::State {
 };
 
 LiveRecorder::LiveRecorder(bool replay):s_(std::make_unique<State>()){s_->replayMode=replay;}
+uint32_t recordingAutoBitrateMbps(uint32_t width,uint32_t height,uint32_t fps,bool hevc){return autoBitrateMbps(width,height,fps,hevc);}
+uint64_t replayMemoryCapBytes(){return defaultReplayMemory();}
+
 LiveRecorder::LiveRecorder(Mode mode):s_(std::make_unique<State>()){s_->replayMode=mode==Mode::Replay;s_->streamMode=mode==Mode::Stream;}
 LiveRecorder::~LiveRecorder(){waitIdle(8000);}
 

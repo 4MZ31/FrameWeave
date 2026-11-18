@@ -103,6 +103,11 @@ struct RecordingStatus {
     std::vector<stream::TargetStatus> streams; // going live: each output's connection
 };
 
+// What the interface needs to say how much memory instant replay takes before it runs: the automatic
+// bitrate for a picture (the recorder's own rule) and the replay buffer's memory cap on this PC.
+uint32_t recordingAutoBitrateMbps(uint32_t width,uint32_t height,uint32_t fps,bool hevc);
+uint64_t replayMemoryCapBytes();
+
 class LiveRecorder final : public PresentCapture {
 public:
     // File: recordings. Replay: the instant replay buffer. Stream: going live (RTMP/RTMPS outputs,

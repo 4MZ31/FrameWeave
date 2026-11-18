@@ -1028,9 +1028,13 @@ VPage {
                             label: qsTr("回放长度")
                             hint: {
                                 const s = veyra.replayState || {}
-                                if (!s.active || !(s.seconds > 0)) return qsTr("播放时开始缓存；录制码率越高，占用内存越多")
+                                // Live: what the buffer holds now and what the chosen length takes when full.
+                                if (!s.active || !(s.seconds > 0))
+                                    return s.fullMegabytes > 0 ? qsTr("存满后约占用 %1 MB 内存（上限 %2 MB），保存的片段在磁盘上大小相近；播放时开始缓存").arg(s.fullMegabytes).arg(s.capMegabytes)
+                                                               : qsTr("播放时开始缓存；录制码率越高，占用内存越多")
                                 if (s.memoryLimited) return qsTr("内存上限只够保留 %1 秒（约 %2 MB），可降低录制码率").arg(s.seconds).arg(s.megabytes)
-                                return qsTr("已缓存 %1 秒，占用内存约 %2 MB").arg(s.seconds).arg(s.megabytes)
+                                return s.fullMegabytes > 0 ? qsTr("已缓存 %1 秒，占用内存约 %2 MB；存满后约 %3 MB，保存的片段在磁盘上大小相近").arg(s.seconds).arg(s.megabytes).arg(s.fullMegabytes)
+                                                           : qsTr("已缓存 %1 秒，占用内存约 %2 MB").arg(s.seconds).arg(s.megabytes)
                             }
                             VSeg {
                                 objectName: "set-replay-seconds"

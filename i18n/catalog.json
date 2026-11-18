@@ -13993,6 +13993,23 @@
    "ru": "Колпачок памяти только держит %1s (примерно %2MB); более низкий битрейт записи удерживает больше"
   },
   {
+   "zh": "内存约 %1 MB，存满后约 %2 MB",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "記憶體約 %1 MB，存滿後約 %2 MB",
+   "en": "about %1 MB of memory now, about %2 MB when full",
+   "ja": "現在のメモリは約 %1 MB、満杯時は約 %2 MB",
+   "nl": "about %1 MB of memory now, about %2 MB when full",
+   "de": "about %1 MB of memory now, about %2 MB when full",
+   "es": "about %1 MB of memory now, about %2 MB when full",
+   "fr": "about %1 MB of memory now, about %2 MB when full",
+   "it": "about %1 MB of memory now, about %2 MB when full",
+   "pt-BR": "about %1 MB of memory now, about %2 MB when full",
+   "tr": "about %1 MB of memory now, about %2 MB when full",
+   "ar": "about %1 MB of memory now, about %2 MB when full",
+   "pl": "about %1 MB of memory now, about %2 MB when full",
+   "ru": "about %1 MB of memory now, about %2 MB when full"
+  },
+  {
    "zh": "内容亮度远超显示设备能力",
    "src": "qml/ProDisplayPanel.qml",
    "zh-TW": "內容亮度遠超顯示裝置能力",
@@ -21677,6 +21694,40 @@
    "ru": "Сохранить как игровой профиль"
   },
   {
+   "zh": "存满后约占用 %1 MB 内存",
+   "src": "qml/WatchPage.qml",
+   "zh-TW": "存滿後約佔用 %1 MB 記憶體",
+   "en": "about %1 MB of memory when full",
+   "ja": "満杯時のメモリ使用量は約 %1 MB",
+   "nl": "about %1 MB of memory when full",
+   "de": "about %1 MB of memory when full",
+   "es": "about %1 MB of memory when full",
+   "fr": "about %1 MB of memory when full",
+   "it": "about %1 MB of memory when full",
+   "pt-BR": "about %1 MB of memory when full",
+   "tr": "about %1 MB of memory when full",
+   "ar": "about %1 MB of memory when full",
+   "pl": "about %1 MB of memory when full",
+   "ru": "about %1 MB of memory when full"
+  },
+  {
+   "zh": "存满后约占用 %1 MB 内存（上限 %2 MB），保存的片段在磁盘上大小相近；播放时开始缓存",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "存滿後約佔用 %1 MB 記憶體（上限 %2 MB），儲存的片段在磁碟上大小相近；播放時開始緩衝",
+   "en": "About %1 MB of memory when full (at most %2 MB); a saved clip takes about the same on disk. Buffering starts when something plays",
+   "ja": "満杯時のメモリ使用量は約 %1 MB（上限 %2 MB）。保存したクリップもディスク上でほぼ同じサイズです。再生を始めるとバッファを開始します",
+   "nl": "About %1 MB of memory when full (at most %2 MB); a saved clip takes about the same on disk. Buffering starts when something plays",
+   "de": "About %1 MB of memory when full (at most %2 MB); a saved clip takes about the same on disk. Buffering starts when something plays",
+   "es": "About %1 MB of memory when full (at most %2 MB); a saved clip takes about the same on disk. Buffering starts when something plays",
+   "fr": "About %1 MB of memory when full (at most %2 MB); a saved clip takes about the same on disk. Buffering starts when something plays",
+   "it": "About %1 MB of memory when full (at most %2 MB); a saved clip takes about the same on disk. Buffering starts when something plays",
+   "pt-BR": "About %1 MB of memory when full (at most %2 MB); a saved clip takes about the same on disk. Buffering starts when something plays",
+   "tr": "About %1 MB of memory when full (at most %2 MB); a saved clip takes about the same on disk. Buffering starts when something plays",
+   "ar": "About %1 MB of memory when full (at most %2 MB); a saved clip takes about the same on disk. Buffering starts when something plays",
+   "pl": "About %1 MB of memory when full (at most %2 MB); a saved clip takes about the same on disk. Buffering starts when something plays",
+   "ru": "About %1 MB of memory when full (at most %2 MB); a saved clip takes about the same on disk. Buffering starts when something plays"
+  },
+  {
    "zh": "安全",
    "src": "qml/ProDisplayPanel.qml",
    "zh-TW": "安全",
@@ -25517,6 +25568,23 @@
    "ar": "%1 s buffered, about %2 MB of memory",
    "pl": "%1 s buforowane, około %2 MB pamięci",
    "ru": "%1 с буфером, около %2 MB памяти"
+  },
+  {
+   "zh": "已缓存 %1 秒，占用内存约 %2 MB；存满后约 %3 MB，保存的片段在磁盘上大小相近",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "已緩衝 %1 秒，佔用記憶體約 %2 MB；存滿後約 %3 MB，儲存的片段在磁碟上大小相近",
+   "en": "%1 s buffered, using about %2 MB of memory; about %3 MB when full, and a saved clip takes about the same on disk",
+   "ja": "%1 秒バッファ済み、メモリ使用量は約 %2 MB。満杯時は約 %3 MB で、保存したクリップもディスク上でほぼ同じサイズです",
+   "nl": "%1 s buffered, using about %2 MB of memory; about %3 MB when full, and a saved clip takes about the same on disk",
+   "de": "%1 s buffered, using about %2 MB of memory; about %3 MB when full, and a saved clip takes about the same on disk",
+   "es": "%1 s buffered, using about %2 MB of memory; about %3 MB when full, and a saved clip takes about the same on disk",
+   "fr": "%1 s buffered, using about %2 MB of memory; about %3 MB when full, and a saved clip takes about the same on disk",
+   "it": "%1 s buffered, using about %2 MB of memory; about %3 MB when full, and a saved clip takes about the same on disk",
+   "pt-BR": "%1 s buffered, using about %2 MB of memory; about %3 MB when full, and a saved clip takes about the same on disk",
+   "tr": "%1 s buffered, using about %2 MB of memory; about %3 MB when full, and a saved clip takes about the same on disk",
+   "ar": "%1 s buffered, using about %2 MB of memory; about %3 MB when full, and a saved clip takes about the same on disk",
+   "pl": "%1 s buffered, using about %2 MB of memory; about %3 MB when full, and a saved clip takes about the same on disk",
+   "ru": "%1 s buffered, using about %2 MB of memory; about %3 MB when full, and a saved clip takes about the same on disk"
   },
   {
    "zh": "已编码 ",

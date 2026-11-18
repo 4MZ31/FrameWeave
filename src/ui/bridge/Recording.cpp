@@ -168,6 +168,32 @@ void QmlPlayerBridge::pollReplay() {
     state["microphone"] = live.microphone;
     state["microphoneError"] = live.microphoneError.empty() ? QString() : uiText(live.microphoneError);
     state["saved"] = QVariant::fromValue(qulonglong(live.saved));
+    // How much memory the buffer takes when the chosen length is full (10 MB steps, 0 = unknown): from
+    // what the buffer holds now once it has a few seconds, before that from the recording settings and
+    // the picture being played. A saved clip takes about the same on disk.
+    {
+        const double wanted = double(std::max(1, replaySeconds()));
+        const double capMb = double(engine::replayMemoryCapBytes()) / 1048576.0;
+        double fullMb = 0;
+        if (live.active && live.bufferedSeconds >= 3.0) fullMb = double(live.bufferedBytes) / 1048576.0 / live.bufferedSeconds * wanted;
+        else {
+            const auto& snap = impl_->snapshot;
+            const auto out = snap.metrics.resolution.output;
+            double videoKbps = double(impl_->prefInt("recordBitrateKbps", 0));
+            if (videoKbps <= 0 && recordingBitrateMbps() > 0) videoKbps = recordingBitrateMbps() * 1000.0;
+            if (videoKbps <= 0 && snap.running && out.width > 0 && out.height > 0) {
+                const int limit = recordingFpsLimit();
+                const double shown = snap.submissionFps.value_or(snap.fps);
+                const uint32_t fps = uint32_t(std::clamp(limit > 0 ? std::min<double>(limit, shown > 1 ? shown : limit) : shown, 1.0, 480.0));
+                videoKbps = engine::recordingAutoBitrateMbps(out.width, out.height, fps, recordingHevc()) * 1000.0;
+            }
+            const double audioKbps = recordingAudio() ? (impl_->prefBool("recordAdvanced", false) ? double(std::clamp(impl_->prefInt("recordAudioKbps", 192), 64, 320)) : 192.0) : 0.0;
+            if (videoKbps > 0) fullMb = (videoKbps + audioKbps) * wanted / 8.0 / 1000.0;
+        }
+        fullMb = std::min(fullMb, capMb);
+        state["fullMegabytes"] = fullMb > 0 ? std::max(10, int(std::lround(fullMb / 10.0)) * 10) : 0;
+        state["capMegabytes"] = int(std::lround(capMb / 10.0)) * 10;
+    }
     if (state == impl_->replayState) return;
     const auto previous = impl_->replayState;
     impl_->replayState = state;
