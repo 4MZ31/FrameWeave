@@ -291,6 +291,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    "pushLatencyOverlay", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset",
                                    // PushFPS: smooth frame pacing (quick setup); set once by the 2.9.7 default.
                                    "pushSmoothPacing", "pushSmoothPacing2",
+                                   // PushFPS: the quick setup's G-SYNC row was used (driver profile checked, nothing left to set).
+                                   "pushGsyncChecked",
                                    // PushFPS going live: sound and microphone in the stream.
                                    "streamAudio", "streamMic",
                                    // PushFPS streaming mode mixer: mutes and the microphone filters.

@@ -849,16 +849,22 @@ VGroup {
         target: quick.gsyncTools
         ignoreUnknownSignals: true
         function onChanged() {
-            if (!quick.gsyncWanted || quick.gsyncTools.busy) return
-            quick.gsyncWanted = false
-            quick.gsyncChecked = true
-            if (quick.gsyncTools.canRepair) quick.gsyncTools.repair()
+            if (quick.gsyncTools.busy) return
+            if (quick.gsyncWanted) {
+                quick.gsyncWanted = false
+                quick.gsyncChecked = true
+                if (quick.gsyncTools.canRepair) { quick.gsyncTools.repair(); return }
+            }
+            // Checked and nothing (left) to set: remembered, so the row does not come back at every
+            // start on screens whose driver never reports variable refresh as active (G-SYNC Compatible).
+            if (quick.gsyncChecked && !quick.gsyncTools.canRepair) veyra.setPreference("pushGsyncChecked", true)
         }
     }
     VRow {
         objectName: "pushfps-gsync-row"
         // Once checked with nothing left to set, the row goes: the driver's report is then all there is.
-        visible: !quick.compact && quick.gsyncUnconfirmed && (!quick.gsyncChecked || quick.gsyncWanted || quick.gsyncTools.busy || quick.gsyncTools.canRepair)
+        visible: !quick.compact && quick.gsyncUnconfirmed && veyra.preferences.pushGsyncChecked !== true
+                 && (!quick.gsyncChecked || quick.gsyncWanted || quick.gsyncTools.busy || quick.gsyncTools.canRepair)
         label: "G-SYNC"
         help: qsTr("屏幕支持可变刷新时，画面一准备好屏幕就刷新：不撕裂，每一帧显示的时间都一样长。NVIDIA 驱动要为每个程序单独允许窗口和全屏 G-SYNC")
         hint: quick.gsyncWanted || (quick.gsyncTools && quick.gsyncTools.busy) ? qsTr("正在检查驱动配置…")

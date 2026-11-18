@@ -350,6 +350,7 @@ Item {
             compare(tools.repairs, 1, "a profile that can be set is repaired")
             tools.canRepair = false; tools.changed()
             tryVerify(() => !row.visible, 2000, "nothing left to set: the row goes")
+            compare(veyra.preferences.pushGsyncChecked, true, "and that is remembered")
             veyra.vrrState = 0; veyra.displaySync = 2; veyra.variableRefresh = false
             veyra.nvidiaVrrProfile = null
             tools.destroy()
