@@ -1187,7 +1187,7 @@ Window {
         ToolTip.text: qsTr("停止本次启动音乐")
     }
     // PushFPS (screenshots): --scroll-to <objectName> once the settings page is laid out.
-    Timer { id: testScrollTimer; interval: 1500; onTriggered: settingsPage.scrollToObject(root.test.scrollTo) }
+    Timer { id: testScrollTimer; interval: 1500; onTriggered: (root.page === "home" ? homePage : settingsPage).scrollToObject(root.test.scrollTo) }
     // The menu anchors on laid-out buttons, so it opens once the page has settled.
     // --full-bar shown|hidden: enter fullscreen with the control window held shown
     // or held hidden, for the present-timing comparison (G2.5).

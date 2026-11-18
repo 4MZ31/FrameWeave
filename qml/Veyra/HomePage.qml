@@ -21,6 +21,19 @@ VPage {
         interval: 450
         onTriggered: content.contentY = Math.max(0, Math.min(tuning.mapToItem(column, 0, 0).y - 24, content.contentHeight - content.height))
     }
+    // The screenshot run's `--scroll-to <objectName>` on this page (as SettingsPage.scrollToObject).
+    function scrollToObject(name) {
+        const find = (item) => {
+            if (!item) return null
+            if (item.objectName === name) return item
+            for (let i = 0; i < item.children.length; ++i) { const r = find(item.children[i]); if (r) return r }
+            return null
+        }
+        const target = find(column)
+        if (!target) return false
+        content.contentY = Math.max(0, Math.min(target.mapToItem(column, 0, 0).y - 24, content.contentHeight - content.height))
+        return true
+    }
     // Veyra 2.1.9's startup intro hooks (Main.qml); PushFPS has no intro, so nothing is held.
     property bool introHold: false
     // Space kept free under a pinned dock (Main.qml), so it never covers the logo.
