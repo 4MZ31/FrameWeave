@@ -8,12 +8,20 @@
 // regions, at most four).
 //
 // Input: a few real (not generated) presented frames a few hundred
-// milliseconds apart, each reduced to a small luma grid (reduce()). A grid
-// cell is HUD when its luma stays put (temporal deviation near capture noise
-// and well below the picture's typical motion) while it has visible detail
-// (edges); flat static areas such as letterbox bars or sky are not HUD.
-// Neighbouring HUD cells grow into boxes, small or sparse ones are dropped,
-// close ones merge, and the largest four are kept with a small margin.
+// milliseconds apart, each reduced to a luma grid (reduce(): one point per
+// pixel up to 1920x1080). A grid point is HUD evidence when its luma stays put
+// (temporal deviation near capture noise and well below the picture's typical
+// motion) and either it has a still neighbour of another brightness (text on
+// a panel, icons) or it is part of a thin still shape in a moving surround
+// (text drawn straight over the game, thin bars, a minimap's ring). Flat
+// static areas such as letterbox bars or sky are not HUD. Cells with enough
+// evidence grow into boxes, small or sparse ones are dropped, close ones
+// merge, and the largest four are kept with a small margin.
+//
+// Until 3.1.7 the grid was 384x216 and a cell counted only when all of it
+// stood still. A grid point then mixed HUD strokes with the moving game behind
+// them, so text without a panel, thin bars and half-transparent panels gave no
+// candidates at all: on real games the detection found nothing.
 //
 // When the whole picture hardly moved (a menu, a paused game, a still camera)
 // nothing tells the HUD apart from the scene: detect() reports tooStill and no
@@ -27,8 +35,9 @@
 
 namespace veyra::engine::hud {
 
-constexpr uint32_t kGridWidth = 384, kGridHeight = 216;       // luma grid of one frame
-constexpr uint32_t kCellsX = kGridWidth / 2, kCellsY = kGridHeight / 2; // decision cells (2x2 grid points)
+constexpr uint32_t kGridWidth = 1920, kGridHeight = 1080;     // luma grid of one frame
+constexpr uint32_t kCell = 10;                                 // grid points per decision cell side
+constexpr uint32_t kCellsX = kGridWidth / kCell, kCellsY = kGridHeight / kCell;
 constexpr uint32_t kPreviewWidth = 640, kPreviewHeight = 360;  // RGB picture for the box editor
 constexpr size_t kMinFrames = 6;
 constexpr size_t kMaxRegions = 4;                               // Exclusion node limit
@@ -50,7 +59,7 @@ struct Detection {
     uint32_t candidateCells = 0; // static detailed cells before grouping
 };
 
-// Reduces one frame to the luma grid (3x3 samples per grid point, BT.709
+// Reduces one frame to the luma grid (1 to 3 samples per grid point and axis, BT.709
 // weights; FP16 scRGB is clamped to 0..1 and given a 1/2 gamma; 10-bit keeps
 // its top 8 bits). With `previewRgb`, also fills kPreviewWidth x kPreviewHeight
 // RGB bytes. Returns false for an empty or too small frame.

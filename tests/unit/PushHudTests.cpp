@@ -5,6 +5,10 @@
 // a moving textured scene with static HUD elements is found, a still picture
 // reports tooStill, flat static bars are not HUD, the result keeps at most four
 // boxes (the largest), and reduce() reads every supported pixel layout.
+// The second half draws whole pictures the way games do (text straight over the
+// scene, thin bars, a half-transparent panel, a minimap whose map scrolls, 4K
+// and a noisy 720p stream) and runs them through reduce() and detect(): the
+// first detector found nothing in any of them.
 #include "veyra/engine/PushHud.h"
 
 #include <algorithm>
@@ -36,7 +40,11 @@ uint8_t scene(int x, int y) {
 // A HUD-like pattern: bright strokes on dark, like text.
 uint8_t hudPattern(int x, int y) { return ((x / 3 + y / 4) % 3 == 0 || (x % 7) == 0) ? 235 : 20; }
 
-struct Rect { int x0, y0, x1, y1; }; // grid points, exclusive end
+// Rects are in units of a 384 x 216 picture (exclusive end), drawn at the grid's size.
+constexpr int kUnitW = 384, kUnitH = 216;
+constexpr int kScale = int(kGridWidth) / kUnitW;
+struct Rect { int x0, y0, x1, y1; };
+bool inside(const Rect& r, int x, int y) { return x >= r.x0 * kScale && x < r.x1 * kScale && y >= r.y0 * kScale && y < r.y1 * kScale; }
 
 std::vector<LumaFrame> makeFrames(size_t count, int shiftPerFrame, const std::vector<Rect>& hud, const std::vector<Rect>& flat = {}, int noise = 0) {
     uint32_t rng = 12345;
@@ -46,9 +54,9 @@ std::vector<LumaFrame> makeFrames(size_t count, int shiftPerFrame, const std::ve
         luma.resize(size_t(kGridWidth) * kGridHeight);
         for (int y = 0; y < int(kGridHeight); ++y)
             for (int x = 0; x < int(kGridWidth); ++x) {
-                uint8_t v = scene(x + int(f) * shiftPerFrame, y + int(f) * shiftPerFrame / 2);
-                for (const auto& r : hud) if (x >= r.x0 && x < r.x1 && y >= r.y0 && y < r.y1) v = hudPattern(x, y);
-                for (const auto& r : flat) if (x >= r.x0 && x < r.x1 && y >= r.y0 && y < r.y1) v = 16;
+                uint8_t v = scene(x + int(f) * shiftPerFrame * kScale, y + int(f) * shiftPerFrame * kScale / 2);
+                for (const auto& r : hud) if (inside(r, x, y)) v = hudPattern(x, y);
+                for (const auto& r : flat) if (inside(r, x, y)) v = 16;
                 if (noise) {
                     rng = rng * 1664525u + 1013904223u;
                     v = uint8_t(std::clamp(int(v) + int((rng >> 24) % uint32_t(2 * noise + 1)) - noise, 0, 255));
@@ -60,7 +68,7 @@ std::vector<LumaFrame> makeFrames(size_t count, int shiftPerFrame, const std::ve
 }
 
 Region toRegion(const Rect& r) {
-    return {float(r.x0) / kGridWidth, float(r.y0) / kGridHeight, float(r.x1) / kGridWidth, float(r.y1) / kGridHeight};
+    return {float(r.x0) / kUnitW, float(r.y0) / kUnitH, float(r.x1) / kUnitW, float(r.y1) / kUnitH};
 }
 float iou(const Region& a, const Region& b) {
     const float ix = std::max(0.0f, std::min(a.right, b.right) - std::max(a.left, b.left));
@@ -81,6 +89,8 @@ bool covers(const Detection& d, const Rect& truth) {
     return false;
 }
 } // namespace
+
+int runHudPictureTests();   // PushHudPictureTests.cpp
 
 int main() {
     {
@@ -113,7 +123,7 @@ int main() {
     }
     {
         // Letterbox bars: static but flat.
-        const auto frames = makeFrames(10, 5, {}, {{0, 0, int(kGridWidth), 24}, {0, int(kGridHeight) - 24, int(kGridWidth), int(kGridHeight)}});
+        const auto frames = makeFrames(10, 5, {}, {{0, 0, kUnitW, 24}, {0, kUnitH - 24, kUnitW, kUnitH}});
         const auto d = detect(frames);
         check(d.regions.empty(), "flat static letterbox bars are not HUD");
     }
@@ -185,6 +195,7 @@ int main() {
         check(!reduce(red.data(), 16, w, h, PixelLayout::Rgba8, c), "a too small pitch is refused");
         check(!reduce(red.data(), 4 * 32, 32, 32, PixelLayout::Rgba8, c), "a tiny frame is refused");
     }
+    failures += runHudPictureTests();
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "OK", failures);
     return failures ? 1 : 0;
 }

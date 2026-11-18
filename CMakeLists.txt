@@ -1022,7 +1022,7 @@ add_executable(veyra_push_adaptive_fg_tests tests/unit/PushAdaptiveFgTests.cpp)
 target_compile_features(veyra_push_adaptive_fg_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_adaptive_fg_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS automatic HUD detection on synthetic pictures.
-add_executable(veyra_push_hud_tests tests/unit/PushHudTests.cpp src/engine/PushHud.cpp)
+add_executable(veyra_push_hud_tests tests/unit/PushHudTests.cpp tests/unit/PushHudPictureTests.cpp src/engine/PushHud.cpp)
 target_compile_features(veyra_push_hud_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_hud_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_sound_profile_tests tests/unit/SoundProfileTests.cpp src/sink/SoundProfile.cpp)
