@@ -177,6 +177,31 @@ Item {
             tryCompare(opt, "phase", "done", 20000)
             compare(opt.best.config.backend, "vfg", "same 120 FPS: the better picture method, latency only breaks ties")
         }
+        // Crash memory: the step being tested is on disk; a method PushFPS stopped in is skipped next time.
+        function test_the_running_method_is_on_disk_and_a_crashed_one_is_skipped() {
+            veyra.version = "9.9.9"
+            opt.start()
+            tryVerify(() => opt.current >= 1 && opt.phase === "running", 5000)
+            const saved = JSON.parse(veyra.preferences.pushOptimizeRestore)
+            compare(saved.testing, opt.steps[opt.current].config.backend, "the method under test is recorded")
+            tryVerify(() => opt.phase !== "running", 15000)
+            compare(veyra.preferences.pushOptimizeRestore, "{}", "nothing to restore after a finished run")
+            // As after a crash while VFG was being tested (the list a restart would write).
+            veyra.preferences = Object.assign({}, veyra.preferences, { pushOptimizeSkip: JSON.stringify([{ backend: "vfg", version: "9.9.9" }, { backend: "dlss", version: "1.0.0" }]) })
+            verify(opt.backends().indexOf("vfg") < 0, "the method that crashed in this version is not tested")
+            verify(opt.backends().indexOf("dlss") >= 0, "an entry from another version no longer counts")
+            verify(opt.unavailable().some(u => u.label.indexOf("VFG") >= 0), "and it is listed with the reason")
+            opt.start()
+            tryVerify(() => opt.phase !== "running", 15000)
+            verify(!opt.steps.some(s => s.config.backend === "vfg"), "no VFG step in the next run")
+        }
+        function test_notes_a_30_fps_game_measured_as_60() {
+            veyra.liveStats = Object.assign({}, veyra.liveStats, { contentFps: 60, captureFps: 60 })
+            veyra.contentRate = 1
+            opt.start()
+            tryVerify(() => opt.phase !== "running", 15000)
+            verify(opt.skipped.some(s => String(s.reason).indexOf("60→30") >= 0), "the 60 -> 30 hint is in the notes")
+        }
         function test_detects_a_60_fps_game() {
             veyra.liveStats = Object.assign({}, veyra.liveStats, { contentFps: 60 })
             veyra.displayRefreshHz = 144

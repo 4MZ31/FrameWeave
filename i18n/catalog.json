@@ -8552,6 +8552,23 @@
    "ru": "PushFPS неожиданно закрылся в последний раз (резка в %1)"
   },
   {
+   "zh": "上次「为我的电脑优化」在测试 %1 时意外中断，已恢复优化前的设置；这个版本不再测试 %1",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "上次「為我的電腦最佳化」在測試 %1 時意外中斷，已恢復最佳化前的設定；這個版本不再測試 %1",
+   "en": "Last time, Optimise for my PC stopped unexpectedly while testing %1. Your settings from before are back, and this version does not test %1 again",
+   "ja": "前回の「この PC に最適化」は %1 のテスト中に予期せず中断しました。最適化前の設定に戻しました。このバージョンでは %1 を再テストしません",
+   "nl": "Last time, Optimise for my PC stopped unexpectedly while testing %1. Your settings from before are back, and this version does not test %1 again",
+   "de": "Last time, Optimise for my PC stopped unexpectedly while testing %1. Your settings from before are back, and this version does not test %1 again",
+   "es": "Last time, Optimise for my PC stopped unexpectedly while testing %1. Your settings from before are back, and this version does not test %1 again",
+   "fr": "Last time, Optimise for my PC stopped unexpectedly while testing %1. Your settings from before are back, and this version does not test %1 again",
+   "it": "Last time, Optimise for my PC stopped unexpectedly while testing %1. Your settings from before are back, and this version does not test %1 again",
+   "pt-BR": "Last time, Optimise for my PC stopped unexpectedly while testing %1. Your settings from before are back, and this version does not test %1 again",
+   "tr": "Last time, Optimise for my PC stopped unexpectedly while testing %1. Your settings from before are back, and this version does not test %1 again",
+   "ar": "Last time, Optimise for my PC stopped unexpectedly while testing %1. Your settings from before are back, and this version does not test %1 again",
+   "pl": "Last time, Optimise for my PC stopped unexpectedly while testing %1. Your settings from before are back, and this version does not test %1 again",
+   "ru": "Last time, Optimise for my PC stopped unexpectedly while testing %1. Your settings from before are back, and this version does not test %1 again"
+  },
+  {
    "zh": "上次「为我的电脑优化」没有完成，已恢复优化前的设置",
    "src": "qml/PushOptimizeDialog.qml",
    "zh-TW": "上次「為我的電腦最佳化」沒有完成，已恢復最佳化前的設定",
@@ -8584,6 +8601,23 @@
    "ar": "The last test did not pass; full precision is used",
    "pl": "The last test did not pass; full precision is used",
    "ru": "The last test did not pass; full precision is used"
+  },
+  {
+   "zh": "上次测试这种方式时 PushFPS 意外退出，这个版本不再测试它",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "上次測試這種方式時 PushFPS 意外結束，這個版本不再測試它",
+   "en": "PushFPS stopped unexpectedly while testing this method last time; this version does not test it again",
+   "ja": "前回この方式のテスト中に PushFPS が予期せず終了しました。このバージョンでは再テストしません",
+   "nl": "PushFPS stopped unexpectedly while testing this method last time; this version does not test it again",
+   "de": "PushFPS stopped unexpectedly while testing this method last time; this version does not test it again",
+   "es": "PushFPS stopped unexpectedly while testing this method last time; this version does not test it again",
+   "fr": "PushFPS stopped unexpectedly while testing this method last time; this version does not test it again",
+   "it": "PushFPS stopped unexpectedly while testing this method last time; this version does not test it again",
+   "pt-BR": "PushFPS stopped unexpectedly while testing this method last time; this version does not test it again",
+   "tr": "PushFPS stopped unexpectedly while testing this method last time; this version does not test it again",
+   "ar": "PushFPS stopped unexpectedly while testing this method last time; this version does not test it again",
+   "pl": "PushFPS stopped unexpectedly while testing this method last time; this version does not test it again",
+   "ru": "PushFPS stopped unexpectedly while testing this method last time; this version does not test it again"
   },
   {
    "zh": "上次的捕获目标「%1」已不在，请重新选择",
@@ -41875,7 +41909,7 @@
   },
   {
    "zh": "游戏帧率",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/PushOptimizeDialog.qml",
    "zh-TW": "遊戲幀率",
    "en": "Game frame rate",
    "ja": "ゲームのフレームレート",
@@ -41974,6 +42008,23 @@
    "ar": "The game is set to 30 FPS, but every captured frame counts as a new picture (%1 FPS), so live play is less smooth than a recording. If the game really runs at 30 FPS, switch duplicate removal to \"60→30\" in the quick setup",
    "pl": "The game is set to 30 FPS, but every captured frame counts as a new picture (%1 FPS), so live play is less smooth than a recording. If the game really runs at 30 FPS, switch duplicate removal to \"60→30\" in the quick setup",
    "ru": "The game is set to 30 FPS, but every captured frame counts as a new picture (%1 FPS), so live play is less smooth than a recording. If the game really runs at 30 FPS, switch duplicate removal to \"60→30\" in the quick setup"
+  },
+  {
+   "zh": "游戏帧率设为 30，但测到每秒 60 张新画面，下面按 60 FPS 测试。如果游戏确实是 30 FPS（采集卡给重复画面加了噪点），请在快速设置里把去重改为「60→30」后重新优化",
+   "src": "qml/PushOptimizeDialog.qml",
+   "zh-TW": "遊戲幀率設為 30，但測到每秒 60 張新畫面，下面按 60 FPS 測試。如果遊戲確實是 30 FPS（擷取卡給重複畫面加了雜訊），請在快速設定裡把去重改為「60→30」後重新最佳化",
+   "en": "The game is set to 30 FPS, but 60 new pictures per second were measured, so the tests below run at 60 FPS. If the game really runs at 30 FPS (the capture card adds noise to repeated pictures), switch duplicate removal to \"60→30\" in the quick setup and optimise again",
+   "ja": "ゲームは 30 FPS に設定されていますが、毎秒 60 枚の新しい画像が測定されたため、以下は 60 FPS としてテストします。ゲームが本当に 30 FPS の場合（キャプチャカードが重複フレームにノイズを加えています）、クイック設定で重複除去を「60→30」に切り替えてから最適化し直してください",
+   "nl": "The game is set to 30 FPS, but 60 new pictures per second were measured, so the tests below run at 60 FPS. If the game really runs at 30 FPS (the capture card adds noise to repeated pictures), switch duplicate removal to \"60→30\" in the quick setup and optimise again",
+   "de": "The game is set to 30 FPS, but 60 new pictures per second were measured, so the tests below run at 60 FPS. If the game really runs at 30 FPS (the capture card adds noise to repeated pictures), switch duplicate removal to \"60→30\" in the quick setup and optimise again",
+   "es": "The game is set to 30 FPS, but 60 new pictures per second were measured, so the tests below run at 60 FPS. If the game really runs at 30 FPS (the capture card adds noise to repeated pictures), switch duplicate removal to \"60→30\" in the quick setup and optimise again",
+   "fr": "The game is set to 30 FPS, but 60 new pictures per second were measured, so the tests below run at 60 FPS. If the game really runs at 30 FPS (the capture card adds noise to repeated pictures), switch duplicate removal to \"60→30\" in the quick setup and optimise again",
+   "it": "The game is set to 30 FPS, but 60 new pictures per second were measured, so the tests below run at 60 FPS. If the game really runs at 30 FPS (the capture card adds noise to repeated pictures), switch duplicate removal to \"60→30\" in the quick setup and optimise again",
+   "pt-BR": "The game is set to 30 FPS, but 60 new pictures per second were measured, so the tests below run at 60 FPS. If the game really runs at 30 FPS (the capture card adds noise to repeated pictures), switch duplicate removal to \"60→30\" in the quick setup and optimise again",
+   "tr": "The game is set to 30 FPS, but 60 new pictures per second were measured, so the tests below run at 60 FPS. If the game really runs at 30 FPS (the capture card adds noise to repeated pictures), switch duplicate removal to \"60→30\" in the quick setup and optimise again",
+   "ar": "The game is set to 30 FPS, but 60 new pictures per second were measured, so the tests below run at 60 FPS. If the game really runs at 30 FPS (the capture card adds noise to repeated pictures), switch duplicate removal to \"60→30\" in the quick setup and optimise again",
+   "pl": "The game is set to 30 FPS, but 60 new pictures per second were measured, so the tests below run at 60 FPS. If the game really runs at 30 FPS (the capture card adds noise to repeated pictures), switch duplicate removal to \"60→30\" in the quick setup and optimise again",
+   "ru": "The game is set to 30 FPS, but 60 new pictures per second were measured, so the tests below run at 60 FPS. If the game really runs at 30 FPS (the capture card adds noise to repeated pictures), switch duplicate removal to \"60→30\" in the quick setup and optimise again"
   },
   {
    "zh": "游戏模式",

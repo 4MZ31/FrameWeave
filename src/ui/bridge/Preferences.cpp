@@ -430,7 +430,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         if (error.error != QJsonParseError::NoError || !doc.isObject()) return false;
         stored = v;
     } else if (key == QLatin1String("pushGamePresets") || key == QLatin1String("pushBenchmark") || key == QLatin1String("pushLowestLatency") ||
-               key == QLatin1String("studioScenes") || key == QLatin1String("pushOptimizeRestore") || key == QLatin1String("pushFlowHalfProbe")) {
+               key == QLatin1String("studioScenes") || key == QLatin1String("pushOptimizeRestore") || key == QLatin1String("pushFlowHalfProbe") ||
+               key == QLatin1String("pushOptimizeSkip")) {
         // PushFPS: the user's own game presets, the last "Optimise for my PC" result and the settings
         // the one-tap lowest latency switch restores; JSON written by the interface, size-capped and
         // parsed here like pushProfiles.

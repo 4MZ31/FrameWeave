@@ -145,16 +145,31 @@ DialogLayer {
         else if (c.sr) s += " · " + qsTr("RTX 视频超分")
         return s
     }
+    // Methods PushFPS stopped in while this version was testing them (preference pushOptimizeSkip,
+    // written at the next start from the step that was running): not tested again until PushFPS is
+    // updated, so one method that crashes on this PC cannot crash every optimisation.
+    function crashed() {
+        let list = []
+        try { list = JSON.parse(String(veyra.preferences.pushOptimizeSkip || "[]")) } catch (e) { list = [] }
+        const version = String(veyra.version || "")
+        return (Array.isArray(list) ? list : []).filter(e => e && typeof e.backend === "string" && String(e.version || "") === version).map(e => e.backend)
+    }
     // Every method the engine reports as available on this PC, best picture first.
     function backends() {
+        const skip = opt.crashed()
         return (veyra.fgBackendChoices || [])
-            .filter(o => !o.disabled)
+            .filter(o => !o.disabled && skip.indexOf(o.id) < 0)
             .map(o => o.id).sort((a, b) => (opt.qualityRank[b] || 0) - (opt.qualityRank[a] || 0))
     }
-    // Methods the engine reports as unavailable, with its reason.
+    // Methods the engine reports as unavailable, with its reason, and those skipped after a crash.
     function unavailable() {
-        return (veyra.fgBackendChoices || []).filter(o => o.disabled)
+        const skip = opt.crashed()
+        const list = (veyra.fgBackendChoices || []).filter(o => o.disabled)
             .map(o => ({ label: opt.backendLabel[o.id] || o.label || o.id, reason: String(o.note || "") || qsTr("这台电脑不能运行") }))
+        for (const o of (veyra.fgBackendChoices || []))
+            if (!o.disabled && skip.indexOf(o.id) >= 0)
+                list.push({ label: opt.backendLabel[o.id] || o.label || o.id, reason: qsTr("上次测试这种方式时 PushFPS 意外退出，这个版本不再测试它") })
+        return list
     }
     // A whole multiplier lands within 5 % of the refresh (30 FPS: 180 Hz = 6X, 240 Hz = 8X).
     function monitorReachable() {
@@ -196,13 +211,25 @@ DialogLayer {
         let saved = null
         try { saved = JSON.parse(String(veyra.preferences.pushOptimizeRestore || "{}")) } catch (e) { saved = null }
         if (!saved || saved.backend === undefined) return
+        // The method that was being tested when PushFPS stopped is remembered for this version.
+        const testing = typeof saved.testing === "string" ? saved.testing : ""
+        if (testing.length > 0) {
+            let list = []
+            try { list = JSON.parse(String(veyra.preferences.pushOptimizeSkip || "[]")) } catch (e) { list = [] }
+            if (!Array.isArray(list)) list = []
+            const version = String(veyra.version || "")
+            list = list.filter(e => e && String(e.version || "") === version && e.backend !== testing)
+            list.push({ backend: testing, version: version })
+            veyra.setPreference("pushOptimizeSkip", JSON.stringify(list.slice(-12)))
+        }
         opt.original = saved
         opt.restoreOriginal()
         opt.original = null
         opt.clearRestore()
-        veyra.logUi("push-optimize", "restored the settings from before an interrupted run")
+        veyra.logUi("push-optimize", "restored the settings from before an interrupted run" + (testing ? " (was testing " + testing + ")" : ""))
         if (typeof veyra.notice === "function")
-            veyra.notice(qsTr("上次「为我的电脑优化」没有完成，已恢复优化前的设置"), false)
+            veyra.notice(testing ? qsTr("上次「为我的电脑优化」在测试 %1 时意外中断，已恢复优化前的设置；这个版本不再测试 %1").arg(opt.backendLabel[testing] || testing)
+                                 : qsTr("上次「为我的电脑优化」没有完成，已恢复优化前的设置"), false)
     }
     function cancel() {
         opt.clearRestore()
@@ -212,6 +239,8 @@ DialogLayer {
     function beginStep(i) {
         opt.current = i
         const step = opt.steps[i]
+        // On disk before the method starts: which one was running, should PushFPS stop in it.
+        if (opt.original) veyra.setPreference("pushOptimizeRestore", JSON.stringify(Object.assign({}, opt.original, { testing: String(step.config.backend || "") })))
         if (!opt.apply(step.config)) { opt.finishStep({ ok: false, reason: qsTr("这台电脑不支持此组合") }); return }
         step.label = opt.describe(step.config)
         opt.steps = opt.steps.slice()
@@ -346,6 +375,13 @@ DialogLayer {
             if (opt.refreshHz > 125 && !opt.monitorReachable())
                 skipped.push({ label: qsTr("%1 FPS").arg(Math.round(opt.refreshHz)),
                                reason: qsTr("%1 FPS 的游戏只能按整数倍补帧，没有一种倍数能达到 %2 Hz，最高测试 120 FPS").arg(opt.gameFps).arg(Math.round(opt.refreshHz)) })
+            // The game is set to 30 FPS, the capture runs at 60 and every sample counted as a new
+            // picture: either the game really runs at 60, or the capture card adds noise to repeated
+            // pictures. The tests below then run on what was measured; say what to do if it is the card.
+            if (opt.original && opt.original.gameFps === 30 && content === 60 && Math.abs(Number(opt.stats().captureFps || 0) - 60) < 3 &&
+                Number(opt.original.contentRate) !== 5)
+                skipped.push({ label: qsTr("游戏帧率"),
+                               reason: qsTr("游戏帧率设为 30，但测到每秒 60 张新画面，下面按 60 FPS 测试。如果游戏确实是 30 FPS（采集卡给重复画面加了噪点），请在快速设置里把去重改为「60→30」后重新优化") })
             opt.skipped = skipped
             for (const high of opt.highTargets())
                 for (const b of opt.backends())
