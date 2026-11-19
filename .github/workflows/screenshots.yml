@@ -166,7 +166,14 @@ jobs:
             # Comparison clips (3.2.5): the Reveal layout with its sweep interval, and the clip quality of a split clip.
             @{ name = '78-compare-reveal'; args = @('--page', 'home', '--dialog', 'compare', '--lang', 'en', '--pref', 'pushCompareLayout=3', '--pref', 'pushSunset=false') },
             @{ name = '79-compare-split-quality'; args = @('--page', 'home', '--dialog', 'compare', '--lang', 'en', '--pref', 'pushCompareLayout=0', '--pref', 'pushCompareQuality=2160', '--pref', 'pushSunset=false') },
-            @{ name = '80-settings-performance-report'; args = @('--page', 'set', '--tab', 'about', '--scroll-to', 'set-perfreport', '--lang', 'en', '--pref', 'pushSunset=false') }
+            @{ name = '80-settings-performance-report'; args = @('--page', 'set', '--tab', 'about', '--scroll-to', 'set-perfreport', '--lang', 'en', '--pref', 'pushSunset=false') },
+            # Crop and resize of the console picture (3.2.6). 81: the test pattern with a fifth cut from the left and the right and a
+            # tenth from the top (the kept part centred, the rest black); 82: the same picture whole, to compare; 83: the editor;
+            # 84: the quick setup row.
+            @{ name = '81-crop-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--pref', 'pushCropOn=true', '--pref', 'pushCropL=200', '--pref', 'pushCropR=200', '--pref', 'pushCropT=100', '--pref', 'pushSunset=false') },
+            @{ name = '82-crop-off-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--pref', 'pushCropOn=false', '--pref', 'pushCropL=200', '--pref', 'pushCropR=200', '--pref', 'pushCropT=100', '--pref', 'pushSunset=false') },
+            @{ name = '83-crop-editor'; args = @('--page', 'home', '--dialog', 'crop', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') },
+            @{ name = '84-crop-quick-setup'; args = @('--page', 'home', '--scroll-to', 'pushfps-crop-row', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') }
           )
           if ($env:ONLY) { $list = @($list | Where-Object { $_.name -match $env:ONLY }); Write-Host "Only: $($list.name -join ', ')" }
           foreach ($s in $list) {

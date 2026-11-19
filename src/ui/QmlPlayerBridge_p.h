@@ -9,6 +9,7 @@
 #include "veyra/ngx/DlssgLite.h"
 #include "veyra/RuntimePaths.h"
 #include "veyra/ui/GamePassthrough.h"
+#include <array>
 #include <QAbstractNativeEventFilter>
 #include <QGuiApplication>
 #include <QScreen>
@@ -676,6 +677,7 @@ struct QmlPlayerBridge::Impl {
     bool compareBase = false;
     double compareSplit = 0.5;
     int aspectMode = 0, aspectApplied = 0;
+    std::array<int, 7> pushCropApplied{0, 0, 0, 0, 100, 0, 0};   // PushFPS crop and resize, as last given to the view
     uint64_t aspectSession = 0;
     std::jthread gpuSampler;                 // joined before gpuUtil goes away
     std::filesystem::path prefsFile() const { return dataDir / L"qml-preferences.v1.json"; }

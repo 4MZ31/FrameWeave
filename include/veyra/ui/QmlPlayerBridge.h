@@ -20,6 +20,7 @@
 //
 // Scope note: this exposes what the engine can actually do today. Playback
 // speed measurement and requested file-preview rate are separate values.
+#include <array>
 #include <QObject>
 #include <QString>
 #include <QRectF>
@@ -1715,6 +1716,9 @@ private:
     void pushNoteSession();
     void pushLoadCrashReport(const QString& markerText);
     engine::PushCanvas pushCanvas(int fit) const;   // PushFPS canvas preferences (Recording.cpp)
+    // PushFPS crop and resize of the console picture (View.cpp): left, top, right, bottom in thousandths,
+    // size in percent, x and y in thousandths of the window; {0,0,0,0,100,0,0} when it does not apply.
+    std::array<int, 7> pushCropValues() const;
     void scheduleEnhancementPrewarm();
     // Hold-to-compare key (press/release), handled for the whole application.
     bool eventFilter(QObject* watched, QEvent* event) override;

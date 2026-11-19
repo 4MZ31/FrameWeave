@@ -533,6 +533,29 @@ are made from the frames, not from the window, so they are never affected; recor
 sizes (3440 × 1440 and 2560 × 1080) under *Output resolution*. Ambient fill is not available with XeSS frame
 generation, which presents through its own path.
 
+## Crop and resize
+
+Cut any side of the console picture and choose how large and where it is shown: a game that draws its own
+black bars, a border your capture card adds, or a part of the picture you simply don't want to see. In the
+quick setup, **Crop and resize → Adjust…** opens an editor on one frame of the game:
+
+- **Drag an edge** to cut that side, **a corner** to cut two, **the middle** to slide the part that is kept.
+  Double-click to see the whole picture again.
+- **Numbers** for the four sides, in percent of the picture (at most 45 % per side).
+- **Shapes**: 16:9, 21:9, 32:9, 4:3 and 1:1, cut evenly around the middle. A 21:9 game with bars inside a
+  16:9 signal becomes a real 21:9 picture that fills a 21:9 screen.
+- **Size on screen** from 25 % to 400 %, and **Position**.
+
+The picture on screen follows every change at once, and *Wide-screen fill* (bars, crop, stretch) then works
+on the part that is kept. The switch in the quick setup shows the whole picture again without losing your
+values, and console and game profiles remember the crop. Frame generation, AI enhancement and HUD protection
+still work on the whole picture, so nothing about them changes.
+
+Recordings, instant replay and streams keep the whole picture unless you switch on **Crop recordings and
+streams too** in the editor. The crop is for a console picture (capture card, or PS5, Sunshine and Xbox
+streaming); films and captured windows keep theirs. It does not apply with XeSS frame generation, which
+presents through its own path.
+
 ## Before/after comparison clips
 
 **Comparison clip** in the quick setup opens a small dialog: pick the layout and the length (10, 15, 30, 60,

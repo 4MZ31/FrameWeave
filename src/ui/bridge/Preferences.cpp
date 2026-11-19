@@ -290,6 +290,9 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"recordBitrateKbps", {0, 400000}},
         {"canvasX", {-1000, 1000}}, {"canvasY", {-1000, 1000}}, {"canvasW", {20, 3000}}, {"canvasH", {20, 3000}},
         {"canvasCropL", {0, 450}}, {"canvasCropT", {0, 450}}, {"canvasCropR", {0, 450}}, {"canvasCropB", {0, 450}},
+        // PushFPS crop and resize of the console picture (View.cpp pushCropValues, PushCrop.js).
+        {"pushCropL", {0, 450}}, {"pushCropT", {0, 450}}, {"pushCropR", {0, 450}}, {"pushCropB", {0, 450}},
+        {"pushCropZoom", {25, 400}}, {"pushCropX", {-1000, 1000}}, {"pushCropY", {-1000, 1000}},
         {"canvasBackground", {0, 0xFFFFFF}}};
     static const QStringList flags{"canvasStretch", "recordHevc", "recordAdvanced", "recordAudio", "recordMic", "recordMicTrack", "replayEnabled", "subtitleEnabled", "subtitleBackground", "subtitleFit",
                                    "subtitleSecondLanguage", "audioForceStereo", "captureAudioMonitor", "holdCompare",
@@ -302,6 +305,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    "pushLatencyOverlay", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset",
                                    // PushFPS ambient fill (engine/PushAmbient.h): the bars beside the picture.
                                    "pushAmbientFill",
+                                   // PushFPS crop and resize: the switch, and whether recordings and streams follow.
+                                   "pushCropOn", "pushCropOutputs",
                                    // PushFPS quick setup: the fine-tuning sliders of AI picture enhancement are unfolded.
                                    "pushFineTuneOpen",
                                    // PushFPS: smooth frame pacing (quick setup); set once by the 2.9.7 default.
@@ -584,8 +589,10 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
              key == QLatin1String("mixDesktopMuted") || key == QLatin1String("mixAuxOn") || key == QLatin1String("mixAuxDb") ||
              key == QLatin1String("mixAuxMuted") || key == QLatin1String("mixAuxDevice"))
         applyPushMix();
-    else if (key.startsWith(QLatin1String("canvas")))
-        engine::setPushLiveCanvas(pushCanvas(0));   // PushFPS layout editor: applies to running outputs
+    else if (key.startsWith(QLatin1String("canvas")) || key.startsWith(QLatin1String("pushCrop")))
+        // PushFPS layout editor, and the crop of the console picture when outputs follow it: applies to
+        // running outputs. (The screen follows the crop at the next tick, in applyAspect.)
+        engine::setPushLiveCanvas(pushCanvas(0));
     else if (key == QLatin1String("pushFlowHalf")) {
         // Read by PushFlowBackend::initialize: applies the next time PushFlow starts. A value a developer
         // set before starting PushFPS (VEYRA_PUSHFLOW_PRECISION=fp16) is left alone.

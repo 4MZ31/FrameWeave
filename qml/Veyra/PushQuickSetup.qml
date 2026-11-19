@@ -6,6 +6,7 @@ import "EffectSupport.js" as Support
 import "PushCaptureCards.js" as Cards
 import "PushGamePresets.js" as Presets
 import "PushCompareClip.js" as CompareClip
+import "PushCrop.js" as Crop
 
 // PushFPS quick setup: the choices most console players make, above the detailed
 // controls. Every control here only sets existing settings (frame generation on/off,
@@ -417,6 +418,9 @@ VGroup {
                  lowLatency: veyra.nvidiaLowLatencyAvailable === true && (veyra.nvidiaLowLatency ?? 0) > 0 }
         // The enhancement's look, when there is an enhancement layer to read it from.
         if (quick.lookLayer !== null) s.look = { tone: quick.lookTone, structure: quick.lookStructure, fine: quick.fineSnapshot() }
+        // Crop and resize (PushCrop.js): the values while it is on, false while it is off.
+        const c = quick.cropState
+        s.crop = c.on && !Crop.neutral(c) ? { l: c.l, t: c.t, r: c.r, b: c.b, zoom: c.zoom, x: c.x, y: c.y } : false
         return s
     }
     function writeProfiles(p) {
@@ -450,6 +454,25 @@ VGroup {
         if (s.look && typeof s.look === "object") quick.applyFine(s.look.fine)
         if (veyra.nvidiaLowLatencyAvailable === true && typeof s.lowLatency === "boolean")
             veyra.nvidiaLowLatency = s.lowLatency ? 1 : 0
+        // Crop and resize: a profile saved with one sets it, one saved without switches it off (the
+        // values stay), and a profile from before 3.2.6, which knows nothing of it, leaves it alone.
+        if (s.crop === false) { if (quick.cropState.on) veyra.setPreference("pushCropOn", false) }
+        else if (s.crop && typeof s.crop === "object") quick.setCrop(Crop.copy(Crop.read({}), s.crop))
+    }
+    // Crop and resize of the console picture (PushCropDialog.qml; preferences and maths in PushCrop.js).
+    readonly property var cropState: Crop.read(veyra.preferences)
+    function setCrop(c) {
+        const wanted = Crop.values(c), saved = Crop.values(quick.cropState)
+        for (const k of Crop.keys) if (wanted[k] !== saved[k]) veyra.setPreference(k, wanted[k])
+        const on = !Crop.neutral(c)
+        if (quick.cropState.on !== on) veyra.setPreference("pushCropOn", on)
+    }
+    readonly property string cropHint: {
+        const c = quick.cropState
+        if (Crop.neutral(c)) return qsTr("显示完整画面")
+        if (!c.on) return qsTr("已关闭，设置保留")
+        if (veyra.presentationOwned === true) return qsTr("XeSS 补帧自己呈现画面，裁剪和缩放对它不生效")
+        return qsTr("左 %1% · 上 %2% · 右 %3% · 下 %4% · 大小 %5%").arg(c.l / 10).arg(c.t / 10).arg(c.r / 10).arg(c.b / 10).arg(c.zoom)
     }
     function switchConsole(id) {
         if (id === quick.consoleId) return
@@ -1196,6 +1219,33 @@ VGroup {
             options: quick.fillOptions
             current: quick.fillId
             onPicked: id => quick.setFill(id)
+        }
+    }
+
+    // Crop and resize of the console picture: the button opens the editor on the live picture, the
+    // switch shows the whole picture again without losing the values.
+    VRow {
+        objectName: "pushfps-crop-row"
+        visible: !(quick.compact && quick.compactPro)
+        label: qsTr("裁剪和缩放")
+        help: qsTr("裁掉画面的任意一边，例如游戏自带的黑边或采集卡多出来的边框，并调整画面在屏幕上的大小和位置。只改变屏幕上的显示；录制和直播默认保留完整画面，可以在里面改")
+        hint: quick.cropHint
+        hintBelow: true
+        RowLayout {
+            spacing: 8
+            VButton {
+                objectName: "pushfps-crop-edit"
+                ghost: true
+                text: qsTr("调整…")
+                onClicked: quick.openOnPicture("crop")
+            }
+            VSwitch {
+                objectName: "pushfps-crop"
+                enabled: !Crop.neutral(quick.cropState)
+                opacity: enabled ? 1 : 0.4
+                checked: quick.cropState.on
+                onToggled: checked => veyra.setPreference("pushCropOn", checked)
+            }
         }
     }
 
