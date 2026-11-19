@@ -547,7 +547,7 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     // recording shortcut), in every layout: nothing below depends on how long it lasts.
     const bool untilStopped = seconds <= 0;
     seconds = untilStopped ? 0 : std::clamp(seconds, 5, 120);
-    layout = std::clamp(layout, 0, 2);
+    layout = std::clamp(layout, 0, 3);
     // Video playback (a window, a screen, a file, a web video): the picture repeats each video frame
     // inside the capture's refresh. Without duplicate removal frame generation interpolates between
     // identical pictures and both halves of the clip look equally smooth, so Auto is switched on.
@@ -561,8 +561,17 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     }
     auto options = recordingOptions();
     options.compare = true;
-    options.compareLayout = layout == 2 ? engine::CompareLayout::Vertical
+    options.compareLayout = layout == 3 ? engine::CompareLayout::Reveal : layout == 2 ? engine::CompareLayout::Vertical
                           : layout == 1 ? engine::CompareLayout::SideBySide : engine::CompareLayout::Split;
+    // Split and Reveal fill the frame, so they can be recorded at a chosen height (pref
+    // pushCompareQuality: 0 automatic, at most 1440 as before; 1080, 1440 or 2160). Side by side and
+    // Vertical have sizes of their own and stay exactly as they were.
+    const bool reveal = layout == 3;
+    const int quality = impl_->prefInt("pushCompareQuality", 0);
+    options.compareMaxHeight = (layout == 0 || reveal) && (quality == 1080 || quality == 1440 || quality == 2160) ? uint32_t(quality) : 0u;
+    // Reveal: a sweep starts every so many seconds (pref pushCompareRevealSeconds, 1 to 8; 3 unless set).
+    const int revealEvery = std::clamp(impl_->prefInt("pushCompareRevealSeconds", 3), 1, 8);
+    options.compareRevealSeconds = double(revealEvery);
     // Frame rates for the labels: the console's own (distinct game frames),
     // and what PushFPS presents.
     const int gameFps = s.contentFps > 1 ? s.contentFps : std::clamp(impl_->prefInt("pushGameFps", 30), 24, 120);
@@ -604,9 +613,10 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     std::wstring error;
     if (!impl_->engine.requestRecording(options, error)) { emit notice(uiText(error), true); return false; }
     pushRecordingNotices(options.audio, options.microphone, true);   // the mixer's own mute still applies; a card does not (PushStudio.cpp)
-    veyra::log::info("push-compare", std::format("comparison clip seconds={} layout={} labels=\"{}\" / \"{}\" height={}",
+    veyra::log::info("push-compare", std::format("comparison clip seconds={} layout={} labels=\"{}\" / \"{}\" height={} quality={} revealEvery={}",
                                                  untilStopped ? std::string("until-stopped") : std::to_string(seconds),
-                                                 layout == 2 ? "vertical" : layout == 1 ? "side-by-side" : "split", leftText.toStdString(), rightText.toStdString(), height));
+                                                 reveal ? "reveal" : layout == 2 ? "vertical" : layout == 1 ? "side-by-side" : "split", leftText.toStdString(), rightText.toStdString(),
+                                                 height, options.compareMaxHeight, revealEvery));
     impl_->recordingState["active"] = true;
     impl_->recordingState["failed"] = false;
     impl_->recordingState["compare"] = true;
@@ -615,7 +625,8 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     // clip was stopped by hand, then finds another clip and leaves it alone.
     const int generation = ++impl_->compareGeneration;
     if (untilStopped) {
-        emit notice(vertical ? tr("正在录制竖屏对比片段，直到你停止：上面是主机原本的帧率，下面是 PushFPS。再点一次“对比片段”或按录制快捷键停止")
+        emit notice(reveal ? tr("正在录制滑动揭示对比片段，直到你停止：先是主机原本的帧率，线条扫过后是 PushFPS，来回切换。再点一次“对比片段”或按录制快捷键停止")
+                  : vertical ? tr("正在录制竖屏对比片段，直到你停止：上面是主机原本的帧率，下面是 PushFPS。再点一次“对比片段”或按录制快捷键停止")
                              : tr("正在录制对比片段，直到你停止：左边是主机原本的帧率，右边是 PushFPS。再点一次“对比片段”或按录制快捷键停止"), false);
         return true;
     }
@@ -623,7 +634,8 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
         if (generation == impl_->compareGeneration && recording() && impl_->recordingState.value("compare").toBool())
             stopRecording(QStringLiteral("compare-timer"));
     });
-    emit notice(vertical ? tr("正在录制 %1 秒的竖屏对比片段：上面是主机原本的帧率，下面是 PushFPS").arg(seconds)
+    emit notice(reveal ? tr("正在录制 %1 秒的滑动揭示对比片段：先是主机原本的帧率，线条扫过后是 PushFPS，来回切换").arg(seconds)
+              : vertical ? tr("正在录制 %1 秒的竖屏对比片段：上面是主机原本的帧率，下面是 PushFPS").arg(seconds)
                          : tr("正在录制 %1 秒的对比片段：左边是主机原本的帧率，右边是 PushFPS").arg(seconds), false);
     return true;
 }

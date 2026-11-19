@@ -114,7 +114,7 @@ that, PushFPS adds what console players need:
 | **Adaptive multiplier** | Follows the game when its frame rate drops, so the output stays even |
 | **Game presets** | GTA VI and other layouts in one click, with the minimap and HUD kept sharp. Save your own and share them as a code |
 | **Automatic HUD detection** | Watches your game for a few seconds and finds the minimap, health and ammo, so they are never interpolated. Correct the boxes by dragging them |
-| **Before/after comparison clips** | Records a clip with the console's own frame rate on the left and PushFPS on the right, split screen, side by side or vertical 9:16 for TikTok, Shorts and Reels, from 10 seconds to 2 minutes or until you stop it, each side labelled with its frame rate |
+| **Before/after comparison clips** | Records a clip of the console's own frame rate against PushFPS in four layouts: split screen, side by side, vertical 9:16 for TikTok, Shorts and Reels, or Reveal, where a line sweeps across the whole picture and uncovers PushFPS. From 10 seconds to 2 minutes or until you stop it, each side labelled with its frame rate; split and reveal clips at up to 4K |
 | **No capture card needed** | PS5 Remote Play, Moonlight (stream another PC through Sunshine) and Xbox streaming, with the same frame generation, from Veyra |
 | **Help on hard settings** | A small **?** beside settings that need explaining; hover it for a short summary |
 | **Quick setup** | Console, game frame rate and target frame rate instead of hundreds of settings, with console and game profiles |
@@ -530,6 +530,17 @@ or press the recording shortcut, in every layout), then **Start recording** (the
 - **Vertical (TikTok, Shorts, Reels)**: a 1080×1920 video, the console on top and PushFPS below, each filling
   half the screen with the middle of the picture. The badges sit next to the divider, where those apps leave the
   screen free. H.264, ready to upload from your phone (HDR recordings stay HEVC 10-bit).
+- **Reveal** (since 3.2.5): the whole picture, full screen. The clip opens on the raw console picture at the
+  game's own frame rate; a glowing line then sweeps from left to right and uncovers PushFPS, holds, sweeps back
+  to the console picture, and repeats for as long as the clip runs. **Sweep every** sets how often: every 1, 2,
+  3, 5 or 8 seconds. The dialog's preview plays it. Each badge is cut off at the line with its picture, so the
+  label always says what you are looking at.
+
+**Clip quality** (split and reveal, the two layouts whose picture fills the frame): *Auto* records at the
+picture's own size, up to 1440p, as before. *1080p*, *1440p* and *4K* record at up to that height with a higher
+bitrate; a smaller picture is never enlarged. A comparison clip records every frame PushFPS shows, so 4K at a
+high frame rate needs a strong graphics card: if the card could not keep up, PushFPS says so when the clip ends
+and you can pick one step lower. Side by side and vertical have sizes of their own and are unchanged.
 
 The console side has no AI enhancement, upscaling or colour changes, so the clip shows exactly what PushFPS adds.
 Each side has a badge at the top: *Console · 30 FPS* and the PushFPS logo with its frame rate, in SDR and HDR. Frame generation has to be on, using any method except XeSS (XeSS makes its frames as they
@@ -953,6 +964,7 @@ go to [GitHub Issues](https://github.com/DosukaSOL/PushFPS/issues).
 - [x] Ultrawide screens (ambient fill), 90 Hz screens, fine-tuning of AI picture enhancement
 - [x] Crash notice and a graphics card test
 - [x] Comparison clips up to 2 minutes or until stopped; cameras at up to 4K with a live picture
+- [x] Reveal comparison clips (a line sweeps between the console and PushFPS), clip quality up to 4K
 - [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)

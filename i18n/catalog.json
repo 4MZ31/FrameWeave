@@ -29378,21 +29378,21 @@
    "ru": "Папка записей"
   },
   {
-   "zh": "录制前后对比视频：一边是主机原本的帧率，一边是 PushFPS。可选分屏、并排或竖屏（TikTok、Shorts、Reels），以及时长",
+   "zh": "录制前后对比视频：一边是主机原本的帧率，一边是 PushFPS。可选分屏、并排、竖屏（TikTok、Shorts、Reels）或滑动揭示，以及时长和画质",
    "src": "qml/PushQuickSetup.qml",
-   "zh-TW": "錄製前後對比影片：一邊是主機原本的幀率，一邊是 PushFPS。可選分屏、並排或直式（TikTok、Shorts、Reels），以及時長",
-   "en": "Record a before/after video: the console's own frame rate on one side, PushFPS on the other. Choose split, side by side or vertical (TikTok, Shorts, Reels), and the length",
-   "ja": "ビフォーアフター動画を録画：片側は本体本来のフレームレート、もう片側は PushFPS。分割・横並び・縦型（TikTok、Shorts、Reels）と長さを選べます",
-   "nl": "Neem een voor/na-video op: de eigen framerate van de console aan de ene kant, PushFPS aan de andere. Kies gesplitst, naast elkaar of verticaal (TikTok, Shorts, Reels) en de lengte",
-   "de": "Nimm ein Vorher/Nachher-Video auf: die eigene Bildrate der Konsole auf einer Seite, PushFPS auf der anderen. Wähle geteilt, nebeneinander oder hochkant (TikTok, Shorts, Reels) und die Länge",
-   "es": "Graba un vídeo de antes y después: la tasa propia de la consola en un lado, PushFPS en el otro. Elige dividido, lado a lado o vertical (TikTok, Shorts, Reels) y la duración",
-   "fr": "Enregistrez une vidéo avant/après : la fréquence d'origine de la console d'un côté, PushFPS de l'autre. Choisissez divisé, côte à côte ou vertical (TikTok, Shorts, Reels) et la durée",
-   "it": "Registra un video prima/dopo: la frequenza originale della console da un lato, PushFPS dall'altro. Scegli diviso, affiancati o verticale (TikTok, Shorts, Reels) e la durata",
-   "pt-BR": "Grave um vídeo de antes e depois: a taxa original do console de um lado, PushFPS do outro. Escolha dividido, lado a lado ou vertical (TikTok, Shorts, Reels) e a duração",
-   "tr": "Önce/sonra videosu kaydedin: bir yanda konsolun kendi kare hızı, diğer yanda PushFPS. Bölünmüş, yan yana veya dikey (TikTok, Shorts, Reels) ve süreyi seçin",
-   "ar": "سجّل فيديو قبل/بعد: معدل إطارات الجهاز الأصلي في جانب وPushFPS في الآخر. اختر منقسمًا أو جنبًا إلى جنب أو عموديًا (TikTok وShorts وReels) والمدة",
-   "pl": "Nagraj wideo przed/po: własna liczba klatek konsoli z jednej strony, PushFPS z drugiej. Wybierz podział, obok siebie lub pion (TikTok, Shorts, Reels) i długość",
-   "ru": "Запишите видео «до и после»: родная частота консоли с одной стороны, PushFPS — с другой. Выберите раздельно, рядом или вертикально (TikTok, Shorts, Reels) и длительность"
+   "zh-TW": "錄製前後對比影片：一邊是主機原本的幀率，一邊是 PushFPS。可選分屏、並排、直式（TikTok、Shorts、Reels）或滑動揭示，以及時長和畫質",
+   "en": "Record a before/after video: the console's own frame rate on one side, PushFPS on the other. Choose split, side by side, vertical (TikTok, Shorts, Reels) or reveal, and the length and quality",
+   "ja": "前後比較の動画を録画します：片方が本体本来のフレームレート、もう片方が PushFPS。分割、横並び、縦型（TikTok、Shorts、Reels）、リビールから選べ、長さと画質も設定できます",
+   "nl": "Record a before/after video: the console's own frame rate on one side, PushFPS on the other. Choose split, side by side, vertical (TikTok, Shorts, Reels) or reveal, and the length and quality",
+   "de": "Record a before/after video: the console's own frame rate on one side, PushFPS on the other. Choose split, side by side, vertical (TikTok, Shorts, Reels) or reveal, and the length and quality",
+   "es": "Record a before/after video: the console's own frame rate on one side, PushFPS on the other. Choose split, side by side, vertical (TikTok, Shorts, Reels) or reveal, and the length and quality",
+   "fr": "Record a before/after video: the console's own frame rate on one side, PushFPS on the other. Choose split, side by side, vertical (TikTok, Shorts, Reels) or reveal, and the length and quality",
+   "it": "Record a before/after video: the console's own frame rate on one side, PushFPS on the other. Choose split, side by side, vertical (TikTok, Shorts, Reels) or reveal, and the length and quality",
+   "pt-BR": "Record a before/after video: the console's own frame rate on one side, PushFPS on the other. Choose split, side by side, vertical (TikTok, Shorts, Reels) or reveal, and the length and quality",
+   "tr": "Record a before/after video: the console's own frame rate on one side, PushFPS on the other. Choose split, side by side, vertical (TikTok, Shorts, Reels) or reveal, and the length and quality",
+   "ar": "Record a before/after video: the console's own frame rate on one side, PushFPS on the other. Choose split, side by side, vertical (TikTok, Shorts, Reels) or reveal, and the length and quality",
+   "pl": "Record a before/after video: the console's own frame rate on one side, PushFPS on the other. Choose split, side by side, vertical (TikTok, Shorts, Reels) or reveal, and the length and quality",
+   "ru": "Record a before/after video: the console's own frame rate on one side, PushFPS on the other. Choose split, side by side, vertical (TikTok, Shorts, Reels) or reveal, and the length and quality"
   },
   {
    "zh": "录制前后对比视频：一边是视频原本的帧率，一边是 PushFPS。可选分屏、并排或竖屏（TikTok、Shorts、Reels），以及时长",
@@ -31554,6 +31554,23 @@
    "ru": "Недействительный размер плана выполнения или цель с супер разрешением"
   },
   {
+   "zh": "扫过间隔",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "掃過間隔",
+   "en": "Sweep every",
+   "ja": "スイープ間隔",
+   "nl": "Sweep every",
+   "de": "Sweep every",
+   "es": "Sweep every",
+   "fr": "Sweep every",
+   "it": "Sweep every",
+   "pt-BR": "Sweep every",
+   "tr": "Sweep every",
+   "ar": "Sweep every",
+   "pl": "Sweep every",
+   "ru": "Sweep every"
+  },
+  {
    "zh": "批量处理图片…",
    "src": "qml/ExportPage.qml",
    "zh-TW": "批量處理圖片…",
@@ -32368,6 +32385,23 @@
    "ar": "اختيار من المصدر",
    "pl": "Wybierz ze źródła",
    "ru": "Выбрать из источника"
+  },
+  {
+   "zh": "按画面原本的大小录制，最高 1440p",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "依畫面原本的大小錄製，最高 1440p",
+   "en": "Recorded at the picture's own size, up to 1440p",
+   "ja": "画面本来のサイズで録画します（最大 1440p）",
+   "nl": "Recorded at the picture's own size, up to 1440p",
+   "de": "Recorded at the picture's own size, up to 1440p",
+   "es": "Recorded at the picture's own size, up to 1440p",
+   "fr": "Recorded at the picture's own size, up to 1440p",
+   "it": "Recorded at the picture's own size, up to 1440p",
+   "pt-BR": "Recorded at the picture's own size, up to 1440p",
+   "tr": "Recorded at the picture's own size, up to 1440p",
+   "ar": "Recorded at the picture's own size, up to 1440p",
+   "pl": "Recorded at the picture's own size, up to 1440p",
+   "ru": "Recorded at the picture's own size, up to 1440p"
   },
   {
    "zh": "按键到画面",
@@ -33610,6 +33644,23 @@
    "ar": "توليد الإطارات على الصورة كاملة",
    "pl": "Generowanie klatek na całym obrazie",
    "ru": "Генерация кадров для всего изображения"
+  },
+  {
+   "zh": "整个画面：先是原帧率，一条线从左扫到右露出 PushFPS，停一会儿再扫回去，如此反复",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "整個畫面：先是原幀率，一條線從左掃到右露出 PushFPS，停一會兒再掃回去，如此反覆",
+   "en": "The whole picture: first the original frame rate, then a line sweeps from left to right and uncovers PushFPS, holds, sweeps back, and repeats",
+   "ja": "画面全体：まず元のフレームレート、次に線が左から右へ動いて PushFPS を見せ、しばらく止まってから戻る、を繰り返します",
+   "nl": "The whole picture: first the original frame rate, then a line sweeps from left to right and uncovers PushFPS, holds, sweeps back, and repeats",
+   "de": "The whole picture: first the original frame rate, then a line sweeps from left to right and uncovers PushFPS, holds, sweeps back, and repeats",
+   "es": "The whole picture: first the original frame rate, then a line sweeps from left to right and uncovers PushFPS, holds, sweeps back, and repeats",
+   "fr": "The whole picture: first the original frame rate, then a line sweeps from left to right and uncovers PushFPS, holds, sweeps back, and repeats",
+   "it": "The whole picture: first the original frame rate, then a line sweeps from left to right and uncovers PushFPS, holds, sweeps back, and repeats",
+   "pt-BR": "The whole picture: first the original frame rate, then a line sweeps from left to right and uncovers PushFPS, holds, sweeps back, and repeats",
+   "tr": "The whole picture: first the original frame rate, then a line sweeps from left to right and uncovers PushFPS, holds, sweeps back, and repeats",
+   "ar": "The whole picture: first the original frame rate, then a line sweeps from left to right and uncovers PushFPS, holds, sweeps back, and repeats",
+   "pl": "The whole picture: first the original frame rate, then a line sweeps from left to right and uncovers PushFPS, holds, sweeps back, and repeats",
+   "ru": "The whole picture: first the original frame rate, then a line sweeps from left to right and uncovers PushFPS, holds, sweeps back, and repeats"
   },
   {
    "zh": "整体亮暗",
@@ -37505,6 +37556,40 @@
    "ru": "Частота кадров самого медленного 1% интервалов представления за последние 10 с, вычисляется так же, как и наложения, такие как RTSS"
   },
   {
+   "zh": "最高按 4K 录制，每一帧都录：需要较强的显卡。若有帧没录下，录完会提示，请选低一档",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "最高以 4K 錄製，每一幀都錄：需要較強的顯示卡。若有幀沒錄下，錄完會提示，請選低一檔",
+   "en": "Recorded at up to 4K with every frame: this needs a strong graphics card. If frames could not be recorded you are told when the clip ends; choose one step lower then",
+   "ja": "最大 4K で全フレームを録画します：高性能なグラフィックカードが必要です。録画できなかったフレームがあれば終了時にお知らせします。その場合は 1 段階下げてください",
+   "nl": "Recorded at up to 4K with every frame: this needs a strong graphics card. If frames could not be recorded you are told when the clip ends; choose one step lower then",
+   "de": "Recorded at up to 4K with every frame: this needs a strong graphics card. If frames could not be recorded you are told when the clip ends; choose one step lower then",
+   "es": "Recorded at up to 4K with every frame: this needs a strong graphics card. If frames could not be recorded you are told when the clip ends; choose one step lower then",
+   "fr": "Recorded at up to 4K with every frame: this needs a strong graphics card. If frames could not be recorded you are told when the clip ends; choose one step lower then",
+   "it": "Recorded at up to 4K with every frame: this needs a strong graphics card. If frames could not be recorded you are told when the clip ends; choose one step lower then",
+   "pt-BR": "Recorded at up to 4K with every frame: this needs a strong graphics card. If frames could not be recorded you are told when the clip ends; choose one step lower then",
+   "tr": "Recorded at up to 4K with every frame: this needs a strong graphics card. If frames could not be recorded you are told when the clip ends; choose one step lower then",
+   "ar": "Recorded at up to 4K with every frame: this needs a strong graphics card. If frames could not be recorded you are told when the clip ends; choose one step lower then",
+   "pl": "Recorded at up to 4K with every frame: this needs a strong graphics card. If frames could not be recorded you are told when the clip ends; choose one step lower then",
+   "ru": "Recorded at up to 4K with every frame: this needs a strong graphics card. If frames could not be recorded you are told when the clip ends; choose one step lower then"
+  },
+  {
+   "zh": "最高按所选的高度录制（画面本身更小时保持原样，不放大），并用更高的码率",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "最高以所選的高度錄製（畫面本身更小時保持原樣，不放大），並使用更高的位元率",
+   "en": "Recorded at up to the chosen height (a smaller picture stays as it is, never enlarged), with a higher bitrate",
+   "ja": "選んだ高さまでで録画します（それより小さい画面はそのままで、拡大しません）。ビットレートも高くなります",
+   "nl": "Recorded at up to the chosen height (a smaller picture stays as it is, never enlarged), with a higher bitrate",
+   "de": "Recorded at up to the chosen height (a smaller picture stays as it is, never enlarged), with a higher bitrate",
+   "es": "Recorded at up to the chosen height (a smaller picture stays as it is, never enlarged), with a higher bitrate",
+   "fr": "Recorded at up to the chosen height (a smaller picture stays as it is, never enlarged), with a higher bitrate",
+   "it": "Recorded at up to the chosen height (a smaller picture stays as it is, never enlarged), with a higher bitrate",
+   "pt-BR": "Recorded at up to the chosen height (a smaller picture stays as it is, never enlarged), with a higher bitrate",
+   "tr": "Recorded at up to the chosen height (a smaller picture stays as it is, never enlarged), with a higher bitrate",
+   "ar": "Recorded at up to the chosen height (a smaller picture stays as it is, never enlarged), with a higher bitrate",
+   "pl": "Recorded at up to the chosen height (a smaller picture stays as it is, never enlarged), with a higher bitrate",
+   "ru": "Recorded at up to the chosen height (a smaller picture stays as it is, never enlarged), with a higher bitrate"
+  },
+  {
    "zh": "有效目标 %1 fps",
    "src": "src/ui/bridge/Status.cpp",
    "zh-TW": "有效目標 %1 fps",
@@ -40055,6 +40140,23 @@
    "ru": "Запись сравнительного клипа на %1 с: слева родная частота кадров консоли, справа PushFPS"
   },
   {
+   "zh": "正在录制 %1 秒的滑动揭示对比片段：先是主机原本的帧率，线条扫过后是 PushFPS，来回切换",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "正在錄製 %1 秒的滑動揭示對比片段：先是主機原本的幀率，線條掃過後是 PushFPS，來回切換",
+   "en": "Recording a %1-second reveal comparison clip: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth",
+   "ja": "%1 秒のリビール比較クリップを録画中：まず本体本来のフレームレート、線が通ると PushFPS に切り替わり、交互に繰り返します",
+   "nl": "Recording a %1-second reveal comparison clip: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth",
+   "de": "Recording a %1-second reveal comparison clip: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth",
+   "es": "Recording a %1-second reveal comparison clip: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth",
+   "fr": "Recording a %1-second reveal comparison clip: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth",
+   "it": "Recording a %1-second reveal comparison clip: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth",
+   "pt-BR": "Recording a %1-second reveal comparison clip: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth",
+   "tr": "Recording a %1-second reveal comparison clip: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth",
+   "ar": "Recording a %1-second reveal comparison clip: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth",
+   "pl": "Recording a %1-second reveal comparison clip: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth",
+   "ru": "Recording a %1-second reveal comparison clip: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth"
+  },
+  {
    "zh": "正在录制 %1 秒的竖屏对比片段：上面是主机原本的帧率，下面是 PushFPS",
    "src": "src/ui/bridge/PushFps.cpp",
    "zh-TW": "正在錄製 %1 秒的直式對比片段：上面是主機原本的幀率，下面是 PushFPS",
@@ -40121,6 +40223,23 @@
    "ar": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop",
    "pl": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop",
    "ru": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop"
+  },
+  {
+   "zh": "正在录制滑动揭示对比片段，直到你停止：先是主机原本的帧率，线条扫过后是 PushFPS，来回切换。再点一次“对比片段”或按录制快捷键停止",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "正在錄製滑動揭示對比片段，直到你停止：先是主機原本的幀率，線條掃過後是 PushFPS，來回切換。再點一次「對比片段」或按錄製快速鍵停止",
+   "en": "Recording a reveal comparison clip until you stop it: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth. Click Comparison clip again or press the recording shortcut to stop",
+   "ja": "停止するまでリビール比較クリップを録画中：まず本体本来のフレームレート、線が通ると PushFPS に切り替わり、交互に繰り返します。もう一度「比較クリップ」を押すか、録画のショートカットで停止します",
+   "nl": "Recording a reveal comparison clip until you stop it: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth. Click Comparison clip again or press the recording shortcut to stop",
+   "de": "Recording a reveal comparison clip until you stop it: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth. Click Comparison clip again or press the recording shortcut to stop",
+   "es": "Recording a reveal comparison clip until you stop it: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth. Click Comparison clip again or press the recording shortcut to stop",
+   "fr": "Recording a reveal comparison clip until you stop it: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth. Click Comparison clip again or press the recording shortcut to stop",
+   "it": "Recording a reveal comparison clip until you stop it: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth. Click Comparison clip again or press the recording shortcut to stop",
+   "pt-BR": "Recording a reveal comparison clip until you stop it: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth. Click Comparison clip again or press the recording shortcut to stop",
+   "tr": "Recording a reveal comparison clip until you stop it: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth. Click Comparison clip again or press the recording shortcut to stop",
+   "ar": "Recording a reveal comparison clip until you stop it: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth. Click Comparison clip again or press the recording shortcut to stop",
+   "pl": "Recording a reveal comparison clip until you stop it: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth. Click Comparison clip again or press the recording shortcut to stop",
+   "ru": "Recording a reveal comparison clip until you stop it: first the console's own frame rate, then PushFPS as the line sweeps across, back and forth. Click Comparison clip again or press the recording shortcut to stop"
   },
   {
    "zh": "正在录制竖屏对比片段，直到你停止：上面是主机原本的帧率，下面是 PushFPS。再点一次“对比片段”或按录制快捷键停止",
@@ -43948,6 +44067,23 @@
    "ru": "Не смог прочитать исходное видео; обработка прекратилась"
   },
   {
+   "zh": "滑动揭示",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "滑動揭示",
+   "en": "Reveal",
+   "ja": "リビール",
+   "nl": "Reveal",
+   "de": "Reveal",
+   "es": "Reveal",
+   "fr": "Reveal",
+   "it": "Reveal",
+   "pt-BR": "Reveal",
+   "tr": "Reveal",
+   "ar": "Reveal",
+   "pl": "Reveal",
+   "ru": "Reveal"
+  },
+  {
    "zh": "滑块键盘微调",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "滑塊鍵盤微調",
@@ -44167,6 +44303,23 @@
    "ar": "The clip is %1 MB and Discord takes 10 MB by default. It is on your clipboard: paste it in Discord (it will offer to compress it or use Nitro)",
    "pl": "Klip %1 MB i Discord bierze domyślnie 10 MB. Jest na Twojej schowku: wklej go w Discord (zaoferuje kompresję lub użycie Nitro)",
    "ru": "%1 MB и Discord занимает 10 MB по умолчанию. Он находится на вашем буфере обмена: вставьте его в Discord (он предложит сжать его или использовать Nitro)."
+  },
+  {
+   "zh": "片段画质",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "片段畫質",
+   "en": "Clip quality",
+   "ja": "クリップ画質",
+   "nl": "Clip quality",
+   "de": "Clip quality",
+   "es": "Clip quality",
+   "fr": "Clip quality",
+   "it": "Clip quality",
+   "pt-BR": "Clip quality",
+   "tr": "Clip quality",
+   "ar": "Clip quality",
+   "pl": "Clip quality",
+   "ru": "Clip quality"
   },
   {
    "zh": "片源",
@@ -44847,6 +45000,23 @@
    "ar": "قلب عمودي",
    "pl": "Odwróć w pionie",
    "ru": "Отразить по вертикали"
+  },
+  {
+   "zh": "画面上方标着当前显示的是哪一边和它的帧率。视频保存在录制文件夹里，可直接导入剪辑软件",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "畫面上方標著目前顯示的是哪一邊和它的幀率。影片儲存在錄製資料夾裡，可直接匯入剪輯軟體",
+   "en": "A label at the top says which side is showing and its frame rate. The video is saved in the recordings folder and opens straight in video editors",
+   "ja": "画面上部に、表示中の側とそのフレームレートが表示されます。動画は録画フォルダーに保存され、編集ソフトにそのまま読み込めます",
+   "nl": "A label at the top says which side is showing and its frame rate. The video is saved in the recordings folder and opens straight in video editors",
+   "de": "A label at the top says which side is showing and its frame rate. The video is saved in the recordings folder and opens straight in video editors",
+   "es": "A label at the top says which side is showing and its frame rate. The video is saved in the recordings folder and opens straight in video editors",
+   "fr": "A label at the top says which side is showing and its frame rate. The video is saved in the recordings folder and opens straight in video editors",
+   "it": "A label at the top says which side is showing and its frame rate. The video is saved in the recordings folder and opens straight in video editors",
+   "pt-BR": "A label at the top says which side is showing and its frame rate. The video is saved in the recordings folder and opens straight in video editors",
+   "tr": "A label at the top says which side is showing and its frame rate. The video is saved in the recordings folder and opens straight in video editors",
+   "ar": "A label at the top says which side is showing and its frame rate. The video is saved in the recordings folder and opens straight in video editors",
+   "pl": "A label at the top says which side is showing and its frame rate. The video is saved in the recordings folder and opens straight in video editors",
+   "ru": "A label at the top says which side is showing and its frame rate. The video is saved in the recordings folder and opens straight in video editors"
   },
   {
    "zh": "画面与声音",
@@ -48128,6 +48298,23 @@
    "ar": "تم الحفاظ على الملمس",
    "pl": "Tekstura zachowana",
    "ru": "Текстура сохранена"
+  },
+  {
+   "zh": "线条每隔这么久扫过一次，在原帧率和 PushFPS 之间切换",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "線條每隔這麼久掃過一次，在原幀率和 PushFPS 之間切換",
+   "en": "The line sweeps across this often, switching between the original frame rate and PushFPS",
+   "ja": "この間隔で線が画面を横切り、元のフレームレートと PushFPS を切り替えます",
+   "nl": "The line sweeps across this often, switching between the original frame rate and PushFPS",
+   "de": "The line sweeps across this often, switching between the original frame rate and PushFPS",
+   "es": "The line sweeps across this often, switching between the original frame rate and PushFPS",
+   "fr": "The line sweeps across this often, switching between the original frame rate and PushFPS",
+   "it": "The line sweeps across this often, switching between the original frame rate and PushFPS",
+   "pt-BR": "The line sweeps across this often, switching between the original frame rate and PushFPS",
+   "tr": "The line sweeps across this often, switching between the original frame rate and PushFPS",
+   "ar": "The line sweeps across this often, switching between the original frame rate and PushFPS",
+   "pl": "The line sweeps across this often, switching between the original frame rate and PushFPS",
+   "ru": "The line sweeps across this often, switching between the original frame rate and PushFPS"
   },
   {
    "zh": "组件与许可",
@@ -57206,6 +57393,23 @@
    "ar": "هذه اللعبة تسلّم إطاراتها بانتظام بالفعل؛ لا شيء لإصلاحه",
    "pl": "Ta gra już podaje klatki równo; nie ma czego naprawiać",
    "ru": "Эта игра уже выдаёт кадры равномерно; исправлять нечего"
+  },
+  {
+   "zh": "这段对比片段有一部分帧没能录下：显卡跟不上所选的片段画质，请选低一档再录",
+   "src": "src/engine/LiveRecorder.cpp",
+   "zh-TW": "這段對比片段有一部分幀沒能錄下：顯示卡跟不上所選的片段畫質，請選低一檔再錄",
+   "en": "Some frames of this comparison clip could not be recorded: the graphics card did not keep up with the chosen clip quality. Choose one step lower and record again",
+   "ja": "この比較クリップは一部のフレームを録画できませんでした：選んだクリップ画質にグラフィックカードが追いつきません。1 段階下げて録画し直してください",
+   "nl": "Some frames of this comparison clip could not be recorded: the graphics card did not keep up with the chosen clip quality. Choose one step lower and record again",
+   "de": "Some frames of this comparison clip could not be recorded: the graphics card did not keep up with the chosen clip quality. Choose one step lower and record again",
+   "es": "Some frames of this comparison clip could not be recorded: the graphics card did not keep up with the chosen clip quality. Choose one step lower and record again",
+   "fr": "Some frames of this comparison clip could not be recorded: the graphics card did not keep up with the chosen clip quality. Choose one step lower and record again",
+   "it": "Some frames of this comparison clip could not be recorded: the graphics card did not keep up with the chosen clip quality. Choose one step lower and record again",
+   "pt-BR": "Some frames of this comparison clip could not be recorded: the graphics card did not keep up with the chosen clip quality. Choose one step lower and record again",
+   "tr": "Some frames of this comparison clip could not be recorded: the graphics card did not keep up with the chosen clip quality. Choose one step lower and record again",
+   "ar": "Some frames of this comparison clip could not be recorded: the graphics card did not keep up with the chosen clip quality. Choose one step lower and record again",
+   "pl": "Some frames of this comparison clip could not be recorded: the graphics card did not keep up with the chosen clip quality. Choose one step lower and record again",
+   "ru": "Some frames of this comparison clip could not be recorded: the graphics card did not keep up with the chosen clip quality. Choose one step lower and record again"
   },
   {
    "zh": "这里和 PS5 串流窗口是同一份设置，下次连接时一起保存到该主机的配对档案。",

@@ -245,9 +245,13 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         // turn (100 = as the model made it), and the soft limits on brightening and darkening (0 = none).
         {"pushShapeShadows", {0, 200}}, {"pushShapeMidtones", {0, 200}}, {"pushShapeHighlights", {0, 200}}, {"pushShapeHue", {0, 200}},
         {"pushShapeMaxBrighten", {0, 100}}, {"pushShapeMaxDarken", {0, 100}},
-        // PushFPS comparison clip: length in seconds, layout 0 split picture / 1 side by side.
+        // PushFPS comparison clip: length in seconds, layout 0 split picture / 1 side by side /
+        // 2 vertical / 3 reveal, the height Split and Reveal clips are recorded at (0 automatic, else
+        // 1080, 1440 or 2160: the bridge takes only those), and how often Reveal's line sweeps (seconds).
         {"pushCompareSeconds", {5, 120}},
-        {"pushCompareLayout", {0, 2}},
+        {"pushCompareLayout", {0, 3}},
+        {"pushCompareQuality", {0, 2160}},
+        {"pushCompareRevealSeconds", {1, 8}},
         // Network sources (#48): seconds to collect before the first picture; -1 follows the buffer level.
         {"networkPrebuffer", {-1, 60}},
         // Live recording: the target bitrate for the file, and the frame rate

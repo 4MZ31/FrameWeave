@@ -264,13 +264,13 @@ void testCompare(Gpu& gpu) {
 // compose, read both back (tight rows).
 bool composeFrame(Gpu& gpu, engine::RecordingCompare& compare, pipeline::StateTracker& states, const Plane& y, const Plane& uv,
                   const std::vector<uint8_t>& yData, const std::vector<uint8_t>& uvData, bool generated,
-                  std::vector<uint8_t>& yOut, std::vector<uint8_t>& uvOut) {
+                  std::vector<uint8_t>& yOut, std::vector<uint8_t>& uvOut, double seconds = 0.0) {
     if (!gpu.begin()) return false;
     auto a = recordFill(gpu, y, yData, states.get(y.texture.Get()), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     states.set(y.texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     auto b = recordFill(gpu, uv, uvData, states.get(uv.texture.Get()), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     states.set(uv.texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-    compare.compose(gpu.list.Get(), states, y.texture.Get(), uv.texture.Get(), generated);
+    compare.compose(gpu.list.Get(), states, y.texture.Get(), uv.texture.Get(), generated, nullptr, 0, seconds);
     auto ry = recordRead(gpu, y, states.get(y.texture.Get()));
     auto ruv = recordRead(gpu, uv, states.get(uv.texture.Get()));
     if (!gpu.submitAndWait()) return false;
@@ -795,6 +795,134 @@ void testCompareBadges(Gpu& gpu, bool hdr) {
     check(U(6, 4) == int(hdr ? (400 << 6) : 100), tag + ": chroma under a transparent badge pixel is kept");
     check(Y(30, 60) == int(hdr ? (300 << 6) : 50), tag + ": picture outside the badges unchanged");
     check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
+}
+
+// The Reveal layout: one whole picture, the console side uncovered and covered again by a sweeping
+// line. Checked frame by frame at chosen moments of the clip: what is left and right of the line,
+// the line itself, and the two badges, each cut off at the line with its picture.
+void testCompareReveal(Gpu& gpu, bool hdr) {
+    constexpr uint32_t W = 640, H = 360;
+    const std::string tag = std::string("reveal") + (hdr ? " HDR" : "");
+    auto* device = gpu.device.Get();
+    const auto yFormat = hdr ? DXGI_FORMAT_R16_UNORM : DXGI_FORMAT_R8_UNORM;
+    const auto uvFormat = hdr ? DXGI_FORMAT_R16G16_UNORM : DXGI_FORMAT_R8G8_UNORM;
+    const uint32_t bpp = hdr ? 2 : 1;
+    Plane y{pipeline::makeTexture(device, W, H, yFormat, true), yFormat, W, H, bpp};
+    Plane uv{pipeline::makeTexture(device, W / 2, H / 2, uvFormat, true), uvFormat, W / 2, H / 2, bpp * 2};
+    check(y.texture && uv.texture, tag + ": planes created");
+    // The console's badge: 48 x 8 opaque black. PushFPS's: 48 x 8 opaque white.
+    engine::RecordingLabel console{48, 8, {}, std::vector<uint8_t>(48 * 8 * 4, 0)}, push{48, 8, {}, std::vector<uint8_t>(48 * 8 * 4, 255)};
+    for (size_t i = 3; i < console.rgba.size(); i += 4) console.rgba[i] = 255;
+    engine::RecordingCompare compare;
+    std::wstring reason;
+    check(compare.create(device, W, H, hdr, console, push, reason, engine::CompareLayout::Reveal), tag + ": created");
+    compare.setRevealInterval(3.0);
+    const uint32_t lineW = compare.revealLineWidth();
+    check(compare.overlays().size() == 3 && compare.patches().empty(), tag + ": two badges and the line are blended, nothing is copied in (no fixed divider)");
+    check(lineW == engine::compareRevealLine(H).width && lineW == 32, tag + ": the line's strip, " + std::to_string(lineW) + " wide (the places checked below count on 32)");
+    check(compare.outputY() == nullptr, tag + ": composed on the recorder's own planes, at the picture's size");
+
+    pipeline::StateTracker states;
+    std::vector<uint8_t> py, puv;
+    const auto plane = [&](uint32_t v8, uint32_t v10, size_t count) {
+        return hdr ? words(std::vector<uint16_t>(count, uint16_t(v10 << 6))) : std::vector<uint8_t>(count, uint8_t(v8));
+    };
+    const auto read = [&](const std::vector<uint8_t>& bytes, size_t index) { return hdr ? int(word(bytes, index)) : int(bytes[index]); };
+    const auto Y = [&](uint32_t x, uint32_t yy) { return read(py, size_t(yy) * W + x); };
+    const auto U = [&](uint32_t x, uint32_t yy) { return read(puv, (size_t(yy) * (W / 2) + x) * 2); };
+    const auto code = [&](uint32_t v8, uint32_t v10) { return int(hdr ? (v10 << 6) : v8); };
+    const int tol = hdr ? 64 : 1;
+    const int white = code(235, 573), black = code(16, 64);
+    // Pictures (8-bit and 10-bit codes): real frames are dark with neutral colour, generated frames
+    // brighter with a colour of their own, so the cut shows in both planes.
+    const int realChroma = code(128, 512), madeChroma = code(160, 640);
+    const auto frame = [&](uint32_t luma8, uint32_t luma10, bool generated, double seconds) {
+        return composeFrame(gpu, compare, states, y, uv, plane(luma8, luma10, W * H),
+                            generated ? plane(160, 640, W / 2 * H / 2 * 2) : plane(128, 512, W / 2 * H / 2 * 2), generated, py, puv, seconds);
+    };
+    const int held = code(50, 300);
+    const double every = 3.0, sweep = engine::compareRevealSweepSeconds(every), hold = every - sweep;
+    // The moment the line's centre is at `x` during the first sweep (found by stepping through it).
+    const auto when = [&](int32_t x) {
+        for (double t = hold; t < every; t += 0.0002)
+            if (engine::compareRevealCentre(engine::compareRevealPosition(t, every), W, lineW) >= x) return t;
+        return every;
+    };
+    const uint32_t pushX = 10, consoleX = W - 10 - 48, badgeY = 12;   // margin 10: PushFPS top left, the console top right
+
+    // 1. The clip opens on the console side: a real frame is that picture, whole.
+    check(frame(50, 300, false, 0.0), tag + ": first real frame runs");
+    check(Y(5, 200) == held && Y(320, 200) == held && Y(634, 200) == held, tag + ": opens on the whole console picture");
+    check(compare.revealX() == 0 && !compare.revealLineShown(), tag + ": the line waits outside the picture");
+    check(std::abs(Y(consoleX + 4, badgeY) - black) <= tol && std::abs(Y(consoleX + 44, badgeY) - black) <= tol, tag + ": the console's badge at the top right");
+    check(Y(pushX + 4, badgeY) == held, tag + ": no PushFPS badge while none of its picture shows");
+    // 2. During the hold a generated frame does not show: the picture stays the console's.
+    check(frame(200, 800, true, 1.0), tag + ": generated frame during the hold runs");
+    check(Y(5, 200) == held && Y(320, 200) == held && Y(634, 200) == held, tag + ": the hold shows only the console's frames");
+    check(U(160, 100) == realChroma && U(4, 100) == realChroma, tag + ": in colour too");
+    // 3. Half way through the sweep: PushFPS left of the line, the console right of it.
+    const int made = code(200, 800);
+    check(frame(200, 800, true, hold + sweep / 2), tag + ": frame at the middle of the sweep runs");
+    std::printf("INFO %s mid: x=%u left=%d right=%d core=%d handle=%d\n", tag.c_str(), compare.revealX(), Y(100, 200), Y(540, 200), Y(320, 40), Y(320, 173));
+    check(compare.revealX() == W / 2 && compare.revealLineShown(), tag + ": the line is in the middle");
+    check(Y(100, 200) == made && Y(W / 2 - lineW / 2 - 2, 200) == made, tag + ": left of the line every presented frame");
+    check(Y(540, 200) == held && Y(W / 2 + lineW / 2 + 1, 200) == held, tag + ": right of the line the console's frame");
+    check(std::abs(Y(W / 2, 40) - white) <= tol && std::abs(Y(W / 2 - 1, 300) - white) <= tol, tag + ": the line's white core, top to bottom");
+    check(U(50, 100) == madeChroma && U(270, 100) == realChroma, tag + ": the colour planes are cut at the same place");
+    check(Y(W / 2 + 4, 40) > held && Y(W / 2 - 3, 40) != made, tag + ": a glow on both sides of the core");
+    check(U(W / 4 + 1, 20) < realChroma - code(5, 20), tag + ": and the glow is green (blue-difference below neutral)");
+    check(Y(W / 2, 173) < Y(W / 2, 40) / 2, tag + ": the handle's dark face in the middle of the height");
+    check(std::abs(Y(pushX + 4, badgeY) - white) <= tol && std::abs(Y(consoleX + 4, badgeY) - black) <= tol, tag + ": both badges while both pictures show");
+    // 4. The line crosses the PushFPS badge: only the part left of the line is drawn.
+    check(frame(200, 800, true, when(40)), tag + ": frame with the line over the PushFPS badge runs");
+    check(compare.revealX() == 40, tag + ": the line at x 40");
+    check(std::abs(Y(pushX + 2, badgeY) - white) <= tol && std::abs(Y(pushX + 10, badgeY) - white) <= tol, tag + ": the badge left of the line");
+    check(Y(pushX + 47, badgeY) == held && Y(pushX + 46, badgeY + 5) == held, tag + ": is cut off at the line: right of it the console's picture, no badge");
+    check(Y(5, 200) == made && Y(80, 200) == held, tag + ": and the picture is cut at the same x");
+    // 5. The line crosses the console's badge.
+    check(frame(200, 800, true, when(int32_t(consoleX) + 18)), tag + ": frame with the line over the console's badge runs");
+    check(compare.revealX() == consoleX + 18, tag + ": the line at the console's badge");
+    check(std::abs(Y(consoleX + 44, badgeY) - black) <= tol && std::abs(Y(consoleX + 36, badgeY + 5) - black) <= tol, tag + ": the console's badge right of the line");
+    check(Y(consoleX, badgeY) == made && Y(consoleX + 1, badgeY + 5) == made, tag + ": is cut off at the line: left of it PushFPS's picture");
+    // 6. The hold on PushFPS: every presented frame, whole, with its badge only.
+    check(frame(120, 500, true, every + hold / 2), tag + ": frame during the PushFPS hold runs");
+    const int next = code(120, 500);
+    check(compare.revealX() == W && !compare.revealLineShown(), tag + ": the line has left the picture on the right");
+    check(Y(5, 200) == next && Y(320, 200) == next && Y(634, 200) == next, tag + ": the whole picture is PushFPS's");
+    check(std::abs(Y(pushX + 4, badgeY) - white) <= tol && Y(consoleX + 4, badgeY) == next, tag + ": with the PushFPS badge and no console badge");
+    // A real frame arrives meanwhile: the console side follows, out of sight.
+    check(frame(70, 350, false, every + hold / 2 + 0.03), tag + ": real frame during the PushFPS hold runs");
+    check(Y(320, 200) == code(70, 350), tag + ": a real frame is presented too");
+    // 7. The sweep back: the console's newest frame comes in from the right.
+    check(frame(180, 700, true, every + hold + sweep / 2), tag + ": frame at the middle of the sweep back runs");
+    check(compare.revealX() == W / 2 && compare.revealLineShown(), tag + ": the line is in the middle again");
+    check(Y(100, 200) == code(180, 700) && Y(540, 200) == code(70, 350), tag + ": PushFPS left, the console's newest frame right");
+    // 8. And the console side holds again.
+    check(frame(210, 820, true, 2 * every + hold / 2), tag + ": frame of the second console hold runs");
+    check(compare.revealX() == 0 && Y(320, 200) == code(70, 350) && Y(5, 200) == code(70, 350), tag + ": back on the console side, whole");
+    check(compare.generatedFrames() == 7 && compare.realFrames() == 2, tag + ": counts frames");
+    // The line moves a little with every frame of a sweep: 30 frames at 120 a second, each further right.
+    bool forward = true;
+    uint32_t last = 0, distinct = 0;
+    for (int i = 0; i < 30 && forward; ++i) {
+        if (!frame(200, 800, true, 6 * every + hold + sweep / 4 + i / 120.0)) { forward = false; break; }
+        if (i && compare.revealX() < last) forward = false;
+        if (i && compare.revealX() > last) ++distinct;
+        if (i && Y(compare.revealX() > lineW ? compare.revealX() - lineW : 0, 200) != made && compare.revealX() > lineW) forward = false;
+        last = compare.revealX();
+    }
+    check(forward && distinct >= 28, tag + ": the line advances with every frame of a sweep (" + std::to_string(distinct) + " of 29 steps)");
+    check(!gpu.debugErrors(), tag + ": no D3D12 debug errors");
+
+    // Without labels the line still sweeps; without a line the picture is still cut.
+    engine::RecordingLabel nothing{};
+    engine::RecordingCompare bare;
+    check(bare.create(device, W, H, hdr, nothing, nothing, reason, engine::CompareLayout::Reveal) && bare.overlays().size() == 1 && bare.patches().empty(),
+          tag + ": no labels leaves only the line");
+    // The other layouts know nothing of the line.
+    engine::RecordingCompare split;
+    check(split.create(device, W, H, hdr, console, push, reason) && split.overlays().size() == 2 && split.patches().size() == 1 && split.revealLineWidth() == 0,
+          tag + ": the split layout keeps its two badges and its divider, and has no line");
 }
 
 void testCompareSkipRule() {
@@ -1483,6 +1611,8 @@ int main() {
     testCompareRaw(gpu, false, engine::CompareLayout::SideBySide);
     testCompareBadges(gpu, false);
     testCompareBadges(gpu, true);
+    testCompareReveal(gpu, false);
+    testCompareReveal(gpu, true);
     testHudSampler(gpu);
     testHudLock(gpu);
     testAmbient(gpu);

@@ -562,7 +562,7 @@ target_compile_options(veyra_nis_gpu_tests PRIVATE /utf-8)
 target_link_libraries(veyra_nis_gpu_tests PRIVATE veyra_pipeline)
 add_dependencies(veyra_nis_gpu_tests veyra_shader_nis_color veyra_shader_nis_scaler_sdr veyra_shader_nis_scaler_pq)
 # PushFPS comparison clips and HUD frame sampling on a real D3D12 device (hardware or WARP), run in CI.
-add_executable(veyra_push_gpu_tests tests/integration/PushGpuTests.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp src/engine/PushStreamOverlay.cpp src/engine/PushLayerSourcesShape.cpp)
+add_executable(veyra_push_gpu_tests tests/integration/PushGpuTests.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp src/engine/RecordingComparePlan.cpp src/engine/PushStreamOverlay.cpp src/engine/PushLayerSourcesShape.cpp)
 target_compile_features(veyra_push_gpu_tests PRIVATE cxx_std_20)
 target_compile_options(veyra_push_gpu_tests PRIVATE /utf-8)
 target_link_libraries(veyra_push_gpu_tests PRIVATE veyra_pipeline)
@@ -1021,6 +1021,11 @@ target_include_directories(veyra_frame_input_tests PRIVATE ${CMAKE_CURRENT_SOURC
 add_executable(veyra_push_archive_paths_tests tests/unit/PushArchivePathsTests.cpp)
 target_compile_features(veyra_push_archive_paths_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_archive_paths_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS comparison clips without graphics (engine/RecordingComparePlan.h, pure): the clip quality rules,
+# the Reveal layout's timing and its line.
+add_executable(veyra_push_compare_plan_tests tests/unit/PushComparePlanTests.cpp src/engine/RecordingComparePlan.cpp)
+target_compile_features(veyra_push_compare_plan_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_compare_plan_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS crash notice: the summary a user can copy holds nothing personal (engine/PushCrashNote.h, pure).
 add_executable(veyra_push_crash_note_tests tests/unit/PushCrashNoteTests.cpp)
 target_compile_features(veyra_push_crash_note_tests PRIVATE cxx_std_20)
@@ -1674,7 +1679,7 @@ add_executable(veyra_sr_reconstruction_tests tests/integration/SrReconstructionT
   target_link_libraries(veyra_repair_fg_tests PRIVATE veyra_pipeline veyra_sinks veyra_nvof)
 
   # Headless quality-core runner (Playbook R3.3): the phase5 gate's quality
-  add_library(veyra_engine STATIC src/engine/EngineController.cpp src/engine/EngineWatchdog.cpp src/engine/PreviewGpuSession.cpp src/engine/EngineControllerImage.cpp src/engine/PosterFrame.cpp src/engine/EffectChain.cpp src/engine/PresetLibrary.cpp src/ui/PlayerUiFacade.cpp src/engine/TiledImageProcessor.cpp src/engine/PresetStore.cpp src/engine/VideoPresenter.cpp src/engine/DisplayStateService.cpp src/engine/VideoExportJob.cpp src/engine/ExportStreams.cpp src/engine/ExportQueue.cpp src/engine/ExportJobManager.cpp src/engine/Subtitles.cpp src/engine/FgCompatibilityProbe.cpp src/engine/LiveRecorder.cpp src/engine/ReplayBuffer.cpp src/engine/MicrophoneCapture.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp src/engine/LiveStream.cpp src/engine/Mp4Finalize.cpp src/engine/PushAudioMix.cpp src/engine/PushStreamOverlay.cpp src/engine/PushLayerSources.cpp src/engine/PushLayerSourcesShape.cpp src/engine/PushAuxAudio.cpp src/engine/PushAuxFifo.cpp src/engine/PushQuality.cpp src/engine/PushQualityProbe.cpp src/engine/PushInputLatency.cpp src/engine/PushInputLatencyProbe.cpp)
+  add_library(veyra_engine STATIC src/engine/EngineController.cpp src/engine/EngineWatchdog.cpp src/engine/PreviewGpuSession.cpp src/engine/EngineControllerImage.cpp src/engine/PosterFrame.cpp src/engine/EffectChain.cpp src/engine/PresetLibrary.cpp src/ui/PlayerUiFacade.cpp src/engine/TiledImageProcessor.cpp src/engine/PresetStore.cpp src/engine/VideoPresenter.cpp src/engine/DisplayStateService.cpp src/engine/VideoExportJob.cpp src/engine/ExportStreams.cpp src/engine/ExportQueue.cpp src/engine/ExportJobManager.cpp src/engine/Subtitles.cpp src/engine/FgCompatibilityProbe.cpp src/engine/LiveRecorder.cpp src/engine/ReplayBuffer.cpp src/engine/MicrophoneCapture.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp src/engine/RecordingComparePlan.cpp src/engine/LiveStream.cpp src/engine/Mp4Finalize.cpp src/engine/PushAudioMix.cpp src/engine/PushStreamOverlay.cpp src/engine/PushLayerSources.cpp src/engine/PushLayerSourcesShape.cpp src/engine/PushAuxAudio.cpp src/engine/PushAuxFifo.cpp src/engine/PushQuality.cpp src/engine/PushQualityProbe.cpp src/engine/PushInputLatency.cpp src/engine/PushInputLatencyProbe.cpp)
   target_sources(veyra_pipeline PRIVATE src/guidance/AmdOpticalFlow.cpp
     src/guidance/GpuDisOpticalFlow.cpp third_party/gpu-dis/src/gpu/native_strict_dis_provider.cpp)
   target_include_directories(veyra_pipeline PRIVATE third_party/gpu-dis/src/gpu)
