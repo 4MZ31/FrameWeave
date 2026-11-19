@@ -237,6 +237,7 @@ DialogLayer {
                 spacing: 8
                 VSlider {
                     objectName: "pushfps-crop-zoom"
+                    valueFromModel: true      // the value stays bound: Reset and Centre must move the knob
                     implicitWidth: 220
                     from: 25; to: 400; stepSize: 1
                     value: dlg.crop.zoom
@@ -259,6 +260,7 @@ DialogLayer {
                 spacing: 8
                 VSlider {
                     objectName: "pushfps-crop-x"
+                    valueFromModel: true      // the value stays bound: Reset and Centre must move the knob
                     implicitWidth: 130
                     from: -1000; to: 1000; stepSize: 5; center: true
                     value: dlg.crop.x
@@ -266,6 +268,7 @@ DialogLayer {
                 }
                 VSlider {
                     objectName: "pushfps-crop-y"
+                    valueFromModel: true      // the value stays bound: Reset and Centre must move the knob
                     implicitWidth: 130
                     from: -1000; to: 1000; stepSize: 5; center: true
                     value: dlg.crop.y
