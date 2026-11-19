@@ -10,7 +10,7 @@ contradict them. No dates.
 
 | Part | What it is | Where it stands |
 |---|---|---|
-| Guard | Find the places in a generated frame that are probably wrong and show something safe there instead | Two rules were measured on the shipped models and neither held (below): one was built and taken out, one never built. What a user has from it since 3.2.7 is the measurement itself: the frame quality test says its **worst frame** and its **worst place**. The next rule is written down; it needs real clips before it is built |
+| Guard | Find the places in a generated frame that are probably wrong and show something safe there instead | **Built, as an experiment that starts off** (*Professional → PushFlow 2: Guard*): where an object was left out of a generated frame, the nearer real frame is shown (below). Four rules failed in measurement before the one it uses held. Checked on drawn pictures and the software renderer only; whether it looks better in a game is for real cards and eyes to say. Beside it, since 3.2.7, the frame quality test says its **worst frame** and its **worst place** |
 | Fusion | Encode every real frame once and work a pair's motion out once, then make every in-between time from it | **Its first step is built, as an experiment that starts off** (*Professional → PushFlow 2: encode each real frame once*): the model cut into its per-frame encoder and the rest, each real frame encoded once (below). The second step, a pair's motion worked out once, does not exist in these models: the time enters at the first motion block |
 | Predict | Make frames from what has already arrived, without waiting for the next real frame | Measured (below): a frame half a step ahead can be made from what the network already gives, with no extra run; on drawn pictures it beats holding the last frame for slow motion and is no better for fast motion. Not built, and never the normal mode. It needs its own way onto the screen, Guard's checking of predictions against the frames that arrive later, and a camera for any claim about delay |
 | Dual | A second, deliberately delayed timeline for recording and streaming, beside the one the player sees | Not started. It needs real recording and OBS sessions on real cards to show the player's side is not slowed |
@@ -273,19 +273,32 @@ with much of it risky is held whole. Whether any of this looks better in a game 
 steps at the game's own rate, which the usual error measure scores *worse* than a missing one. It is being
 built as an experiment that starts off, for people with real games and cards to judge.
 
-## Next for Guard: written down, not built
+## Guard as built
 
-The measurement points at a different signal: **the two real frames differ at a place, and the network found
-no motion there that explains it.** That is what both a vanished object and a cut look like, and what a
-followed motion does not. Showing the real frame nearer in time at such a place would make a too-fast object
-step at the game's rate instead of blinking out.
+One compute pass after the generated picture is made (`shaders/PushGuard.hlsl`, four stages), only when the
+switch is on; with it off nothing of it is created or run. The decision is `decide` in
+`include/veyra/pushflow/PushFlowGuard.h`, the same rule in a form a test can run:
 
-It is not built, because at one pixel the same signal also describes things that are fine: a flash, a new
-object, and above all the strip of background a moving object uncovers behind it, where the network is right
-to take one frame only. What separates a vanished object from such a strip is not at that pixel: the
-object's own pixels are shown somewhere else in the generated frame when the motion was followed, and
-nowhere when it was not. So the rule needs a second pass that records which parts of each real frame the
-generated frame uses at all, and that pass and its thresholds cannot be tuned on drawn squares. It needs:
+1. per tile of 16 x 16 motion pixels, how much its picture changed between the two real frames;
+2. per motion pixel, how much of the place it reads in each real frame it shows (what it takes of it, or
+   all of it when its other sample is the same picture), added up per tile of each real frame;
+3. the decision: changed, less than a quarter shown in one of the frames, and not in the edge band. A risky
+   tile takes its changed neighbours with it so an object is not cut in half. When more than 35 % of the
+   tiles are risky the frame is the nearer real frame whole;
+4. the picture: the generated frame, with the nearer real frame blended in over risky tiles.
+
+What it reports, live and in the performance report: frames judged, frames mended in places, frames held
+whole. A held frame is a repeated real frame and is counted as that, never as a generated one that
+succeeded.
+
+What is checked: the decision on its own (`veyra_push_flow_guard_tests`); on the software renderer with both
+models, that a still picture and a followed object come out exactly as without Guard, and that it never
+moves a place further from the real frame (`testPushFlow`); through the real graph at 3X, that every
+generated frame is the plain run's and nothing is mended or held (`veyra_push_flow_graph_tests`).
+
+What is not known: how it looks in a real game, what it costs on a real card (four small dispatches and one
+full-size one per generated frame), and whether its thresholds, found on drawn pictures, are right for game
+pictures. Those need:
 
 - **clips**: short recordings of real games at 60 FPS (fast turns, small fast objects, HUDs, cuts, fades).
   Every second frame is withheld, generated, and compared with the frame that was really there, which is what
@@ -297,7 +310,7 @@ generated frame uses at all, and that pass and its thresholds cannot be tuned on
 
 | Waits for | Steps |
 |---|---|
-| Real 60 FPS game clips, and people to judge them | Guard's next rule; any automatic choice of the motion size (the choice by hand exists since 3.2.7) |
+| Real 60 FPS game clips, and people to judge them | Whether Guard should ever be on by default, and its thresholds; any automatic choice of the motion size (the choice by hand exists since 3.2.7) |
 | Frame quality test results from real games at each motion size (the worst place, with the performance report, which names the motion size) | Whether a tier's own motion size should change |
 | Card tests and performance reports from real cards (*Settings → Test my graphics card*, *Performance report*) | Fusion (the encoder split must be faster at equal quality on two classes of card, for a ceiling of 7 to 24 %); half precision per card |
 | A camera filming screen and controller (240 FPS or more) | Every statement about delay: Predict (its forecast exists as a study), Response, latency modes |
@@ -310,11 +323,11 @@ generated frame uses at all, and that pass and its thresholds cannot be tuned on
 | The guide's step | Here |
 |---|---|
 | Freeze the baseline and list the protected features | `tests/protected-features.json`, checked on every push; the baseline is the 3.2.6 release and its CI run |
-| A settings namespace with hidden, default-off flags | Not built: nothing exists yet for a flag to switch (rule 4) |
+| A settings namespace with hidden, default-off flags | `PushFlow2.h`, preference `pushFlow2`, safe mode (`--safe-mode`); a switch is shown only for a part that is built |
 | Frame identity, clocks and reset rules | Already in the engine (`FramePacket.h`, `FrameBatch.h`, the reset coordinator). Nothing was added; new metadata comes with the part that reads it |
 | Leases, queues and teardown | Unchanged. The roadmap's "fixed pool of buffers" step covers it, and it ships after it is measured |
 | Instruments and a test corpus | The motion report (models), `PushFlowBench` and the card test (speed), the frame quality test (a live session). The corpus is the clips above |
 | Read-only motion data with tested coordinates | `PushFlowMotion.h`, `PushFlowBackend::motionBuffer` (tests only), `veyra_push_flow_motion_tests` |
-| Guard's risk map and safe fallback | First rule built, measured, taken out; a whole-frame rule measured and not built; next rule written down (above). The frame quality test's worst frame and worst place are the instrument a user has today |
-| Encode once, reuse | Measured: what it could save, and that the encoder's work is per frame (above). Not built |
+| Guard's risk map and safe fallback | Built as an experiment that starts off (above), after four rules that failed in measurement |
+| Encode once, reuse | Built as an experiment that starts off: the encoder cache (above) |
 | Frames from the past only | Measured: possible from the half-way grids for slow motion (above). Not built |

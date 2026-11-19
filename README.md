@@ -358,6 +358,11 @@ mode or in streaming mode.
   (checked against the whole model on your card at start). Meant to save the most at 3× and 4×; how much it
   saves on real graphics cards has not been measured yet. `PushFPS.exe --safe-mode` starts with every
   experiment off.
+- **Experiment: Guard** (*Professional → PushFlow 2*, off by default): when an object moves too far between
+  two real frames for PushFlow to follow, it is missing from the generated frame. Guard finds those places
+  and shows the nearer real frame there, so the object moves at the game's own frame rate instead of
+  blinking out. It never invents a picture, and it counts every frame it had to replace whole. Checked on
+  test pictures only; whether it looks better in a real game is for you to judge.
 - **Tells you when your card can't keep up**: if nearly every frame pair has to be skipped, PushFlow steps
   down one tier and says why, where it used to sit at the game's frame rate without a word.
 - **Half precision, tested safely**: *Professional → Frame generation → PushFlow half precision → Test* tries

@@ -83,9 +83,11 @@ What the network gives besides its picture, in one place: `include/veyra/pushflo
 **Motion that is too fast.** An object that moves further between two real frames than the network can follow
 is left out of the generated frame (it is not shown twice). On drawn pictures that happens somewhere above
 a fifth of the picture's width per frame, and working the motion out at a smaller size sometimes brings the
-object back (the motion size can be chosen since 3.2.7, above). Nothing hides or repairs that yet. The frame
-quality test shows it since 3.2.7 as its **worst place**; [PushFlow 2](PUSHFLOW2.md) has the measurements,
-what would help, and what it waits for.
+object back (the motion size can be chosen since 3.2.7, above). Since 3.2.8 an experiment that starts off,
+**Guard** (*Professional → PushFlow 2: Guard*), shows the nearer real frame at such a place, so the object
+steps at the game's rate instead of blinking out; it is checked on drawn pictures only. The frame quality
+test shows the fault since 3.2.7 as its **worst place**; [PushFlow 2](PUSHFLOW2.md) has the measurements,
+the rule Guard uses, and what is still not known.
 
 ## Why PushFlow could stay at the game's frame rate
 
