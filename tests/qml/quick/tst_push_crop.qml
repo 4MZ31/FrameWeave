@@ -34,8 +34,25 @@ Item {
             tryCompare(dlg, "motionS", 1, 3000)
             tryCompare(dlg, "motionDy", 0, 3000)
             waitForRendering(dlg)
+            // A dialog closed a moment ago is still running its closing motion beside the opening one.
+            wait(60)
+            tryCompare(dlg, "motionS", 1, 3000)
+            tryCompare(dlg, "opacity", 1, 3000)
         }
-        function settle() { wait(140) }   // the editor writes a moment after the last change
+        // The editor writes a moment after the last change. Waiting for that write, not for a length of
+        // time: the timer runs with the frames, and a build machine without a graphics card draws slowly.
+        function settle() { tryCompare(dlg, "pendingWrite", false, 5000) }
+        // A drag by hand, one event at a time, that first checks the press took the handle it was aimed at.
+        function dragHandle(stage, handle, x, y, dx, dy) {
+            mouseMove(stage, x, y)
+            mousePress(stage, x, y)
+            compare(stage.held, handle, "the press at " + Math.round(x) + "," + Math.round(y) + " of " + Math.round(stage.width) + "x" + Math.round(stage.height))
+            mouseMove(stage, x + dx / 3, y + dy / 3)
+            mouseMove(stage, x + dx * 2 / 3, y + dy * 2 / 3)
+            mouseMove(stage, x + dx, y + dy)
+            mouseRelease(stage, x + dx, y + dy)
+            compare(stage.held, "", "released")
+        }
 
         // --- maths ---------------------------------------------------------------------------------
         function test_values_are_cleaned() {
@@ -82,14 +99,14 @@ Item {
             const stage = findChild(dlg, "pushfps-crop-stage")
             verify(stage.width > 200 && stage.height > 100)
             // The left edge, in the middle of its height, a tenth of the picture to the right.
-            mouseDrag(stage, 1, stage.height / 2, stage.width * 0.1, 0)
+            dragHandle(stage, "l", 1, stage.height / 2, stage.width * 0.1, 0)
             settle()
             const c = Crop.read(veyra.preferences)
             verify(Math.abs(c.l - 100) <= 8, "left " + c.l)
             compare([c.t, c.r, c.b], [0, 0, 0])
             compare(pref("pushCropOn"), true, "a crop that cuts something is on")
-            // The bottom right corner inwards.
-            mouseDrag(stage, stage.width - 1, stage.height - 1, -stage.width * 0.05, -stage.height * 0.2)
+            // The bottom right corner inwards: up as well as left, which a scroll view would take over.
+            dragHandle(stage, "br", stage.width - 1, stage.height - 1, -stage.width * 0.05, -stage.height * 0.2)
             settle()
             const d = Crop.read(veyra.preferences)
             verify(Math.abs(d.r - 50) <= 8 && Math.abs(d.b - 200) <= 10, "right " + d.r + " bottom " + d.b)
@@ -99,7 +116,11 @@ Item {
             veyra.preferences = ({ pushCropOn: true, pushCropL: 200, pushCropR: 200 })
             open()
             const stage = findChild(dlg, "pushfps-crop-stage")
-            mouseDrag(stage, stage.width / 2, stage.height / 2, stage.width * 0.1, 0)
+            verify(stage.width > 200 && stage.height > 100)
+            compare([dlg.crop.l, dlg.crop.r], [200, 200], "the editor opens on what is set")
+            dragHandle(stage, "move", stage.width / 2, stage.height / 2, stage.width * 0.1, 0)
+            compare(dlg.crop.l + dlg.crop.r, 400, "the editor's own picture follows at once")
+            verify(Math.abs(dlg.crop.l - 300) <= 8, "left in the editor " + dlg.crop.l)
             settle()
             const c = Crop.read(veyra.preferences)
             verify(Math.abs(c.l - 300) <= 8 && Math.abs(c.r - 100) <= 8, "left " + c.l + " right " + c.r)

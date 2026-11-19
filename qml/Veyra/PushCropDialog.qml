@@ -54,6 +54,8 @@ DialogLayer {
         dlg.commit()
     }
     Timer { id: commitSoon; interval: 80; onTriggered: dlg.commit() }
+    // A change is still to be written (tests wait for this instead of for a length of time).
+    readonly property bool pendingWrite: commitSoon.running
 
     // --- one frame of the picture (as the layout editor takes it) -------------------------------
     property real pictureStarted: 0
