@@ -18,6 +18,8 @@ Nothing changes on the console or in the game: you need a capture card and a gra
 [![OBS Studio plugin](https://img.shields.io/badge/OBS%20Studio-plugin-1b1b20?style=for-the-badge)](#obs-studio-plugin)
 &nbsp;
 [![Website](https://img.shields.io/badge/Website-dosukasol.github.io%2FPushFPS-1b1b20?style=for-the-badge)](https://dosukasol.github.io/PushFPS/)
+&nbsp;
+[![Discord](https://img.shields.io/badge/Discord-join%20us-1b1b20?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/N88znNpSgC)
 
 [![Latest release](https://img.shields.io/github/v/release/DosukaSOL/PushFPS?include_prereleases&style=flat-square&color=89F52A&label=release)](https://github.com/DosukaSOL/PushFPS/releases)
 [![Build](https://img.shields.io/github/actions/workflow/status/DosukaSOL/PushFPS/build-windows.yml?branch=main&event=push&style=flat-square&label=build)](https://github.com/DosukaSOL/PushFPS/actions/workflows/build-windows.yml)
@@ -25,6 +27,8 @@ Nothing changes on the console or in the game: you need a capture card and a gra
 [![Built on Veyra](https://img.shields.io/badge/built%20on-Veyra%20by%20Likely7-89F52A?style=flat-square)](https://github.com/Likely7/Veyra-NRVideo)
 
 <sub>Built on <a href="https://github.com/Likely7/Veyra-NRVideo">Veyra</a> by Likely7 · ANR frame generation by <a href="https://apexcompute.com">Apex Compute</a></sub>
+
+<sub>Questions, setups and clips: <a href="https://discord.gg/N88znNpSgC">join the PushFPS Discord</a></sub>
 
 <br>
 
@@ -56,16 +60,16 @@ switch back in one click.
 
 **Frame generation, with or without AI enhancement**<br>
 Generate frames only, or also run every frame through AI picture enhancement for a sharper picture
-(NVIDIA RTX cards).
+(NVIDIA RTX and Radeon RX 7000 / 9000 cards, as an [optional extra](#what-you-need)).
 
 </td>
 </tr>
 <tr>
 <td valign="top">
 
-**Any capture card, any RTX card**<br>
+**Any capture card, NVIDIA, AMD or Intel graphics**<br>
 Works with capture cards that Windows sees as a camera, from 1080p60 USB sticks to 4K PCIe cards.
-RTX 30, 40 and 50 series; AMD Radeon gets 2× with FSR.
+RTX 30, 40 and 50 series get NVIDIA's methods; every DirectX 12 card gets PushFlow (2× to 4×) and FSR (2×).
 
 </td>
 <td valign="top">
@@ -96,7 +100,7 @@ that, PushFPS adds what console players need:
 | **One-click signed updates** | New versions download and install from the app; every release is signed (RSA-3072, SHA-256) and the app refuses anything that doesn't match |
 | **Frame input API** | Other programs can send video straight into PushFPS through shared memory ([docs/FRAME-INPUT-API.md](docs/FRAME-INPUT-API.md)) |
 | **Optimise for my PC** | Tests every frame generation method your PC has, AI enhancement and the upscalers on your real game picture, measures frame rate, 1% low, latency and jitter, and keeps the best combination for your goal (balanced, lowest latency, smoothest or best picture), up to 144 or 240 Hz |
-| **Streaming mode** | An OBS-style page: preview, PushFPS features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards) with webcam, window and video sources and cut or fade transitions, a layout editor (move, resize and crop the game picture and every source), go live and record controls, an audio mixer for game sound, microphone, desktop audio, an extra input and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
+| **Streaming mode** | An OBS-style page: preview, PushFPS features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards) with webcam, window and video sources (cameras at up to 4K, shown live) and cut or fade transitions, a right-click menu to add, duplicate or delete scenes, a layout editor (move, resize and crop the game picture and every source), go live and record controls, an audio mixer for game sound, microphone, desktop audio, an extra input and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
 | **Video playback mode** | Frame generation, super resolution, AI enhancement and SDR to HDR on any video on your PC: a browser window with YouTube, a video app, a screen or a file |
 | **Ultrawide screens** | A console only sends 16:9. On a 21:9 or 32:9 screen choose black bars, **ambient fill** (a soft, dimmed extension of the picture in the bars, nothing cut or distorted), crop or stretch ([more](#ultrawide-screens)) |
 | **Fine-tune AI picture enhancement** | Shape the change the enhancement makes: its strength, brightening and darkening, shadows, midtones and highlights, colour, hue, and limits per pixel ([more](#enhancement-look)) |
@@ -110,7 +114,7 @@ that, PushFPS adds what console players need:
 | **Adaptive multiplier** | Follows the game when its frame rate drops, so the output stays even |
 | **Game presets** | GTA VI and other layouts in one click, with the minimap and HUD kept sharp. Save your own and share them as a code |
 | **Automatic HUD detection** | Watches your game for a few seconds and finds the minimap, health and ammo, so they are never interpolated. Correct the boxes by dragging them |
-| **Before/after comparison clips** | Records a clip with the console's own frame rate on the left and PushFPS on the right, split screen, side by side or vertical 9:16 for TikTok, Shorts and Reels, 10 to 60 seconds, each side labelled with its frame rate |
+| **Before/after comparison clips** | Records a clip with the console's own frame rate on the left and PushFPS on the right, split screen, side by side or vertical 9:16 for TikTok, Shorts and Reels, from 10 seconds to 2 minutes or until you stop it, each side labelled with its frame rate |
 | **No capture card needed** | PS5 Remote Play, Moonlight (stream another PC through Sunshine) and Xbox streaming, with the same frame generation, from Veyra |
 | **Help on hard settings** | A small **?** beside settings that need explaining; hover it for a short summary |
 | **Quick setup** | Console, game frame rate and target frame rate instead of hundreds of settings, with console and game profiles |
@@ -198,12 +202,14 @@ that Veyra's author distributes. The installer downloads that package (about 750
 the value pinned when the PushFPS release was built, unpacks it, and adds PushFPS on top. PushFPS itself
 never rehosts those files.
 
-- **Experimental extras.** Veyra's package also has AI enhancement for RTX 30 and Radeon cards, built on
-  NVIDIA files used outside the terms NVIDIA licenses them under. The installer asks whether you want them
-  (default no); `Install-PushFPS.cmd -ExperimentalExtras Yes` installs them without asking. Details in
+- **Experimental extras.** Veyra's package also has the files AI picture enhancement runs on for NVIDIA RTX
+  and Radeon cards, built on NVIDIA files used outside the terms NVIDIA licenses them under. The installer
+  asks whether you want them (default no); `Install-PushFPS.cmd -ExperimentalExtras Yes` installs them
+  without asking, and running the installer again lets you change your answer. Details in
   [NOTICE.md](NOTICE.md).
 - Install folder: `%LOCALAPPDATA%\Programs\PushFPS`
-- Update: run the newer installer; your settings and profiles are kept
+- Update: PushFPS offers new versions itself (signed, one click), or run the newer installer; your settings
+  and profiles are kept either way
 - Uninstall: `Install-PushFPS.cmd -Uninstall`, or delete the folder and shortcuts
 - Windows may warn about an unknown publisher (PushFPS isn't code signed yet). Choose *More info*, then
   *Run anyway*, if you downloaded the zip from this repository.
@@ -228,19 +234,27 @@ pinned components in `PushFPS-<version>-components.txt`. In PowerShell: `Get-Fil
 | | Minimum | Recommended |
 |---|---|---|
 | **System** | Windows 11 64-bit with DirectX 12 | Latest Windows updates |
-| **Graphics card** | NVIDIA RTX 30 series (frame generation is experimental there) | NVIDIA RTX 40 or 50 series |
+| **Graphics card** | Any DirectX 12 card: PushFlow (2× to 4×) and AMD FSR (2×) run on NVIDIA, AMD and Intel. NVIDIA RTX 30 for NVIDIA's methods (experimental there) | NVIDIA RTX 40 or 50 series |
 | **Capture card** | Any card that shows up as a camera in Windows and sends 1080p at 60 FPS without compression, or [stream instead](#no-capture-card-stream-instead) | A card with 4K60 capture and passthrough |
 | **Connection** | USB 3 port directly on the PC (no hub) | USB 3.2 Gen 2 or a PCIe card |
 | **Console** | Any console with HDMI out | 60 Hz output, or 120 Hz if your capture card captures 120 Hz (passthrough doesn't count) |
 
-AMD Radeon cards can use FSR frame generation (2× only, so 60 FPS from a 30 FPS game). AI picture
-enhancement on Radeon and on RTX 30 cards is an optional experimental extra (see below).
+AMD Radeon and Intel cards can use PushFlow (2× to 4×) and FSR frame generation (2× only, so 60 FPS from a
+30 FPS game); Radeon cards also get AMD FRC.
+
+**AI picture enhancement** is separate from frame generation. On NVIDIA RTX cards (the app lists RTX 20 to
+50) and on Radeon RX 7000 and 9000 it runs on community-built runtime files, which the installer treats as
+*experimental extras*: it asks, and the default is no. Without them the switch is greyed out and says *This
+package lacks the runtime components for this feature*. Run `Install-PushFPS.cmd` again and answer **y**
+when it asks about the experimental extras; your settings are kept, and updates from inside PushFPS keep
+the extras.
 
 <details>
 <summary>Which frame generation methods your PC offers</summary>
 
 | Method | Graphics cards | Most frames per real frame |
 |---|---|---|
+| [PushFlow](#pushflow-our-own-frame-generation), PushFPS's own | DirectX 12 cards: NVIDIA, AMD and Intel | 4× |
 | NVIDIA Video Frame Generation (VFG) | RTX 40, RTX 50 (RTX 30 experimental) | 8× |
 | NVIDIA DLSS Frame Generation | RTX 40 (2×), RTX 50 (up to 6×) | 6× |
 | Intel XeSS Frame Generation (experimental) | DirectX 12 cards; Veyra tested it on NVIDIA | 4× |
@@ -267,7 +281,7 @@ enhancement on Radeon and on RTX 30 cards is an optional experimental extra (see
    | **Game profile** | Optional: save the current settings under a game's name, switch to them later in one click |
    | **Game frame rate** | 30 for most games (GTA VI), 40 for 40 FPS modes, 60 for performance modes |
    | **Target frame rate** | Off, 60 FPS, 120 FPS or Match monitor (on a 90 Hz screen: 90 FPS in place of 120). PushFPS picks the frame generation multiplier. 60 on a 60 Hz monitor, 120 on 120 Hz and faster ([target for every refresh rate](https://dosukasol.github.io/PushFPS/#guide-rates)) |
-   | **AI picture enhancement** | Off: frame generation only. On: every frame also goes through AI enhancement on RTX 40/50 cards (RTX 30 and Radeon: experimental extra). Uses a lot more GPU, so start with it off |
+   | **AI picture enhancement** | Off: frame generation only. On: every frame also goes through AI enhancement (NVIDIA RTX and Radeon RX 7000 / 9000; needs the installer's experimental extras, see [What you need](#what-you-need)). Uses a lot more GPU, so start with it off |
 
 5. **Click Connect** on the capture card. Choose your card, its resolution, 60 FPS and the card's audio input.
 6. Press **F11** (or Alt+Enter), or double-click the picture, for fullscreen.
@@ -589,7 +603,8 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
 
 ## Recording, instant replay and microphone
 
-- **Record** (F8) saves what you see and hear, with the picture, sound profile and frame generation applied.
+- **Record** (F8) saves what you see and hear, with the picture, sound profile and frame generation applied,
+  for as long as you like: a recording runs until you stop it or the disk is full.
 - **Instant replay** keeps the last minute (15 seconds to 10 minutes) in memory; press **F9** to save it.
   Turn it on next to the Record button or under *Settings, Playback*. It can run while you record. It uses
   an extra hardware encoder and some memory while it is on, so it is off by default.
@@ -616,7 +631,9 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
   less with HEVC), with room for fast motion. Pick a fixed bitrate under *Settings, Playback* for smaller files.
 - **Works in video editors**: a finished MP4 recording is rewritten as a standard MP4 (no re-encoding), so it
   opens in Vegas Pro, Premiere Pro, DaVinci Resolve and others. While recording it is kept in a crash-safe
-  format, so a crash or power cut still keeps what was recorded.
+  format, so a crash or power cut still keeps what was recorded. The rewrite needs the recording's size in
+  free disk space once more; without it the recording is kept as written (it plays everywhere, but some
+  editors refuse that form) and PushFPS says so.
 
 ## Streaming mode
 
@@ -889,7 +906,16 @@ Yes, as a preview: see [Linux and macOS (preview)](#linux-and-macos-preview). It
 generation instead of the NVIDIA, AMD and Intel methods, which only exist for Windows.
 
 **Where are my settings and profiles stored?**
-In your user folder, next to Veyra's settings. Updating PushFPS keeps them.
+Inside the PushFPS folder itself (`%LOCALAPPDATA%\Programs\PushFPS` unless you chose another one), with the
+logs. Updating PushFPS keeps them.
+
+**AI picture enhancement says "This package lacks the runtime components for this feature".**
+Its files are an optional extra the installer leaves out unless you say yes. Run `Install-PushFPS.cmd` again
+and answer **y** when it asks about the experimental extras: see [What you need](#what-you-need).
+
+**Where do I get help?**
+On the [PushFPS Discord](https://discord.gg/N88znNpSgC), where other players and the developer answer. Bugs and capture card reports
+go to [GitHub Issues](https://github.com/DosukaSOL/PushFPS/issues).
 
 ## Roadmap
 
@@ -922,6 +948,11 @@ In your user folder, next to Veyra's settings. Updating PushFPS keeps them.
 - [x] PushFlow, PushFPS's own frame generation (RIFE on DirectML)
 - [x] Measured frame quality in the optimiser, automatic PS5 latency test
 - [x] One-click signed updates, frame input API for other apps
+- [x] Streaming mode: scenes, sources, layout editor, audio mixer, output presets
+- [x] Video playback mode for any video on the PC
+- [x] Ultrawide screens (ambient fill), 90 Hz screens, fine-tuning of AI picture enhancement
+- [x] Crash notice and a graphics card test
+- [x] Comparison clips up to 2 minutes or until stopped; cameras at up to 4K with a live picture
 - [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)
