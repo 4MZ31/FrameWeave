@@ -306,10 +306,17 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
         const auto kept=view.keptRect(float(rc.right),float(rc.bottom),renderW,renderH);
         const float bufferW=float(sink_.bufferWidth()),bufferH=float(sink_.bufferHeight());
         const float scaleX=bufferW/float(rc.right),scaleY=bufferH/float(rc.bottom);
-        pictureRect.left=LONG(std::clamp(std::floor(kept.left*scaleX+.5f),0.0f,bufferW));
-        pictureRect.top=LONG(std::clamp(std::floor(kept.top*scaleY+.5f),0.0f,bufferH));
-        pictureRect.right=LONG(std::clamp(std::floor(kept.right*scaleX+.5f),float(pictureRect.left),bufferW));
-        pictureRect.bottom=LONG(std::clamp(std::floor(kept.bottom*scaleY+.5f),float(pictureRect.top),bufferH));
+        // Every edge on an even pixel, inwards. The pixel shader works in blocks of 2 x 2 pixels and
+        // takes its sampling footprint from the block. A scissor edge through a block left the software
+        // renderer (WARP) with a neighbour it had not shaded: the first kept column then showed pixels
+        // sampled from elsewhere in the picture (screenshot 81, 19 November 2026, with the left edge at
+        // 213). With whole blocks nothing is shared across the edge. At most one pixel per side is lost.
+        const auto evenUp=[](float value,float bound){return LONG(std::clamp(std::ceil(value*.5f)*2.0f,0.0f,bound));};
+        const auto evenDown=[](float value,float bound){return LONG(std::clamp(std::floor(value*.5f)*2.0f,0.0f,bound));};
+        pictureRect.left=evenUp(kept.left*scaleX,bufferW);
+        pictureRect.top=evenUp(kept.top*scaleY,bufferH);
+        pictureRect.right=std::max(pictureRect.left,evenDown(kept.right*scaleX,bufferW));
+        pictureRect.bottom=std::max(pictureRect.top,evenDown(kept.bottom*scaleY,bufferH));
     }
     // PushFPS ambient fill: only where the picture leaves bars, never beside a comparison (its reference
     // draw paints the bars itself). The blurred copy is made here, before this pass's state is set.
