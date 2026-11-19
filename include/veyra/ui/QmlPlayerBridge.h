@@ -1557,8 +1557,9 @@ public:
     Q_INVOKABLE void pushCancelHudDetection();
     Q_INVOKABLE QVariantMap pushHudDetection();
     // PushFPS before/after comparison clip (engine/RecordingCompare.h): a
-    // recording of `seconds` whose left half is the console's real frames.
-    // layout: 0 split picture, 1 both pictures side by side.
+    // recording of `seconds` (5 to 120; 0: no length, it runs until stopRecording) whose left
+    // half is the console's real frames. layout: 0 split picture, 1 both pictures side by
+    // side, 2 vertical 9:16.
     Q_INVOKABLE bool pushStartCompareClip(int seconds, int layout = 0);
     // PushFlow half precision: PushFlowBench --fp16-probe in its own process; the result goes to the
     // preference pushFlowHalfProbe and, when half precision matches and is faster, pushFlowHalf.

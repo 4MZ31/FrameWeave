@@ -9470,6 +9470,23 @@
    "ru": "Без замеров"
   },
   {
+   "zh": "不设时长：再点一次“对比片段”或按录制快捷键停止",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "不設時長：再點一次「對比片段」或按錄製快速鍵停止",
+   "en": "No length: click Comparison clip again or press the recording shortcut to stop",
+   "ja": "長さの指定なし：もう一度「比較クリップ」を押すか、録画のショートカットで停止します",
+   "nl": "No length: click Comparison clip again or press the recording shortcut to stop",
+   "de": "No length: click Comparison clip again or press the recording shortcut to stop",
+   "es": "No length: click Comparison clip again or press the recording shortcut to stop",
+   "fr": "No length: click Comparison clip again or press the recording shortcut to stop",
+   "it": "No length: click Comparison clip again or press the recording shortcut to stop",
+   "pt-BR": "No length: click Comparison clip again or press the recording shortcut to stop",
+   "tr": "No length: click Comparison clip again or press the recording shortcut to stop",
+   "ar": "No length: click Comparison clip again or press the recording shortcut to stop",
+   "pl": "No length: click Comparison clip again or press the recording shortcut to stop",
+   "ru": "No length: click Comparison clip again or press the recording shortcut to stop"
+  },
+  {
    "zh": "不说话时自动静音，挡住键盘、风扇和房间噪音",
    "src": "qml/PushMicFiltersDialog.qml",
    "zh-TW": "不說話時自動靜音，擋住鍵盤、風扇和房間噪音",
@@ -22952,6 +22969,23 @@
    "ru": "Сравнительный клип"
   },
   {
+   "zh": "对比片段不设时长：再点一次“对比片段”或按录制快捷键停止",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "對比片段不設時長：再點一次「對比片段」或按錄製快速鍵停止",
+   "en": "Comparison clips with no length: click Comparison clip again or press the recording shortcut to stop",
+   "ja": "比較クリップの長さを指定しない：もう一度「比較クリップ」を押すか、録画のショートカットで停止します",
+   "nl": "Comparison clips with no length: click Comparison clip again or press the recording shortcut to stop",
+   "de": "Comparison clips with no length: click Comparison clip again or press the recording shortcut to stop",
+   "es": "Comparison clips with no length: click Comparison clip again or press the recording shortcut to stop",
+   "fr": "Comparison clips with no length: click Comparison clip again or press the recording shortcut to stop",
+   "it": "Comparison clips with no length: click Comparison clip again or press the recording shortcut to stop",
+   "pt-BR": "Comparison clips with no length: click Comparison clip again or press the recording shortcut to stop",
+   "tr": "Comparison clips with no length: click Comparison clip again or press the recording shortcut to stop",
+   "ar": "Comparison clips with no length: click Comparison clip again or press the recording shortcut to stop",
+   "pl": "Comparison clips with no length: click Comparison clip again or press the recording shortcut to stop",
+   "ru": "Comparison clips with no length: click Comparison clip again or press the recording shortcut to stop"
+  },
+  {
    "zh": "对比片段尺寸不一致",
    "src": "src/engine/LiveRecorder.cpp",
    "zh-TW": "對比片段尺寸不一致",
@@ -29174,6 +29208,23 @@
    "ru": "Records all PC sound except PushFPS, such as a video playing in a browser or player. Needed when capturing a window or screen"
   },
   {
+   "zh": "录到我停止为止",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "錄到我停止為止",
+   "en": "Until I stop",
+   "ja": "停止するまで録画",
+   "nl": "Until I stop",
+   "de": "Until I stop",
+   "es": "Until I stop",
+   "fr": "Until I stop",
+   "it": "Until I stop",
+   "pt-BR": "Until I stop",
+   "tr": "Until I stop",
+   "ar": "Until I stop",
+   "pl": "Until I stop",
+   "ru": "Until I stop"
+  },
+  {
    "zh": "录制",
    "src": "qml/ProPage.qml",
    "zh-TW": "錄製",
@@ -30753,6 +30804,23 @@
    "ar": "ينطبق على المدخلات الحية",
    "pl": "Ręczne przesunięcie · dotyczy wejścia na żywo",
    "ru": "Ручное смещение · применяется к живому входу"
+  },
+  {
+   "zh": "手动停止",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "手動停止",
+   "en": "Until stopped",
+   "ja": "手動で停止",
+   "nl": "Until stopped",
+   "de": "Until stopped",
+   "es": "Until stopped",
+   "fr": "Until stopped",
+   "it": "Until stopped",
+   "pt-BR": "Until stopped",
+   "tr": "Until stopped",
+   "ar": "Until stopped",
+   "pl": "Until stopped",
+   "ru": "Until stopped"
   },
   {
    "zh": "手动比例以最高 1080p 预算内的输入为基准；适用于预览与视频导出，输出尺寸不变。",
@@ -40038,6 +40106,40 @@
    "ru": "Recording a comparison clip…"
   },
   {
+   "zh": "正在录制对比片段，直到你停止：左边是主机原本的帧率，右边是 PushFPS。再点一次“对比片段”或按录制快捷键停止",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "正在錄製對比片段，直到你停止：左邊是主機原本的幀率，右邊是 PushFPS。再點一次「對比片段」或按錄製快速鍵停止",
+   "en": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop",
+   "ja": "停止するまで比較クリップを録画中：左がゲーム機本来のフレームレート、右が PushFPS。もう一度「比較クリップ」を押すか、録画のショートカットで停止します",
+   "nl": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop",
+   "de": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop",
+   "es": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop",
+   "fr": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop",
+   "it": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop",
+   "pt-BR": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop",
+   "tr": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop",
+   "ar": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop",
+   "pl": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop",
+   "ru": "Recording a comparison clip until you stop it: the console's own frame rate on the left, PushFPS on the right. Click Comparison clip again or press the recording shortcut to stop"
+  },
+  {
+   "zh": "正在录制竖屏对比片段，直到你停止：上面是主机原本的帧率，下面是 PushFPS。再点一次“对比片段”或按录制快捷键停止",
+   "src": "src/ui/bridge/PushFps.cpp",
+   "zh-TW": "正在錄製直式對比片段，直到你停止：上面是主機原本的幀率，下面是 PushFPS。再點一次「對比片段」或按錄製快速鍵停止",
+   "en": "Recording a vertical comparison clip until you stop it: the console's own frame rate on top, PushFPS below. Click Comparison clip again or press the recording shortcut to stop",
+   "ja": "停止するまで縦型比較クリップを録画中：上がゲーム機本来のフレームレート、下が PushFPS。もう一度「比較クリップ」を押すか、録画のショートカットで停止します",
+   "nl": "Recording a vertical comparison clip until you stop it: the console's own frame rate on top, PushFPS below. Click Comparison clip again or press the recording shortcut to stop",
+   "de": "Recording a vertical comparison clip until you stop it: the console's own frame rate on top, PushFPS below. Click Comparison clip again or press the recording shortcut to stop",
+   "es": "Recording a vertical comparison clip until you stop it: the console's own frame rate on top, PushFPS below. Click Comparison clip again or press the recording shortcut to stop",
+   "fr": "Recording a vertical comparison clip until you stop it: the console's own frame rate on top, PushFPS below. Click Comparison clip again or press the recording shortcut to stop",
+   "it": "Recording a vertical comparison clip until you stop it: the console's own frame rate on top, PushFPS below. Click Comparison clip again or press the recording shortcut to stop",
+   "pt-BR": "Recording a vertical comparison clip until you stop it: the console's own frame rate on top, PushFPS below. Click Comparison clip again or press the recording shortcut to stop",
+   "tr": "Recording a vertical comparison clip until you stop it: the console's own frame rate on top, PushFPS below. Click Comparison clip again or press the recording shortcut to stop",
+   "ar": "Recording a vertical comparison clip until you stop it: the console's own frame rate on top, PushFPS below. Click Comparison clip again or press the recording shortcut to stop",
+   "pl": "Recording a vertical comparison clip until you stop it: the console's own frame rate on top, PushFPS below. Click Comparison clip again or press the recording shortcut to stop",
+   "ru": "Recording a vertical comparison clip until you stop it: the console's own frame rate on top, PushFPS below. Click Comparison clip again or press the recording shortcut to stop"
+  },
+  {
    "zh": "正在恢复",
    "src": "src/ui/bridge/Preferences.cpp",
    "zh-TW": "正在恢復",
@@ -46496,6 +46598,23 @@
    "ar": "توقف التسجيل: كتب الأقراص بطيئة جدا (استخدام قرص أسرع أو أقل قليلا)",
    "pl": "Nagrywanie zatrzymane: zapis dysku jest zbyt wolny (użyj szybszego napędu lub niższego bitrate)",
    "ru": "Запись остановлена: записи на диске слишком медленные (используйте более быстрый диск или более низкий битрейт)."
+  },
+  {
+   "zh": "磁盘剩余空间不足，无法整理成标准 MP4：录制已按原样保存，可以正常播放，但部分剪辑软件打不开",
+   "src": "src/engine/LiveRecorder.cpp",
+   "zh-TW": "磁碟剩餘空間不足，無法整理成標準 MP4：錄製已按原樣儲存，可以正常播放，但部分剪輯軟體打不開",
+   "en": "Not enough free disk space to finish the recording as a standard MP4: it was saved as written and plays normally, but some editors will not open it",
+   "ja": "ディスクの空き容量が足りず、標準 MP4 に仕上げられませんでした：録画はそのまま保存され、通常どおり再生できますが、一部の編集ソフトでは開けません",
+   "nl": "Not enough free disk space to finish the recording as a standard MP4: it was saved as written and plays normally, but some editors will not open it",
+   "de": "Not enough free disk space to finish the recording as a standard MP4: it was saved as written and plays normally, but some editors will not open it",
+   "es": "Not enough free disk space to finish the recording as a standard MP4: it was saved as written and plays normally, but some editors will not open it",
+   "fr": "Not enough free disk space to finish the recording as a standard MP4: it was saved as written and plays normally, but some editors will not open it",
+   "it": "Not enough free disk space to finish the recording as a standard MP4: it was saved as written and plays normally, but some editors will not open it",
+   "pt-BR": "Not enough free disk space to finish the recording as a standard MP4: it was saved as written and plays normally, but some editors will not open it",
+   "tr": "Not enough free disk space to finish the recording as a standard MP4: it was saved as written and plays normally, but some editors will not open it",
+   "ar": "Not enough free disk space to finish the recording as a standard MP4: it was saved as written and plays normally, but some editors will not open it",
+   "pl": "Not enough free disk space to finish the recording as a standard MP4: it was saved as written and plays normally, but some editors will not open it",
+   "ru": "Not enough free disk space to finish the recording as a standard MP4: it was saved as written and plays normally, but some editors will not open it"
   },
   {
    "zh": "磨皮",

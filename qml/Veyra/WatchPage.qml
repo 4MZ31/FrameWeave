@@ -11,6 +11,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "EffectSupport.js" as Support
+import "PushCompareClip.js" as CompareClip
 
 VPage {
     id: watch
@@ -83,10 +84,8 @@ VPage {
         return h > 0 ? h + ":" + two(m) + ":" + two(sec) : two(m) + ":" + two(sec)
     }
     readonly property int replayHeld: Math.max(0, (veyra.replayState && veyra.replayState.seconds) || 0)
-    readonly property int clipSeconds: {
-        const n = Number(veyra.preferences.pushCompareSeconds || 15)
-        return [10, 15, 30, 60].indexOf(n) >= 0 ? n : 15
-    }
+    readonly property int clipSeconds: CompareClip.seconds(veyra.preferences)
+    readonly property bool clipUntilStop: CompareClip.untilStop(veyra.preferences)
     readonly property string clipLayout: {
         const n = Number(veyra.preferences.pushCompareLayout || 0)
         return n === 2 ? qsTr("竖屏") : n === 1 ? qsTr("并排") : qsTr("分屏")
@@ -284,8 +283,8 @@ VPage {
                         objectName: "watch-compare-row"
                         label: qsTr("对比片段")
                         help: qsTr("录制前后对比视频：一边是视频原本的帧率，一边是 PushFPS。可选分屏、并排或竖屏（TikTok、Shorts、Reels），以及时长")
-                        hint: watch.compareRecording ? qsTr("正在录制…") : veyra.recording ? qsTr("录制中不可用")
-                            : qsTr("%1 秒").arg(watch.clipSeconds) + " · " + watch.clipLayout
+                        hint: watch.compareRecording ? qsTr("正在录制…") + " " + watch.recordElapsed : veyra.recording ? qsTr("录制中不可用")
+                            : (watch.clipUntilStop ? qsTr("手动停止") : qsTr("%1 秒").arg(watch.clipSeconds)) + " · " + watch.clipLayout
                         VButton {
                             objectName: "watch-compare"
                             iconName: "split"

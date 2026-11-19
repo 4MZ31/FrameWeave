@@ -867,7 +867,15 @@ VPage {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 8
-                    VButton { objectName: "studio-compare"; Layout.fillWidth: true; iconName: "split"; text: qsTr("对比片段"); onClicked: veyra.navigate("compare") }
+                    VButton {
+                        objectName: "studio-compare"
+                        Layout.fillWidth: true
+                        iconName: "split"
+                        // A running comparison clip (one without a length above all) is stopped here too.
+                        readonly property bool running: studio.recordingNow && (veyra.recordingState || {}).compare === true
+                        text: running ? qsTr("停止对比片段") : qsTr("对比片段")
+                        onClicked: running ? veyra.stopRecording("studio-compare") : veyra.navigate("compare")
+                    }
                     VButton { objectName: "studio-screenshot"; icon: true; iconName: "camera"; tip: qsTr("截图"); enabled: veyra.hasSource; onClicked: veyra.takeScreenshot() }
                 }
                 // One per row: side by side their labels were cut off in the narrow column.

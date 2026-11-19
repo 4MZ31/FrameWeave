@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import "EffectSupport.js" as Support
 import "PushCaptureCards.js" as Cards
 import "PushGamePresets.js" as Presets
+import "PushCompareClip.js" as CompareClip
 
 // PushFPS quick setup: the choices most console players make, above the detailed
 // controls. Every control here only sets existing settings (frame generation on/off,
@@ -634,17 +635,17 @@ VGroup {
         PushToolTile {
             objectName: "pushfps-compare-clip"
             iconName: "split"
-            readonly property int clipSeconds: {
-                const n = Number(veyra.preferences.pushCompareSeconds || 15)
-                return [10, 15, 30, 60].indexOf(n) >= 0 ? n : 15
-            }
+            readonly property int clipSeconds: CompareClip.seconds(veyra.preferences)
+            readonly property bool clipUntilStop: CompareClip.untilStop(veyra.preferences)
             readonly property string clipLayout: {
                 const n = Number(veyra.preferences.pushCompareLayout || 0)
                 return n === 2 ? qsTr("竖屏") : n === 1 ? qsTr("并排") : qsTr("分屏")
             }
             text: quick.compareRecording ? qsTr("停止对比片段") : qsTr("对比片段")
-            sub: quick.compareRecording ? qsTr("正在录制…") : veyra.recording ? qsTr("录制中不可用")
-                 : qsTr("%1 秒").arg(clipSeconds) + " · " + clipLayout
+            // While it records: how long it has run (a clip without a length has no other clock).
+            sub: quick.compareRecording ? qsTr("正在录制…") + " " + CompareClip.elapsed((veyra.recordingState || {}).seconds)
+                 : veyra.recording ? qsTr("录制中不可用")
+                 : (clipUntilStop ? qsTr("手动停止") : qsTr("%1 秒").arg(clipSeconds)) + " · " + clipLayout
             tip: qsTr("录制前后对比视频：一边是主机原本的帧率，一边是 PushFPS。可选分屏、并排或竖屏（TikTok、Shorts、Reels），以及时长")
             // Opens with nothing playing too, so the layout and length can be set beforehand;
             // the dialog says a picture is needed and only its start button records.

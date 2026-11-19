@@ -8,9 +8,11 @@
 // and Reels, the console on top and PushFPS below, labels next to the divider. Every
 // layout labels each side with its frame rate. Dialog key "compare"; opened from the
 // quick setup's comparison tile. Preferences pushCompareLayout (0 split, 1 side by
-// side, 2 vertical) and pushCompareSeconds.
+// side, 2 vertical), pushCompareSeconds (10 to 120) and pushCompareUntilStop (no timer:
+// the clip runs until it is stopped; the same for every layout). PushCompareClip.js reads them.
 import QtQuick
 import QtQuick.Layouts
+import "PushCompareClip.js" as Clip
 
 DialogLayer {
     id: cmp
@@ -22,15 +24,13 @@ DialogLayer {
                          : qsTr("录制一段前后对比视频：一边是主机原本的帧率，一边是 PushFPS")
     dialogWidth: 560
 
-    readonly property var lengths: [10, 15, 30, 60]
+    readonly property var lengths: Clip.lengths
+    readonly property bool untilStop: Clip.untilStop(veyra.preferences)
     readonly property int layoutId: {
         const n = Number(veyra.preferences.pushCompareLayout || 0)
         return n === 1 || n === 2 ? n : 0
     }
-    readonly property int seconds: {
-        const n = Number(veyra.preferences.pushCompareSeconds || 15)
-        return cmp.lengths.indexOf(n) >= 0 ? n : 15
-    }
+    readonly property int seconds: Clip.seconds(veyra.preferences)
     // For the preview only: the recording measures the real rates when it starts.
     readonly property int gameFps: {
         const n = Number(veyra.preferences.pushGameFps || 30)
@@ -218,7 +218,20 @@ DialogLayer {
                 objectName: "pushfps-compare-length"
                 options: cmp.lengths.map(n => ({ id: String(n), label: qsTr("%1 秒").arg(n) }))
                 current: String(cmp.seconds)
+                // Kept while "until I stop" is on (it is the length again when that is switched off).
+                enabled: !cmp.untilStop
+                opacity: cmp.untilStop ? 0.4 : 1
                 onPicked: id => veyra.setPreference("pushCompareSeconds", Number(id))
+            }
+        }
+        VRow {
+            label: qsTr("录到我停止为止")
+            hint: qsTr("不设时长：再点一次“对比片段”或按录制快捷键停止")
+            hintBelow: true
+            VSwitch {
+                objectName: "pushfps-compare-until-stop"
+                checked: cmp.untilStop
+                onToggled: v => veyra.setPreference("pushCompareUntilStop", v)
             }
         }
     }
@@ -238,7 +251,7 @@ DialogLayer {
     actions: [{ label: qsTr("取消") }, { label: qsTr("开始录制"), primary: true }]
     onActionTriggered: label => {
         if (label === qsTr("开始录制")) {
-            if (veyra.pushStartCompareClip(cmp.seconds, cmp.layoutId)) cmp.dialogHost.close()
+            if (veyra.pushStartCompareClip(Clip.startSeconds(veyra.preferences), cmp.layoutId)) cmp.dialogHost.close()
         } else cmp.dialogHost.close()
     }
 }

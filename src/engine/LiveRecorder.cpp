@@ -1180,7 +1180,12 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
                 const auto finished=finalizeMp4(std::filesystem::path(path));
                 const double ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-started).count();
                 if(finished.ok)veyra::log::info("live-recorder",std::format("file finalized path={} videoPackets={} audioPackets={} ms={:.0f}",utf8(path),finished.videoPackets,finished.audioPackets,ms));
-                else veyra::log::warn("live-recorder",std::format("file kept fragmented path={} reason={} ms={:.0f}",utf8(path),finished.error,ms));
+                else{
+                    veyra::log::warn("live-recorder",std::format("file kept fragmented path={} reason={} ms={:.0f}",utf8(path),finished.error,ms));
+                    // A long recording on a nearly full disk: saved as it was written, which plays everywhere
+                    // but which some editors refuse. Said, so nobody wonders why Vegas will not open it.
+                    if(finished.noSpace&&noteText().empty())setNote(L"磁盘剩余空间不足，无法整理成标准 MP4：录制已按原样保存，可以正常播放，但部分剪辑软件打不开");
+                }
             }
             veyra::log::info("live-recorder",std::format("file closed path={} videoFrames={} seconds={:.2f} originUs={} audio={} audioGaps={} audioOverflow={} microphoneGaps={} microphoneOverflow={} soundBlocks={} mixerSilenced={} dropped={} ok={}{}",
                 utf8(path),videoWritten.load(),double(end)/1e6,t0Us.load(),audio.load(),soundLane.gaps.load(),soundLane.overflow.load(),micLane.gaps.load(),micLane.overflow.load(),

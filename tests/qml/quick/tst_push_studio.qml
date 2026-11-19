@@ -257,6 +257,19 @@ Item {
             verify(studio.removeScene(g))
             studio.editingScene = ""
         }
+        function test_the_comparison_button_stops_a_running_clip() {
+            const button = control(studio, "studio-compare")
+            compare(button.text, qsTr("对比片段"))
+            veyra.recording = true
+            veyra.recordingState = ({ saved: 0, active: true, path: "", compare: true, seconds: 12 })
+            compare(button.text, qsTr("停止对比片段"), "a clip without a length is stopped where it was started")
+            const stops = veyra.recordingStops
+            button.clicked()
+            compare(veyra.recordingStops, stops + 1)
+            verify(!veyra.recording)
+            veyra.recordingState = ({ saved: 0, active: false, path: "" })
+            compare(button.text, qsTr("对比片段"))
+        }
         function test_scene_menu_adds_copies_and_deletes() {
             const menu = findChild(studio, "studio-scene-menu")
             verify(menu !== null, "the scenes list has a right-click menu")

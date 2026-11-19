@@ -308,6 +308,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    "streamAudio", "streamMic",
                                    // PushFPS streaming mode mixer: mutes and the microphone filters.
                                    "mixGameMuted", "mixMicMuted", "micHighPass", "micEqOn", "micGate", "micCompressor",
+                                   // PushFPS comparison clips: no length, the clip runs until it is stopped (PushCompareClip.js).
+                                   "pushCompareUntilStop",
                                    // PushFPS 3.2.3: a mute a card scene left behind was looked for once (true: one was lifted).
                                    "pushCardMuteRepaired",
                                    // PushFPS streaming mode: desktop audio and the extra input on / muted.

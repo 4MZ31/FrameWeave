@@ -24,6 +24,7 @@ Item {
             veyra.compareStarts = 0; veyra.compareSeconds = 0; veyra.compareLayout = -1
             veyra.setPreference("pushCompareLayout", 0)
             veyra.setPreference("pushCompareSeconds", 15)
+            veyra.setPreference("pushCompareUntilStop", false)
             veyra.setPreference("pushGameFps", 30)
             host.dialog = "compare"
             verify(cmp.shown)
@@ -64,6 +65,65 @@ Item {
             const tile = findChild(quick, "pushfps-compare-clip")
             compare(tile.sub, qsTr("%1 秒").arg(15) + " · " + qsTr("竖屏"))
         }
+        function test_lengths_up_to_two_minutes() {
+            const length = findChild(cmp, "pushfps-compare-length")
+            compare(length.options.map(o => o.id).join(","), "10,15,30,60,90,120", "the lengths there were, then 90 and 120 seconds")
+            for (const seconds of [90, 120, 10]) {
+                length.picked(String(seconds))
+                compare(veyra.preferences.pushCompareSeconds, seconds)
+                compare(cmp.seconds, seconds)
+                action(qsTr("开始录制"))
+                compare(veyra.compareSeconds, seconds)
+                host.dialog = "compare"
+            }
+            compare(veyra.compareStarts, 3)
+            veyra.setPreference("pushCompareSeconds", 120)
+            compare(findChild(quick, "pushfps-compare-clip").sub, qsTr("%1 秒").arg(120) + " · " + qsTr("分屏"))
+        }
+        function test_until_i_stop_in_every_layout() {
+            const toggle = findChild(cmp, "pushfps-compare-until-stop")
+            verify(toggle !== null, "the dialog has an until-I-stop switch")
+            const length = findChild(cmp, "pushfps-compare-length")
+            findChild(cmp, "pushfps-compare-length").picked("30")
+            toggle.toggled(true)
+            compare(veyra.preferences.pushCompareUntilStop, true)
+            verify(cmp.untilStop)
+            verify(!length.enabled, "the length waits while there is none")
+            compare(veyra.preferences.pushCompareSeconds, 30, "and is kept for later")
+            // Split, side by side and vertical all start without a length.
+            for (const layout of [0, 1, 2]) {
+                findChild(cmp, "pushfps-compare-layout").picked(String(layout))
+                action(qsTr("开始录制"))
+                compare(veyra.compareLayout, layout)
+                compare(veyra.compareSeconds, 0, "0 seconds asks for a clip that runs until it is stopped (layout " + layout + ")")
+                host.dialog = "compare"
+            }
+            compare(veyra.compareStarts, 3)
+            const tile = findChild(quick, "pushfps-compare-clip")
+            compare(tile.sub, qsTr("手动停止") + " · " + qsTr("竖屏"))
+            // Switched off again: the length from before.
+            toggle.toggled(false)
+            verify(length.enabled)
+            action(qsTr("开始录制"))
+            compare(veyra.compareSeconds, 30)
+            compare(tile.sub, qsTr("%1 秒").arg(30) + " · " + qsTr("竖屏"))
+        }
+        function test_a_running_clip_shows_its_time_and_stops_from_the_tile() {
+            veyra.setPreference("pushCompareUntilStop", true)
+            const tile = findChild(quick, "pushfps-compare-clip")
+            veyra.recording = true
+            veyra.recordingState = ({ saved: 0, active: true, path: "", compare: true, seconds: 83.4 })
+            compare(tile.text, qsTr("停止对比片段"))
+            compare(tile.sub, qsTr("正在录制…") + " 01:23", "how long it has run: a clip without a length has no other clock")
+            verify(tile.enabled)
+            veyra.recordingState = ({ saved: 0, active: true, path: "", compare: true, seconds: 3725 })
+            compare(tile.sub, qsTr("正在录制…") + " 1:02:05")
+            const stops = veyra.recordingStops
+            tile.clicked()
+            compare(veyra.recordingStops, stops + 1, "the tile stops it")
+            verify(!veyra.recording)
+            veyra.recordingState = ({ saved: 0, active: false, path: "" })
+        }
         function test_an_unknown_layout_falls_back_to_split() {
             veyra.setPreference("pushCompareLayout", 5)
             compare(cmp.layoutId, 0)
@@ -76,6 +136,10 @@ Item {
         function test_an_unknown_length_falls_back_to_15() {
             veyra.setPreference("pushCompareSeconds", 7)
             compare(cmp.seconds, 15)
+            veyra.setPreference("pushCompareSeconds", 0)
+            compare(cmp.seconds, 15, "no length is its own switch, never a length of 0")
+            action(qsTr("开始录制"))
+            compare(veyra.compareSeconds, 15)
         }
         function test_preview_labels_follow_the_layout() {
             // Split: the top corners of the one picture (320 x 180 preview, 90-wide labels).

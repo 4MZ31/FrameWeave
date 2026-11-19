@@ -11,6 +11,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "PushOutputPresets.js" as OutputPresets
+import "PushCompareClip.js" as CompareClip
 
 VPage {
     id: root
@@ -809,13 +810,21 @@ VPage {
                                 }
                                 VSeg {
                                     objectName: "set-compare-length"
-                                    options: [10, 15, 30, 60].map(n => ({ id: String(n), label: qsTr("%1 秒").arg(n) }))
-                                    current: {
-                                        const n = Number(veyra.preferences.pushCompareSeconds || 15)
-                                        return String([10, 15, 30, 60].indexOf(n) >= 0 ? n : 15)
-                                    }
+                                    options: CompareClip.lengths.map(n => ({ id: String(n), label: qsTr("%1 秒").arg(n) }))
+                                    current: String(CompareClip.seconds(veyra.preferences))
+                                    enabled: !CompareClip.untilStop(veyra.preferences)
+                                    opacity: enabled ? 1 : 0.4
                                     onPicked: id => veyra.setPreference("pushCompareSeconds", Number(id))
                                 }
+                            }
+                        }
+                        VRow {
+                            label: qsTr("录到我停止为止")
+                            hint: qsTr("对比片段不设时长：再点一次“对比片段”或按录制快捷键停止")
+                            VSwitch {
+                                objectName: "set-compare-until-stop"
+                                checked: CompareClip.untilStop(veyra.preferences)
+                                onToggled: v => veyra.setPreference("pushCompareUntilStop", v)
                             }
                         }
                         VRow {

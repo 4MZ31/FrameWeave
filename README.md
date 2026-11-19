@@ -503,8 +503,10 @@ generation, which presents through its own path.
 
 ## Before/after comparison clips
 
-**Comparison clip** in the quick setup opens a small dialog: pick the layout and the length (10, 15, 30 or 60
-seconds), then **Start recording** (the same two choices are under *Settings, Playback*). The clip goes into your recordings folder (`PushFPS-compare-….mp4`).
+**Comparison clip** in the quick setup opens a small dialog: pick the layout and the length (10, 15, 30, 60,
+90 or 120 seconds, or **Until I stop** since 3.2.4: the clip then runs until you click *Comparison clip* again
+or press the recording shortcut, in every layout), then **Start recording** (the same choices are under
+*Settings, Playback*). The clip goes into your recordings folder (`PushFPS-compare-….mp4`).
 
 - **Split**: one picture cut down the middle. The left half is the raw console picture, each real frame held
   until the next one arrives, so it moves at the game's own frame rate; the right half is every frame PushFPS

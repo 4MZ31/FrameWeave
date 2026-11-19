@@ -51,6 +51,17 @@ Mp4FinalizeResult finalizeMp4(const std::filesystem::path& path) {
         return result;
     };
     if (!packet) return fail("out of memory");
+    {
+        std::error_code sizeCode, spaceCode;
+        const auto bytes = std::filesystem::file_size(path, sizeCode);
+        const auto folder = path.parent_path();
+        const auto space = std::filesystem::space(folder.empty() ? std::filesystem::path(".") : folder, spaceCode);
+        if (!sizeCode && !spaceCode && !mp4FinalizeFits(bytes, space.available)) {
+            result.noSpace = true;
+            return fail(std::format("not enough free disk space for the standard MP4 copy (recording {} MiB, free {} MiB)",
+                                    bytes >> 20, space.available >> 20));
+        }
+    }
 
     int rc = avformat_open_input(&in, utf8Path(path).c_str(), nullptr, nullptr);
     if (rc < 0) return fail("cannot open the recording: " + avText(rc));

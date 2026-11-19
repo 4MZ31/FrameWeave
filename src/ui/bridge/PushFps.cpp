@@ -543,7 +543,10 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
         emit notice(tr("XeSS 补帧的画面在显示时才生成，录不进对比片段。请换用其他补帧方式后再录"), true);
         return false;
     }
-    seconds = std::clamp(seconds, 5, 120);
+    // 0 (or less): no length. The clip runs until it is stopped (the tile, the page's own button, the
+    // recording shortcut), in every layout: nothing below depends on how long it lasts.
+    const bool untilStopped = seconds <= 0;
+    seconds = untilStopped ? 0 : std::clamp(seconds, 5, 120);
     layout = std::clamp(layout, 0, 2);
     // Video playback (a window, a screen, a file, a web video): the picture repeats each video frame
     // inside the capture's refresh. Without duplicate removal frame generation interpolates between
@@ -601,13 +604,21 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     std::wstring error;
     if (!impl_->engine.requestRecording(options, error)) { emit notice(uiText(error), true); return false; }
     pushRecordingNotices(options.audio, options.microphone, true);   // the mixer's own mute still applies; a card does not (PushStudio.cpp)
-    veyra::log::info("push-compare", std::format("comparison clip seconds={} layout={} labels=\"{}\" / \"{}\" height={}", seconds,
+    veyra::log::info("push-compare", std::format("comparison clip seconds={} layout={} labels=\"{}\" / \"{}\" height={}",
+                                                 untilStopped ? std::string("until-stopped") : std::to_string(seconds),
                                                  layout == 2 ? "vertical" : layout == 1 ? "side-by-side" : "split", leftText.toStdString(), rightText.toStdString(), height));
     impl_->recordingState["active"] = true;
     impl_->recordingState["failed"] = false;
     impl_->recordingState["compare"] = true;
     emit recordingChanged();
+    // Counted for a clip without a length too: an earlier clip's timer, still pending because that
+    // clip was stopped by hand, then finds another clip and leaves it alone.
     const int generation = ++impl_->compareGeneration;
+    if (untilStopped) {
+        emit notice(vertical ? tr("正在录制竖屏对比片段，直到你停止：上面是主机原本的帧率，下面是 PushFPS。再点一次“对比片段”或按录制快捷键停止")
+                             : tr("正在录制对比片段，直到你停止：左边是主机原本的帧率，右边是 PushFPS。再点一次“对比片段”或按录制快捷键停止"), false);
+        return true;
+    }
     QTimer::singleShot(seconds * 1000, this, [this, generation] {
         if (generation == impl_->compareGeneration && recording() && impl_->recordingState.value("compare").toBool())
             stopRecording(QStringLiteral("compare-timer"));

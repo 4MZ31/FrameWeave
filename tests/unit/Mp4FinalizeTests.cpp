@@ -198,8 +198,19 @@ int main() {
     { std::ofstream out(junk, std::ios::binary); out << "not a video"; }
     const auto refused = veyra::engine::finalizeMp4(junk);
     CHECK(!refused.ok && !refused.error.empty());
+    CHECK(!refused.noSpace);
     CHECK(fs::file_size(junk) == 11);
     CHECK(!fs::exists(dir / "not-a-video.finishing.mp4"));
+
+    // The copy needs the recording's size once more, plus a little. A recording has no length
+    // limit, so this is asked before the copy starts instead of after the disk is full.
+    using veyra::engine::mp4FinalizeFits;
+    const unsigned long long gib = 1ull << 30;
+    CHECK(mp4FinalizeFits(100 * gib, 200 * gib));
+    CHECK(!mp4FinalizeFits(100 * gib, 100 * gib));      // exactly the size: no room for the index
+    CHECK(!mp4FinalizeFits(100 * gib, 30 * gib));       // a long recording on a nearly full disk
+    CHECK(mp4FinalizeFits(100 * gib, 103 * gib));
+    CHECK(!mp4FinalizeFits(0, 32ull << 20) && mp4FinalizeFits(0, 64ull << 20));
 
     fs::remove_all(dir, code);
     if (failures) { std::fprintf(stderr, "%d check(s) failed\n", failures); return 1; }
