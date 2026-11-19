@@ -306,6 +306,8 @@ def motion_report(path: Path, channels: int, align: int, mask_for_first: bool) -
         far0 = np.hypot(*reads[0]); far1 = np.hypot(*reads[1])
         mirror = np.hypot(reads[0][0] + reads[1][0], reads[0][1] + reads[1][1])
         row = {"pair": label, "model_db": None if truth is None else round(psnr(picture, truth), 2),
+               "hold_db": None if truth is None else round(psnr(img0, truth), 2), "blend_db": None if truth is None else round(psnr((img0 + img1) / 2, truth), 2),
+               "apart_mean": round(float(apart.mean()), 4), "apart_over_10_percent": round(100.0 * float((apart > 0.10).mean()), 2),
                "undecided_mask_percent": round(100.0 * float(((w0 > 0.2) & (w0 < 0.8)).mean()), 2),
                "mixture_percent": round(100.0 * float((np.minimum(w0, 1 - w0) * apart > 0.03).mean()), 2),
                "read_from_px_p95": round(float(np.percentile(np.maximum(far0, far1), 95)), 1), "not_mirrored_px_p95": round(float(np.percentile(mirror, 95)), 1)}
@@ -319,19 +321,22 @@ def motion_report(path: Path, channels: int, align: int, mask_for_first: bool) -
     for move in (16, 48, 96, 160, 256):
         study(f"square moved {move} px", frame(w, h, 100), frame(w, h, 100 + move), frame(w, h, 100 + move / 2),
               {"old_place": 100, "middle_place": 100 + move / 2, "new_place": 100 + move})
-    study("fine texture panned 8 px", detail_frame(w, h, 0), detail_frame(w, h, 8), detail_frame(w, h, 4))
+    for pan in (8, 32, 64, 128, 256):
+        study(f"fine texture panned {pan} px", detail_frame(w, h, 0), detail_frame(w, h, pan), detail_frame(w, h, pan // 2))
     study("two unrelated pictures", frame(w, h, 100), detail_frame(w, h, 0), None)
     dim = (frame(w, h, 100) * 0.6).astype(np.float32)
-    bright = np.clip(dim + 0.3, 0, 1).astype(np.float32)
-    study("a fade (0.3 brighter, nothing moves)", dim, bright, ((dim + bright) / 2).astype(np.float32))
+    for step in (0.07, 0.3):
+        bright = np.clip(dim + step, 0, 1).astype(np.float32)
+        study(f"a fade ({step} brighter, nothing moves)", dim, bright, ((dim + bright) / 2).astype(np.float32))
     # The same too-fast motion with the network at half and at a quarter of the picture's size, the
     # picture rebuilt at full size from the full-size frames (what the tiers do): is the reach a number
     # of the network's own pixels? (512 x 384, so that every size is a multiple of the model's block.)
     W2, H2 = 512, 384
-    for move in (96, 160, 256):
-        f0, f1, truth = frame(W2, H2, 100), frame(W2, H2, 100 + move), frame(W2, H2, 100 + move / 2)
+    sized = [(f"square moved {move} px, 512 x 384", frame(W2, H2, 100), frame(W2, H2, 100 + move), frame(W2, H2, 100 + move / 2), move) for move in (16, 48, 96, 160, 256)]
+    sized += [(f"fine texture panned {pan} px, 512 x 384", detail_frame(W2, H2, 0), detail_frame(W2, H2, pan), detail_frame(W2, H2, pan // 2), 0) for pan in (8, 16, 32, 64)]
+    for label_, f0, f1, truth, move in sized:
         box = (slice(int(H2 * 0.35), int(H2 * 0.35) + 40), slice(int(100 + move / 2), int(100 + move / 2) + 40))
-        row = {"pair": f"square moved {move} px, 512 x 384"}
+        row = {"pair": label_}
         for label, factor in (("full", 1), ("half", 2), ("quarter", 4)):
             try:
                 s0, s1 = (f0, f1) if factor == 1 else (resize_box(f0, factor), resize_box(f1, factor))
@@ -342,6 +347,167 @@ def motion_report(path: Path, channels: int, align: int, mask_for_first: bool) -
             except Exception as e:  # noqa: BLE001 - a size this model does not take
                 row[f"{label}_size_db"] = f"not run: {e}"[:80]
         rows.append(row)
+    return rows
+
+
+def fusion_report(path: Path, channels: int) -> dict:
+    """Fusion, step 1, from the graph alone: how much of the network's work depends on ONE real frame only
+    (it could be done once per frame and reused for the pair before, the pair after and every in-between
+    time), how much on the pair but not on the time, and how much on the time (done for every generated
+    frame whatever is reused). Work = multiply-accumulates of the convolutions at 1024 x 576.
+
+    Every tensor is followed from the model's one input: channels 0-2 are the previous frame (A), 3-5 the
+    current frame (B), 6 the time (T). vs-mlrt's exports stack the two frames on the batch axis for the
+    parts that treat them alike; such a tensor still holds two separate frames ("stacked")."""
+    import numpy as np
+    import onnx
+    from onnx import numpy_helper, shape_inference
+    model = onnx.load(str(path))
+    g = model.graph
+    H, W = 576, 1024
+    for d, v in zip(g.input[0].type.tensor_type.shape.dim, (1, channels, H, W)):
+        d.ClearField("dim_param"); d.dim_value = v
+    inferred = shape_inference.infer_shapes(model, strict_mode=False, data_prop=True)
+    shapes = {}
+    for vi in list(inferred.graph.value_info) + list(inferred.graph.output) + list(inferred.graph.input):
+        dims = [d.dim_value for d in vi.type.tensor_type.shape.dim]
+        if dims and all(v > 0 for v in dims):
+            shapes[vi.name] = dims
+    init = {i.name: i for i in g.initializer}
+    consts = {}
+    for n in g.node:
+        if n.op_type == "Constant":
+            for a in n.attribute:
+                if a.name == "value":
+                    consts[n.output[0]] = numpy_helper.to_array(a.t)
+    def value(name):
+        if name in consts:
+            return consts[name]
+        if name in init and int(np.prod(init[name].dims or [1])) <= 16:
+            return numpy_helper.to_array(init[name])
+        return None
+    def channels_to_set(lo, hi):
+        out = set()
+        for c in range(max(lo, 0), min(hi, channels)):
+            out.add("A" if c < 3 else "B" if c < 6 else "T" if c == 6 else "K")
+        out.discard("K")
+        return frozenset(out)
+    source = g.input[0].name
+    dep = {}        # tensor -> (frozenset of A/B/T, stacked)
+    macs = {"one frame": 0, "the pair, not the time": 0, "the time": 0, "unknown": 0}
+    features = []
+    def kind(d):
+        if d is None:
+            return "unknown"
+        s, stacked = d
+        if "T" in s:
+            return "the time"
+        if stacked or len(s) <= 1:
+            return "one frame"
+        return "the pair, not the time"
+    for n in g.node:
+        ins = [i for i in n.input if i]
+        live = [i for i in ins if i == source or i in dep]
+        out = None
+        if not live:
+            for o in n.output:
+                consts.setdefault(o, None)
+            continue
+        attrs = {a.name: a for a in n.attribute}
+        if source in live:
+            if n.op_type == "Slice" and len(ins) >= 4 and value(ins[1]) is not None and value(ins[2]) is not None and value(ins[3]) is not None and int(np.ravel(value(ins[3]))[0]) == 1:
+                out = (channels_to_set(int(np.ravel(value(ins[1]))[0]), int(min(np.ravel(value(ins[2]))[0], channels))), False)
+            elif n.op_type == "Split" and int(attrs["axis"].i if "axis" in attrs else 0) == 1:
+                sizes = np.ravel(value(ins[1])) if len(ins) > 1 and value(ins[1]) is not None else None
+                at = 0
+                for k, o in enumerate(n.output):
+                    size = int(sizes[k]) if sizes is not None else channels // len(n.output)
+                    dep[o] = (channels_to_set(at, at + size), False); at += size
+                continue
+            else:
+                out = (frozenset("ABT"), False)
+        else:
+            sets = [dep[i] for i in live]
+            union = frozenset().union(*[s for s, _ in sets])
+            axis = int(attrs["axis"].i) if "axis" in attrs else None
+            if n.op_type == "Concat" and axis == 0 and len(sets) == 2 and all(len(s) == 1 and not st for s, st in sets) and union == frozenset("AB"):
+                out = (union, True)
+            elif all(st for _, st in sets):
+                if n.op_type in ("Slice", "Split", "Gather") and (axis == 0 or (n.op_type == "Slice" and len(ins) >= 4 and value(ins[3]) is not None and int(np.ravel(value(ins[3]))[0]) == 0)):
+                    if n.op_type == "Split":
+                        for k, o in enumerate(n.output):
+                            dep[o] = (frozenset("A" if k == 0 else "B"), False)
+                        continue
+                    index = value(ins[1])
+                    out = (frozenset("A" if index is not None and int(np.ravel(index)[0]) == 0 else "B"), False) if index is not None else (union, True)
+                else:
+                    out = (union, True)
+            else:
+                out = (union, False)
+        for o in n.output:
+            dep[o] = out
+        if n.op_type in ("Conv", "ConvTranspose") and len(ins) > 1 and ins[1] in init:
+            wdims = list(init[ins[1]].dims)
+            ref = shapes.get(n.output[0]) if n.op_type == "Conv" else shapes.get(ins[0])
+            if ref:
+                macs[kind(out)] += int(np.prod(ref)) * int(np.prod(wdims[1:]))
+            else:
+                macs["unknown"] += 1
+    # What a later step reads from the one-frame part: the tensors to keep per real frame.
+    consumers = {}
+    for n in g.node:
+        for i in n.input:
+            consumers.setdefault(i, []).append(n)
+    for name, d in dep.items():
+        if d is not None and kind(d) == "one frame" and any(kind(dep.get(o)) != "one frame" for c in consumers.get(name, []) for o in c.output):
+            features.append({"tensor": name[:40], "of": "".join(sorted(d[0])) + ("/stacked" if d[1] else ""), "shape": shapes.get(name)})
+    total = sum(v for k, v in macs.items() if k != "unknown") or 1
+    F, P, T = macs["one frame"], macs["the pair, not the time"], macs["the time"]
+    saving = {}
+    for m in (2, 3, 4):
+        now = (m - 1) * (F + P + T)
+        saving[f"{m}x_encode_once_percent"] = round(100.0 * (1 - (F / 2 + (m - 1) * (P + T)) / now), 1)
+        saving[f"{m}x_and_pair_once_percent"] = round(100.0 * (1 - (F / 2 + P + (m - 1) * T) / now), 1)
+    head = [f"{n.op_type}({','.join(i[:18] for i in n.input if i)})->{','.join(o[:18] for o in n.output)}:{kind(dep.get(n.output[0])) if n.output and n.output[0] in dep else 'const'}" for n in g.node[:36]]
+    return {"work_share_percent": {k: round(100.0 * v / total, 1) for k, v in macs.items() if k != "unknown"}, "convolutions_without_a_shape": macs["unknown"],
+            "saving_of_convolution_work": saving, "kept_per_frame": features[:8], "nodes": len(g.node), "first_nodes": head}
+
+
+def predict_report(path: Path, channels: int, align: int) -> list[dict]:
+    """Predict, as a proof of concept on the CPU and nothing more: can a frame half an interval AFTER the
+    newest real frame be forecast from the two real frames that have arrived, better than holding the
+    newest frame? The network is asked for time 1 (the newest frame itself): its first grid then says, for
+    every pixel of the newest frame, where that pixel was in the frame before. Moving every pixel on by
+    half of that gives the forecast. No frame from the future is used; the true later frame only scores it."""
+    import numpy as np
+    import onnxruntime as ort
+    import rife_graph
+    session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
+    name = session.get_inputs()[0].name
+    w, h = 512, 320
+    yo, xo = np.mgrid[0:h, 0:w].astype(np.float64)
+    rows = []
+    def forecast(label, f0, f1, truth, box=None, moved=0):
+        rgb, g0 = session.run(None, {name: tensor(f0, f1, 1.0, channels)})[:2]
+        ph, pw = rife_graph.to_hw2(g0).shape[:2]
+        g = np.moveaxis(rife_graph.to_hw2(g0), -1, 0)
+        gx, gy = bilinear_at(g, yo, xo)
+        if align:
+            xm = (gx + 1) * 0.5 * (pw - 1); ym = (gy + 1) * 0.5 * (ph - 1)
+        else:
+            xm = ((gx + 1) * pw - 1) * 0.5; ym = ((gy + 1) * ph - 1) * 0.5
+        dx, dy = xm - xo, ym - yo                   # back to where it was one interval ago
+        ahead = np.clip(bilinear_at(f1, yo + 0.5 * dy, xo + 0.5 * dx), 0, 1)
+        row = {"pair": label, "forecast_db": round(psnr(ahead, truth), 2), "hold_db": round(psnr(f1, truth), 2),
+               "time_1_gives_the_newest_frame_db": round(psnr(rgb[0], f1), 2)}
+        if box is not None:
+            row["found_motion_px"] = round(float(-dx[box].mean()), 1); row["true_motion_px"] = moved
+        rows.append(row)
+    for move in (8, 16, 32, 48):
+        box = (slice(int(h * 0.35) + 8, int(h * 0.35) + 32), slice(100 + move + 8, 100 + move + 32))
+        forecast(f"square moving {move} px a frame", frame(w, h, 100), frame(w, h, 100 + move), frame(w, h, 100 + 1.5 * move), box, move)
+    for pan in (4, 8, 16):
+        forecast(f"fine texture panning {pan} px a frame", detail_frame(w, h, 0), detail_frame(w, h, pan), detail_frame(w, h, pan + pan // 2))
     return rows
 
 
@@ -393,6 +559,7 @@ def check_exposed(path: Path, channels: int, align: int) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
+    ap.add_argument("--study", action="store_true", help="also print the Fusion and Predict studies (information only)")
     args = ap.parse_args()
     out = Path(args.out).resolve()
     work = out / "download"
@@ -533,6 +700,14 @@ def main() -> None:
                 print(f"motion {role}: {json.dumps(row)}")
         except Exception as e:  # noqa: BLE001 - the report is information only
             print(f"motion {role}: report failed: {e}")
+        # --study (the pushflow-models workflow): the measurements docs/PUSHFLOW2.md is written from.
+        if args.study:
+            for label, make in (("fusion", lambda: [fusion_report(c["path"], c["channels"])]), ("predict", lambda: predict_report(target, c["channels"], info["align_corners"]))):
+                try:
+                    for row in make():
+                        print(f"{label} {role}: {json.dumps(row)}")
+                except Exception as e:  # noqa: BLE001 - a study is information only
+                    print(f"{label} {role}: study failed: {type(e).__name__}: {e}")
         # Facts the native backend needs to rebuild the picture (PushFlowBackend.cpp readFacts).
         (runtime / "models" / f"pushflow-{role}.onnx.txt").write_text(
             f"align_corners={info['align_corners']}\nmask_for_first={1 if verdict['mask_for_first'] else 0}\npad={verdict['pad']}\n", encoding="ascii")
