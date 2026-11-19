@@ -154,7 +154,6 @@ QString QmlPlayerBridge::pushPerformanceReport() const {
     f.latencyMs = flow.softwareLatencyMs; f.latencyP95Ms = flow.softwareLatencyP95Ms; f.latencySamples = flow.latencySamples;
     if (gpuUtilizationKnown()) f.gpuPercent = gpuUtilization();
     f.pushFlowP50Ms = s.pushFlowP50Ms; f.pushFlowP95Ms = s.pushFlowP95Ms; f.pushFlowPrecision = s.pushFlowPrecision;
-    f.ghostGuard = s.pushFlowGuard; if (s.pushFlowGuard > 0) f.ghostGuardShare = s.pushFlowGuardShare;
     return QString::fromStdString(engine::perfreport::json(f));
 }
 

@@ -1937,8 +1937,6 @@ VPage {
                                     }
                                 }
                             }
-                            // The ghost guard (experimental, off by default): PushFlowGuardRow.qml.
-                            PushFlowGuardRow { visible: veyra.fgBackendName === "pushflow" }
                             VRow {
                                 label: qsTr("VFG 自动调控")
                                 visible: veyra.fgBackendName === "vfg"

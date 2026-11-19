@@ -106,7 +106,6 @@ PushLevelMeter 1.0 PushLevelMeter.qml
 PushMicFiltersDialog 1.0 PushMicFiltersDialog.qml
 PushLayoutDialog 1.0 PushLayoutDialog.qml
 PushCropDialog 1.0 PushCropDialog.qml
-PushFlowGuardRow 1.0 PushFlowGuardRow.qml
 PushFrameInputDialog 1.0 PushFrameInputDialog.qml
 PushQualityTestDialog 1.0 PushQualityTestDialog.qml
 PushLatencyTestDialog 1.0 PushLatencyTestDialog.qml

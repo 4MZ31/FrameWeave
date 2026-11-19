@@ -18,7 +18,6 @@
 // tests/unit/PushPerfReportTests.cpp.
 #include "veyra/engine/PushCrashNote.h"
 
-#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
@@ -62,8 +61,6 @@ struct Facts {
     uint64_t latencySamples = 0;
     double pushFlowP50Ms = 0, pushFlowP95Ms = 0;
     std::string pushFlowPrecision;           // "fp32", "fp16"
-    int ghostGuard = 0;                      // PushFlow's ghost guard in use: 0 off, 1 careful, 2 standard, 3 strong
-    std::optional<double> ghostGuardShare;   // the share of recent generated frames it changed (0..1)
 };
 
 // A word from a fixed list: lower-case letters, digits and '-' only, else empty.
@@ -162,14 +159,11 @@ inline std::string json(const Facts& f) {
     o += "    \"frameGenerationHealth\": " + std::to_string(f.fgHealth) + ",\n";
     o += "    \"pushFlowMs\": " + (f.pushFlowP50Ms > 0 ? number(f.pushFlowP50Ms) : std::string("null")) + ",\n";
     o += "    \"pushFlowP95Ms\": " + (f.pushFlowP95Ms > 0 ? number(f.pushFlowP95Ms) : std::string("null")) + ",\n";
-    o += "    \"pushFlowPrecision\": " + quoted(word(f.pushFlowPrecision)) + ",\n";
-    o += "    \"ghostGuard\": " + std::to_string(std::clamp(f.ghostGuard, 0, 3)) + ",\n";
-    o += "    \"ghostGuardShare\": " + (f.ghostGuard > 0 && f.ghostGuardShare && *f.ghostGuardShare >= 0 && *f.ghostGuardShare <= 1 ? number(*f.ghostGuardShare, 3) : std::string("null")) + "\n";
+    o += "    \"pushFlowPrecision\": " + quoted(word(f.pushFlowPrecision)) + "\n";
     o += "  },\n";
     o += "  \"notes\": \"Rates are frames PushFPS presented in the last second. softwareLatency is a frame's arrival in PushFPS to its Present call: "
          "not button to screen, and it leaves out the capture card, the console and the display. frameGenerationHealth: 0 fine, 1 nothing to add at this "
-         "target or on this screen, 2 the method is not running, 3 the card does not keep up, 4 nothing generated is shown. ghostGuard (experimental): 0 off, 1 careful, "
-         "2 standard, 3 strong; ghostGuardShare is the part of recent generated frames it changed.\"\n";
+         "target or on this screen, 2 the method is not running, 3 the card does not keep up, 4 nothing generated is shown.\"\n";
     o += "}\n";
     return o;
 }

@@ -9,7 +9,6 @@
 #include "veyra/sink/SoundProfile.h"
 #include "veyra/pipeline/NisSettings.h"
 #include "veyra/pipeline/PushEnhanceShape.h"
-#include "veyra/pushflow/PushFlowMotion.h"
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonParseError>
@@ -246,9 +245,6 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         // turn (100 = as the model made it), and the soft limits on brightening and darkening (0 = none).
         {"pushShapeShadows", {0, 200}}, {"pushShapeMidtones", {0, 200}}, {"pushShapeHighlights", {0, 200}}, {"pushShapeHue", {0, 200}},
         {"pushShapeMaxBrighten", {0, 100}}, {"pushShapeMaxDarken", {0, 100}},
-        // PushFPS: PushFlow's ghost guard (pushflow/PushFlowMotion.h), experimental: 0 off (the default),
-        // 1 careful, 2 standard, 3 strong.
-        {"pushFlowGuard", {0, 3}},
         // PushFPS comparison clip: length in seconds, layout 0 split picture / 1 side by side /
         // 2 vertical / 3 reveal, the height Split and Reveal clips are recorded at (0 automatic, else
         // 1080, 1440 or 2160: the bridge takes only those), and how often Reveal's line sweeps (seconds).
@@ -605,8 +601,6 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
         if (n == 0 || std::wstring_view(current) == L"fp16-checked")
             SetEnvironmentVariableW(L"VEYRA_PUSHFLOW_PRECISION", impl_->prefBool("pushFlowHalf", false) ? L"fp16-checked" : nullptr);
     }
-    else if (key == QLatin1String("pushFlowGuard"))
-        pushflow::motion::setGuard(impl_->prefInt("pushFlowGuard", 0));   // read by PushFlow at every generated frame
     else if (key.startsWith(QLatin1String("pushShape"))) {
         // Live: the graph reads these at every frame (no rebuild).
         pipeline::PushEnhanceShape shape;

@@ -51,11 +51,6 @@ int main() {
     check(has(r, "\"softwareLatencyMs\": 41.3") && has(r, "\"softwareLatencyP95Ms\": 47.9") && has(r, "\"latencySamples\": 1800"), "the software delay with its sample count");
     check(has(r, "\"pushFlowMs\": 6.1") && has(r, "\"pushFlowP95Ms\": 7.3") && has(r, "\"pushFlowPrecision\": \"fp32\""), "PushFlow's own time per frame");
     check(has(r, "\"gpuPercent\": 71"), "the card's load");
-    check(has(r, "\"ghostGuard\": 0") && has(r, "\"ghostGuardShare\": null"), "the ghost guard is off unless it was turned on, and then has no share");
-    { auto f = session(); f.ghostGuard = 2; f.ghostGuardShare = 0.0372; const auto t = json(f);
-      check(has(t, "\"ghostGuard\": 2") && has(t, "\"ghostGuardShare\": 0.037") && wellFormed(t), "the ghost guard's level and the share of generated frames it changed");
-      f.ghostGuard = 77; f.ghostGuardShare = 5.0; const auto u = json(f);
-      check(has(u, "\"ghostGuard\": 3") && has(u, "\"ghostGuardShare\": null"), "a level or share that cannot be is not passed on"); }
     // What the numbers are worth.
     check(has(r, "\"evidence\": \"live session, PushFPS's own software timing\""), "a live session is called that");
     check(has(r, "not button to screen"), "and the delay is not passed off as button to screen");

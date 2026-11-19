@@ -89,9 +89,6 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["pushFlowRebuild"] = s.pushFlowRebuild;
     m["pushFlowP50Ms"] = s.pushFlowP50Ms;
     m["pushFlowP95Ms"] = s.pushFlowP95Ms;
-    // The ghost guard (pushflow/PushFlowMotion.h): the level in use and the share of recent generated frames it changed.
-    m["pushFlowGuard"] = s.pushFlowGuard;
-    m["pushFlowGuardShare"] = s.pushFlowGuardShare;
     m["pacingRepaired"] = QVariant::fromValue(qulonglong(s.pacingRepaired));
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;
