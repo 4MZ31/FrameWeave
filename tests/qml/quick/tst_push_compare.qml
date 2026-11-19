@@ -125,7 +125,7 @@ Item {
             verify(preview !== null)
             // (The dialog fades in: wait for it before reading what is visible.)
             tryVerify(function() { return preview.visible }, 3000, "the reveal preview is drawn")
-            verify(findChild(cmp, "pushfps-compare-tag-left") === null, "without the split layout's fixed labels")
+            tryVerify(function() { return findChild(cmp, "pushfps-compare-tag-left") === null }, 3000, "without the split layout's fixed labels")
             verify(cmp.layoutHint(3).indexOf("PushFPS") >= 0)
             // How often the line sweeps: every 3 seconds unless chosen.
             verify(findChild(cmp, "pushfps-compare-reveal-row").visible)

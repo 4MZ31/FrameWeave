@@ -365,7 +365,7 @@ QtObject {
     function pushCancelCardTest() { cardTestCancels++; cardTestState = ({running: false, done: true, ok: false, reason: "cancelled"}) }
     function pushCardTestStatus() { return cardTestState }
     property int performanceReportCopies: 0
-    function pushPerformanceReport() { return "{ \"report\": \"pushfps-performance\" }" }
+    function pushPerformanceReport() { return "report: pushfps-performance" }
     function pushCopyPerformanceReport() { performanceReportCopies++; lastCopiedText = pushPerformanceReport(); return true }
 })qml", QUrl());
         auto* model = snapshot.create(engine->rootContext());
