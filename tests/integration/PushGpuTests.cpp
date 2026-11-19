@@ -1584,9 +1584,9 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
         else std::printf("INFO %s\n", detailText.c_str());
         if (tier == 0) checkOr(flow.status().rebuild, "pushflow: the Fast tier rebuilds at full size");
         // The full-size rebuild against its reference (pushflow/PushFlowMotion.h), pixel by pixel, from
-        // the network's own grids and mask of the same run. Until 3.2.7 the production shader was only
-        // judged by how close its picture came to a drawn truth; this says it does exactly what the
-        // contract says, on every pair, whatever the network made of it.
+        // the network's own grids and mask of the same run. The checks above judge the picture by how close
+        // it comes to a drawn truth; this one says the shader does exactly what the contract says, on
+        // every pair, whatever the network made of it.
         if (flow.status().grids) {
             using pushflow::motion::reference::Rgb;
             using pushflow::motion::reference::Vec2;
