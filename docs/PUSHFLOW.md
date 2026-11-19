@@ -58,9 +58,10 @@ What the network gives besides its picture, in one place: `include/veyra/pushflo
   software renderer, from the network's own grids and mask (`testPushFlow`).
 
 **Motion that is too fast.** An object that moves further between two real frames than the network can follow
-is left out of the generated frame (it is not shown twice). On drawn pictures that happens between 96 and 160
-of the network's own pixels per frame. Nothing hides or repairs that yet; [PushFlow 2](PUSHFLOW2.md) has what
-would, and what it waits for.
+is left out of the generated frame (it is not shown twice). On drawn pictures that happens somewhere above
+a fifth of the picture's width per frame, and working the motion out at a smaller size sometimes brings the
+object back. Nothing hides or repairs that yet; [PushFlow 2](PUSHFLOW2.md) has the measurements, what would
+help, and what it waits for.
 
 ## Why PushFlow could stay at the game's frame rate
 

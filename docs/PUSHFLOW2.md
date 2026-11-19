@@ -67,10 +67,22 @@ does keep both samples (12 to 68 % of these pictures) the two samples agree. Thr
 1. **A failure is a missing object, not a see-through double.** An object that moves further than the network
    can follow is left out of the generated frame. At 2× that is a blink at the game's own rate.
 2. **The mask says nothing about it.** It is as decided where the network is wrong as where it is right.
-3. **The reach is in the network's pixels.** Here it lies between 96 and 160 of them. A tier that works the
-   motion out at a larger size sees finer motion but, measured in screen widths, a shorter distance. Whether
-   that holds on real camera turns, and whether fast pairs should be worked out at a smaller size, is the
-   next thing to measure: with the in-app frame quality test on real games, not with drawn squares.
+3. **A smaller motion size reaches further, sometimes.** The same pairs in a 512 × 384 picture, with the
+   network at full, half and a quarter of the picture's size and the picture rebuilt at full size (run
+   44600838736):
+
+   | The square moved | Model | Full size | Half | Quarter |
+   |---|---|---|---|---|
+   | 96 px | Quality | 35.6 dB | 38.7 dB | 37.7 dB |
+   | 160 px | Quality | 29.8 dB, left out | 32.7 dB, back | 33.7 dB, back |
+   | 160 px | Fast | 29.8 dB, left out | 29.3 dB, left out | 31.7 dB, back |
+   | 256 px | both | left out | left out | left out |
+
+   So the reach is not a fixed share of the screen, and the largest motion size is not the best one for
+   fast motion: on these pairs the Quality model did better at half size than at full size. It is also
+   not a simple law (a quarter-size network still loses the square at 256 px, and the Fast model gains
+   only at a quarter). Whether fast pairs should be worked out at a smaller size is the next thing to
+   measure, with the in-app frame quality test on real games, not with drawn squares.
 
 A fade (the whole picture 0.3 brighter, nothing moving) is the opposite case: the mask keeps both samples
 almost everywhere and they differ everywhere, because a blend is the right picture there.
@@ -101,8 +113,12 @@ no motion there that explains it.** That is what both a vanished object and a cu
 followed motion does not. Showing the real frame nearer in time at such a place would make a too-fast object
 step at the game's rate instead of blinking out.
 
-It is not built, because the same signal also describes things that are fine (a flash, a new object, the
-strip a moving object uncovers), and telling those apart cannot be tuned on drawn squares. It needs:
+It is not built, because at one pixel the same signal also describes things that are fine: a flash, a new
+object, and above all the strip of background a moving object uncovers behind it, where the network is right
+to take one frame only. What separates a vanished object from such a strip is not at that pixel: the
+object's own pixels are shown somewhere else in the generated frame when the motion was followed, and
+nowhere when it was not. So the rule needs a second pass that records which parts of each real frame the
+generated frame uses at all, and that pass and its thresholds cannot be tuned on drawn squares. It needs:
 
 - **clips**: short recordings of real games at 60 FPS (fast turns, small fast objects, HUDs, cuts, fades).
   Every second frame is withheld, generated, and compared with the frame that was really there, which is what
