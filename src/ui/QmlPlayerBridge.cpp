@@ -438,6 +438,12 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     // another method before anything connects, so the next connect does not crash again.
     if (pushflow::crashedLastTime()) {
         pushflow::clearCrashMarker();
+        // A motion size chosen apart from the tier (3.2.7) goes back to automatic as well: it is the one
+        // thing about how PushFlow starts that a user can have changed, and automatic is what ran before.
+        if (impl_->prefInt("pushFlowMotion", 0) != 0) {
+            setPreference(QStringLiteral("pushFlowMotion"), 0);
+            veyra::log::warn("pushflow", "PushFPS stopped inside PushFlow last time; the chosen motion size is back on automatic");
+        }
         if (settings().frameGenerationBackend == engine::FrameGenerationBackend::PushFlow) {
             const auto caps = effectCapabilities();
             QString chosen;
