@@ -196,7 +196,16 @@ jobs:
             Start-Sleep -Seconds $(if ($s.sender) { 20 } else { 14 })
             $p.Refresh()
             $hwnd = $p.MainWindowHandle
-            if ($p.HasExited -or $hwnd -eq [IntPtr]::Zero) { Write-Host "::warning::$($s.name): no window"; if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }; continue }
+            if ($p.HasExited -or $hwnd -eq [IntPtr]::Zero) {
+              Write-Host "::warning::$($s.name): no window"
+              # Why: whether the program is gone, the failure note its crash handler leaves, and what its log last said.
+              Write-Host "exited=$($p.HasExited) code=$(if ($p.HasExited) { '0x{0:X8}' -f $p.ExitCode } else { 'still running' })"
+              if (Test-Path D:\pf\logs\veyra-last-failure.txt) { Get-Content D:\pf\logs\veyra-last-failure.txt -Encoding Unicode | Out-Host }
+              Get-ChildItem D:\pf\logs -Filter *.log -ErrorAction SilentlyContinue | Sort-Object LastWriteTime | Select-Object -Last 1 | Get-Content -Tail 45 | Out-Host
+              if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }
+              if ($sender -and -not $sender.HasExited) { Stop-Process -Id $sender.Id -Force }
+              continue
+            }
             [W]::SetForegroundWindow($hwnd) | Out-Null; Start-Sleep -Milliseconds 800
             $r = New-Object W+RECT; [W]::GetWindowRect($hwnd, [ref]$r) | Out-Null
             $bw = $r.R - $r.L; $bh = $r.B - $r.T
