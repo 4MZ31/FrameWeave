@@ -108,7 +108,9 @@ void QmlPlayerBridge::startRecording(const QString& source) {
     if (!hasSource()) { logRecordingRequest("start", source, binding, impl_->lastShortcutKey, "refused=no-source"); emit notice(tr("没有正在播放的画面，无法录制"), true); return; }
     logRecordingRequest("start", source, binding, impl_->lastShortcutKey, "requested");
     std::wstring error;
-    if (!impl_->engine.requestRecording(recordingOptions(), error)) { emit notice(uiText(error), true); return; }
+    const auto options = recordingOptions();
+    if (!impl_->engine.requestRecording(options, error)) { emit notice(uiText(error), true); return; }
+    pushRecordingNotices(options.audio, options.microphone, false);   // a card scene or a muted mixer: said now (PushStudio.cpp)
     // Shown at once; the poll fills in the file and the counters.
     impl_->recordingState["active"] = true;
     impl_->recordingState["failed"] = false;

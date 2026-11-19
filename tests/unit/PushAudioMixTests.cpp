@@ -118,8 +118,17 @@ int main() {
         const auto before = pushMixVersion();
         setPushMix(s);
         check(pushMixVersion() != before && std::abs(db(pushGameGain()) + 6) < 0.01, "game fader reaches the recorder's gain");
+        // A card scene silences what carries the scene, and nothing else.
+        const float fader = pushGameGain();
+        setPushCardMute(true);
+        check(pushCardMute() && pushGameGain() == 0.0f, "a card silences the game in recordings and streams");
+        check(pushGameFaderGain() == fader, "the fader itself is untouched by a card");
+        check(pushRecordingGameGain(false) == 0.0f && pushRecordingGameGain(true) == fader, "a comparison clip keeps the game's sound under a card");
+        setPushCardMute(false);
+        check(!pushCardMute() && pushGameGain() == fader && pushRecordingGameGain(false) == fader, "leaving the card brings the sound back");
         s.gameMuted = true; setPushMix(s);
         check(pushGameGain() == 0.0f, "game mute");
+        check(pushGameFaderGain() == 0.0f && pushRecordingGameGain(true) == 0.0f, "the mixer's own mute silences comparison clips too");
         s.micMuted = true; setPushMix(s);
         auto pcm = tone(1000, 0.5, 9600);
         pushProcessMicrophone(pcm.data(), 9600);

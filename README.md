@@ -635,8 +635,10 @@ features built in:
 - **Scenes**, like OBS's, switched with one click or **Ctrl+1** to **Ctrl+9**:
   - *game scenes* show the picture, optionally with a corner picture (your logo) or a text tag;
   - *card scenes* (*Starting soon*, *Be right back*, *Thanks for watching*, or your own with a background
-    picture) replace the game in recordings and streams and mute the game sound.
-  Scenes change only what recordings and streams show; you keep seeing the game.
+    picture) replace the game in recordings and streams and mute the game sound while they are shown.
+  Scenes change only what recordings and streams show; you keep seeing the game. The scene and the mixer
+  hold in every mode, not only on this page: starting a recording elsewhere with a card shown or the game
+  muted says so. Comparison clips always show the game, so a card never silences them.
 - **Sources** in a scene (up to four): a **webcam**, another **window** (a browser with alerts or chat, a
   music player) or a looping **video file**. Put each in a corner or the middle, pick its size, and make it
   square, rounded or round (cameras can be mirrored). Sources run while streaming mode is on screen or a

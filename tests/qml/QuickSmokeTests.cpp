@@ -265,6 +265,8 @@ QtObject {
     property var lastScene: null
     property int sceneCalls: 0
     function pushSetStreamScene(scene) { lastScene = scene; sceneCalls++; return true }
+    property bool cardMute: false
+    function pushSetCardMute(muted) { cardMute = muted === true }
     property string pickedImage: ""
     function pushPickImage() { return pickedImage }
     // Streaming mode sources (webcam, window, video file).

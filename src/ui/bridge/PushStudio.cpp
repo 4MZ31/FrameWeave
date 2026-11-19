@@ -99,8 +99,37 @@ QString QmlPlayerBridge::pushPickImage() {
     return QFileDialog::getOpenFileName(nullptr, tr("选择图片"), QString(), tr("图片 (*.png *.jpg *.jpeg *.webp *.bmp)"));
 }
 
+void QmlPlayerBridge::pushSetCardMute(bool muted) {
+    if (engine::pushCardMute() == muted) return;
+    engine::setPushCardMute(muted);
+    veyra::log::info("push-studio", std::format("card mute {}", muted ? "on" : "off"));
+}
+
+// A recording that starts while Streaming mode's state would surprise: said once, at the start.
+// The scene and the mixer belong to Streaming mode but hold in every mode, and outside that page
+// nothing shows them. Until 3.2.3 nothing said it either (a clip was simply silent).
+void QmlPlayerBridge::pushRecordingNotices(bool sound, bool microphone, bool comparisonClip) {
+    const bool studioPage = impl_->currentPage == QLatin1String("live");
+    const auto mix = engine::pushMix();
+    if (microphone && engine::mixGain(mix.micDb, mix.micMuted) <= 0.0f) {
+        emit notice(tr("混音器里的麦克风已静音：这次录制不会有麦克风声音（直播模式 → 音频混音器）"), true);
+        veyra::log::info("push-studio", "recording started with the microphone muted in the mixer");
+    }
+    if (sound && engine::pushGameFaderGain() <= 0.0f) {
+        emit notice(tr("混音器里的游戏声音已静音：这次录制不会有游戏声音（直播模式 → 音频混音器）"), true);
+        veyra::log::info("push-studio", "recording started with the game muted in the mixer");
+    } else if (!comparisonClip && !studioPage && !impl_->pushCardScene.isEmpty()) {
+        // On the Streaming mode page the card is in view; a comparison clip never shows it.
+        emit notice(tr("当前场景是卡片“%1”：录制里会是这张卡片，而不是游戏画面（直播模式 → 场景）").arg(impl_->pushCardScene), true);
+        veyra::log::info("push-studio", "recording started outside streaming mode with a card scene shown");
+    }
+}
+
 bool QmlPlayerBridge::pushSetStreamScene(const QVariantMap& scene) {
     const bool card = scene.value("type").toString() == QLatin1String("card");
+    impl_->pushCardScene = card ? scene.value("name").toString().left(40) : QString();
+    if (card && impl_->pushCardScene.isEmpty()) impl_->pushCardScene = scene.value("title").toString().left(40);
+    if (card && impl_->pushCardScene.isEmpty()) impl_->pushCardScene = QStringLiteral("card");
     const QString overlayPath = scene.value("overlayImage").toString(), overlayText = scene.value("overlayText").toString().left(80);
     if (!card && overlayPath.isEmpty() && overlayText.trimmed().isEmpty()) {
         engine::setPushStreamOverlay(nullptr, uint32_t(impl_->prefInt("studioTransitionMs", 300)));

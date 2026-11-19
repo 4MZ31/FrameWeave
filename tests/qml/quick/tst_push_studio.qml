@@ -31,6 +31,7 @@ Item {
             veyra.streamState = ({active: false, live: false, outputs: []})
             veyra.streamStarts = 0
             studio.activeScene = "game"
+            studio.setCardMute(false)
             root.navigated = []
             host.dialog = ""
         }
@@ -134,16 +135,60 @@ Item {
         function test_scenes_switch_the_output_and_mute_the_game_on_cards() {
             compare(studio.scenes.length, 4, "game, starting soon, be right back, thanks for watching")
             veyra.setPreference("mixGameMuted", false)
+            const game = control(studio, "mixer-game")
             studio.activate("brb")
             compare(veyra.lastScene.type, "card")
             compare(studio.activeScene, "brb")
-            compare(veyra.preferences.mixGameMuted, true, "a card mutes the game")
+            compare(veyra.cardMute, true, "a card mutes the game")
+            compare(veyra.preferences.mixGameMuted, false, "and never through the mixer's saved mute: closing PushFPS on a card left that on")
+            compare(game.muted, true, "the strip shows it")
+            compare(game.subtitle, qsTr("卡片场景显示时静音"))
             verify(findChild(studio, "studio-scene-brb").active)
             studio.activate("soon")
-            compare(veyra.preferences.mixGameMuted, true)
+            compare(veyra.cardMute, true)
+            compare(veyra.preferences.mixGameMuted, false)
             studio.activate("game")
             compare(veyra.lastScene.type, "game")
-            compare(veyra.preferences.mixGameMuted, false, "back to the game: the mute from before")
+            compare(veyra.cardMute, false, "back to the game: heard again")
+            compare(veyra.preferences.mixGameMuted, false)
+            compare(game.muted, false)
+        }
+        function test_a_card_keeps_the_mixers_own_mute() {
+            const game = control(studio, "mixer-game")
+            veyra.setPreference("mixGameMuted", true)
+            studio.activate("brb")
+            studio.activate("game")
+            compare(veyra.cardMute, false)
+            compare(veyra.preferences.mixGameMuted, true, "a mute the user set stays through a card")
+            compare(game.muted, true)
+            veyra.setPreference("mixGameMuted", false)
+        }
+        function test_unmuting_under_a_card_lets_the_game_be_heard() {
+            const game = control(studio, "mixer-game")
+            veyra.setPreference("mixGameMuted", false)
+            studio.activate("brb")
+            game.muteToggled()
+            compare(veyra.cardMute, false, "unmute lifts the card's mute")
+            compare(veyra.preferences.mixGameMuted, false)
+            compare(game.muted, false)
+            game.muteToggled()
+            compare(veyra.preferences.mixGameMuted, true, "and the next press is the mixer's own mute")
+            compare(veyra.cardMute, false)
+            veyra.setPreference("mixGameMuted", false)
+            studio.activate("game")
+        }
+        function test_a_card_that_keeps_the_game_sound() {
+            veyra.setPreference("mixGameMuted", false)
+            studio.addScene("card")
+            const id = studio.editingScene
+            studio.updateScene(id, { muteGame: false })
+            studio.activate(id)
+            compare(veyra.cardMute, false, "a card set to keep the game's sound")
+            studio.updateScene(id, { muteGame: true })
+            tryCompare(veyra, "cardMute", true)
+            studio.activate("game")
+            compare(veyra.cardMute, false)
+            studio.removeScene(id)
         }
         function test_scenes_add_edit_remove() {
             studio.addScene("card")

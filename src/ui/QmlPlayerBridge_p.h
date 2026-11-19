@@ -236,6 +236,7 @@ struct QmlPlayerBridge::Impl {
     QString pushSessionNote;                // the session note last written (engine/PushCrashNote.h)
     QString pushOptimiseAtStart;            // pref pushOptimizeRestore as found at start: the optimiser was running
     QProcess* pushCardTest = nullptr;       // PushFlowBench while the card test runs
+    QString pushCardScene;                  // the card scene now shown in recordings and streams (its name); empty: the game
     QVariantMap pushCardTestResult;         // its last result
 
     // The chain the UI edits, kept in step with the facade's pending settings.

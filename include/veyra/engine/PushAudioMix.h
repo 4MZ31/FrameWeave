@@ -207,7 +207,17 @@ void setPushMix(const PushMixSettings& settings);
 PushMixSettings pushMix();
 uint64_t pushMixVersion();
 // Gain for the game sound in recordings and streams (0 when muted).
-float pushGameGain();
+// A card scene (Streaming mode) silences the game while the card is the picture. That is its own
+// state, never saved: until 3.2.3 a card wrote the mixer's mute preference instead, so closing PushFPS
+// on a card left the game muted in every later recording, and a comparison clip, which never shows the
+// card, was silent whenever one was selected (field report, 19 November 2026).
+void setPushCardMute(bool muted);
+bool pushCardMute();
+float pushGameGain();        // outputs that carry the scene: the fader and the mixer's mute, and silence under a card
+float pushGameFaderGain();   // the fader and the mixer's own mute only
+// What a recording multiplies the game's sound by. A comparison clip shows the game and never the
+// card (LiveRecorder leaves the scene picture out of it), so a card does not silence it either.
+inline float pushRecordingGameGain(bool comparisonClip) { return comparisonClip ? pushGameFaderGain() : pushGameGain(); }
 PushLevelMeter& pushGameMeter();
 PushLevelMeter& pushMicMeter();
 // Microphone capture thread: runs the filter chain on a packet in place and meters it.

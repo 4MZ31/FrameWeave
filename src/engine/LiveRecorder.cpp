@@ -504,6 +504,9 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
     int64_t lastPtsUs=-1;
     std::atomic<uint64_t> frames{0},dropped{0};
     std::atomic<uint64_t> droppedReal{0}; // comparison clips: real frames that could not be recorded
+    // PushFPS: what the game's sound track was given, for the file-closed log line. A silent clip is
+    // then told apart at once: no sound arrived (soundBlocks 0) or the mixer silenced it (mixerSilenced).
+    std::atomic<uint64_t> soundBlocks{0},mixerSilenced{0};
 
     // Encoder thread.
     std::thread encoderThread;
@@ -942,7 +945,10 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
         if(!sound||!audio||closing.load()||!format.valid()||!count)return;
         // PushFPS streaming mode mixer: the game fader and mute (PushAudioMix.h). What the player
         // hears keeps its own volume; this changes only recordings, the replay and streams.
-        const float gain=pushGameGain();
+        // A card scene silences the game too, except in a comparison clip, which never shows the card.
+        const float gain=pushRecordingGameGain(compareClip);
+        ++soundBlocks;
+        if(gain<=0.0f)++mixerSilenced;
         if(gain!=1.0f){
             thread_local std::vector<float> scaled;
             scaled.resize(count*format.channels);
@@ -1176,8 +1182,9 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
                 if(finished.ok)veyra::log::info("live-recorder",std::format("file finalized path={} videoPackets={} audioPackets={} ms={:.0f}",utf8(path),finished.videoPackets,finished.audioPackets,ms));
                 else veyra::log::warn("live-recorder",std::format("file kept fragmented path={} reason={} ms={:.0f}",utf8(path),finished.error,ms));
             }
-            veyra::log::info("live-recorder",std::format("file closed path={} videoFrames={} seconds={:.2f} originUs={} audio={} audioGaps={} audioOverflow={} microphoneGaps={} microphoneOverflow={} dropped={} ok={}{}",
-                utf8(path),videoWritten.load(),double(end)/1e6,t0Us.load(),audio.load(),soundLane.gaps.load(),soundLane.overflow.load(),micLane.gaps.load(),micLane.overflow.load(),dropped.load(),ok,
+            veyra::log::info("live-recorder",std::format("file closed path={} videoFrames={} seconds={:.2f} originUs={} audio={} audioGaps={} audioOverflow={} microphoneGaps={} microphoneOverflow={} soundBlocks={} mixerSilenced={} dropped={} ok={}{}",
+                utf8(path),videoWritten.load(),double(end)/1e6,t0Us.load(),audio.load(),soundLane.gaps.load(),soundLane.overflow.load(),micLane.gaps.load(),micLane.overflow.load(),
+                soundBlocks.load(),mixerSilenced.load(),dropped.load(),ok,
                 compare?std::format(" compare real={} generated={} rawConsole={} droppedReal={}",compare->realFrames(),compare->generatedFrames(),compare->rawFrames(),droppedReal.load()):std::string{}));
         }
         releaseMux();

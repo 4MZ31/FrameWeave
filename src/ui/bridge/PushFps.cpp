@@ -600,6 +600,7 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     };
     std::wstring error;
     if (!impl_->engine.requestRecording(options, error)) { emit notice(uiText(error), true); return false; }
+    pushRecordingNotices(options.audio, options.microphone, true);   // the mixer's own mute still applies; a card does not (PushStudio.cpp)
     veyra::log::info("push-compare", std::format("comparison clip seconds={} layout={} labels=\"{}\" / \"{}\" height={}", seconds,
                                                  layout == 2 ? "vertical" : layout == 1 ? "side-by-side" : "split", leftText.toStdString(), rightText.toStdString(), height));
     impl_->recordingState["active"] = true;

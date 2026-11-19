@@ -122,18 +122,20 @@ VPage {
         return Array.isArray(list) && list.length > 0 && list.some(x => x.type === "game") ? list : studio.defaultScenes
     }
     property string activeScene: "game"
-    property bool muteBeforeCard: false
+    // A card silences the game in what carries the scene. That is the engine's own state
+    // (pushSetCardMute, never saved) and no longer the mixer's saved mute: until 3.2.3 a card wrote
+    // mixGameMuted, so closing PushFPS on a card left the game muted in every later recording, and a
+    // comparison clip made with a card selected (it never shows the card) was silent in any mode.
+    property bool cardMute: false
+    function setCardMute(on) { studio.cardMute = on === true; veyra.pushSetCardMute(studio.cardMute) }
     property string editingScene: ""
     function sceneById(id) { return studio.scenes.find(x => x.id === id) || null }
     function saveScenes(list) { veyra.setPreference("studioScenes", JSON.stringify(list)) }
     function activate(id) {
         const scene = studio.sceneById(id)
         if (!scene) return
-        const wasCard = (studio.sceneById(studio.activeScene) || {}).type === "card"
-        if (scene.type === "card" && !wasCard) studio.muteBeforeCard = veyra.preferences.mixGameMuted === true
         veyra.pushSetStreamScene(scene)
-        if (scene.type === "card") veyra.setPreference("mixGameMuted", scene.muteGame !== false ? true : studio.muteBeforeCard)
-        else if (wasCard) veyra.setPreference("mixGameMuted", studio.muteBeforeCard)
+        studio.setCardMute(scene.type === "card" && scene.muteGame !== false)
         studio.activeScene = id
         studio.applySources()
         veyra.logUi("push-studio", "scene " + id + " (" + scene.type + ")")
@@ -216,7 +218,11 @@ VPage {
     // Scene transitions: cut, fade or slow fade (pref studioTransitionMs).
     readonly property int transitionMs: Number(veyra.preferences.studioTransitionMs ?? 300)
     // Starts on the game scene: a card left on from a previous session never surprises a new stream.
-    Component.onCompleted: Qt.callLater(() => { const g = studio.scenes.find(x => x.type === "game"); if (g) veyra.pushSetStreamScene(g) })
+    Component.onCompleted: Qt.callLater(() => {
+        const g = studio.scenes.find(x => x.type === "game")
+        if (g) veyra.pushSetStreamScene(g)
+        studio.setCardMute(false)
+    })
     Repeater {
         model: 9
         delegate: Item {
@@ -838,17 +844,22 @@ VPage {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 title: qsTr("游戏声音")
-                subtitle: qsTr("采集卡或串流")
+                subtitle: studio.cardMute ? qsTr("卡片场景显示时静音") : qsTr("采集卡或串流")
                 iconName: "gamepad"
                 from: -60; to: 12
                 value: Number(veyra.preferences.mixGameDb ?? 0)
-                muted: veyra.preferences.mixGameMuted === true
+                muted: veyra.preferences.mixGameMuted === true || studio.cardMute
                 rmsDb: studio.gameRms; peakDb: studio.gamePeak
                 meterActive: veyra.hasSource
                 gear: true
                 gearTip: qsTr("音频设置")
                 onMoved: v => veyra.setPreference("mixGameDb", Math.round(v))
-                onMuteToggled: veyra.setPreference("mixGameMuted", !(veyra.preferences.mixGameMuted === true))
+                // Unmute means heard: a card's mute is lifted too (until the scene changes).
+                onMuteToggled: {
+                    const muted = veyra.preferences.mixGameMuted === true || studio.cardMute
+                    if (studio.cardMute) studio.setCardMute(false)
+                    veyra.setPreference("mixGameMuted", !muted)
+                }
                 onGearClicked: veyra.navigate("audio")
             }
             PushMixerStrip {

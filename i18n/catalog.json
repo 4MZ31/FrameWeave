@@ -16594,6 +16594,23 @@
    "ru": "Очередь из одного кадра и полный экран включены; экран не поддерживает переменную частоту, поэтому синхронизация не меняется, чтобы избежать разрывов."
   },
   {
+   "zh": "卡片场景显示时静音",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "卡片場景顯示時靜音",
+   "en": "Muted while a card scene is shown",
+   "ja": "カードシーンの表示中はミュート",
+   "nl": "Muted while a card scene is shown",
+   "de": "Muted while a card scene is shown",
+   "es": "Muted while a card scene is shown",
+   "fr": "Muted while a card scene is shown",
+   "it": "Muted while a card scene is shown",
+   "pt-BR": "Muted while a card scene is shown",
+   "tr": "Muted while a card scene is shown",
+   "ar": "Muted while a card scene is shown",
+   "pl": "Muted while a card scene is shown",
+   "ru": "Muted while a card scene is shown"
+  },
+  {
    "zh": "即将开始",
    "src": "qml/StudioPage.qml",
    "zh-TW": "即將開始",
@@ -25842,6 +25859,23 @@
    "ru": "Включён: настройки и скриншоты сохраняются в папке рядом с программой"
   },
   {
+   "zh": "已恢复录制里的游戏声音：之前的版本在用过卡片场景后可能让它一直静音（直播模式 → 音频混音器）",
+   "src": "src/ui/QmlPlayerBridge.cpp",
+   "zh-TW": "已恢復錄製裡的遊戲聲音：先前的版本在用過卡片場景後可能讓它一直靜音（直播模式 → 音訊混音器）",
+   "en": "Game sound in recordings is back on: earlier versions could leave it muted after a card scene was used (Streaming mode → Audio mixer)",
+   "ja": "録画のゲーム音声を元に戻しました：以前のバージョンでは、カードシーンを使ったあとミュートのままになることがありました（配信モード → オーディオミキサー）",
+   "nl": "Game sound in recordings is back on: earlier versions could leave it muted after a card scene was used (Streaming mode → Audio mixer)",
+   "de": "Game sound in recordings is back on: earlier versions could leave it muted after a card scene was used (Streaming mode → Audio mixer)",
+   "es": "Game sound in recordings is back on: earlier versions could leave it muted after a card scene was used (Streaming mode → Audio mixer)",
+   "fr": "Game sound in recordings is back on: earlier versions could leave it muted after a card scene was used (Streaming mode → Audio mixer)",
+   "it": "Game sound in recordings is back on: earlier versions could leave it muted after a card scene was used (Streaming mode → Audio mixer)",
+   "pt-BR": "Game sound in recordings is back on: earlier versions could leave it muted after a card scene was used (Streaming mode → Audio mixer)",
+   "tr": "Game sound in recordings is back on: earlier versions could leave it muted after a card scene was used (Streaming mode → Audio mixer)",
+   "ar": "Game sound in recordings is back on: earlier versions could leave it muted after a card scene was used (Streaming mode → Audio mixer)",
+   "pl": "Game sound in recordings is back on: earlier versions could leave it muted after a card scene was used (Streaming mode → Audio mixer)",
+   "ru": "Game sound in recordings is back on: earlier versions could leave it muted after a card scene was used (Streaming mode → Audio mixer)"
+  },
+  {
    "zh": "已按片源自动选档：%1",
    "src": "src/ui/bridge/Enhancement.cpp",
    "zh-TW": "已按片源自動選檔：%1",
@@ -28492,6 +28526,23 @@
    "ar": "وتفتقر هذه المجموعة إلى عناصر غير متكررة بالنسبة لهذه السمة",
    "pl": "Ten pakiet nie posiada komponentów runtime dla tej funkcji",
    "ru": "В этом пакете отсутствуют компоненты среды выполнения для этой функции"
+  },
+  {
+   "zh": "当前场景是卡片“%1”：录制里会是这张卡片，而不是游戏画面（直播模式 → 场景）",
+   "src": "src/ui/bridge/PushStudio.cpp",
+   "zh-TW": "目前場景是卡片「%1」：錄製裡會是這張卡片，而不是遊戲畫面（直播模式 → 場景）",
+   "en": "The current scene is the card \"%1\": this recording shows the card, not the game (Streaming mode → Scenes)",
+   "ja": "現在のシーンはカード「%1」です：この録画にはゲームではなくカードが映ります（配信モード → シーン）",
+   "nl": "The current scene is the card \"%1\": this recording shows the card, not the game (Streaming mode → Scenes)",
+   "de": "The current scene is the card \"%1\": this recording shows the card, not the game (Streaming mode → Scenes)",
+   "es": "The current scene is the card \"%1\": this recording shows the card, not the game (Streaming mode → Scenes)",
+   "fr": "The current scene is the card \"%1\": this recording shows the card, not the game (Streaming mode → Scenes)",
+   "it": "The current scene is the card \"%1\": this recording shows the card, not the game (Streaming mode → Scenes)",
+   "pt-BR": "The current scene is the card \"%1\": this recording shows the card, not the game (Streaming mode → Scenes)",
+   "tr": "The current scene is the card \"%1\": this recording shows the card, not the game (Streaming mode → Scenes)",
+   "ar": "The current scene is the card \"%1\": this recording shows the card, not the game (Streaming mode → Scenes)",
+   "pl": "The current scene is the card \"%1\": this recording shows the card, not the game (Streaming mode → Scenes)",
+   "ru": "The current scene is the card \"%1\": this recording shows the card, not the game (Streaming mode → Scenes)"
   },
   {
    "zh": "当前处理链没有调色节点",
@@ -42654,6 +42705,40 @@
    "ar": "يُمزج مع صوت اللعبة؛ نفس الجهاز المحدد في إعدادات التسجيل",
    "pl": "Miksowany z dźwiękiem gry; to samo urządzenie co w ustawieniach nagrywania",
    "ru": "Смешивается со звуком игры; то же устройство, что в настройках записи"
+  },
+  {
+   "zh": "混音器里的游戏声音已静音：这次录制不会有游戏声音（直播模式 → 音频混音器）",
+   "src": "src/ui/bridge/PushStudio.cpp",
+   "zh-TW": "混音器裡的遊戲聲音已靜音：這次錄製不會有遊戲聲音（直播模式 → 音訊混音器）",
+   "en": "The game is muted in the mixer: this recording will have no game sound (Streaming mode → Audio mixer)",
+   "ja": "ミキサーでゲーム音声がミュートされています：この録画にゲーム音声は入りません（配信モード → オーディオミキサー）",
+   "nl": "The game is muted in the mixer: this recording will have no game sound (Streaming mode → Audio mixer)",
+   "de": "The game is muted in the mixer: this recording will have no game sound (Streaming mode → Audio mixer)",
+   "es": "The game is muted in the mixer: this recording will have no game sound (Streaming mode → Audio mixer)",
+   "fr": "The game is muted in the mixer: this recording will have no game sound (Streaming mode → Audio mixer)",
+   "it": "The game is muted in the mixer: this recording will have no game sound (Streaming mode → Audio mixer)",
+   "pt-BR": "The game is muted in the mixer: this recording will have no game sound (Streaming mode → Audio mixer)",
+   "tr": "The game is muted in the mixer: this recording will have no game sound (Streaming mode → Audio mixer)",
+   "ar": "The game is muted in the mixer: this recording will have no game sound (Streaming mode → Audio mixer)",
+   "pl": "The game is muted in the mixer: this recording will have no game sound (Streaming mode → Audio mixer)",
+   "ru": "The game is muted in the mixer: this recording will have no game sound (Streaming mode → Audio mixer)"
+  },
+  {
+   "zh": "混音器里的麦克风已静音：这次录制不会有麦克风声音（直播模式 → 音频混音器）",
+   "src": "src/ui/bridge/PushStudio.cpp",
+   "zh-TW": "混音器裡的麥克風已靜音：這次錄製不會有麥克風聲音（直播模式 → 音訊混音器）",
+   "en": "The microphone is muted in the mixer: this recording will have no microphone sound (Streaming mode → Audio mixer)",
+   "ja": "ミキサーでマイクがミュートされています：この録画にマイクの音声は入りません（配信モード → オーディオミキサー）",
+   "nl": "The microphone is muted in the mixer: this recording will have no microphone sound (Streaming mode → Audio mixer)",
+   "de": "The microphone is muted in the mixer: this recording will have no microphone sound (Streaming mode → Audio mixer)",
+   "es": "The microphone is muted in the mixer: this recording will have no microphone sound (Streaming mode → Audio mixer)",
+   "fr": "The microphone is muted in the mixer: this recording will have no microphone sound (Streaming mode → Audio mixer)",
+   "it": "The microphone is muted in the mixer: this recording will have no microphone sound (Streaming mode → Audio mixer)",
+   "pt-BR": "The microphone is muted in the mixer: this recording will have no microphone sound (Streaming mode → Audio mixer)",
+   "tr": "The microphone is muted in the mixer: this recording will have no microphone sound (Streaming mode → Audio mixer)",
+   "ar": "The microphone is muted in the mixer: this recording will have no microphone sound (Streaming mode → Audio mixer)",
+   "pl": "The microphone is muted in the mixer: this recording will have no microphone sound (Streaming mode → Audio mixer)",
+   "ru": "The microphone is muted in the mixer: this recording will have no microphone sound (Streaming mode → Audio mixer)"
   },
   {
    "zh": "添加",

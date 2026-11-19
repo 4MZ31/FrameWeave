@@ -10,6 +10,7 @@ std::mutex mixMutex;
 PushMixSettings mixSettings;
 std::atomic<uint64_t> mixVersion{1};
 std::atomic<float> gameGain{1.0f};
+std::atomic<bool> cardMute{false};
 PushLevelMeter gameMeter, micMeter;
 } // namespace
 
@@ -25,7 +26,10 @@ void setPushMix(const PushMixSettings& settings) {
 }
 PushMixSettings pushMix() { std::lock_guard lock(mixMutex); return mixSettings; }
 uint64_t pushMixVersion() { return mixVersion.load(); }
-float pushGameGain() { return gameGain.load(); }
+void setPushCardMute(bool muted) { cardMute.store(muted); }
+bool pushCardMute() { return cardMute.load(); }
+float pushGameGain() { return cardMute.load() ? 0.0f : gameGain.load(); }
+float pushGameFaderGain() { return gameGain.load(); }
 PushLevelMeter& pushGameMeter() { return gameMeter; }
 PushLevelMeter& pushMicMeter() { return micMeter; }
 

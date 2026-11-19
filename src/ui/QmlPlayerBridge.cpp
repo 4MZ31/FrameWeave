@@ -183,6 +183,20 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     applyPreference(QStringLiteral("audioDevice"));
     applyPreference(QStringLiteral("audioForceStereo"));
     applyPreference(QStringLiteral("soundPreset"));
+    // 3.2.3, once: until then a card scene muted the game by writing the mixer's own mute, and closing
+    // PushFPS on a card left it on. Every later recording, comparison clip, replay and stream was then
+    // silent while the game still played normally (field report, 19 November 2026). The card's mute is
+    // its own state now (engine/PushAudioMix.h); a mute left behind is lifted once, and said so.
+    if (!impl_->prefs.contains(QStringLiteral("pushCardMuteRepaired"))) {
+        const bool was = impl_->prefBool("mixGameMuted", false);
+        if (was) impl_->prefs[QStringLiteral("mixGameMuted")] = false;
+        impl_->prefs[QStringLiteral("pushCardMuteRepaired")] = was;
+        if (!impl_->savePrefs()) veyra::log::warn("ui-prefs", "card mute repair not saved");
+        veyra::log::info("push-studio", std::format("card mute repair: the mixer's game mute was {}", was ? "on and is lifted" : "off"));
+        if (was) QTimer::singleShot(5000, this, [this] {
+            emit notice(tr("已恢复录制里的游戏声音：之前的版本在用过卡片场景后可能让它一直静音（直播模式 → 音频混音器）"), false);
+        });
+    }
     applyPushMix();   // PushFPS streaming mode mixer (PushStudio.cpp)
     engine::setPushLiveCanvas(pushCanvas(0));   // PushFPS layout (Recording.cpp)
     applyPreference(QStringLiteral("nisSharpness"));
