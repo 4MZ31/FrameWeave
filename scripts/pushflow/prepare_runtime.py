@@ -19,6 +19,7 @@ Usage: python -I scripts/pushflow/prepare_runtime.py --out D:\\deps\\pushflow
 from __future__ import annotations
 
 import argparse
+import collections
 import hashlib
 import json
 import os
@@ -361,18 +362,27 @@ def fusion_report(path: Path, channels: int) -> dict:
     parts that treat them alike; such a tensor still holds two separate frames ("stacked")."""
     import numpy as np
     import onnx
-    from onnx import numpy_helper, shape_inference
+    from onnx import numpy_helper
     model = onnx.load(str(path))
     g = model.graph
-    H, W = 576, 1024
-    for d, v in zip(g.input[0].type.tensor_type.shape.dim, (1, channels, H, W)):
-        d.ClearField("dim_param"); d.dim_value = v
-    inferred = shape_inference.infer_shapes(model, strict_mode=False, data_prop=True)
-    shapes = {}
-    for vi in list(inferred.graph.value_info) + list(inferred.graph.output) + list(inferred.graph.input):
-        dims = [d.dim_value for d in vi.type.tensor_type.shape.dim]
-        if dims and all(v > 0 for v in dims):
-            shapes[vi.name] = dims
+    # Shapes from a real run (the export's sizes are free, so the graph alone does not give them): every
+    # convolution's input and output is added as an output of a copy and the copy run once at 256 x 192.
+    import onnxruntime as ort
+    from onnx import helper
+    probe = onnx.load(str(path))
+    wanted = []
+    for n in probe.graph.node:
+        if n.op_type in ("Conv", "ConvTranspose"):
+            wanted += [n.input[0], n.output[0]]
+    have = {o.name for o in probe.graph.output}
+    wanted = [w for w in dict.fromkeys(wanted) if w not in have and w != probe.graph.input[0].name]
+    probe.graph.output.extend(helper.make_empty_tensor_value_info(w) for w in wanted)
+    session = ort.InferenceSession(probe.SerializeToString(), providers=["CPUExecutionProvider"])
+    z = np.zeros((3, 192, 256), np.float32)
+    results = session.run(None, {session.get_inputs()[0].name: tensor(z, z, 0.5, channels)})
+    shapes = {o.name: list(r.shape) for o, r in zip(session.get_outputs(), results)}
+    shapes[g.input[0].name] = [1, channels, 192, 256]
+    del results, session, probe
     init = {i.name: i for i in g.initializer}
     consts = {}
     for n in g.node:
@@ -446,10 +456,10 @@ def fusion_report(path: Path, channels: int) -> dict:
                 out = (union, False)
         for o in n.output:
             dep[o] = out
-        if n.op_type in ("Conv", "ConvTranspose") and len(ins) > 1 and ins[1] in init:
-            wdims = list(init[ins[1]].dims)
+        if n.op_type in ("Conv", "ConvTranspose") and len(ins) > 1:
+            wdims = list(init[ins[1]].dims) if ins[1] in init else list(consts[ins[1]].shape) if consts.get(ins[1]) is not None else None
             ref = shapes.get(n.output[0]) if n.op_type == "Conv" else shapes.get(ins[0])
-            if ref:
+            if ref and wdims:
                 macs[kind(out)] += int(np.prod(ref)) * int(np.prod(wdims[1:]))
             else:
                 macs["unknown"] += 1
@@ -465,12 +475,13 @@ def fusion_report(path: Path, channels: int) -> dict:
     F, P, T = macs["one frame"], macs["the pair, not the time"], macs["the time"]
     saving = {}
     for m in (2, 3, 4):
-        now = (m - 1) * (F + P + T)
+        now = (m - 1) * (F + P + T) or 1
         saving[f"{m}x_encode_once_percent"] = round(100.0 * (1 - (F / 2 + (m - 1) * (P + T)) / now), 1)
         saving[f"{m}x_and_pair_once_percent"] = round(100.0 * (1 - (F / 2 + P + (m - 1) * T) / now), 1)
     head = [f"{n.op_type}({','.join(i[:18] for i in n.input if i)})->{','.join(o[:18] for o in n.output)}:{kind(dep.get(n.output[0])) if n.output and n.output[0] in dep else 'const'}" for n in g.node[:36]]
     return {"work_share_percent": {k: round(100.0 * v / total, 1) for k, v in macs.items() if k != "unknown"}, "convolutions_without_a_shape": macs["unknown"],
-            "saving_of_convolution_work": saving, "kept_per_frame": features[:8], "nodes": len(g.node), "first_nodes": head}
+            "saving_of_convolution_work": saving, "kept_per_frame": features[:8], "nodes": len(g.node),
+            "ops": dict(collections.Counter(n.op_type for n in g.node).most_common(14)), "first_nodes": head}
 
 
 def predict_report(path: Path, channels: int, align: int) -> list[dict]:
@@ -500,6 +511,30 @@ def predict_report(path: Path, channels: int, align: int) -> list[dict]:
         ahead = np.clip(bilinear_at(f1, yo + 0.5 * dy, xo + 0.5 * dx), 0, 1)
         row = {"pair": label, "forecast_db": round(psnr(ahead, truth), 2), "hold_db": round(psnr(f1, truth), 2),
                "time_1_gives_the_newest_frame_db": round(psnr(rgb[0], f1), 2)}
+        # The second way: the half-way grids, which do follow the motion (motion_report). A pixel of the
+        # half-way frame reads the newest frame d further on, so it moves 2 d a frame. The pixel that
+        # reaches y half an interval after the newest frame left the half-way frame at x = y - 2 d(x)
+        # (found by stepping twice), and in the newest frame it is at x + d(x). This costs no extra run
+        # of the network: the grids are the ones the last generated frame was made from.
+        _, _, h1, _ = session.run(None, {name: tensor(f0, f1, 0.5, channels)})[:4]
+        gh = np.moveaxis(rife_graph.to_hw2(h1), -1, 0)
+        def d_at(py, px):
+            gx_, gy_ = bilinear_at(gh, py, px)
+            if align:
+                mx = (gx_ + 1) * 0.5 * (pw - 1); my = (gy_ + 1) * 0.5 * (ph - 1)
+            else:
+                mx = ((gx_ + 1) * pw - 1) * 0.5; my = ((gy_ + 1) * ph - 1) * 0.5
+            return mx - np.clip(px, 0, w - 1), my - np.clip(py, 0, h - 1)
+        sx, sy = xo, yo
+        for _ in range(2):
+            ddx, ddy = d_at(sy, sx)
+            sx, sy = xo - 2.0 * ddx, yo - 2.0 * ddy
+        ddx, ddy = d_at(sy, sx)
+        halfway = np.clip(bilinear_at(f1, sy + ddy, sx + ddx), 0, 1)
+        row["forecast_from_halfway_db"] = round(psnr(halfway, truth), 2)
+        if box is not None:
+            row["halfway_error_at_object"] = round(float(np.abs(halfway - truth)[:, slice(box[0].start, box[0].stop), slice(box[1].start + moved // 2, box[1].stop + moved // 2)].mean()), 3)
+            row["hold_error_at_object"] = round(float(np.abs(f1 - truth)[:, slice(box[0].start, box[0].stop), slice(box[1].start + moved // 2, box[1].stop + moved // 2)].mean()), 3)
         if box is not None:
             row["found_motion_px"] = round(float(-dx[box].mean()), 1); row["true_motion_px"] = moved
         rows.append(row)
