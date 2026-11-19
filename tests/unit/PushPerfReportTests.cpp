@@ -56,6 +56,13 @@ int main() {
       check(has(t, "\"pushFlowMotionSize\": [1280, 720]") && wellFormed(t), "the size PushFlow works the motion out at");
       f.pushFlowMotionWidth = 4000000; const auto u = json(f);
       check(has(u, "\"pushFlowMotionSize\": null"), "a size that cannot be is not passed on"); }
+    check(has(r, "\"pushFlowEncoderCache\": null") && has(r, "\"pushFlowEncoderCacheStartMs\": null"), "the encoder cache not asked for: null, with no times");
+    { auto f = session(); f.pushFlowEncoderCache = "on"; f.pushFlowWholeMs = 9.5; f.pushFlowSplitMs = 8.25; const auto t = json(f);
+      check(has(t, "\"pushFlowEncoderCache\": \"on\"") && has(t, "\"pushFlowEncoderCacheStartMs\": [9.5") && wellFormed(t), "the encoder cache in use, with one frame each way at start");
+      f.pushFlowEncoderCache = "mismatch"; f.pushFlowSplitMs = 0; const auto u = json(f);
+      check(has(u, "\"pushFlowEncoderCache\": \"mismatch\"") && has(u, "\"pushFlowEncoderCacheStartMs\": null"), "the reason it is not used is a word from the engine, and no time is made up");
+      f.pushFlowEncoderCache = "C:\\Users\\someone"; const auto v = json(f);
+      check(has(v, "\"pushFlowEncoderCache\": null") && !has(v, "someone") && wellFormed(v), "anything that is not such a word is dropped whole"); }
     // What the numbers are worth.
     check(has(r, "\"evidence\": \"live session, PushFPS's own software timing\""), "a live session is called that");
     check(has(r, "not button to screen"), "and the delay is not passed off as button to screen");

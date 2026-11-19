@@ -82,11 +82,13 @@ def split_encoder(model):
 
     RIFE 4.25 / 4.26 begin with a small feature encoder that takes the two frames as a batch of two and never
     sees the time. Run on its own it has to be done once for every real frame, not twice for every generated
-    frame. Returns (encoder, body, info):
+    frame. Returns (encoder0, encoder1, body, info):
 
-      encoder  input: the model's own input [1, C, H, W]; output pushflow_feat [1, F, Hp, Wp], the features
-               of the SECOND frame in it (channels 3..5). The first frame's features are the ones the pair
-               before produced; when there is none, the caller packs that frame into the second place once.
+      encoder1 input: the model's own input [1, C, H, W]; output pushflow_feat [1, F, Hp, Wp], the features
+               of the SECOND frame in it (channels 3..5): the one run for every new real frame.
+      encoder0 the same for the FIRST frame (channels 0..2). Its features are normally the ones the pair
+               before produced; this one is run only when there was no pair before (a start, a reset, a
+               pair that was skipped).
       body     inputs: the model's own input, pushflow_feat0 and pushflow_feat1 (the first and second frame's
                features); outputs exactly as the model's.
 
@@ -168,24 +170,26 @@ def split_encoder(model):
     body = rebuilt(body_nodes, [o.name for o in g.output])
     body.graph.input.extend([features_info("pushflow_feat0"), features_info("pushflow_feat1")])
 
-    # --- the encoder: the model's own beginning, for the second frame alone ---
-    picks = [numpy_helper.from_array(np.array(value, dtype=np.int64), name)
-             for name, value in (("pushflow_enc_from", [1]), ("pushflow_enc_to", [2]), ("pushflow_enc_axis", [0]))]
-    enc_nodes = []
-    for k, n in enumerate(nodes):
-        if k == first:
-            enc_nodes.append(helper.make_node("Slice", [stack, "pushflow_enc_from", "pushflow_enc_to", "pushflow_enc_axis"], ["pushflow_second_frame"], name="pushflow_second_frame_in"))
-            changed = onnx.NodeProto()
-            changed.CopyFrom(n)
-            changed.input[0] = "pushflow_second_frame"
-            enc_nodes.append(changed)
-        else:
-            enc_nodes.append(n)
-    enc_nodes.append(helper.make_node("Identity", [feat], ["pushflow_feat"], name="pushflow_feat_out"))
-    encoder = rebuilt(enc_nodes, ["pushflow_feat"], picks)
-    del encoder.graph.output[:]
-    encoder.graph.output.append(features_info("pushflow_feat"))
-    return encoder, body, {"features": features, "encoder_nodes": [nodes[k].op_type for k in chain], "cut_at": feat}
+    # --- the encoders: the model's own beginning, for one of the two frames alone ---
+    def encoder_for(which):
+        picks = [numpy_helper.from_array(np.array(value, dtype=np.int64), name)
+                 for name, value in (("pushflow_enc_from", [which]), ("pushflow_enc_to", [which + 1]), ("pushflow_enc_axis", [0]))]
+        enc_nodes = []
+        for k, n in enumerate(nodes):
+            if k == first:
+                enc_nodes.append(helper.make_node("Slice", [stack, "pushflow_enc_from", "pushflow_enc_to", "pushflow_enc_axis"], ["pushflow_one_frame"], name="pushflow_one_frame_in"))
+                changed = onnx.NodeProto()
+                changed.CopyFrom(n)
+                changed.input[0] = "pushflow_one_frame"
+                enc_nodes.append(changed)
+            else:
+                enc_nodes.append(n)
+        enc_nodes.append(helper.make_node("Identity", [feat], ["pushflow_feat"], name="pushflow_feat_out"))
+        encoder = rebuilt(enc_nodes, ["pushflow_feat"], picks)
+        del encoder.graph.output[:]
+        encoder.graph.output.append(features_info("pushflow_feat"))
+        return encoder
+    return encoder_for(0), encoder_for(1), body, {"features": features, "encoder_nodes": [nodes[k].op_type for k in chain], "cut_at": feat}
 
 
 def grid_sample(img, grid, align_corners, padding="border"):

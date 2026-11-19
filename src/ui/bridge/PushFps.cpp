@@ -8,6 +8,7 @@
 #include "../QmlPlayerBridge_p.h"
 #include "veyra/engine/PushArchivePaths.h"
 #include "veyra/engine/PushBenchmarkProbe.h"
+#include "veyra/pushflow/PushFlow2.h"
 #include "veyra/pushflow/PushFlowMotion.h"
 #include "veyra/Brand.h"
 #include "veyra/RuntimePaths.h"
@@ -93,6 +94,13 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     // The size PushFlow works the motion out at right now (0 while it is not running).
     m["pushFlowMotionWidth"] = int(s.pushFlowMotionWidth);
     m["pushFlowMotionHeight"] = int(s.pushFlowMotionHeight);
+    // PushFlow 2's encoder cache: "" not asked for, "on", or why it is not in use; and what it did.
+    m["pushFlowEncoderCache"] = QString::fromStdString(s.pushFlowEncoderCache);
+    m["pushFlowFeaturesKept"] = QVariant::fromValue(qulonglong(s.pushFlowFeaturesKept));
+    m["pushFlowFeaturesMade"] = QVariant::fromValue(qulonglong(s.pushFlowFeaturesMade));
+    m["pushFlowWholeMs"] = s.pushFlowWholeMs;
+    m["pushFlowSplitMs"] = s.pushFlowSplitMs;
+    m["pushFlow2Stopped"] = pushflow2::emergencyOff();
     m["pacingRepaired"] = QVariant::fromValue(qulonglong(s.pacingRepaired));
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;

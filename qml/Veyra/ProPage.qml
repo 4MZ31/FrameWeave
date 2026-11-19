@@ -1899,6 +1899,14 @@ VPage {
                             }
                             // The motion size apart from the tier (3.2.7): PushFlowMotionRow.qml.
                             PushFlowMotionRow { visible: veyra.fgBackendName === "pushflow" }
+                            // PushFlow 2 experiments, each off unless switched on here (PushFlow2Row.qml).
+                            PushFlow2Row {
+                                objectName: "list-pushflow2-fusion-row"
+                                visible: veyra.fgBackendName === "pushflow"
+                                part: "fusion"
+                                title: qsTr("PushFlow 2：每个真实帧只编码一次（实验）")
+                                explanation: qsTr("PushFlow 的模型每生成一帧，都要把前后两个真实帧各编码一遍。开启后，每个真实帧只编码一次，结果留给下一对画面和同一对里的其他时刻使用，所以 3× 和 4× 省得更多。画面应当和不开启时一样：启动时会在你的显卡上和完整模型对比，不一致就不使用。它是否真的更快，取决于显卡，目前还没有在真实显卡上测过")
+                            }
                             // Half precision is tested in a separate process first (PushFlowBench --fp16-probe):
                             // the switch only turns on after that test passed on this graphics card.
                             VRow {

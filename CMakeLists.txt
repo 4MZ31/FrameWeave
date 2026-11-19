@@ -1038,10 +1038,14 @@ target_include_directories(veyra_push_half_approval_tests PRIVATE ${CMAKE_CURREN
 add_executable(veyra_push_view_crop_tests tests/unit/PushViewCropTests.cpp)
 target_compile_features(veyra_push_view_crop_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_view_crop_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-# PushFlow's motion contract and ghost guard (pushflow/PushFlowMotion.h, pure): the reference its shader is tested against.
+# PushFlow's motion contract and motion size (pushflow/PushFlowMotion.h, pure): the reference its shader is tested against.
 add_executable(veyra_push_flow_motion_tests tests/unit/PushFlowMotionTests.cpp)
 target_compile_features(veyra_push_flow_motion_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_flow_motion_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFlow 2's experiment switches (pushflow/PushFlow2.h, pure): off unless asked for, damaged preferences, the emergency stop.
+add_executable(veyra_push_flow2_tests tests/unit/PushFlow2Tests.cpp)
+target_compile_features(veyra_push_flow2_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_flow2_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS performance report (engine/PushPerfReport.h, pure): what was measured, and nothing personal.
 add_executable(veyra_push_perf_report_tests tests/unit/PushPerfReportTests.cpp)
 target_compile_features(veyra_push_perf_report_tests PRIVATE cxx_std_20)

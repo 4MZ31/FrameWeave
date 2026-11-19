@@ -85,7 +85,7 @@
   },
   {
    "id": "F05",
-   "what": "PushFlow: Fast / Balanced / Quality and their own motion sizes, a motion size chosen apart from the tier (off means unchanged; the too-slow watch always takes a cheaper step), the rebuild at full size (the shader is what the motion contract says), half precision and its approval, the adaptive multiplier",
+   "what": "PushFlow: Fast / Balanced / Quality and their own motion sizes, a motion size chosen apart from the tier (off means unchanged; the too-slow watch always takes a cheaper step), the rebuild at full size (the shader is what the motion contract says), half precision and its approval, PushFlow 2's experiments (each off unless switched on, the emergency stop, a damaged preference reads as off) and its encoder cache (the pictures are the whole model's, whatever is kept or made anew), the adaptive multiplier",
    "guards": [
     {
      "file": "tests/integration/PushGpuTests.cpp",
@@ -129,6 +129,31 @@
      "file": "scripts/pushflow/prepare_runtime.py",
      "ci": "prepare_runtime.py",
      "contains": "does not reproduce"
+    },
+    {
+     "file": "tests/unit/PushFlow2Tests.cpp",
+     "ci": "veyra_push_flow2_tests",
+     "contains": "nothing is on until a user turns it on"
+    },
+    {
+     "file": "tests/integration/PushGpuTests.cpp",
+     "ci": "veyra_push_gpu_tests",
+     "contains": "never taken from what was kept"
+    },
+    {
+     "file": "tests/integration/PushFlowGraphTests.cpp",
+     "ci": "veyra_push_flow_graph_tests",
+     "contains": "every generated frame is the one PushFlow makes without the cache"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_flow2.qml",
+     "ci": "tst_push_flow2",
+     "contains": "test_an_experiment_is_off_until_switched_on"
+    },
+    {
+     "file": "scripts/pushflow/prepare_runtime.py",
+     "ci": "prepare_runtime.py",
+     "contains": "does not reproduce the model (largest difference"
     }
    ],
    "needs_hardware": "Speed on any real card; picture quality on real games."

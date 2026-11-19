@@ -3,6 +3,7 @@
 #include "veyra/engine/ExportFeaturePolicy.h"
 #include "veyra/pipeline/EnhanceGraph.h"
 #include "veyra/pipeline/ResolutionPlan.h"
+#include "veyra/pushflow/PushFlow2.h"
 #include "veyra/pushflow/PushFlowMotion.h"
 
 namespace veyra::engine {
@@ -171,6 +172,7 @@ inline pipeline::ResolutionPlan describeStages(const StageRequest& request,const
     desc.vfgQuality=settings.vfgQuality;
     // PushFPS: only while PushFlow generates frames, so the choice never rebuilds a graph it has no part in.
     desc.pushFlowMotion=desc.enableFg&&settings.frameGenerationBackend==FrameGenerationBackend::PushFlow?pushflow::motion::motionHeight():0;
+    desc.pushFlowEncoderCache=desc.enableFg&&settings.frameGenerationBackend==FrameGenerationBackend::PushFlow&&pushflow2::wanted(pushflow2::Experiment::Fusion);
     desc.color=settings.color;
     desc.additionalColors=settings.additionalColors;
     desc.additionalColorCount=settings.additionalColorCount;

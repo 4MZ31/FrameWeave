@@ -83,6 +83,12 @@ const wchar_t* modelFile(uint32_t tier, bool half) {
     if (tier >= 2) return half ? L"pushflow-quality-fp16.onnx" : L"pushflow-quality.onnx";
     return half ? L"pushflow-fast-fp16.onnx" : L"pushflow-fast.onnx";
 }
+// PushFlow 2's split models of a tier: part 0 the first-frame encoder, 1 the second-frame encoder, 2 the rest.
+const wchar_t* splitFile(uint32_t tier, int part) {
+    static const wchar_t* const fast[3] = {L"pushflow-fast-enc0.onnx", L"pushflow-fast-enc1.onnx", L"pushflow-fast-body.onnx"};
+    static const wchar_t* const quality[3] = {L"pushflow-quality-enc0.onnx", L"pushflow-quality-enc1.onnx", L"pushflow-quality-body.onnx"};
+    return (tier >= 2 ? quality : fast)[std::clamp(part, 0, 2)];
+}
 std::string narrow(const std::wstring& w) { std::string s; for (wchar_t c : w) s.push_back(c < 128 ? char(c) : '?'); return s; }
 DXGI_FORMAT viewFormat(DXGI_FORMAT f) {
     switch (f) {
@@ -104,7 +110,7 @@ uint64_t gpuSlot(const pipeline::ComputePass& pass, UINT slot) {
 }
 float bits(uint32_t v) { return std::bit_cast<float>(v); }
 // Per-model facts written by prepare_runtime.py next to each model (<model>.txt: key=value lines).
-struct ModelFacts { bool known = false; bool alignCorners = true; bool maskForFirst = true; uint32_t pad = kBlock; };
+struct ModelFacts { bool known = false; bool alignCorners = true; bool maskForFirst = true; uint32_t pad = kBlock; uint32_t splitFeatures = 0; };
 ModelFacts readFacts(const fs::path& model) {
     ModelFacts f;
     std::ifstream in(fs::path(model).concat(L".txt"));
@@ -117,6 +123,8 @@ ModelFacts readFacts(const fs::path& model) {
         if (key == "mask_for_first") f.maskForFirst = value.rfind('1', 0) == 0;
         // The block size the model pads to inside; PushFlow pads to it itself so the grids match its size.
         if (key == "pad") { const int v = std::atoi(value.c_str()); if (v >= 8 && v <= 512 && (v & (v - 1)) == 0) f.pad = uint32_t(v); }
+        // The split models' feature channels per frame (prepare_runtime.py writes it only when they reproduce the model).
+        if (key == "split_features") { const int v = std::atoi(value.c_str()); if (v >= 1 && v <= 64) f.splitFeatures = uint32_t(v); }
     }
     return f;
 }
@@ -174,6 +182,10 @@ struct PushFlowBackend::Impl {
     size_t inferCount = 0, inferSamples = 0;
     bool markerArmed = false;   // crash guard file written, not yet cleared
     uint64_t fullPacks = 0, timePacks = 0;
+    // The pair the last full pack wrote (PushFlow 2's encoder cache reads them in the next inference).
+    uint64_t packedPrevious = 0, packedCurrent = 0;
+    bool packedFull = false;
+    std::atomic<uint64_t> encoderRuns{0}, featureHits{0}, featureMisses{0};
     std::chrono::steady_clock::time_point lastSummary = std::chrono::steady_clock::now();
     ComPtr<ID3D12Device> device;
     ComPtr<ID3D12CommandQueue> queue;
@@ -212,6 +224,26 @@ struct PushFlowBackend::Impl {
     std::array<OrtValue*, 5> values{};
     std::array<void*, 5> allocations{};
     ComPtr<IDMLDevice> dmlDevice;
+    std::string inputName;                                    // the model's one input (the split models share it)
+    std::vector<std::pair<std::string, int64_t>> fixedDims;   // the free dimensions the main session was fixed to
+    // PushFlow 2, Fusion's first step (docs/PUSHFLOW2.md; scripts/pushflow/rife_graph.py split_encoder).
+    // The whole model encodes both frames every time it makes a frame. Cut in two, the second frame is
+    // encoded once when its pair arrives and its features are kept for the pair after it, where it is the
+    // first frame; every further time between the same two frames runs the rest alone. Two feature
+    // buffers change places from pair to pair. The whole model's session stays open: it is what the
+    // pictures are checked against at start, and what takes over at once if a split run fails.
+    struct Split {
+        OrtSession* encoder[2]{};        // [0] the input's first frame, [1] its second
+        OrtSession* body = nullptr;
+        OrtIoBinding* encode[2][2]{};    // [encoder][the feature buffer it writes]
+        OrtIoBinding* run[2]{};          // [the buffer that holds the FIRST frame's features]
+        ComPtr<ID3D12Resource> buffers[2];
+        void* allocations[2]{};
+        OrtValue* values[2]{};
+        uint64_t holds[2]{};             // the real frame whose features each buffer holds (0: nothing)
+        int first = 0;                   // the buffer bound as the first frame's for the pair in work
+        bool active = false;
+    } split;
     // Queued inference: ONNX Runtime records the network onto the graph's own queue and returns without
     // waiting for the GPU. The resolve list that reads the outputs is submitted after it on the same
     // queue, so the queue's order is the only synchronisation needed. Until 3.1.7 every inference
@@ -278,6 +310,18 @@ struct PushFlowBackend::Impl {
             it = pools.erase(it);
         }
     }
+    void releaseSplit() {
+        split.active = false;
+        if (!api) return;
+        for (auto& row : split.encode) for (auto*& b : row) { if (b && !sehReleaseIoBinding(api, b)) fault("ReleaseIoBinding"); b = nullptr; }
+        for (auto*& b : split.run) { if (b && !sehReleaseIoBinding(api, b)) fault("ReleaseIoBinding"); b = nullptr; }
+        for (auto*& v : split.values) { if (v && !sehReleaseValue(api, v)) fault("ReleaseValue"); v = nullptr; }
+        for (auto*& a : split.allocations) { if (dml && a && !sehFreeAllocation(dml, a)) fault("FreeGPUAllocation"); a = nullptr; }
+        for (auto*& s : split.encoder) { releaseSession(s); s = nullptr; }
+        releaseSession(split.body); split.body = nullptr;
+        for (auto& b : split.buffers) b.Reset();
+        split.holds[0] = split.holds[1] = 0;
+    }
     void releaseBinding() {
         if (!api) return;
         if (binding && !sehReleaseIoBinding(api, binding)) fault("ReleaseIoBinding");
@@ -306,6 +350,14 @@ struct PushFlowBackend::Impl {
                 if (OrtStatus* st = sehSync(api, binding, &crashed)) api->ReleaseStatus(st);
                 if (crashed) fault("SynchronizeBoundOutputs");
             }
+            // The split models' sessions the same way, each before anything of it is released.
+            for (OrtIoBinding* b : {split.encode[0][0], split.encode[1][0], split.run[0]}) {
+                if (!b || faulted || unguardedForTest()) continue;
+                bool crashed = false;
+                if (OrtStatus* st = sehSync(api, b, &crashed)) api->ReleaseStatus(st);
+                if (crashed) fault("SynchronizeBoundOutputs");
+            }
+            releaseSplit();
             if (runOptions) { api->ReleaseRunOptions(runOptions); runOptions = nullptr; }
             // Values and binding, then the allocations they wrapped, then the session (Microsoft's
             // samples free GPU allocations before the session that used them goes).
@@ -429,6 +481,7 @@ struct PushFlowBackend::Impl {
             std::string list;
             for (auto& [n, v] : overrides) list += std::format("{}{}={}", list.empty() ? "" : ", ", n, v);
             veyra::log::info("pushflow", "fixing free dimensions: " + list);
+            fixedDims = overrides;
             releaseSession(*out); *out = nullptr;
             if (!createSession(model, q, out, overrides)) return false;
         }
@@ -450,6 +503,7 @@ struct PushFlowBackend::Impl {
         if (!ok(api->GetAllocatorWithDefaultOptions(&allocator), "allocator")) return false;
         char* name = nullptr;
         if (!ok(api->SessionGetInputName(s, 0, allocator, &name), "input name")) return false;
+        inputName = name;
         const bool inOk = ok(api->BindInput(binding, name, values[0]), "bind input");
         api->AllocatorFree(allocator, name);
         if (!inOk) return false;
@@ -527,6 +581,110 @@ struct PushFlowBackend::Impl {
         const D3D12_RANGE none{0, 0}; rb->Unmap(0, &none);
         return out;
     }
+    // --- PushFlow 2: the encoder cache (see Split above) ---------------------------------------------
+    bool makeTensorBuffer(uint64_t bytes, ComPtr<ID3D12Resource>& out) {
+        D3D12_HEAP_PROPERTIES hp{}; hp.Type = D3D12_HEAP_TYPE_DEFAULT;
+        D3D12_RESOURCE_DESC bd{}; bd.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER; bd.Width = (bytes + 255) / 256 * 256; bd.Height = 1;
+        bd.DepthOrArraySize = 1; bd.MipLevels = 1; bd.SampleDesc.Count = 1; bd.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+        bd.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+        return SUCCEEDED(device->CreateCommittedResource(&hp, D3D12_HEAP_FLAG_NONE, &bd, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&out)));
+    }
+    // One binding of a split session: the model's own input; for the rest (feat0 given) the two frames'
+    // features in and the model's own outputs into the same buffers the whole model writes; for an
+    // encoder (featOut given) its features out.
+    OrtIoBinding* makeSplitBinding(OrtSession* s, OrtValue* feat0, OrtValue* feat1, OrtValue* featOut) {
+        OrtIoBinding* b = nullptr;
+        if (!ok(api->CreateIoBinding(s, &b), "split binding")) return nullptr;
+        bool good = ok(api->BindInput(b, inputName.c_str(), values[0]), "bind input");
+        if (good && feat0 && feat1) good = ok(api->BindInput(b, "pushflow_feat0", feat0), "bind first features") && ok(api->BindInput(b, "pushflow_feat1", feat1), "bind second features");
+        if (good && featOut) good = ok(api->BindOutput(b, "pushflow_feat", featOut), "bind features out");
+        if (good && !featOut) {
+            OrtAllocator* allocator = nullptr;
+            size_t outputs = 0;
+            good = ok(api->GetAllocatorWithDefaultOptions(&allocator), "allocator");
+            if (good) api->SessionGetOutputCount(s, &outputs);
+            const int tensors = haveGrids ? 5 : 2;
+            int bound = 0;
+            for (size_t i = 0; good && i < outputs; ++i) {
+                char* name = nullptr;
+                if (!ok(api->SessionGetOutputName(s, i, allocator, &name), "output name")) { good = false; break; }
+                const std::string n = name;
+                api->AllocatorFree(allocator, name);
+                const int slot = i == 0 ? 1 : n == "pushflow_grid0" ? 2 : n == "pushflow_grid1" ? 3 : n == "pushflow_mask" ? 4 : -1;
+                good = slot > 0 && slot < tensors && ok(api->BindOutput(b, n.c_str(), values[slot]), "bind output");
+                bound += good ? 1 : 0;
+            }
+            good = good && bound == tensors - 1;   // every buffer the whole model fills, and nothing else
+        }
+        if (!good) { if (!sehReleaseIoBinding(api, b)) fault("ReleaseIoBinding"); return nullptr; }
+        return b;
+    }
+    bool openSplit(const fs::path& dir, uint32_t tier, ID3D12CommandQueue* q) {
+        auto overrides = fixedDims;
+        overrides.emplace_back("pushflow_fh", int64_t(status.padH));
+        overrides.emplace_back("pushflow_fw", int64_t(status.padW));
+        const fs::path models = dir / L"models";
+        const bool held = status.poolHeld;   // createSession reports the last session's; keep the main session's word
+        const bool opened = createSession(models / splitFile(tier, 0), q, &split.encoder[0], overrides) &&
+                            createSession(models / splitFile(tier, 1), q, &split.encoder[1], overrides) &&
+                            createSession(models / splitFile(tier, 2), q, &split.body, overrides);
+        status.poolHeld = held && status.poolHeld;
+        if (!opened) return false;
+        size_t inputs[3]{}, outputs[3]{};
+        OrtSession* const sessions[3] = {split.encoder[0], split.encoder[1], split.body};
+        for (int i = 0; i < 3; ++i) { api->SessionGetInputCount(sessions[i], &inputs[i]); api->SessionGetOutputCount(sessions[i], &outputs[i]); }
+        if (inputs[0] != 1 || inputs[1] != 1 || outputs[0] != 1 || outputs[1] != 1 || inputs[2] != 3) {
+            veyra::log::error("pushflow", std::format("split models are not what PushFlow expects (inputs {} {} {}, outputs {} {} {})", inputs[0], inputs[1], inputs[2], outputs[0], outputs[1], outputs[2]));
+            return false;
+        }
+        const uint64_t count = uint64_t(facts.splitFeatures) * status.padW * status.padH;
+        const int64_t shape[4]{1, int64_t(facts.splitFeatures), int64_t(status.padH), int64_t(status.padW)};
+        for (int k = 0; k < 2; ++k) {
+            if (!makeTensorBuffer(count * 4, split.buffers[k])) { veyra::log::error("pushflow", "feature buffers"); return false; }
+            if (!ok(dml->CreateGPUAllocationFromD3DResource(split.buffers[k].Get(), &split.allocations[k]), "feature allocation")) return false;
+            if (!ok(api->CreateTensorWithDataAsOrtValue(memory, split.allocations[k], size_t(count * 4), shape, 4, ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, &split.values[k]), "feature tensor")) return false;
+        }
+        for (int e = 0; e < 2; ++e)
+            for (int k = 0; k < 2; ++k) {
+                split.encode[e][k] = makeSplitBinding(split.encoder[e], nullptr, nullptr, split.values[k]);
+                if (!split.encode[e][k]) return false;
+            }
+        for (int k = 0; k < 2; ++k) {
+            split.run[k] = makeSplitBinding(split.body, split.values[k], split.values[1 - k], nullptr);
+            if (!split.run[k]) return false;
+        }
+        return true;
+    }
+    // One generated frame through the split models. A new pair first gets its features: the first
+    // frame's are the ones the pair before left behind (the same real frame), else the first-frame
+    // encoder makes them. A buffer is marked empty while it is being written, so a failed run can
+    // never leave features under the wrong frame's number.
+    bool runSplit(bool async, bool& crashed) {
+        const OrtRunOptions* options = async ? runOptions : nullptr;
+        if (packedFull) {
+            int k = packedPrevious && split.holds[0] == packedPrevious ? 0 : packedPrevious && split.holds[1] == packedPrevious ? 1 : -1;
+            if (k < 0) {
+                k = 0;
+                split.holds[0] = split.holds[1] = 0;
+                if (!ok(sehRun(api, split.encoder[0], options, split.encode[0][0], &crashed), "encoder (first frame)") || crashed) return false;
+                split.holds[0] = packedPrevious;
+                featureMisses.fetch_add(1, std::memory_order_relaxed); encoderRuns.fetch_add(1, std::memory_order_relaxed);
+            } else {
+                featureHits.fetch_add(1, std::memory_order_relaxed);
+            }
+            split.holds[1 - k] = 0;
+            if (!ok(sehRun(api, split.encoder[1], options, split.encode[1][1 - k], &crashed), "encoder") || crashed) return false;
+            split.holds[1 - k] = packedCurrent;
+            encoderRuns.fetch_add(1, std::memory_order_relaxed);
+            split.first = k;
+            packedFull = false;
+        }
+        if (!ok(sehRun(api, split.body, options, split.run[split.first], &crashed), "the rest of the model") || crashed) return false;
+        if (!async)
+            for (OrtIoBinding* b : {split.encode[0][0], split.encode[1][0], split.run[split.first]})
+                if (!ok(sehSync(api, b, &crashed), "SynchronizeBoundOutputs") || crashed) return false;
+        return true;
+    }
     // DirectML records the network into its own command lists and may hold them back; synchronizing the
     // bound outputs submits them to the queue and waits, so the next list reads the finished output.
     // wait=true: the call returns only after the GPU finished the network (start-up checks).
@@ -535,6 +693,14 @@ struct PushFlowBackend::Impl {
         bool crashed = false;
         const bool async = queued && !wait && (syncEvery == 0 || ++sinceSync < syncEvery);
         if (!async) sinceSync = 0;
+        if (split.active) {
+            if (runSplit(async, crashed)) return true;
+            if (crashed) { fault("the split models"); return false; }
+            // A split run failed without a fault. The packed input is untouched, so the whole model makes
+            // this frame and every later one.
+            split.active = false; status.split = false; status.splitState = "failed";
+            veyra::log::error("pushflow", "the encoder cache failed; PushFlow goes on with the whole model");
+        }
         const bool done = ok(sehRun(api, session, async ? runOptions : nullptr, binding, &crashed), "RunWithBinding") && !crashed &&
                           (async || (ok(sehSync(api, binding, &crashed), "SynchronizeBoundOutputs") && !crashed));
         if (crashed) fault("RunWithBinding");
@@ -586,6 +752,8 @@ Telemetry PushFlowBackend::telemetry() const {
     std::lock_guard lock(p.telemetryMutex);
     Telemetry t;
     t.inferences = p.inferCount; t.fullPacks = p.fullPacks; t.timePacks = p.timePacks;
+    t.encoderRuns = p.encoderRuns.load(std::memory_order_relaxed); t.featureHits = p.featureHits.load(std::memory_order_relaxed);
+    t.featureMisses = p.featureMisses.load(std::memory_order_relaxed);
     const size_t n = std::min(p.inferSamples, kTelemetry);
     if (!n) return t;
     std::vector<float> v(p.inferRing.begin(), p.inferRing.begin() + ptrdiff_t(n));
@@ -597,7 +765,7 @@ Telemetry PushFlowBackend::telemetry() const {
 }
 
 bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue, const std::wstring& runtimeDir, uint32_t width, uint32_t height,
-                                 DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight) {
+                                 DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight, bool encoderCache) {
     p_ = std::make_unique<Impl>();
     auto& p = *p_;
     std::wstring why;
@@ -606,7 +774,7 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
         return false;
     }
 #ifndef VEYRA_HAVE_ONNXRUNTIME
-    (void)format; (void)encoding; (void)tier; (void)motionHeight;
+    (void)format; (void)encoding; (void)tier; (void)motionHeight; (void)encoderCache;
     return false;
 #else
     p.device = device; p.queue = queue; p.width = width; p.height = height; p.format = viewFormat(format); p.encoding = encoding;
@@ -778,6 +946,86 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
         p.status.warmupMs = second;
         veyra::log::info("pushflow", std::format("warm-up runs {:.1f} ms, then {:.1f} ms", first, second));
     }
+    // PushFlow 2, Fusion's first step (opt-in; Impl::Split, docs/PUSHFLOW2.md). Used only after the split
+    // models gave the whole model's picture on this graphics card, for a pair that starts with nothing
+    // kept and for the pair after it, whose first frame's features are the ones just kept. Whatever goes
+    // wrong here leaves PushFlow exactly as it is without the cache, and says why.
+    if (encoderCache) {
+        std::error_code sec;
+        const fs::path models = dir / L"models";
+        if (p.status.precision != "fp32") p.status.splitState = "half-precision";
+        else if (!p.facts.splitFeatures || !fs::is_regular_file(models / splitFile(tier, 0), sec) || !fs::is_regular_file(models / splitFile(tier, 1), sec) ||
+                 !fs::is_regular_file(models / splitFile(tier, 2), sec)) p.status.splitState = "no-files";
+        else if (!p.status.staticShapes || p.fixedDims.empty()) p.status.splitState = "dynamic-shapes";
+        else if (!p.openSplit(dir, tier, queue)) { p.releaseSplit(); p.status.splitState = p.faulted ? "failed" : "session"; }
+        else {
+            const size_t planeFloats = size_t(p.status.padW) * p.status.padH;
+            const auto forward = selfCheckInput(p.status.padW, p.status.padH, p.channels);
+            auto backward = forward;   // the two frames change places: its first frame is the pair before's second
+            std::swap_ranges(backward.begin(), backward.begin() + ptrdiff_t(3 * planeFloats), backward.begin() + ptrdiff_t(3 * planeFloats));
+            const auto agreement = [&](const std::vector<float>& want, const std::vector<float>& got) {
+                if (want.empty() || want.size() != got.size()) return 0.0;
+                double se = 0;
+                for (uint32_t c = 0; c < 3; ++c)
+                    for (uint32_t y = 0; y < p.status.modelH; ++y)
+                        for (uint32_t x = 0; x < p.status.modelW; ++x) {
+                            const size_t i = size_t(c) * planeFloats + size_t(y) * p.status.padW + x;
+                            if (!std::isfinite(got[i])) return 0.0;
+                            const double d = std::clamp(double(got[i]), 0.0, 1.0) - std::clamp(double(want[i]), 0.0, 1.0);
+                            se += d * d;
+                        }
+                const double mse = se / (3.0 * p.status.modelW * p.status.modelH);
+                return mse <= 1e-12 ? 99.0 : 10.0 * std::log10(1.0 / mse);
+            };
+            double worst = 99.0;
+            bool ran = true, crashed = false;
+            for (int pair = 0; ran && pair < 2; ++pair) {
+                const auto& input = pair == 0 ? forward : backward;
+                std::vector<float> want, got;
+                ran = p.uploadInput(input) && p.run(true);   // the whole model: the cache is not in use yet
+                if (ran) want = p.readRgb();
+                p.packedFull = true; p.packedPrevious = uint64_t(1 + pair); p.packedCurrent = uint64_t(2 + pair);
+                ran = ran && p.runSplit(false, crashed) && !crashed;
+                if (ran) got = p.readRgb();
+                if (ran) worst = std::min(worst, agreement(want, got));
+            }
+            const uint64_t kept = p.featureHits.load(std::memory_order_relaxed);
+            if (crashed) p.fault("the split models");
+            p.status.splitCheckDb = ran ? worst : 0.0;
+            // The second pair must have used what the first one kept, or the check did not test the cache.
+            const bool accepted = ran && !p.faulted && kept == 1 && worst >= 50.0;
+            if (accepted) {
+                // One frame each way, waited for, the split one with its first frame's features kept: what a
+                // steady 2X costs. Start-up numbers on an idle queue; a card test says more.
+                const auto timed = [&](bool useSplit) {
+                    const auto start = std::chrono::steady_clock::now();
+                    bool fault2 = false;
+                    const bool done = useSplit ? p.runSplit(false, fault2) && !fault2 : p.run(true);
+                    if (fault2) p.fault("the split models");
+                    return done ? std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count() : 0.0;
+                };
+                if (p.uploadInput(forward)) {
+                    p.status.wholeMs = timed(false);
+                    p.packedFull = true; p.packedPrevious = 3; p.packedCurrent = 4;   // the first frame is the one the check left kept
+                    p.status.splitMs = timed(true);
+                }
+            }
+            // Numbers used by the check must never meet a real frame's.
+            p.split.holds[0] = p.split.holds[1] = 0;
+            p.packedFull = false; p.packedPrevious = p.packedCurrent = 0;
+            p.encoderRuns = 0; p.featureHits = 0; p.featureMisses = 0;
+            if (accepted && !p.faulted && p.status.splitMs > 0) {
+                p.split.active = true; p.status.split = true; p.status.splitState = "on";
+            } else {
+                p.releaseSplit();
+                p.status.splitState = p.faulted ? "failed" : "mismatch";
+            }
+            veyra::log::info("pushflow", std::format("encoder cache self-check {:.1f} dB, kept features used {} -> {} (whole {:.1f} ms, split {:.1f} ms)",
+                p.status.splitCheckDb, kept, p.status.splitState, p.status.wholeMs, p.status.splitMs));
+        }
+        if (p.faulted) return false;
+        if (!p.status.split) veyra::log::warn("pushflow", "the encoder cache was asked for and is not used: " + p.status.splitState);
+    }
     // Queued inference (see Impl::runOptions); a failure here only keeps the waits.
     if (GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_SYNC", nullptr, 0) == 0) {
         if (p.ok(p.api->CreateRunOptions(&p.runOptions), "CreateRunOptions") &&
@@ -793,18 +1041,22 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
                                           : std::string("inference waits for the GPU each frame"));
     p.status.ready = true;
     veyra::log::info("pushflow", std::format("ready runtime={} model={} precision={} tier={} size={}x{} model={}x{} padded={}x{} channels={} "
-        "rebuild={} grids={} encoding={} loadMs={:.0f}", base->GetVersionString(), p.status.model, p.status.precision, tier, width, height,
+        "rebuild={} grids={} encoding={} encoderCache={} loadMs={:.0f}", base->GetVersionString(), p.status.model, p.status.precision, tier, width, height,
         p.status.modelW, p.status.modelH, p.status.padW, p.status.padH, p.channels, p.status.rebuild ? 1 : 0, p.haveGrids ? 1 : 0,
-        unsigned(encoding), std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - loadStart).count()));
+        unsigned(encoding), p.status.splitState.empty() ? std::string("not asked for") : p.status.splitState,
+        std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - loadStart).count()));
     return true;
 #endif
 }
 
-bool PushFlowBackend::pack(ID3D12GraphicsCommandList* list, ID3D12Resource* previous, ID3D12Resource* current, float timestep, bool timeOnly) {
+bool PushFlowBackend::pack(ID3D12GraphicsCommandList* list, ID3D12Resource* previous, ID3D12Resource* current, float timestep, bool timeOnly,
+                           uint64_t previousId, uint64_t currentId) {
     auto& p = *p_;
     if (!p.status.ready || !list || !previous || !current) return false;
     UINT srvFirst;
     if (!timeOnly) {
+        // A new pair: the next inference takes its features anew (the encoder cache; nothing else reads these).
+        p.packedFull = true; p.packedPrevious = previousId; p.packedCurrent = currentId;
         srvFirst = 1 + 2 * p.packRing;
         p.packRing = (p.packRing + 1) % kSrvRing;
         D3D12_SHADER_RESOURCE_VIEW_DESC view{};
@@ -869,8 +1121,10 @@ bool PushFlowBackend::infer() {
     }
     if (summarize) {
         const auto t = telemetry();
-        veyra::log::info("pushflow", std::format("telemetry inferences={} p50={:.2f}ms p95={:.2f}ms max={:.2f}ms fullPacks={} timePacks={} precision={} rebuild={}",
-            t.inferences, t.inferP50Ms, t.inferP95Ms, t.inferMaxMs, t.fullPacks, t.timePacks, p.status.precision, p.status.rebuild ? 1 : 0));
+        veyra::log::info("pushflow", std::format("telemetry inferences={} p50={:.2f}ms p95={:.2f}ms max={:.2f}ms fullPacks={} timePacks={} precision={} rebuild={} "
+            "encoderCache={} encoderRuns={} kept={} made={}",
+            t.inferences, t.inferP50Ms, t.inferP95Ms, t.inferMaxMs, t.fullPacks, t.timePacks, p.status.precision, p.status.rebuild ? 1 : 0,
+            p.status.splitState.empty() ? std::string("-") : p.status.splitState, t.encoderRuns, t.featureHits, t.featureMisses));
     }
     return done;
 #else

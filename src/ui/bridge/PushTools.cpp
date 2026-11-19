@@ -155,6 +155,7 @@ QString QmlPlayerBridge::pushPerformanceReport() const {
     if (gpuUtilizationKnown()) f.gpuPercent = gpuUtilization();
     f.pushFlowP50Ms = s.pushFlowP50Ms; f.pushFlowP95Ms = s.pushFlowP95Ms; f.pushFlowPrecision = s.pushFlowPrecision;
     f.pushFlowMotionWidth = s.pushFlowMotionWidth; f.pushFlowMotionHeight = s.pushFlowMotionHeight;
+    f.pushFlowEncoderCache = s.pushFlowEncoderCache; f.pushFlowWholeMs = s.pushFlowWholeMs; f.pushFlowSplitMs = s.pushFlowSplitMs;
     return QString::fromStdString(engine::perfreport::json(f));
 }
 

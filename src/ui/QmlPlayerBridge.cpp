@@ -3,6 +3,7 @@
 #include <QCoreApplication>
 #include <QTimer>
 #include "veyra/pushflow/PushFlowBackend.h"
+#include "veyra/pushflow/PushFlow2.h"
 #include "veyra/engine/PushStreamOverlay.h"
 #include "veyra/engine/MicrophoneCapture.h"
 #include "veyra/ui/NvidiaVrrProfileController.h"
@@ -210,6 +211,10 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     pushValidateHalfApproval();   // PushFlow half precision holds for one card, driver and version (PushFps.cpp)
     applyPreference(QStringLiteral("pushFlowHalf"));
     applyPreference(QStringLiteral("pushFlowMotion"));   // PushFlow's motion size, the tier's own unless chosen
+    // PushFlow 2's experiments (pushflow/PushFlow2.h): off unless switched on; VEYRA_PUSHFLOW2_OFF
+    // (`PushFPS.exe --safe-mode`) keeps them all off for this run and changes nothing that is saved.
+    pushflow2::setEmergencyOff(GetEnvironmentVariableW(L"VEYRA_PUSHFLOW2_OFF", nullptr, 0) > 0);
+    applyPreference(QStringLiteral("pushFlow2"));
     applyPreference(QStringLiteral("magewellLowLatency"));
     const bool presetsLoaded = impl_->facade.importLegacyStores();
     const auto presetNotice = uiText(impl_->facade.error());
@@ -443,6 +448,11 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
         if (impl_->prefInt("pushFlowMotion", 0) != 0) {
             setPreference(QStringLiteral("pushFlowMotion"), 0);
             veyra::log::warn("pushflow", "PushFPS stopped inside PushFlow last time; the chosen motion size is back on automatic");
+        }
+        // And every PushFlow 2 experiment is switched off: whatever was on may be what stopped it.
+        if (pushflow2::parse(impl_->prefs.value(QStringLiteral("pushFlow2")).toString().toStdString()).flags.bits != 0) {
+            setPreference(QStringLiteral("pushFlow2"), QString::fromStdString(pushflow2::serialize({})));
+            veyra::log::warn("pushflow", "PushFPS stopped inside PushFlow last time; the PushFlow 2 experiments are switched off");
         }
         if (settings().frameGenerationBackend == engine::FrameGenerationBackend::PushFlow) {
             const auto caps = effectCapabilities();

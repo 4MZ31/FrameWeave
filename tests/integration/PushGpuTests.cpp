@@ -1498,13 +1498,17 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
     Plane b{pipeline::makeTexture(device, W, H, fmt, false), fmt, W, H, 4};
     Plane out{pipeline::makeTexture(device, W, H, fmt, false), fmt, W, H, 4};
     checkOr(a.texture && b.texture && out.texture, "pushflow: textures created");
+    // What the next run() tells pack() besides the pictures: nothing, as every caller did before the
+    // encoder cache; its test sets the two frames' numbers and "the same pair again".
+    uint64_t packPrevious = 0, packCurrent = 0;
+    bool packTimeOnly = false;
     const auto run = [&](const std::vector<uint8_t>& pa, const std::vector<uint8_t>& pb, float t, pushflow::PushFlowBackend& flow, double* ms) {
         std::vector<uint8_t> result;
         if (!gpu.begin()) return result;
         auto ua = recordFill(gpu, a, pa, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
         auto ub = recordFill(gpu, b, pb, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
         // Wait for the pack list before resetting the allocator for the next one.
-        if (!flow.pack(gpu.list.Get(), a.texture.Get(), b.texture.Get(), t) || !gpu.submitAndWait()) return result;
+        if (!flow.pack(gpu.list.Get(), a.texture.Get(), b.texture.Get(), t, packTimeOnly, packPrevious, packCurrent) || !gpu.submitAndWait()) return result;
         const auto start = std::chrono::steady_clock::now();
         if (!flow.infer()) return result;
         if (!gpu.begin()) return result;
@@ -1690,6 +1694,72 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
                     "pushflow motion size: on a picture smaller than the chosen size nothing changes, and the tier still chooses the model");
         }
         checkOr(!gpu.debugErrors(), "pushflow motion size: no debug layer errors");
+    }
+    // PushFlow 2's encoder cache (opt-in; docs/PUSHFLOW2.md): each real frame encoded once, its features
+    // kept for the pair after it. Whatever it keeps or makes anew, the picture must be the whole model's.
+    for (uint32_t tier : {0u, 2u}) {
+        const std::string tag = "pushflow encoder cache, tier " + std::to_string(tier);
+        const std::vector<uint8_t> frames[4] = {flowFrame(W, H, 100), flowFrame(W, H, 116), flowFrame(W, H, 132), flowFrame(W, H, 148)};
+        const auto apart = [](const std::vector<uint8_t>& x, const std::vector<uint8_t>& y) {
+            if (x.empty() || x.size() != y.size()) return 255;
+            int worst = 0;
+            for (size_t i = 0; i < x.size(); ++i) worst = std::max(worst, std::abs(int(x[i]) - int(y[i])));
+            return worst;
+        };
+        packPrevious = packCurrent = 0; packTimeOnly = false;
+        std::vector<uint8_t> want01, want12, want12late, want23;
+        {
+            pushflow::PushFlowBackend whole;
+            if (whole.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, tier)) {
+                want01 = run(frames[0], frames[1], 0.5f, whole, nullptr);
+                want12 = run(frames[1], frames[2], 0.5f, whole, nullptr);
+                want12late = run(frames[1], frames[2], 0.75f, whole, nullptr);
+                want23 = run(frames[2], frames[3], 0.5f, whole, nullptr);
+                checkOr(whole.status().splitState.empty() && !whole.status().split && whole.telemetry().encoderRuns == 0, tag + ": not asked for, nothing of it runs");
+            }
+        }
+        checkOr(!want01.empty() && !want12.empty() && !want12late.empty() && !want23.empty(), tag + ": the whole model's pictures to compare with");
+        pushflow::PushFlowBackend cached;
+        const bool ready = cached.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, tier, 0, true);
+        checkOr(ready, tag + ": PushFlow starts with the cache asked for");
+        if (!ready) continue;
+        const auto st = cached.status();
+        std::printf("INFO %s: state '%s', start-up check %.1f dB, one frame whole %.1f ms, split %.1f ms\n", tag.c_str(), st.splitState.c_str(), st.splitCheckDb, st.wholeMs, st.splitMs);
+        checkOr(st.split && st.splitState == "on" && st.splitCheckDb >= 50.0, tag + ": the split models are in use after matching the whole model at start");
+        if (!st.split) continue;
+        checkOr(cached.telemetry().encoderRuns == 0 && cached.telemetry().featureHits == 0, tag + ": the start-up check leaves no count and nothing kept behind");
+        // A first pair: nothing kept, both frames encoded.
+        packPrevious = 1; packCurrent = 2;
+        const auto got01 = run(frames[0], frames[1], 0.5f, cached, nullptr);
+        // The pair after it: its first frame's features are the ones just kept.
+        packPrevious = 2; packCurrent = 3;
+        const auto got12 = run(frames[1], frames[2], 0.5f, cached, nullptr);
+        // The same pair at another time (3X and 4X): the rest of the model alone.
+        packTimeOnly = true;
+        const auto got12late = run(frames[1], frames[2], 0.75f, cached, nullptr);
+        packTimeOnly = false;
+        auto tel = cached.telemetry();
+        checkOr(tel.featureMisses == 1 && tel.featureHits == 1 && tel.encoderRuns == 3,
+                std::format("{}: two pairs and a second time cost three encoder runs, one frame's features kept (runs {}, kept {}, made {})", tag, tel.encoderRuns, tel.featureHits, tel.featureMisses));
+        checkOr(apart(got01, want01) <= 1 && apart(got12, want12) <= 1 && apart(got12late, want12late) <= 1,
+                std::format("{}: the pictures are the whole model's (worst of 255: first pair {}, kept features {}, second time {})", tag, apart(got01, want01), apart(got12, want12), apart(got12late, want12late)));
+        // Frames whose numbers are not known: nothing kept may be used.
+        packPrevious = packCurrent = 0;
+        const auto got23 = run(frames[2], frames[3], 0.5f, cached, nullptr);
+        // A pair that does not follow the one before (a pair was skipped): made anew.
+        packPrevious = 7; packCurrent = 8;
+        const auto got01again = run(frames[0], frames[1], 0.5f, cached, nullptr);
+        // And one whose first frame carries an old number that is no longer kept anywhere.
+        packPrevious = 2; packCurrent = 9;
+        const auto got12again = run(frames[1], frames[2], 0.5f, cached, nullptr);
+        packPrevious = packCurrent = 0;
+        tel = cached.telemetry();
+        checkOr(tel.featureMisses == 4 && tel.featureHits == 1 && tel.encoderRuns == 9,
+                std::format("{}: unknown, skipped and outdated frames are encoded again, never taken from what was kept (runs {}, kept {}, made {})", tag, tel.encoderRuns, tel.featureHits, tel.featureMisses));
+        checkOr(apart(got23, want23) <= 1 && apart(got01again, want01) <= 1 && apart(got12again, want12) <= 1,
+                std::format("{}: and their pictures are the whole model's too (worst of 255: {}, {}, {})", tag, apart(got23, want23), apart(got01again, want01), apart(got12again, want12)));
+        checkOr(cached.status().split, tag + ": still in use after every case");
+        checkOr(!gpu.debugErrors(), tag + ": no debug layer errors");
     }
     checkOr(!pushflow::crashedLastTime(), "pushflow: the crash marker is gone after a normal close");
 }

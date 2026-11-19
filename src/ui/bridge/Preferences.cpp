@@ -9,6 +9,7 @@
 #include "veyra/sink/SoundProfile.h"
 #include "veyra/pipeline/NisSettings.h"
 #include "veyra/pipeline/PushEnhanceShape.h"
+#include "veyra/pushflow/PushFlow2.h"
 #include "veyra/pushflow/PushFlowMotion.h"
 #include <QJsonArray>
 #include <QJsonObject>
@@ -460,6 +461,12 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         const QJsonDocument doc = QJsonDocument::fromJson(v.toUtf8(), &error);
         if (error.error != QJsonParseError::NoError || !doc.isObject()) return false;
         stored = v;
+    } else if (key == QLatin1String("pushFlow2")) {
+        // PushFPS: PushFlow 2's experiment switches (pushflow/PushFlow2.h): a small JSON object of yes/no
+        // values. Only text that reads as that is stored; what does not would read as "everything off".
+        const QString v = value.toString();
+        if (v.size() > 1024 || !pushflow2::parse(v.toStdString()).ok) return false;
+        stored = v;
     } else if (key == QLatin1String("pushGamePresets") || key == QLatin1String("pushBenchmark") || key == QLatin1String("pushLowestLatency") ||
                key == QLatin1String("studioScenes") || key == QLatin1String("pushOptimizeRestore") || key == QLatin1String("pushFlowHalfProbe") ||
                key == QLatin1String("pushOptimizeSkip")) {
@@ -605,6 +612,15 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
         const DWORD n = GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_PRECISION", current, 32);
         if (n == 0 || std::wstring_view(current) == L"fp16-checked")
             SetEnvironmentVariableW(L"VEYRA_PUSHFLOW_PRECISION", impl_->prefBool("pushFlowHalf", false) ? L"fp16-checked" : nullptr);
+    }
+    else if (key == QLatin1String("pushFlow2")) {
+        // Read when the graph is described, like the motion size below: a part switched on or off while
+        // PushFlow plays rebuilds PushFlow. Text that does not read (a damaged file) is everything off.
+        const auto flags = pushflow2::parse(impl_->prefs.value(QStringLiteral("pushFlow2")).toString().toStdString()).flags;
+        const bool changed = !(pushflow2::requested() == flags);
+        pushflow2::setRequested(flags);
+        if (changed && impl_->snapshot.running && settings().multiplier > 1 &&
+            settings().frameGenerationBackend == engine::FrameGenerationBackend::PushFlow) impl_->engine.refreshGraph();
     }
     else if (key == QLatin1String("pushFlowMotion")) {
         // Read when the graph is described. While PushFlow is the method in use, the engine is asked to

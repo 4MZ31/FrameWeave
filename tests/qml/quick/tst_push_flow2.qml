@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
-// PushFlow 2, the parts a user sees (3.2.7): the frame quality test says its worst frame and its worst
-// place (PushQualityTestDialog), and PushFlow's motion size can be chosen apart from its tier
-// (PushFlowMotionRow, preference pushFlowMotion), against the fixture bridge.
+// PushFlow 2, the parts a user sees: the frame quality test says its worst frame and its worst place
+// (PushQualityTestDialog), PushFlow's motion size can be chosen apart from its tier (PushFlowMotionRow,
+// preference pushFlowMotion), and each experiment has a switch that starts off and says whether it
+// really runs (PushFlow2Row, preference pushFlow2), against the fixture bridge.
 import QtQuick
 import QtTest
 import Veyra
@@ -12,6 +13,7 @@ Item {
     Item { id: host; anchors.fill: parent; property string dialog: ""; function close() { dialog = "" } }
     PushQualityTestDialog { id: quality; dialogHost: host }
     PushFlowMotionRow { id: motion; width: 620; y: 20 }
+    PushFlow2Row { id: fusion; width: 620; y: 140; part: "fusion"; title: "Encode each real frame once"; explanation: "What it does" }
 
     TestCase {
         name: "PushFlow2"
@@ -27,6 +29,7 @@ Item {
             veyra.qualityState = ({ running: false, done: false, failed: false })
             quality.st = ({})
             motion.readLive()
+            fusion.readLive()
         }
         function cleanup() { veyra.qualityModel = null; veyra.fgBackendName = "dlss"; veyra.hasSource = true }
         function control(item, name) { const c = findChild(item, name); verify(c !== null, name); return c }
@@ -56,6 +59,67 @@ Item {
             tryCompare(control(quality, "quality-test-score"), "visible", true, 3000)
             verify(!control(quality, "quality-test-worst-frame").visible)
             verify(!control(quality, "quality-test-worst-place").visible)
+        }
+
+        // --- PushFlow 2's experiment switches ----------------------------------------------------------
+        function flags() { return JSON.parse(veyra.preferences.pushFlow2 || "{}") }
+        function test_an_experiment_is_off_until_switched_on() {
+            const sw = control(fusion, "list-pushflow2-fusion")
+            verify(!fusion.asked && !sw.checked)
+            verify(veyra.preferences.pushFlow2 === undefined, "showing the row writes nothing")
+            const offHint = fusion.hint
+            verify(offHint.length > 0)
+            sw.toggled(true)
+            compare(flags().fusion, true)
+            compare(flags().v, 1)
+            verify(fusion.asked && sw.checked)
+            verify(fusion.hint !== offHint, "the hint says it is on")
+            sw.toggled(false)
+            compare(flags().fusion, false)
+            verify(!fusion.asked)
+            compare(fusion.hint, offHint)
+        }
+        function test_switching_one_experiment_keeps_what_else_is_stored() {
+            // Another part's switch, and a name a newer version wrote, stay as they are.
+            veyra.setPreference("pushFlow2", JSON.stringify({ v: 1, guard: true, somethingNew: true }))
+            control(fusion, "list-pushflow2-fusion").toggled(true)
+            const f = flags()
+            verify(f.fusion === true && f.guard === true && f.somethingNew === true)
+        }
+        function test_a_damaged_preference_reads_as_off() {
+            for (const text of ["", "not json", "[true]", "{\"fusion\":", "null", "7"]) {
+                veyra.setPreference("pushFlow2", text)
+                verify(!fusion.asked, "off for: " + text)
+            }
+            veyra.setPreference("pushFlow2", "{\"fusion\":\"yes\"}")
+            verify(!fusion.asked, "only true turns it on")
+            // Switching it on from a damaged preference writes a clean one.
+            veyra.setPreference("pushFlow2", "not json")
+            control(fusion, "list-pushflow2-fusion").toggled(true)
+            compare(flags().fusion, true)
+        }
+        function test_the_row_says_whether_the_experiment_really_runs() {
+            control(fusion, "list-pushflow2-fusion").toggled(true)
+            const waiting = fusion.hint
+            // PushFlow plays with the cache in use.
+            veyra.liveStats = ({ running: true, pushFlowMotionWidth: 960, pushFlowMotionHeight: 540, pushFlowEncoderCache: "on",
+                                 pushFlowWholeMs: 9.5, pushFlowSplitMs: 8.2, pushFlowFeaturesKept: 41, pushFlowFeaturesMade: 1 })
+            veyra.hasSource = true
+            tryCompare(fusion, "cacheState", "on", 3000)
+            verify(fusion.hint.indexOf("9.5") >= 0 && fusion.hint.indexOf("8.2") >= 0 && fusion.hint.indexOf("41") >= 0)
+            // Asked for and not used: the reason is said, in words.
+            veyra.liveStats = ({ running: true, pushFlowMotionWidth: 960, pushFlowMotionHeight: 540, pushFlowEncoderCache: "mismatch" })
+            tryCompare(fusion, "cacheState", "mismatch", 3000)
+            verify(fusion.hint.indexOf(fusion.why("mismatch")) >= 0 && fusion.why("mismatch") !== "mismatch")
+            for (const word of ["no-files", "half-precision", "dynamic-shapes", "session", "failed"]) verify(fusion.why(word) !== word, word)
+            // Started in safe mode: on, and said not to run.
+            veyra.liveStats = ({ running: true, pushFlowMotionWidth: 960, pushFlowMotionHeight: 540, pushFlowEncoderCache: "", pushFlow2Stopped: true })
+            tryCompare(fusion, "stopped", true, 3000)
+            verify(fusion.hint !== waiting)
+            // Nothing playing: back to what is known without the engine.
+            veyra.hasSource = false
+            tryCompare(fusion, "live", false, 3000)
+            compare(fusion.cacheState, "")
         }
 
         // --- PushFlow's motion size ----------------------------------------------------------------

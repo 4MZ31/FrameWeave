@@ -6614,6 +6614,23 @@
    "ru": "PushFPS предустановленный цвет (*.vpcolor); все файлы (*.*)"
   },
   {
+   "zh": "PushFlow 2：每个真实帧只编码一次（实验）",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "PushFlow 2：每個真實幀只編碼一次（實驗）",
+   "en": "PushFlow 2: encode each real frame once (experimental)",
+   "ja": "PushFlow 2：実フレームのエンコードは 1 回だけ（実験）",
+   "nl": "PushFlow 2: encode each real frame once (experimental)",
+   "de": "PushFlow 2: encode each real frame once (experimental)",
+   "es": "PushFlow 2: encode each real frame once (experimental)",
+   "fr": "PushFlow 2: encode each real frame once (experimental)",
+   "it": "PushFlow 2: encode each real frame once (experimental)",
+   "pt-BR": "PushFlow 2: encode each real frame once (experimental)",
+   "tr": "PushFlow 2: encode each real frame once (experimental)",
+   "ar": "PushFlow 2: encode each real frame once (experimental)",
+   "pl": "PushFlow 2: encode each real frame once (experimental)",
+   "ru": "PushFlow 2: encode each real frame once (experimental)"
+  },
+  {
    "zh": "PushFlow · PushFPS 自研 · 2X～4X",
    "src": "src/ui/bridge/FrameGeneration.cpp",
    "zh-TW": "PushFlow · PushFPS 自研 · 2X～4X",
@@ -6799,6 +6816,23 @@
    "ar": "PushFlow tier",
    "pl": "PushFlow tier",
    "ru": "PushFlow tier"
+  },
+  {
+   "zh": "PushFlow 的模型每生成一帧，都要把前后两个真实帧各编码一遍。开启后，每个真实帧只编码一次，结果留给下一对画面和同一对里的其他时刻使用，所以 3× 和 4× 省得更多。画面应当和不开启时一样：启动时会在你的显卡上和完整模型对比，不一致就不使用。它是否真的更快，取决于显卡，目前还没有在真实显卡上测过",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "PushFlow 的模型每生成一幀，都要把前後兩個真實幀各編碼一遍。開啟後，每個真實幀只編碼一次，結果留給下一對畫面和同一對裡的其他時刻使用，所以 3× 和 4× 省得更多。畫面應當和不開啟時一樣：啟動時會在你的顯示卡上和完整模型比對，不一致就不使用。它是否真的更快，取決於顯示卡，目前還沒有在真實顯示卡上測過",
+   "en": "For every frame it generates, PushFlow's model encodes both real frames again. With this on, each real frame is encoded once and the result is kept for the next pair and for the other moments of the same pair, so 3× and 4× save the most. The picture should be the same as without it: at start it is compared with the whole model on your graphics card, and it is not used if they differ. Whether it is really faster depends on the card and has not been measured on a real one yet",
+   "ja": "PushFlow のモデルは 1 フレーム生成するたびに、前後 2 枚の実フレームを両方エンコードし直します。オンにすると、実フレームごとのエンコードは 1 回だけになり、その結果を次の組や同じ組の別の時刻でも使うため、3× と 4× で特に効果があります。画質はオフのときと同じはずです。起動時にお使いのグラフィックカード上で完全なモデルと比較し、一致しなければ使いません。本当に速くなるかはカード次第で、実際のカードではまだ測定していません",
+   "nl": "For every frame it generates, PushFlow's model encodes both real frames again. With this on, each real frame is encoded once and the result is kept for the next pair and for the other moments of the same pair, so 3× and 4× save the most. The picture should be the same as without it: at start it is compared with the whole model on your graphics card, and it is not used if they differ. Whether it is really faster depends on the card and has not been measured on a real one yet",
+   "de": "For every frame it generates, PushFlow's model encodes both real frames again. With this on, each real frame is encoded once and the result is kept for the next pair and for the other moments of the same pair, so 3× and 4× save the most. The picture should be the same as without it: at start it is compared with the whole model on your graphics card, and it is not used if they differ. Whether it is really faster depends on the card and has not been measured on a real one yet",
+   "es": "For every frame it generates, PushFlow's model encodes both real frames again. With this on, each real frame is encoded once and the result is kept for the next pair and for the other moments of the same pair, so 3× and 4× save the most. The picture should be the same as without it: at start it is compared with the whole model on your graphics card, and it is not used if they differ. Whether it is really faster depends on the card and has not been measured on a real one yet",
+   "fr": "For every frame it generates, PushFlow's model encodes both real frames again. With this on, each real frame is encoded once and the result is kept for the next pair and for the other moments of the same pair, so 3× and 4× save the most. The picture should be the same as without it: at start it is compared with the whole model on your graphics card, and it is not used if they differ. Whether it is really faster depends on the card and has not been measured on a real one yet",
+   "it": "For every frame it generates, PushFlow's model encodes both real frames again. With this on, each real frame is encoded once and the result is kept for the next pair and for the other moments of the same pair, so 3× and 4× save the most. The picture should be the same as without it: at start it is compared with the whole model on your graphics card, and it is not used if they differ. Whether it is really faster depends on the card and has not been measured on a real one yet",
+   "pt-BR": "For every frame it generates, PushFlow's model encodes both real frames again. With this on, each real frame is encoded once and the result is kept for the next pair and for the other moments of the same pair, so 3× and 4× save the most. The picture should be the same as without it: at start it is compared with the whole model on your graphics card, and it is not used if they differ. Whether it is really faster depends on the card and has not been measured on a real one yet",
+   "tr": "For every frame it generates, PushFlow's model encodes both real frames again. With this on, each real frame is encoded once and the result is kept for the next pair and for the other moments of the same pair, so 3× and 4× save the most. The picture should be the same as without it: at start it is compared with the whole model on your graphics card, and it is not used if they differ. Whether it is really faster depends on the card and has not been measured on a real one yet",
+   "ar": "For every frame it generates, PushFlow's model encodes both real frames again. With this on, each real frame is encoded once and the result is kept for the next pair and for the other moments of the same pair, so 3× and 4× save the most. The picture should be the same as without it: at start it is compared with the whole model on your graphics card, and it is not used if they differ. Whether it is really faster depends on the card and has not been measured on a real one yet",
+   "pl": "For every frame it generates, PushFlow's model encodes both real frames again. With this on, each real frame is encoded once and the result is kept for the next pair and for the other moments of the same pair, so 3× and 4× save the most. The picture should be the same as without it: at start it is compared with the whole model on your graphics card, and it is not used if they differ. Whether it is really faster depends on the card and has not been measured on a real one yet",
+   "ru": "For every frame it generates, PushFlow's model encodes both real frames again. With this on, each real frame is encoded once and the result is kept for the next pair and for the other moments of the same pair, so 3× and 4× save the most. The picture should be the same as without it: at start it is compared with the whole model on your graphics card, and it is not used if they differ. Whether it is really faster depends on the card and has not been measured on a real one yet"
   },
   {
    "zh": "PushFlow 补帧使用 RIFE 神经网络（MIT，作者 hzwer），经 ONNX Runtime 与 DirectML 运行",
@@ -16662,6 +16696,23 @@
    "ru": "Half precision is not faster on this graphics card (%1 ms, %2 ms at full precision); staying on full precision"
   },
   {
+   "zh": "半精度开启时不可用",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "半精度開啟時無法使用",
+   "en": "not available while half precision is on",
+   "ja": "半精度がオンのときは使えません",
+   "nl": "not available while half precision is on",
+   "de": "not available while half precision is on",
+   "es": "not available while half precision is on",
+   "fr": "not available while half precision is on",
+   "it": "not available while half precision is on",
+   "pt-BR": "not available while half precision is on",
+   "tr": "not available while half precision is on",
+   "ar": "not available while half precision is on",
+   "pl": "not available while half precision is on",
+   "ru": "not available while half precision is on"
+  },
+  {
    "zh": "半精度测试没有完成（显卡驱动或 DirectML 在半精度下出错），继续使用全精度。PushFPS 不受影响",
    "src": "src/ui/bridge/PushFps.cpp",
    "zh-TW": "半精度測試沒有完成（顯示卡驅動程式或 DirectML 在半精度下出錯），繼續使用全精度。PushFPS 不受影響",
@@ -20385,6 +20436,23 @@
    "ru": "Скопируйте идентификатор учетной записи PSN с веб-сайта в поле сопряжения, а затем введите 8-значный код сопряжения консоли."
   },
   {
+   "zh": "在这块显卡上，结果和完整模型不一致",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "在這張顯示卡上，結果和完整模型不一致",
+   "en": "on this graphics card its result differs from the whole model's",
+   "ja": "このグラフィックカードでは結果が完全なモデルと一致しません",
+   "nl": "on this graphics card its result differs from the whole model's",
+   "de": "on this graphics card its result differs from the whole model's",
+   "es": "on this graphics card its result differs from the whole model's",
+   "fr": "on this graphics card its result differs from the whole model's",
+   "it": "on this graphics card its result differs from the whole model's",
+   "pt-BR": "on this graphics card its result differs from the whole model's",
+   "tr": "on this graphics card its result differs from the whole model's",
+   "ar": "on this graphics card its result differs from the whole model's",
+   "pl": "on this graphics card its result differs from the whole model's",
+   "ru": "on this graphics card its result differs from the whole model's"
+  },
+  {
    "zh": "在这里找到：%1",
    "src": "qml/PushStreamDialog.qml",
    "zh-TW": "在這裡找到：%1",
@@ -23086,6 +23154,23 @@
    "ar": "تجريبي",
    "pl": "Eksperymentalne",
    "ru": "Экспериментально"
+  },
+  {
+   "zh": "实验功能，默认关闭。关闭时 PushFlow 和以前完全一样",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "實驗功能，預設關閉。關閉時 PushFlow 和以前完全一樣",
+   "en": "Experimental, off by default. While off, PushFlow runs exactly as before",
+   "ja": "実験的な機能で、既定ではオフです。オフのあいだ PushFlow は以前とまったく同じです",
+   "nl": "Experimental, off by default. While off, PushFlow runs exactly as before",
+   "de": "Experimental, off by default. While off, PushFlow runs exactly as before",
+   "es": "Experimental, off by default. While off, PushFlow runs exactly as before",
+   "fr": "Experimental, off by default. While off, PushFlow runs exactly as before",
+   "it": "Experimental, off by default. While off, PushFlow runs exactly as before",
+   "pt-BR": "Experimental, off by default. While off, PushFlow runs exactly as before",
+   "tr": "Experimental, off by default. While off, PushFlow runs exactly as before",
+   "ar": "Experimental, off by default. While off, PushFlow runs exactly as before",
+   "pl": "Experimental, off by default. While off, PushFlow runs exactly as before",
+   "ru": "Experimental, off by default. While off, PushFlow runs exactly as before"
   },
   {
    "zh": "实验：采集画面无法抖动，这是 SMAA T2x / 4x 的不抖动近似；静止画面更稳，运动处可能拖影",
@@ -26216,6 +26301,23 @@
    "ru": "Вкл. · автоматически"
   },
   {
+   "zh": "已开启。PushFlow 运行时，这里会显示它是否真的在用",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "已開啟。PushFlow 執行時，這裡會顯示它是否真的在用",
+   "en": "On. While PushFlow runs, this line says whether it is really in use",
+   "ja": "オンです。PushFlow の動作中は、実際に使われているかをここに表示します",
+   "nl": "On. While PushFlow runs, this line says whether it is really in use",
+   "de": "On. While PushFlow runs, this line says whether it is really in use",
+   "es": "On. While PushFlow runs, this line says whether it is really in use",
+   "fr": "On. While PushFlow runs, this line says whether it is really in use",
+   "it": "On. While PushFlow runs, this line says whether it is really in use",
+   "pt-BR": "On. While PushFlow runs, this line says whether it is really in use",
+   "tr": "On. While PushFlow runs, this line says whether it is really in use",
+   "ar": "On. While PushFlow runs, this line says whether it is really in use",
+   "pl": "On. While PushFlow runs, this line says whether it is really in use",
+   "ru": "On. While PushFlow runs, this line says whether it is really in use"
+  },
+  {
    "zh": "已开启去除重复帧（自动）：视频在捕获中会重复帧，否则补帧看不出差别",
    "src": "src/ui/bridge/PushFps.cpp",
    "zh-TW": "已開啟去除重複幀（自動）：影片在擷取中會重複幀，否則補幀看不出差別",
@@ -26231,6 +26333,57 @@
    "ar": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference",
    "pl": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference",
    "ru": "Duplicate frame removal turned on (Auto): captured video repeats frames, so frame generation would otherwise show no difference"
+  },
+  {
+   "zh": "已开启，下一次 PushFlow 启动时生效",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "已開啟，下一次 PushFlow 啟動時生效",
+   "en": "On; it takes effect the next time PushFlow starts",
+   "ja": "オンです。次に PushFlow が起動したときから有効になります",
+   "nl": "On; it takes effect the next time PushFlow starts",
+   "de": "On; it takes effect the next time PushFlow starts",
+   "es": "On; it takes effect the next time PushFlow starts",
+   "fr": "On; it takes effect the next time PushFlow starts",
+   "it": "On; it takes effect the next time PushFlow starts",
+   "pt-BR": "On; it takes effect the next time PushFlow starts",
+   "tr": "On; it takes effect the next time PushFlow starts",
+   "ar": "On; it takes effect the next time PushFlow starts",
+   "pl": "On; it takes effect the next time PushFlow starts",
+   "ru": "On; it takes effect the next time PushFlow starts"
+  },
+  {
+   "zh": "已开启，但本次以安全模式启动，所有实验功能都不运行",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "已開啟，但本次以安全模式啟動，所有實驗功能都不執行",
+   "en": "On, but PushFPS was started in safe mode, so no experiment runs this time",
+   "ja": "オンですが、今回はセーフモードで起動したため、実験的な機能はどれも動きません",
+   "nl": "On, but PushFPS was started in safe mode, so no experiment runs this time",
+   "de": "On, but PushFPS was started in safe mode, so no experiment runs this time",
+   "es": "On, but PushFPS was started in safe mode, so no experiment runs this time",
+   "fr": "On, but PushFPS was started in safe mode, so no experiment runs this time",
+   "it": "On, but PushFPS was started in safe mode, so no experiment runs this time",
+   "pt-BR": "On, but PushFPS was started in safe mode, so no experiment runs this time",
+   "tr": "On, but PushFPS was started in safe mode, so no experiment runs this time",
+   "ar": "On, but PushFPS was started in safe mode, so no experiment runs this time",
+   "pl": "On, but PushFPS was started in safe mode, so no experiment runs this time",
+   "ru": "On, but PushFPS was started in safe mode, so no experiment runs this time"
+  },
+  {
+   "zh": "已开启，但没有使用：%1。PushFlow 照常运行",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "已開啟，但沒有使用：%1。PushFlow 照常執行",
+   "en": "On, but not in use: %1. PushFlow runs as usual",
+   "ja": "オンですが使われていません：%1。PushFlow は通常どおり動作します",
+   "nl": "On, but not in use: %1. PushFlow runs as usual",
+   "de": "On, but not in use: %1. PushFlow runs as usual",
+   "es": "On, but not in use: %1. PushFlow runs as usual",
+   "fr": "On, but not in use: %1. PushFlow runs as usual",
+   "it": "On, but not in use: %1. PushFlow runs as usual",
+   "pt-BR": "On, but not in use: %1. PushFlow runs as usual",
+   "tr": "On, but not in use: %1. PushFlow runs as usual",
+   "ar": "On, but not in use: %1. PushFlow runs as usual",
+   "pl": "On, but not in use: %1. PushFlow runs as usual",
+   "ru": "On, but not in use: %1. PushFlow runs as usual"
   },
   {
    "zh": "已开启，将在播放时请求可变刷新；是否生效以驱动报告为准",
@@ -29172,6 +29325,23 @@
    "ar": "يُدعم الآن ما يصل إلى {} X؛ ويُطبَّق كـ {} X",
    "pl": "Do {} X generacja ramki jest teraz obsługiwana; stosowane jako {} X",
    "ru": "До {} Генерация кадров X поддерживается сейчас; применяется как {} X"
+  },
+  {
+   "zh": "当前模型没有固定尺寸",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "目前模型沒有固定尺寸",
+   "en": "the model's size is not fixed",
+   "ja": "モデルのサイズが固定されていません",
+   "nl": "the model's size is not fixed",
+   "de": "the model's size is not fixed",
+   "es": "the model's size is not fixed",
+   "fr": "the model's size is not fixed",
+   "it": "the model's size is not fixed",
+   "pt-BR": "the model's size is not fixed",
+   "tr": "the model's size is not fixed",
+   "ar": "the model's size is not fixed",
+   "pl": "the model's size is not fixed",
+   "ru": "the model's size is not fixed"
   },
   {
    "zh": "当前源没有可选音轨。",
@@ -32538,6 +32708,23 @@
    "ar": "Sorry about that. The summary below helps us find the cause",
    "pl": "Sorry about that. The summary below helps us find the cause",
    "ru": "Sorry about that. The summary below helps us find the cause"
+  },
+  {
+   "zh": "拆分后的模型没能打开",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "拆分後的模型無法開啟",
+   "en": "the split models did not open",
+   "ja": "分割したモデルを開けませんでした",
+   "nl": "the split models did not open",
+   "de": "the split models did not open",
+   "es": "the split models did not open",
+   "fr": "the split models did not open",
+   "it": "the split models did not open",
+   "pt-BR": "the split models did not open",
+   "tr": "the split models did not open",
+   "ar": "the split models did not open",
+   "pl": "the split models did not open",
+   "ru": "the split models did not open"
   },
   {
    "zh": "拉亮暗部",
@@ -40308,6 +40495,23 @@
    "ar": "جارٍ تنزيل التحديث… %1%",
    "pl": "Pobieranie aktualizacji… %1%",
    "ru": "Загрузка обновления… %1%"
+  },
+  {
+   "zh": "正在使用。启动时测得：完整模型每帧 %1 ms，拆分后 %2 ms；已复用 %3 次，重新编码 %4 次",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "正在使用。啟動時測得：完整模型每幀 %1 ms，拆分後 %2 ms；已重複使用 %3 次，重新編碼 %4 次",
+   "en": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
+   "ja": "使用中です。起動時の測定：完全なモデル 1 フレーム %1 ms、分割後 %2 ms。再利用 %3 回、再エンコード %4 回",
+   "nl": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
+   "de": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
+   "es": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
+   "fr": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
+   "it": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
+   "pt-BR": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
+   "tr": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
+   "ar": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
+   "pl": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
+   "ru": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times"
   },
   {
    "zh": "正在保存正式文件",
@@ -57497,6 +57701,23 @@
    "ru": "Бег не удался, эффект был отключен. Код ошибки в журнале"
   },
   {
+   "zh": "运行时出错，已改回完整模型",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "執行時出錯，已改回完整模型",
+   "en": "a run failed, and the whole model took over",
+   "ja": "実行中にエラーが起き、完全なモデルに戻しました",
+   "nl": "a run failed, and the whole model took over",
+   "de": "a run failed, and the whole model took over",
+   "es": "a run failed, and the whole model took over",
+   "fr": "a run failed, and the whole model took over",
+   "it": "a run failed, and the whole model took over",
+   "pt-BR": "a run failed, and the whole model took over",
+   "tr": "a run failed, and the whole model took over",
+   "ar": "a run failed, and the whole model took over",
+   "pl": "a run failed, and the whole model took over",
+   "ru": "a run failed, and the whole model took over"
+  },
+  {
    "zh": "运行组件均为实验运行时，非 NVIDIA 官方合作或认证。详细哈希见 release-runtime-manifest.json。",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "執行組件均為實驗執行時，非 NVIDIA 官方合作或認證。詳細哈希見 release-runtime-manifest.json。",
@@ -57852,6 +58073,23 @@
    "ar": "لا توجد إعدادات مسبقة لهذا الوضع بعد.",
    "pl": "Ten tryb nie ma jeszcze presetów.",
    "ru": "В этом режиме пока нет пресетов."
+  },
+  {
+   "zh": "这个版本的 PushFlow 运行库里没有拆分后的模型",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "這個版本的 PushFlow 執行庫裡沒有拆分後的模型",
+   "en": "this PushFlow runtime has no split models",
+   "ja": "この PushFlow ランタイムには分割したモデルがありません",
+   "nl": "this PushFlow runtime has no split models",
+   "de": "this PushFlow runtime has no split models",
+   "es": "this PushFlow runtime has no split models",
+   "fr": "this PushFlow runtime has no split models",
+   "it": "this PushFlow runtime has no split models",
+   "pt-BR": "this PushFlow runtime has no split models",
+   "tr": "this PushFlow runtime has no split models",
+   "ar": "this PushFlow runtime has no split models",
+   "pl": "this PushFlow runtime has no split models",
+   "ru": "this PushFlow runtime has no split models"
   },
   {
    "zh": "这个画面来源不支持画质测试（画面不在内存里）；请用采集卡或画面输入接口",

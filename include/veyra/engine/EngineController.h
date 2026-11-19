@@ -143,6 +143,8 @@ struct PlayerSnapshot {
     int hudLockState=0;  // PushFPS Live HUD Lock: EnhanceGraph::hudLockState()
     // PushFlow while it runs: precision ("fp32"/"fp16"), full-resolution rebuild, inference p50/p95 (ms).
     std::string pushFlowPrecision; bool pushFlowRebuild=false; double pushFlowP50Ms=0, pushFlowP95Ms=0; uint32_t pushFlowMotionWidth=0, pushFlowMotionHeight=0;
+    // PushFPS: PushFlow 2's encoder cache ("" not asked for, "on", or why it is not used) and what it did.
+    std::string pushFlowEncoderCache; uint64_t pushFlowEncoderRuns=0, pushFlowFeaturesKept=0, pushFlowFeaturesMade=0; double pushFlowWholeMs=0, pushFlowSplitMs=0, pushFlowSplitCheckDb=0;
     uint64_t frames=0,generated=0;
     uint64_t captureReceived=0,captureDropped=0,nrEvaluated=0,nvofExecuted=0;
     uint64_t captureRateSkipped=0,processedCompleted=0;

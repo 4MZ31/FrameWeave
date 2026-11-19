@@ -66,10 +66,22 @@ struct Status {
     uint32_t modelW = 0, modelH = 0, padW = 0, padH = 0;
     // The model's grids and mask and how they are read (its <model>.onnx.txt; pushflow/PushFlowMotion.h).
     bool grids = false, alignCorners = true, maskForFirst = true;
+    // PushFlow 2, Fusion's first step (opt-in; docs/PUSHFLOW2.md): the model run as a per-frame encoder
+    // and the rest, each real frame encoded once. `split` is whether that is in use now; `splitState` is
+    // "" when it was not asked for, "on", or why not: "no-files" (the runtime has no split models),
+    // "half-precision", "dynamic-shapes", "session" (the split models did not open), "mismatch" (they
+    // did not give the whole model's picture on this graphics card) or "failed" (a run failed; the whole
+    // model took over).
+    bool split = false;
+    std::string splitState;
+    double splitCheckDb = 0;           // against the whole model at start-up (0 = not run)
+    double wholeMs = 0, splitMs = 0;   // one generated frame each way at start-up, waited for: a first indication only
 };
 
 struct Telemetry {
     uint64_t inferences = 0, fullPacks = 0, timePacks = 0;
+    // With the encoder cache: encoder runs, and pairs whose first frame's features were kept / had to be made.
+    uint64_t encoderRuns = 0, featureHits = 0, featureMisses = 0;
     double inferP50Ms = 0, inferP95Ms = 0, inferMaxMs = 0;   // the network's GPU span on the queue (CPU time of the call without timestamps)
 };
 
@@ -89,11 +101,16 @@ public:
 
     // `queue` is the queue every list below is submitted to; ONNX Runtime runs the network on it too.
     // motionHeight: 0 = the tier's own motion size, else 540 / 720 / 1080 (pushflow/PushFlowMotion.h).
+    // encoderCache: PushFlow 2's encoder cache is asked for (Status::split / splitState say what came of it).
     bool initialize(ID3D12Device* device, ID3D12CommandQueue* queue, const std::wstring& runtimeDir, uint32_t width, uint32_t height,
-                    DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight = 0);
+                    DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight = 0, bool encoderCache = false);
     // Records the input packing: `previous` and `current` must be in NON_PIXEL_SHADER_RESOURCE.
     // timeOnly: the same pair as the last call (later subframes): only the time plane is written.
-    bool pack(ID3D12GraphicsCommandList* list, ID3D12Resource* previous, ID3D12Resource* current, float timestep, bool timeOnly = false);
+    // previousId / currentId: which real frames these are, for the encoder cache: the same number means
+    // the same picture, a number is never used again for another, and 0 means "not known" (then nothing
+    // kept from an earlier pair is used). Without the cache they are not read.
+    bool pack(ID3D12GraphicsCommandList* list, ID3D12Resource* previous, ID3D12Resource* current, float timestep, bool timeOnly = false,
+              uint64_t previousId = 0, uint64_t currentId = 0);
     // After the list holding pack() was submitted to the queue: runs the network (submits to the queue).
     bool infer();
     // Records the output into an internal picture, then copies it to `output` (left in COPY_DEST).

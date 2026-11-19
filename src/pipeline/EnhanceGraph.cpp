@@ -1603,6 +1603,8 @@ EnhanceGraph::PushFlowSummary EnhanceGraph::pushFlowSummary() const {
     const auto t=pushFlow_->telemetry();
     s.precision=pushFlow_->status().precision;s.rebuild=pushFlow_->status().rebuild;s.p50Ms=t.inferP50Ms;s.p95Ms=t.inferP95Ms;
     s.motionWidth=pushFlow_->status().modelW;s.motionHeight=pushFlow_->status().modelH;
+    s.encoderCache=pushFlow_->status().splitState;s.encoderRuns=t.encoderRuns;s.featuresKept=t.featureHits;s.featuresMade=t.featureMisses;
+    s.wholeMs=pushFlow_->status().wholeMs;s.splitMs=pushFlow_->status().splitMs;s.splitCheckDb=pushFlow_->status().splitCheckDb;
     return s;
 }
 // PushFlow (pushflow/PushFlowBackend.h): RIFE on DirectML, any multiplier (the time of each frame).
@@ -1614,7 +1616,7 @@ bool EnhanceGraph::initPushFlow()
     const bool linear=format==DXGI_FORMAT_R16G16B16A16_FLOAT||format==DXGI_FORMAT_R16G16B16A16_TYPELESS;
     const auto encoding=linear?(desc_.hdrOutput?pushflow::Encoding::ScRgbHdr:pushflow::Encoding::LinearSdr):pushflow::Encoding::Encoded;
     pushFlow_=std::make_unique<pushflow::PushFlowBackend>();
-    if(!pushFlow_->initialize(context_.device(),ring_.queue(),desc_.runtimeAbsPath,workW_,workH_,format,encoding,desc_.vfgQuality,desc_.pushFlowMotion)){pushFlow_.reset();return false;}
+    if(!pushFlow_->initialize(context_.device(),ring_.queue(),desc_.runtimeAbsPath,workW_,workH_,format,encoding,desc_.vfgQuality,desc_.pushFlowMotion,desc_.pushFlowEncoderCache)){pushFlow_.reset();return false;}
     fgCapsAvailable_=true;fgMultiFrameMax_=3;
     failedBackend_=engine::FailedBackend::None;
     return true;
@@ -4113,7 +4115,9 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
             tracker_.transition(plist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
             tracker_.transition(plist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
             // The pair is packed once; later subframes only rewrite the time plane.
-            if(!pushFlow_->pack(plist,videoFrame_[1-parity].Get(),videoFrame_[parity].Get(),float(sub)/float(outputMultiplier),sub>1)){failedBackend_=engine::FailedBackend::Fg;return false;}
+            // The two real frames' numbers (this graph's own count, from 1) let the encoder cache keep the
+            // second frame's features for the pair after this one, where it is the first.
+            if(!pushFlow_->pack(plist,videoFrame_[1-parity].Get(),videoFrame_[parity].Get(),float(sub)/float(outputMultiplier),sub>1,realFrameIndex_,realFrameIndex_+1)){failedBackend_=engine::FailedBackend::Fg;return false;}
             tracker_.transition(plist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_COMMON);
             tracker_.transition(plist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COMMON);
             if(!submitGraph(slot))return false;
