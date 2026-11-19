@@ -55,7 +55,7 @@ What is in it:
 | `generatedFps` | The generated frames it showed in the last second |
 | `presentedFps`, `low1Fps` | Everything it showed, and the 1 % low |
 | `softwareLatencyMs` | Arrival in PushFPS to `Present`, mean and 95th percentile, with the sample count |
-| `frameGenerationHealth` | 0 fine; 2, 3 or 4 mean frame generation is on and shows nothing (the report says why) |
+| `frameGenerationHealth` | 0 fine; 1 nothing to add at this target or on this screen; 2, 3 or 4 mean frame generation is on and shows nothing (the notes in the report say which is which) |
 | `evidence` | What the numbers are worth, in words |
 
 What is never in it: your Windows user name, a file or folder, a device name, a network address, an account,

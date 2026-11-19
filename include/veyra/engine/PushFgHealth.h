@@ -15,7 +15,8 @@ namespace veyra::engine {
 
 enum class PushFgIdle : int {
     None = 0,      // generating, switched off, or nothing to judge
-    SameRate = 1,  // the multiplier in use is 1: the target is the game's own frame rate (no fault)
+    SameRate = 1,  // nothing to add: the multiplier in use is 1 (the target is the game's own frame rate),
+                   // or the screen cannot show more than the game's own frames (no fault)
     Inactive = 2,  // the chosen method is not running
     TooSlow = 3,   // the scheduler skips the generated frames: the graphics card does not keep up
     NoFrames = 4,  // the method runs and real frames arrive, yet nothing generated is shown
@@ -31,6 +32,7 @@ struct PushFgSample {
     bool settled = false;        // the applied settings are the ones asked for and the rate window is full
     bool active = false;         // the engine reports the method as running
     bool budgetLimited = false;  // the scheduler is skipping generated frames
+    bool displayLimited = false; // the engine's own hint: the output is more than the screen can show
     double contentFps = 0;       // distinct game pictures a second
     double realFps = 0;          // real frames presented a second
     double generatedFps = 0;     // generated frames presented a second
@@ -47,7 +49,9 @@ inline PushFgIdle pushFgIdleNow(const PushFgSample& s) {
     // as nothing (a tenth of the game's rate, at least 2 a second).
     if (s.generatedFps >= std::max(2.0, 0.1 * s.contentFps)) return PushFgIdle::None;
     if (!s.active) return PushFgIdle::Inactive;
-    if (s.multiplierNow > 0 && s.multiplierNow < 1.5) return PushFgIdle::SameRate;
+    // Frames that are made but have no place on the screen are not shown, and that is the screen's
+    // limit (the interface has its own hint for it), not a method that fails.
+    if (s.displayLimited || (s.multiplierNow > 0 && s.multiplierNow < 1.5)) return PushFgIdle::SameRate;
     if (s.budgetLimited) return PushFgIdle::TooSlow;
     return PushFgIdle::NoFrames;
 }

@@ -108,7 +108,10 @@ static QVariantMap scanEffectCapabilities() {
     QVariantMap out;
     auto add = [&](const QString& id, H hardware, bool files, const QString& requirement) {
         const bool supported = ui::hardwareSupports(hardware, gpu);
-        out[id] = QVariantMap{{"available", supported && files}, {"reason", !supported ? requirement : !files ? QObject::tr("当前包缺少此功能的运行组件") : QString{}}};
+        // PushFPS: missingFiles = the card could run it and only the files are not installed, so the
+        // interface can say how to get them (the installer's optional extras) instead of only "missing".
+        out[id] = QVariantMap{{"available", supported && files}, {"reason", !supported ? requirement : !files ? QObject::tr("当前包缺少此功能的运行组件") : QString{}},
+                              {"missingFiles", supported && !files}};
     };
     add("nr2", H::NvidiaNrSf, exists(nr / "nr-ampere/nvngx_dlssnr.dll"), QObject::tr("需要 NVIDIA RTX 显卡"));
     out["nr0"]=out["nr2"]; // Retired preset ID; no retired runtime is loaded.

@@ -34,6 +34,10 @@ int main() {
     { auto s = healthy(); s.generatedFps = 0; s.multiplierNow = 1; check(pushFgIdleNow(s) == PushFgIdle::SameRate, "a multiplier of 1 in use: the target is the game's own rate"); }
     { auto s = healthy(); s.generatedFps = 0; s.multiplierNow = 1; s.active = false; check(pushFgIdleNow(s) == PushFgIdle::Inactive, "a method that is not running comes first"); }
     { auto s = healthy(); s.generatedFps = 0; s.multiplierNow = 0; check(pushFgIdleNow(s) == PushFgIdle::NoFrames, "an unknown multiplier is no excuse"); }
+    { auto s = healthy(); s.generatedFps = 0; s.displayLimited = true; check(pushFgIdleNow(s) == PushFgIdle::SameRate, "a screen that cannot show more than the game's frames: its limit, not a fault"); }
+    { auto s = healthy(); s.generatedFps = 0; s.displayLimited = true; s.budgetLimited = true; check(pushFgIdleNow(s) == PushFgIdle::SameRate, "the screen's limit comes before the scheduler's skipping"); }
+    { auto s = healthy(); s.generatedFps = 0; s.displayLimited = true; s.active = false; check(pushFgIdleNow(s) == PushFgIdle::Inactive, "but a method that is not running is still that"); }
+    { auto s = healthy(); s.displayLimited = true; check(pushFgIdleNow(s) == PushFgIdle::None, "a screen limit with frames still shown is nothing"); }
     check(!pushFgIdleIsFault(PushFgIdle::None) && !pushFgIdleIsFault(PushFgIdle::SameRate), "generating and the same rate are no faults");
     check(pushFgIdleIsFault(PushFgIdle::Inactive) && pushFgIdleIsFault(PushFgIdle::TooSlow) && pushFgIdleIsFault(PushFgIdle::NoFrames), "the other three are");
     // Nothing to judge.

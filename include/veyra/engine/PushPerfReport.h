@@ -162,8 +162,8 @@ inline std::string json(const Facts& f) {
     o += "    \"pushFlowPrecision\": " + quoted(word(f.pushFlowPrecision)) + "\n";
     o += "  },\n";
     o += "  \"notes\": \"Rates are frames PushFPS presented in the last second. softwareLatency is a frame's arrival in PushFPS to its Present call: "
-         "not button to screen, and it leaves out the capture card, the console and the display. frameGenerationHealth: 0 fine, 1 the target is the "
-         "game's own rate, 2 the method is not running, 3 the card does not keep up, 4 nothing generated is shown.\"\n";
+         "not button to screen, and it leaves out the capture card, the console and the display. frameGenerationHealth: 0 fine, 1 nothing to add at this "
+         "target or on this screen, 2 the method is not running, 3 the card does not keep up, 4 nothing generated is shown.\"\n";
     o += "}\n";
     return o;
 }

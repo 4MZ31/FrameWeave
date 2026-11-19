@@ -560,6 +560,26 @@ Item {
             quick.liveStats = ({})
             veyra.fgEnabled = false
         }
+        function test_missing_enhancement_files_say_how_to_get_them() {
+            const row = control("pushfps-enhance-row")
+            const before = veyra.effectCapabilities
+            const how = "Install-PushFPS.cmd"
+            // The card could run it, the files were left out at installation: the reason and the way to get them.
+            veyra.effectCapabilities = ({ nr: { available: false, reason: "missing files", missingFiles: true } })
+            verify(!quick.nrPossible)
+            verify(row.hint.indexOf("missing files") === 0, "the reason comes first: " + row.hint)
+            verify(row.hint.indexOf(how) > 0, "then how to install the files")
+            verify(!control("pushfps-enhance").enabled, "the switch stays off until the files are there")
+            // A card that cannot run it at all: only the reason. Nothing to install would help.
+            veyra.effectCapabilities = ({ nr: { available: false, reason: "needs another card", missingFiles: false } })
+            compare(row.hint, "needs another card")
+            veyra.effectCapabilities = ({ nr: { available: false, reason: "needs another card" } })
+            compare(row.hint, "needs another card", "also when the flag is not there at all")
+            // Possible: the normal hint, without the installer.
+            veyra.effectCapabilities = before
+            verify(quick.nrPossible)
+            verify(row.hint.indexOf(how) < 0)
+        }
         function test_frame_generation_that_shows_no_frames_is_said_with_its_cause() {
             // engine/PushFgHealth.h reports it through pushLiveStats: 2 the method is not running,
             // 3 the card does not keep up, 4 nothing generated is shown.

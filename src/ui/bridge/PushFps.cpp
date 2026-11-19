@@ -97,8 +97,8 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     // What is really shown, a second: the game's own frames and the generated ones (FrameFlowWindow.h).
     m["realFps"] = flow.realPresentFps;
     m["generatedFps"] = flow.generatedPresentFps;
-    // Frame generation health (engine/PushFgHealth.h): 0 fine, 1 the target is the game's own rate,
-    // 2 the method is not running, 3 the card does not keep up, 4 nothing generated is shown.
+    // Frame generation health (engine/PushFgHealth.h): 0 fine, 1 nothing to add at this target or on
+    // this screen, 2 the method is not running, 3 the card does not keep up, 4 nothing generated is shown.
     m["fgIdle"] = impl_->fgIdle;
     m["fgIdleText"] = pushFgIdleText(impl_->fgIdle);
     m["displayRefreshHz"] = impl_->displayRefreshHz;
@@ -757,6 +757,7 @@ void QmlPlayerBridge::pushFlowBudgetWatch() {
                          flow.latest.frame.settingsRevision == s.applied.revision && flow.rateWindowReady;
         sample.active = s.fgActive;
         sample.budgetLimited = s.fgBudgetLimited;
+        sample.displayLimited = s.displayFgSuggestion > 0;   // DisplayFgBudget.h: the output exceeds the screen's refresh rate
         sample.contentFps = double(s.contentFps);
         sample.realFps = flow.realPresentFps;
         sample.generatedFps = flow.generatedPresentFps;

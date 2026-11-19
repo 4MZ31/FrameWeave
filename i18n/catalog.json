@@ -22408,6 +22408,23 @@
    "ru": "About %1 MB of memory when full (at most %2 MB); a saved clip takes about the same on disk. Buffering starts when something plays"
   },
   {
+   "zh": "它属于安装时可选的实验性附加组件：重新运行 Install-PushFPS.cmd，询问时回答 y 即可，设置会保留",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "它屬於安裝時可選的實驗性附加元件：重新執行 Install-PushFPS.cmd，詢問時回答 y 即可，設定會保留",
+   "en": "It is one of the installer's optional experimental extras: run Install-PushFPS.cmd again and answer y when it asks. Your settings are kept",
+   "ja": "インストーラーの任意の実験的追加コンポーネントに含まれます：Install-PushFPS.cmd をもう一度実行し、質問に y と答えてください。設定は保持されます",
+   "nl": "It is one of the installer's optional experimental extras: run Install-PushFPS.cmd again and answer y when it asks. Your settings are kept",
+   "de": "It is one of the installer's optional experimental extras: run Install-PushFPS.cmd again and answer y when it asks. Your settings are kept",
+   "es": "It is one of the installer's optional experimental extras: run Install-PushFPS.cmd again and answer y when it asks. Your settings are kept",
+   "fr": "It is one of the installer's optional experimental extras: run Install-PushFPS.cmd again and answer y when it asks. Your settings are kept",
+   "it": "It is one of the installer's optional experimental extras: run Install-PushFPS.cmd again and answer y when it asks. Your settings are kept",
+   "pt-BR": "It is one of the installer's optional experimental extras: run Install-PushFPS.cmd again and answer y when it asks. Your settings are kept",
+   "tr": "It is one of the installer's optional experimental extras: run Install-PushFPS.cmd again and answer y when it asks. Your settings are kept",
+   "ar": "It is one of the installer's optional experimental extras: run Install-PushFPS.cmd again and answer y when it asks. Your settings are kept",
+   "pl": "It is one of the installer's optional experimental extras: run Install-PushFPS.cmd again and answer y when it asks. Your settings are kept",
+   "ru": "It is one of the installer's optional experimental extras: run Install-PushFPS.cmd again and answer y when it asks. Your settings are kept"
+  },
+  {
    "zh": "安全",
    "src": "qml/ProDisplayPanel.qml",
    "zh-TW": "安全",

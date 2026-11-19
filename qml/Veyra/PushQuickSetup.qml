@@ -946,8 +946,13 @@ VGroup {
         objectName: "pushfps-enhance-row"
         label: qsTr("AI 画面增强")
         help: qsTr("用 AI 去掉采集卡压缩造成的色块和噪点，让细节更清楚。和补帧无关，可以单独开关")
+        // Not possible: the reason, and when the card could run it but its files were left out at
+        // installation (they are the installer's optional extras), how to get them.
+        readonly property var support: Support.status(veyra, "nr")
         hint: quick.nrPossible ? qsTr("关闭时只做补帧。开启后每帧都经过 NVIDIA 神经渲染（DLSS 5 NR）增强，画面更清晰，但更耗 GPU")
-                               : (Support.status(veyra, "nr").reason || "")
+                               : (support.reason || "") + (support.missingFiles === true
+                                   ? " " + qsTr("它属于安装时可选的实验性附加组件：重新运行 Install-PushFPS.cmd，询问时回答 y 即可，设置会保留") : "")
+        hintBelow: !quick.nrPossible && support.missingFiles === true
         VSwitch {
             objectName: "pushfps-enhance"
             enabled: quick.nrPossible
