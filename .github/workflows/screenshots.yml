@@ -162,7 +162,11 @@ jobs:
             # The crash notice: the note the crash handler would have left, written before the start.
             @{ name = '75-crash-notice'; crash = $true; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '76-card-test'; args = @('--page', 'home', '--dialog', 'cardtest', '--lang', 'en', '--pref', 'pushSunset=false') },
-            @{ name = '77-settings-card-test'; args = @('--page', 'set', '--tab', 'about', '--scroll-to', 'set-cardtest', '--lang', 'en', '--pref', 'pushSunset=false') }
+            @{ name = '77-settings-card-test'; args = @('--page', 'set', '--tab', 'about', '--scroll-to', 'set-cardtest', '--lang', 'en', '--pref', 'pushSunset=false') },
+            # Comparison clips (3.2.5): the Reveal layout with its sweep interval, and the clip quality of a split clip.
+            @{ name = '78-compare-reveal'; args = @('--page', 'home', '--dialog', 'compare', '--lang', 'en', '--pref', 'pushCompareLayout=3', '--pref', 'pushSunset=false') },
+            @{ name = '79-compare-split-quality'; args = @('--page', 'home', '--dialog', 'compare', '--lang', 'en', '--pref', 'pushCompareLayout=0', '--pref', 'pushCompareQuality=2160', '--pref', 'pushSunset=false') },
+            @{ name = '80-settings-performance-report'; args = @('--page', 'set', '--tab', 'about', '--scroll-to', 'set-perfreport', '--lang', 'en', '--pref', 'pushSunset=false') }
           )
           if ($env:ONLY) { $list = @($list | Where-Object { $_.name -match $env:ONLY }); Write-Host "Only: $($list.name -join ', ')" }
           foreach ($s in $list) {
