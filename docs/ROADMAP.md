@@ -44,6 +44,9 @@ These need card test results and performance reports from real cards before they
 | Quality test | Works on hardware-decoded sources; adds structural similarity and the worst frame | A score for every source, and no hidden bad frame |
 | Sound | A small clocked buffer with drift correction instead of skips | No clicks, steady lip sync |
 
+The larger plan for PushFlow (finding wrong places in a generated frame, reusing a pair's motion, a separate
+timeline for recording) and what was measured for it so far: [PushFlow 2](PUSHFLOW2.md).
+
 ## Needs hardware, or an agreement outside the code
 
 | Step | What it waits for |

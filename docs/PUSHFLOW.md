@@ -44,6 +44,24 @@ running. A passed test turns the switch on (preference `pushFlowHalf`, result in
 then still compares both at start and stays on fp32 if they do not match. `VEYRA_PUSHFLOW_PRECISION=fp16`
 forces the half model for developers.
 
+### The motion contract
+
+What the network gives besides its picture, in one place: `include/veyra/pushflow/PushFlowMotion.h`.
+
+- **Two grids.** For every pixel of the new frame, where to read the previous real frame and where to read the
+  current one. They are sampling positions for this one moment, not the motion from one real frame to the
+  next, and dividing them by the time does not make them that.
+- **A mask.** How much of each of the two readings goes into the pixel. It is a blend weight, not a measure of
+  how sure the network is: it is just as decided where the network is wrong
+  ([measured](PUSHFLOW2.md#measured-what-the-models-do-when-motion-is-too-fast)).
+- The header also holds a reference of the rebuild; the shader is checked against it pixel by pixel on the
+  software renderer, from the network's own grids and mask (`testPushFlow`).
+
+**Motion that is too fast.** An object that moves further between two real frames than the network can follow
+is left out of the generated frame (it is not shown twice). On drawn pictures that happens between 96 and 160
+of the network's own pixels per frame. Nothing hides or repairs that yet; [PushFlow 2](PUSHFLOW2.md) has what
+would, and what it waits for.
+
 ## Why PushFlow could stay at the game's frame rate
 
 **The cause none of the work below found (fixed in 3.2.2).** Until 3.2.2 PushFlow never generated a frame

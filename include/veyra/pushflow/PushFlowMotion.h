@@ -27,11 +27,13 @@
 //    occlusion included; dividing a grid's displacement by t does not give the motion from one real
 //    frame to the next, and nothing here pretends it does.
 //  - the mask is a blend weight, not a confidence and not a probability of error. Measured on the
-//    shipped models (scripts/pushflow/prepare_runtime.py motion_report, 19 November 2026): where the
-//    network cannot follow a motion its mask still decides for one sample, and where the mask keeps
-//    both samples they agree. A mask that keeps both where they differ is what a fade looks like,
-//    not what a failure looks like. So "the mask is undecided" cannot be used to find bad pixels:
-//    a guard built on it was written, measured and taken out again (docs/PUSHFLOW2.md).
+//    shipped models (scripts/pushflow/prepare_runtime.py motion_report; pushflow-models run
+//    44595965906, 19 November 2026): an object that moves further than the network can follow is left
+//    out of the in-between frame. At its old place the mask takes the current frame, at its new place
+//    the previous one, and each shows background there. The mask is as decided there as anywhere, and
+//    where it does keep both samples they agree. A mask that keeps both samples where they differ is
+//    what a fade looks like, not what a failure looks like: a guard built on "the mask is undecided"
+//    was written, measured and taken out again (docs/PUSHFLOW2.md).
 //
 // Sizes: the model runs on modelW x modelH (the tier's share of the picture), padded by repeating the
 // edge to padW x padH (a multiple of the model's block). Pixel centres are at whole numbers. An output
