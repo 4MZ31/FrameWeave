@@ -351,24 +351,27 @@ def motion_report(path: Path, channels: int, align: int, mask_for_first: bool) -
     return rows
 
 
-def guard_tiles(img0, img1, reads, w0, tile=16, change=0.05, unused=0.25, still=8.0, spread=1.5):
+GUARD_ROWS = False   # True: the study prints every row, not only its verdicts
+
+
+def guard_tiles(img0, img1, reads, w0, samples, tile=16, change=0.05, unused=0.25, agree=0.08, edge=1.5):
     """PushFlow 2's Guard at tile size: where was something in one of the two real frames left out of the
     generated frame?
 
     reads: for each of the two frames, where every pixel of the generated frame reads it (x, y in pixels);
-    w0: how much of the generated pixel is the first frame's sample. Three things must all hold for a tile:
+    w0: how much of the generated pixel is the first frame's sample; samples: the two samples themselves.
 
-      CHANGED   what the tile shows differs between the two frames once its own change of brightness is
-                taken out (a fade is not a change);
-      UNUSED    what one of the two frames shows there goes into the generated frame nowhere: of that
-                frame's tile, less than `unused` is read, weights counted, by any generated pixel
-                (an object the network followed is read where it now stands, so it is used);
-      STILL     nothing near it was moved by `still` pixels or more. A real motion reaches as far as
-                `spread` times its length, plus one tile: that is where a followed object uncovers
-                background and where a pan pushes the picture's edge out, both unused and both right.
+      CHANGED  what the tile shows differs between the two frames once its own change of brightness is
+               taken out (a fade is not a change).
+      SHOWN    a place in a real frame is shown by a generated pixel that reads it when that pixel takes
+               it (its weight), or when the pixel's other sample is the same picture (within `agree`):
+               the network often takes one frame only, and what it shows of the other is then the same
+               thing. A tile of a frame is UNUSED when less than `unused` of it is shown anywhere.
+      EDGE     tiles as near the picture's edge as the picture's motion reaches (`edge` times its 95th
+               percentile, plus one tile) are left alone: a pan pushes them out of the picture, unused and right.
 
-    Changed, unused and still = something moved that the network did not follow, and the generated frame
-    shows it nowhere. Returns (risky, changed, unused_either, moving_near), [tiles down, tiles across]."""
+    Changed and unused, away from the edge = something moved that the network did not follow, and the
+    generated frame shows it nowhere. Returns (risky, changed, unused_either), [tiles down, tiles across]."""
     import numpy as np
     h, w = w0.shape
     th, tw = h // tile, w // tile
@@ -377,22 +380,22 @@ def guard_tiles(img0, img1, reads, w0, tile=16, change=0.05, unused=0.25, still=
     l0, l1 = tiles(img0.mean(axis=0)), tiles(img1.mean(axis=0))
     d = np.abs((l0 - l0.mean(axis=(1, 3), keepdims=True)) - (l1 - l1.mean(axis=(1, 3), keepdims=True))).mean(axis=(1, 3))
     changed = d > change
+    same = 1.0 - np.clip(np.abs(samples[0] - samples[1]).max(axis=0) / agree, 0.0, 1.0)
     yo, xo = np.mgrid[0:h, 0:w]
     used, far = [], []
     for (xm, ym), weight in zip(reads, (w0, 1.0 - w0)):
         tx, ty = np.floor(xm / tile).astype(np.int64), np.floor(ym / tile).astype(np.int64)
         inside = (tx >= 0) & (tx < tw) & (ty >= 0) & (ty < th)
         count = np.zeros((th, tw))
-        np.add.at(count, (ty[inside], tx[inside]), weight[inside])
+        np.add.at(count, (ty[inside], tx[inside]), np.maximum(weight, same)[inside])
         used.append(count / float(tile * tile))
         far.append(np.hypot(xm - xo, ym - yo))
     unused_either = np.minimum(used[0], used[1]) < unused
-    moved = tiles(np.maximum(far[0], far[1])).max(axis=(1, 3))
-    near = np.zeros((th, tw), bool)
-    for ty, tx in zip(*np.nonzero(moved >= still)):
-        r = int(np.ceil(spread * moved[ty, tx] / tile)) + 1
-        near[max(0, ty - r):ty + r + 1, max(0, tx - r):tx + r + 1] = True
-    return changed & unused_either & ~near, changed, unused_either, near
+    reach = int(np.ceil(edge * float(np.percentile(np.maximum(far[0], far[1]), 95)) / tile)) + 1
+    inner = np.zeros((th, tw), bool)
+    if th > 2 * reach and tw > 2 * reach:
+        inner[reach:th - reach, reach:tw - reach] = True
+    return changed & unused_either & inner, changed, unused_either
 
 
 def guard_report(path: Path, channels: int, align: int, mask_for_first: bool) -> list[dict]:
@@ -425,7 +428,7 @@ def guard_report(path: Path, channels: int, align: int, mask_for_first: bool) ->
         mask = np.clip(bilinear_at(np.asarray(m)[0], yo, xo)[0], 0, 1)
         w0 = mask if mask_for_first else 1 - mask
         picture = samples[0] * w0 + samples[1] * (1 - w0)
-        risky, changed, unused, near = guard_tiles(img0, img1, reads, w0, tile, **rule)
+        risky, changed, unused = guard_tiles(img0, img1, reads, w0, samples, tile, **rule)
         full = np.zeros((h, w), bool)
         area = np.kron(risky, np.ones((tile, tile), bool))
         full[:area.shape[0], :area.shape[1]] = area
@@ -464,9 +467,19 @@ def guard_report(path: Path, channels: int, align: int, mask_for_first: bool) ->
         study("square moved 8 px over a still texture", over(100, 0), over(108, 0), over(104, 0), 8, **rule)
         study("square moved 200 px over a still texture", over(100, 0), over(300, 0), over(200, 0), 200, **rule)
     cases()
-    cases(still=16.0)
-    cases(still=24.0, unused=0.15)
-    return rows
+    cases(agree=0.04)
+    cases(agree=0.15, unused=0.15)
+    # The verdict, so that the log can be read without the rows: what the rule broke, and what it mended.
+    verdicts = []
+    for rule in ("default", {"agree": 0.04}, {"agree": 0.15, "unused": 0.15}):
+        mine = [r for r in rows if r["rule"] == rule]
+        fine = [r for r in mine if "db" in r and r["db"][0] >= 30.0]                       # the model had it right
+        harmed = [f"{r['pair']}: {r['replaced']}%" for r in fine if r["replaced"] > 0.1]
+        lost = [r for r in mine if "old_place_vs_earlier_frame" in r and r["middle_error"][0] > 0.2]   # the object was left out
+        mended = [f"{r['pair']}: old place {r['old_place_vs_earlier_frame'][0]} -> {r['old_place_vs_earlier_frame'][1]}" for r in lost]
+        other = [f"{r['pair']}: {r['replaced']}%" for r in mine if r not in fine and r not in lost and r["replaced"] > 0.1]
+        verdicts.append({"verdict_for_rule": rule, "right_pictures": len(fine), "harmed": harmed, "left_out": mended, "replaced_where_the_model_was_lost": other})
+    return verdicts if not GUARD_ROWS else rows + verdicts
 
 
 def fusion_report(path: Path, channels: int) -> dict:
