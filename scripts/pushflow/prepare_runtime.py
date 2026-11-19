@@ -324,6 +324,24 @@ def motion_report(path: Path, channels: int, align: int, mask_for_first: bool) -
     dim = (frame(w, h, 100) * 0.6).astype(np.float32)
     bright = np.clip(dim + 0.3, 0, 1).astype(np.float32)
     study("a fade (0.3 brighter, nothing moves)", dim, bright, ((dim + bright) / 2).astype(np.float32))
+    # The same too-fast motion with the network at half and at a quarter of the picture's size, the
+    # picture rebuilt at full size from the full-size frames (what the tiers do): is the reach a number
+    # of the network's own pixels? (512 x 384, so that every size is a multiple of the model's block.)
+    W2, H2 = 512, 384
+    for move in (96, 160, 256):
+        f0, f1, truth = frame(W2, H2, 100), frame(W2, H2, 100 + move), frame(W2, H2, 100 + move / 2)
+        box = (slice(int(H2 * 0.35), int(H2 * 0.35) + 40), slice(int(100 + move / 2), int(100 + move / 2) + 40))
+        row = {"pair": f"square moved {move} px, 512 x 384"}
+        for label, factor in (("full", 1), ("half", 2), ("quarter", 4)):
+            try:
+                s0, s1 = (f0, f1) if factor == 1 else (resize_box(f0, factor), resize_box(f1, factor))
+                _, g0, g1, m = session.run(None, {name: tensor(s0, s1, 0.5, channels)})[:4]
+                picture = np.clip(rebuild_scaled(f0, f1, g0, g1, m, align, mask_for_first, (H2 // factor, W2 // factor)), 0, 1)
+                row[f"{label}_size_db"] = round(psnr(picture, truth), 2)
+                row[f"{label}_size_middle_error"] = round(float(np.abs(picture - truth)[:, box[0], box[1]].mean()), 3)
+            except Exception as e:  # noqa: BLE001 - a size this model does not take
+                row[f"{label}_size_db"] = f"not run: {e}"[:80]
+        rows.append(row)
     return rows
 
 

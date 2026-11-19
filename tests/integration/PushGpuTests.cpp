@@ -1593,10 +1593,10 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
             const auto st = flow.status();
             const pushflow::motion::Geometry geo{W, H, st.modelW, st.modelH, st.padW, st.padH, st.alignCorners, st.maskForFirst};
             const uint64_t plane = uint64_t(st.padW) * st.padH;
-            const auto far = flowFrame(W, H, 196), other = detailFrame(W, H, 0);
+            const auto moved96 = flowFrame(W, H, 196), other = detailFrame(W, H, 0);
             struct Pair { const char* name; const std::vector<uint8_t>* a; const std::vector<uint8_t>* b; float t; };
-            const Pair pairs[] = {{"a square moved 16 pixels", &first, &second, 0.5f}, {"a square moved 96 pixels", &first, &far, 0.5f},
-                                  {"a square moved 96 pixels, at three quarters", &first, &far, 0.75f}, {"fine texture panned 8 pixels", &d0, &d1, 0.5f},
+            const Pair pairs[] = {{"a square moved 16 pixels", &first, &second, 0.5f}, {"a square moved 96 pixels", &first, &moved96, 0.5f},
+                                  {"a square moved 96 pixels, at three quarters", &first, &moved96, 0.75f}, {"fine texture panned 8 pixels", &d0, &d1, 0.5f},
                                   {"two unrelated pictures", &first, &other, 0.5f}};
             for (const Pair& pair : pairs) {
                 const auto picture = run(*pair.a, *pair.b, pair.t, flow, nullptr);
