@@ -10,9 +10,12 @@ import "../qml/Veyra/PushCrop.js" as Crop
 Item {
     id: root
     width: 1000; height: 1100
-    Item { id: host; anchors.fill: parent; property string dialog: ""; function close() { dialog = "" } }
-    PushCropDialog { id: dlg; dialogHost: host; frameAspect: 16 / 9 }
+    // The quick setup first, so the dialog (which lives in the host while it is open) lies over it as in
+    // the program: with the panel on top, a press in the middle of the editor's picture went to
+    // whichever of the panel's controls happened to be there.
     PushQuickSetup { id: quick; width: 560; y: 20 }
+    Item { id: host; anchors.fill: parent; z: 10; property string dialog: ""; function close() { dialog = "" } }
+    PushCropDialog { id: dlg; dialogHost: host; frameAspect: 16 / 9 }
 
     function pref(key) { return veyra.preferences[key] }
     function sides() { const c = Crop.read(veyra.preferences); return [c.l, c.t, c.r, c.b] }
