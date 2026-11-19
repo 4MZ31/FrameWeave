@@ -18,6 +18,7 @@
 #include <QScopedValueRollback>
 #include "veyra/ui/EffectAvailability.h"
 #include "veyra/engine/FrameGenerationSelection.h"
+#include "veyra/engine/PushFgHealth.h"
 #include "veyra/ui/QmlExportQueueModel.h"
 #include "veyra/ui/PlaylistModel.h"
 #include "veyra/ui/UpdateChecker.h"
@@ -229,6 +230,11 @@ struct QmlPlayerBridge::Impl {
         int cadenceSeconds = 0;         // the cadence notice: seconds of 60 measured for a 30 FPS game
         uint64_t cadenceSession = 0;
     } pushFlowWatch;
+    // PushFPS frame generation health (engine/PushFgHealth.h): fed once a second by pushFlowBudgetWatch.
+    engine::PushFgHealth fgHealth;
+    int fgIdle = 0;                 // the cause it reports now (engine::PushFgIdle), for pushLiveStats
+    uint64_t fgIdleSession = 0;     // the source a notice was last shown for
+    int fgIdleNotified = 0;         // and the cause it named
     QProcess* pushFlowHalfTest = nullptr;   // PushFlowBench --fp16-probe while it runs
     // PushFPS crash notice and graphics card test (bridge/PushTools.cpp).
     QVariantMap pushCrashReport;            // what the previous run left behind; empty: it did not crash
@@ -1016,6 +1022,7 @@ struct QmlPlayerBridge::Impl {
 uint32_t primaryGpuVendor();
 bool fsr4Possible();
 const DXGI_ADAPTER_DESC1* engineAdapterDesc();
+QString engineAdapterDriverVersion();   // "a.b.c.d" of that adapter, empty when unknown (Hardware.cpp)
 bool vfgHardwarePossible();
 unsigned normalizeFgMultiplier(unsigned value, engine::FrameGenerationBackend backend, unsigned cap);
 QString fgEffectId(engine::FrameGenerationBackend backend);

@@ -1026,6 +1026,18 @@ target_include_directories(veyra_push_archive_paths_tests PRIVATE ${CMAKE_CURREN
 add_executable(veyra_push_compare_plan_tests tests/unit/PushComparePlanTests.cpp src/engine/RecordingComparePlan.cpp)
 target_compile_features(veyra_push_compare_plan_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_compare_plan_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS frame generation health (engine/PushFgHealth.h, pure): on and nothing generated is said, with its cause.
+add_executable(veyra_push_fg_health_tests tests/unit/PushFgHealthTests.cpp)
+target_compile_features(veyra_push_fg_health_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_fg_health_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS PushFlow half precision (engine/PushHalfApproval.h, pure): a pass holds for one card, driver and version.
+add_executable(veyra_push_half_approval_tests tests/unit/PushHalfApprovalTests.cpp)
+target_compile_features(veyra_push_half_approval_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_half_approval_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS performance report (engine/PushPerfReport.h, pure): what was measured, and nothing personal.
+add_executable(veyra_push_perf_report_tests tests/unit/PushPerfReportTests.cpp)
+target_compile_features(veyra_push_perf_report_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_perf_report_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS crash notice: the summary a user can copy holds nothing personal (engine/PushCrashNote.h, pure).
 add_executable(veyra_push_crash_note_tests tests/unit/PushCrashNoteTests.cpp)
 target_compile_features(veyra_push_crash_note_tests PRIVATE cxx_std_20)

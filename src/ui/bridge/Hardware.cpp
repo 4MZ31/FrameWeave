@@ -42,6 +42,30 @@ const DXGI_ADAPTER_DESC1* engineAdapterDesc(){
         }
     return found?&cached:nullptr;
 }
+// PushFPS: the driver version of that adapter as Windows reports it, "a.b.c.d" (for NVIDIA the last
+// five digits are the public number: 32.0.15.7652 is driver 576.52). Empty when it cannot be read.
+// For the performance report and for results that only hold for one card and driver. UI thread.
+QString engineAdapterDriverVersion(){
+    static uint64_t cachedFor=~0ull;static QString cached;
+    const uint64_t preferred=gfx::preferredAdapterLuid();
+    const auto* desc=engineAdapterDesc();
+    if(!desc)return {};
+    if(cachedFor==preferred)return cached;
+    cachedFor=preferred;cached.clear();
+    Microsoft::WRL::ComPtr<IDXGIFactory1> factory;
+    if(FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))))return cached;
+    for(UINT i=0;;++i){
+        Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+        if(FAILED(factory->EnumAdapters1(i,&adapter))||!adapter)break;
+        DXGI_ADAPTER_DESC1 d{};
+        if(FAILED(adapter->GetDesc1(&d))||d.AdapterLuid.HighPart!=desc->AdapterLuid.HighPart||d.AdapterLuid.LowPart!=desc->AdapterLuid.LowPart)continue;
+        LARGE_INTEGER version{};
+        if(SUCCEEDED(adapter->CheckInterfaceSupport(__uuidof(IDXGIDevice),&version)))
+            cached=QStringLiteral("%1.%2.%3.%4").arg(HIWORD(version.HighPart)).arg(LOWORD(version.HighPart)).arg(HIWORD(version.LowPart)).arg(LOWORD(version.LowPart));
+        break;
+    }
+    return cached;
+}
 // The menu checks the same adapter as the engine. The native backend then
 // verifies CUDA compute capability and the exact adapter LUID.
 bool vfgHardwarePossible(){

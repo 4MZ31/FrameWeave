@@ -1911,6 +1911,7 @@ VPage {
                                 help: qsTr("半精度（fp16）通常让 PushFlow 的网络快一倍左右，但是否可用取决于显卡、驱动和 DirectML。测试在单独的进程里运行，出错也不会影响 PushFPS")
                                 hint: testing ? qsTr("正在测试，约需半分钟…")
                                     : pushFlowHalfRow.probe.ok === true ? qsTr("已通过测试：每帧 %1 ms，全精度 %2 ms").arg(Number(pushFlowHalfRow.probe.halfMs || 0).toFixed(1)).arg(Number(pushFlowHalfRow.probe.fullMs || 0).toFixed(1))
+                                    : pushFlowHalfRow.probe.reason === "retest" ? qsTr("显卡、驱动或 PushFPS 版本变了：请重新测试后再开启。现在使用全精度")
                                     : pushFlowHalfRow.probe.reason ? qsTr("上次测试没有通过，使用全精度")
                                     : qsTr("先测试这块显卡；通过后才能开启。请在没有播放时测试")
                                 hintBelow: true

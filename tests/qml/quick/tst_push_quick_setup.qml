@@ -560,6 +560,51 @@ Item {
             quick.liveStats = ({})
             veyra.fgEnabled = false
         }
+        function test_frame_generation_that_shows_no_frames_is_said_with_its_cause() {
+            // engine/PushFgHealth.h reports it through pushLiveStats: 2 the method is not running,
+            // 3 the card does not keep up, 4 nothing generated is shown.
+            const row = findChild(quick, "pushfps-fg-idle-row")
+            verify(row !== null)
+            veyra.fgEnabled = true
+            veyra.liveStats = ({ running: true, fgIdle: 0, fgIdleText: "" })
+            quick.readFgHealth()
+            compare(quick.fgIdle, 0)
+            verify(!row.visible, "nothing is shown while frames are generated")
+            for (const cause of [2, 3, 4]) {
+                veyra.liveStats = ({ running: true, fgIdle: cause, fgIdleText: "cause " + cause })
+                quick.readFgHealth()
+                compare(quick.fgIdle, cause)
+                verify(row.visible, "cause " + cause + " is shown")
+                compare(row.hint, "cause " + cause, "with the bridge's own words")
+            }
+            // The row's button copies the performance report to send along.
+            const copies = veyra.performanceReportCopies
+            control("pushfps-fg-idle-report").clicked()
+            compare(veyra.performanceReportCopies, copies + 1)
+            verify(String(veyra.lastCopiedText).indexOf("pushfps-performance") >= 0)
+            // A target equal to the game's own rate is a setting, not a fault.
+            veyra.liveStats = ({ running: true, fgIdle: 1, fgIdleText: "" })
+            quick.readFgHealth()
+            verify(!row.visible, "the same rate is not shown as a fault")
+            // Gone as soon as frames come out, when nothing plays, and with frame generation off.
+            veyra.liveStats = ({ running: true, fgIdle: 4, fgIdleText: "nothing" })
+            quick.readFgHealth()
+            verify(row.visible)
+            veyra.liveStats = ({ running: true, fgIdle: 0 })
+            quick.readFgHealth()
+            verify(!row.visible, "gone when frames are generated again")
+            veyra.liveStats = ({ running: false, fgIdle: 4, fgIdleText: "nothing" })
+            quick.readFgHealth()
+            verify(!row.visible, "nothing playing: nothing to say")
+            veyra.liveStats = ({ running: true, fgIdle: 4, fgIdleText: "nothing" })
+            quick.readFgHealth()
+            verify(row.visible)
+            veyra.fgEnabled = false
+            quick.readFgHealth()
+            verify(!row.visible, "frame generation off: nothing to say")
+            compare(quick.fgIdleText, "")
+            veyra.liveStats = ({ running: false })
+        }
         function test_smooth_frame_pacing_keeps_a_target() {
             veyra.displaySync = 2; veyra.variableRefresh = false
             veyra.outputCustomFps = 60; veyra.outputRateMode = 2

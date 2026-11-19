@@ -1574,6 +1574,11 @@ public:
     Q_INVOKABLE bool pushStartCardTest();
     Q_INVOKABLE void pushCancelCardTest();
     Q_INVOKABLE QVariantMap pushCardTestStatus() const;
+    // PushFPS performance report (engine/PushPerfReport.h, bridge/PushTools.cpp): the session playing
+    // now as JSON text (card, driver, settings, frames really presented, software delay; nothing
+    // personal), and the same copied to the clipboard with a notice.
+    Q_INVOKABLE QString pushPerformanceReport() const;
+    Q_INVOKABLE bool pushCopyPerformanceReport();
     Q_INVOKABLE bool pushFlowHalfTesting() const;
     // PushFPS 窗口置顶: keeps a top-level window above others (SetWindowPos, no window recreation).
     Q_INVOKABLE bool pushSetAlwaysOnTop(QObject* window, bool onTop);
@@ -1701,6 +1706,9 @@ private:
     // frames to it (engine::setPushSourceReferenceWidth; PushStudio.cpp).
     void pushSourceReference();
     void pushFlowBudgetWatch();   // PushFlow too slow for the frame budget -> a faster tier (PushFps.cpp)
+    QString pushFgIdleText(int cause) const;   // frame generation health: what to say for a cause (PushFps.cpp)
+    QString pushHalfApprovalKey() const;       // PushFlow half precision: what a passed test holds for (PushFps.cpp)
+    void pushValidateHalfApproval();           // at start: a pass for another card, driver or version is dropped
     // PushFPS crash notice (PushTools.cpp): the previous run's notes read at start, this run's session
     // note kept current, and the report built from the crash handler's note.
     void pushRememberPreviousRun();

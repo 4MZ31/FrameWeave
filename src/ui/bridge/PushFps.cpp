@@ -4,6 +4,7 @@
 // QML bridge: PushFPS features that only read engine numbers or reuse existing
 // settings paths - the latency readout and "Optimise for my PC" measurements,
 // game-preset HUD regions, and sharing clips (clipboard, Discord).
+#include "veyra/engine/PushHalfApproval.h"
 #include "../QmlPlayerBridge_p.h"
 #include "veyra/engine/PushArchivePaths.h"
 #include "veyra/engine/PushBenchmarkProbe.h"
@@ -93,6 +94,13 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["nrActive"] = s.nrActive;
     m["fgBudgetLimited"] = s.fgBudgetLimited;
     m["backendWarning"] = QString::fromStdWString(s.backendWarning);
+    // What is really shown, a second: the game's own frames and the generated ones (FrameFlowWindow.h).
+    m["realFps"] = flow.realPresentFps;
+    m["generatedFps"] = flow.generatedPresentFps;
+    // Frame generation health (engine/PushFgHealth.h): 0 fine, 1 the target is the game's own rate,
+    // 2 the method is not running, 3 the card does not keep up, 4 nothing generated is shown.
+    m["fgIdle"] = impl_->fgIdle;
+    m["fgIdleText"] = pushFgIdleText(impl_->fgIdle);
     m["displayRefreshHz"] = impl_->displayRefreshHz;
     m["gpuUtilization"] = gpuUtilizationKnown() ? QVariant(gpuUtilization()) : QVariant();
     m["sourceWidth"] = int(s.sourceWidth);
@@ -693,6 +701,19 @@ namespace veyra::ui {
 // error anywhere. After the budget has skipped nearly every pair for eight seconds in a row (output
 // under 1.25x the game's rate), PushFlow moves one tier down and says why; on the Fast tier it says
 // what else would help, once per source. A tier the user picks again after that is left alone.
+// What to say for a frame generation health cause (engine::PushFgIdle); empty when there is no fault.
+QString QmlPlayerBridge::pushFgIdleText(int cause) const {
+    switch (engine::PushFgIdle(cause)) {
+    case engine::PushFgIdle::Inactive:
+        return tr("补帧已开启，但所选的补帧方式没有运行：画面仍是游戏原本的帧率。请换一种补帧方式");
+    case engine::PushFgIdle::TooSlow:
+        return tr("补帧已开启，但显卡跟不上：补出的画面都被跳过了。请降低倍率或输出分辨率，或换一种补帧方式");
+    case engine::PushFgIdle::NoFrames:
+        return tr("补帧已开启，但没有补出的画面被显示：画面仍是游戏原本的帧率。请换一种补帧方式；若一直如此，请在设置里复制性能报告发给我们");
+    default: return {};
+    }
+}
+
 void QmlPlayerBridge::pushFlowBudgetWatch() {
     auto& w = impl_->pushFlowWatch;
     const auto now = std::chrono::steady_clock::now();
@@ -715,6 +736,42 @@ void QmlPlayerBridge::pushFlowBudgetWatch() {
             w.cadenceSession = s.sessionId;
             veyra::log::warn("push-cadence", std::format("game set to 30 but content measured {} at capture {:.1f}; suggested the fixed 60->30 mode", s.contentFps, s.captureFps));
             emit notice(tr("游戏帧率设为 30，但每一帧采集画面都被当作新画面（%1 FPS），实时画面会不如录像流畅。如果游戏确实是 30 FPS，请在快速设置里把去重改为「60→30」").arg(s.contentFps), false);
+        }
+    }
+    // Frame generation health (engine/PushFgHealth.h): switched on, and nothing generated is shown.
+    // The quick setup shows the cause for as long as it lasts (pushLiveStats().fgIdle); a notice says
+    // it once per source and cause, on whatever page is open. Nothing is switched automatically.
+    {
+        const auto& flow = s.metrics.flow;
+        const QString optimizingNow = impl_->prefs.value(QStringLiteral("pushOptimizeRestore")).toString();
+        engine::PushFgSample sample;
+        sample.running = s.running && !s.image;
+        sample.wanted = s.applied.multiplier > 1;
+        // XeSS makes its frames in the swap chain: they are not among the presented frames counted here.
+        sample.measurable = !engine::presentSinkFrameGeneration(s.applied.frameGenerationBackend);
+        // A comparison view pauses frame generation; the optimiser, the quality test and the benchmark
+        // window hold frames back or change methods themselves.
+        sample.paused = impl_->compareMode != 0 || engine::pushBenchmarkProbe().active() || impl_->engine.qualityTest().running ||
+                        (!optimizingNow.isEmpty() && optimizingNow != QLatin1String("{}"));
+        sample.settled = !impl_->facade.applying() && !s.applying && s.desired.revision == s.applied.revision &&
+                         flow.latest.frame.settingsRevision == s.applied.revision && flow.rateWindowReady;
+        sample.active = s.fgActive;
+        sample.budgetLimited = s.fgBudgetLimited;
+        sample.contentFps = double(s.contentFps);
+        sample.realFps = flow.realPresentFps;
+        sample.generatedFps = flow.generatedPresentFps;
+        sample.multiplierNow = double(s.previewFgMultiplier);
+        const engine::PushFgIdle idle = impl_->fgHealth.update(sample);
+        impl_->fgIdle = int(idle);
+        if (engine::pushFgIdleIsFault(idle) && (impl_->fgIdleSession != s.sessionId || impl_->fgIdleNotified != int(idle))) {
+            impl_->fgIdleSession = s.sessionId;
+            impl_->fgIdleNotified = int(idle);
+            veyra::log::warn("push-fg-health", std::format("frame generation on but idle: cause={} backend={} multiplier={} now={} content={} real={:.1f} generated={:.1f} active={} budgetLimited={}",
+                int(idle), fgBackendName().toStdString(), s.applied.multiplier, s.previewFgMultiplier, s.contentFps, flow.realPresentFps,
+                flow.generatedPresentFps, s.fgActive, s.fgBudgetLimited));
+            // PushFlow that cannot keep up has its own, more exact notice below (and a faster tier).
+            const bool pushFlowSlow = idle == engine::PushFgIdle::TooSlow && fgBackendName() == QLatin1String("pushflow");
+            if (!pushFlowSlow) emit notice(pushFgIdleText(int(idle)), false);
         }
     }
     const auto reset = [&] { w.starved = 0; w.settledSeconds = 0; };
@@ -760,6 +817,32 @@ void QmlPlayerBridge::pushFlowBudgetWatch() {
 namespace veyra::ui {
 bool QmlPlayerBridge::pushFlowHalfTesting() const { return impl_->pushFlowHalfTest != nullptr; }
 
+// What a passed half-precision test holds for (engine/PushHalfApproval.h): the card PushFPS renders
+// on, its driver and this PushFPS version.
+QString QmlPlayerBridge::pushHalfApprovalKey() const {
+    const auto* adapter = engineAdapterDesc();
+    if (!adapter) return {};
+    return QString::fromStdString(engine::pushHalfApprovalKey(adapter->VendorId, adapter->DeviceId, engineAdapterDriverVersion().toStdString(), version().toStdString()));
+}
+// At every start, before the preference is applied: a pass measured with another card, driver or
+// PushFPS version (or stored before 3.2.5, without any of them) is not carried over. Half precision
+// goes off, PushFlow runs in full precision, and a notice says to test again.
+void QmlPlayerBridge::pushValidateHalfApproval() {
+    if (!impl_->prefBool("pushFlowHalf", false)) return;
+    const QJsonObject probe = QJsonDocument::fromJson(impl_->prefs.value(QStringLiteral("pushFlowHalfProbe")).toString().toUtf8()).object();
+    const std::string stored = probe.value(QStringLiteral("key")).toString().toStdString(), current = pushHalfApprovalKey().toStdString();
+    if (engine::pushHalfApprovalHolds(stored, current)) return;
+    veyra::log::warn("pushflow", std::format("half precision approval no longer holds (stored=\"{}\" now=\"{}\"): switched off until tested again", stored, current));
+    QJsonObject r{{QStringLiteral("ok"), false}, {QStringLiteral("reason"), QStringLiteral("retest")},
+                  {QStringLiteral("when"), QDateTime::currentDateTime().toString(Qt::ISODate)}};
+    impl_->prefs[QStringLiteral("pushFlowHalfProbe")] = QString::fromUtf8(QJsonDocument(r).toJson(QJsonDocument::Compact));
+    impl_->prefs[QStringLiteral("pushFlowHalf")] = false;
+    if (!impl_->savePrefs()) veyra::log::warn("ui-prefs", "half precision reset not saved");
+    QTimer::singleShot(6000, this, [this] {
+        emit notice(tr("PushFlow 半精度已关闭：显卡、驱动或 PushFPS 版本和测试时不同了，需要重新测试（专业模式 → PushFlow 半精度）。现在使用全精度"), false);
+    });
+}
+
 // Half precision runs PushFlow's network roughly twice as fast on most cards, but whether the fp16
 // model works depends on the graphics card, driver and DirectML: on Windows' software renderer it
 // removed the D3D12 device. So it is tested in a separate process (PushFlowBench.exe, shipped next to
@@ -798,6 +881,8 @@ bool QmlPlayerBridge::pushTestPushFlowHalf() {
             QJsonDocument(r).toJson(QJsonDocument::Compact).toStdString(), console.left(400).simplified().toStdString()));
         if (crashed) { r = QJsonObject{{QStringLiteral("ok"), false}, {QStringLiteral("reason"), QStringLiteral("probe-stopped")}}; }
         r[QStringLiteral("when")] = QDateTime::currentDateTime().toString(Qt::ISODate);
+        // What the result holds for: this card, this driver, this PushFPS version (checked at every start).
+        r[QStringLiteral("key")] = pushHalfApprovalKey();
         const bool ok = r.value(QStringLiteral("ok")).toBool();
         setPreference(QStringLiteral("pushFlowHalfProbe"), QString::fromUtf8(QJsonDocument(r).toJson(QJsonDocument::Compact)));
         setPreference(QStringLiteral("pushFlowHalf"), ok);

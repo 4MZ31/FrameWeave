@@ -1798,6 +1798,13 @@ VPage {
                             hint: qsTr("复制后附在反馈里")
                             VButton { text: qsTr("复制"); onClicked: veyra.copyDiagnostics() }
                         }
+                        // PushFPS: what the session playing now really does, to copy (engine/PushPerfReport.h).
+                        VRow {
+                            objectName: "set-perfreport"
+                            label: qsTr("性能报告")
+                            hint: qsTr("复制这次播放的实际数据：显卡和驱动、设置、游戏帧率、补出的帧率和软件延迟。里面没有任何个人信息，可以附在反馈或硬件报告里")
+                            VButton { objectName: "set-perfreport-copy"; text: qsTr("复制"); onClicked: veyra.pushCopyPerformanceReport() }
+                        }
                         // PushFPS: PushFlow's benchmark on this PC's graphics card (PushCardTestDialog.qml).
                         VRow {
                             objectName: "set-cardtest"

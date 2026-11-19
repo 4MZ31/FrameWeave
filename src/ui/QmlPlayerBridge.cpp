@@ -207,6 +207,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     applyPreference(QStringLiteral("nisSharpness"));
     applyPreference(QStringLiteral("pushAmbientFill"));
     applyPreference(QStringLiteral("pushShapeShadows"));   // all six fine-tune values (Preferences.cpp)
+    pushValidateHalfApproval();   // PushFlow half precision holds for one card, driver and version (PushFps.cpp)
     applyPreference(QStringLiteral("pushFlowHalf"));
     applyPreference(QStringLiteral("magewellLowLatency"));
     const bool presetsLoaded = impl_->facade.importLegacyStores();

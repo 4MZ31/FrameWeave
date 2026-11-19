@@ -785,6 +785,42 @@ VGroup {
     readonly property bool cadenceMismatch: quick.liveStats.running === true && veyra.fgEnabled === true && quick.baseFps === 30
         && Math.abs(Number(quick.liveStats.captureFps || 0) - 60) < 3 && Number(quick.liveStats.contentFps || 0) > 45
         && Number(veyra.contentRate) !== 5
+    // Frame generation health (engine/PushFgHealth.h): frame generation is on and nothing generated
+    // is shown, so the picture plays at the game's own frame rate. Shown with its cause for as long
+    // as it lasts: 2 the method is not running, 3 the card does not keep up, 4 nothing comes out.
+    // (1, a target equal to the game's rate, is a setting and not shown here.)
+    // Polled on its own, for every method, whenever frame generation is on (the timer above runs
+    // only for the features that need the other numbers).
+    property int fgIdle: 0
+    property string fgIdleText: ""
+    function readFgHealth() {
+        const st = veyra.pushLiveStats() || ({})
+        quick.fgIdle = st.running === true && veyra.fgEnabled === true ? Number(st.fgIdle || 0) : 0
+        quick.fgIdleText = quick.fgIdle >= 2 ? String(st.fgIdleText || "") : ""
+    }
+    Timer {
+        objectName: "pushfps-fg-idle-timer"
+        interval: 1000; repeat: true
+        running: veyra.hasSource && veyra.fgEnabled && quick.visible
+        triggeredOnStart: true
+        onTriggered: quick.readFgHealth()
+        onRunningChanged: if (!running) { quick.fgIdle = 0; quick.fgIdleText = "" }
+    }
+    VRow {
+        objectName: "pushfps-fg-idle-row"
+        visible: quick.fgIdle >= 2
+        label: qsTr("补帧没有出画面")
+        hint: quick.fgIdleText
+        hintColor: Theme.warn
+        hintBelow: true
+        // What the session really does, to send along (bridge/PushTools.cpp).
+        VButton {
+            objectName: "pushfps-fg-idle-report"
+            text: qsTr("复制性能报告")
+            ghost: true
+            onClicked: { veyra.pushCopyPerformanceReport(); veyra.logUi("push-quick", "performance report copied from the frame generation health row") }
+        }
+    }
     VRow {
         objectName: "pushfps-cadence-row"
         visible: quick.cadenceMismatch
