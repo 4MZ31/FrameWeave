@@ -1904,8 +1904,27 @@ VPage {
                                 objectName: "list-pushflow2-fusion-row"
                                 visible: veyra.fgBackendName === "pushflow"
                                 part: "fusion"
+                                stateKey: "pushFlowEncoderCache"
+                                describe: function(st) {
+                                    return qsTr("正在使用。启动时测得：完整模型每帧 %1 ms，拆分后 %2 ms；已复用 %3 次，重新编码 %4 次")
+                                        .arg(Number(st.pushFlowWholeMs || 0).toFixed(1)).arg(Number(st.pushFlowSplitMs || 0).toFixed(1))
+                                        .arg(Math.round(Number(st.pushFlowFeaturesKept || 0))).arg(Math.round(Number(st.pushFlowFeaturesMade || 0)))
+                                }
                                 title: qsTr("PushFlow 2：每个真实帧只编码一次（实验）")
                                 explanation: qsTr("PushFlow 的模型每生成一帧，都要把前后两个真实帧各编码一遍。开启后，每个真实帧只编码一次，结果留给下一对画面和同一对里的其他时刻使用，所以 3× 和 4× 省得更多。画面应当和不开启时一样：启动时会在你的显卡上和完整模型对比，不一致就不使用。它是否真的更快，取决于显卡，目前还没有在真实显卡上测过")
+                            }
+                            PushFlow2Row {
+                                objectName: "list-pushflow2-guard-row"
+                                visible: veyra.fgBackendName === "pushflow"
+                                part: "guard"
+                                stateKey: "pushFlowGuard"
+                                describe: function(st) {
+                                    return qsTr("正在使用。已检查 %1 个生成帧：%2 帧局部改用真实帧，%3 帧整帧改用真实帧")
+                                        .arg(Math.round(Number(st.pushFlowGuardFrames || 0))).arg(Math.round(Number(st.pushFlowGuardMended || 0)))
+                                        .arg(Math.round(Number(st.pushFlowGuardHeld || 0)))
+                                }
+                                title: qsTr("PushFlow 2：Guard，补回被漏掉的物体（实验）")
+                                explanation: qsTr("物体在两个真实帧之间移动得太快时，PushFlow 跟不上，生成帧里这个物体会整个消失，看起来像闪烁。Guard 找出这些位置，在那里改用时间上更近的真实帧：物体不再消失，而是按游戏本身的帧率移动。它不会凭空生成画面；一帧里有三分之一以上的位置有问题时，整帧改用真实帧，并且如实计数。这条规则只在测试图上验证过，在真实游戏里是否更好看还不知道，所以需要你来判断")
                             }
                             // Half precision is tested in a separate process first (PushFlowBench --fp16-probe):
                             // the switch only turns on after that test passed on this graphics card.

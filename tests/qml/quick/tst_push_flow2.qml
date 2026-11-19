@@ -13,7 +13,16 @@ Item {
     Item { id: host; anchors.fill: parent; property string dialog: ""; function close() { dialog = "" } }
     PushQualityTestDialog { id: quality; dialogHost: host }
     PushFlowMotionRow { id: motion; width: 620; y: 20 }
-    PushFlow2Row { id: fusion; width: 620; y: 140; part: "fusion"; title: "Encode each real frame once"; explanation: "What it does" }
+    PushFlow2Row {
+        id: fusion; width: 620; y: 140; part: "fusion"; title: "Encode each real frame once"; explanation: "What it does"
+        stateKey: "pushFlowEncoderCache"
+        describe: function(st) { return "in use " + Number(st.pushFlowWholeMs || 0).toFixed(1) + " " + Number(st.pushFlowSplitMs || 0).toFixed(1) + " " + Math.round(Number(st.pushFlowFeaturesKept || 0)) }
+    }
+    PushFlow2Row {
+        id: guard; width: 620; y: 260; part: "guard"; title: "Guard"; explanation: "What it does"
+        stateKey: "pushFlowGuard"
+        describe: function(st) { return "judged " + Math.round(Number(st.pushFlowGuardFrames || 0)) + " mended " + Math.round(Number(st.pushFlowGuardMended || 0)) + " held " + Math.round(Number(st.pushFlowGuardHeld || 0)) }
+    }
 
     TestCase {
         name: "PushFlow2"
@@ -30,6 +39,7 @@ Item {
             quality.st = ({})
             motion.readLive()
             fusion.readLive()
+            guard.readLive()
         }
         function cleanup() { veyra.qualityModel = null; veyra.fgBackendName = "dlss"; veyra.hasSource = true }
         function control(item, name) { const c = findChild(item, name); verify(c !== null, name); return c }
@@ -120,6 +130,24 @@ Item {
             veyra.hasSource = false
             tryCompare(fusion, "live", false, 3000)
             compare(fusion.cacheState, "")
+        }
+
+        function test_each_experiment_has_its_own_switch_and_its_own_state() {
+            control(guard, "list-pushflow2-guard").toggled(true)
+            verify(guard.asked && !fusion.asked, "one switch does not turn the other on")
+            compare(flags().guard, true)
+            control(fusion, "list-pushflow2-fusion").toggled(true)
+            verify(flags().guard === true && flags().fusion === true)
+            veyra.liveStats = ({ running: true, pushFlowMotionWidth: 960, pushFlowMotionHeight: 540, pushFlowEncoderCache: "mismatch",
+                                 pushFlowGuard: "on", pushFlowGuardFrames: 600, pushFlowGuardMended: 12, pushFlowGuardHeld: 3 })
+            veyra.hasSource = true
+            tryCompare(guard, "cacheState", "on", 3000)
+            compare(guard.hint, "judged 600 mended 12 held 3")
+            tryCompare(fusion, "cacheState", "mismatch", 3000)
+            for (const word of ["no-grids", "too-small", "shader"]) verify(guard.why(word) !== word, word)
+            control(guard, "list-pushflow2-guard").toggled(false)
+            verify(!guard.asked && fusion.asked)
+            veyra.hasSource = false
         }
 
         // --- PushFlow's motion size ----------------------------------------------------------------

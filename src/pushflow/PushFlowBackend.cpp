@@ -186,6 +186,18 @@ struct PushFlowBackend::Impl {
     uint64_t packedPrevious = 0, packedCurrent = 0;
     bool packedFull = false;
     std::atomic<uint64_t> encoderRuns{0}, featureHits{0}, featureMisses{0};
+    // PushFlow 2's Guard (shaders/PushGuard.hlsl): one pass in four stages after the picture is made, its
+    // two small buffers, the guarded picture, and the frame's totals read back a few frames later.
+    pipeline::ComputePass guardPass;
+    ComPtr<ID3D12Resource> guardTiles, guardCounts, guarded, guardReadback;
+    uint32_t guardTilesW = 0, guardTilesH = 0;
+    UINT guardRing = 0;
+    bool guardOn = false;
+    float lastTimestep = 0.5f;
+    static constexpr UINT kGuardRing = 8;
+    uint32_t* guardMapped = nullptr;
+    uint64_t guardWritten = 0;
+    std::atomic<uint64_t> guardFrames{0}, guardMended{0}, guardHeld{0}, guardTilesReplaced{0};
     std::chrono::steady_clock::time_point lastSummary = std::chrono::steady_clock::now();
     ComPtr<ID3D12Device> device;
     ComPtr<ID3D12CommandQueue> queue;
@@ -754,6 +766,8 @@ Telemetry PushFlowBackend::telemetry() const {
     t.inferences = p.inferCount; t.fullPacks = p.fullPacks; t.timePacks = p.timePacks;
     t.encoderRuns = p.encoderRuns.load(std::memory_order_relaxed); t.featureHits = p.featureHits.load(std::memory_order_relaxed);
     t.featureMisses = p.featureMisses.load(std::memory_order_relaxed);
+    t.guardFrames = p.guardFrames.load(std::memory_order_relaxed); t.guardMended = p.guardMended.load(std::memory_order_relaxed);
+    t.guardHeld = p.guardHeld.load(std::memory_order_relaxed); t.guardTiles = p.guardTilesReplaced.load(std::memory_order_relaxed);
     const size_t n = std::min(p.inferSamples, kTelemetry);
     if (!n) return t;
     std::vector<float> v(p.inferRing.begin(), p.inferRing.begin() + ptrdiff_t(n));
@@ -765,7 +779,7 @@ Telemetry PushFlowBackend::telemetry() const {
 }
 
 bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue, const std::wstring& runtimeDir, uint32_t width, uint32_t height,
-                                 DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight, bool encoderCache) {
+                                 DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight, bool encoderCache, bool guard) {
     p_ = std::make_unique<Impl>();
     auto& p = *p_;
     std::wstring why;
@@ -774,7 +788,7 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
         return false;
     }
 #ifndef VEYRA_HAVE_ONNXRUNTIME
-    (void)format; (void)encoding; (void)tier; (void)motionHeight; (void)encoderCache;
+    (void)format; (void)encoding; (void)tier; (void)motionHeight; (void)encoderCache; (void)guard;
     return false;
 #else
     p.device = device; p.queue = queue; p.width = width; p.height = height; p.format = viewFormat(format); p.encoding = encoding;
@@ -911,6 +925,32 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
         bufferUav(p.buffers[3].Get(), floats[3], cpuSlot(p.rebuildPass, 1));
         bufferUav(p.buffers[4].Get(), floats[4], cpuSlot(p.rebuildPass, 2));
         pipeline::makeUav(device, p.picture.Get(), p.format, cpuSlot(p.rebuildPass, 3));
+    }
+    // PushFlow 2's Guard (opt-in; shaders/PushGuard.hlsl). It judges by the model's grids and mask, in
+    // tiles of 16 x 16 motion pixels; whatever is missing here leaves PushFlow as it is without it.
+    if (guard) {
+        p.guardTilesW = p.status.modelW / 16; p.guardTilesH = p.status.modelH / 16;
+        const uint64_t tileCount = uint64_t(p.guardTilesW) * p.guardTilesH;
+        if (!p.haveGrids) p.status.guardState = "no-grids";
+        else if (p.guardTilesW < 6 || p.guardTilesH < 4) p.status.guardState = "too-small";
+        else if (!p.guardPass.loadShader("PushGuard.dxil", cs) || !p.guardPass.create(device, cs, 6 + 3 * kSrvRing, 3, 6, 16) ||
+                 !makeBuffer(tileCount * 3 * 4, p.guardTiles) || !makeBuffer((tileCount * 3 + 4) * 4, p.guardCounts) ||
+                 !(p.guarded = pipeline::makeTexture(device, width, height, p.format, true))) p.status.guardState = "shader";
+        else {
+            bufferUav(p.buffers[2].Get(), floats[2], cpuSlot(p.guardPass, 0));
+            bufferUav(p.buffers[3].Get(), floats[3], cpuSlot(p.guardPass, 1));
+            bufferUav(p.buffers[4].Get(), floats[4], cpuSlot(p.guardPass, 2));
+            bufferUav(p.guardTiles.Get(), tileCount * 3, cpuSlot(p.guardPass, 3));
+            bufferUav(p.guardCounts.Get(), tileCount * 3 + 4, cpuSlot(p.guardPass, 4));
+            pipeline::makeUav(device, p.guarded.Get(), p.format, cpuSlot(p.guardPass, 5));
+            // The frame's totals come back through a small ring; without it Guard still works, uncounted.
+            p.guardReadback = readbackBuffer(device, Impl::kGuardRing * 4 * sizeof(uint32_t));
+            if (p.guardReadback && SUCCEEDED(p.guardReadback->Map(0, nullptr, reinterpret_cast<void**>(&p.guardMapped))))
+                std::memset(p.guardMapped, 0, Impl::kGuardRing * 4 * sizeof(uint32_t));
+            else { p.guardReadback.Reset(); p.guardMapped = nullptr; }
+            p.guardOn = true; p.status.guard = true; p.status.guardState = "on";
+        }
+        if (!p.status.guard) veyra::log::warn("pushflow", "Guard was asked for and is not used: " + p.status.guardState);
     }
     // The rebuild is what keeps the Fast tier sharp; at full size the network's own picture is used.
     p.status.rebuild = p.haveGrids && (p.status.modelW != width || p.status.modelH != height);
@@ -1054,6 +1094,7 @@ bool PushFlowBackend::pack(ID3D12GraphicsCommandList* list, ID3D12Resource* prev
     auto& p = *p_;
     if (!p.status.ready || !list || !previous || !current) return false;
     UINT srvFirst;
+    p.lastTimestep = std::clamp(timestep, 0.0f, 1.0f);   // Guard: which real frame is the nearer one
     if (!timeOnly) {
         // A new pair: the next inference takes its features anew (the encoder cache; nothing else reads these).
         p.packedFull = true; p.packedPrevious = previousId; p.packedCurrent = currentId;
@@ -1102,6 +1143,20 @@ bool PushFlowBackend::infer() {
         }
     }
     if (network >= 0) p.lastNetworkMs = network;
+    // Guard's totals of earlier frames (a slot the GPU has not written yet reads 0 and waits; each is
+    // cleared once counted): risky tiles, whether the frame was held whole, tiles in all, a serial.
+    if (p.guardMapped) {
+        for (UINT slot = 0; slot < Impl::kGuardRing; ++slot) {
+            uint32_t* totals = p.guardMapped + 4 * slot;
+            if (!totals[3] || !totals[2]) continue;
+            const uint32_t risky = totals[0], whole = totals[1];
+            totals[0] = totals[1] = totals[2] = totals[3] = 0;
+            p.guardFrames.fetch_add(1, std::memory_order_relaxed);
+            if (whole) p.guardHeld.fetch_add(1, std::memory_order_relaxed);
+            else if (risky) p.guardMended.fetch_add(1, std::memory_order_relaxed);
+            p.guardTilesReplaced.fetch_add(risky, std::memory_order_relaxed);
+        }
+    }
     bool summarize = false;
     {
         std::lock_guard lock(p.telemetryMutex);
@@ -1164,8 +1219,54 @@ bool PushFlowBackend::resolve(ID3D12GraphicsCommandList* list, ID3D12Resource* p
         p.unpackPass.bind(list, constants, gpuSlot(p.unpackPass, 0), gpuSlot(p.unpackPass, 1));
     }
     list->Dispatch((p.width + 15) / 16, (p.height + 15) / 16, 1);
-    p.states.transition(list, p.picture.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE);
-    list->CopyResource(output, p.picture.Get());
+    ID3D12Resource* shown = p.picture.Get();
+    if (p.guardOn && previous && current) {
+        // PushFlow 2's Guard: the picture just made is read, the guarded one written (PushGuard.hlsl).
+        const UINT first = 6 + 3 * p.guardRing;
+        p.guardRing = (p.guardRing + 1) % kSrvRing;
+        D3D12_RESOURCE_BARRIER made{}; made.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV; made.UAV.pResource = p.picture.Get();
+        list->ResourceBarrier(1, &made);
+        p.states.transition(list, p.picture.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        p.states.transition(list, p.guarded.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        D3D12_SHADER_RESOURCE_VIEW_DESC view{};
+        view.Format = p.format; view.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        view.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; view.Texture2D.MipLevels = 1;
+        p.stager.stageSrv(previous, &view, p.guardPass.heap.Get(), first);
+        p.stager.stageSrv(current, &view, p.guardPass.heap.Get(), first + 1);
+        p.stager.stageSrv(p.picture.Get(), &view, p.guardPass.heap.Get(), first + 2);
+        const uint32_t tw = p.guardTilesW, th = p.guardTilesH;
+        const uint32_t serial = uint32_t(p.guardWritten % 0x7FFFFFFFull) + 1;
+        const auto stage = [&](uint32_t which, uint32_t across, uint32_t down) {
+            const float constants[16] = {bits(p.width), bits(p.height), bits(p.status.padW), bits(p.status.padH),
+                                         bits(p.status.modelW), bits(p.status.modelH), bits(uint32_t(p.encoding)), bits(p.facts.alignCorners ? 1u : 0u),
+                                         bits(p.facts.maskForFirst ? 1u : 0u), bits(which), bits(tw), bits(th),
+                                         bits(p.lastTimestep > 0.5f ? 1u : 0u), bits(serial), 0.0f, 0.0f};
+            p.guardPass.bind(list, constants, gpuSlot(p.guardPass, first), gpuSlot(p.guardPass, 0));
+            list->Dispatch((across + 7) / 8, (down + 7) / 8, 1);
+            D3D12_RESOURCE_BARRIER wait[2]{};
+            wait[0].Type = wait[1].Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+            wait[0].UAV.pResource = p.guardTiles.Get(); wait[1].UAV.pResource = p.guardCounts.Get();
+            list->ResourceBarrier(2, wait);
+        };
+        stage(0, tw, th);              // each tile: how much it changed
+        stage(1, tw * 16, th * 16);    // each motion pixel: what it shows of each frame
+        stage(2, 1, 1);                // the decision
+        stage(3, p.width, p.height);   // the picture
+        if (p.guardMapped) {
+            D3D12_RESOURCE_BARRIER copy{}; copy.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; copy.Transition.pResource = p.guardCounts.Get();
+            copy.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+            copy.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS; copy.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
+            list->ResourceBarrier(1, &copy);
+            list->CopyBufferRegion(p.guardReadback.Get(), (p.guardWritten % Impl::kGuardRing) * 4 * sizeof(uint32_t), p.guardCounts.Get(),
+                                   uint64_t(tw) * th * 3 * sizeof(uint32_t), 4 * sizeof(uint32_t));
+            std::swap(copy.Transition.StateBefore, copy.Transition.StateAfter);
+            list->ResourceBarrier(1, &copy);
+        }
+        ++p.guardWritten;
+        shown = p.guarded.Get();
+    }
+    p.states.transition(list, shown, D3D12_RESOURCE_STATE_COPY_SOURCE);
+    list->CopyResource(output, shown);
     return true;
 }
 

@@ -6614,6 +6614,23 @@
    "ru": "PushFPS предустановленный цвет (*.vpcolor); все файлы (*.*)"
   },
   {
+   "zh": "PushFlow 2：Guard，补回被漏掉的物体（实验）",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "PushFlow 2：Guard，補回被漏掉的物體（實驗）",
+   "en": "PushFlow 2: Guard, bring back objects that were left out (experimental)",
+   "ja": "PushFlow 2：Guard、抜け落ちた物体を戻す（実験）",
+   "nl": "PushFlow 2: Guard, bring back objects that were left out (experimental)",
+   "de": "PushFlow 2: Guard, bring back objects that were left out (experimental)",
+   "es": "PushFlow 2: Guard, bring back objects that were left out (experimental)",
+   "fr": "PushFlow 2: Guard, bring back objects that were left out (experimental)",
+   "it": "PushFlow 2: Guard, bring back objects that were left out (experimental)",
+   "pt-BR": "PushFlow 2: Guard, bring back objects that were left out (experimental)",
+   "tr": "PushFlow 2: Guard, bring back objects that were left out (experimental)",
+   "ar": "PushFlow 2: Guard, bring back objects that were left out (experimental)",
+   "pl": "PushFlow 2: Guard, bring back objects that were left out (experimental)",
+   "ru": "PushFlow 2: Guard, bring back objects that were left out (experimental)"
+  },
+  {
    "zh": "PushFlow 2：每个真实帧只编码一次（实验）",
    "src": "qml/ProPage.qml",
    "zh-TW": "PushFlow 2：每個真實幀只編碼一次（實驗）",
@@ -29327,6 +29344,23 @@
    "ru": "До {} Генерация кадров X поддерживается сейчас; применяется как {} X"
   },
   {
+   "zh": "当前模型不提供运动数据",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "目前模型不提供運動資料",
+   "en": "this model gives no motion data",
+   "ja": "このモデルは動きのデータを出しません",
+   "nl": "this model gives no motion data",
+   "de": "this model gives no motion data",
+   "es": "this model gives no motion data",
+   "fr": "this model gives no motion data",
+   "it": "this model gives no motion data",
+   "pt-BR": "this model gives no motion data",
+   "tr": "this model gives no motion data",
+   "ar": "this model gives no motion data",
+   "pl": "this model gives no motion data",
+   "ru": "this model gives no motion data"
+  },
+  {
    "zh": "当前模型没有固定尺寸",
    "src": "qml/PushFlow2Row.qml",
    "zh-TW": "目前模型沒有固定尺寸",
@@ -40498,7 +40532,7 @@
   },
   {
    "zh": "正在使用。启动时测得：完整模型每帧 %1 ms，拆分后 %2 ms；已复用 %3 次，重新编码 %4 次",
-   "src": "qml/PushFlow2Row.qml",
+   "src": "qml/ProPage.qml",
    "zh-TW": "正在使用。啟動時測得：完整模型每幀 %1 ms，拆分後 %2 ms；已重複使用 %3 次，重新編碼 %4 次",
    "en": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
    "ja": "使用中です。起動時の測定：完全なモデル 1 フレーム %1 ms、分割後 %2 ms。再利用 %3 回、再エンコード %4 回",
@@ -40512,6 +40546,23 @@
    "ar": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
    "pl": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
    "ru": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times"
+  },
+  {
+   "zh": "正在使用。已检查 %1 个生成帧：%2 帧局部改用真实帧，%3 帧整帧改用真实帧",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "正在使用。已檢查 %1 個生成幀：%2 幀局部改用真實幀，%3 幀整幀改用真實幀",
+   "en": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame",
+   "ja": "使用中です。生成フレーム %1 枚を確認：%2 枚は一部を実フレームに置き換え、%3 枚は全体を実フレームに置き換えました",
+   "nl": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame",
+   "de": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame",
+   "es": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame",
+   "fr": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame",
+   "it": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame",
+   "pt-BR": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame",
+   "tr": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame",
+   "ar": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame",
+   "pl": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame",
+   "ru": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame"
   },
   {
    "zh": "正在保存正式文件",
@@ -45308,6 +45359,23 @@
    "ru": "Версия %1"
   },
   {
+   "zh": "物体在两个真实帧之间移动得太快时，PushFlow 跟不上，生成帧里这个物体会整个消失，看起来像闪烁。Guard 找出这些位置，在那里改用时间上更近的真实帧：物体不再消失，而是按游戏本身的帧率移动。它不会凭空生成画面；一帧里有三分之一以上的位置有问题时，整帧改用真实帧，并且如实计数。这条规则只在测试图上验证过，在真实游戏里是否更好看还不知道，所以需要你来判断",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "物體在兩個真實幀之間移動得太快時，PushFlow 跟不上，生成幀裡這個物體會整個消失，看起來像閃爍。Guard 找出這些位置，在那裡改用時間上更近的真實幀：物體不再消失，而是按遊戲本身的幀率移動。它不會憑空生成畫面；一幀裡有三分之一以上的位置有問題時，整幀改用真實幀，並且如實計數。這條規則只在測試圖上驗證過，在真實遊戲裡是否更好看還不知道，所以需要你來判斷",
+   "en": "When an object moves too far between two real frames, PushFlow cannot follow it and the object is missing from the generated frame, which looks like flicker. Guard finds those places and shows the real frame that is nearer in time there: the object no longer disappears, it moves at the game's own frame rate. It never invents a picture. When more than a third of a frame is affected, the whole frame is the real frame, and it is counted as that. The rule has only been checked on test pictures; whether it looks better in a real game is not known yet, which is for you to judge",
+   "ja": "物体が 2 枚の実フレームのあいだで大きく動きすぎると、PushFlow は追従できず、生成フレームからその物体が丸ごと消えて、ちらつきのように見えます。Guard はその場所を見つけ、時間的に近いほうの実フレームを表示します。物体は消えず、ゲーム本来のフレームレートで動きます。画面を作り出すことはありません。フレームの 3 分の 1 を超える範囲に問題があるときはフレーム全体を実フレームにし、そのとおりに数えます。このルールはテスト画像でしか確認していません。実際のゲームで見栄えが良くなるかはまだ分からないので、判断はあなたにお願いします",
+   "nl": "When an object moves too far between two real frames, PushFlow cannot follow it and the object is missing from the generated frame, which looks like flicker. Guard finds those places and shows the real frame that is nearer in time there: the object no longer disappears, it moves at the game's own frame rate. It never invents a picture. When more than a third of a frame is affected, the whole frame is the real frame, and it is counted as that. The rule has only been checked on test pictures; whether it looks better in a real game is not known yet, which is for you to judge",
+   "de": "When an object moves too far between two real frames, PushFlow cannot follow it and the object is missing from the generated frame, which looks like flicker. Guard finds those places and shows the real frame that is nearer in time there: the object no longer disappears, it moves at the game's own frame rate. It never invents a picture. When more than a third of a frame is affected, the whole frame is the real frame, and it is counted as that. The rule has only been checked on test pictures; whether it looks better in a real game is not known yet, which is for you to judge",
+   "es": "When an object moves too far between two real frames, PushFlow cannot follow it and the object is missing from the generated frame, which looks like flicker. Guard finds those places and shows the real frame that is nearer in time there: the object no longer disappears, it moves at the game's own frame rate. It never invents a picture. When more than a third of a frame is affected, the whole frame is the real frame, and it is counted as that. The rule has only been checked on test pictures; whether it looks better in a real game is not known yet, which is for you to judge",
+   "fr": "When an object moves too far between two real frames, PushFlow cannot follow it and the object is missing from the generated frame, which looks like flicker. Guard finds those places and shows the real frame that is nearer in time there: the object no longer disappears, it moves at the game's own frame rate. It never invents a picture. When more than a third of a frame is affected, the whole frame is the real frame, and it is counted as that. The rule has only been checked on test pictures; whether it looks better in a real game is not known yet, which is for you to judge",
+   "it": "When an object moves too far between two real frames, PushFlow cannot follow it and the object is missing from the generated frame, which looks like flicker. Guard finds those places and shows the real frame that is nearer in time there: the object no longer disappears, it moves at the game's own frame rate. It never invents a picture. When more than a third of a frame is affected, the whole frame is the real frame, and it is counted as that. The rule has only been checked on test pictures; whether it looks better in a real game is not known yet, which is for you to judge",
+   "pt-BR": "When an object moves too far between two real frames, PushFlow cannot follow it and the object is missing from the generated frame, which looks like flicker. Guard finds those places and shows the real frame that is nearer in time there: the object no longer disappears, it moves at the game's own frame rate. It never invents a picture. When more than a third of a frame is affected, the whole frame is the real frame, and it is counted as that. The rule has only been checked on test pictures; whether it looks better in a real game is not known yet, which is for you to judge",
+   "tr": "When an object moves too far between two real frames, PushFlow cannot follow it and the object is missing from the generated frame, which looks like flicker. Guard finds those places and shows the real frame that is nearer in time there: the object no longer disappears, it moves at the game's own frame rate. It never invents a picture. When more than a third of a frame is affected, the whole frame is the real frame, and it is counted as that. The rule has only been checked on test pictures; whether it looks better in a real game is not known yet, which is for you to judge",
+   "ar": "When an object moves too far between two real frames, PushFlow cannot follow it and the object is missing from the generated frame, which looks like flicker. Guard finds those places and shows the real frame that is nearer in time there: the object no longer disappears, it moves at the game's own frame rate. It never invents a picture. When more than a third of a frame is affected, the whole frame is the real frame, and it is counted as that. The rule has only been checked on test pictures; whether it looks better in a real game is not known yet, which is for you to judge",
+   "pl": "When an object moves too far between two real frames, PushFlow cannot follow it and the object is missing from the generated frame, which looks like flicker. Guard finds those places and shows the real frame that is nearer in time there: the object no longer disappears, it moves at the game's own frame rate. It never invents a picture. When more than a third of a frame is affected, the whole frame is the real frame, and it is counted as that. The rule has only been checked on test pictures; whether it looks better in a real game is not known yet, which is for you to judge",
+   "ru": "When an object moves too far between two real frames, PushFlow cannot follow it and the object is missing from the generated frame, which looks like flicker. Guard finds those places and shows the real frame that is nearer in time there: the object no longer disappears, it moves at the game's own frame rate. It never invents a picture. When more than a third of a frame is affected, the whole frame is the real frame, and it is counted as that. The rule has only been checked on test pictures; whether it looks better in a real game is not known yet, which is for you to judge"
+  },
+  {
    "zh": "状态: %1",
    "src": "src/ui/bridge/Export.cpp",
    "zh-TW": "狀態: %1",
@@ -47397,6 +47465,23 @@
    "ar": "Versus a simple blend",
    "pl": "Versus a simple blend",
    "ru": "Versus a simple blend"
+  },
+  {
+   "zh": "着色器没能载入",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "著色器無法載入",
+   "en": "its shader did not load",
+   "ja": "シェーダーを読み込めませんでした",
+   "nl": "its shader did not load",
+   "de": "its shader did not load",
+   "es": "its shader did not load",
+   "fr": "its shader did not load",
+   "it": "its shader did not load",
+   "pt-BR": "its shader did not load",
+   "tr": "its shader did not load",
+   "ar": "its shader did not load",
+   "pl": "its shader did not load",
+   "ru": "its shader did not load"
   },
   {
    "zh": "睡眠（可唤醒）",
@@ -57597,6 +57682,23 @@
    "ar": "عتبة الحواف",
    "pl": "Próg krawędzi",
    "ru": "Порог краёв"
+  },
+  {
+   "zh": "运动估算尺寸太小",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "運動估算尺寸太小",
+   "en": "the motion size is too small",
+   "ja": "動き推定サイズが小さすぎます",
+   "nl": "the motion size is too small",
+   "de": "the motion size is too small",
+   "es": "the motion size is too small",
+   "fr": "the motion size is too small",
+   "it": "the motion size is too small",
+   "pt-BR": "the motion size is too small",
+   "tr": "the motion size is too small",
+   "ar": "the motion size is too small",
+   "pl": "the motion size is too small",
+   "ru": "the motion size is too small"
   },
   {
    "zh": "运动估算质量",

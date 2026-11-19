@@ -154,6 +154,8 @@ struct EnhanceGraphDesc {
     int pushFlowMotion=0;
     // PushFlow only: PushFlow 2's encoder cache is asked for (pushflow/PushFlow2.h; off unless a user turned it on).
     bool pushFlowEncoderCache=false;
+    // PushFlow only: PushFlow 2's Guard is asked for (the same rules).
+    bool pushFlowGuard=false;
     bool vfgAsyncSubmission=false; // preview-only; export retains synchronous SDK verdicts
     bool vfgAutoRegulate=false;
     bool vfgFastFallback=false; // live 2X with vfgAutoRegulate: also load the next faster VFG model
@@ -748,7 +750,9 @@ public:
     // motionWidth / motionHeight: the size the network works the motion out at (0 while PushFlow is not running).
     // encoderCache: "" not asked for, "on", or why it is not used (PushFlowBackend.h Status::splitState).
     struct PushFlowSummary { std::string precision; bool rebuild = false; double p50Ms = 0, p95Ms = 0; uint32_t motionWidth = 0, motionHeight = 0;
-                             std::string encoderCache; uint64_t encoderRuns = 0, featuresKept = 0, featuresMade = 0; double wholeMs = 0, splitMs = 0, splitCheckDb = 0; };
+                             std::string encoderCache; uint64_t encoderRuns = 0, featuresKept = 0, featuresMade = 0; double wholeMs = 0, splitMs = 0, splitCheckDb = 0;
+                             // guard: "" not asked for, "on", or why not; frames it judged, mended in places, held whole.
+                             std::string guard; uint64_t guardFrames = 0, guardMended = 0, guardHeld = 0; };
     PushFlowSummary pushFlowSummary() const;
     bool amfFrcActive() const;
     const char* fsrProviderVersion() const;

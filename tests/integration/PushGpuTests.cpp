@@ -1761,6 +1761,72 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
         checkOr(cached.status().split, tag + ": still in use after every case");
         checkOr(!gpu.debugErrors(), tag + ": no debug layer errors");
     }
+    // PushFlow 2's Guard (opt-in; shaders/PushGuard.hlsl, docs/PUSHFLOW2.md): where an object was left out
+    // of the generated frame, the nearer real frame; everywhere else, and always when nothing is wrong,
+    // the generated frame exactly as it is without Guard.
+    for (uint32_t tier : {2u, 0u}) {
+        const std::string tag = "pushflow guard, tier " + std::to_string(tier);
+        const auto still = flowFrame(W, H, 90), near16 = flowFrame(W, H, 106), far120 = flowFrame(W, H, 210), other = detailFrame(W, H, 0);
+        const auto apart = [](const std::vector<uint8_t>& x, const std::vector<uint8_t>& y) {
+            if (x.empty() || x.size() != y.size()) return 255;
+            int worst = 0;
+            for (size_t i = 0; i < x.size(); ++i) worst = std::max(worst, std::abs(int(x[i]) - int(y[i])));
+            return worst;
+        };
+        // Mean difference inside the square's place in the earlier frame (x 90..130, y from 35 % down, 40 high).
+        const auto oldPlace = [&](const std::vector<uint8_t>& x, const std::vector<uint8_t>& y) {
+            if (x.empty() || x.size() != y.size()) return 255.0;
+            double sum = 0; int n = 0;
+            for (uint32_t py = uint32_t(H * 0.35) + 4; py < uint32_t(H * 0.35) + 36; ++py)
+                for (uint32_t px = 94; px < 126; ++px)
+                    for (int c = 0; c < 3; ++c) { sum += std::abs(int(x[(size_t(py) * W + px) * 4 + c]) - int(y[(size_t(py) * W + px) * 4 + c])); ++n; }
+            return sum / n;
+        };
+        packPrevious = packCurrent = 0; packTimeOnly = false;
+        std::vector<uint8_t> plainStill, plainNear, plainFar;
+        {
+            pushflow::PushFlowBackend plain;
+            if (plain.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, tier)) {
+                plainStill = run(still, still, 0.5f, plain, nullptr);
+                plainNear = run(still, near16, 0.5f, plain, nullptr);
+                plainFar = run(still, far120, 0.5f, plain, nullptr);
+                checkOr(plain.status().guardState.empty() && !plain.status().guard && plain.telemetry().guardFrames == 0, tag + ": not asked for, nothing of it runs");
+            }
+        }
+        checkOr(!plainStill.empty() && !plainNear.empty() && !plainFar.empty(), tag + ": PushFlow's own pictures to compare with");
+        pushflow::PushFlowBackend guarded;
+        const bool ready = guarded.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, tier, 0, false, true);
+        checkOr(ready, tag + ": PushFlow starts with Guard asked for");
+        if (!ready) continue;
+        std::printf("INFO %s: state '%s', network %ux%u\n", tag.c_str(), guarded.status().guardState.c_str(), guarded.status().modelW, guarded.status().modelH);
+        checkOr(guarded.status().guard && guarded.status().guardState == "on", tag + ": Guard is in use");
+        if (!guarded.status().guard) continue;
+        const auto gotStill = run(still, still, 0.5f, guarded, nullptr);
+        const auto gotNear = run(still, near16, 0.5f, guarded, nullptr);
+        checkOr(apart(gotStill, plainStill) == 0 && apart(gotNear, plainNear) == 0,
+                std::format("{}: a still picture and a followed object come out exactly as without Guard (worst of 255: {}, {})", tag, apart(gotStill, plainStill), apart(gotNear, plainNear)));
+        // An object moved too far to follow: without Guard its old place shows background; with it, the earlier frame's object.
+        const auto gotFar = run(still, far120, 0.5f, guarded, nullptr);
+        const double without = oldPlace(plainFar, still), with = oldPlace(gotFar, still);
+        std::printf("INFO %s: object moved 120 px: its old place differs from the earlier frame by %.1f of 255 without Guard, %.1f with it\n", tag.c_str(), without, with);
+        checkOr(with <= without + 0.5, tag + ": Guard never takes the old place further from the earlier frame");
+        // Reported, not required: how far the rule goes on this small picture depends on the model (the
+        // measurements that decide the rule are prepare_runtime.py's, on larger pictures).
+        std::printf("INFO %s: the object PushFlow left out is %s where the earlier frame has it\n", tag.c_str(), without > 30.0 && with < without / 3.0 ? "shown" : "not (fully) shown");
+        // Two unrelated pictures: where more than a third is risky, the nearer real frame whole (at the
+        // middle time the earlier one, past it the later one).
+        const auto gotCut = run(still, other, 0.5f, guarded, nullptr);
+        const auto gotCutLate = run(still, other, 0.75f, guarded, nullptr);
+        std::printf("INFO %s: two unrelated pictures: worst difference from the earlier frame %d of 255 at the middle, from the later frame %d past it\n", tag.c_str(),
+                    apart(gotCut, still), apart(gotCutLate, other));
+        // A few more frames so that the totals of the ones above have come back.
+        for (int i = 0; i < 4; ++i) run(still, still, 0.5f, guarded, nullptr);
+        const auto tel = guarded.telemetry();
+        std::printf("INFO %s: judged %llu frames, mended %llu, held %llu, tiles %llu\n", tag.c_str(), static_cast<unsigned long long>(tel.guardFrames),
+                    static_cast<unsigned long long>(tel.guardMended), static_cast<unsigned long long>(tel.guardHeld), static_cast<unsigned long long>(tel.guardTiles));
+        checkOr(tel.guardFrames >= 5 && tel.guardMended + tel.guardHeld <= tel.guardFrames, tag + ": the frames it judged are counted, and never more mended or held than judged");
+        checkOr(!gpu.debugErrors(), tag + ": no debug layer errors");
+    }
     checkOr(!pushflow::crashedLastTime(), "pushflow: the crash marker is gone after a normal close");
 }
 

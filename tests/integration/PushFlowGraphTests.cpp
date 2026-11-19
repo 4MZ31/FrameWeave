@@ -103,11 +103,13 @@ int wmain(int argc, wchar_t** argv) {
     // model at the picture's own size instead of half of it. Fewer frames: four times the work each.
     // The fourth is PushFlow 2's encoder cache (opt-in) at 3X: the same frames as the plain 3X run, whose
     // generated pictures it must repeat, with each real frame encoded once.
-    struct Run { unsigned multiplier; int motion; bool cache; };
+    // The fifth is PushFlow 2's Guard (opt-in) on the same frames: the square is followed here, so every
+    // generated frame must be the plain run's, and nothing is mended or held.
+    struct Run { unsigned multiplier; int motion; bool cache; bool guard = false; };
     std::map<std::pair<unsigned, unsigned>, std::vector<uint8_t>> plain3x;   // (frame, subframe) -> picture without the cache
-    for (const Run run : {Run{2u, 0, false}, Run{3u, 0, false}, Run{2u, 540, false}, Run{3u, 0, true}}) {
+    for (const Run run : {Run{2u, 0, false}, Run{3u, 0, false}, Run{2u, 540, false}, Run{3u, 0, true}, Run{3u, 0, false, true}}) {
         const unsigned multiplier = run.multiplier;
-        const std::string tag = std::to_string(multiplier) + "X" + (run.motion ? " at a chosen motion size" : "") + (run.cache ? " with the encoder cache" : "");
+        const std::string tag = std::to_string(multiplier) + "X" + (run.motion ? " at a chosen motion size" : "") + (run.cache ? " with the encoder cache" : "") + (run.guard ? " with Guard" : "");
         const unsigned frames = run.motion ? 5 : multiplier == 2 ? 12 : 7;
         pipeline::EnhanceGraph graph(ctx, ring);
         pipeline::EnhanceGraphDesc desc; desc.sourceWidth = desc.workWidth = W; desc.sourceHeight = desc.workHeight = H;
@@ -116,6 +118,7 @@ int wmain(int argc, wchar_t** argv) {
         desc.vfgQuality = 0;  // the Fast tier: the software renderer in CI is slow
         desc.pushFlowMotion = run.motion;
         desc.pushFlowEncoderCache = run.cache;
+        desc.pushFlowGuard = run.guard;
         desc.runtimeAbsPath = argv[2]; desc.settingsRevision = multiplier;
         const bool opened = graph.initialize(desc) && graph.createViews();
         if (!check(opened, tag + ": the graph opens with PushFlow") || !check(graph.pushFlowActive(), tag + ": PushFlow is ready")) {
@@ -129,6 +132,7 @@ int wmain(int argc, wchar_t** argv) {
             const auto summary = graph.pushFlowSummary();
             std::cout << "PUSHFLOW_GRAPH " << tag << " motion size " << summary.motionWidth << "x" << summary.motionHeight << " rebuild=" << summary.rebuild << std::endl;
             check(summary.encoderCache == (run.cache ? "on" : ""), tag + (run.cache ? ": the encoder cache is in use" : ": the encoder cache is not asked for and not in use") + " ('" + summary.encoderCache + "')");
+            check(summary.guard == (run.guard ? "on" : ""), tag + (run.guard ? ": Guard is in use" : ": Guard is not asked for and not in use") + " ('" + summary.guard + "')");
             if (run.cache) std::cout << "PUSHFLOW_GRAPH " << tag << " start-up check " << summary.splitCheckDb << " dB, whole " << summary.wholeMs << " ms, split " << summary.splitMs << " ms" << std::endl;
             if (run.motion) check(summary.motionWidth == W && summary.motionHeight == H && !summary.rebuild, tag + ": the network runs at the chosen size, here the whole picture");
             else check(summary.motionWidth == W / 2 && summary.motionHeight == H / 2 && summary.rebuild, tag + ": the tier's own motion size is what it was (half the picture, rebuilt at full size)");
@@ -169,8 +173,8 @@ int wmain(int argc, wchar_t** argv) {
                     const double flowDb = psnr(image.pixels, truth), blendDb = psnr(mix, truth);
                     ++checked; between += flowDb > blendDb + 2.0; worstMargin = std::min(worstMargin, flowDb - blendDb);
                     if (i <= 2) std::cout << "PUSHFLOW_GRAPH " << tag << " frame=" << i << " sub=" << sub << " generated " << flowDb << " dB, blend " << blendDb << " dB" << std::endl;
-                    if (multiplier == 3 && !run.motion && !run.cache) plain3x[{i, sub}] = image.pixels;
-                    if (run.cache) {
+                    if (multiplier == 3 && !run.motion && !run.cache && !run.guard) plain3x[{i, sub}] = image.pixels;
+                    if (run.cache || run.guard) {
                         const auto found = plain3x.find({i, sub});
                         int worst = 255;
                         if (found != plain3x.end() && found->second.size() == image.pixels.size()) {
@@ -197,6 +201,13 @@ int wmain(int argc, wchar_t** argv) {
         check(checked > 0 && between == checked, tag + ": each generated frame shows the square between its neighbours (" + std::to_string(between) + "/" + std::to_string(checked) +
                                                      ", worst margin over a blend " + std::to_string(worstMargin) + " dB)");
         if (multiplier == 3) check(generated > 0 && ordered == generated, tag + ": the two generated frames of a pair are in order (" + std::to_string(ordered) + "/" + std::to_string(generated) + ")");
+        if (run.guard) {
+            const auto summary = graph.pushFlowSummary();
+            check(cacheChecked == checked && cacheChecked > 0 && cacheSame == cacheChecked, tag + ": a followed object leaves every generated frame as PushFlow makes it without Guard (" + std::to_string(cacheSame) + "/" +
+                                                                                             std::to_string(cacheChecked) + ", worst difference " + std::to_string(cacheWorst) + " of 255)");
+            check(summary.guardFrames > 0 && summary.guardMended == 0 && summary.guardHeld == 0,
+                  tag + ": judged " + std::to_string(summary.guardFrames) + " frames, mended " + std::to_string(summary.guardMended) + ", held " + std::to_string(summary.guardHeld));
+        }
         if (run.cache) {
             const auto summary = graph.pushFlowSummary();
             check(cacheChecked == checked && cacheChecked > 0 && cacheSame == cacheChecked, tag + ": every generated frame is the one PushFlow makes without the cache (" + std::to_string(cacheSame) + "/" +

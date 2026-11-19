@@ -66,6 +66,9 @@ struct Facts {
     // way at start-up (0: not measured).
     std::string pushFlowEncoderCache;
     double pushFlowWholeMs = 0, pushFlowSplitMs = 0;
+    // PushFlow 2's Guard: "" not asked for, "on", or a word for why not; frames judged, mended, held whole.
+    std::string pushFlowGuard;
+    uint64_t pushFlowGuardFrames = 0, pushFlowGuardMended = 0, pushFlowGuardHeld = 0;
 };
 
 // A word from a fixed list: lower-case letters, digits and '-' only, else empty.
@@ -169,7 +172,10 @@ inline std::string json(const Facts& f) {
     o += "    \"pushFlowMotionSize\": " + (motion ? "[" + std::to_string(f.pushFlowMotionWidth) + ", " + std::to_string(f.pushFlowMotionHeight) + "]" : std::string("null")) + ",\n";
     const bool cacheTimed = f.pushFlowWholeMs > 0 && f.pushFlowSplitMs > 0 && f.pushFlowWholeMs < 100000 && f.pushFlowSplitMs < 100000;
     o += "    \"pushFlowEncoderCache\": " + quoted(word(f.pushFlowEncoderCache)) + ",\n";
-    o += "    \"pushFlowEncoderCacheStartMs\": " + (cacheTimed ? "[" + number(f.pushFlowWholeMs) + ", " + number(f.pushFlowSplitMs) + "]" : std::string("null")) + "\n";
+    o += "    \"pushFlowEncoderCacheStartMs\": " + (cacheTimed ? "[" + number(f.pushFlowWholeMs) + ", " + number(f.pushFlowSplitMs) + "]" : std::string("null")) + ",\n";
+    o += "    \"pushFlowGuard\": " + quoted(word(f.pushFlowGuard)) + ",\n";
+    o += "    \"pushFlowGuardFrames\": " + (f.pushFlowGuardFrames ? "[" + std::to_string(f.pushFlowGuardFrames) + ", " + std::to_string(f.pushFlowGuardMended) + ", " +
+                                              std::to_string(f.pushFlowGuardHeld) + "]" : std::string("null")) + "\n";
     o += "  },\n";
     o += "  \"notes\": \"Rates are frames PushFPS presented in the last second. softwareLatency is a frame's arrival in PushFPS to its Present call: "
          "not button to screen, and it leaves out the capture card, the console and the display. frameGenerationHealth: 0 fine, 1 nothing to add at this "

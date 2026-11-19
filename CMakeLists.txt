@@ -337,6 +337,8 @@ veyra_add_compute_shader(veyra_shader_push_ambient_blur PushAmbientBlur)
 veyra_add_compute_shader(veyra_shader_push_flow_pack PushFlowPack)
 veyra_add_compute_shader(veyra_shader_push_flow_unpack PushFlowUnpack)
 veyra_add_compute_shader(veyra_shader_push_flow_reconstruct PushFlowReconstruct)
+# PushFlow 2's Guard: where an object was left out of a generated frame, the nearer real frame.
+veyra_add_compute_shader(veyra_shader_push_guard PushGuard)
 # Nv12Upload: byte buffer -> luma/chroma planes (copy-free upload path).
 veyra_add_compute_shader(veyra_shader_nv12_upload Nv12Upload)
 # PresentBlit: fullscreen-triangle pixel blit onto flip-model back buffers.
@@ -469,7 +471,7 @@ if(VEYRA_ONNXRUNTIME_ROOT AND EXISTS "${VEYRA_ONNXRUNTIME_ROOT}/build/native/inc
 else()
   message(STATUS "PushFlow: ONNX Runtime headers not found; PushFlow is built as unavailable")
 endif()
-add_dependencies(veyra_pipeline veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct)
+add_dependencies(veyra_pipeline veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct veyra_shader_push_guard)
 
 # Optional independent RX7000 network worker. All third-party source and runtime
 # assets remain external; only our host and reproducible preparation script live here.
@@ -566,7 +568,7 @@ add_executable(veyra_push_gpu_tests tests/integration/PushGpuTests.cpp src/engin
 target_compile_features(veyra_push_gpu_tests PRIVATE cxx_std_20)
 target_compile_options(veyra_push_gpu_tests PRIVATE /utf-8)
 target_link_libraries(veyra_push_gpu_tests PRIVATE veyra_pipeline)
-add_dependencies(veyra_push_gpu_tests veyra_shader_nr_residual veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_push_ambient_down veyra_shader_push_ambient_blur veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct)
+add_dependencies(veyra_push_gpu_tests veyra_shader_push_guard veyra_shader_nr_residual veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_push_ambient_down veyra_shader_push_ambient_blur veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct)
 
 # PushFlowBench (tools/pushflow_bench): PushFlow timings on this PC's GPU, as JSON; shipped next to PushFPS.exe.
 add_executable(veyra_pushflow_bench tools/pushflow_bench/main.cpp)
@@ -574,7 +576,7 @@ target_compile_features(veyra_pushflow_bench PRIVATE cxx_std_20)
 target_compile_options(veyra_pushflow_bench PRIVATE /utf-8)
 target_link_libraries(veyra_pushflow_bench PRIVATE veyra_pipeline psapi)
 set_target_properties(veyra_pushflow_bench PROPERTIES OUTPUT_NAME PushFlowBench)
-add_dependencies(veyra_pushflow_bench veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct)
+add_dependencies(veyra_pushflow_bench veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct veyra_shader_push_guard)
 
 add_executable(veyra_pipeline_tests
   tests/unit/PipelineContractTests.cpp
@@ -1042,6 +1044,10 @@ target_include_directories(veyra_push_view_crop_tests PRIVATE ${CMAKE_CURRENT_SO
 add_executable(veyra_push_flow_motion_tests tests/unit/PushFlowMotionTests.cpp)
 target_compile_features(veyra_push_flow_motion_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_flow_motion_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFlow 2's Guard, the decision (pushflow/PushFlowGuard.h, pure): which tiles show the nearer real frame.
+add_executable(veyra_push_flow_guard_tests tests/unit/PushFlowGuardTests.cpp)
+target_compile_features(veyra_push_flow_guard_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_flow_guard_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFlow 2's experiment switches (pushflow/PushFlow2.h, pure): off unless asked for, damaged preferences, the emergency stop.
 add_executable(veyra_push_flow2_tests tests/unit/PushFlow2Tests.cpp)
 target_compile_features(veyra_push_flow2_tests PRIVATE cxx_std_20)

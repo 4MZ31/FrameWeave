@@ -76,12 +76,19 @@ struct Status {
     std::string splitState;
     double splitCheckDb = 0;           // against the whole model at start-up (0 = not run)
     double wholeMs = 0, splitMs = 0;   // one generated frame each way at start-up, waited for: a first indication only
+    // PushFlow 2's Guard (opt-in; shaders/PushGuard.hlsl): "" not asked for, "on", or why not: "no-grids"
+    // (the model gives no grids to judge by), "too-small" (the motion size has too few tiles), "shader".
+    bool guard = false;
+    std::string guardState;
 };
 
 struct Telemetry {
     uint64_t inferences = 0, fullPacks = 0, timePacks = 0;
     // With the encoder cache: encoder runs, and pairs whose first frame's features were kept / had to be made.
     uint64_t encoderRuns = 0, featureHits = 0, featureMisses = 0;
+    // With Guard: generated frames it judged, those it mended in places, those it replaced whole by the
+    // nearer real frame (a held frame, not a generated one), and tiles replaced in all.
+    uint64_t guardFrames = 0, guardMended = 0, guardHeld = 0, guardTiles = 0;
     double inferP50Ms = 0, inferP95Ms = 0, inferMaxMs = 0;   // the network's GPU span on the queue (CPU time of the call without timestamps)
 };
 
@@ -102,8 +109,9 @@ public:
     // `queue` is the queue every list below is submitted to; ONNX Runtime runs the network on it too.
     // motionHeight: 0 = the tier's own motion size, else 540 / 720 / 1080 (pushflow/PushFlowMotion.h).
     // encoderCache: PushFlow 2's encoder cache is asked for (Status::split / splitState say what came of it).
+    // guard: PushFlow 2's Guard is asked for (Status::guard / guardState).
     bool initialize(ID3D12Device* device, ID3D12CommandQueue* queue, const std::wstring& runtimeDir, uint32_t width, uint32_t height,
-                    DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight = 0, bool encoderCache = false);
+                    DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight = 0, bool encoderCache = false, bool guard = false);
     // Records the input packing: `previous` and `current` must be in NON_PIXEL_SHADER_RESOURCE.
     // timeOnly: the same pair as the last call (later subframes): only the time plane is written.
     // previousId / currentId: which real frames these are, for the encoder cache: the same number means

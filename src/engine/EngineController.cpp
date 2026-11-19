@@ -1821,7 +1821,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                        gd.srInputWidth!=nextDesc.srInputWidth||gd.srInputHeight!=nextDesc.srInputHeight||
                        gd.srOutputWidth!=nextDesc.srOutputWidth||gd.srOutputHeight!=nextDesc.srOutputHeight||
                        // PushFPS: PushFlow's motion size (a preference, not a field of the settings) sizes its network.
-                       gd.pushFlowMotion!=nextDesc.pushFlowMotion||gd.pushFlowEncoderCache!=nextDesc.pushFlowEncoderCache)rebuild=true;
+                       gd.pushFlowMotion!=nextDesc.pushFlowMotion||gd.pushFlowEncoderCache!=nextDesc.pushFlowEncoderCache||gd.pushFlowGuard!=nextDesc.pushFlowGuard)rebuild=true;
                     bool accepted=ring.drainQueue();out={};hasOutput=false;
                     resetRecord->rebuilt=rebuild;
                     markResetStage(diagnostics::ResetStage::Drain);
@@ -3205,7 +3205,8 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                 presenter.displayRefreshHz();
                 ++frames;{std::lock_guard lock(mutex_);snapshot_.metrics=measured;if((frames&31)==0){const auto pf=graph->pushFlowSummary();snapshot_.pushFlowPrecision=pf.precision;snapshot_.pushFlowRebuild=pf.rebuild;snapshot_.pushFlowP50Ms=pf.p50Ms;snapshot_.pushFlowP95Ms=pf.p95Ms;snapshot_.pushFlowMotionWidth=pf.motionWidth;snapshot_.pushFlowMotionHeight=pf.motionHeight;
                     snapshot_.pushFlowEncoderCache=pf.encoderCache;snapshot_.pushFlowEncoderRuns=pf.encoderRuns;snapshot_.pushFlowFeaturesKept=pf.featuresKept;snapshot_.pushFlowFeaturesMade=pf.featuresMade;
-                    snapshot_.pushFlowWholeMs=pf.wholeMs;snapshot_.pushFlowSplitMs=pf.splitMs;snapshot_.pushFlowSplitCheckDb=pf.splitCheckDb;}snapshot_.colorStatus=graph->videoHdrActive()?L"SDR → RTX Video HDR":options.settings.videoHdr.enabled&&!gd.hdrInput?L"SDR → SDR（HDR显示未启用）":gd.hdrOutput?(graph->hdr10Output()?L"HDR → HDR10 / PQ":L"HDR → scRGB / 浮点"):gd.hdrInput?L"HDR → SDR色调映射":L"SDR → SDR";snapshot_.position=(isCapture||isImage?pts:lastFilePresentedMs)/1000;snapshot_.frames=sourceFrames;snapshot_.generated=graphStats.fgGeneratedFrames;snapshot_.lateMs=lateness;snapshot_.lateP95Ms=presentReturnDeviation.p95();
+                    snapshot_.pushFlowWholeMs=pf.wholeMs;snapshot_.pushFlowSplitMs=pf.splitMs;snapshot_.pushFlowSplitCheckDb=pf.splitCheckDb;
+                    snapshot_.pushFlowGuard=pf.guard;snapshot_.pushFlowGuardFrames=pf.guardFrames;snapshot_.pushFlowGuardMended=pf.guardMended;snapshot_.pushFlowGuardHeld=pf.guardHeld;}snapshot_.colorStatus=graph->videoHdrActive()?L"SDR → RTX Video HDR":options.settings.videoHdr.enabled&&!gd.hdrInput?L"SDR → SDR（HDR显示未启用）":gd.hdrOutput?(graph->hdr10Output()?L"HDR → HDR10 / PQ":L"HDR → scRGB / 浮点"):gd.hdrInput?L"HDR → SDR色调映射":L"SDR → SDR";snapshot_.position=(isCapture||isImage?pts:lastFilePresentedMs)/1000;snapshot_.frames=sourceFrames;snapshot_.generated=graphStats.fgGeneratedFrames;snapshot_.lateMs=lateness;snapshot_.lateP95Ms=presentReturnDeviation.p95();
                     snapshot_.videoHdrActive=graph->videoHdrActive();
                     snapshot_.beautyActive=graph->beautyNodesActive();snapshot_.beautyFaces=graph->beautyFaceCount();
                     snapshot_.beautyNotice=graph->beautyNotice();

@@ -101,6 +101,11 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["pushFlowWholeMs"] = s.pushFlowWholeMs;
     m["pushFlowSplitMs"] = s.pushFlowSplitMs;
     m["pushFlow2Stopped"] = pushflow2::emergencyOff();
+    // PushFlow 2's Guard: "" not asked for, "on", or why not; generated frames judged, mended in places, held whole.
+    m["pushFlowGuard"] = QString::fromStdString(s.pushFlowGuard);
+    m["pushFlowGuardFrames"] = QVariant::fromValue(qulonglong(s.pushFlowGuardFrames));
+    m["pushFlowGuardMended"] = QVariant::fromValue(qulonglong(s.pushFlowGuardMended));
+    m["pushFlowGuardHeld"] = QVariant::fromValue(qulonglong(s.pushFlowGuardHeld));
     m["pacingRepaired"] = QVariant::fromValue(qulonglong(s.pacingRepaired));
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;

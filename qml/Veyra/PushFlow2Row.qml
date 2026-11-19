@@ -3,8 +3,10 @@
 // One PushFlow 2 experiment's switch (Professional mode; docs/PUSHFLOW2.md, pushflow/PushFlow2.h). Every
 // experiment is off unless switched on here, the preference `pushFlow2` holds them all as one small JSON
 // object, and the row says what really runs: asked for is not the same as in use.
-//   part: the experiment's name in the preference ("fusion", ...)
-//   cacheState: what the engine says of it: "" not asked for or not started yet, "on", or a word for why not
+//   part: the experiment's name in the preference ("fusion", "guard", ...)
+//   stateKey: the name in pushLiveStats() of what the engine says of it: "" not asked for or not started
+//             yet, "on", or a word for why not (shown here as `cacheState`)
+//   describe: what to say while it runs, from the live stats
 import QtQuick
 import QtQuick.Layouts
 VRow {
@@ -12,13 +14,12 @@ VRow {
     property string part: "fusion"
     property string title: ""
     property string explanation: ""
+    property string stateKey: "pushFlowEncoderCache"
+    property var describe: function(st) { return "" }
+    property var stats: ({})
     // What pushLiveStats() says while PushFlow plays (read once a second while the row is shown).
     property string cacheState: ""
     property bool stopped: false
-    property real wholeMs: 0
-    property real splitMs: 0
-    property int kept: 0
-    property int made: 0
     property bool live: false
     readonly property var flags: {
         try { const v = JSON.parse(veyra.preferences.pushFlow2 || "{}"); return v && typeof v === "object" && !Array.isArray(v) ? v : ({}) } catch (e) { return ({}) }
@@ -37,24 +38,23 @@ VRow {
         if (word === "session") return qsTr("拆分后的模型没能打开")
         if (word === "mismatch") return qsTr("在这块显卡上，结果和完整模型不一致")
         if (word === "failed") return qsTr("运行时出错，已改回完整模型")
+        if (word === "no-grids") return qsTr("当前模型不提供运动数据")
+        if (word === "too-small") return qsTr("运动估算尺寸太小")
+        if (word === "shader") return qsTr("着色器没能载入")
         return word
     }
     function readLive() {
         const st = veyra.pushLiveStats() || ({})
         row.live = st.running === true && Number(st.pushFlowMotionWidth || 0) > 0
         row.stopped = st.pushFlow2Stopped === true
-        row.cacheState = row.live ? String(st.pushFlowEncoderCache || "") : ""
-        row.wholeMs = Number(st.pushFlowWholeMs || 0)
-        row.splitMs = Number(st.pushFlowSplitMs || 0)
-        row.kept = Math.round(Number(st.pushFlowFeaturesKept || 0))
-        row.made = Math.round(Number(st.pushFlowFeaturesMade || 0))
+        row.cacheState = row.live ? String(st[row.stateKey] || "") : ""
+        row.stats = st
     }
     label: row.title
     help: row.explanation
     hint: !row.asked ? qsTr("实验功能，默认关闭。关闭时 PushFlow 和以前完全一样")
         : row.stopped ? qsTr("已开启，但本次以安全模式启动，所有实验功能都不运行")
-        : row.cacheState === "on" ? qsTr("正在使用。启动时测得：完整模型每帧 %1 ms，拆分后 %2 ms；已复用 %3 次，重新编码 %4 次")
-              .arg(row.wholeMs.toFixed(1)).arg(row.splitMs.toFixed(1)).arg(row.kept).arg(row.made)
+        : row.cacheState === "on" ? row.describe(row.stats)
         : row.cacheState.length > 0 ? qsTr("已开启，但没有使用：%1。PushFlow 照常运行").arg(row.why(row.cacheState))
         : row.live ? qsTr("已开启，下一次 PushFlow 启动时生效")
         : qsTr("已开启。PushFlow 运行时，这里会显示它是否真的在用")

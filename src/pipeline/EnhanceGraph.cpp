@@ -1605,6 +1605,7 @@ EnhanceGraph::PushFlowSummary EnhanceGraph::pushFlowSummary() const {
     s.motionWidth=pushFlow_->status().modelW;s.motionHeight=pushFlow_->status().modelH;
     s.encoderCache=pushFlow_->status().splitState;s.encoderRuns=t.encoderRuns;s.featuresKept=t.featureHits;s.featuresMade=t.featureMisses;
     s.wholeMs=pushFlow_->status().wholeMs;s.splitMs=pushFlow_->status().splitMs;s.splitCheckDb=pushFlow_->status().splitCheckDb;
+    s.guard=pushFlow_->status().guardState;s.guardFrames=t.guardFrames;s.guardMended=t.guardMended;s.guardHeld=t.guardHeld;
     return s;
 }
 // PushFlow (pushflow/PushFlowBackend.h): RIFE on DirectML, any multiplier (the time of each frame).
@@ -1616,7 +1617,7 @@ bool EnhanceGraph::initPushFlow()
     const bool linear=format==DXGI_FORMAT_R16G16B16A16_FLOAT||format==DXGI_FORMAT_R16G16B16A16_TYPELESS;
     const auto encoding=linear?(desc_.hdrOutput?pushflow::Encoding::ScRgbHdr:pushflow::Encoding::LinearSdr):pushflow::Encoding::Encoded;
     pushFlow_=std::make_unique<pushflow::PushFlowBackend>();
-    if(!pushFlow_->initialize(context_.device(),ring_.queue(),desc_.runtimeAbsPath,workW_,workH_,format,encoding,desc_.vfgQuality,desc_.pushFlowMotion,desc_.pushFlowEncoderCache)){pushFlow_.reset();return false;}
+    if(!pushFlow_->initialize(context_.device(),ring_.queue(),desc_.runtimeAbsPath,workW_,workH_,format,encoding,desc_.vfgQuality,desc_.pushFlowMotion,desc_.pushFlowEncoderCache,desc_.pushFlowGuard)){pushFlow_.reset();return false;}
     fgCapsAvailable_=true;fgMultiFrameMax_=3;
     failedBackend_=engine::FailedBackend::None;
     return true;
