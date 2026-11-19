@@ -351,39 +351,55 @@ def motion_report(path: Path, channels: int, align: int, mask_for_first: bool) -
     return rows
 
 
-def guard_tiles(img0, img1, far0, far1, tile=16, change=0.05, still=1.5, spread=1.5):
-    """PushFlow 2's Guard, second rule, at tile size: where did something change between the two real frames
-    that the network's motion does not account for?
+def guard_tiles(img0, img1, reads, w0, tile=16, change=0.05, unused=0.25, still=8.0, spread=1.5):
+    """PushFlow 2's Guard at tile size: where was something in one of the two real frames left out of the
+    generated frame?
 
-    A tile is CHANGED when what it shows differs between the two frames once the tile's own change of
-    brightness is taken out (so a fade is not a change). A tile is EXPLAINED when the network moved
-    something there or near it: every tile whose samples are read from more than `still` pixels away
-    explains the tiles around it as far as that motion reaches (`spread` times its length, plus one tile),
-    which is where a followed object uncovers background. Changed and not explained = something moved
-    that the network did not follow: there the generated frame shows neither frame's object.
+    reads: for each of the two frames, where every pixel of the generated frame reads it (x, y in pixels);
+    w0: how much of the generated pixel is the first frame's sample. Three things must all hold for a tile:
 
-    Returns (risky, changed, explained), each [tiles down, tiles across] of booleans."""
+      CHANGED   what the tile shows differs between the two frames once its own change of brightness is
+                taken out (a fade is not a change);
+      UNUSED    what one of the two frames shows there goes into the generated frame nowhere: of that
+                frame's tile, less than `unused` is read, weights counted, by any generated pixel
+                (an object the network followed is read where it now stands, so it is used);
+      STILL     nothing near it was moved by `still` pixels or more. A real motion reaches as far as
+                `spread` times its length, plus one tile: that is where a followed object uncovers
+                background and where a pan pushes the picture's edge out, both unused and both right.
+
+    Changed, unused and still = something moved that the network did not follow, and the generated frame
+    shows it nowhere. Returns (risky, changed, unused_either, moving_near), [tiles down, tiles across]."""
     import numpy as np
-    h, w = far0.shape
+    h, w = w0.shape
     th, tw = h // tile, w // tile
     def tiles(x):
         return x[:th * tile, :tw * tile].reshape(th, tile, tw, tile)
     l0, l1 = tiles(img0.mean(axis=0)), tiles(img1.mean(axis=0))
     d = np.abs((l0 - l0.mean(axis=(1, 3), keepdims=True)) - (l1 - l1.mean(axis=(1, 3), keepdims=True))).mean(axis=(1, 3))
     changed = d > change
-    moved = tiles(np.maximum(far0, far1)).max(axis=(1, 3))      # the furthest any sample in the tile is read from, in pixels
-    explained = np.zeros((th, tw), bool)
-    for ty, tx in zip(*np.nonzero(moved > still)):
+    yo, xo = np.mgrid[0:h, 0:w]
+    used, far = [], []
+    for (xm, ym), weight in zip(reads, (w0, 1.0 - w0)):
+        tx, ty = np.floor(xm / tile).astype(np.int64), np.floor(ym / tile).astype(np.int64)
+        inside = (tx >= 0) & (tx < tw) & (ty >= 0) & (ty < th)
+        count = np.zeros((th, tw))
+        np.add.at(count, (ty[inside], tx[inside]), weight[inside])
+        used.append(count / float(tile * tile))
+        far.append(np.hypot(xm - xo, ym - yo))
+    unused_either = np.minimum(used[0], used[1]) < unused
+    moved = tiles(np.maximum(far[0], far[1])).max(axis=(1, 3))
+    near = np.zeros((th, tw), bool)
+    for ty, tx in zip(*np.nonzero(moved >= still)):
         r = int(np.ceil(spread * moved[ty, tx] / tile)) + 1
-        explained[max(0, ty - r):ty + r + 1, max(0, tx - r):tx + r + 1] = True
-    return changed & ~explained, changed, explained
+        near[max(0, ty - r):ty + r + 1, max(0, tx - r):tx + r + 1] = True
+    return changed & unused_either & ~near, changed, unused_either, near
 
 
 def guard_report(path: Path, channels: int, align: int, mask_for_first: bool) -> list[dict]:
-    """Guard's second rule on the shipped model, before anything is built on it (docs/PUSHFLOW2.md): for each
-    drawn pair, how much of the picture the rule would replace with the nearer real frame, and what that
-    does. It must act where an object was left out (the object is then shown where the nearer frame has
-    it, instead of nowhere) and must leave followed motion, pans and fades alone."""
+    """Guard's rule on the shipped model, before anything is built on it (docs/PUSHFLOW2.md): for each drawn
+    pair, how much of the picture the rule would replace with the nearer real frame, and what that does.
+    It must act where an object was left out (the object is then shown where the nearer frame has it,
+    instead of nowhere) and must leave followed motion, slow motion, pans and fades alone."""
     import numpy as np
     import onnxruntime as ort
     import rife_graph
@@ -396,7 +412,7 @@ def guard_report(path: Path, channels: int, align: int, mask_for_first: bool) ->
     def study(label, img0, img1, truth, move=None, **rule):
         _, g0, g1, m = session.run(None, {name: tensor(img0, img1, 0.5, channels)})[:4]
         ph, pw = rife_graph.to_hw2(g0).shape[:2]
-        samples, far = [], []
+        samples, reads = [], []
         for img, grid in ((img0, g0), (img1, g1)):
             g = np.moveaxis(rife_graph.to_hw2(grid), -1, 0)
             gx, gy = bilinear_at(g, yo, xo)
@@ -405,57 +421,51 @@ def guard_report(path: Path, channels: int, align: int, mask_for_first: bool) ->
             else:
                 xm = ((gx + 1) * pw - 1) * 0.5; ym = ((gy + 1) * ph - 1) * 0.5
             samples.append(np.clip(bilinear_at(img, ym, xm), 0, 1))
-            far.append(np.hypot(xm - xo, ym - yo))
+            reads.append((xm, ym))
         mask = np.clip(bilinear_at(np.asarray(m)[0], yo, xo)[0], 0, 1)
         w0 = mask if mask_for_first else 1 - mask
         picture = samples[0] * w0 + samples[1] * (1 - w0)
-        risky, changed, explained = guard_tiles(img0, img1, far[0], far[1], tile, **rule)
-        area = np.kron(risky, np.ones((tile, tile), bool))
+        risky, changed, unused, near = guard_tiles(img0, img1, reads, w0, tile, **rule)
         full = np.zeros((h, w), bool)
+        area = np.kron(risky, np.ones((tile, tile), bool))
         full[:area.shape[0], :area.shape[1]] = area
         guarded = np.where(full[None], img0, picture)        # the middle time: the earlier frame is as near as the later
-        row = {"pair": label, "rule": rule or "default", "changed_tiles_percent": round(100.0 * float(changed.mean()), 2),
-               "explained_tiles_percent": round(100.0 * float(explained.mean()), 2), "risky_tiles_percent": round(100.0 * float(risky.mean()), 2),
-               "picture_replaced_percent": round(100.0 * float((np.abs(guarded - picture).max(axis=0) > 0.02).mean()), 2)}
+        row = {"pair": label, "rule": rule or "default", "changed": round(100.0 * float(changed.mean()), 2), "unused": round(100.0 * float((changed & unused).mean()), 2),
+               "risky": round(100.0 * float(risky.mean()), 2), "replaced": round(100.0 * float((np.abs(guarded - picture).max(axis=0) > 0.02).mean()), 2)}
         if truth is not None:
-            row["model_db"] = round(psnr(picture, truth), 2)
-            row["guarded_db"] = round(psnr(guarded, truth), 2)
+            row["db"] = [round(psnr(picture, truth), 2), round(psnr(guarded, truth), 2)]
         if move is not None:
             def shown(image, reference, left):
                 box = (slice(int(h * 0.35), int(h * 0.35) + 40), slice(int(left), int(left) + 40))
                 return round(float(np.abs(image - reference)[:, box[0], box[1]].mean()), 3)
             # 0 = the object is shown there as the earlier frame has it; about 0.3 = background where it was.
-            row["old_place_model_vs_earlier_frame"] = shown(picture, img0, 100)
-            row["old_place_guarded_vs_earlier_frame"] = shown(guarded, img0, 100)
-            row["middle_place_model_error"] = shown(picture, truth, 100 + move / 2)
-            row["new_place_guarded_vs_earlier_frame"] = shown(guarded, img0, 100 + move)
-            row["read_from_px_old_middle_new"] = [round(float(np.maximum(far[0], far[1])[int(h * 0.35):int(h * 0.35) + 40, int(x):int(x) + 40].mean()), 1) for x in (100, 100 + move / 2, 100 + move)]
+            row["old_place_vs_earlier_frame"] = [shown(picture, img0, 100), shown(guarded, img0, 100)]
+            row["middle_error"] = [shown(picture, truth, 100 + move / 2), shown(guarded, truth, 100 + move / 2)]
         rows.append(row)
 
-    for move in (16, 48, 96, 128, 160, 256):
-        study(f"square moved {move} px", frame(w, h, 100), frame(w, h, 100 + move), frame(w, h, 100 + move / 2), move)
-    for pan in (8, 32, 64, 128):
-        study(f"fine texture panned {pan} px", detail_frame(w, h, 0), detail_frame(w, h, pan), detail_frame(w, h, pan // 2))
-    study("two unrelated pictures", frame(w, h, 100), detail_frame(w, h, 0), None)
-    dim = (frame(w, h, 100) * 0.6).astype(np.float32)
-    for step in (0.07, 0.3):
-        bright = np.clip(dim + step, 0, 1).astype(np.float32)
-        study(f"a fade ({step} brighter, nothing moves)", dim, bright, ((dim + bright) / 2).astype(np.float32))
-    study("nothing changes", frame(w, h, 100), frame(w, h, 100), frame(w, h, 100), 0)
-    # A square over the fine texture, both moving their own way: the hard case for "explained".
     def over(square_x, pan):
         base = detail_frame(w, h, pan).copy()
         sq = frame(w, h, square_x)
         top, left = int(h * 0.35), int(square_x)
         base[:, top:top + 40, left:left + 40] = sq[:, top:top + 40, left:left + 40]
         return base
-    study("square moved 48 px over a texture panned 8 px", over(100, 0), over(148, 8), over(124, 4), 48)
-    study("square moved 200 px over a still texture", over(100, 0), over(300, 0), over(200, 0), 200)
-    # How the choice of numbers moves the result, on the pairs that decide it.
-    for rule in ({"change": 0.03}, {"change": 0.08}, {"still": 0.75}, {"still": 3.0}, {"spread": 1.0}, {"spread": 2.5}):
-        study("square moved 96 px", frame(w, h, 100), frame(w, h, 196), frame(w, h, 148), 96, **rule)
-        study("square moved 160 px", frame(w, h, 100), frame(w, h, 260), frame(w, h, 180), 160, **rule)
-        study("fine texture panned 32 px", detail_frame(w, h, 0), detail_frame(w, h, 32), detail_frame(w, h, 16), None, **rule)
+    def cases(**rule):
+        for move in (2, 4, 8, 16, 48, 96, 128, 160, 256):
+            study(f"square moved {move} px", frame(w, h, 100), frame(w, h, 100 + move), frame(w, h, 100 + move / 2), move, **rule)
+        for pan in (2, 4, 8, 32, 64, 128):
+            study(f"fine texture panned {pan} px", detail_frame(w, h, 0), detail_frame(w, h, pan), detail_frame(w, h, pan // 2), None, **rule)
+        study("two unrelated pictures", frame(w, h, 100), detail_frame(w, h, 0), None, None, **rule)
+        dim = (frame(w, h, 100) * 0.6).astype(np.float32)
+        for step in (0.07, 0.3):
+            bright = np.clip(dim + step, 0, 1).astype(np.float32)
+            study(f"a fade ({step} brighter, nothing moves)", dim, bright, ((dim + bright) / 2).astype(np.float32), None, **rule)
+        study("nothing changes", frame(w, h, 100), frame(w, h, 100), frame(w, h, 100), 0, **rule)
+        study("square moved 48 px over a texture panned 8 px", over(100, 0), over(148, 8), over(124, 4), 48, **rule)
+        study("square moved 8 px over a still texture", over(100, 0), over(108, 0), over(104, 0), 8, **rule)
+        study("square moved 200 px over a still texture", over(100, 0), over(300, 0), over(200, 0), 200, **rule)
+    cases()
+    cases(still=16.0)
+    cases(still=24.0, unused=0.15)
     return rows
 
 
