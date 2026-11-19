@@ -342,7 +342,7 @@ mode or in streaming mode.
   *Quality* (full model, up to 1080p); whenever the motion is estimated smaller, the picture is rebuilt at
   full resolution, so 4K stays sharp and fast enough for live play.
 - **Choose the motion size** (since 3.2.7): *Professional → PushFlow motion size* sets 540p, 720p or 1080p
-  for any tier; Automatic keeps the sizes above. Smaller is lighter and sometimes follows fast objects
+  for any tier; Auto keeps the sizes above. Smaller is lighter and sometimes follows fast objects
   further, larger is more exact for small motion. The frame quality test's *Worst place* tells you which
   suits your game. Not yet tested on real graphics cards.
 - **Sharp Fast tier**: the network's final motion and blend mask are enlarged, not its picture: every pixel is

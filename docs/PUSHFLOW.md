@@ -31,7 +31,7 @@ the full-resolution rebuild.
 
 ### Choosing the motion size (3.2.7)
 
-*Professional → PushFlow motion size*: **Automatic** (the table above, and what every version before had), or
+*Professional → PushFlow motion size*: **Auto** (the table above, and what every version before had), or
 **540p**, **720p** or **1080p**, used whatever the tier. The tier still chooses the model; the picture is
 rebuilt at full size from the real frames either way, so sharpness does not change. A picture is never
 enlarged: on a 1080p picture, 1080p means the network runs at the picture's own size.
@@ -46,7 +46,7 @@ test*, and compare **Worst place**, which is where a left-out object shows.
   it (`pushFlowMotionSize`).
 - Changing it rebuilds PushFlow like changing the tier does (a short pause in generated frames).
 - If the card cannot keep up, the watch that lowers the tier first puts a chosen size that is larger than the
-  tier's own back to Automatic, and says so. Every step it takes is a cheaper one.
+  tier's own back to Auto, and says so. Every step it takes is a cheaper one.
 - Code: `pushflow::motion::networkScale`, `setMotionHeight`, `slowStep` in
   `include/veyra/pushflow/PushFlowMotion.h`; preference `pushFlowMotion`; `PushFlowMotionRow.qml`. It is not
   part of the settings a preset stores. Unverified on real hardware: it was built and tested on the software
