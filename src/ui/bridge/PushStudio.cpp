@@ -120,7 +120,7 @@ void QmlPlayerBridge::pushRecordingNotices(bool sound, bool microphone, bool com
         veyra::log::info("push-studio", "recording started with the game muted in the mixer");
     } else if (!comparisonClip && !studioPage && !impl_->pushCardScene.isEmpty()) {
         // On the Streaming mode page the card is in view; a comparison clip never shows it.
-        emit notice(tr("当前场景是卡片“%1”：录制里会是这张卡片，而不是游戏画面（直播模式 → 场景）").arg(impl_->pushCardScene), true);
+        emit notice(tr("当前场景是图卡“%1”：录制里会是这张图卡，而不是游戏画面（直播模式 → 场景）").arg(impl_->pushCardScene), true);
         veyra::log::info("push-studio", "recording started outside streaming mode with a card scene shown");
     }
 }
@@ -359,16 +359,44 @@ void QmlPlayerBridge::pushSetSceneSources(const QVariantList& sources) {
         spec.cropTop = float(std::clamp(m.value("cropT", 0.0).toDouble(), 0.0, 0.45));
         spec.cropRight = float(std::clamp(m.value("cropR", 0.0).toDouble(), 0.0, 0.45));
         spec.cropBottom = float(std::clamp(m.value("cropB", 0.0).toDouble(), 0.0, 0.45));
+        // Camera: the resolution asked for (0 automatic; the camera gives the closest it offers).
+        if (spec.kind == engine::PushSourceKind::Camera) {
+            const int wanted = m.value("resolution", 0).toInt();
+            spec.cameraHeight = wanted == 720 || wanted == 1080 || wanted == 1440 || wanted == 2160 ? uint32_t(wanted) : 0u;
+        }
         specs.push_back(std::move(spec));
     }
+    pushSourceReference();
     engine::setPushSources(specs, uint32_t(impl_->prefInt("studioTransitionMs", 300)));
+}
+
+void QmlPlayerBridge::pushSourceReference() {
+    // The presented picture is what recordings and streams are made from, unless a larger output
+    // size is set for either.
+    const auto out = impl_->snapshot.metrics.resolution.output;
+    const uint32_t shown = out.width > 0 ? uint32_t(out.width) : 0u;
+    const uint32_t record = uint32_t(std::clamp(impl_->prefInt("recordWidth", 0), 0, 8192));
+    const uint32_t stream = uint32_t(std::clamp(impl_->prefInt("streamWidth", 0), 0, 8192));
+    engine::setPushSourceReferenceWidth(std::max({shown, record, stream}));
+}
+
+int QmlPlayerBridge::pushSourceSerial(const QString& id) {
+    const uint64_t serial = engine::pushSourceSerial(id.toStdString());
+    return serial ? int(serial % 2000000000ull) + 1 : 0;
 }
 
 QVariantList QmlPlayerBridge::pushSourceStatus() {
     QVariantList out;
-    for (const auto& st : engine::pushSourceStatus())
+    for (const auto& st : engine::pushSourceStatus()) {
+        // width x height: what the camera, window or file sends (the layer itself may be smaller: it
+        // is fitted to the size it is shown); sizes: what a camera offers, largest first.
+        QVariantList sizes;
+        for (const auto& size : st.sizes)
+            sizes.push_back(QVariantMap{{"width", int(size.width)}, {"height", int(size.height)}, {"fps", size.fps}});
         out.push_back(QVariantMap{{"id", QString::fromStdString(st.id)}, {"running", st.running}, {"error", QString::fromStdWString(st.error)},
-                                  {"width", int(st.width)}, {"height", int(st.height)}, {"fps", st.fps}});
+                                  {"width", int(st.captureWidth ? st.captureWidth : st.width)}, {"height", int(st.captureHeight ? st.captureHeight : st.height)},
+                                  {"layerWidth", int(st.width)}, {"layerHeight", int(st.height)}, {"fps", st.fps}, {"sizes", sizes}});
+    }
     return out;
 }
 

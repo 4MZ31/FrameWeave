@@ -158,9 +158,51 @@ VPage {
         const games = studio.scenes.filter(x => x.type === "game")
         const target = studio.sceneById(id)
         if (!target || (target.type === "game" && games.length <= 1)) return false
-        if (id === studio.activeScene) studio.activate(games[0].id)
+        if (id === studio.activeScene) studio.activate(games.find(x => x.id !== id).id)
+        if (id === studio.editingScene) studio.editingScene = ""
         studio.saveScenes(studio.scenes.filter(x => x.id !== id))
         return true
+    }
+    // A copy right under the original, with its own ids (the sources too: each scene's are its own).
+    function duplicateScene(id) {
+        const scene = studio.sceneById(id)
+        const list = studio.scenes.slice()
+        if (!scene || list.length >= 12) return ""
+        const stamp = Date.now().toString(36) + Math.floor(Math.random() * 46656).toString(36)
+        const copy = JSON.parse(JSON.stringify(scene))
+        copy.id = "s" + stamp
+        copy.name = (String(scene.name || "") + " 2").slice(0, 40)
+        if (Array.isArray(copy.sources)) copy.sources = copy.sources.map((x, i) => Object.assign({}, x, { id: "src" + stamp + i }))
+        list.splice(list.findIndex(x => x.id === id) + 1, 0, copy)
+        studio.saveScenes(list)
+        return copy.id
+    }
+    // Right-click in the scenes list (as in OBS): on a scene its own actions, anywhere else in the
+    // list only the two ways to add one.
+    function openSceneMenu(id, x, y) {
+        sceneMenu.targetId = studio.sceneById(id) ? id : ""
+        sceneMenuAnchor.x = x; sceneMenuAnchor.y = y
+        sceneMenu.openAt(sceneMenuAnchor, "at")
+    }
+    function sceneMenuPick(action, id) {
+        if (action === "add-game" || action === "add-card") { studio.addScene(action === "add-game" ? "game" : "card"); return }
+        if (!studio.sceneById(id)) return
+        if (action === "show") studio.activate(id)
+        else if (action === "edit") studio.editingScene = id
+        else if (action === "copy") { const copy = studio.duplicateScene(id); if (copy) studio.editingScene = copy }
+        else if (action === "delete") studio.removeScene(id)
+    }
+    // The scene under a point of the controls card, "" for the rest of the scenes list and null
+    // outside it (the buttons under the list keep their own right-click: none).
+    function sceneAt(point) {
+        for (let i = 0; i < sceneRows.count; ++i) {
+            const row = sceneRows.itemAt(i)
+            if (!row) continue
+            const q = row.mapFromItem(controlsCard, point.x, point.y)
+            if (q.x >= 0 && q.y >= 0 && q.x < row.width && q.y < row.height) return row.modelData.id
+        }
+        const c = controls.mapFromItem(controlsCard, point.x, point.y)
+        return c.y >= scenesHeader.y - 8 && c.y <= sceneAddRow.y + sceneAddRow.height + 8 ? "" : null
     }
     // --- sources (PushLayerSources.h): webcams, windows and video files in a scene ----------------
     // scene.sources: [{id, kind: "camera"|"window"|"media", target, name, corner, size, shape, mirror, loop}].
@@ -176,6 +218,13 @@ VPage {
         veyra.pushSetSceneSources(studio.sourcesActive && scene && Array.isArray(scene.sources) ? scene.sources : [])
     }
     function statusOf(id) { return studio.sourceStatus.find(x => x.id === id) || null }
+    // What a camera offers, largest first: a chosen resolution gives the closest of these.
+    function cameraSizes(status) {
+        const sizes = status && Array.isArray(status.sizes) ? status.sizes : []
+        if (sizes.length === 0) return ""
+        return qsTr("摄像头提供：%1。相机在网络摄像头模式下送出的画面可能低于它的录制分辨率")
+            .arg(sizes.slice(0, 5).map(x => x.width + "×" + x.height + " (" + Math.round(Number(x.fps || 0)) + " FPS)").join(", "))
+    }
     function addSource(kind) {
         const scene = studio.sceneById(studio.editingScene)
         if (!scene) return false
@@ -233,6 +282,27 @@ VPage {
                 onActivated: studio.activate(studio.scenes[index].id)
             }
         }
+    }
+
+    VMenu {
+        id: sceneMenu
+        objectName: "studio-scene-menu"
+        property string targetId: ""
+        readonly property var target: studio.sceneById(targetId)
+        readonly property bool lastGame: target !== null && target.type === "game" && studio.scenes.filter(x => x.type === "game").length <= 1
+        readonly property bool full: studio.scenes.length >= 12
+        title: target ? String(target.name || "") : qsTr("场景")
+        items: (target ? [
+                { label: qsTr("切换到此场景"), id: "show", disabled: studio.activeScene === targetId },
+                { label: qsTr("编辑场景"), id: "edit" },
+                { label: qsTr("复制场景"), id: "copy", disabled: full, note: full ? qsTr("最多 12 个场景") : "" },
+                { label: qsTr("删除场景"), id: "delete", danger: true, disabled: lastGame, note: lastGame ? qsTr("至少保留一个画面场景") : "" },
+                { sep: true }
+            ] : []).concat([
+                { label: qsTr("添加画面场景"), id: "add-game", icon: "plus", disabled: full, note: full ? qsTr("最多 12 个场景") : "" },
+                { label: qsTr("添加图卡场景"), id: "add-card", icon: "plus", disabled: full }
+            ])
+        onPicked: (i, item) => studio.sceneMenuPick(item.id, targetId)
     }
 
     function goLive() {
@@ -382,11 +452,23 @@ VPage {
 
     // --- right: controls ------------------------------------------------------------------
     Rectangle {
+        id: controlsCard
         objectName: "studio-controls"
         x: studio.geometry.right.x; y: studio.geometry.right.y
         width: studio.geometry.right.width; height: studio.geometry.right.height
         radius: Theme.rCard; color: Theme.card; border.color: Theme.stroke
         clip: true
+        // Right-click in the scenes list: one handler for the whole card, so a click on a scene and
+        // a click beside it never both answer.
+        Item { id: sceneMenuAnchor; width: 1; height: 1 }
+        TapHandler {
+            objectName: "studio-scene-context"
+            acceptedButtons: Qt.RightButton
+            onTapped: eventPoint => {
+                const id = studio.sceneAt(eventPoint.position)
+                if (id !== null) studio.openSceneMenu(id, eventPoint.position.x, eventPoint.position.y)
+            }
+        }
         Flickable {
             id: controlScroll
             anchors.fill: parent
@@ -400,11 +482,13 @@ VPage {
                 width: controlScroll.width
                 spacing: 8
                 Text {
+                    id: scenesHeader
                     text: qsTr("场景")
                     color: Theme.t2; font.family: Theme.fontUi; font.pixelSize: 12
                     font.weight: Font.DemiBold; font.variableAxes: Theme.axesDemiBold
                 }
                 Repeater {
+                    id: sceneRows
                     model: studio.scenes
                     delegate: Rectangle {
                         id: sceneRow
@@ -446,6 +530,7 @@ VPage {
                     }
                 }
                 RowLayout {
+                    id: sceneAddRow
                     Layout.fillWidth: true
                     spacing: 8
                     VButton { objectName: "studio-add-game-scene"; Layout.fillWidth: true; ghost: true; iconName: "plus"; text: qsTr("画面场景"); onClicked: studio.addScene("game") }
@@ -579,7 +664,9 @@ VPage {
                                                     : String(sourceRow.status.error || "").length ? String(sourceRow.status.error)
                                                     : sourceRow.status.running ? qsTr("%1×%2 · %3 FPS").arg(sourceRow.status.width).arg(sourceRow.status.height).arg(Math.round(Number(sourceRow.status.fps || 0)))
                                                     : qsTr("正在启动…")
-                                                color: sourceRow.status && String(sourceRow.status.error || "").length ? Theme.err : Theme.t3
+                                                // A source running under 15 FPS is worth a second look.
+                                                color: sourceRow.status && String(sourceRow.status.error || "").length ? Theme.err
+                                                     : sourceRow.status && sourceRow.status.running && Number(sourceRow.status.fps || 0) > 0 && Number(sourceRow.status.fps) < 15 ? Theme.warn : Theme.t3
                                                 font.family: Theme.fontUi; font.pixelSize: 10
                                                 elide: Text.ElideRight
                                             }
@@ -606,19 +693,46 @@ VPage {
                                         value: String(sourceRow.modelData.name || "")
                                         onPicked: id => { const c = choices.find(x => x.id === id); if (c) studio.updateSource(sourceRow.modelData.id, { target: c.id, name: c.name }) }
                                     }
+                                    // The source, live: a new picture for every frame it publishes
+                                    // (image://push-source, PushSourceImageProvider). Until 3.2.3 this was a
+                                    // still fetched twice a second, and every camera looked like a slide show.
                                     Image {
-                                        visible: sourceRow.open && source !== ""
+                                        objectName: "source-preview"
+                                        property int serial: 0
+                                        visible: sourceRow.open && serial > 0
                                         Layout.alignment: Qt.AlignHCenter
-                                        Layout.preferredWidth: Math.min(200, sourceColumn.width)
+                                        Layout.preferredWidth: Math.min(240, sourceColumn.width)
                                         Layout.preferredHeight: visible ? Layout.preferredWidth * 9 / 16 : 0
                                         fillMode: Image.PreserveAspectFit
                                         cache: false
-                                        source: ""
+                                        sourceSize.width: 480
+                                        source: serial > 0 ? "image://push-source/" + sourceRow.modelData.id + "/" + serial : ""
                                         Timer {
-                                            interval: 500; repeat: true; triggeredOnStart: true
+                                            interval: 33; repeat: true; triggeredOnStart: true
                                             running: sourceRow.open && studio.sourcesActive
-                                            onTriggered: parent.source = veyra.pushSourcePreview(sourceRow.modelData.id)
+                                            onTriggered: parent.serial = veyra.pushSourceSerial(sourceRow.modelData.id)
                                         }
+                                    }
+                                    RowLayout {
+                                        visible: sourceRow.open && sourceRow.modelData.kind === "camera"
+                                        Layout.fillWidth: true
+                                        spacing: 8
+                                        FieldLabel { text: qsTr("分辨率") }
+                                        VSeg {
+                                            objectName: "source-resolution"
+                                            Layout.fillWidth: true
+                                            options: [{ id: "0", label: qsTr("自动") }, { id: "1080", label: "1080p" }, { id: "1440", label: "1440p" }, { id: "2160", label: "4K" }]
+                                            current: String(Number(sourceRow.modelData.resolution || 0))
+                                            onPicked: id => studio.updateSource(sourceRow.modelData.id, { resolution: Number(id) })
+                                        }
+                                    }
+                                    Text {
+                                        objectName: "source-sizes"
+                                        visible: sourceRow.open && sourceRow.modelData.kind === "camera" && text.length > 0
+                                        Layout.fillWidth: true
+                                        text: studio.cameraSizes(sourceRow.status)
+                                        color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 10
+                                        wrapMode: Text.WordWrap
                                     }
                                     VSeg {
                                         objectName: "source-corner"
@@ -844,7 +958,7 @@ VPage {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 title: qsTr("游戏声音")
-                subtitle: studio.cardMute ? qsTr("卡片场景显示时静音") : qsTr("采集卡或串流")
+                subtitle: studio.cardMute ? qsTr("图卡场景显示时静音") : qsTr("采集卡或串流")
                 iconName: "gamepad"
                 from: -60; to: 12
                 value: Number(veyra.preferences.mixGameDb ?? 0)

@@ -18,7 +18,9 @@
 #include <format>
 #include <map>
 #include <mutex>
+#include <string>
 #include <thread>
+#include <vector>
 
 #ifndef PW_RENDERFULLCONTENT
 #define PW_RENDERFULLCONTENT 0x00000002
@@ -37,6 +39,9 @@ std::string narrow(const std::wstring& w) {
     return out;
 }
 
+// The width of the picture the layers are drawn on (setPushSourceReferenceWidth).
+std::atomic<uint32_t> referenceWidth{0};
+
 // One running source: its thread, the slot it draws into and its newest frame.
 struct Worker {
     PushSourceSpec spec;
@@ -44,43 +49,81 @@ struct Worker {
     std::atomic<bool> mirror{false}, loop{true};
     std::atomic<int> shape{0};
     std::atomic<float> cropLeft{0}, cropTop{0}, cropRight{0}, cropBottom{0};
+    std::atomic<float> share{0};         // the layer's width as a share of the picture's (0: unknown)
     std::atomic<bool> stop{false};
     std::mutex mutex;
     std::shared_ptr<const PushOverlayImage> latest;
     std::wstring error;
     bool running = false;
     uint32_t width = 0, height = 0;
+    uint32_t captureWidth = 0, captureHeight = 0;
+    std::vector<PushCameraFormat> sizes;   // camera: what it offers
     double fps = 0;
     uint64_t frames = 0;
     Clock::time_point fpsSince = Clock::now();
     uint64_t fpsFrames = 0;
+    // For the log, every ten seconds: the rate and what one frame costs this thread.
+    Clock::time_point reportSince = Clock::now();
+    uint64_t reportFrames = 0;
+    double reportWorkMs = 0;
     std::thread thread;
     // The thread holds its own reference, so this runs on it (or after a join): never terminate.
     ~Worker() { stop = true; if (thread.joinable()) { if (thread.get_id() == std::this_thread::get_id()) thread.detach(); else thread.join(); } }
 
+    // The id the interface knows this source by; another scene using the same camera renames it.
+    std::string id() { std::lock_guard lock(mutex); return spec.id; }
     void fail(std::wstring why) {
+        std::string line;
         {
             std::lock_guard lock(mutex);
             if (error == why) return;
             error = std::move(why);
             running = false;
+            line = std::format("{} {}", spec.id, narrow(error));
         }
-        veyra::log::warn("push-sources", std::format("{} {}", spec.id, narrow(error)));
+        veyra::log::warn("push-sources", line);
     }
-    // Shapes and publishes one frame (any thread of this worker).
-    void publish(PushOverlayImage&& raw) {
-        cropPushSourceFrame(raw, cropLeft.load(), cropTop.load(), cropRight.load(), cropBottom.load());
-        shapePushSourceFrame(raw, mirror.load(), PushSourceShape(shape.load()));
+    // One RGB32 picture from the source (rows `pitch` bytes apart, negative for bottom-up): fitted to
+    // the width the layer is shown, cropped, shaped and published (this worker's own thread).
+    void publishBgrx(const uint8_t* source, ptrdiff_t pitch, uint32_t w, uint32_t h) {
+        const auto started = Clock::now();
+        const float l = cropLeft.load(), t = cropTop.load(), r = cropRight.load(), b = cropBottom.load();
+        const auto form = PushSourceShape(shape.load());
+        const uint32_t shown = pushSourceShownWidth(share.load(), referenceWidth.load());
+        PushOverlayImage raw;
+        if (l == 0 && t == 0 && r == 0 && b == 0) {
+            // Converted and averaged down in one pass: a 4K frame for a corner never exists in full.
+            pushBgrxToRgba(source, pitch, w, h, pushSourceFitWidth(w, h, shown, form), raw);
+        } else {
+            pushBgrxToRgba(source, pitch, w, h, 0, raw);
+            cropPushSourceFrame(raw, l, t, r, b);
+            fitPushSourceFrame(raw, pushSourceFitWidth(raw.width, raw.height, shown, form));
+        }
+        if (raw.width < 2 || raw.height < 2) return;
+        shapePushSourceFrame(raw, mirror.load(), form);
         auto frame = std::make_shared<const PushOverlayImage>(std::move(raw));
         const int s = slot.load();
         if (s >= 0) setPushLiveLayerFrame(s, frame);
-        std::lock_guard lock(mutex);
-        latest = frame;
-        if (!running || !error.empty()) { running = true; error.clear(); }
-        width = frame->width; height = frame->height;
-        ++frames; ++fpsFrames;
-        const double seconds = std::chrono::duration<double>(Clock::now() - fpsSince).count();
-        if (seconds >= 1.0) { fps = fpsFrames / seconds; fpsFrames = 0; fpsSince = Clock::now(); }
+        const auto now = Clock::now();
+        std::string report;
+        {
+            std::lock_guard lock(mutex);
+            latest = frame;
+            if (!running || !error.empty()) { running = true; error.clear(); }
+            width = frame->width; height = frame->height;
+            captureWidth = w; captureHeight = h;
+            ++frames; ++fpsFrames; ++reportFrames;
+            reportWorkMs += std::chrono::duration<double, std::milli>(now - started).count();
+            const double seconds = std::chrono::duration<double>(now - fpsSince).count();
+            if (seconds >= 1.0) { fps = fpsFrames / seconds; fpsFrames = 0; fpsSince = now; }
+            const double reportSeconds = std::chrono::duration<double>(now - reportSince).count();
+            if (reportSeconds >= 10.0) {
+                report = std::format("{} {}x{} -> {}x{} {:.1f} fps, {:.1f} ms a frame here", spec.id, w, h, width, height,
+                                     reportFrames / reportSeconds, reportWorkMs / double(std::max<uint64_t>(1, reportFrames)));
+                reportFrames = 0; reportWorkMs = 0; reportSince = now;
+            }
+        }
+        if (!report.empty()) veyra::log::info("push-sources", report);
     }
     bool stopping() const { return stop.load(); }
 };
@@ -88,7 +131,10 @@ struct Worker {
 std::mutex workersMutex;
 std::map<std::string, std::shared_ptr<Worker>> workers; // by source key (kind + target)
 
-std::string keyOf(const PushSourceSpec& s) { return std::to_string(int(s.kind)) + "|" + narrow(s.target); }
+// A camera asked for another resolution is another source: it has to be opened again.
+std::string keyOf(const PushSourceSpec& s) {
+    return std::to_string(int(s.kind)) + "|" + narrow(s.target) + (s.kind == PushSourceKind::Camera && s.cameraHeight ? "|" + std::to_string(s.cameraHeight) : std::string());
+}
 
 struct ComScope {
     bool com = false, mf = false;
@@ -99,39 +145,48 @@ struct ComScope {
     ~ComScope() { if (mf) MFShutdown(); if (com) CoUninitialize(); }
 };
 
-// RGB32 (B, G, R, unused) rows into straight-alpha RGBA.
-void rgb32ToRgba(const uint8_t* src, LONG pitch, uint32_t w, uint32_t h, PushOverlayImage& out) {
-    out.width = w; out.height = h;
-    out.rgba.resize(size_t(w) * h * 4);
-    for (uint32_t y = 0; y < h; ++y) {
-        const uint8_t* row = src + LONG(y) * pitch;
-        uint8_t* dst = &out.rgba[size_t(y) * w * 4];
-        for (uint32_t x = 0; x < w; ++x) {
-            dst[x * 4 + 0] = row[x * 4 + 2];
-            dst[x * 4 + 1] = row[x * 4 + 1];
-            dst[x * 4 + 2] = row[x * 4 + 0];
-            dst[x * 4 + 3] = 255;
-        }
+// A subtype's four characters for the log (MJPG, NV12, YUY2, H264); RGB subtypes are numbers.
+std::string fourccName(uint32_t fourcc) {
+    std::string name;
+    for (int i = 0; i < 4; ++i) {
+        const char c = char((fourcc >> (8 * i)) & 0xFF);
+        if (c < 32 || c > 126) return std::format("#{}", fourcc);
+        name.push_back(c);
     }
+    return name;
 }
 
-// Picks the camera format closest to 1280 x 720 at 30 FPS or more (never above 1920 wide).
-void chooseCameraFormat(IMFSourceReader* reader) {
-    ComPtr<IMFMediaType> best;
-    double bestScore = 1e18;
+// Opens the camera with the format choosePushCameraFormat picks (PushLayerSources.h): automatic is
+// the one closest to 1280 x 720 at 30 FPS or more, a chosen height the closest the camera offers.
+// What it offers is logged and kept for the interface.
+void chooseCameraFormat(IMFSourceReader* reader, Worker& worker) {
+    std::vector<ComPtr<IMFMediaType>> types;
+    std::vector<PushCameraFormat> formats;
     for (DWORD i = 0;; ++i) {
         ComPtr<IMFMediaType> type;
         if (FAILED(reader->GetNativeMediaType(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM), i, &type))) break;
         UINT32 w = 0, h = 0, num = 0, den = 0;
         if (FAILED(MFGetAttributeSize(type.Get(), MF_MT_FRAME_SIZE, &w, &h)) || !w || !h) continue;
         MFGetAttributeRatio(type.Get(), MF_MT_FRAME_RATE, &num, &den);
-        const double fps = den ? double(num) / den : 0;
-        double score = std::abs(double(w) - 1280) + std::abs(double(h) - 720);
-        if (w > 1920) score += 1e6;
-        if (fps < 29) score += 1e5 + (30 - fps) * 100;
-        if (score < bestScore) { bestScore = score; best = type; }
+        GUID subtype{};
+        type->GetGUID(MF_MT_SUBTYPE, &subtype);
+        formats.push_back({w, h, den ? double(num) / den : 0.0, uint32_t(subtype.Data1)});
+        types.push_back(type);
     }
-    if (best) reader->SetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM), nullptr, best.Get());
+    const auto sizes = pushCameraSizes(formats);
+    std::string offered;
+    for (const auto& size : sizes) offered += std::format("{}{}x{}@{:.0f}", offered.empty() ? "" : ", ", size.width, size.height, size.fps);
+    const int chosen = choosePushCameraFormat(formats, worker.spec.cameraHeight);
+    HRESULT hr = S_OK;
+    if (chosen >= 0) hr = reader->SetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM), nullptr, types[size_t(chosen)].Get());
+    const std::string name = worker.id();
+    if (chosen >= 0)
+        veyra::log::info("push-sources", std::format("{} camera asked {} -> {}x{} {} {:.2f} fps (0x{:08X}); offers {}", name,
+            worker.spec.cameraHeight ? std::format("{}p", worker.spec.cameraHeight) : std::string("automatic"),
+            formats[size_t(chosen)].width, formats[size_t(chosen)].height, fourccName(formats[size_t(chosen)].fourcc), formats[size_t(chosen)].fps, uint32_t(hr), offered));
+    else veyra::log::warn("push-sources", std::format("{} camera lists no formats", name));
+    std::lock_guard lock(worker.mutex);
+    worker.sizes = sizes;
 }
 
 bool setRgb32(IMFSourceReader* reader, uint32_t& w, uint32_t& h, LONG& stride) {
@@ -151,15 +206,15 @@ bool setRgb32(IMFSourceReader* reader, uint32_t& w, uint32_t& h, LONG& stride) {
     return true;
 }
 
-// One RGB32 sample into a frame (IMF2DBuffer gives the real pitch, bottom-up or not).
-bool sampleToFrame(IMFSample* sample, uint32_t w, uint32_t h, LONG stride, PushOverlayImage& out) {
+// One RGB32 sample to the worker (IMF2DBuffer gives the real pitch, bottom-up or not).
+bool publishSample(IMFSample* sample, uint32_t w, uint32_t h, LONG stride, Worker& worker) {
     ComPtr<IMFMediaBuffer> buffer;
     if (FAILED(sample->ConvertToContiguousBuffer(&buffer))) return false;
     ComPtr<IMF2DBuffer> buffer2d;
     if (SUCCEEDED(buffer.As(&buffer2d))) {
         BYTE* scan0 = nullptr; LONG pitch = 0;
         if (SUCCEEDED(buffer2d->Lock2D(&scan0, &pitch))) {
-            rgb32ToRgba(scan0, pitch, w, h, out);
+            worker.publishBgrx(scan0, ptrdiff_t(pitch), w, h);
             buffer2d->Unlock2D();
             return true;
         }
@@ -169,7 +224,7 @@ bool sampleToFrame(IMFSample* sample, uint32_t w, uint32_t h, LONG stride, PushO
     const LONG pitch = stride;
     const uint8_t* first = pitch < 0 ? data + size_t(-pitch) * (h - 1) : data;
     const bool fits = size_t(std::abs(pitch)) * h <= length;
-    if (fits) rgb32ToRgba(first, pitch, w, h, out);
+    if (fits) worker.publishBgrx(first, ptrdiff_t(pitch), w, h);
     buffer->Unlock();
     return fits;
 }
@@ -201,14 +256,14 @@ void runReader(Worker& worker) {
         }
         uint32_t w = 0, h = 0;
         LONG stride = 0;
-        if (SUCCEEDED(hr) && camera) chooseCameraFormat(reader.Get());
+        if (SUCCEEDED(hr) && camera) chooseCameraFormat(reader.Get(), worker);
         if (FAILED(hr) || !setRgb32(reader.Get(), w, h, stride)) {
             worker.fail(camera ? std::format(L"The camera could not be opened (0x{:08X}); another app may be using it", uint32_t(hr))
                                : std::format(L"The video could not be opened (0x{:08X})", uint32_t(hr)));
             for (int i = 0; i < 30 && !worker.stopping(); ++i) std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue;
         }
-        veyra::log::info("push-sources", std::format("{} {} open {}x{}", worker.spec.id, camera ? "camera" : "video", w, h));
+        veyra::log::info("push-sources", std::format("{} {} open {}x{}", worker.id(), camera ? "camera" : "video", w, h));
         Clock::time_point base{};
         LONGLONG baseTs = -1;
         bool reopen = false;
@@ -244,8 +299,7 @@ void runReader(Worker& worker) {
                 if (due > now + std::chrono::seconds(2)) { baseTs = ts; base = now; }
                 else if (due > now) std::this_thread::sleep_until(due);
             }
-            PushOverlayImage frame;
-            if (sampleToFrame(sample.Get(), w, h, stride, frame)) worker.publish(std::move(frame));
+            publishSample(sample.Get(), w, h, stride, worker);
         }
         if (source) source->Shutdown();
         if (reopen) for (int i = 0; i < 20 && !worker.stopping(); ++i) std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -299,9 +353,7 @@ void runWindow(Worker& worker) {
                 bits = static_cast<const uint8_t*>(reducedBits); bw = outW; bh = outH;
             }
             GdiFlush();
-            PushOverlayImage frame;
-            rgb32ToRgba(bits, LONG(bw) * 4, uint32_t(bw), uint32_t(bh), frame);
-            worker.publish(std::move(frame));
+            worker.publishBgrx(bits, ptrdiff_t(bw) * 4, uint32_t(bw), uint32_t(bh));
         }
         std::this_thread::sleep_until(next);
     }
@@ -365,13 +417,13 @@ void setPushSources(const std::vector<PushSourceSpec>& sources, uint32_t fadeMs)
             if (auto it = workers.find(key); it != workers.end()) { worker = it->second; workers.erase(it); }
             const bool fresh = !worker;
             if (fresh) { worker = std::make_shared<Worker>(); worker->spec = spec; }
-            worker->spec.id = spec.id;
-            worker->spec.place = spec.place;
+            { std::lock_guard frameLock(worker->mutex); worker->spec.id = spec.id; worker->spec.place = spec.place; }
             worker->mirror = spec.mirror;
             worker->loop = spec.loop;
             worker->shape = int(spec.shape);
             worker->cropLeft = spec.cropLeft; worker->cropTop = spec.cropTop;
             worker->cropRight = spec.cropRight; worker->cropBottom = spec.cropBottom;
+            worker->share = spec.place.w;
             const int previous = worker->slot.exchange(slot);
             // A source moving to another slot takes its newest frame along.
             if (!fresh && previous != slot) {
@@ -404,6 +456,8 @@ std::vector<PushSourceStatus> pushSourceStatus() {
         PushSourceStatus s;
         s.id = worker->spec.id; s.running = worker->running && worker->error.empty(); s.error = worker->error;
         s.width = worker->width; s.height = worker->height; s.fps = worker->fps;
+        s.captureWidth = worker->captureWidth; s.captureHeight = worker->captureHeight;
+        s.sizes = worker->sizes; s.serial = worker->frames;
         if (Clock::now() - worker->fpsSince > std::chrono::seconds(2)) s.fps = 0;
         out.push_back(std::move(s));
     }
@@ -415,6 +469,15 @@ std::shared_ptr<const PushOverlayImage> pushSourceFrame(const std::string& id) {
     for (const auto& [key, worker] : workers)
         if (worker->spec.id == id) { std::lock_guard frameLock(worker->mutex); return worker->latest; }
     return nullptr;
+}
+
+void setPushSourceReferenceWidth(uint32_t width) { referenceWidth.store(width); }
+
+uint64_t pushSourceSerial(const std::string& id) {
+    std::lock_guard lock(workersMutex);
+    for (const auto& [key, worker] : workers)
+        if (worker->spec.id == id) { std::lock_guard frameLock(worker->mutex); return worker->frames; }
+    return 0;
 }
 
 } // namespace veyra::engine

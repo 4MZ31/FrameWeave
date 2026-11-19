@@ -187,14 +187,19 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     // PushFPS on a card left it on. Every later recording, comparison clip, replay and stream was then
     // silent while the game still played normally (field report, 19 November 2026). The card's mute is
     // its own state now (engine/PushAudioMix.h); a mute left behind is lifted once, and said so.
+    // The game fader at its bottom is silence too and just as invisible outside Streaming mode: it
+    // goes back to 0 dB with it, so recordings and comparison clips have sound right after updating.
     if (!impl_->prefs.contains(QStringLiteral("pushCardMuteRepaired"))) {
-        const bool was = impl_->prefBool("mixGameMuted", false);
-        if (was) impl_->prefs[QStringLiteral("mixGameMuted")] = false;
+        const bool muted = impl_->prefBool("mixGameMuted", false);
+        const bool floored = impl_->prefInt("mixGameDb", 0) <= -60;   // the fader's bottom (engine::kMixFloorDb)
+        const bool was = muted || floored;
+        if (muted) impl_->prefs[QStringLiteral("mixGameMuted")] = false;
+        if (floored) impl_->prefs[QStringLiteral("mixGameDb")] = 0;
         impl_->prefs[QStringLiteral("pushCardMuteRepaired")] = was;
         if (!impl_->savePrefs()) veyra::log::warn("ui-prefs", "card mute repair not saved");
-        veyra::log::info("push-studio", std::format("card mute repair: the mixer's game mute was {}", was ? "on and is lifted" : "off"));
+        veyra::log::info("push-studio", std::format("card mute repair: the mixer's game sound was {}", muted ? "muted and is back on" : floored ? "faded out and is back at 0 dB" : "on"));
         if (was) QTimer::singleShot(5000, this, [this] {
-            emit notice(tr("已恢复录制里的游戏声音：之前的版本在用过卡片场景后可能让它一直静音（直播模式 → 音频混音器）"), false);
+            emit notice(tr("已恢复录制里的游戏声音：之前的版本在用过图卡场景后可能让它一直静音（直播模式 → 音频混音器）"), false);
         });
     }
     applyPushMix();   // PushFPS streaming mode mixer (PushStudio.cpp)

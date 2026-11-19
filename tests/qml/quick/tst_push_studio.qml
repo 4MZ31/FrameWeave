@@ -142,7 +142,7 @@ Item {
             compare(veyra.cardMute, true, "a card mutes the game")
             compare(veyra.preferences.mixGameMuted, false, "and never through the mixer's saved mute: closing PushFPS on a card left that on")
             compare(game.muted, true, "the strip shows it")
-            compare(game.subtitle, qsTr("卡片场景显示时静音"))
+            compare(game.subtitle, qsTr("图卡场景显示时静音"))
             verify(findChild(studio, "studio-scene-brb").active)
             studio.activate("soon")
             compare(veyra.cardMute, true)
@@ -253,6 +253,116 @@ Item {
             compare(veyra.lastSources.length, 3)
             studio.activate("game")
             compare(veyra.lastSources.length, 0, "the game scene has none")
+            veyra.recording = false
+            verify(studio.removeScene(g))
+            studio.editingScene = ""
+        }
+        function test_scene_menu_adds_copies_and_deletes() {
+            const menu = findChild(studio, "studio-scene-menu")
+            verify(menu !== null, "the scenes list has a right-click menu")
+            const find = id => menu.items.findIndex(x => x.id === id)
+            const pick = id => menu.picked(find(id), menu.items[find(id)])
+            const count = studio.scenes.length
+            // Beside the scenes: only the two ways to add one.
+            menu.targetId = ""
+            compare(menu.items.length, 2)
+            compare(menu.items[0].id, "add-game")
+            pick("add-card")
+            compare(studio.scenes.length, count + 1, "a card scene is added")
+            const card = studio.editingScene
+            compare(studio.sceneById(card).type, "card")
+            studio.editingScene = ""
+            // On a scene: switch to it, edit, copy, delete, then the two ways to add.
+            menu.targetId = card
+            compare(menu.items.length, 7)
+            compare(menu.title, studio.sceneById(card).name)
+            pick("show")
+            compare(studio.activeScene, card)
+            verify(menu.items[find("show")].disabled === true, "the scene on now is not switched to again")
+            pick("edit")
+            compare(studio.editingScene, card)
+            studio.updateScene(card, { title: "Break", sources: [{ id: "srcA", kind: "camera", target: "cam1", name: "USB Webcam" }] })
+            wait(20)
+            pick("copy")
+            compare(studio.scenes.length, count + 2)
+            const copy = studio.editingScene
+            verify(copy !== card && copy.length > 0, "the copy opens in the editor")
+            compare(studio.scenes.findIndex(x => x.id === copy), studio.scenes.findIndex(x => x.id === card) + 1, "right under the original")
+            compare(studio.sceneById(copy).title, "Break")
+            compare(studio.sceneById(copy).sources[0].target, "cam1")
+            verify(studio.sceneById(copy).sources[0].id !== "srcA", "its sources get ids of their own")
+            menu.targetId = copy
+            pick("delete")
+            verify(studio.sceneById(copy) === null, "deleted from the menu")
+            compare(studio.editingScene, "", "the editor closes with its scene")
+            menu.targetId = card
+            pick("delete")
+            compare(studio.scenes.length, count)
+            compare(studio.activeScene, "game", "deleting the scene on now goes back to the game")
+            compare(veyra.cardMute, false, "and the card's mute goes with it")
+            // The only game scene stays.
+            menu.targetId = "game"
+            verify(menu.items[find("delete")].disabled === true)
+            compare(menu.items[find("delete")].note, qsTr("至少保留一个画面场景"))
+            studio.sceneMenuPick("delete", "game")
+            verify(studio.sceneById("game") !== null)
+            // With a second game scene the first can go, and the other takes over.
+            menu.targetId = ""
+            pick("add-game")
+            const second = studio.editingScene
+            studio.editingScene = ""
+            menu.targetId = "game"
+            verify(menu.items[find("delete")].disabled !== true)
+            verify(studio.duplicateScene("missing") === "", "nothing to copy, nothing copied")
+            verify(studio.removeScene(second))
+        }
+        function test_the_scene_under_the_pointer() {
+            const card = control(studio, "studio-controls")
+            const row = control(studio, "studio-scene-brb")
+            const onRow = row.mapToItem(card, row.width / 2, row.height / 2)
+            compare(studio.sceneAt(Qt.point(onRow.x, onRow.y)), "brb", "a right-click on a scene is about that scene")
+            const add = control(studio, "studio-add-card-scene")
+            const beside = add.mapToItem(card, add.width / 2, add.height / 2)
+            compare(studio.sceneAt(Qt.point(beside.x, beside.y)), "", "beside the scenes: the list's own menu")
+            const live = control(studio, "studio-go-live")
+            const below = live.mapToItem(card, live.width / 2, live.height / 2)
+            verify(studio.sceneAt(Qt.point(below.x, below.y)) === null, "the buttons under the list are not the scenes list")
+        }
+        function test_camera_resolution_and_live_preview() {
+            veyra.recording = true
+            veyra.sourceSerial = 0
+            studio.addScene("game")
+            const g = studio.editingScene
+            verify(studio.addSource("camera"))
+            const cam = studio.sceneById(g).sources[0]
+            studio.activate(g)
+            studio.editingSource = cam.id
+            wait(30)
+            let row = control(studio, "studio-source-" + cam.id)
+            compare(control(row, "source-resolution").current, "0", "automatic until another is chosen")
+            control(row, "source-resolution").picked("2160")
+            wait(30)
+            compare(studio.sceneById(g).sources[0].resolution, 2160)
+            compare(veyra.lastSources[0].resolution, 2160, "the camera is asked for 4K")
+            row = control(studio, "studio-source-" + cam.id)
+            compare(control(row, "source-resolution").current, "2160")
+            // No frame yet: no picture is asked for.
+            const preview = control(row, "source-preview")
+            compare(String(preview.source), "")
+            verify(!preview.visible)
+            // What the camera offers is listed, largest first as the bridge gives it.
+            compare(studio.cameraSizes(null), "")
+            const offered = studio.cameraSizes({ sizes: [{ width: 1920, height: 1080, fps: 30 }, { width: 1728, height: 3072, fps: 59.94 }] })
+            verify(offered.indexOf("1920×1080 (30 FPS), 1728×3072 (60 FPS)") >= 0, offered)
+            veyra.sourceStatus = [{ id: cam.id, running: true, error: "", width: 1920, height: 1080, fps: 30, sizes: [{ width: 1920, height: 1080, fps: 30 }] }]
+            studio.pollSlow()
+            wait(30)
+            row = control(studio, "studio-source-" + cam.id)
+            verify(control(row, "source-sizes").visible, "under the camera's settings")
+            veyra.sourceStatus = []
+            studio.pollSlow()
+            studio.editingSource = ""
+            studio.activate("game")
             veyra.recording = false
             verify(studio.removeScene(g))
             studio.editingScene = ""

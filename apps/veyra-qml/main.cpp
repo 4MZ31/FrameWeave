@@ -64,6 +64,7 @@
 #include "veyra/ui/QmlPlayerBridge.h"
 #include "veyra/ui/StartupMusic.h"
 #include "veyra/ui/ThumbnailProvider.h"
+#include "veyra/ui/PushSourceImageProvider.h"
 
 using namespace veyra;
 
@@ -783,6 +784,8 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
     engine.rootContext()->setContextProperty(QStringLiteral("vySoftwareUi"), softwareUi);
     auto* thumbnails = new ui::ThumbnailProvider;
     engine.addImageProvider(QStringLiteral("veyra-thumb"), thumbnails);
+    // PushFPS streaming mode: a scene source's newest frame (the engine owns the provider).
+    engine.addImageProvider(QStringLiteral("push-source"), new ui::PushSourceImageProvider);
     QObject::connect(&bridge, &ui::QmlPlayerBridge::thumbnailSourceChanged, &app,
                      [thumbnails](const QString& path) { thumbnails->setSource(path); });
     engine.addImportPath(QCoreApplication::applicationDirPath() + "/qml");

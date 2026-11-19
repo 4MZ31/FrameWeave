@@ -1304,6 +1304,8 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
   add_library(veyra_qml_bridge STATIC src/ui/QmlExportQueueModel.cpp include/veyra/ui/QmlExportQueueModel.h src/ui/QmlPlayerBridge.cpp src/ui/ThumbnailProvider.cpp
     src/ui/PlaylistModel.cpp include/veyra/ui/PlaylistModel.h
     include/veyra/ui/QmlPlayerBridge.h include/veyra/ui/ThumbnailProvider.h
+    # PushFPS streaming mode: a scene source's live picture for the interface.
+    src/ui/PushSourceImageProvider.cpp include/veyra/ui/PushSourceImageProvider.h
     # P4-c: the existing subtitle renderer, reused as-is (no second renderer).
     apps/veyra/ui/SubtitleOverlay.cpp)
   set_source_files_properties(apps/veyra/ui/SubtitleOverlay.cpp PROPERTIES COMPILE_OPTIONS /utf-8)

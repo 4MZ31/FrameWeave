@@ -632,7 +632,8 @@ features built in:
     itself out, so the game is never in the mix twice.
   - *Extra input*: a second microphone, a line-in or an audio interface.
   Both are off until you switch them on, and go into recordings and streams you start after that.
-- **Scenes**, like OBS's, switched with one click or **Ctrl+1** to **Ctrl+9**:
+- **Scenes**, like OBS's, switched with one click or **Ctrl+1** to **Ctrl+9**; right-click the list to add,
+  duplicate, edit or delete a scene:
   - *game scenes* show the picture, optionally with a corner picture (your logo) or a text tag;
   - *card scenes* (*Starting soon*, *Be right back*, *Thanks for watching*, or your own with a background
     picture) replace the game in recordings and streams and mute the game sound while they are shown.
@@ -643,7 +644,10 @@ features built in:
   music player) or a looping **video file**. Put each in a corner or the middle, pick its size, and make it
   square, rounded or round (cameras can be mirrored). Sources run while streaming mode is on screen or a
   recording or stream is going, so your camera is not on while you just play. A minimised window has no
-  picture; video files play without their sound.
+  picture; video files play without their sound. A camera opens at 720p by default; choose 1080p, 1440p
+  or 4K under its settings, and the list there shows what the camera really offers (in webcam mode many
+  cameras send less than they record). The picture under a source's settings and in the layout editor
+  is live.
 - **Layout editor** (*Layout*): the output picture with the game and every source on it. Drag to move, drag a
   corner to resize: sizes keep their proportions, hold **Ctrl** to stretch freely. Edges and the middle snap,
   the arrow keys nudge (Shift for bigger steps), each item can be cropped on every side, the game picture can

@@ -676,6 +676,7 @@ void QmlPlayerBridge::pushFlowBudgetWatch() {
     if (now - w.last < std::chrono::seconds(1)) return;
     w.last = now;
     pushNoteSession();   // what is playing, for the crash notice (PushTools.cpp)
+    pushSourceReference();   // scene sources fit their frames to the picture's width (PushStudio.cpp)
     const auto& s = impl_->snapshot;
     // The cadence notice (same second tick): the game is set to 30 FPS, the capture runs at 60 and
     // automatic duplicate removal still sees a new picture in every sample. Some capture cards add

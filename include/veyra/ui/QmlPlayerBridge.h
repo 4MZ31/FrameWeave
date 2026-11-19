@@ -1518,6 +1518,9 @@ public:
     // A card scene silences the game in what carries the scene (engine/PushAudioMix.h). Its own state,
     // never a preference: the mixer's mute stays the user's. Comparison clips ignore it.
     Q_INVOKABLE void pushSetCardMute(bool muted);
+    // A scene source's frame counter (0: no frame yet). An Image bound to
+    // "image://push-source/<id>/<serial>" shows the source live (ui/PushSourceImageProvider.h).
+    Q_INVOKABLE int pushSourceSerial(const QString& id);
     Q_INVOKABLE QString pushPickImage();
     // Streaming mode sources (engine/PushLayerSources.h): webcams, windows and video files a scene
     // adds. pushSetSceneSources([{id, kind: "camera"|"window"|"media", target, mirror, loop,
@@ -1693,6 +1696,9 @@ private:
     // Said once when a recording starts and will not hold what the user expects: a card scene is
     // the picture, or the mixer has the game muted (PushStudio.cpp).
     void pushRecordingNotices(bool sound, bool microphone, bool comparisonClip);
+    // Once a second: how wide the picture the scene's sources are drawn on is, so they fit their
+    // frames to it (engine::setPushSourceReferenceWidth; PushStudio.cpp).
+    void pushSourceReference();
     void pushFlowBudgetWatch();   // PushFlow too slow for the frame budget -> a faster tier (PushFps.cpp)
     // PushFPS crash notice (PushTools.cpp): the previous run's notes read at start, this run's session
     // note kept current, and the report built from the crash handler's note.

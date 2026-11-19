@@ -282,6 +282,9 @@ QtObject {
     function pushSetSceneSources(list) { lastSources = list; sourceCalls++ }
     function pushSourceStatus() { return sourceStatus }
     function pushSourcePreview(id) { return "" }
+    // The live preview's frame counter: 0 keeps the page from asking for a picture (no provider here).
+    property int sourceSerial: 0
+    function pushSourceSerial(id) { return sourceSerial }
     // PushFPS Frame Input API (tst_push_frame_input.qml).
     property var frameInputSenders: []
     property string frameInputStarted: ""

@@ -15370,6 +15370,23 @@
    "ru": "Перейти в режим списка"
   },
   {
+   "zh": "切换到此场景",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "切換到此場景",
+   "en": "Switch to this scene",
+   "ja": "このシーンに切り替え",
+   "nl": "Switch to this scene",
+   "de": "Switch to this scene",
+   "es": "Switch to this scene",
+   "fr": "Switch to this scene",
+   "it": "Switch to this scene",
+   "pt-BR": "Switch to this scene",
+   "tr": "Switch to this scene",
+   "ar": "Switch to this scene",
+   "pl": "Switch to this scene",
+   "ru": "Switch to this scene"
+  },
+  {
    "zh": "切换到此场景时静音游戏声音",
    "src": "qml/StudioPage.qml",
    "zh-TW": "切換到此場景時靜音遊戲聲音",
@@ -15691,6 +15708,23 @@
    "ar": "حذف «%1»",
    "pl": "Usuń „%1”",
    "ru": "Удалить «%1»"
+  },
+  {
+   "zh": "删除场景",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "刪除場景",
+   "en": "Delete scene",
+   "ja": "シーンを削除",
+   "nl": "Delete scene",
+   "de": "Delete scene",
+   "es": "Delete scene",
+   "fr": "Delete scene",
+   "it": "Delete scene",
+   "pt-BR": "Delete scene",
+   "tr": "Delete scene",
+   "ar": "Delete scene",
+   "pl": "Delete scene",
+   "ru": "Delete scene"
   },
   {
    "zh": "删除失败，请检查目录权限。",
@@ -16592,23 +16626,6 @@
    "ar": "طابور الإطار الواحد وملء الشاشة مفعّلان؛ الشاشة لا تدعم التحديث المتغير، لذا تبقى المزامنة كما هي لتجنب التمزق.",
    "pl": "Kolejka jednej klatki i pełny ekran są włączone; ekran nie ma zmiennego odświeżania, więc synchronizacja zostaje bez zmian, by uniknąć rozrywania.",
    "ru": "Очередь из одного кадра и полный экран включены; экран не поддерживает переменную частоту, поэтому синхронизация не меняется, чтобы избежать разрывов."
-  },
-  {
-   "zh": "卡片场景显示时静音",
-   "src": "qml/StudioPage.qml",
-   "zh-TW": "卡片場景顯示時靜音",
-   "en": "Muted while a card scene is shown",
-   "ja": "カードシーンの表示中はミュート",
-   "nl": "Muted while a card scene is shown",
-   "de": "Muted while a card scene is shown",
-   "es": "Muted while a card scene is shown",
-   "fr": "Muted while a card scene is shown",
-   "it": "Muted while a card scene is shown",
-   "pt-BR": "Muted while a card scene is shown",
-   "tr": "Muted while a card scene is shown",
-   "ar": "Muted while a card scene is shown",
-   "pl": "Muted while a card scene is shown",
-   "ru": "Muted while a card scene is shown"
   },
   {
    "zh": "即将开始",
@@ -19382,6 +19399,23 @@
    "ru": "Сцена-заставка"
   },
   {
+   "zh": "图卡场景显示时静音",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "圖卡場景顯示時靜音",
+   "en": "Muted while a card scene is shown",
+   "ja": "カードシーンの表示中はミュート",
+   "nl": "Muted while a card scene is shown",
+   "de": "Muted while a card scene is shown",
+   "es": "Muted while a card scene is shown",
+   "fr": "Muted while a card scene is shown",
+   "it": "Muted while a card scene is shown",
+   "pt-BR": "Muted while a card scene is shown",
+   "tr": "Muted while a card scene is shown",
+   "ar": "Muted while a card scene is shown",
+   "pl": "Muted while a card scene is shown",
+   "ru": "Muted while a card scene is shown"
+  },
+  {
    "zh": "图形字幕数据无效或超出缓存上限",
    "src": "src/engine/Subtitles.cpp",
    "zh-TW": "圖形字幕資料無效或超出快取上限",
@@ -21182,6 +21216,23 @@
    "ar": "انسخه ثم أرفقه بتقريرك",
    "pl": "Skopiuj i dołącz do zgłoszenia",
    "ru": "Скопируйте и приложите к отчёту"
+  },
+  {
+   "zh": "复制场景",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "複製場景",
+   "en": "Duplicate scene",
+   "ja": "シーンを複製",
+   "nl": "Duplicate scene",
+   "de": "Duplicate scene",
+   "es": "Duplicate scene",
+   "fr": "Duplicate scene",
+   "it": "Duplicate scene",
+   "pt-BR": "Duplicate scene",
+   "tr": "Duplicate scene",
+   "ar": "Duplicate scene",
+   "pl": "Duplicate scene",
+   "ru": "Duplicate scene"
   },
   {
    "zh": "复制失败：预设数量可能已达上限",
@@ -25859,9 +25910,9 @@
    "ru": "Включён: настройки и скриншоты сохраняются в папке рядом с программой"
   },
   {
-   "zh": "已恢复录制里的游戏声音：之前的版本在用过卡片场景后可能让它一直静音（直播模式 → 音频混音器）",
+   "zh": "已恢复录制里的游戏声音：之前的版本在用过图卡场景后可能让它一直静音（直播模式 → 音频混音器）",
    "src": "src/ui/QmlPlayerBridge.cpp",
-   "zh-TW": "已恢復錄製裡的遊戲聲音：先前的版本在用過卡片場景後可能讓它一直靜音（直播模式 → 音訊混音器）",
+   "zh-TW": "已恢復錄製裡的遊戲聲音：先前的版本在用過圖卡場景後可能讓它一直靜音（直播模式 → 音訊混音器）",
    "en": "Game sound in recordings is back on: earlier versions could leave it muted after a card scene was used (Streaming mode → Audio mixer)",
    "ja": "録画のゲーム音声を元に戻しました：以前のバージョンでは、カードシーンを使ったあとミュートのままになることがありました（配信モード → オーディオミキサー）",
    "nl": "Game sound in recordings is back on: earlier versions could leave it muted after a card scene was used (Streaming mode → Audio mixer)",
@@ -28528,9 +28579,9 @@
    "ru": "В этом пакете отсутствуют компоненты среды выполнения для этой функции"
   },
   {
-   "zh": "当前场景是卡片“%1”：录制里会是这张卡片，而不是游戏画面（直播模式 → 场景）",
+   "zh": "当前场景是图卡“%1”：录制里会是这张图卡，而不是游戏画面（直播模式 → 场景）",
    "src": "src/ui/bridge/PushStudio.cpp",
-   "zh-TW": "目前場景是卡片「%1」：錄製裡會是這張卡片，而不是遊戲畫面（直播模式 → 場景）",
+   "zh-TW": "目前場景是圖卡「%1」：錄製裡會是這張圖卡，而不是遊戲畫面（直播模式 → 場景）",
    "en": "The current scene is the card \"%1\": this recording shows the card, not the game (Streaming mode → Scenes)",
    "ja": "現在のシーンはカード「%1」です：この録画にはゲームではなくカードが映ります（配信モード → シーン）",
    "nl": "The current scene is the card \"%1\": this recording shows the card, not the game (Streaming mode → Scenes)",
@@ -32640,6 +32691,23 @@
    "ar": "كاميرا",
    "pl": "Kamera",
    "ru": "Камера"
+  },
+  {
+   "zh": "摄像头提供：%1。相机在网络摄像头模式下送出的画面可能低于它的录制分辨率",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "攝影機提供：%1。相機在網路攝影機模式下送出的畫面可能低於它的錄製解析度",
+   "en": "This camera offers: %1. In webcam mode a camera may send less than it records.",
+   "ja": "このカメラが出力できるサイズ：%1。ウェブカメラモードでは、録画時より低い解像度で送られることがあります",
+   "nl": "This camera offers: %1. In webcam mode a camera may send less than it records.",
+   "de": "This camera offers: %1. In webcam mode a camera may send less than it records.",
+   "es": "This camera offers: %1. In webcam mode a camera may send less than it records.",
+   "fr": "This camera offers: %1. In webcam mode a camera may send less than it records.",
+   "it": "This camera offers: %1. In webcam mode a camera may send less than it records.",
+   "pt-BR": "This camera offers: %1. In webcam mode a camera may send less than it records.",
+   "tr": "This camera offers: %1. In webcam mode a camera may send less than it records.",
+   "ar": "This camera offers: %1. In webcam mode a camera may send less than it records.",
+   "pl": "This camera offers: %1. In webcam mode a camera may send less than it records.",
+   "ru": "This camera offers: %1. In webcam mode a camera may send less than it records."
   },
   {
    "zh": "摘要里没有你的 Windows 用户名、文件夹路径或串流地址，可以公开粘贴",
@@ -37146,6 +37214,23 @@
    "ar": "يوجد دائمًا محدِّد عند -1 dB في النهاية لمنع التشوه. تعمل المرشحات عندما يكون الميكروفون مفعّلًا للتسجيل أو البث",
    "pl": "Na końcu zawsze działa limiter -1 dB, który zapobiega przesterowaniu. Filtry działają, gdy mikrofon jest włączony do nagrań lub transmisji",
    "ru": "В конце всегда стоит лимитер на -1 дБ против перегруза. Фильтры работают, когда микрофон включён для записи или трансляции"
+  },
+  {
+   "zh": "最多 12 个场景",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "最多 12 個場景",
+   "en": "12 scenes at most",
+   "ja": "シーンは最大 12 個",
+   "nl": "12 scenes at most",
+   "de": "12 scenes at most",
+   "es": "12 scenes at most",
+   "fr": "12 scenes at most",
+   "it": "12 scenes at most",
+   "pt-BR": "12 scenes at most",
+   "tr": "12 scenes at most",
+   "ar": "12 scenes at most",
+   "pl": "12 scenes at most",
+   "ru": "12 scenes at most"
   },
   {
    "zh": "最多 4 个保护区域，请先删除一个",
@@ -42775,6 +42860,23 @@
    "ru": "Добавить чужой пресет"
   },
   {
+   "zh": "添加图卡场景",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "新增圖卡場景",
+   "en": "Add card scene",
+   "ja": "カードシーンを追加",
+   "nl": "Add card scene",
+   "de": "Add card scene",
+   "es": "Add card scene",
+   "fr": "Add card scene",
+   "it": "Add card scene",
+   "pt-BR": "Add card scene",
+   "tr": "Add card scene",
+   "ar": "Add card scene",
+   "pl": "Add card scene",
+   "ru": "Add card scene"
+  },
+  {
    "zh": "添加平台",
    "src": "qml/PushStreamDialog.qml",
    "zh-TW": "新增平台",
@@ -42909,6 +43011,23 @@
    "ar": "إضافة مربع",
    "pl": "Dodaj ramkę",
    "ru": "Добавить рамку"
+  },
+  {
+   "zh": "添加画面场景",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "新增畫面場景",
+   "en": "Add game scene",
+   "ja": "映像シーンを追加",
+   "nl": "Add game scene",
+   "de": "Add game scene",
+   "es": "Add game scene",
+   "fr": "Add game scene",
+   "it": "Add game scene",
+   "pt-BR": "Add game scene",
+   "tr": "Add game scene",
+   "ar": "Add game scene",
+   "pl": "Add game scene",
+   "ru": "Add game scene"
   },
   {
    "zh": "添加节点",
@@ -49998,6 +50117,23 @@
    "ar": "تكيفي: يختار من 2× إلى %1× حسب معدل إطارات اللعبة الحالي، بهدف %2 FPS",
    "pl": "Adaptacyjnie: wybiera od 2× do %1× według bieżącej liczby klatek gry, celując w %2 FPS",
    "ru": "Адаптивно: выбирает от 2× до %1× по текущей частоте кадров игры, цель %2 FPS"
+  },
+  {
+   "zh": "至少保留一个画面场景",
+   "src": "qml/StudioPage.qml",
+   "zh-TW": "至少保留一個畫面場景",
+   "en": "One game scene always stays",
+   "ja": "映像シーンは 1 つ必要です",
+   "nl": "One game scene always stays",
+   "de": "One game scene always stays",
+   "es": "One game scene always stays",
+   "fr": "One game scene always stays",
+   "it": "One game scene always stays",
+   "pt-BR": "One game scene always stays",
+   "tr": "One game scene always stays",
+   "ar": "One game scene always stays",
+   "pl": "One game scene always stays",
+   "ru": "One game scene always stays"
   },
   {
    "zh": "至少选择一项内容",

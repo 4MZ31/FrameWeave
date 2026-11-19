@@ -309,12 +309,16 @@ DialogLayer {
                             width: item.width / cw; height: item.height / ch
                             x: -cx * width; y: -cy * height
                             fillMode: Image.Stretch
-                            cache: false; asynchronous: true
-                            source: item.index === 0 ? lay.picture : ""
+                            // The game picture is one still; a source is live (image://push-source,
+                            // a new picture for every frame it publishes; once a second until 3.2.3).
+                            property int serial: 0
+                            cache: false; asynchronous: item.index === 0
+                            sourceSize: item.index === 0 ? undefined : Qt.size(960, 0)
+                            source: item.index === 0 ? lay.picture : serial > 0 && item.src ? "image://push-source/" + item.src.id + "/" + serial : ""
                             Timer {
-                                interval: 1000; repeat: true; triggeredOnStart: true
+                                interval: 33; repeat: true; triggeredOnStart: true
                                 running: lay.shown && item.index > 0
-                                onTriggered: pic.source = item.src ? veyra.pushSourcePreview(item.src.id) : ""
+                                onTriggered: pic.serial = item.src ? veyra.pushSourceSerial(item.src.id) : 0
                             }
                         }
                         Text {
