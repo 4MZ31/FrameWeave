@@ -95,7 +95,7 @@ that, PushFPS adds what console players need:
 | Feature | What it does |
 |---|---|
 | **PushFlow** | PushFPS's own frame generation: the RIFE neural network on DirectML, on NVIDIA, AMD and Intel graphics cards, 2× to 4×, Fast / Balanced / Quality tiers ([more](#pushflow-our-own-frame-generation)) |
-| **Frame quality test** | Holds back every second real frame, lets frame generation rebuild it and compares it with the original: accuracy (PSNR), pixel errors, HUD smearing, gain over a simple blend, and whether generated frames are on time. *Optimise for my PC* uses it |
+| **Frame quality test** | Holds back every second real frame, lets frame generation rebuild it and compares it with the original: accuracy (PSNR), pixel errors, HUD smearing, gain over a simple blend, whether generated frames are on time, and (since 3.2.7) the worst frame and the worst place, where an object missing from a generated frame shows. *Optimise for my PC* uses it |
 | **PS5 latency test** | Presses the PS button over Remote Play, times the response on screen and splits the PS5, network and decoding part from PushFPS's own processing |
 | **One-click signed updates** | New versions download and install from the app; every release is signed (RSA-3072, SHA-256) and the app refuses anything that doesn't match |
 | **Frame input API** | Other programs can send video straight into PushFPS through shared memory ([docs/FRAME-INPUT-API.md](docs/FRAME-INPUT-API.md)) |
@@ -341,6 +341,10 @@ mode or in streaming mode.
 - **Tiers**: *Fast* (lite model, motion estimated at up to 540p), *Balanced* (lite model, up to 720p) and
   *Quality* (full model, up to 1080p); whenever the motion is estimated smaller, the picture is rebuilt at
   full resolution, so 4K stays sharp and fast enough for live play.
+- **Choose the motion size** (since 3.2.7): *Professional → PushFlow motion size* sets 540p, 720p or 1080p
+  for any tier; Automatic keeps the sizes above. Smaller is lighter and sometimes follows fast objects
+  further, larger is more exact for small motion. The frame quality test's *Worst place* tells you which
+  suits your game. Not yet tested on real graphics cards.
 - **Sharp Fast tier**: the network's final motion and blend mask are enlarged, not its picture: every pixel is
   sampled from the full-resolution real frames. On a panning fine-texture test this scores 25 dB against
   17 dB for enlarging the half-size picture.

@@ -29,6 +29,29 @@ was too slow for live play, so the admission control skipped every pair and Push
 frame rate (field report, 17 November 2026). A 4K picture now uses 960×540 / 1280×720 / 1920×1080 motion and
 the full-resolution rebuild.
 
+### Choosing the motion size (3.2.7)
+
+*Professional → PushFlow motion size*: **Automatic** (the table above, and what every version before had), or
+**540p**, **720p** or **1080p**, used whatever the tier. The tier still chooses the model; the picture is
+rebuilt at full size from the real frames either way, so sharpness does not change. A picture is never
+enlarged: on a 1080p picture, 1080p means the network runs at the picture's own size.
+
+Why it is a choice and not a new rule: on drawn pictures the models do not behave the same at every size, and
+not in one direction ([measured](PUSHFLOW2.md#measured-what-the-models-do-when-motion-is-too-fast)). A smaller
+size costs the card less and sometimes follows a fast object further; a larger one is more exact for small
+motion. Which suits a game can only be measured on that game: change the size, run *Frame generation quality
+test*, and compare **Worst place**, which is where a left-out object shows.
+
+- The row says the size the network really runs at while PushFlow plays, and the performance report carries
+  it (`pushFlowMotionSize`).
+- Changing it rebuilds PushFlow like changing the tier does (a short pause in generated frames).
+- If the card cannot keep up, the watch that lowers the tier first puts a chosen size that is larger than the
+  tier's own back to Automatic, and says so. Every step it takes is a cheaper one.
+- Code: `pushflow::motion::networkScale`, `setMotionHeight`, `slowStep` in
+  `include/veyra/pushflow/PushFlowMotion.h`; preference `pushFlowMotion`; `PushFlowMotionRow.qml`. It is not
+  part of the settings a preset stores. Unverified on real hardware: it was built and tested on the software
+  renderer, where the Fast tier at a chosen size gives the same picture as the Balanced tier at that size.
+
 ### Precision
 
 Every model ships in full precision (fp32, the reference) and, where it agrees on the CPU, in half precision
@@ -60,8 +83,9 @@ What the network gives besides its picture, in one place: `include/veyra/pushflo
 **Motion that is too fast.** An object that moves further between two real frames than the network can follow
 is left out of the generated frame (it is not shown twice). On drawn pictures that happens somewhere above
 a fifth of the picture's width per frame, and working the motion out at a smaller size sometimes brings the
-object back. Nothing hides or repairs that yet; [PushFlow 2](PUSHFLOW2.md) has the measurements, what would
-help, and what it waits for.
+object back (the motion size can be chosen since 3.2.7, above). Nothing hides or repairs that yet. The frame
+quality test shows it since 3.2.7 as its **worst place**; [PushFlow 2](PUSHFLOW2.md) has the measurements,
+what would help, and what it waits for.
 
 ## Why PushFlow could stay at the game's frame rate
 

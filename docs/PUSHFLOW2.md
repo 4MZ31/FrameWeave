@@ -10,9 +10,9 @@ contradict them. No dates.
 
 | Part | What it is | Where it stands |
 |---|---|---|
-| Guard | Find the places in a generated frame that are probably wrong and show something safe there instead | A first rule was built, measured on the shipped models and taken out again (below). The next rule is written down; it needs real clips before it is built |
-| Fusion | Encode every real frame once and work a pair's motion out once, then make every in-between time from it | Not started. It is the roadmap's "encode every real frame once"; it ships only when it is faster at equal quality on two classes of card |
-| Predict | Make frames from what has already arrived, without waiting for the next real frame | Not started, and never the normal mode. It needs Guard's checking of predictions against the frames that arrive later, and a camera for any claim about delay |
+| Guard | Find the places in a generated frame that are probably wrong and show something safe there instead | Two rules were measured on the shipped models and neither held (below): one was built and taken out, one never built. What a user has from it since 3.2.7 is the measurement itself: the frame quality test says its **worst frame** and its **worst place**. The next rule is written down; it needs real clips before it is built |
+| Fusion | Encode every real frame once and work a pair's motion out once, then make every in-between time from it | Measured (below): the part that belongs to one frame is 28 % of the lite model's work and 14 % of the full model's, so reusing it saves at most 7 to 24 %. Not built: a gain that size has to be shown on real cards before a second model session is added to pay for it |
+| Predict | Make frames from what has already arrived, without waiting for the next real frame | Measured (below): a frame half a step ahead can be made from what the network already gives, with no extra run; on drawn pictures it beats holding the last frame for slow motion and is no better for fast motion. Not built, and never the normal mode. It needs its own way onto the screen, Guard's checking of predictions against the frames that arrive later, and a camera for any claim about delay |
 | Dual | A second, deliberately delayed timeline for recording and streaming, beside the one the player sees | Not started. It needs real recording and OBS sessions on real cards to show the player's side is not slowed |
 | Response | Turn the picture a little from the stick's movement before the console's own frame arrives | Research only. Whether it can work from a video signal at all is unproven; it needs a PS5, a high-speed camera and people to judge it |
 | Memory | Bring back detail that earlier real frames showed | Research only. It depends on motion that has been checked (Guard, Fusion) |
@@ -46,6 +46,22 @@ contradict them. No dates.
 - **A motion report for every model build**: how the grids and mask behave when the network can and cannot
   follow a motion. It decides nothing; it is the measurement the next rule starts from.
 - **The protected-feature list**, checked on every push (rule 5).
+- **The frame quality test says its worst frame and its worst place** (3.2.7). The test already withheld
+  every second real frame, generated it and compared; it reported averages. An object left out of a generated
+  frame costs the whole picture a fraction of a decibel and one place nearly everything, so the test now also
+  gives the least accurate frame, and the least accurate of 144 tiles averaged over the frames
+  (`worstTilePsnr`, `include/veyra/engine/PushQuality.h`). In the unit test a missing object leaves the
+  picture at 29.6 dB and its place at 8.1 dB. The score is what it was.
+- **PushFlow's motion size can be chosen apart from its tier** (3.2.7, *Professional → PushFlow motion
+  size*): automatic (each tier's own, as before), or at most 540, 720 or 1080 lines whatever the tier's
+  model. It is a choice and not a new automatic rule, because of what the measurement below says: the models
+  do not behave the same at every size, and not in one direction. The row shows the size really in use; the
+  too-slow watch puts a size that is too much for the card back to automatic before it lowers a tier, and
+  every step it can take is cheaper than the one before (unit test). Without a choice, every tier's size is
+  bit for bit what it was (unit test), and the graph test runs PushFlow both ways.
+- **Three studies of the shipped models** run in the `pushflow-models` workflow (`--study`): what the
+  tensors do under motion (`motion_report`), where the network's work goes (`fusion_report`), and whether a
+  frame ahead can be made from it (`predict_report`). They print numbers and decide nothing.
 
 ## Measured: what the models do when motion is too fast
 
@@ -79,10 +95,24 @@ does keep both samples (12 to 68 % of these pictures) the two samples agree. Thr
    | 256 px | both | left out | left out | left out |
 
    So the reach is not a fixed share of the screen, and the largest motion size is not the best one for
-   fast motion: on these pairs the Quality model did better at half size than at full size. It is also
-   not a simple law (a quarter-size network still loses the square at 256 px, and the Fast model gains
-   only at a quarter). Whether fast pairs should be worked out at a smaller size is the next thing to
-   measure, with the in-app frame quality test on real games, not with drawn squares.
+   fast motion: on these pairs the Quality model did better at half size than at full size. It is not
+   a law. A quarter-size network still loses the square at 256 px, the Fast model gains only at a
+   quarter, and a fine texture sliding sideways (run 44605491581) goes every way at once:
+
+   | The texture moved | Model | Full size | Half | Quarter |
+   |---|---|---|---|---|
+   | 8 px | Quality | 22.9 dB | 30.7 dB | 27.2 dB |
+   | 16 px | Quality | 31.7 dB | 23.1 dB | 14.7 dB |
+   | 32 px | Quality | 25.2 dB | 33.9 dB | 20.5 dB |
+   | 64 px | Quality | 20.4 dB | 23.6 dB | 15.0 dB |
+   | 8 px | Fast | 22.2 dB | 27.8 dB | 14.9 dB |
+   | 16 px | Fast | 14.4 dB | 14.6 dB | 22.3 dB |
+   | 32 px | Fast | 19.9 dB | 19.2 dB | 14.9 dB |
+
+   and a slow square is always best at full size (16 px, Quality: 63.0, 50.9, 48.3 dB). No rule that
+   picks the size from the motion follows from this, so none was built. What was built is the choice
+   (3.2.7, above) and the number to judge it by on a real game: change the motion size, run the frame
+   quality test, compare the worst place.
 
 A fade (the whole picture 0.3 brighter, nothing moving) is the opposite case: the mask keeps both samples
 almost everywhere and they differ everywhere, because a blend is the right picture there.
@@ -105,6 +135,87 @@ written whole (shader, reference, tests, a switch in Professional mode), and its
 It acted where the network was right and not where it was wrong. It did not prove itself, so it is not in the
 product (roadmap rule 5). The contract, the reference and the stricter rebuild check that were written for it
 are what stayed.
+
+## Measured and not built: holding a whole frame
+
+A second idea was a rule for the whole frame instead of for a place: when the two samples disagree over
+much of the picture, the pair has failed, so show a real frame instead. Its number (the mean difference
+between the two samples, run 44605491581) does not separate failure from success:
+
+| Pair | Difference between the samples | The generated frame |
+|---|---|---|
+| a square, followed | 0.0004 to 0.0023 | 36 to 62 dB |
+| a square, left out | 0.007 to 0.009 | 29 dB |
+| a fade of 0.07, generated correctly | 0.062 to 0.076 | 38 to 39 dB |
+| a fine texture, followed (8 px) | 0.058 (Fast), 0.092 (Quality) | 22 dB, 18 dB |
+| a fine texture, lost (64 px and more) | 0.135 to 0.149 | 14 to 15 dB |
+| a fade of 0.3, generated correctly | 0.30 to 0.32 | as good as a blend can be |
+| two unrelated pictures (a cut) | 0.18 to 0.19 | no right answer |
+
+A left-out square scores ten times lower than a correct fade, and a correct strong fade higher than a cut.
+And where the network has lost a texture, its picture (14 to 15 dB) is as close to the truth as a blend of
+the two frames (15.2 dB) and closer than a held frame (13.9 dB): holding would not have been better by the
+only measure there is here. No threshold on this number does more good than harm, so the rule was not built.
+
+## Measured: what Fusion could save
+
+`fusion_report` follows every tensor of the model from its input (previous frame, current frame, time) and
+counts the multiply-adds of the convolutions (run 44608578177):
+
+| | Lite model (Fast, Balanced) | Full model (Quality) |
+|---|---|---|
+| Work that does not depend on the time | 28.4 % | 13.6 % |
+| Work that depends on the time (done for every generated frame, whatever is reused) | 71.6 % | 86.4 % |
+
+The part that does not depend on the time is the feature encoder, which takes the two frames as a batch of
+two. That it treats them separately was measured and not assumed: with one frame replaced, the other
+frame's half of every such tensor stayed identical (difference 0.0), and so did all of it at another time.
+So each real frame's features could be made once and used for the pair before, the pair after and every
+in-between time. The most that saves, in convolution work:
+
+| | 2× | 3× | 4× |
+|---|---|---|---|
+| Lite model | 14.2 % | 21.3 % | 23.6 % |
+| Full model | 6.8 % | 10.2 % | 11.4 % |
+
+This is a ceiling in arithmetic, not in milliseconds: the samplings and resizes between the convolutions are
+not counted, and on a graphics card the cost of a second session and of handing the features across is not
+either. Nothing else in the network can be reused between in-between times: the time enters at the first
+motion block, before any motion is worked out. The guide's "work a pair's motion out once" does not exist in
+these models. So Fusion here means one thing, the encoder split, and its ceiling is 7 to 24 %. It is not
+built: closing PushFlow's one model session safely already needed its own fix after a crash in the field
+(3.2.2), and a second session for a gain that may be a few per cent in practice has to be measured on real
+cards first.
+
+## Measured: a frame ahead, from what the network already gives
+
+Predict needs motion that points forward in time. Two ways to get it from the shipped models were tried
+(`predict_report`, runs 44605491581 and 44606025232; a 320 × 192 picture, the frame after the newest one
+forecast from the two before it and compared with the real one):
+
+- **Asking the network for time 1.** It gives back the newest frame (64 to 80 dB), but its sampling grid is
+  not the motion between the two frames: for a square moving 8 to 48 px to the right it reads −5.7 to
+  −20.6 px. A forecast built on it is no better than holding the newest frame. A dead end.
+- **From the half-way grids.** The grids of the ordinary in-between frame say where each of its points lies
+  in the newest frame; carried one more half-step along the same line, they give a frame half an interval
+  ahead with no extra run of the network:
+
+  | The pair | Hold the newest frame | Forecast, Fast model | Forecast, Quality model |
+  |---|---|---|---|
+  | a square, 8 px a frame | 27.9 dB | 44.7 dB | 51.7 dB |
+  | a square, 16 px | 24.8 dB | 35.4 dB | 48.3 dB |
+  | a square, 32 px | 30.1 dB | 31.3 dB | 30.3 dB |
+  | a square, 48 px | 25.4 dB | 27.7 dB | 27.1 dB |
+  | a fine texture, 4 px | 13.9 dB | 19.7 dB | 36.6 dB |
+  | a fine texture, 8 px | 13.9 dB | 21.2 dB | 17.7 dB |
+  | a fine texture, 16 px | 13.9 dB | 15.6 dB | 27.6 dB |
+
+So a forecast is possible, cheaply, for slow and steady motion, and falls back to about a held frame when the
+motion is fast, which is exactly when a wrong forecast would show most. That is a proof that the tensors
+allow it, on drawn pictures moving in straight lines. It is not a feature: a game's motion changes between
+frames, a forecast frame has to be checked against the real frame that follows (Guard), it needs its own way
+onto the screen and its own pacing, and whether it lowers the delay a player feels can only be shown with a
+camera. Not built.
 
 ## Next for Guard: written down, not built
 
@@ -130,9 +241,10 @@ generated frame uses at all, and that pass and its thresholds cannot be tuned on
 
 | Waits for | Steps |
 |---|---|
-| Real 60 FPS game clips, and people to judge them | Guard's next rule; any change to how the tiers choose the motion size |
-| Card tests and performance reports from real cards (*Settings → Test my graphics card*, *Performance report*) | Fusion (the split model must be faster at equal quality on two classes of card); half precision per card |
-| A camera filming screen and controller (240 FPS or more) | Every statement about delay: Predict, Response, latency modes |
+| Real 60 FPS game clips, and people to judge them | Guard's next rule; any automatic choice of the motion size (the choice by hand exists since 3.2.7) |
+| Frame quality test results from real games at each motion size (the worst place, with the performance report, which names the motion size) | Whether a tier's own motion size should change |
+| Card tests and performance reports from real cards (*Settings → Test my graphics card*, *Performance report*) | Fusion (the encoder split must be faster at equal quality on two classes of card, for a ceiling of 7 to 24 %); half precision per card |
+| A camera filming screen and controller (240 FPS or more) | Every statement about delay: Predict (its forecast exists as a study), Response, latency modes |
 | A PS5 with Remote Play, and testers | Response |
 | Real recording, streaming and OBS sessions on several cards | Dual |
 | Licence terms for runtimes and for any new model's weights | An NVIDIA-native path; any learned refinement |
@@ -147,4 +259,6 @@ generated frame uses at all, and that pass and its thresholds cannot be tuned on
 | Leases, queues and teardown | Unchanged. The roadmap's "fixed pool of buffers" step covers it, and it ships after it is measured |
 | Instruments and a test corpus | The motion report (models), `PushFlowBench` and the card test (speed), the frame quality test (a live session). The corpus is the clips above |
 | Read-only motion data with tested coordinates | `PushFlowMotion.h`, `PushFlowBackend::motionBuffer` (tests only), `veyra_push_flow_motion_tests` |
-| Guard's risk map and safe fallback | First rule built, measured, taken out; next rule written down (above) |
+| Guard's risk map and safe fallback | First rule built, measured, taken out; a whole-frame rule measured and not built; next rule written down (above). The frame quality test's worst frame and worst place are the instrument a user has today |
+| Encode once, reuse | Measured: what it could save, and that the encoder's work is per frame (above). Not built |
+| Frames from the past only | Measured: possible from the half-way grids for slow motion (above). Not built |
