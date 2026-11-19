@@ -636,6 +636,41 @@ def check_exposed(path: Path, channels: int, align: int) -> dict:
     return {"rebuild_db": round(max(pa, pb), 2), "mask_for_first": bool(first_mask), "fast_detail": fast, "pad": pad, "output": rgb[0]}
 
 
+def check_split(whole: Path, encoder: Path, body: Path, channels: int) -> dict:
+    """The encoder and the body together against the whole model, on the CPU: every output (picture, both
+    grids, mask), several times between the frames, a size that is a multiple of the model's block and one
+    that is not, the first frame's features taken from the pair before (as PushFlow will) and from packing it
+    into the second place (as it does when there is no pair before). Returns the largest difference found."""
+    import numpy as np
+    import onnxruntime as ort
+    opts = ort.SessionOptions()
+    opts.intra_op_num_threads = 2
+    w_s, e_s, b_s = (ort.InferenceSession(str(p), opts, providers=["CPUExecutionProvider"]) for p in (whole, encoder, body))
+    name = w_s.get_inputs()[0].name
+    worst, runs, shape = 0.0, 0, None
+    rng = np.random.default_rng(11)
+    for w, h in ((256, 192), (320, 200)):
+        A, B, C = (rng.random((3, h, w), dtype=np.float32) for _ in range(3))
+        drawn = (frame(w, h, 100), frame(w, h, 116))
+        for first, second, before in ((A, B, None), (B, C, A), drawn + (None,)):
+            if before is None:   # no pair before: the first frame goes through the encoder in the second place
+                feat0 = e_s.run(None, {name: tensor(first, first, 0.5, channels)})[0]
+            else:                # the pair before made it: (before, first)
+                feat0 = e_s.run(None, {name: tensor(before, first, 0.5, channels)})[0]
+            feat1 = e_s.run(None, {name: tensor(first, second, 0.5, channels)})[0]
+            shape = list(feat1.shape)
+            for t in (0.125, 0.25, 1.0 / 3.0, 0.5, 2.0 / 3.0, 0.75, 0.875):
+                x = tensor(first, second, t, channels)
+                want = w_s.run(None, {name: x})
+                got = b_s.run(None, {name: x, "pushflow_feat0": feat0, "pushflow_feat1": feat1})
+                if len(want) != len(got):
+                    raise ValueError("the body's outputs are not the model's")
+                for a, b in zip(want, got):
+                    worst = max(worst, float(np.abs(a.astype(np.float64) - b.astype(np.float64)).max()))
+                runs += 1
+    return {"largest_difference": worst, "runs": runs, "features_shape": shape}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
@@ -788,9 +823,32 @@ def main() -> None:
                         print(f"{label} {role}: {json.dumps(row)}")
                 except Exception as e:  # noqa: BLE001 - a study is information only
                     print(f"{label} {role}: study failed: {type(e).__name__}: {e}")
+        # PushFlow 2, Fusion's first step: the same model cut into its per-frame encoder and the rest
+        # (rife_graph.split_encoder), shipped only when the two together give the whole model's output on the
+        # CPU. PushFlow uses them only when asked to (off by default) and after its own check on the card.
+        split_facts = ""
+        try:
+            enc_model, body_model, cut = rife_graph.split_encoder(exposed)
+            enc_path, body_path = runtime / "models" / f"pushflow-{role}-enc.onnx", runtime / "models" / f"pushflow-{role}-body.onnx"
+            onnx.save(enc_model, str(enc_path))
+            onnx.save(body_model, str(body_path))
+            split = check_split(target, enc_path, body_path, c["channels"])
+            print(f"split {role}: {json.dumps(dict(split, **cut))}")
+            if split["largest_difference"] <= 1e-4 and split["runs"] > 0:
+                entry["split"] = {"encoder": enc_path.name, "encoder_sha256": sha256(enc_path), "body": body_path.name, "body_sha256": sha256(body_path),
+                                  "features": cut["features"], "cpu_largest_difference": split["largest_difference"], "cpu_runs": split["runs"]}
+                split_facts = f"split_features={cut['features']}\n"
+            else:
+                print(f"split {role}: does not reproduce the model (largest difference {split['largest_difference']}); not shipped")
+                enc_path.unlink()
+                body_path.unlink()
+        except Exception as e:  # noqa: BLE001 - no split models; the whole model stays the only way
+            print(f"split {role} skipped: {type(e).__name__}: {e}")
+            for leftover in (runtime / "models" / f"pushflow-{role}-enc.onnx", runtime / "models" / f"pushflow-{role}-body.onnx"):
+                leftover.unlink(missing_ok=True)
         # Facts the native backend needs to rebuild the picture (PushFlowBackend.cpp readFacts).
         (runtime / "models" / f"pushflow-{role}.onnx.txt").write_text(
-            f"align_corners={info['align_corners']}\nmask_for_first={1 if verdict['mask_for_first'] else 0}\npad={verdict['pad']}\n", encoding="ascii")
+            f"align_corners={info['align_corners']}\nmask_for_first={1 if verdict['mask_for_first'] else 0}\npad={verdict['pad']}\n{split_facts}", encoding="ascii")
         record["models"][role] = entry
     (runtime / "models.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(record, indent=2))
