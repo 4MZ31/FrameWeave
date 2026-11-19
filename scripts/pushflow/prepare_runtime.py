@@ -478,6 +478,44 @@ def fusion_report(path: Path, channels: int) -> dict:
             features.append({"tensor": name[:40], "of": "".join(sorted(d[0])) + ("/stacked" if d[1] else ""), "shape": shapes.get(name)})
     total = sum(v for k, v in macs.items() if k != "unknown") or 1
     F, P, T = macs["one frame"], macs["the pair, not the time"], macs["the time"]
+    # The part that does not depend on the time works on the two frames as a batch of two. Measured, not
+    # assumed: with frame A kept and frame B replaced, A's half of every such tensor must stay what it
+    # was (and the same for B, and for another time). Then that work belongs to one frame and could be
+    # done once per real frame instead of twice per generated frame.
+    per_frame = {"tensors": 0}
+    try:
+        pair_tensors = [n.output[0] for n in g.node if n.op_type in ("Conv", "ConvTranspose") and n.output and
+                        dep.get(n.output[0]) is not None and kind(dep[n.output[0]]) == "the pair, not the time"]
+        probe = onnx.load(str(path))
+        have = {o.name for o in probe.graph.output}
+        probe.graph.output.extend(helper.make_empty_tensor_value_info(w) for w in pair_tensors if w not in have)
+        session = ort.InferenceSession(probe.SerializeToString(), providers=["CPUExecutionProvider"])
+        names = [o.name for o in session.get_outputs()]
+        rng = np.random.default_rng(7)
+        A, B, C = (rng.random((3, 192, 256), dtype=np.float32) for _ in range(3))
+        def run(a, b, t):
+            return dict(zip(names, session.run(None, {session.get_inputs()[0].name: tensor(a, b, t, channels)})))
+        ab, ac, cb, ab2 = run(A, B, 0.5), run(A, C, 0.5), run(C, B, 0.5), run(A, B, 0.25)
+        first = second = other_time = changed = 0.0
+        batched = 0
+        for w in pair_tensors:
+            if ab[w].shape[0] != 2:
+                continue
+            batched += 1
+            first = max(first, float(np.abs(ab[w][0] - ac[w][0]).max()))
+            second = max(second, float(np.abs(ab[w][1] - cb[w][1]).max()))
+            other_time = max(other_time, float(np.abs(ab[w] - ab2[w]).max()))
+            changed = max(changed, float(np.abs(ab[w][1] - ac[w][1]).max()))   # the half that did change, for scale
+        per_frame = {"tensors": len(pair_tensors), "as_a_batch_of_two": batched,
+                     "first_half_changes_with_the_other_frame_by": round(first, 7), "second_half_changes_with_the_other_frame_by": round(second, 7),
+                     "changes_with_the_time_by": round(other_time, 7), "the_replaced_half_changes_by": round(changed, 4),
+                     "verified": bool(batched == len(pair_tensors) and batched > 0 and max(first, second, other_time) <= 1e-5 and changed > 1e-2)}
+        del session, probe, ab, ac, cb, ab2
+    except Exception as error:  # a study: say why, never stop the build
+        per_frame["error"] = str(error)[:200]
+    if per_frame.get("verified"):
+        per_frame["saving_of_convolution_work_percent"] = {
+            f"{m}x": round(100.0 * (1 - (P / 2 + (m - 1) * T) / ((m - 1) * (P + T) or 1)), 1) for m in (2, 3, 4)}
     saving = {}
     for m in (2, 3, 4):
         now = (m - 1) * (F + P + T) or 1
@@ -486,6 +524,7 @@ def fusion_report(path: Path, channels: int) -> dict:
     data = [n for n in g.node if n.output and (n.output[0] in dep or n.output[0] in whole)]
     head = [f"{n.op_type}({','.join(i[-14:] for i in n.input if i and (i in dep or i in whole))})->{n.output[0][-14:]}:{'input' if n.output[0] in whole else ''.join(sorted(dep[n.output[0]][0])) + ('*' if dep[n.output[0]][1] else '')}" for n in data[:44]]
     return {"work_share_percent": {k: round(100.0 * v / total, 1) for k, v in macs.items() if k != "unknown"}, "convolutions_without_a_shape": macs["unknown"],
+            "encoder_per_frame": per_frame,
             "saving_of_convolution_work": saving, "kept_per_frame": features[:8], "nodes": len(g.node),
             "ops": dict(collections.Counter(n.op_type for n in g.node).most_common(14)), "first_nodes": head}
 

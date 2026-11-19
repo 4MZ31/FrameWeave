@@ -95,14 +95,19 @@ int wmain(int argc, wchar_t** argv) {
         for (unsigned y = 0; y < H; ++y) std::memcpy(frame->data[0] + size_t(y) * frame->linesize[0], px.data() + size_t(y) * W * 4, size_t(W) * 4);
     };
 
-    for (unsigned multiplier : {2u, 3u}) {
-        const std::string tag = std::to_string(multiplier) + "X";
-        const unsigned frames = multiplier == 2 ? 12 : 7;
+    // The third run is PushFlow with a motion size chosen apart from its tier (3.2.7): the Fast tier's
+    // model at the picture's own size instead of half of it. Fewer frames: four times the work each.
+    struct Run { unsigned multiplier; int motion; };
+    for (const Run run : {Run{2u, 0}, Run{3u, 0}, Run{2u, 540}}) {
+        const unsigned multiplier = run.multiplier;
+        const std::string tag = std::to_string(multiplier) + "X" + (run.motion ? " at a chosen motion size" : "");
+        const unsigned frames = run.motion ? 5 : multiplier == 2 ? 12 : 7;
         pipeline::EnhanceGraph graph(ctx, ring);
         pipeline::EnhanceGraphDesc desc; desc.sourceWidth = desc.workWidth = W; desc.sourceHeight = desc.workHeight = H;
         desc.rgbInput = true; desc.enableNr = desc.enableSr = false; desc.enableFg = true; desc.fgMultiplier = multiplier;
         desc.frameGenerationBackend = engine::FrameGenerationBackend::PushFlow;
         desc.vfgQuality = 0;  // the Fast tier: the software renderer in CI is slow
+        desc.pushFlowMotion = run.motion;
         desc.runtimeAbsPath = argv[2]; desc.settingsRevision = multiplier;
         const bool opened = graph.initialize(desc) && graph.createViews();
         if (!check(opened, tag + ": the graph opens with PushFlow") || !check(graph.pushFlowActive(), tag + ": PushFlow is ready")) {
@@ -110,6 +115,14 @@ int wmain(int argc, wchar_t** argv) {
             graph.shutdown(); continue;
         }
         check(graph.fgCreated(), tag + ": the graph counts PushFlow as a frame generation method");
+        {
+            // The size the motion is worked out at: Fast's own is half the picture; a chosen size is used
+            // as far as the picture goes (never enlarged), so here the picture's own size.
+            const auto summary = graph.pushFlowSummary();
+            std::cout << "PUSHFLOW_GRAPH " << tag << " motion size " << summary.motionWidth << "x" << summary.motionHeight << " rebuild=" << summary.rebuild << std::endl;
+            if (run.motion) check(summary.motionWidth == W && summary.motionHeight == H && !summary.rebuild, tag + ": the network runs at the chosen size, here the whole picture");
+            else check(summary.motionWidth == W / 2 && summary.motionHeight == H / 2 && summary.rebuild, tag + ": the tier's own motion size is what it was (half the picture, rebuilt at full size)");
+        }
         unsigned offered = 0, pairs = 0, generated = 0, checked = 0, between = 0, ordered = 0, resetsWithoutFrame = 0;
         double worstMargin = 1e9, realDb = 0, slowestMs = 0; bool ok = true;
         std::vector<uint8_t> previous;
@@ -139,7 +152,7 @@ int wmain(int argc, wchar_t** argv) {
                 for (unsigned sub = 1; sub < multiplier; ++sub) {
                     sink::RgbaImage image;
                     if (!sink::readRgba8(ctx, ring, graph.generatedFrameResource(out.genSlot + (sub - 1) * 2), image) || image.width != W || image.height != H) { ok = false; break; }
-                    if (i == 3) sink::saveImage((std::filesystem::path(argv[1]) / (L"generated-" + std::to_wstring(multiplier) + L"x-" + std::to_wstring(sub) + L".png")).wstring(), image);
+                    if (i == 3) sink::saveImage((std::filesystem::path(argv[1]) / (L"generated-" + std::to_wstring(multiplier) + L"x-" + std::to_wstring(sub) + (run.motion ? L"-motion" : L"") + L".png")).wstring(), image);
                     // Where the square truly is at this subframe's time, against a plain blend of the two frames.
                     const auto truth = picture(squareAt(i - 1) + double(Step) * double(sub) / double(multiplier));
                     const double flowDb = psnr(image.pixels, truth), blendDb = psnr(mix, truth);

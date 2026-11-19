@@ -8,6 +8,7 @@
 #include "../QmlPlayerBridge_p.h"
 #include "veyra/engine/PushArchivePaths.h"
 #include "veyra/engine/PushBenchmarkProbe.h"
+#include "veyra/pushflow/PushFlowMotion.h"
 #include "veyra/Brand.h"
 #include "veyra/RuntimePaths.h"
 #include "veyra/ngx/AnrProvider.h"
@@ -89,6 +90,9 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["pushFlowRebuild"] = s.pushFlowRebuild;
     m["pushFlowP50Ms"] = s.pushFlowP50Ms;
     m["pushFlowP95Ms"] = s.pushFlowP95Ms;
+    // The size PushFlow works the motion out at right now (0 while it is not running).
+    m["pushFlowMotionWidth"] = int(s.pushFlowMotionWidth);
+    m["pushFlowMotionHeight"] = int(s.pushFlowMotionHeight);
     m["pacingRepaired"] = QVariant::fromValue(qulonglong(s.pacingRepaired));
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;
@@ -691,6 +695,7 @@ QVariantMap QmlPlayerBridge::pushQualityStatus() {
         {"psnr", r.psnr}, {"blendPsnr", r.blendPsnr}, {"gainOverBlend", r.gainOverBlend()}, {"realPsnr", r.realPsnr},
         {"hudPsnr", r.hudPsnr}, {"hudSamples", int(r.hudSamples)}, {"meanError", r.meanError}, {"badShare", r.badShare},
         {"onTime", r.onTimeShare()}, {"generatedShown", qulonglong(r.generatedShown)}, {"score", r.score()},
+        {"worstFramePsnr", r.worstFramePsnr}, {"worstPlacePsnr", r.worstPlacePsnr},
         {"revision", qulonglong(st.revision)}};
 }
 } // namespace veyra::ui
@@ -785,6 +790,7 @@ void QmlPlayerBridge::pushFlowBudgetWatch() {
     if (s.applied.revision != w.revision) {
         if (w.awaitingOwn) { w.loweredRevision = s.applied.revision; w.awaitingOwn = false; }
         else if (w.loweredRevision && w.loweredFrom >= 0 && vfgQuality() >= w.loweredFrom) w.userChose = true;
+        else if (w.loweredRevision && w.motionFrom > 0 && pushflow::motion::motionHeight() == w.motionFrom) w.userChose = true;
         w.revision = s.applied.revision;
         reset();
     }
@@ -801,7 +807,21 @@ void QmlPlayerBridge::pushFlowBudgetWatch() {
     const QString ms = QString::number(s.pushFlowP50Ms, 'f', 1);
     veyra::log::warn("pushflow-watch", std::format("budget skipped nearly every pair for 8 s: content={:.1f} output={:.1f} network p50={:.1f} ms tier={}",
         content, output, s.pushFlowP50Ms, tier));
-    if (tier > 0) {
+    // The step that makes PushFlow cheaper (pushflow/PushFlowMotion.h slowStep): a motion size chosen in
+    // Professional mode that is larger than the tier's own goes back to automatic before any tier is lowered.
+    const int motion = pushflow::motion::motionHeight();
+    const auto step = pushflow::motion::slowStep(uint32_t(tier), motion);
+    using pushflow::motion::SlowStep;
+    if (step == SlowStep::MotionToAuto || step == SlowStep::TierDownAndMotionToAuto) {
+        w.motionFrom = motion;
+        w.awaitingOwn = true;
+        if (step == SlowStep::TierDownAndMotionToAuto) { w.loweredFrom = tier; setVfgQuality(tier - 1); }
+        setPreference(QStringLiteral("pushFlowMotion"), 0);
+        emit notice(step == SlowStep::MotionToAuto
+            ? tr("PushFlow 在所选的运动估算尺寸（%1p）下每帧需要 %2 ms，这块显卡跟不上当前帧率，几乎每一对画面都被跳过。运动估算尺寸已恢复为自动").arg(motion).arg(ms)
+            : tr("PushFlow 在%1档每帧需要 %2 ms，这块显卡跟不上当前帧率，几乎每一对画面都被跳过。已自动换成%3档，运动估算尺寸恢复为自动")
+                .arg(names[tier], ms, names[tier - 1]), false);
+    } else if (step == SlowStep::TierDown) {
         w.loweredFrom = tier;
         w.awaitingOwn = true;
         setVfgQuality(tier - 1);

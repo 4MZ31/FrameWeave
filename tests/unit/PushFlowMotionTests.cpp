@@ -2,6 +2,8 @@
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 //
 // PushFlow's motion contract (pushflow/PushFlowMotion.h, pure):
+//  - the size the motion is worked out at: every tier's own size is what it was, and a chosen size
+//    is used whatever the tier;
 //  - grid values, model positions and full-size positions convert both ways, for both corner
 //    conventions, odd sizes, padding and a network smaller than the picture;
 //  - the reference rebuild reads the real frames where the grids point (still, shifted by whole and
@@ -75,6 +77,76 @@ int main() {
                             identity = identity && about(gridToSource(sourceToGrid(x, src, model, pad, align), src, model, pad, align), x, 2e-2f);
         check(identity, "the grid value made for a full-size position reads that position (padding and a smaller network included)");
         check(!Geometry{}.valid() && Geometry{256, 160, 128, 80, 128, 96}.valid() && !Geometry{256, 160, 128, 80, 64, 96}.valid(), "a geometry needs sizes, and padding never smaller than the model");
+    }
+    // --- the size the motion is worked out at ----------------------------------------------------
+    {
+        const auto same = [](double a, double b) { return std::fabs(a - b) < 1e-6; };
+        // The tiers' own sizes, as they were before the motion size could be chosen (copied from the
+        // backend's header at 3.2.6).
+        const auto before = [](uint32_t tier, uint32_t width, uint32_t height) {
+            static constexpr double kMaxPixels[3] = {960.0 * 540.0, 1280.0 * 720.0, 1920.0 * 1080.0};
+            const double area = std::max(1.0, double(width) * double(height));
+            const double cap = std::sqrt(kMaxPixels[std::min<uint32_t>(tier, 2)] / area);
+            return std::min(tier == 0 ? 0.5 : 1.0, cap);
+        };
+        bool unchanged = true;
+        const uint32_t sizes[][2] = {{640, 360}, {1280, 720}, {1920, 1080}, {2560, 1440}, {3440, 1440}, {3840, 2160}, {256, 160}, {1, 1}, {7680, 4320}};
+        for (uint32_t tier = 0; tier < 6; ++tier)
+            for (const auto& sz : sizes)
+                unchanged = unchanged && networkScale(tier, sz[0], sz[1]) == before(tier, sz[0], sz[1]) && networkScale(tier, sz[0], sz[1], 0) == before(tier, sz[0], sz[1]) &&
+                            networkScale(tier, sz[0], sz[1], 333) == before(tier, sz[0], sz[1]) && networkScale(tier, sz[0], sz[1], -720) == before(tier, sz[0], sz[1]);
+        check(unchanged, "without a chosen motion size (or with one that does not exist) every tier's size is exactly what it was");
+        check(same(networkScale(2, 3840, 2160, 540), 0.25) && same(networkScale(2, 3840, 2160, 720), 1.0 / 3.0) && same(networkScale(0, 3840, 2160, 1080), 0.5),
+              "a chosen size is used whatever the tier: the full model at 960 x 540 of a 4K picture, the lite one at 1920 x 1080");
+        check(same(networkScale(0, 1920, 1080, 540), 0.5) && same(networkScale(0, 1920, 1080, 1080), 1.0) && same(networkScale(2, 1920, 1080, 720), 2.0 / 3.0),
+              "at 1080p: 540 lines is half, 1080 lines the whole picture (Fast is no longer held to half), 720 two thirds");
+        check(same(networkScale(1, 640, 360, 540), 1.0) && same(networkScale(2, 256, 160, 1080), 1.0), "a picture smaller than the chosen size is never enlarged");
+        check(same(networkScale(1, 3440, 1440, 720) * 3440 * networkScale(1, 3440, 1440, 720) * 1440, 1280.0 * 720.0), "an ultrawide picture gets the same number of picture elements, in its own shape");
+        bool valid = motionHeightValid(0) && motionHeightValid(540) && motionHeightValid(720) && motionHeightValid(1080) && !motionHeightValid(-1) && !motionHeightValid(1) && !motionHeightValid(2160);
+        for (int lines : kMotionHeights) valid = valid && motionHeightValid(lines);
+        check(valid, "the motion sizes that exist are 0 (the tier's own), 540, 720 and 1080");
+        setMotionHeight(720); const bool kept = motionHeight() == 720;
+        setMotionHeight(900); const bool refused = motionHeight() == 0;
+        setMotionHeight(1080); setMotionHeight(0); const bool off = motionHeight() == 0;
+        check(kept && refused && off, "the process-wide choice keeps a size that exists and falls back to the tier's own for one that does not");
+    }
+    // --- what the too-slow watch does ------------------------------------------------------------
+    {
+        // The work of one generated frame, as a number to compare: picture elements times the model's
+        // weight (the full model costs more than the lite one at the same size).
+        const auto work = [](uint32_t tier, int lines, uint32_t width, uint32_t height) {
+            const double scale = networkScale(tier, width, height, lines);
+            return scale * scale * double(width) * double(height) * (tier >= 2 ? 2.0 : 1.0);
+        };
+        bool before = slowStep(2, 0) == SlowStep::TierDown && slowStep(1, 0) == SlowStep::TierDown && slowStep(0, 0) == SlowStep::Nothing &&
+                      slowStep(2, 333) == SlowStep::TierDown && slowStep(7, 0) == SlowStep::TierDown;
+        check(before, "without a chosen motion size the watch lowers the tier as it always did, and does nothing at Fast");
+        bool cheaper = true, ends = true;
+        const uint32_t sizes[][2] = {{1920, 1080}, {2560, 1440}, {3840, 2160}, {3440, 1440}};
+        for (const auto& sz : sizes)
+            for (uint32_t tier = 0; tier < 3; ++tier)
+                for (int lines : kMotionHeights) {
+                    uint32_t t = tier; int m = lines; int steps = 0;
+                    for (;; ++steps) {
+                        const auto step = slowStep(t, m);
+                        if (step == SlowStep::Nothing) break;
+                        const double was = work(t, m, sz[0], sz[1]);
+                        if (step == SlowStep::TierDown || step == SlowStep::TierDownAndMotionToAuto) --t;
+                        if (step == SlowStep::MotionToAuto || step == SlowStep::TierDownAndMotionToAuto) m = 0;
+                        // Never more work; and less, except for the one case that is already the floor
+                        // (Fast with 540 lines chosen on a picture of 1080 lines or more is Fast's own size).
+                        const double now = work(t, m, sz[0], sz[1]);
+                        cheaper = cheaper && now <= was + 1e-6 && (now < was - 1e-6 || (t == 0 && m == 0));
+                        if (steps > 4) { ends = false; break; }
+                    }
+                    ends = ends && t == 0 && m == 0 && steps <= 3;
+                }
+        check(cheaper, "every step of the watch makes PushFlow cheaper, whatever tier and motion size it starts from");
+        check(ends, "the watch ends at Fast with its own size in at most three steps");
+        check(slowStep(0, 1080) == SlowStep::MotionToAuto && slowStep(1, 1080) == SlowStep::MotionToAuto && slowStep(2, 1080) == SlowStep::TierDown &&
+              slowStep(2, 540) == SlowStep::TierDown && slowStep(1, 720) == SlowStep::TierDownAndMotionToAuto && slowStep(1, 540) == SlowStep::TierDownAndMotionToAuto &&
+              slowStep(0, 540) == SlowStep::MotionToAuto,
+              "a size larger than the tier's own goes first; Quality keeps a smaller size and changes model; Balanced goes to Fast's own");
     }
     // --- the rebuild -----------------------------------------------------------------------------
     for (bool align : {true, false})

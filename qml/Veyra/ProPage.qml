@@ -1897,6 +1897,8 @@ VPage {
                                     onPicked: id => veyra.vfgQuality = Number(id)
                                 }
                             }
+                            // The motion size apart from the tier (3.2.7): PushFlowMotionRow.qml.
+                            PushFlowMotionRow { visible: veyra.fgBackendName === "pushflow" }
                             // Half precision is tested in a separate process first (PushFlowBench --fp16-probe):
                             // the switch only turns on after that test passed on this graphics card.
                             VRow {

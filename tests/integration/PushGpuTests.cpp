@@ -1641,6 +1641,56 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
         checkOr(tel.inferences > 0 && tel.inferP50Ms > 0, std::format("pushflow: telemetry ({} inferences, p50 {:.1f} ms)", tel.inferences, tel.inferP50Ms));
         checkOr(!gpu.debugErrors(), "pushflow: no debug layer errors");
     }
+    // A motion size chosen apart from the tier (3.2.7; pushflow/PushFlowMotion.h). At this picture size the
+    // Fast tier's own network is half the picture and any chosen size is the whole picture (a picture is
+    // never enlarged), which is exactly what the Balanced tier runs here with the same model: the two
+    // must give the same picture. A chosen size at the Quality tier changes nothing here.
+    {
+        const auto first = flowFrame(W, H, 100), second = flowFrame(W, H, 116);
+        std::vector<uint8_t> chosenPicture, balancedPicture;
+        uint32_t chosenW = 0, chosenH = 0, ownW = 0, ownH = 0; bool chosenRebuild = true, ownRebuild = false, started = true;
+        {
+            pushflow::PushFlowBackend own;
+            started = own.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, 0);
+            if (started) { ownW = own.status().modelW; ownH = own.status().modelH; ownRebuild = own.status().rebuild; }
+        }
+        {
+            pushflow::PushFlowBackend chosen;
+            started = started && chosen.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, 0, 540);
+            if (started) { chosenW = chosen.status().modelW; chosenH = chosen.status().modelH; chosenRebuild = chosen.status().rebuild; chosenPicture = run(first, second, 0.5f, chosen, nullptr); }
+        }
+        {
+            pushflow::PushFlowBackend balanced;
+            started = started && balanced.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, 1);
+            if (started) balancedPicture = run(first, second, 0.5f, balanced, nullptr);
+        }
+        checkOr(started, "pushflow motion size: Fast, Fast at a chosen size and Balanced all start");
+        if (started) {
+            checkOr(ownW == W / 2 && ownH == H / 2 && ownRebuild, std::format("pushflow motion size: Fast's own size is what it was ({}x{}, rebuilt at full size)", ownW, ownH));
+            checkOr(chosenW == W && chosenH == H && !chosenRebuild, std::format("pushflow motion size: a chosen size is used at the Fast tier, as far as the picture goes ({}x{})", chosenW, chosenH));
+            int worst = 255; double mean = 0;
+            if (chosenPicture.size() == balancedPicture.size() && !chosenPicture.empty()) {
+                worst = 0;
+                for (size_t i = 0; i < chosenPicture.size(); ++i) { const int d = std::abs(int(chosenPicture[i]) - int(balancedPicture[i])); worst = std::max(worst, d); mean += d; }
+                mean /= double(chosenPicture.size());
+            }
+            checkOr(worst <= 1, std::format("pushflow motion size: Fast at the picture's size gives the picture Balanced gives here, the same model at the same size (worst {} of 255, mean {:.4f})", worst, mean));
+        }
+        {
+            // One after the other: PushFPS never has two PushFlow sessions at once, so neither does the test.
+            pushflow::Status quality, qualityChosen; bool both = true;
+            for (int lines : {0, 720}) {
+                pushflow::PushFlowBackend flow;
+                const bool ready = flow.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, 2, lines);
+                if (ready) (lines ? qualityChosen : quality) = flow.status();
+                both = both && ready;
+            }
+            checkOr(both && quality.modelW == W && quality.modelW == qualityChosen.modelW && quality.modelH == qualityChosen.modelH &&
+                    !quality.model.empty() && quality.model == qualityChosen.model && quality.model.find("quality") != std::string::npos,
+                    "pushflow motion size: on a picture smaller than the chosen size nothing changes, and the tier still chooses the model");
+        }
+        checkOr(!gpu.debugErrors(), "pushflow motion size: no debug layer errors");
+    }
     checkOr(!pushflow::crashedLastTime(), "pushflow: the crash marker is gone after a normal close");
 }
 

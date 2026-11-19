@@ -51,6 +51,11 @@ int main() {
     check(has(r, "\"softwareLatencyMs\": 41.3") && has(r, "\"softwareLatencyP95Ms\": 47.9") && has(r, "\"latencySamples\": 1800"), "the software delay with its sample count");
     check(has(r, "\"pushFlowMs\": 6.1") && has(r, "\"pushFlowP95Ms\": 7.3") && has(r, "\"pushFlowPrecision\": \"fp32\""), "PushFlow's own time per frame");
     check(has(r, "\"gpuPercent\": 71"), "the card's load");
+    check(has(r, "\"pushFlowMotionSize\": null"), "no motion size while PushFlow gave none");
+    { auto f = session(); f.pushFlowMotionWidth = 1280; f.pushFlowMotionHeight = 720; const auto t = json(f);
+      check(has(t, "\"pushFlowMotionSize\": [1280, 720]") && wellFormed(t), "the size PushFlow works the motion out at");
+      f.pushFlowMotionWidth = 4000000; const auto u = json(f);
+      check(has(u, "\"pushFlowMotionSize\": null"), "a size that cannot be is not passed on"); }
     // What the numbers are worth.
     check(has(r, "\"evidence\": \"live session, PushFPS's own software timing\""), "a live session is called that");
     check(has(r, "not button to screen"), "and the delay is not passed off as button to screen");

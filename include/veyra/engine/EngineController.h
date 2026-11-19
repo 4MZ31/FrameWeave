@@ -142,7 +142,7 @@ struct PlayerSnapshot {
     uint64_t pacingFrames=0,pacingRepaired=0;
     int hudLockState=0;  // PushFPS Live HUD Lock: EnhanceGraph::hudLockState()
     // PushFlow while it runs: precision ("fp32"/"fp16"), full-resolution rebuild, inference p50/p95 (ms).
-    std::string pushFlowPrecision; bool pushFlowRebuild=false; double pushFlowP50Ms=0, pushFlowP95Ms=0;
+    std::string pushFlowPrecision; bool pushFlowRebuild=false; double pushFlowP50Ms=0, pushFlowP95Ms=0; uint32_t pushFlowMotionWidth=0, pushFlowMotionHeight=0;
     uint64_t frames=0,generated=0;
     uint64_t captureReceived=0,captureDropped=0,nrEvaluated=0,nvofExecuted=0;
     uint64_t captureRateSkipped=0,processedCompleted=0;
@@ -215,6 +215,10 @@ public:
     bool prewarmEnhancement(EnhancementSettings,unsigned width=1920,unsigned height=1080);
     void setEnhancementPrewarmEnabled(bool);
     bool requestSettings(EnhancementSettings,std::optional<ChainRuntimeOrder> = std::nullopt,uint64_t* acceptedRevision=nullptr);
+    // PushFPS: something outside the settings that shapes the graph has changed (PushFlow's motion size,
+    // pushflow/PushFlowMotion.h). The current settings get a new revision, so the run loop describes the
+    // graph again and rebuilds it if the description differs, exactly as after a settings change.
+    void refreshGraph();
     void requestPresentation(PresentationSettings);
     void open(HWND video,const std::wstring& path,PlayerOptions options);
 #ifdef VEYRA_ENABLE_REMOTEPLAY

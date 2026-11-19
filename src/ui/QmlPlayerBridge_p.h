@@ -227,6 +227,7 @@ struct QmlPlayerBridge::Impl {
         int starved = 0, settledSeconds = 0;
         uint64_t loweredRevision = 0;   // the revision this watch's own tier change produced
         int loweredFrom = -1;           // the tier it lowered from (a user raising it again stops the watch)
+        int motionFrom = 0;             // the chosen motion size it put back to automatic (choosing it again stops the watch)
         bool userChose = false, slowNoticeShown = false, awaitingOwn = false;
         int cadenceSeconds = 0;         // the cadence notice: seconds of 60 measured for a 30 FPS game
         uint64_t cadenceSession = 0;

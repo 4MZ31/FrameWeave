@@ -149,6 +149,9 @@ struct EnhanceGraphDesc {
     uint32_t fgMultiplier=2;
     engine::FrameGenerationBackend frameGenerationBackend=engine::FrameGenerationBackend::Dlss;
     uint32_t vfgQuality=1;
+    // PushFlow only: the motion size chosen apart from the tier (0 = the tier's own; pushflow/PushFlowMotion.h).
+    // The engine rebuilds the graph when it changes.
+    int pushFlowMotion=0;
     bool vfgAsyncSubmission=false; // preview-only; export retains synchronous SDK verdicts
     bool vfgAutoRegulate=false;
     bool vfgFastFallback=false; // live 2X with vfgAutoRegulate: also load the next faster VFG model
@@ -740,7 +743,8 @@ public:
     bool pushFlowEnabled() const { return desc_.enableFg && !desc_.noFeatures && !desc_.stillImage && desc_.frameGenerationBackend==engine::FrameGenerationBackend::PushFlow; }
     bool pushFlowActive() const;
     // PushFlow summary for the live stats: "fp32"/"fp16", rebuild, inference p50/p95 ms (0 when not running).
-    struct PushFlowSummary { std::string precision; bool rebuild = false; double p50Ms = 0, p95Ms = 0; };
+    // motionWidth / motionHeight: the size the network works the motion out at (0 while PushFlow is not running).
+    struct PushFlowSummary { std::string precision; bool rebuild = false; double p50Ms = 0, p95Ms = 0; uint32_t motionWidth = 0, motionHeight = 0; };
     PushFlowSummary pushFlowSummary() const;
     bool amfFrcActive() const;
     const char* fsrProviderVersion() const;

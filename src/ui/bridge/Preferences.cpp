@@ -9,6 +9,7 @@
 #include "veyra/sink/SoundProfile.h"
 #include "veyra/pipeline/NisSettings.h"
 #include "veyra/pipeline/PushEnhanceShape.h"
+#include "veyra/pushflow/PushFlowMotion.h"
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonParseError>
@@ -251,6 +252,9 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"pushCompareSeconds", {5, 120}},
         {"pushCompareLayout", {0, 3}},
         {"pushCompareQuality", {0, 2160}},
+        // PushFPS: the size PushFlow works the motion out at, apart from its tier (pushflow/PushFlowMotion.h):
+        // 0 the tier's own (the default), else 540, 720 or 1080 lines; only those are taken.
+        {"pushFlowMotion", {0, 1080}},
         {"pushCompareRevealSeconds", {1, 8}},
         // Network sources (#48): seconds to collect before the first picture; -1 follows the buffer level.
         {"networkPrebuffer", {-1, 60}},
@@ -332,6 +336,7 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         bool ok = false; const int n = value.toInt(&ok);
         const auto [low, high] = ranges.value(key);
         if (!ok || n < low || n > high) return false;
+        if (key == QLatin1String("pushFlowMotion") && !pushflow::motion::motionHeightValid(n)) return false;
         stored = n;
     } else if (flags.contains(key)) {
         stored = value.toBool();
@@ -600,6 +605,15 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
         const DWORD n = GetEnvironmentVariableW(L"VEYRA_PUSHFLOW_PRECISION", current, 32);
         if (n == 0 || std::wstring_view(current) == L"fp16-checked")
             SetEnvironmentVariableW(L"VEYRA_PUSHFLOW_PRECISION", impl_->prefBool("pushFlowHalf", false) ? L"fp16-checked" : nullptr);
+    }
+    else if (key == QLatin1String("pushFlowMotion")) {
+        // Read when the graph is described. While PushFlow is the method in use, the engine is asked to
+        // describe the graph again, which rebuilds it at the new motion size.
+        const int lines = impl_->prefInt("pushFlowMotion", 0);
+        const bool changed = pushflow::motion::motionHeight() != (pushflow::motion::motionHeightValid(lines) ? lines : 0);
+        pushflow::motion::setMotionHeight(lines);
+        if (changed && impl_->snapshot.running && settings().multiplier > 1 &&
+            settings().frameGenerationBackend == engine::FrameGenerationBackend::PushFlow) impl_->engine.refreshGraph();
     }
     else if (key.startsWith(QLatin1String("pushShape"))) {
         // Live: the graph reads these at every frame (no rebuild).

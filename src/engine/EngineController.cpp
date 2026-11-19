@@ -375,6 +375,10 @@ bool EngineController::requestSettings(EnhancementSettings s,std::optional<Chain
     desiredNodeOrder_=order;desired_=s;snapshot_.desired=s;snapshot_.applying=snapshot_.applied!=desired_;
     if(acceptedRevision)*acceptedRevision=s.revision;return true;
 }
+void EngineController::refreshGraph(){
+    std::lock_guard lock(mutex_);
+    desired_.revision=++nextRevision_;snapshot_.desired=desired_;snapshot_.applying=snapshot_.applied!=desired_;
+}
 void EngineController::saveFrame(const std::wstring& path){std::lock_guard lock(mutex_);savePath_=path;snapshot_.savedFramePath.clear();}
 bool EngineController::requestRecording(const RecordingSettings& options,std::wstring& error){return recorder_->start(options,error);}
 void EngineController::stopRecording(){recorder_->stop();}
@@ -1815,7 +1819,9 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                        gd.flowWidth!=nextDesc.flowWidth||gd.flowHeight!=nextDesc.flowHeight||
                        gd.dualSr!=nextDesc.dualSr||gd.dualSrQuality!=nextDesc.dualSrQuality||gd.firstSrWidth!=nextDesc.firstSrWidth||gd.firstSrHeight!=nextDesc.firstSrHeight||
                        gd.srInputWidth!=nextDesc.srInputWidth||gd.srInputHeight!=nextDesc.srInputHeight||
-                       gd.srOutputWidth!=nextDesc.srOutputWidth||gd.srOutputHeight!=nextDesc.srOutputHeight)rebuild=true;
+                       gd.srOutputWidth!=nextDesc.srOutputWidth||gd.srOutputHeight!=nextDesc.srOutputHeight||
+                       // PushFPS: PushFlow's motion size (a preference, not a field of the settings) sizes its network.
+                       gd.pushFlowMotion!=nextDesc.pushFlowMotion)rebuild=true;
                     bool accepted=ring.drainQueue();out={};hasOutput=false;
                     resetRecord->rebuilt=rebuild;
                     markResetStage(diagnostics::ResetStage::Drain);
@@ -3197,7 +3203,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                 // Refresh and VRR state (DisplayStateService, queried on events
                 // only) are polled outside the snapshot lock; this never waits.
                 presenter.displayRefreshHz();
-                ++frames;{std::lock_guard lock(mutex_);snapshot_.metrics=measured;if((frames&31)==0){const auto pf=graph->pushFlowSummary();snapshot_.pushFlowPrecision=pf.precision;snapshot_.pushFlowRebuild=pf.rebuild;snapshot_.pushFlowP50Ms=pf.p50Ms;snapshot_.pushFlowP95Ms=pf.p95Ms;}snapshot_.colorStatus=graph->videoHdrActive()?L"SDR → RTX Video HDR":options.settings.videoHdr.enabled&&!gd.hdrInput?L"SDR → SDR（HDR显示未启用）":gd.hdrOutput?(graph->hdr10Output()?L"HDR → HDR10 / PQ":L"HDR → scRGB / 浮点"):gd.hdrInput?L"HDR → SDR色调映射":L"SDR → SDR";snapshot_.position=(isCapture||isImage?pts:lastFilePresentedMs)/1000;snapshot_.frames=sourceFrames;snapshot_.generated=graphStats.fgGeneratedFrames;snapshot_.lateMs=lateness;snapshot_.lateP95Ms=presentReturnDeviation.p95();
+                ++frames;{std::lock_guard lock(mutex_);snapshot_.metrics=measured;if((frames&31)==0){const auto pf=graph->pushFlowSummary();snapshot_.pushFlowPrecision=pf.precision;snapshot_.pushFlowRebuild=pf.rebuild;snapshot_.pushFlowP50Ms=pf.p50Ms;snapshot_.pushFlowP95Ms=pf.p95Ms;snapshot_.pushFlowMotionWidth=pf.motionWidth;snapshot_.pushFlowMotionHeight=pf.motionHeight;}snapshot_.colorStatus=graph->videoHdrActive()?L"SDR → RTX Video HDR":options.settings.videoHdr.enabled&&!gd.hdrInput?L"SDR → SDR（HDR显示未启用）":gd.hdrOutput?(graph->hdr10Output()?L"HDR → HDR10 / PQ":L"HDR → scRGB / 浮点"):gd.hdrInput?L"HDR → SDR色调映射":L"SDR → SDR";snapshot_.position=(isCapture||isImage?pts:lastFilePresentedMs)/1000;snapshot_.frames=sourceFrames;snapshot_.generated=graphStats.fgGeneratedFrames;snapshot_.lateMs=lateness;snapshot_.lateP95Ms=presentReturnDeviation.p95();
                     snapshot_.videoHdrActive=graph->videoHdrActive();
                     snapshot_.beautyActive=graph->beautyNodesActive();snapshot_.beautyFaces=graph->beautyFaceCount();
                     snapshot_.beautyNotice=graph->beautyNotice();

@@ -25,6 +25,7 @@
 // tier too slow for live play (field report 2026-11-17: capped at the game's 30 FPS, the optimiser saw
 // no generated frames): the admission control skipped every pair it could not finish in time.
 #pragma once
+#include "veyra/pushflow/PushFlowMotion.h"
 #include <d3d12.h>
 #include <algorithm>
 #include <cmath>
@@ -43,12 +44,10 @@ constexpr uint32_t kTierCount = 3;
 std::wstring crashMarkerPath();
 bool crashedLastTime();
 void clearCrashMarker();
-// The network's share of the picture's width and height for a tier (pure, unit-tested).
-inline double networkScale(uint32_t tier, uint32_t width, uint32_t height) {
-    static constexpr double kMaxPixels[kTierCount] = {960.0 * 540.0, 1280.0 * 720.0, 1920.0 * 1080.0};
-    const double area = std::max(1.0, double(width) * double(height));
-    const double cap = std::sqrt(kMaxPixels[std::min(tier, kTierCount - 1)] / area);
-    return std::min(tier == 0 ? 0.5 : 1.0, cap);
+// The network's share of the picture's width and height for a tier, or for a chosen motion size
+// (pushflow/PushFlowMotion.h has the rule and its unit test).
+inline double networkScale(uint32_t tier, uint32_t width, uint32_t height, int motionHeight = 0) {
+    return motion::networkScale(tier, width, height, motionHeight);
 }
 // The pictures' encoding for the network (PushFlowPack.hlsl).
 enum class Encoding : uint32_t { Encoded = 0, LinearSdr = 1, ScRgbHdr = 2 };
@@ -89,8 +88,9 @@ public:
     PushFlowBackend& operator=(const PushFlowBackend&) = delete;
 
     // `queue` is the queue every list below is submitted to; ONNX Runtime runs the network on it too.
+    // motionHeight: 0 = the tier's own motion size, else 540 / 720 / 1080 (pushflow/PushFlowMotion.h).
     bool initialize(ID3D12Device* device, ID3D12CommandQueue* queue, const std::wstring& runtimeDir, uint32_t width, uint32_t height,
-                    DXGI_FORMAT format, Encoding encoding, uint32_t tier);
+                    DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight = 0);
     // Records the input packing: `previous` and `current` must be in NON_PIXEL_SHADER_RESOURCE.
     // timeOnly: the same pair as the last call (later subframes): only the time plane is written.
     bool pack(ID3D12GraphicsCommandList* list, ID3D12Resource* previous, ID3D12Resource* current, float timestep, bool timeOnly = false);

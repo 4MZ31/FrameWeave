@@ -597,7 +597,7 @@ Telemetry PushFlowBackend::telemetry() const {
 }
 
 bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue, const std::wstring& runtimeDir, uint32_t width, uint32_t height,
-                                 DXGI_FORMAT format, Encoding encoding, uint32_t tier) {
+                                 DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight) {
     p_ = std::make_unique<Impl>();
     auto& p = *p_;
     std::wstring why;
@@ -606,14 +606,14 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
         return false;
     }
 #ifndef VEYRA_HAVE_ONNXRUNTIME
-    (void)format; (void)encoding; (void)tier;
+    (void)format; (void)encoding; (void)tier; (void)motionHeight;
     return false;
 #else
     p.device = device; p.queue = queue; p.width = width; p.height = height; p.format = viewFormat(format); p.encoding = encoding;
     armCrashMarker();
     p.markerArmed = true;
     tier = std::min(tier, kTierCount - 1);
-    const double scale = networkScale(tier, width, height);
+    const double scale = networkScale(tier, width, height, motionHeight);
     p.status.modelW = std::max<uint32_t>(32, uint32_t(std::lround(width * scale)));
     p.status.modelH = std::max<uint32_t>(32, uint32_t(std::lround(height * scale)));
     const fs::path dir = pushFlowDirectory(runtimeDir);

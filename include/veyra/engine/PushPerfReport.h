@@ -61,6 +61,7 @@ struct Facts {
     uint64_t latencySamples = 0;
     double pushFlowP50Ms = 0, pushFlowP95Ms = 0;
     std::string pushFlowPrecision;           // "fp32", "fp16"
+    uint32_t pushFlowMotionWidth = 0, pushFlowMotionHeight = 0;   // the size PushFlow works the motion out at (0: not running)
 };
 
 // A word from a fixed list: lower-case letters, digits and '-' only, else empty.
@@ -159,7 +160,9 @@ inline std::string json(const Facts& f) {
     o += "    \"frameGenerationHealth\": " + std::to_string(f.fgHealth) + ",\n";
     o += "    \"pushFlowMs\": " + (f.pushFlowP50Ms > 0 ? number(f.pushFlowP50Ms) : std::string("null")) + ",\n";
     o += "    \"pushFlowP95Ms\": " + (f.pushFlowP95Ms > 0 ? number(f.pushFlowP95Ms) : std::string("null")) + ",\n";
-    o += "    \"pushFlowPrecision\": " + quoted(word(f.pushFlowPrecision)) + "\n";
+    o += "    \"pushFlowPrecision\": " + quoted(word(f.pushFlowPrecision)) + ",\n";
+    const bool motion = f.pushFlowMotionWidth > 0 && f.pushFlowMotionHeight > 0 && f.pushFlowMotionWidth <= 8192 && f.pushFlowMotionHeight <= 8192;
+    o += "    \"pushFlowMotionSize\": " + (motion ? "[" + std::to_string(f.pushFlowMotionWidth) + ", " + std::to_string(f.pushFlowMotionHeight) + "]" : std::string("null")) + "\n";
     o += "  },\n";
     o += "  \"notes\": \"Rates are frames PushFPS presented in the last second. softwareLatency is a frame's arrival in PushFPS to its Present call: "
          "not button to screen, and it leaves out the capture card, the console and the display. frameGenerationHealth: 0 fine, 1 nothing to add at this "

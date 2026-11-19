@@ -42,10 +42,68 @@
 // the full-size real frame:  (xm + 0.5) * src / model - 0.5  (bilinear, clamped to the frame). So the
 // motion is enlarged, never the picture.
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstdint>
 
 namespace veyra::pushflow::motion {
+
+// --- the size the motion is worked out at --------------------------------------------------------
+// Each tier has a model and a largest motion size: 0 Fast, the lite model at up to 960 x 540 and at
+// most half the picture; 1 Balanced, the lite model at up to 1280 x 720; 2 Quality, the full model at
+// up to 1920 x 1080. Never the picture's own size above that: at 4K every tier was too slow for live
+// play (field report, 17 November 2026).
+//
+// Since 3.2.7 the motion size can be chosen apart from the tier (preference pushFlowMotion, Professional
+// mode): 540, 720 or 1080 lines, i.e. at most 960 x 540, 1280 x 720 or 1920 x 1080 picture elements,
+// whatever the tier's model. 0 keeps the tier's own size, which is what every user had before. The
+// picture is rebuilt at full size from the full-size real frames either way. Why offer it: the shipped
+// models do not behave the same at every size (docs/PUSHFLOW2.md: the full model followed some fast
+// motion further at half size and lost fine motion there), and which size suits a game can only be
+// found by measuring that game (the frame quality test).
+inline constexpr uint32_t kTiers = 3;
+inline constexpr int kMotionHeights[] = {0, 540, 720, 1080};
+inline constexpr bool motionHeightValid(int lines) { return lines == 0 || lines == 540 || lines == 720 || lines == 1080; }
+// The network's share of the picture's width and height.
+inline double networkScale(uint32_t tier, uint32_t width, uint32_t height, int motionHeight = 0) {
+    static constexpr double kMaxPixels[kTiers] = {960.0 * 540.0, 1280.0 * 720.0, 1920.0 * 1080.0};
+    const double area = std::max(1.0, double(width) * double(height));
+    if (motionHeightValid(motionHeight) && motionHeight > 0) {
+        const double cap = double(motionHeight) * double(motionHeight) * 16.0 / 9.0;
+        return std::min(1.0, std::sqrt(cap / area));
+    }
+    const double cap = std::sqrt(kMaxPixels[std::min(tier, kTiers - 1)] / area);
+    return std::min(tier == 0 ? 0.5 : 1.0, cap);
+}
+// Process-wide, set by the interface, read when the graph is described: a change rebuilds the graph
+// (EngineController compares EnhanceGraphDesc::pushFlowMotion). Outside EnhancementSettings, so the
+// preset schema shared with Veyra is unchanged.
+namespace detail {
+inline std::atomic<int>& motionHeightStore() {
+    static std::atomic<int> lines{0};
+    return lines;
+}
+}
+inline void setMotionHeight(int lines) { detail::motionHeightStore().store(motionHeightValid(lines) ? lines : 0, std::memory_order_relaxed); }
+inline int motionHeight() { return detail::motionHeightStore().load(std::memory_order_relaxed); }
+
+// What the too-slow watch does when the card cannot keep up (pushFlowBudgetWatch): the step that
+// makes PushFlow cheaper, never one that changes nothing.
+//  - no motion size chosen: one tier down, as before 3.2.7 (Quality > Balanced > Fast), nothing at Fast;
+//  - a chosen size larger than the tier's own, or any chosen size at Fast (Fast's own is never the
+//    larger one): back to the tier's own size, the tier stays;
+//  - Quality with a chosen size no larger than its own: one tier down, the size stays (the lite model
+//    at the same size is the cheaper one);
+//  - Balanced with a chosen size no larger than its own: Fast uses the same model, so only the tier
+//    and the size together make it cheaper.
+enum class SlowStep { Nothing, TierDown, MotionToAuto, TierDownAndMotionToAuto };
+inline SlowStep slowStep(uint32_t tier, int motionHeight) {
+    tier = std::min(tier, kTiers - 1);
+    if (!motionHeightValid(motionHeight) || motionHeight == 0) return tier > 0 ? SlowStep::TierDown : SlowStep::Nothing;
+    const uint32_t chosen = motionHeight >= 1080 ? 2u : motionHeight >= 720 ? 1u : 0u;   // the tier whose own size this is
+    if (tier == 0 || chosen > tier) return SlowStep::MotionToAuto;
+    return tier == 1 ? SlowStep::TierDownAndMotionToAuto : SlowStep::TierDown;
+}
 
 // --- coordinates ---------------------------------------------------------------------------------
 struct Geometry {

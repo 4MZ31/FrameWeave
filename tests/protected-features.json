@@ -85,7 +85,7 @@
   },
   {
    "id": "F05",
-   "what": "PushFlow: Fast / Balanced / Quality, the rebuild at full size (the shader is what the motion contract says), half precision and its approval, the adaptive multiplier",
+   "what": "PushFlow: Fast / Balanced / Quality and their own motion sizes, a motion size chosen apart from the tier (off means unchanged; the too-slow watch always takes a cheaper step), the rebuild at full size (the shader is what the motion contract says), half precision and its approval, the adaptive multiplier",
    "guards": [
     {
      "file": "tests/integration/PushGpuTests.cpp",
@@ -94,7 +94,28 @@
     },
     {
      "file": "tests/unit/PushFlowMotionTests.cpp",
-     "ci": "veyra_push_flow_motion_tests"
+     "ci": "veyra_push_flow_motion_tests",
+     "contains": "every tier's size is exactly what it was"
+    },
+    {
+     "file": "tests/unit/PushFlowMotionTests.cpp",
+     "ci": "veyra_push_flow_motion_tests",
+     "contains": "every step of the watch makes PushFlow cheaper"
+    },
+    {
+     "file": "tests/integration/PushGpuTests.cpp",
+     "ci": "veyra_push_gpu_tests",
+     "contains": "Fast at the picture's size gives the picture Balanced gives here"
+    },
+    {
+     "file": "tests/integration/PushFlowGraphTests.cpp",
+     "ci": "veyra_push_flow_graph_tests",
+     "contains": "the tier's own motion size is what it was"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_flow2.qml",
+     "ci": "tst_push_flow2",
+     "contains": "test_motion_size_is_automatic_until_chosen"
     },
     {
      "file": "tests/unit/PushHalfApprovalTests.cpp",
@@ -226,6 +247,16 @@
     {
      "file": "tests/qml/quick/tst_push_tools.qml",
      "ci": "tst_push_tools"
+    },
+    {
+     "file": "tests/unit/PushQualityTests.cpp",
+     "ci": "veyra_push_quality_tests",
+     "contains": "The worst place"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_flow2.qml",
+     "ci": "tst_push_flow2",
+     "contains": "test_quality_test_says_its_worst_frame_and_place"
     }
    ],
    "needs_hardware": "Every number these tools produce."
