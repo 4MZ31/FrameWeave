@@ -249,6 +249,24 @@ package lacks the runtime components for this feature*. Run `Install-PushFPS.cmd
 when it asks about the experimental extras; your settings are kept, and updates from inside PushFPS keep
 the extras.
 
+### Tested graphics cards
+
+| Graphics card | Maker | Status |
+|---|---|---|
+| GeForce RTX 5090 | NVIDIA | Tested |
+| GeForce RTX 5080 | NVIDIA | Tested |
+| GeForce RTX 5070 | NVIDIA | Tested |
+| GeForce RTX 4090 | NVIDIA | Tested |
+| GeForce RTX 4080 | NVIDIA | Tested |
+| GeForce RTX 4070 | NVIDIA | Tested |
+| Radeon RX 9070 XT | AMD | Tested |
+
+*Tested* means PushFPS has been run on that card with real games. It is a compatibility list, not a speed
+ranking, and other DirectX 12 cards should work too. To get your card on it: play for a while, copy the
+**performance report** (*Settings → Performance report*) and open a
+[hardware report](https://github.com/DosukaSOL/PushFPS/issues/new?template=hardware-report.yml).
+[How to measure, and what the numbers mean](docs/BENCHMARKING.md).
+
 <details>
 <summary>Which frame generation methods your PC offers</summary>
 
@@ -924,11 +942,25 @@ logs. Updating PushFPS keeps them.
 Its files are an optional extra the installer leaves out unless you say yes. Run `Install-PushFPS.cmd` again
 and answer **y** when it asks about the experimental extras: see [What you need](#what-you-need).
 
+**PushFPS says "No generated frames". What now?**
+Frame generation is switched on, but PushFPS is only showing the game's own frames, so the picture is no
+smoother than the console's. The message says why: the method is not running (pick another one), the graphics
+card does not keep up (lower the multiplier, the tier or the output resolution), or nothing comes out although
+the method runs. In the last case press **Copy performance report** next to the message and send it to us.
+
+**How do I show what PushFPS does on my PC?**
+*Settings → Performance report → Copy*, while a game is playing. It holds the graphics card and driver, your
+settings, the game's own frames and the generated frames shown each second, and PushFPS's software delay, and
+nothing personal. [What the numbers mean](docs/BENCHMARKING.md).
+
 **Where do I get help?**
 On the [PushFPS Discord](https://discord.gg/N88znNpSgC), where other players and the developer answer. Bugs and capture card reports
 go to [GitHub Issues](https://github.com/DosukaSOL/PushFPS/issues).
 
 ## Roadmap
+
+What comes next, in the order things depend on each other, is in **[docs/ROADMAP.md](docs/ROADMAP.md)**.
+Most of it waits for measurements on real graphics cards: [how to take one](docs/BENCHMARKING.md).
 
 - [x] PushFPS name, logo and update channel
 - [x] Quick setup: target frame rate, frame generation with or without AI enhancement
@@ -965,6 +997,7 @@ go to [GitHub Issues](https://github.com/DosukaSOL/PushFPS/issues).
 - [x] Crash notice and a graphics card test
 - [x] Comparison clips up to 2 minutes or until stopped; cameras at up to 4K with a live picture
 - [x] Reveal comparison clips (a line sweeps between the console and PushFPS), clip quality up to 4K
+- [x] A warning when frame generation shows no frames, a performance report to copy, tested graphics cards
 - [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)
