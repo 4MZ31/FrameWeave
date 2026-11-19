@@ -209,6 +209,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     applyPreference(QStringLiteral("pushShapeShadows"));   // all six fine-tune values (Preferences.cpp)
     pushValidateHalfApproval();   // PushFlow half precision holds for one card, driver and version (PushFps.cpp)
     applyPreference(QStringLiteral("pushFlowHalf"));
+    applyPreference(QStringLiteral("pushFlowGuard"));   // PushFlow's ghost guard, off unless the user chose a level
     applyPreference(QStringLiteral("magewellLowLatency"));
     const bool presetsLoaded = impl_->facade.importLegacyStores();
     const auto presetNotice = uiText(impl_->facade.error());

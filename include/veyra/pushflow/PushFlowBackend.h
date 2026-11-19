@@ -17,6 +17,10 @@
 //    on this graphics card at start-up matches the full-precision model; otherwise fp32. The environment
 //    variable VEYRA_PUSHFLOW_PRECISION=fp32|fp16 forces one (fp16 still needs its file).
 //  - Per-frame inference times are kept in a small ring (telemetry()) and summarised in the log.
+//  - The ghost guard (experimental, off by default; pushflow/PushFlowMotion.h): where the network's two
+//    samples differ and its mask cannot choose, the rebuild shows one of them instead of a mixture. With
+//    the guard on the rebuild pass is used at every size (at full size it repeats the network's own
+//    last step, which rife_graph.py checks), and the share it changed is in telemetry().
 // Tiers (EnhancementSettings::vfgQuality, shared with VFG):
 //   0 Fast: the lite model, motion at up to 960 x 540 (and at most half size);
 //   1 Balanced: the lite model, motion at up to 1280 x 720;  2 Quality: the full model, motion at up to 1920 x 1080.
@@ -65,11 +69,20 @@ struct Status {
     std::string precision;         // "fp32" or "fp16"
     double selfCheckDb = 0;        // fp16 against fp32 at start-up (0 = not run)
     uint32_t modelW = 0, modelH = 0, padW = 0, padH = 0;
+    // How the model's grids and mask are read (its <model>.onnx.txt; pushflow/PushFlowMotion.h).
+    bool grids = false, alignCorners = true, maskForFirst = true;
 };
 
 struct Telemetry {
     uint64_t inferences = 0, fullPacks = 0, timePacks = 0;
     double inferP50Ms = 0, inferP95Ms = 0, inferMaxMs = 0;   // the network's GPU span on the queue (CPU time of the call without timestamps)
+    // The ghost guard (pushflow/PushFlowMotion.h): its level at the last generated frame (0 off), the
+    // share of the recent generated frames it gave to one sample instead of the network's blend
+    // (0..1, read back from the graphics card a few frames late), and the totals behind that share
+    // (one pixel looked at per 16 x 16 block).
+    int guardLevel = 0;
+    double guardShare = 0;
+    uint64_t guardSamples = 0, guardChanged = 0;
 };
 
 // ONNX Runtime faults caught since the process started (each one turned PushFlow off for its session).
@@ -101,6 +114,9 @@ public:
     Telemetry telemetry() const;
     // Tests: the network's input buffer and RGB output buffer (UNORDERED_ACCESS, planar float).
     ID3D12Resource* tensorBuffer(bool input) const;
+    // Tests: the last inference's grid0 (0), grid1 (1) and mask (2), planar float in UNORDERED_ACCESS
+    // (pushflow/PushFlowMotion.h says what they mean); null for a model without them.
+    ID3D12Resource* motionBuffer(uint32_t index) const;
     uint32_t inputChannels() const;
     const Status& status() const;
     void shutdown();

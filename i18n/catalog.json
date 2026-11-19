@@ -6784,6 +6784,23 @@
    "ru": "PushFlow frame generation uses the RIFE neural network (MIT, by hzwer), run through ONNX Runtime and DirectML"
   },
   {
+   "zh": "PushFlow 重影保护（实验性）",
+   "src": "qml/PushFlowGuardRow.qml",
+   "zh-TW": "PushFlow 殘影保護（實驗性）",
+   "en": "PushFlow ghost guard (experimental)",
+   "ja": "PushFlow ゴースト ガード（実験的）",
+   "nl": "PushFlow ghost guard (experimental)",
+   "de": "PushFlow ghost guard (experimental)",
+   "es": "PushFlow ghost guard (experimental)",
+   "fr": "PushFlow ghost guard (experimental)",
+   "it": "PushFlow ghost guard (experimental)",
+   "pt-BR": "PushFlow ghost guard (experimental)",
+   "tr": "PushFlow ghost guard (experimental)",
+   "ar": "PushFlow ghost guard (experimental)",
+   "pl": "PushFlow ghost guard (experimental)",
+   "ru": "PushFlow ghost guard (experimental)"
+  },
+  {
    "zh": "PushFlowBench.exe 无法启动",
    "src": "qml/PushCardTestDialog.qml",
    "zh-TW": "PushFlowBench.exe 無法啟動",
@@ -14316,6 +14333,23 @@
    "ru": "Без компенсации"
   },
   {
+   "zh": "关闭：PushFlow 的画面与以前完全相同",
+   "src": "qml/PushFlowGuardRow.qml",
+   "zh-TW": "關閉：PushFlow 的畫面與以前完全相同",
+   "en": "Off: PushFlow's picture is exactly what it was before",
+   "ja": "オフ：PushFlow の映像はこれまでとまったく同じです",
+   "nl": "Off: PushFlow's picture is exactly what it was before",
+   "de": "Off: PushFlow's picture is exactly what it was before",
+   "es": "Off: PushFlow's picture is exactly what it was before",
+   "fr": "Off: PushFlow's picture is exactly what it was before",
+   "it": "Off: PushFlow's picture is exactly what it was before",
+   "pt-BR": "Off: PushFlow's picture is exactly what it was before",
+   "tr": "Off: PushFlow's picture is exactly what it was before",
+   "ar": "Off: PushFlow's picture is exactly what it was before",
+   "pl": "Off: PushFlow's picture is exactly what it was before",
+   "ru": "Off: PushFlow's picture is exactly what it was before"
+  },
+  {
    "zh": "关闭：不进入录制和直播",
    "src": "qml/StudioPage.qml",
    "zh-TW": "關閉：不進入錄製和直播",
@@ -16388,6 +16422,23 @@
    "ar": "أكشن · الواجهة (HUD) في الزاويتين السفليتين",
    "pl": "Akcja · HUD w dolnych rogach",
    "ru": "Экшен · HUD в нижних углах"
+  },
+  {
+   "zh": "动作太快、网络跟不上时，它会把前后两帧叠在一起，出现半透明的重影。开启后，这些地方只显示时间上更近的那一帧：没有重影，但这一小块按游戏原本的帧率更新。它只在两帧之间选择，不会凭空生成画面。实验功能：还没有在真实显卡和游戏上验证过效果",
+   "src": "qml/PushFlowGuardRow.qml",
+   "zh-TW": "動作太快、網路跟不上時，它會把前後兩幀疊在一起，出現半透明的殘影。開啟後，這些地方只顯示時間上更近的那一幀：沒有殘影，但這一小塊按遊戲原本的幀率更新。它只在兩幀之間選擇，不會憑空生成畫面。實驗功能：還沒有在真實顯示卡和遊戲上驗證過效果",
+   "en": "When motion is too fast for the network to follow, it lays the two real frames over each other: a see-through double image (a ghost). With this on, those places show only the frame nearer in time. No ghost, but that small part moves at the game's own frame rate. It only chooses between the two frames; it never makes up picture. Experimental: its effect has not been checked on real graphics cards and games yet",
+   "ja": "動きが速すぎてネットワークが追えないとき、前後 2 つのフレームが重なり、半透明の二重像（ゴースト）になります。オンにすると、その部分は時間的に近いほうのフレームだけを表示します。ゴーストは出ませんが、その小さな部分はゲーム本来のフレームレートで動きます。2 つのフレームから選ぶだけで、映像を作り出すことはありません。実験的な機能：実際のグラフィックカードとゲームでの効果はまだ確認されていません",
+   "nl": "When motion is too fast for the network to follow, it lays the two real frames over each other: a see-through double image (a ghost). With this on, those places show only the frame nearer in time. No ghost, but that small part moves at the game's own frame rate. It only chooses between the two frames; it never makes up picture. Experimental: its effect has not been checked on real graphics cards and games yet",
+   "de": "When motion is too fast for the network to follow, it lays the two real frames over each other: a see-through double image (a ghost). With this on, those places show only the frame nearer in time. No ghost, but that small part moves at the game's own frame rate. It only chooses between the two frames; it never makes up picture. Experimental: its effect has not been checked on real graphics cards and games yet",
+   "es": "When motion is too fast for the network to follow, it lays the two real frames over each other: a see-through double image (a ghost). With this on, those places show only the frame nearer in time. No ghost, but that small part moves at the game's own frame rate. It only chooses between the two frames; it never makes up picture. Experimental: its effect has not been checked on real graphics cards and games yet",
+   "fr": "When motion is too fast for the network to follow, it lays the two real frames over each other: a see-through double image (a ghost). With this on, those places show only the frame nearer in time. No ghost, but that small part moves at the game's own frame rate. It only chooses between the two frames; it never makes up picture. Experimental: its effect has not been checked on real graphics cards and games yet",
+   "it": "When motion is too fast for the network to follow, it lays the two real frames over each other: a see-through double image (a ghost). With this on, those places show only the frame nearer in time. No ghost, but that small part moves at the game's own frame rate. It only chooses between the two frames; it never makes up picture. Experimental: its effect has not been checked on real graphics cards and games yet",
+   "pt-BR": "When motion is too fast for the network to follow, it lays the two real frames over each other: a see-through double image (a ghost). With this on, those places show only the frame nearer in time. No ghost, but that small part moves at the game's own frame rate. It only chooses between the two frames; it never makes up picture. Experimental: its effect has not been checked on real graphics cards and games yet",
+   "tr": "When motion is too fast for the network to follow, it lays the two real frames over each other: a see-through double image (a ghost). With this on, those places show only the frame nearer in time. No ghost, but that small part moves at the game's own frame rate. It only chooses between the two frames; it never makes up picture. Experimental: its effect has not been checked on real graphics cards and games yet",
+   "ar": "When motion is too fast for the network to follow, it lays the two real frames over each other: a see-through double image (a ghost). With this on, those places show only the frame nearer in time. No ghost, but that small part moves at the game's own frame rate. It only chooses between the two frames; it never makes up picture. Experimental: its effect has not been checked on real graphics cards and games yet",
+   "pl": "When motion is too fast for the network to follow, it lays the two real frames over each other: a see-through double image (a ghost). With this on, those places show only the frame nearer in time. No ghost, but that small part moves at the game's own frame rate. It only chooses between the two frames; it never makes up picture. Experimental: its effect has not been checked on real graphics cards and games yet",
+   "ru": "When motion is too fast for the network to follow, it lays the two real frames over each other: a see-through double image (a ghost). With this on, those places show only the frame nearer in time. No ghost, but that small part moves at the game's own frame rate. It only chooses between the two frames; it never makes up picture. Experimental: its effect has not been checked on real graphics cards and games yet"
   },
   {
    "zh": "包含",
@@ -39596,6 +39647,23 @@
    "ru": "Уровень"
   },
   {
+   "zh": "档位越高，越早把重影换成单帧。看到画面局部卡顿就调低",
+   "src": "qml/PushFlowGuardRow.qml",
+   "zh-TW": "檔位越高，越早把殘影換成單幀。看到畫面局部卡頓就調低",
+   "en": "A higher level replaces a ghost with a single frame sooner. Lower it if parts of the picture start to stutter",
+   "ja": "レベルが高いほど、ゴーストを早く 1 つのフレームに置き換えます。映像の一部がカクつく場合は下げてください",
+   "nl": "A higher level replaces a ghost with a single frame sooner. Lower it if parts of the picture start to stutter",
+   "de": "A higher level replaces a ghost with a single frame sooner. Lower it if parts of the picture start to stutter",
+   "es": "A higher level replaces a ghost with a single frame sooner. Lower it if parts of the picture start to stutter",
+   "fr": "A higher level replaces a ghost with a single frame sooner. Lower it if parts of the picture start to stutter",
+   "it": "A higher level replaces a ghost with a single frame sooner. Lower it if parts of the picture start to stutter",
+   "pt-BR": "A higher level replaces a ghost with a single frame sooner. Lower it if parts of the picture start to stutter",
+   "tr": "A higher level replaces a ghost with a single frame sooner. Lower it if parts of the picture start to stutter",
+   "ar": "A higher level replaces a ghost with a single frame sooner. Lower it if parts of the picture start to stutter",
+   "pl": "A higher level replaces a ghost with a single frame sooner. Lower it if parts of the picture start to stutter",
+   "ru": "A higher level replaces a ghost with a single frame sooner. Lower it if parts of the picture start to stutter"
+  },
+  {
    "zh": "检查",
    "src": "qml/NvidiaVrrProfileRow.qml",
    "zh-TW": "檢查",
@@ -41430,6 +41498,23 @@
    "ar": "قيد التشغيل: يبقى النص وعلامات التصويب واضحة في الإطارات المولّدة",
    "pl": "Działa: tekst i celowniki zostają ostre w generowanych klatkach",
    "ru": "Работает: текст и прицелы остаются чёткими в сгенерированных кадрах"
+  },
+  {
+   "zh": "正在运行：最近的生成帧里有 %1% 的画面改为只显示一帧",
+   "src": "qml/PushFlowGuardRow.qml",
+   "zh-TW": "正在執行：最近的生成幀裡有 %1% 的畫面改為只顯示一幀",
+   "en": "Running: %1% of the picture in recent generated frames shows one frame instead of a mix of two",
+   "ja": "動作中：最近の生成フレームの %1% を 1 つのフレームだけの表示に変えました",
+   "nl": "Running: %1% of the picture in recent generated frames shows one frame instead of a mix of two",
+   "de": "Running: %1% of the picture in recent generated frames shows one frame instead of a mix of two",
+   "es": "Running: %1% of the picture in recent generated frames shows one frame instead of a mix of two",
+   "fr": "Running: %1% of the picture in recent generated frames shows one frame instead of a mix of two",
+   "it": "Running: %1% of the picture in recent generated frames shows one frame instead of a mix of two",
+   "pt-BR": "Running: %1% of the picture in recent generated frames shows one frame instead of a mix of two",
+   "tr": "Running: %1% of the picture in recent generated frames shows one frame instead of a mix of two",
+   "ar": "Running: %1% of the picture in recent generated frames shows one frame instead of a mix of two",
+   "pl": "Running: %1% of the picture in recent generated frames shows one frame instead of a mix of two",
+   "ru": "Running: %1% of the picture in recent generated frames shows one frame instead of a mix of two"
   },
   {
    "zh": "正在连接",
@@ -55268,6 +55353,23 @@
    "ar": "طريقة الضبط",
    "pl": "Metoda dostosowania",
    "ru": "Способ настройки"
+  },
+  {
+   "zh": "谨慎",
+   "src": "qml/PushFlowGuardRow.qml",
+   "zh-TW": "謹慎",
+   "en": "Careful",
+   "ja": "控えめ",
+   "nl": "Careful",
+   "de": "Careful",
+   "es": "Careful",
+   "fr": "Careful",
+   "it": "Careful",
+   "pt-BR": "Careful",
+   "tr": "Careful",
+   "ar": "Careful",
+   "pl": "Careful",
+   "ru": "Careful"
   },
   {
    "zh": "负值 = 声音提前",

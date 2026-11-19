@@ -7,16 +7,26 @@
 // pass enlarges the motion (grids) and the mask, not the picture: every output pixel samples the
 // FULL-RESOLUTION real frames where the motion points, so texture, text and edges keep their detail.
 // It mirrors rebuild_scaled() in scripts/pushflow/prepare_runtime.py, which checks it on the CPU.
+//
+// The ghost guard (include/veyra/pushflow/PushFlowMotion.h has the reasoning and the reference this
+// file is tested against, testPushFlowGuard): where the two samples differ and the mask cannot choose,
+// the blend is a mixture of two pictures; the guard gives that pixel to one sample, the real frame
+// nearer in time. guardHi = 0 is off, and then the picture is made by the statements it always was.
 Texture2D<float4> previous : register(t0);
 Texture2D<float4> current : register(t1);
 RWStructuredBuffer<float> grid0 : register(u0);
 RWStructuredBuffer<float> grid1 : register(u1);
 RWStructuredBuffer<float> mask : register(u2);
 RWTexture2D<float4> output : register(u3);
+// Guard only: [0] pixels looked at (one per 16 x 16 block), [1] of those, pixels given to one sample.
+// Running totals; the backend reads the difference.
+RWStructuredBuffer<uint> guardStats : register(u4);
 cbuffer Constants : register(b0) {
     uint srcW, srcH, padW, padH;
     uint modelW, modelH, encoding, alignCorners;
-    uint maskForFirst, unused0, unused1, unused2;
+    uint maskForFirst;
+    float guardLo, guardHi;   // the level's range (PushFlowMotion.h guardRange); guardHi 0 = no guard
+    uint guardPrevious;       // 1: the previous real frame is the nearer one (time <= 0.5)
 };
 float3 encodeColor(float3 c) {
     if (encoding == 1) {
@@ -79,6 +89,18 @@ void main(uint3 id : SV_DispatchThreadID) {
     const float3 a = encodeColor(tapFrame(previous, gridToSource(tapGrid(grid0, q))));
     const float3 b = encodeColor(tapFrame(current, gridToSource(tapGrid(grid1, q))));
     const float m = saturate(tapMask(q));
-    const float3 c = maskForFirst != 0 ? a * m + b * (1.0 - m) : a * (1.0 - m) + b * m;
+    float3 c = maskForFirst != 0 ? a * m + b * (1.0 - m) : a * (1.0 - m) + b * m;
+    if (guardHi > 0.0) {
+        const float w0 = maskForFirst != 0 ? m : 1.0 - m;
+        const float3 apart = abs(a - b);
+        const float ghost = min(w0, 1.0 - w0) * max(apart.r, max(apart.g, apart.b));
+        const float share = smoothstep(guardLo, guardHi, ghost);
+        const float w1 = w0 + ((guardPrevious != 0 ? 1.0 : 0.0) - w0) * share;
+        c = a * w1 + b * (1.0 - w1);
+        if ((id.x & 15) == 8 && (id.y & 15) == 8) {
+            InterlockedAdd(guardStats[0], 1u);
+            if (share >= 0.5) InterlockedAdd(guardStats[1], 1u);
+        }
+    }
     output[id.xy] = float4(decodeColor(c), 1.0);
 }

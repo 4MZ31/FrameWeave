@@ -261,6 +261,73 @@ def rebuild_scaled(img0, img1, grid0, grid1, mask, align, mask_for_first, model_
     return out[0] * m + out[1] * (1 - m) if mask_for_first else out[0] * (1 - m) + out[1] * m
 
 
+# PushFlow's ghost guard (include/veyra/pushflow/PushFlowMotion.h, guardRange): the same three ranges.
+GUARD_RANGES = {1: (0.10, 0.20), 2: (0.06, 0.14), 3: (0.03, 0.08)}
+
+
+def guard_report(path: Path, channels: int, align: int, mask_for_first: bool) -> list[dict]:
+    """What the ghost guard does to this model's pictures, worked out on the CPU with the header's maths.
+
+    A square moves further and further between two frames (then: two unrelated pictures, and a fade).
+    For each pair: how much of the model's picture is a mixture of two samples that differ (the ghost),
+    how much of the picture each guard level gives to one sample, and how far the model's and the guarded
+    picture are from the true in-between frame.
+
+    A report, not a gate, and to be read with care: these are drawn pictures, not games, and the usual
+    error measure (PSNR) prefers a ghost to a held picture, because two half-strength copies in the wrong
+    places are nearer the truth, number for number, than one full-strength copy in a wrong place. What
+    the guard removes is the mixture; whether that looks better is for eyes on real games to say."""
+    import numpy as np
+    import onnxruntime as ort
+    import rife_graph
+    session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
+    name = session.get_inputs()[0].name
+    w, h = 512, 320
+    yo, xo = np.mgrid[0:h, 0:w].astype(np.float64)
+    rows = []
+
+    def smoothstep(lo, hi, x):
+        t = np.clip((x - lo) / (hi - lo), 0.0, 1.0)
+        return t * t * (3.0 - 2.0 * t)
+
+    def study(label, img0, img1, truth):
+        _, g0, g1, m = session.run(None, {name: tensor(img0, img1, 0.5, channels)})[:4]
+        ph, pw = rife_graph.to_hw2(g0).shape[:2]
+        samples = []
+        for img, grid in ((img0, g0), (img1, g1)):
+            g = np.moveaxis(rife_graph.to_hw2(grid), -1, 0)
+            gx, gy = bilinear_at(g, yo, xo)
+            if align:
+                xm = (gx + 1) * 0.5 * (pw - 1); ym = (gy + 1) * 0.5 * (ph - 1)
+            else:
+                xm = ((gx + 1) * pw - 1) * 0.5; ym = ((gy + 1) * ph - 1) * 0.5
+            samples.append(np.clip(bilinear_at(img, ym, xm), 0, 1))
+        a, b = samples
+        mask = np.clip(bilinear_at(np.asarray(m)[0], yo, xo)[0], 0, 1)
+        w0 = mask if mask_for_first else 1 - mask
+        apart = np.abs(a - b).max(axis=0)
+        ghost = np.minimum(w0, 1 - w0) * apart
+        plain = a * w0 + b * (1 - w0)
+        row = {"pair": label, "model_db": None if truth is None else round(psnr(plain, truth), 2),
+               "ghost_percent": round(100.0 * float((ghost > 0.03).mean()), 2), "undecided_mask_percent": round(100.0 * float((np.minimum(w0, 1 - w0) > 0.2).mean()), 2)}
+        for level, (lo, hi) in GUARD_RANGES.items():
+            share = smoothstep(lo, hi, ghost)
+            w1 = w0 + (1.0 - w0) * share          # t = 0.5: the previous frame is the nearer one
+            guarded = a * w1 + b * (1 - w1)
+            row[f"level{level}_changed_percent"] = round(100.0 * float((share >= 0.5).mean()), 2)
+            row[f"level{level}_db"] = None if truth is None else round(psnr(guarded, truth), 2)
+            row[f"level{level}_left_ghost_percent"] = round(100.0 * float((np.minimum(w1, 1 - w1) * apart > 0.03).mean()), 2)
+        rows.append(row)
+
+    for move in (16, 48, 96, 160, 256):
+        study(f"square moved {move} px", frame(w, h, 100), frame(w, h, 100 + move), frame(w, h, 100 + move / 2))
+    study("fine texture panned 8 px", detail_frame(w, h, 0), detail_frame(w, h, 8), detail_frame(w, h, 4))
+    study("two unrelated pictures", frame(w, h, 100), detail_frame(w, h, 0), None)
+    dim, bright = frame(w, h, 100) * 0.6, np.clip(frame(w, h, 100) * 0.6 + 0.3, 0, 1)
+    study("a fade (0.3 brighter, nothing moves)", dim.astype(np.float32), bright.astype(np.float32), ((dim + bright) / 2).astype(np.float32))
+    return rows
+
+
 def pad_multiple(session, name, channels) -> int:
     """The block size the model pads to inside (its grids have the padded size): PushFlow pads to it itself."""
     import numpy as np
@@ -443,6 +510,12 @@ def main() -> None:
                 half_path.unlink()
         except Exception as e:  # noqa: BLE001 - no fp16 copy; fp32 stays the only model
             print(f"fp16 {role} skipped: {e}")
+        # The ghost guard on this model (a report in the log, see guard_report; nothing is decided by it).
+        try:
+            for row in guard_report(target, c["channels"], info["align_corners"], verdict["mask_for_first"]):
+                print(f"guard {role}: {json.dumps(row)}")
+        except Exception as e:  # noqa: BLE001 - the report is information only
+            print(f"guard {role}: report failed: {e}")
         # Facts the native backend needs to rebuild the picture (PushFlowBackend.cpp readFacts).
         (runtime / "models" / f"pushflow-{role}.onnx.txt").write_text(
             f"align_corners={info['align_corners']}\nmask_for_first={1 if verdict['mask_for_first'] else 0}\npad={verdict['pad']}\n", encoding="ascii")

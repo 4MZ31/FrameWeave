@@ -21,6 +21,7 @@
 //    and a square that moves 16 px lands near the middle at t = 0.5, far closer than a blend of the two
 //    frames, in both tiers' models. Without the variable the test is skipped (and says so).
 #include "veyra/pushflow/PushFlowBackend.h"
+#include "veyra/pushflow/PushFlowMotion.h"
 #include "veyra/engine/PushHudSampler.h"
 #include "veyra/pipeline/PushHudLock.h"
 #include "veyra/pipeline/PushAmbientPass.h"
@@ -1582,6 +1583,107 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
         if (tier == 0) checkOr(!detail.empty() && detailDb > detailBlendDb + 2.0, detailText);
         else std::printf("INFO %s\n", detailText.c_str());
         if (tier == 0) checkOr(flow.status().rebuild, "pushflow: the Fast tier rebuilds at full size");
+        // The ghost guard (pushflow/PushFlowMotion.h). The production rebuild shader against the header's
+        // reference, pixel by pixel, from the network's own grids and mask: with the guard off (the
+        // picture PushFlow always made) and at every level; then the share the backend reports against
+        // the reference's count. The pictures are drawn: this proves the shader does what the header
+        // says, never that a game looks better.
+        if (flow.status().grids) {
+            using pushflow::motion::reference::Rgb;
+            using pushflow::motion::reference::Vec2;
+            const auto st = flow.status();
+            const pushflow::motion::Geometry geo{W, H, st.modelW, st.modelH, st.padW, st.padH, st.alignCorners, st.maskForFirst};
+            const uint64_t plane = uint64_t(st.padW) * st.padH;
+            struct Verdict { bool ran = false; int worst = 255; double mean = 255, changed = 0, touched = 0; uint64_t lattice = 0, latticeChanged = 0; std::vector<uint8_t> picture; };
+            // Runs the pair at a level and compares the picture with the reference made from that run's own tensors.
+            const auto guarded = [&](const std::vector<uint8_t>& pa, const std::vector<uint8_t>& pb, float t, int level) {
+                Verdict v;
+                pushflow::motion::setGuard(level);
+                v.picture = run(pa, pb, t, flow, nullptr);
+                pushflow::motion::setGuard(0);
+                const auto g0 = readFloats(gpu, flow.motionBuffer(0), plane * 2), g1 = readFloats(gpu, flow.motionBuffer(1), plane * 2), mk = readFloats(gpu, flow.motionBuffer(2), plane);
+                if (v.picture.empty() || g0.empty() || g1.empty() || mk.empty()) return v;
+                const uint32_t padW = st.padW;
+                const uint32_t width = W;
+                const auto frame = [width](const std::vector<uint8_t>& px) {
+                    const uint8_t* data = px.data();
+                    return [data, width](uint32_t x, uint32_t y) { const uint8_t* q = data + (size_t(y) * width + x) * 4; return Rgb{q[0] / 255.0f, q[1] / 255.0f, q[2] / 255.0f}; };
+                };
+                const auto grid = [padW](const std::vector<float>& g) {
+                    const float* data = g.data();
+                    return [data, padW](uint32_t x, uint32_t y) { const size_t i = (size_t(y) * padW + x) * 2; return Vec2{data[i], data[i + 1]}; };
+                };
+                const float* maskData = mk.data();
+                const auto maskAt = [maskData, padW](uint32_t x, uint32_t y) { return maskData[size_t(y) * padW + x]; };
+                const auto range = pushflow::motion::guardRange(level);
+                const bool usePrevious = pushflow::motion::previousNearer(t);
+                double sum = 0; int worst = 0; uint64_t changed = 0, touched = 0;
+                for (uint32_t y = 0; y < H; ++y)
+                    for (uint32_t x = 0; x < W; ++x) {
+                        const auto px = pushflow::motion::reference::rebuild(geo, x, y, frame(pa), frame(pb), grid(g0), grid(g1), maskAt, range, usePrevious);
+                        const float want[3] = {px.color.r, px.color.g, px.color.b};
+                        for (int k = 0; k < 3; ++k) {
+                            const int d = std::abs(int(v.picture[(size_t(y) * W + x) * 4 + k]) - int(std::clamp(want[k], 0.0f, 1.0f) * 255.0f + 0.5f));
+                            worst = std::max(worst, d); sum += d;
+                        }
+                        if (px.share > 0) ++touched;
+                        if (px.share >= 0.5f) ++changed;
+                        if ((x & 15) == 8 && (y & 15) == 8) { ++v.lattice; if (px.share >= 0.5f) ++v.latticeChanged; }
+                    }
+                v.ran = true; v.worst = worst; v.mean = sum / (3.0 * W * H);
+                v.changed = double(changed) / (double(W) * H); v.touched = double(touched) / (double(W) * H);
+                return v;
+            };
+            const auto far = flowFrame(W, H, 196), farMiddle = flowFrame(W, H, 148), other = detailFrame(W, H, 0);
+            struct Pair { const char* name; const std::vector<uint8_t>* a; const std::vector<uint8_t>* b; float t; };
+            const Pair pairs[] = {{"a square moved 16 pixels", &first, &second, 0.5f}, {"a square moved 96 pixels", &first, &far, 0.5f},
+                                  {"a square moved 96 pixels, late", &first, &far, 0.75f}, {"two unrelated pictures", &first, &other, 0.5f}};
+            const auto plainBefore = guarded(first, far, 0.5f, 0);
+            for (const Pair& pair : pairs)
+                for (int level = 0; level <= pushflow::motion::kGuardLevels; ++level) {
+                    const auto v = guarded(*pair.a, *pair.b, pair.t, level);
+                    const std::string text = std::format("pushflow: tier {} guard level {} on {}: the shader's picture is the reference's (worst {} of 255, mean {:.3f}; changed {:.2f} %, touched {:.2f} %)",
+                        tier, level, pair.name, v.worst, v.mean, 100.0 * v.changed, 100.0 * v.touched);
+                    // With the guard off at full size the network's own picture is shown, not the rebuild:
+                    // how close the two are is reported, the rebuild itself is checked by every guarded level.
+                    if (level == 0 && !st.rebuild) std::printf("INFO %s (the network's own picture)\n", text.c_str());
+                    else checkOr(v.ran && v.worst <= 2 && v.mean < 0.3, text);
+                    if (level == 0) checkOr(v.ran && v.changed == 0 && v.touched == 0, std::format("pushflow: tier {} guard off touches nothing on {}", tier, pair.name));
+                }
+            // The network follows 16 pixels: the guard must not make that pair worse.
+            {
+                const auto plain = guarded(first, second, 0.5f, 0), strong = guarded(first, second, 0.5f, 3);
+                const double plainDb = plain.picture.empty() ? 0.0 : flowPsnr(plain.picture, middle), strongDb = strong.picture.empty() ? 0.0 : flowPsnr(strong.picture, middle);
+                checkOr(strong.ran && strongDb > plainDb - 1.5, std::format("pushflow: tier {} the strongest guard leaves a pair the network follows alone ({:.1f} dB, {:.1f} dB without)", tier, strongDb, plainDb));
+                const double farPlain = flowPsnr(guarded(first, far, 0.5f, 0).picture, farMiddle), farStrong = flowPsnr(guarded(first, far, 0.5f, 3).picture, farMiddle);
+                std::printf("INFO pushflow: tier %u a square moved 96 pixels against the true middle: %.1f dB without the guard, %.1f dB at the strongest level "
+                            "(a held picture scores below a ghost by this measure; see PushFlowMotion.h)\n", tier, farPlain, farStrong);
+            }
+            // Off again: exactly the picture from before the guard was ever on.
+            const auto plainAfter = guarded(first, far, 0.5f, 0);
+            checkOr(plainBefore.ran && plainAfter.ran && plainBefore.picture == plainAfter.picture, std::format("pushflow: tier {} with the guard off again the picture is the same, byte for byte", tier));
+            // The share the backend reports: totals from the graphics card, read one generated frame late.
+            // Four runs of one pair at one level; the three between the two readings are counted.
+            {
+                const auto want = guarded(first, other, 0.5f, 2);   // also the first of the four
+                pushflow::motion::setGuard(2);
+                run(first, other, 0.5f, flow, nullptr);
+                const auto before = flow.telemetry();
+                for (int i = 0; i < 3; ++i) run(first, other, 0.5f, flow, nullptr);
+                const auto after = flow.telemetry();
+                pushflow::motion::setGuard(0);
+                const uint64_t samples = after.guardSamples - before.guardSamples, changed = after.guardChanged - before.guardChanged;
+                const uint64_t slack = 3 * std::max<uint64_t>(2, want.lattice / 30);
+                const uint64_t wantChanged = 3 * want.latticeChanged;
+                checkOr(want.ran && samples == 3 * want.lattice && changed + slack >= wantChanged && changed <= wantChanged + slack && after.guardLevel == 2,
+                        std::format("pushflow: tier {} the reported share counts what the reference counts ({} of {} looked at, reference {} of {}; share {:.3f})",
+                                    tier, changed, samples, wantChanged, 3 * want.lattice, after.guardShare));
+                run(first, other, 0.5f, flow, nullptr);
+                checkOr(flow.telemetry().guardLevel == 0 && flow.telemetry().guardShare == 0, std::format("pushflow: tier {} with the guard off no share is reported", tier));
+            }
+        } else {
+            std::printf("INFO pushflow: tier %u model has no grids: no ghost guard\n", tier);
+        }
         const auto tel = flow.telemetry();
         checkOr(tel.inferences > 0 && tel.inferP50Ms > 0, std::format("pushflow: telemetry ({} inferences, p50 {:.1f} ms)", tel.inferences, tel.inferP50Ms));
         checkOr(!gpu.debugErrors(), "pushflow: no debug layer errors");

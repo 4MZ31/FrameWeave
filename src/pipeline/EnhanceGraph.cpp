@@ -1601,7 +1601,7 @@ EnhanceGraph::PushFlowSummary EnhanceGraph::pushFlowSummary() const {
     PushFlowSummary s;
     if(!pushFlowActive())return s;
     const auto t=pushFlow_->telemetry();
-    s.precision=pushFlow_->status().precision;s.rebuild=pushFlow_->status().rebuild;s.p50Ms=t.inferP50Ms;s.p95Ms=t.inferP95Ms;
+    s.precision=pushFlow_->status().precision;s.rebuild=pushFlow_->status().rebuild;s.p50Ms=t.inferP50Ms;s.p95Ms=t.inferP95Ms;s.guard=t.guardLevel;s.guardShare=t.guardShare;
     return s;
 }
 // PushFlow (pushflow/PushFlowBackend.h): RIFE on DirectML, any multiplier (the time of each frame).
