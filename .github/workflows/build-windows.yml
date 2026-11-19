@@ -444,6 +444,20 @@ jobs:
           Write-Host "veyra_mp4_finalize_tests exit $code"
           if ($code -ne 0) { exit 1 }
 
+      # Capture cards without the hardware: media types, strides and colour of what a card delivers, the
+      # Blackmagic and Elgato controls (HDR detection, the 4K X included) against stand-in devices.
+      - name: Capture card format and colour tests
+        run: |
+          cmake --build $env:BUILD --target veyra_capture_color_tests --parallel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $exe = Get-ChildItem $env:BUILD -Recurse -Filter 'veyra_capture_color_tests.exe' | Select-Object -First 1
+          if (-not $exe) { Write-Host "::error::veyra_capture_color_tests.exe not built"; exit 1 }
+          $env:PATH = "$env:DEPS\vcpkg\installed\x64-windows\bin;$env:QT_ROOT_DIR\bin;$env:PATH"
+          & $exe.FullName 2>&1 | Out-Host
+          $code = $LASTEXITCODE
+          Write-Host "veyra_capture_color_tests exit $code"
+          if ($code -ne 0) { exit 1 }
+
       - name: QML component tests (PushFPS quick setup)
         run: |
           cmake --build $env:BUILD --target veyra_qml_quick_tests veyra_qml_easing_tests --parallel
