@@ -442,6 +442,11 @@ struct QmlPlayerBridge::Impl {
     bool captureDriverSettingsOpen = false;
     std::wstring captureDriverFormatKey;
     int captureQueryKind = 0;   // 0 device list, 1 formats, 2 formats then connect (continue)
+    // PushFPS: when the running query began, and whether its "still waiting" note has been shown.
+    // A query waits on the devices' drivers; one that does not answer used to leave the capture
+    // dialog busy with no word of why (Capture.cpp tickCapture).
+    std::chrono::steady_clock::time_point captureQueryStarted{};
+    bool captureQuerySlowNoted = false;
     std::vector<source::CaptureDevice> captureVideo, captureAudio;
     std::vector<source::CaptureFormat> captureFormatList;
     // The capture dialog's lists are built once per input. QML re-reads a list property on

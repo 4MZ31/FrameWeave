@@ -679,6 +679,7 @@ VGroup {
         label: qsTr("采集卡")
         hint: card && card.status === "tested" ? qsTr("PushFPS 已实测")
             : card && card.status === "veyra" ? qsTr("Veyra 作者已实测")
+            : card && card.status === "reported" ? qsTr("有 PushFPS 用户报告可用")
             : qsTr("还没有人报告这张卡的结果，欢迎在 GitHub 上分享")
         hintBelow: true
         RowLayout {

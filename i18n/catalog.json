@@ -37760,6 +37760,23 @@
    "ru": "Recorded at up to the chosen height (a smaller picture stays as it is, never enlarged), with a higher bitrate"
   },
   {
+   "zh": "有 PushFPS 用户报告可用",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "有 PushFPS 使用者回報可用",
+   "en": "Reported working by a PushFPS user",
+   "ja": "PushFPS ユーザーから動作報告あり",
+   "nl": "Reported working by a PushFPS user",
+   "de": "Reported working by a PushFPS user",
+   "es": "Reported working by a PushFPS user",
+   "fr": "Reported working by a PushFPS user",
+   "it": "Reported working by a PushFPS user",
+   "pt-BR": "Reported working by a PushFPS user",
+   "tr": "Reported working by a PushFPS user",
+   "ar": "Reported working by a PushFPS user",
+   "pl": "Reported working by a PushFPS user",
+   "ru": "Reported working by a PushFPS user"
+  },
+  {
    "zh": "有效目标 %1 fps",
    "src": "src/ui/bridge/Status.cpp",
    "zh-TW": "有效目標 %1 fps",
@@ -59501,6 +59518,23 @@
    "ar": "إعادة ربط جهاز القبض؛ انتظار صورة جديدة",
    "pl": "Urządzenie przechwytywania ponownie podłączone; czeka na nowy obraz",
    "ru": "Устройство захвата снова подключили; ждут нового снимка"
+  },
+  {
+   "zh": "采集设备还没有响应。如果一直这样：关闭其他正在使用采集卡或摄像头的软件，把设备拔下再插回，然后重新启动 PushFPS。",
+   "src": "src/ui/bridge/Capture.cpp",
+   "zh-TW": "擷取裝置還沒有回應。如果一直這樣：關閉其他正在使用擷取卡或攝影機的軟體，把裝置拔下再插回，然後重新啟動 PushFPS。",
+   "en": "The capture devices haven't answered yet. If this stays: close other programs that use the capture card or a camera, unplug the device and plug it back in, then restart PushFPS.",
+   "ja": "キャプチャデバイスからまだ応答がありません。この状態が続く場合：キャプチャカードやカメラを使用している他のソフトを閉じ、デバイスを抜き差ししてから PushFPS を再起動してください。",
+   "nl": "The capture devices haven't answered yet. If this stays: close other programs that use the capture card or a camera, unplug the device and plug it back in, then restart PushFPS.",
+   "de": "The capture devices haven't answered yet. If this stays: close other programs that use the capture card or a camera, unplug the device and plug it back in, then restart PushFPS.",
+   "es": "The capture devices haven't answered yet. If this stays: close other programs that use the capture card or a camera, unplug the device and plug it back in, then restart PushFPS.",
+   "fr": "The capture devices haven't answered yet. If this stays: close other programs that use the capture card or a camera, unplug the device and plug it back in, then restart PushFPS.",
+   "it": "The capture devices haven't answered yet. If this stays: close other programs that use the capture card or a camera, unplug the device and plug it back in, then restart PushFPS.",
+   "pt-BR": "The capture devices haven't answered yet. If this stays: close other programs that use the capture card or a camera, unplug the device and plug it back in, then restart PushFPS.",
+   "tr": "The capture devices haven't answered yet. If this stays: close other programs that use the capture card or a camera, unplug the device and plug it back in, then restart PushFPS.",
+   "ar": "The capture devices haven't answered yet. If this stays: close other programs that use the capture card or a camera, unplug the device and plug it back in, then restart PushFPS.",
+   "pl": "The capture devices haven't answered yet. If this stays: close other programs that use the capture card or a camera, unplug the device and plug it back in, then restart PushFPS.",
+   "ru": "The capture devices haven't answered yet. If this stays: close other programs that use the capture card or a camera, unplug the device and plug it back in, then restart PushFPS."
   },
   {
    "zh": "采集设备驱动设置",
