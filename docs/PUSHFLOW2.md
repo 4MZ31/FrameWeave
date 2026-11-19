@@ -11,7 +11,7 @@ contradict them. No dates.
 | Part | What it is | Where it stands |
 |---|---|---|
 | Guard | Find the places in a generated frame that are probably wrong and show something safe there instead | Two rules were measured on the shipped models and neither held (below): one was built and taken out, one never built. What a user has from it since 3.2.7 is the measurement itself: the frame quality test says its **worst frame** and its **worst place**. The next rule is written down; it needs real clips before it is built |
-| Fusion | Encode every real frame once and work a pair's motion out once, then make every in-between time from it | Measured (below): the part that belongs to one frame is 28 % of the lite model's work and 14 % of the full model's, so reusing it saves at most 7 to 24 %. Not built: a gain that size has to be shown on real cards before a second model session is added to pay for it |
+| Fusion | Encode every real frame once and work a pair's motion out once, then make every in-between time from it | **Its first step is built, as an experiment that starts off** (*Professional → PushFlow 2: encode each real frame once*): the model cut into its per-frame encoder and the rest, each real frame encoded once (below). The second step, a pair's motion worked out once, does not exist in these models: the time enters at the first motion block |
 | Predict | Make frames from what has already arrived, without waiting for the next real frame | Measured (below): a frame half a step ahead can be made from what the network already gives, with no extra run; on drawn pictures it beats holding the last frame for slow motion and is no better for fast motion. Not built, and never the normal mode. It needs its own way onto the screen, Guard's checking of predictions against the frames that arrive later, and a camera for any claim about delay |
 | Dual | A second, deliberately delayed timeline for recording and streaming, beside the one the player sees | Not started. It needs real recording and OBS sessions on real cards to show the player's side is not slowed |
 | Response | Turn the picture a little from the stick's movement before the console's own frame arrives | Research only. Whether it can work from a video signal at all is unproven; it needs a PS5, a high-speed camera and people to judge it |
@@ -59,6 +59,29 @@ contradict them. No dates.
   too-slow watch puts a size that is too much for the card back to automatic before it lowers a tier, and
   every step it can take is cheaper than the one before (unit test). Without a choice, every tier's size is
   bit for bit what it was (unit test), and the graph test runs PushFlow both ways.
+- **Experiments have switches, and every one starts off** (`include/veyra/pushflow/PushFlow2.h`, preference
+  `pushFlow2`). A part is not in the build, not available here, off, on and waiting, or running, and the row
+  in Professional mode says which: asked for is not the same as in use. The preference is read strictly:
+  damaged text, text of another kind and a file cut off mid-save all read as everything off, and a newer
+  version's names are skipped. `PushFPS.exe --safe-mode` keeps every experiment off for one run and changes
+  nothing saved. If PushFPS ever stops inside PushFlow, the next start switches them all off.
+- **The encoder cache** (Fusion's first step; the owner's decision of 19 November 2026 to build every part
+  without waiting for hardware results, each behind a switch). `scripts/pushflow/rife_graph.py`
+  `split_encoder` cuts each model into two small encoders (one for the input's first frame, one for its
+  second) and the rest; nothing is retrained, the same nodes and weights. `prepare_runtime.py` ships them
+  only when together they give the whole model's output on the CPU: every output, seven times between
+  the frames, two sizes, features kept from the pair before and made anew. Measured: the largest
+  difference is 0.0 for both models (run 44629175911). In PushFlow (`PushFlowBackend.cpp`, `Split`) the
+  second frame is encoded when its pair arrives and its features stay for the pair after it, where it is
+  the first frame; another time between the same two frames runs the rest alone. So a steady 2× costs one
+  encoder run per pair instead of two, and 3× and 4× one instead of four and six. It is used only after it
+  gave the whole model's picture on the user's own graphics card at start, for a pair with nothing kept
+  and for the pair after it. The whole model stays loaded: a split run that fails hands the same frame to
+  it, and the row says so. Frames are told apart by the graph's own count; a frame whose number is
+  unknown, skipped or outdated is encoded again. Not available with half precision yet. **Unverified on
+  real hardware, and the saving is unmeasured there**: the ceiling in arithmetic is 7 to 24 % (below); the
+  start-up line in the log and the performance report (`pushFlowEncoderCacheStartMs`) give one frame each
+  way on the user's card.
 - **Three studies of the shipped models** run in the `pushflow-models` workflow (`--study`): what the
   tensors do under motion (`motion_report`), where the network's work goes (`fusion_report`), and whether a
   frame ahead can be made from it (`predict_report`). They print numbers and decide nothing.
@@ -216,6 +239,39 @@ allow it, on drawn pictures moving in straight lines. It is not a feature: a gam
 frames, a forecast frame has to be checked against the real frame that follows (Guard), it needs its own way
 onto the screen and its own pacing, and whether it lowers the delay a player feels can only be shown with a
 camera. Not built.
+
+## Guard's rule, found by measuring: changed, and shown nowhere
+
+Three more rules were run on the shipped models before any shader was written (`guard_report`, runs
+44631423182, 44632325354 and 44633268004). The first two failed in ways worth keeping:
+
+- **"The frames differ here and the network found no motion near."** It never touched a correct picture,
+  and it never acted either: where the network loses an object it still invents a few pixels of motion
+  around it (5 to 17 px), and that counts as motion near.
+- **"Something one frame shows is used nowhere in the generated frame", counted by the mask's weights.**
+  It restored the left-out square, and it replaced 61 to 97 % of a slowly sliding texture with the earlier
+  frame (34 dB down to 16 dB). The network often takes one frame only; the other frame is then "unused"
+  everywhere, and nothing is wrong.
+
+What holds on every drawn pair: a place in a real frame counts as **shown** by a generated pixel that reads
+it when the pixel takes it, *or when the pixel's other sample is the same picture*. A tile of a frame is
+unused when less than a quarter of it is shown anywhere. Risky = the tile changed between the two frames
+(its own change of brightness taken out, so a fade is not a change), it is unused in one of them, and it is
+not as near the picture's edge as the picture's motion reaches (a pan pushes those out, unused and right).
+
+| | Fast model | Quality model |
+|---|---|---|
+| Correct pictures touched (squares moved 2 to 96 px, fades, a still picture, a square over a texture) | 0 of 9 | 0 of 10 |
+| A square left out at 160 and 256 px: how far the old place is from the earlier frame (0.32 = background, 0 = the square) | 0.32 → 0.14 | 0.32 → 0.07 |
+| A square moved 200 px over a texture | 0.36 → 0.12 | 0.28 → 0.17 |
+| A fine texture the network had already lost (14 to 26 dB): how much is replaced | 4 to 48 % | 0 to 55 % |
+| Two unrelated pictures | 33 % | 70 % |
+
+So the rule acts where an object was left out and leaves correct pictures alone, on drawn pictures. What it
+does where the network is already lost (hold part of the picture) can look blocky, which is why a frame
+with much of it risky is held whole. Whether any of this looks better in a game is not known: a held object
+steps at the game's own rate, which the usual error measure scores *worse* than a missing one. It is being
+built as an experiment that starts off, for people with real games and cards to judge.
 
 ## Next for Guard: written down, not built
 
