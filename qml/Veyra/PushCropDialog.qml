@@ -152,6 +152,9 @@ DialogLayer {
                 anchors.fill: parent
                 anchors.margins: -10            // an edge at the picture's own border can still be taken
                 hoverEnabled: true
+                // The dialog scrolls: without this the scroll view takes over any drag that goes up or
+                // down, and the top and bottom edges could not be moved.
+                preventStealing: true
                 property string over: ""
                 cursorShape: {
                     const h = stage.held.length ? stage.held : over
