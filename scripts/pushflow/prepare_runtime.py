@@ -403,6 +403,7 @@ def fusion_report(path: Path, channels: int) -> dict:
         out.discard("K")
         return frozenset(out)
     source = g.input[0].name
+    whole = {source}   # the input itself, or the input padded / cast: its channels still mean A, B, T
     dep = {}        # tensor -> (frozenset of A/B/T, stacked)
     macs = {"one frame": 0, "the pair, not the time": 0, "the time": 0, "unknown": 0}
     features = []
@@ -417,14 +418,18 @@ def fusion_report(path: Path, channels: int) -> dict:
         return "the pair, not the time"
     for n in g.node:
         ins = [i for i in n.input if i]
-        live = [i for i in ins if i == source or i in dep]
+        live = [i for i in ins if i in whole or i in dep]
         out = None
-        if not live:
+        # A tensor's shape is not its content: what is worked out from shapes alone depends on no frame.
+        if not live or n.op_type == "Shape":
             for o in n.output:
                 consts.setdefault(o, None)
             continue
         attrs = {a.name: a for a in n.attribute}
-        if source in live:
+        if n.op_type in ("Pad", "Identity", "Cast") and ins[0] in whole and not any(i in dep for i in ins[1:]):
+            whole.update(n.output)
+            continue
+        if any(i in whole for i in live):
             if n.op_type == "Slice" and len(ins) >= 4 and value(ins[1]) is not None and value(ins[2]) is not None and value(ins[3]) is not None and int(np.ravel(value(ins[3]))[0]) == 1:
                 out = (channels_to_set(int(np.ravel(value(ins[1]))[0]), int(min(np.ravel(value(ins[2]))[0], channels))), False)
             elif n.op_type == "Split" and int(attrs["axis"].i if "axis" in attrs else 0) == 1:
@@ -478,7 +483,8 @@ def fusion_report(path: Path, channels: int) -> dict:
         now = (m - 1) * (F + P + T) or 1
         saving[f"{m}x_encode_once_percent"] = round(100.0 * (1 - (F / 2 + (m - 1) * (P + T)) / now), 1)
         saving[f"{m}x_and_pair_once_percent"] = round(100.0 * (1 - (F / 2 + P + (m - 1) * T) / now), 1)
-    head = [f"{n.op_type}({','.join(i[:18] for i in n.input if i)})->{','.join(o[:18] for o in n.output)}:{kind(dep.get(n.output[0])) if n.output and n.output[0] in dep else 'const'}" for n in g.node[:36]]
+    data = [n for n in g.node if n.output and (n.output[0] in dep or n.output[0] in whole)]
+    head = [f"{n.op_type}({','.join(i[-14:] for i in n.input if i and (i in dep or i in whole))})->{n.output[0][-14:]}:{'input' if n.output[0] in whole else ''.join(sorted(dep[n.output[0]][0])) + ('*' if dep[n.output[0]][1] else '')}" for n in data[:44]]
     return {"work_share_percent": {k: round(100.0 * v / total, 1) for k, v in macs.items() if k != "unknown"}, "convolutions_without_a_shape": macs["unknown"],
             "saving_of_convolution_work": saving, "kept_per_frame": features[:8], "nodes": len(g.node),
             "ops": dict(collections.Counter(n.op_type for n in g.node).most_common(14)), "first_nodes": head}
