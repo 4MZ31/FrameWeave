@@ -1069,6 +1069,10 @@ target_include_directories(veyra_push_display_peak_tests PRIVATE ${CMAKE_CURRENT
 add_executable(veyra_push_compare_line_tests tests/unit/PushCompareLineTests.cpp)
 target_compile_features(veyra_push_compare_line_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_compare_line_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS lip sync by hand (sink/PushAudioTrim.h, pure; also builds with g++).
+add_executable(veyra_push_audio_trim_tests tests/unit/PushAudioTrimTests.cpp)
+target_compile_features(veyra_push_audio_trim_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_audio_trim_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_push_fg_health_tests tests/unit/PushFgHealthTests.cpp)
 target_compile_features(veyra_push_fg_health_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_fg_health_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

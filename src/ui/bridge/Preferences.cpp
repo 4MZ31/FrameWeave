@@ -7,6 +7,7 @@
 
 #include <QJsonDocument>
 #include "veyra/sink/SoundProfile.h"
+#include "veyra/sink/PushAudioTrim.h"
 #include "veyra/pipeline/NisSettings.h"
 #include "veyra/pipeline/PushEnhanceShape.h"
 #include "veyra/pushflow/PushFlow2.h"
@@ -299,6 +300,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         // PushFPS crop and resize of the console picture (View.cpp pushCropValues, PushCrop.js).
         {"pushCropL", {0, 450}}, {"pushCropT", {0, 450}}, {"pushCropR", {0, 450}}, {"pushCropB", {0, 450}},
         {"pushCropZoom", {25, 400}}, {"pushCropX", {-1000, 1000}}, {"pushCropY", {-1000, 1000}},
+        // Lip sync by hand: milliseconds on top of the automatic sound delay (sink/PushAudioTrim.h).
+        {"pushAudioTrimMs", {-250, 250}},
         // Where the on-screen latency readout was dragged to: shares of its room over the picture, thousandths.
         {"pushLatencyX", {0, 1000}}, {"pushLatencyY", {0, 1000}},
         {"canvasBackground", {0, 0xFFFFFF}}};
@@ -646,6 +649,8 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
     }
     else if (key == QLatin1String("pushAmbientFill"))
         engine::setPushAmbientFill(impl_->prefBool("pushAmbientFill", false));   // read by the presenter at every frame
+    else if (key == QLatin1String("pushAudioTrimMs"))
+        sink::setPushAudioTrimMs(impl_->prefInt("pushAudioTrimMs", 0));   // read by the sound session; a change re-anchors it once
     else if (key == QLatin1String("nisSharpness"))
         pipeline::setNisSharpness(float(impl_->prefInt("nisSharpness", int(pipeline::kNisDefaultSharpness * 100))) / 100.0f);
     else if (key == QLatin1String("magewellLowLatency")) source::magewell::setLowLatencyPreference(impl_->prefBool("magewellLowLatency", false));

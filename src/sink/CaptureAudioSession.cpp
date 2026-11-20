@@ -2,6 +2,7 @@
 #include "veyra/sink/WasapiAudioSink.h"
 #include "veyra/sink/ArrivalClockMapping.h"
 #include "veyra/sink/CaptureAudioDsp.h"
+#include "veyra/sink/PushAudioTrim.h"
 #include "veyra/sink/CaptureSyncTarget.h"
 #include "veyra/diagnostics/CapturePcmRecording.h"
 #include <algorithm>
@@ -111,7 +112,7 @@ struct CaptureAudioSession::Impl : AudioPcmSource {
         int64_t nextPeakLog=0;
         // Sample findings since the last report (see the report below).
         uint64_t heldPadding=0,heldNonFinite=0,heldOverRange=0;double heldPeak=0;bool sampleReported=false;
-        unsigned appliedMode=mode.load();int appliedOffset=offset.load();
+        unsigned appliedMode=mode.load();int appliedOffset=offset.load();int appliedTrim=pushAudioTrimMs();
         CaptureSyncTarget syncTarget;
         CaptureSyncTarget::Result syncEstimate;
         uint64_t lastVideoObservation=0;
@@ -176,9 +177,12 @@ struct CaptureAudioSession::Impl : AudioPcmSource {
                 ingress=ingressMapping;
                 arrival=lastArrival;
             }
-            if(mode!=appliedMode||offset!=appliedOffset){
-                syncChanged=true;reset=true;appliedMode=mode;appliedOffset=offset;
-                log::info("capture-audio-sync",std::format("mode={} offsetMs={} reanchor=explicit-audio-setting",appliedMode,appliedOffset));
+            // PushFPS: the lip-sync trim (PushAudioTrim.h) is a setting like the two above: a change
+            // re-anchors the sound once, exactly as a changed offset does.
+            const int trim=pushAudioTrimMs();
+            if(mode!=appliedMode||offset!=appliedOffset||trim!=appliedTrim){
+                syncChanged=true;reset=true;appliedMode=mode;appliedOffset=offset;appliedTrim=trim;
+                log::info("capture-audio-sync",std::format("mode={} offsetMs={} trimMs={} reanchor=explicit-audio-setting",appliedMode,appliedOffset,appliedTrim));
             }
             if(syncChanged&&!clearCorrection()){fail(L"音频同步补偿重置失败");break;}
             if(reset||chunk.discontinuity){
@@ -296,7 +300,7 @@ struct CaptureAudioSession::Impl : AudioPcmSource {
                     log::warn("capture-audio-clock",std::format("fallback={} rawMs={:.3f} localVideoMs={:.3f} acceptedMs={:.3f} basis=matched-original-arrival hardwareOffsetUnmeasured=1",syncEstimate.fallback,syncEstimate.rawMs,syncEstimate.localMs,syncEstimate.targetMs));
             }
             if(!fresh)syncTarget.invalidate();
-            const double requested=appliedMode==0?syncEstimate.targetMs:appliedMode==1?double(appliedOffset):0;
+            const double requested=pushAudioRequestedMs(unsigned(appliedMode),syncEstimate.targetMs,appliedOffset,appliedTrim);
             const double maxDelay=appliedMode==0?maxAutoDelayMs:250.0;
             const double target=std::clamp(requested,0.0,maxDelay);
             const double mapping=ingress+target;

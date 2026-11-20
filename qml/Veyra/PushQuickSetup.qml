@@ -1138,6 +1138,64 @@ VGroup {
         }
     }
 
+    // Lip sync by hand (sink/PushAudioTrim.h): milliseconds on top of the automatic sound delay.
+    // Automatic sync cannot see how much later than its sound a capture card hands over its picture,
+    // nor what the screen and the sound device add afterwards, so the last step is the user's.
+    VRow {
+        id: lipSync
+        objectName: "pushfps-lipsync-row"
+        readonly property int trim: {
+            const value = Number(veyra.preferences.pushAudioTrimMs)
+            return isFinite(value) ? Math.max(-250, Math.min(250, Math.round(value))) : 0
+        }
+        // Automatic sync is what the trim adds to; in manual mode and with sync off it does nothing.
+        readonly property bool automatic: veyra.audioSyncMode === undefined || veyra.audioSyncMode === 0
+        // The delay the sound really has now (0 when nothing live plays).
+        readonly property real applied: veyra.audioSyncLive === true ? Number(veyra.audioCompensationMs) || 0 : -1
+        // Sound cannot be played before it arrives: a trim further back than the delay there is has no more effect.
+        readonly property bool atLimit: automatic && trim < 0 && applied >= 0 && applied < 0.5
+        function set(value) { veyra.setPreference("pushAudioTrimMs", Math.max(-250, Math.min(250, Math.round(value)))) }
+        label: qsTr("声音对口型")
+        help: qsTr("声音和嘴型对不上时在这里微调。自动同步会让声音延后画面在 PushFPS 里所花的时间，但它看不到采集卡交出画面比声音晚多少，也看不到显示器、电视音箱、回音壁或无线耳机之后再加的延迟。声音先到就往“晚”调，声音晚到就往“早”调；声音不能早于它到达的时间，所以“早”有上限。")
+        hint: !automatic ? qsTr("声音同步设为手动或关闭时微调不起作用（音频设置里改回自动估算）")
+            : atLimit ? qsTr("已经最早：声音一到就播放，再往早调没有效果")
+            : trim === 0 ? (applied >= 0 ? qsTr("自动：声音延后 %1 毫秒，与画面对齐").arg(Math.round(applied)) : qsTr("自动：声音跟随画面的延迟"))
+            : trim > 0 ? qsTr("声音比自动再晚 %1 毫秒").arg(trim)
+            : qsTr("声音比自动早 %1 毫秒").arg(-trim)
+        RowLayout {
+            spacing: 6
+            VButton {
+                objectName: "pushfps-lipsync-earlier"
+                ghost: true
+                enabled: lipSync.automatic && lipSync.trim > -250 && !lipSync.atLimit
+                text: qsTr("早 10")
+                onClicked: lipSync.set(lipSync.trim - 10)
+            }
+            Text {
+                objectName: "pushfps-lipsync-value"
+                text: (lipSync.trim > 0 ? "+" : "") + lipSync.trim + " ms"
+                color: lipSync.trim === 0 ? Theme.t2 : Theme.t1
+                font.family: Theme.fontMono; font.pixelSize: 12
+                horizontalAlignment: Text.AlignHCenter
+                Layout.preferredWidth: 62
+            }
+            VButton {
+                objectName: "pushfps-lipsync-later"
+                ghost: true
+                enabled: lipSync.automatic && lipSync.trim < 250
+                text: qsTr("晚 10")
+                onClicked: lipSync.set(lipSync.trim + 10)
+            }
+            VButton {
+                objectName: "pushfps-lipsync-reset"
+                ghost: true
+                visible: lipSync.trim !== 0
+                text: qsTr("归零")
+                onClicked: lipSync.set(0)
+            }
+        }
+    }
+
     // Plug and play: Veyra's 启动后自动继续上次内容 (autoResume: the last capture card with its
     // settings, or the last stream) and PushFPS's fullscreen-on-connect (Main.qml).
     VRow {

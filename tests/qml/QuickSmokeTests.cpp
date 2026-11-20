@@ -132,6 +132,11 @@ QtObject {
     property string captureDeviceLabel: ""
     property var exclusionState: ({enabled: false, feather: 6, regions: []})
     property var liveStats: ({running: false})
+    // Sound sync as the real bridge has it: 0 automatic, 1 manual, 2 off; whether something live plays;
+    // and the delay the sound has now.
+    property int audioSyncMode: 0
+    property bool audioSyncLive: false
+    property real audioCompensationMs: 0
     property var benchmarkModel: null
     property int benchmarkWindows: 0
     property var lastRegions: null

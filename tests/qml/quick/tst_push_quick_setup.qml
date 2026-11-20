@@ -50,6 +50,7 @@ Item {
             veyra.displayRefreshHz = 240
             veyra.aspectMode = 0
             quick.screenAspectOverride = 0
+            veyra.audioSyncMode = 0; veyra.audioSyncLive = false; veyra.audioCompensationMs = 0
         }
         function cleanup() { init() }
         function control(name) { const c = findChild(quick, name); verify(c !== null, name); return c }
@@ -814,6 +815,42 @@ Item {
             verify(!sw.enabled)
             quick.setLookCompare(true)
             compare(veyra.compareMode, 0)
+        }
+
+        function test_lip_sync_is_trimmed_by_hand_on_top_of_automatic() {
+            const row = control("pushfps-lipsync-row"), earlier = control("pushfps-lipsync-earlier"), later = control("pushfps-lipsync-later")
+            const value = control("pushfps-lipsync-value"), reset = control("pushfps-lipsync-reset")
+            // Nothing set: automatic alone, nothing to reset.
+            compare(row.trim, 0); compare(value.text, "0 ms"); verify(!reset.visible)
+            verify(earlier.enabled && later.enabled)
+            // Later in steps of ten, kept as one number, and never past a quarter of a second.
+            later.clicked(); compare(veyra.preferences.pushAudioTrimMs, 10); compare(value.text, "+10 ms"); verify(reset.visible)
+            later.clicked(); later.clicked(); compare(veyra.preferences.pushAudioTrimMs, 30)
+            veyra.preferences = ({ pushAudioTrimMs: 245 })
+            later.clicked(); compare(veyra.preferences.pushAudioTrimMs, 250); verify(!later.enabled, "250 is the end")
+            // Earlier the same way.
+            veyra.preferences = ({ pushAudioTrimMs: 0 })
+            earlier.clicked(); earlier.clicked(); compare(veyra.preferences.pushAudioTrimMs, -20); compare(value.text, "-20 ms")
+            veyra.preferences = ({ pushAudioTrimMs: -250 }); verify(!earlier.enabled, "-250 is the end")
+            // Back to automatic alone.
+            reset.clicked(); compare(veyra.preferences.pushAudioTrimMs, 0); verify(!reset.visible)
+            // Sound cannot be played before it arrives: with the delay used up, earlier is switched off and said.
+            veyra.audioSyncLive = true; veyra.audioCompensationMs = 24
+            veyra.preferences = ({ pushAudioTrimMs: -10 })
+            verify(!row.atLimit && earlier.enabled, "14 ms of delay are left")
+            veyra.audioCompensationMs = 0
+            verify(row.atLimit && !earlier.enabled, "none is left")
+            verify(later.enabled, "later is always possible")
+            // With sync set to manual or off the trim does nothing, and the row says so instead of pretending.
+            veyra.preferences = ({ pushAudioTrimMs: 20 }); veyra.audioCompensationMs = 44
+            veyra.audioSyncMode = 1
+            verify(!row.automatic && !earlier.enabled && !later.enabled)
+            verify(reset.visible, "a trim that is set can still be taken away")
+            veyra.audioSyncMode = 0
+            verify(earlier.enabled && later.enabled)
+            // A value that is no number, or out of range, is no trim or the nearest end.
+            veyra.preferences = ({ pushAudioTrimMs: "abc" }); compare(row.trim, 0)
+            veyra.preferences = ({ pushAudioTrimMs: 9000 }); compare(row.trim, 250)
         }
 
         function test_lowest_latency_one_tap_keeps_quality_and_restores() {
