@@ -157,6 +157,8 @@ QString QmlPlayerBridge::pushPerformanceReport() const {
     f.pushFlowMotionWidth = s.pushFlowMotionWidth; f.pushFlowMotionHeight = s.pushFlowMotionHeight;
     f.pushFlowEncoderCache = s.pushFlowEncoderCache; f.pushFlowWholeMs = s.pushFlowWholeMs; f.pushFlowSplitMs = s.pushFlowSplitMs;
     f.pushFlowGuard = s.pushFlowGuard; f.pushFlowGuardFrames = s.pushFlowGuardFrames; f.pushFlowGuardMended = s.pushFlowGuardMended; f.pushFlowGuardHeld = s.pushFlowGuardHeld;
+    f.pushFlowPredict = s.pushFlowPredict; f.pushFlowPredictFrames = s.pushFlowPredictFrames; f.pushFlowPredictSuperseded = s.pushFlowPredictSuperseded;
+    f.pushFlowPredictCounted = s.pushFlowPredictCounted; f.pushFlowPredictMoving = s.pushFlowPredictMoving; f.pushFlowPredictHeld = s.pushFlowPredictHeld;
     return QString::fromStdString(engine::perfreport::json(f));
 }
 

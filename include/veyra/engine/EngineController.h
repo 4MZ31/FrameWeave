@@ -147,6 +147,10 @@ struct PlayerSnapshot {
     std::string pushFlowEncoderCache; uint64_t pushFlowEncoderRuns=0, pushFlowFeaturesKept=0, pushFlowFeaturesMade=0; double pushFlowWholeMs=0, pushFlowSplitMs=0, pushFlowSplitCheckDb=0;
     // PushFPS: PushFlow 2's Guard ("" not asked for, "on", or why not) and the frames it judged, mended and held.
     std::string pushFlowGuard; uint64_t pushFlowGuardFrames=0, pushFlowGuardMended=0, pushFlowGuardHeld=0;
+    // PushFPS: PushFlow 2's Predict ("" not asked for, "on", or why not): forecast frames made, the pixels
+    // counted in them, how many of those the motion would move and how many of those were held, and the
+    // forecasts not shown because the next real frame was already due.
+    std::string pushFlowPredict; uint64_t pushFlowPredictFrames=0, pushFlowPredictCounted=0, pushFlowPredictMoving=0, pushFlowPredictHeld=0, pushFlowPredictSuperseded=0;
     uint64_t frames=0,generated=0;
     uint64_t captureReceived=0,captureDropped=0,nrEvaluated=0,nvofExecuted=0;
     uint64_t captureRateSkipped=0,processedCompleted=0;
@@ -376,6 +380,9 @@ private:
     EnhancementSettings desired_;uint64_t nextRevision_=1;
     std::optional<ChainRuntimeOrder> desiredNodeOrder_; // protected by mutex_, paired with desired_
     std::atomic<bool> stop_{false},paused_{false},muted_{false};
+    // PushFlow 2's Predict, engine thread only: the newest real frame's time and when it is due, so a
+    // forecast made from the frame before it is never shown after it; and how many were dropped for that.
+    int64_t predictNewestReal100ns_=0,predictNewestDue100ns_=0;uint64_t predictSuperseded_=0;
     std::atomic<bool> captureAudioMonitoring_{true};
     std::atomic<float> volume_{1};uint64_t sessionId_=0;
     std::atomic<double> seekSeconds_{-1};

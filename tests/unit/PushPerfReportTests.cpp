@@ -57,6 +57,15 @@ int main() {
       f.pushFlowMotionWidth = 4000000; const auto u = json(f);
       check(has(u, "\"pushFlowMotionSize\": null"), "a size that cannot be is not passed on"); }
     check(has(r, "\"pushFlowEncoderCache\": null") && has(r, "\"pushFlowEncoderCacheStartMs\": null"), "the encoder cache not asked for: null, with no times");
+    check(has(r, "\"pushFlowGuard\": null") && has(r, "\"pushFlowGuardFrames\": null") && has(r, "\"pushFlowPredict\": null") && has(r, "\"pushFlowPredictFrames\": null") &&
+          has(r, "\"pushFlowPredictPixels\": null"), "Guard and Predict not asked for: null, with no counts");
+    { auto f = session(); f.pushFlowGuard = "on"; f.pushFlowGuardFrames = 600; f.pushFlowGuardMended = 12; f.pushFlowGuardHeld = 3;
+      f.pushFlowPredict = "on"; f.pushFlowPredictFrames = 900; f.pushFlowPredictSuperseded = 4; f.pushFlowPredictCounted = 81000; f.pushFlowPredictMoving = 20000; f.pushFlowPredictHeld = 1500;
+      const auto t = json(f);
+      check(has(t, "\"pushFlowGuard\": \"on\"") && has(t, "\"pushFlowGuardFrames\": [600, 12, 3]") && wellFormed(t), "Guard in use: frames judged, mended, held");
+      check(has(t, "\"pushFlowPredict\": \"on\"") && has(t, "\"pushFlowPredictFrames\": [900, 4]") && has(t, "\"pushFlowPredictPixels\": [81000, 20000, 1500]"),
+            "Predict in use: forecasts made and not shown, pixels counted, moving and held");
+      f.pushFlowPredict = "D:\\games"; check(has(json(f), "\"pushFlowPredict\": null"), "a state that is not a word is dropped"); }
     { auto f = session(); f.pushFlowEncoderCache = "on"; f.pushFlowWholeMs = 9.5; f.pushFlowSplitMs = 8.25; const auto t = json(f);
       check(has(t, "\"pushFlowEncoderCache\": \"on\"") && has(t, "\"pushFlowEncoderCacheStartMs\": [9.5") && wellFormed(t), "the encoder cache in use, with one frame each way at start");
       f.pushFlowEncoderCache = "mismatch"; f.pushFlowSplitMs = 0; const auto u = json(f);

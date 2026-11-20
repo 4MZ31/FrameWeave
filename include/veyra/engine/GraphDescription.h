@@ -61,6 +61,9 @@ struct StageRequest {
     uint32_t width=0,height=0;
     bool stillImage=false;   // image preview/processing: no NR-first order
     bool exportJob=false;    // selected NR size, bounded AMD NR, no present-sink FG/NR-first order
+    // A live source (capture card, screen, Remote Play, Moonlight, Xbox, frame input) played by the engine:
+    // the only place PushFlow 2's Predict runs. A file, an export and a still image keep in-between frames.
+    bool liveSource=false;
     bool nvidiaAdapter=true;
     bool amdNr=false;        // AMD adapter: NR runs on the lmxxf runtime (no NGX)
     // Raw capture-card or screen frames: nothing compressed for native-size RTX Video SR to repair.
@@ -174,6 +177,8 @@ inline pipeline::ResolutionPlan describeStages(const StageRequest& request,const
     desc.pushFlowMotion=desc.enableFg&&settings.frameGenerationBackend==FrameGenerationBackend::PushFlow?pushflow::motion::motionHeight():0;
     desc.pushFlowEncoderCache=desc.enableFg&&settings.frameGenerationBackend==FrameGenerationBackend::PushFlow&&pushflow2::wanted(pushflow2::Experiment::Fusion);
     desc.pushFlowGuard=desc.enableFg&&settings.frameGenerationBackend==FrameGenerationBackend::PushFlow&&pushflow2::wanted(pushflow2::Experiment::Guard);
+    desc.pushFlowPredict=desc.enableFg&&settings.frameGenerationBackend==FrameGenerationBackend::PushFlow&&request.liveSource&&!request.exportJob&&!request.stillImage&&
+        pushflow2::wanted(pushflow2::Experiment::Predict);
     desc.color=settings.color;
     desc.additionalColors=settings.additionalColors;
     desc.additionalColorCount=settings.additionalColorCount;

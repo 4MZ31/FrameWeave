@@ -6631,6 +6631,23 @@
    "ru": "PushFlow 2: Guard, bring back objects that were left out (experimental)"
   },
   {
+   "zh": "PushFlow 2：Predict，不等下一帧（实验）",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "PushFlow 2：Predict，不等下一幀（實驗）",
+   "en": "PushFlow 2: Predict, no waiting for the next frame (experimental)",
+   "ja": "PushFlow 2：Predict、次のフレームを待たない（実験）",
+   "nl": "PushFlow 2: Predict, no waiting for the next frame (experimental)",
+   "de": "PushFlow 2: Predict, no waiting for the next frame (experimental)",
+   "es": "PushFlow 2: Predict, no waiting for the next frame (experimental)",
+   "fr": "PushFlow 2: Predict, no waiting for the next frame (experimental)",
+   "it": "PushFlow 2: Predict, no waiting for the next frame (experimental)",
+   "pt-BR": "PushFlow 2: Predict, no waiting for the next frame (experimental)",
+   "tr": "PushFlow 2: Predict, no waiting for the next frame (experimental)",
+   "ar": "PushFlow 2: Predict, no waiting for the next frame (experimental)",
+   "pl": "PushFlow 2: Predict, no waiting for the next frame (experimental)",
+   "ru": "PushFlow 2: Predict, no waiting for the next frame (experimental)"
+  },
+  {
    "zh": "PushFlow 2：每个真实帧只编码一次（实验）",
    "src": "qml/ProPage.qml",
    "zh-TW": "PushFlow 2：每個真實幀只編碼一次（實驗）",
@@ -18464,6 +18481,23 @@
    "ru": "Использовать только DLSS / XeSS Создание кадров: выключите Smooth Motion в приложении NVIDIA."
   },
   {
+   "zh": "只用于采集卡、串流等实时画面",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "只用於擷取卡、串流等即時畫面",
+   "en": "it is only for live pictures such as a capture card or a stream",
+   "ja": "キャプチャーカードやストリームなどのライブ映像専用です",
+   "nl": "it is only for live pictures such as a capture card or a stream",
+   "de": "it is only for live pictures such as a capture card or a stream",
+   "es": "it is only for live pictures such as a capture card or a stream",
+   "fr": "it is only for live pictures such as a capture card or a stream",
+   "it": "it is only for live pictures such as a capture card or a stream",
+   "pt-BR": "it is only for live pictures such as a capture card or a stream",
+   "tr": "it is only for live pictures such as a capture card or a stream",
+   "ar": "it is only for live pictures such as a capture card or a stream",
+   "pl": "it is only for live pictures such as a capture card or a stream",
+   "ru": "it is only for live pictures such as a capture card or a stream"
+  },
+  {
    "zh": "只用驱动补帧时：在专业模式的补帧页关闭补帧，再到 NVIDIA App 打开 Smooth Motion（AI 插帧）。",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "只用驅動補幀時：在專業模式的補幀頁關閉補幀，再到 NVIDIA App 開啟 Smooth Motion（AI 插幀）。",
@@ -26962,6 +26996,23 @@
    "ar": "تم فتح قفل ملء الشاشة",
    "pl": "Pełny ekran odblokowany",
    "ru": "Полноэкранный режим разблокирован"
+  },
+  {
+   "zh": "已让位：画质测试或自动优化正在测量普通的中间帧，结束后恢复",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "已讓位：畫質測試或自動最佳化正在測量一般的中間幀，結束後恢復",
+   "en": "Stepped aside: the quality test or Optimise for my PC is measuring ordinary in-between frames. It comes back when that ends",
+   "ja": "一時停止中：品質テストまたは「PC に合わせて最適化」が通常の中間フレームを測定しています。終わると再開します",
+   "nl": "Stepped aside: the quality test or Optimise for my PC is measuring ordinary in-between frames. It comes back when that ends",
+   "de": "Stepped aside: the quality test or Optimise for my PC is measuring ordinary in-between frames. It comes back when that ends",
+   "es": "Stepped aside: the quality test or Optimise for my PC is measuring ordinary in-between frames. It comes back when that ends",
+   "fr": "Stepped aside: the quality test or Optimise for my PC is measuring ordinary in-between frames. It comes back when that ends",
+   "it": "Stepped aside: the quality test or Optimise for my PC is measuring ordinary in-between frames. It comes back when that ends",
+   "pt-BR": "Stepped aside: the quality test or Optimise for my PC is measuring ordinary in-between frames. It comes back when that ends",
+   "tr": "Stepped aside: the quality test or Optimise for my PC is measuring ordinary in-between frames. It comes back when that ends",
+   "ar": "Stepped aside: the quality test or Optimise for my PC is measuring ordinary in-between frames. It comes back when that ends",
+   "pl": "Stepped aside: the quality test or Optimise for my PC is measuring ordinary in-between frames. It comes back when that ends",
+   "ru": "Stepped aside: the quality test or Optimise for my PC is measuring ordinary in-between frames. It comes back when that ends"
   },
   {
    "zh": "已记住 %1 台显示设备的曲线配置，切换显示器时自动套用",
@@ -37454,6 +37505,23 @@
    "ru": "Обычный"
   },
   {
+   "zh": "普通补帧要等下一个真实帧到达，才能在两帧之间生成画面，所以真实画面会晚大约一帧才显示。Predict 不等：最新的真实帧处理完就显示，它之后的画面由已经到达的两帧预测出来。延迟更低，但预测可能出错：物体突然改变方向或新物体出现时，预测帧会和实际不同，直到下一个真实帧纠正。不可信的位置保持最新真实帧不动，不会凭空生成画面。只用于采集卡、串流等实时画面，不用于视频文件和导出。延迟实际降低多少、画面是否可以接受，还没有在真实硬件上测量过，需要你来判断",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "一般補幀要等下一個真實幀到達，才能在兩幀之間生成畫面，所以真實畫面會晚大約一幀才顯示。Predict 不等：最新的真實幀處理完就顯示，它之後的畫面由已經到達的兩幀預測出來。延遲更低，但預測可能出錯：物體突然改變方向或新物體出現時，預測幀會和實際不同，直到下一個真實幀糾正。不可信的位置保持最新真實幀不動，不會憑空生成畫面。只用於擷取卡、串流等即時畫面，不用於影片檔案和匯出。延遲實際降低多少、畫面是否可以接受，還沒有在真實硬體上測量過，需要你來判斷",
+   "en": "Ordinary frame generation has to wait for the next real frame before it can make the frames in between, so the real picture is shown about one frame late. Predict does not wait: the newest real frame is shown as soon as it is processed, and the frames after it are forecast from the two real frames that have already arrived. The delay is lower, but a forecast can be wrong: when something changes direction suddenly or something new appears, the forecast frame differs from what really happens until the next real frame corrects it. Where the motion is not trusted, the newest real frame is left as it is; nothing is invented. Only for live pictures such as a capture card or a stream, not for video files or export. How much delay it really saves and whether the picture is acceptable have not been measured on real hardware yet, which is for you to judge",
+   "ja": "通常のフレーム生成は、次の実フレームが届くまで中間のフレームを作れないため、実際の映像は約 1 フレーム遅れて表示されます。Predict は待ちません。最新の実フレームは処理が終わりしだい表示し、その後のフレームは、すでに届いた 2 枚の実フレームから予測します。遅延は小さくなりますが、予測は外れることがあります。物体が急に向きを変えたり、新しい物体が現れたりすると、次の実フレームで修正されるまで、予測フレームは実際と異なります。動きを信頼できない場所は最新の実フレームのままにし、映像を作り出すことはありません。キャプチャーカードやストリームなどのライブ映像専用で、動画ファイルと書き出しには使いません。遅延が実際にどれだけ減るか、映像が許容できるかは、まだ実機で測定していません。判断はあなたにお願いします",
+   "nl": "Ordinary frame generation has to wait for the next real frame before it can make the frames in between, so the real picture is shown about one frame late. Predict does not wait: the newest real frame is shown as soon as it is processed, and the frames after it are forecast from the two real frames that have already arrived. The delay is lower, but a forecast can be wrong: when something changes direction suddenly or something new appears, the forecast frame differs from what really happens until the next real frame corrects it. Where the motion is not trusted, the newest real frame is left as it is; nothing is invented. Only for live pictures such as a capture card or a stream, not for video files or export. How much delay it really saves and whether the picture is acceptable have not been measured on real hardware yet, which is for you to judge",
+   "de": "Ordinary frame generation has to wait for the next real frame before it can make the frames in between, so the real picture is shown about one frame late. Predict does not wait: the newest real frame is shown as soon as it is processed, and the frames after it are forecast from the two real frames that have already arrived. The delay is lower, but a forecast can be wrong: when something changes direction suddenly or something new appears, the forecast frame differs from what really happens until the next real frame corrects it. Where the motion is not trusted, the newest real frame is left as it is; nothing is invented. Only for live pictures such as a capture card or a stream, not for video files or export. How much delay it really saves and whether the picture is acceptable have not been measured on real hardware yet, which is for you to judge",
+   "es": "Ordinary frame generation has to wait for the next real frame before it can make the frames in between, so the real picture is shown about one frame late. Predict does not wait: the newest real frame is shown as soon as it is processed, and the frames after it are forecast from the two real frames that have already arrived. The delay is lower, but a forecast can be wrong: when something changes direction suddenly or something new appears, the forecast frame differs from what really happens until the next real frame corrects it. Where the motion is not trusted, the newest real frame is left as it is; nothing is invented. Only for live pictures such as a capture card or a stream, not for video files or export. How much delay it really saves and whether the picture is acceptable have not been measured on real hardware yet, which is for you to judge",
+   "fr": "Ordinary frame generation has to wait for the next real frame before it can make the frames in between, so the real picture is shown about one frame late. Predict does not wait: the newest real frame is shown as soon as it is processed, and the frames after it are forecast from the two real frames that have already arrived. The delay is lower, but a forecast can be wrong: when something changes direction suddenly or something new appears, the forecast frame differs from what really happens until the next real frame corrects it. Where the motion is not trusted, the newest real frame is left as it is; nothing is invented. Only for live pictures such as a capture card or a stream, not for video files or export. How much delay it really saves and whether the picture is acceptable have not been measured on real hardware yet, which is for you to judge",
+   "it": "Ordinary frame generation has to wait for the next real frame before it can make the frames in between, so the real picture is shown about one frame late. Predict does not wait: the newest real frame is shown as soon as it is processed, and the frames after it are forecast from the two real frames that have already arrived. The delay is lower, but a forecast can be wrong: when something changes direction suddenly or something new appears, the forecast frame differs from what really happens until the next real frame corrects it. Where the motion is not trusted, the newest real frame is left as it is; nothing is invented. Only for live pictures such as a capture card or a stream, not for video files or export. How much delay it really saves and whether the picture is acceptable have not been measured on real hardware yet, which is for you to judge",
+   "pt-BR": "Ordinary frame generation has to wait for the next real frame before it can make the frames in between, so the real picture is shown about one frame late. Predict does not wait: the newest real frame is shown as soon as it is processed, and the frames after it are forecast from the two real frames that have already arrived. The delay is lower, but a forecast can be wrong: when something changes direction suddenly or something new appears, the forecast frame differs from what really happens until the next real frame corrects it. Where the motion is not trusted, the newest real frame is left as it is; nothing is invented. Only for live pictures such as a capture card or a stream, not for video files or export. How much delay it really saves and whether the picture is acceptable have not been measured on real hardware yet, which is for you to judge",
+   "tr": "Ordinary frame generation has to wait for the next real frame before it can make the frames in between, so the real picture is shown about one frame late. Predict does not wait: the newest real frame is shown as soon as it is processed, and the frames after it are forecast from the two real frames that have already arrived. The delay is lower, but a forecast can be wrong: when something changes direction suddenly or something new appears, the forecast frame differs from what really happens until the next real frame corrects it. Where the motion is not trusted, the newest real frame is left as it is; nothing is invented. Only for live pictures such as a capture card or a stream, not for video files or export. How much delay it really saves and whether the picture is acceptable have not been measured on real hardware yet, which is for you to judge",
+   "ar": "Ordinary frame generation has to wait for the next real frame before it can make the frames in between, so the real picture is shown about one frame late. Predict does not wait: the newest real frame is shown as soon as it is processed, and the frames after it are forecast from the two real frames that have already arrived. The delay is lower, but a forecast can be wrong: when something changes direction suddenly or something new appears, the forecast frame differs from what really happens until the next real frame corrects it. Where the motion is not trusted, the newest real frame is left as it is; nothing is invented. Only for live pictures such as a capture card or a stream, not for video files or export. How much delay it really saves and whether the picture is acceptable have not been measured on real hardware yet, which is for you to judge",
+   "pl": "Ordinary frame generation has to wait for the next real frame before it can make the frames in between, so the real picture is shown about one frame late. Predict does not wait: the newest real frame is shown as soon as it is processed, and the frames after it are forecast from the two real frames that have already arrived. The delay is lower, but a forecast can be wrong: when something changes direction suddenly or something new appears, the forecast frame differs from what really happens until the next real frame corrects it. Where the motion is not trusted, the newest real frame is left as it is; nothing is invented. Only for live pictures such as a capture card or a stream, not for video files or export. How much delay it really saves and whether the picture is acceptable have not been measured on real hardware yet, which is for you to judge",
+   "ru": "Ordinary frame generation has to wait for the next real frame before it can make the frames in between, so the real picture is shown about one frame late. Predict does not wait: the newest real frame is shown as soon as it is processed, and the frames after it are forecast from the two real frames that have already arrived. The delay is lower, but a forecast can be wrong: when something changes direction suddenly or something new appears, the forecast frame differs from what really happens until the next real frame corrects it. Where the motion is not trusted, the newest real frame is left as it is; nothing is invented. Only for live pictures such as a capture card or a stream, not for video files or export. How much delay it really saves and whether the picture is acceptable have not been measured on real hardware yet, which is for you to judge"
+  },
+  {
    "zh": "暂不支持此字幕格式",
    "src": "src/engine/Subtitles.cpp",
    "zh-TW": "暫不支援此字幕格式",
@@ -40563,6 +40631,23 @@
    "ar": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame",
    "pl": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame",
    "ru": "In use. Checked %1 generated frames: %2 took the real frame in places, %3 were replaced whole by the real frame"
+  },
+  {
+   "zh": "正在使用。已生成 %1 个预测帧；运动的画面中有 %2 % 因不可信而保持不动；%3 个预测帧因下一个真实帧已到而没有显示",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "正在使用。已生成 %1 個預測幀；運動的畫面中有 %2 % 因不可信而保持不動；%3 個預測幀因下一個真實幀已到而沒有顯示",
+   "en": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due",
+   "ja": "使用中です。予測フレームを %1 枚作成。動いている部分の %2 % は信頼できないためそのままにしました。%3 枚は次の実フレームがすでに届いていたため表示しませんでした",
+   "nl": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due",
+   "de": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due",
+   "es": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due",
+   "fr": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due",
+   "it": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due",
+   "pt-BR": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due",
+   "tr": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due",
+   "ar": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due",
+   "pl": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due",
+   "ru": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due"
   },
   {
    "zh": "正在保存正式文件",

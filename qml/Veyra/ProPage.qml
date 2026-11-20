@@ -1926,6 +1926,20 @@ VPage {
                                 title: qsTr("PushFlow 2：Guard，补回被漏掉的物体（实验）")
                                 explanation: qsTr("物体在两个真实帧之间移动得太快时，PushFlow 跟不上，生成帧里这个物体会整个消失，看起来像闪烁。Guard 找出这些位置，在那里改用时间上更近的真实帧：物体不再消失，而是按游戏本身的帧率移动。它不会凭空生成画面；一帧里有三分之一以上的位置有问题时，整帧改用真实帧，并且如实计数。这条规则只在测试图上验证过，在真实游戏里是否更好看还不知道，所以需要你来判断")
                             }
+                            PushFlow2Row {
+                                objectName: "list-pushflow2-predict-row"
+                                visible: veyra.fgBackendName === "pushflow"
+                                part: "predict"
+                                stateKey: "pushFlowPredict"
+                                describe: function(st) {
+                                    if (st.pushFlowPredictPaused === true) return qsTr("已让位：画质测试或自动优化正在测量普通的中间帧，结束后恢复")
+                                    return qsTr("正在使用。已生成 %1 个预测帧；运动的画面中有 %2 % 因不可信而保持不动；%3 个预测帧因下一个真实帧已到而没有显示")
+                                        .arg(Math.round(Number(st.pushFlowPredictFrames || 0))).arg(Number(st.pushFlowPredictHeldPercent || 0).toFixed(0))
+                                        .arg(Math.round(Number(st.pushFlowPredictSuperseded || 0)))
+                                }
+                                title: qsTr("PushFlow 2：Predict，不等下一帧（实验）")
+                                explanation: qsTr("普通补帧要等下一个真实帧到达，才能在两帧之间生成画面，所以真实画面会晚大约一帧才显示。Predict 不等：最新的真实帧处理完就显示，它之后的画面由已经到达的两帧预测出来。延迟更低，但预测可能出错：物体突然改变方向或新物体出现时，预测帧会和实际不同，直到下一个真实帧纠正。不可信的位置保持最新真实帧不动，不会凭空生成画面。只用于采集卡、串流等实时画面，不用于视频文件和导出。延迟实际降低多少、画面是否可以接受，还没有在真实硬件上测量过，需要你来判断")
+                            }
                             // Half precision is tested in a separate process first (PushFlowBench --fp16-probe):
                             // the switch only turns on after that test passed on this graphics card.
                             VRow {

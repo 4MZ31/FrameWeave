@@ -198,6 +198,16 @@ struct PushFlowBackend::Impl {
     uint32_t* guardMapped = nullptr;
     uint64_t guardWritten = 0;
     std::atomic<uint64_t> guardFrames{0}, guardMended{0}, guardHeld{0}, guardTilesReplaced{0};
+    // PushFlow 2's Predict (opt-in): one compute pass in two stages (PushPredict.hlsl), the forecast
+    // picture, and its totals read back a few frames later.
+    pipeline::ComputePass predictPass;
+    ComPtr<ID3D12Resource> predictTotals, predicted, predictReadback;
+    UINT predictRing = 0;
+    bool predictOn = false;
+    static constexpr UINT kPredictRing = 8;
+    uint32_t* predictMapped = nullptr;
+    uint64_t predictWritten = 0;
+    std::atomic<uint64_t> predictFrames{0}, predictCounted{0}, predictMoving{0}, predictHeld{0};
     std::chrono::steady_clock::time_point lastSummary = std::chrono::steady_clock::now();
     ComPtr<ID3D12Device> device;
     ComPtr<ID3D12CommandQueue> queue;
@@ -768,6 +778,8 @@ Telemetry PushFlowBackend::telemetry() const {
     t.featureMisses = p.featureMisses.load(std::memory_order_relaxed);
     t.guardFrames = p.guardFrames.load(std::memory_order_relaxed); t.guardMended = p.guardMended.load(std::memory_order_relaxed);
     t.guardHeld = p.guardHeld.load(std::memory_order_relaxed); t.guardTiles = p.guardTilesReplaced.load(std::memory_order_relaxed);
+    t.predictFrames = p.predictFrames.load(std::memory_order_relaxed); t.predictCounted = p.predictCounted.load(std::memory_order_relaxed);
+    t.predictMoving = p.predictMoving.load(std::memory_order_relaxed); t.predictHeld = p.predictHeld.load(std::memory_order_relaxed);
     const size_t n = std::min(p.inferSamples, kTelemetry);
     if (!n) return t;
     std::vector<float> v(p.inferRing.begin(), p.inferRing.begin() + ptrdiff_t(n));
@@ -779,7 +791,7 @@ Telemetry PushFlowBackend::telemetry() const {
 }
 
 bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue, const std::wstring& runtimeDir, uint32_t width, uint32_t height,
-                                 DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight, bool encoderCache, bool guard) {
+                                 DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight, bool encoderCache, bool guard, bool predict) {
     p_ = std::make_unique<Impl>();
     auto& p = *p_;
     std::wstring why;
@@ -788,7 +800,7 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
         return false;
     }
 #ifndef VEYRA_HAVE_ONNXRUNTIME
-    (void)format; (void)encoding; (void)tier; (void)motionHeight; (void)encoderCache; (void)guard;
+    (void)format; (void)encoding; (void)tier; (void)motionHeight; (void)encoderCache; (void)guard; (void)predict;
     return false;
 #else
     p.device = device; p.queue = queue; p.width = width; p.height = height; p.format = viewFormat(format); p.encoding = encoding;
@@ -951,6 +963,25 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
             p.guardOn = true; p.status.guard = true; p.status.guardState = "on";
         }
         if (!p.status.guard) veyra::log::warn("pushflow", "Guard was asked for and is not used: " + p.status.guardState);
+    }
+    // PushFlow 2's Predict (opt-in; shaders/PushPredict.hlsl): frames after the newest real frame, from
+    // the model's half-way grids. Whatever is missing here leaves PushFlow as it is without it.
+    if (predict) {
+        if (!p.haveGrids) p.status.predictState = "no-grids";
+        else if (!p.predictPass.loadShader("PushPredict.dxil", cs) || !p.predictPass.create(device, cs, 4 + 2 * kSrvRing, 2, 4, 12) ||
+                 !makeBuffer(4 * 4, p.predictTotals) || !(p.predicted = pipeline::makeTexture(device, width, height, p.format, true))) p.status.predictState = "shader";
+        else {
+            bufferUav(p.buffers[2].Get(), floats[2], cpuSlot(p.predictPass, 0));
+            bufferUav(p.buffers[3].Get(), floats[3], cpuSlot(p.predictPass, 1));
+            bufferUav(p.predictTotals.Get(), 4, cpuSlot(p.predictPass, 2));
+            pipeline::makeUav(device, p.predicted.Get(), p.format, cpuSlot(p.predictPass, 3));
+            p.predictReadback = readbackBuffer(device, Impl::kPredictRing * 4 * sizeof(uint32_t));
+            if (p.predictReadback && SUCCEEDED(p.predictReadback->Map(0, nullptr, reinterpret_cast<void**>(&p.predictMapped))))
+                std::memset(p.predictMapped, 0, Impl::kPredictRing * 4 * sizeof(uint32_t));
+            else { p.predictReadback.Reset(); p.predictMapped = nullptr; }
+            p.predictOn = true; p.status.predict = true; p.status.predictState = "on";
+        }
+        if (!p.status.predict) veyra::log::warn("pushflow", "Predict was asked for and is not used: " + p.status.predictState);
     }
     // The rebuild is what keeps the Fast tier sharp; at full size the network's own picture is used.
     p.status.rebuild = p.haveGrids && (p.status.modelW != width || p.status.modelH != height);
@@ -1157,6 +1188,19 @@ bool PushFlowBackend::infer() {
             p.guardTilesReplaced.fetch_add(risky, std::memory_order_relaxed);
         }
     }
+    // Predict's totals of earlier forecast frames, the same way: counted, would move, held, a serial.
+    if (p.predictMapped) {
+        for (UINT slot = 0; slot < Impl::kPredictRing; ++slot) {
+            uint32_t* totals = p.predictMapped + 4 * slot;
+            if (!totals[3] || !totals[0]) continue;
+            const uint32_t counted = totals[0], moving = totals[1], held = totals[2];
+            totals[0] = totals[1] = totals[2] = totals[3] = 0;
+            p.predictFrames.fetch_add(1, std::memory_order_relaxed);
+            p.predictCounted.fetch_add(counted, std::memory_order_relaxed);
+            p.predictMoving.fetch_add(moving, std::memory_order_relaxed);
+            p.predictHeld.fetch_add(held, std::memory_order_relaxed);
+        }
+    }
     bool summarize = false;
     {
         std::lock_guard lock(p.telemetryMutex);
@@ -1267,6 +1311,55 @@ bool PushFlowBackend::resolve(ID3D12GraphicsCommandList* list, ID3D12Resource* p
     }
     p.states.transition(list, shown, D3D12_RESOURCE_STATE_COPY_SOURCE);
     list->CopyResource(output, shown);
+    return true;
+}
+
+bool PushFlowBackend::forecast(ID3D12GraphicsCommandList* list, ID3D12Resource* previous, ID3D12Resource* current, ID3D12Resource* output, float ahead) {
+    auto& p = *p_;
+    if (!p.status.ready || !p.predictOn || !list || !previous || !current || !output) return false;
+    // The network's time, as resolve() takes it: this is the first reader of its output.
+    if (p.timeQueries && p.timePending) {
+        const UINT slot = UINT(p.timeWritten % Impl::kTimeRing);
+        list->EndQuery(p.timeQueries.Get(), D3D12_QUERY_TYPE_TIMESTAMP, 2 * slot + 1);
+        list->ResolveQueryData(p.timeQueries.Get(), D3D12_QUERY_TYPE_TIMESTAMP, 2 * slot, 2, p.timeReadback.Get(), 2 * slot * sizeof(uint64_t));
+        ++p.timeWritten; p.timePending = false;
+    }
+    D3D12_RESOURCE_BARRIER grids[2]{};
+    grids[0].Type = grids[1].Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+    grids[0].UAV.pResource = p.buffers[2].Get(); grids[1].UAV.pResource = p.buffers[3].Get();
+    list->ResourceBarrier(2, grids);
+    p.states.transition(list, p.predicted.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    const UINT first = 4 + 2 * p.predictRing;
+    p.predictRing = (p.predictRing + 1) % kSrvRing;
+    D3D12_SHADER_RESOURCE_VIEW_DESC view{};
+    view.Format = p.format; view.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    view.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; view.Texture2D.MipLevels = 1;
+    p.stager.stageSrv(previous, &view, p.predictPass.heap.Get(), first);
+    p.stager.stageSrv(current, &view, p.predictPass.heap.Get(), first + 1);
+    const uint32_t serial = uint32_t(p.predictWritten % 0x7FFFFFFFull) + 1;
+    const auto stage = [&](uint32_t which, uint32_t across, uint32_t down) {
+        const float constants[12] = {bits(p.width), bits(p.height), bits(p.status.padW), bits(p.status.padH),
+                                     bits(p.status.modelW), bits(p.status.modelH), bits(uint32_t(p.encoding)), bits(p.facts.alignCorners ? 1u : 0u),
+                                     bits(which), bits(serial), std::clamp(ahead, 0.0f, 1.0f), 0.0f};
+        p.predictPass.bind(list, constants, gpuSlot(p.predictPass, first), gpuSlot(p.predictPass, 0));
+        list->Dispatch((across + 7) / 8, (down + 7) / 8, 1);
+        D3D12_RESOURCE_BARRIER wait{}; wait.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV; wait.UAV.pResource = p.predictTotals.Get();
+        list->ResourceBarrier(1, &wait);
+    };
+    stage(0, 1, 1);                // the totals start at zero
+    stage(1, p.width, p.height);   // the picture
+    if (p.predictMapped) {
+        D3D12_RESOURCE_BARRIER copy{}; copy.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION; copy.Transition.pResource = p.predictTotals.Get();
+        copy.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        copy.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS; copy.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
+        list->ResourceBarrier(1, &copy);
+        list->CopyBufferRegion(p.predictReadback.Get(), (p.predictWritten % Impl::kPredictRing) * 4 * sizeof(uint32_t), p.predictTotals.Get(), 0, 4 * sizeof(uint32_t));
+        std::swap(copy.Transition.StateBefore, copy.Transition.StateAfter);
+        list->ResourceBarrier(1, &copy);
+    }
+    ++p.predictWritten;
+    p.states.transition(list, p.predicted.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE);
+    list->CopyResource(output, p.predicted.Get());
     return true;
 }
 

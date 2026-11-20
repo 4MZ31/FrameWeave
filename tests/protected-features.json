@@ -85,7 +85,7 @@
   },
   {
    "id": "F05",
-   "what": "PushFlow: Fast / Balanced / Quality and their own motion sizes, a motion size chosen apart from the tier (off means unchanged; the too-slow watch always takes a cheaper step), the rebuild at full size (the shader is what the motion contract says), half precision and its approval, PushFlow 2's experiments (each off unless switched on, the emergency stop, a damaged preference reads as off) its encoder cache (the pictures are the whole model's, whatever is kept or made anew) and Guard (a still picture and a followed object come out exactly as without it; it never moves a place further from the real frame), the adaptive multiplier",
+   "what": "PushFlow: Fast / Balanced / Quality and their own motion sizes, a motion size chosen apart from the tier (off means unchanged; the too-slow watch always takes a cheaper step), the rebuild at full size (the shader is what the motion contract says), half precision and its approval, PushFlow 2's experiments (each off unless switched on, the emergency stop, a damaged preference reads as off) its encoder cache (the pictures are the whole model's, whatever is kept or made anew) and Guard (a still picture and a followed object come out exactly as without it; it never moves a place further from the real frame), the adaptive multiplier; Predict (off by default: every batch without it ends with its real frame as it always did; with it a still picture stays exact and no forecast is further from the truth than holding the real frame)",
    "guards": [
     {
      "file": "tests/integration/PushGpuTests.cpp",
@@ -174,6 +174,31 @@
      "file": "tests/qml/quick/tst_push_flow2.qml",
      "ci": "tst_push_flow2",
      "contains": "test_each_experiment_has_its_own_switch_and_its_own_state"
+    },
+    {
+     "file": "tests/unit/PushFlowPredictTests.cpp",
+     "ci": "veyra_push_flow_predict_tests",
+     "contains": "nothing moves: the forecast is the newest frame exactly"
+    },
+    {
+     "file": "tests/integration/PushGpuTests.cpp",
+     "ci": "veyra_push_gpu_tests",
+     "contains": "an in-between frame is still exactly PushFlow's own"
+    },
+    {
+     "file": "tests/integration/PushFlowGraphTests.cpp",
+     "ci": "veyra_push_flow_graph_tests",
+     "contains": "every batch ends with its real frame, as it always did"
+    },
+    {
+     "file": "tests/integration/PushFlowGraphTests.cpp",
+     "ci": "veyra_push_flow_graph_tests",
+     "contains": "every batch holds the real frame first and its forecasts after it, in order"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_flow2.qml",
+     "ci": "tst_push_flow2",
+     "contains": "test_predict_says_what_it_does_and_when_it_steps_aside"
     }
    ],
    "needs_hardware": "Speed on any real card; picture quality on real games."

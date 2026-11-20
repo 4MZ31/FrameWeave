@@ -23,6 +23,11 @@ Item {
         stateKey: "pushFlowGuard"
         describe: function(st) { return "judged " + Math.round(Number(st.pushFlowGuardFrames || 0)) + " mended " + Math.round(Number(st.pushFlowGuardMended || 0)) + " held " + Math.round(Number(st.pushFlowGuardHeld || 0)) }
     }
+    PushFlow2Row {
+        id: predict; width: 620; y: 380; part: "predict"; title: "Predict"; explanation: "What it does"
+        stateKey: "pushFlowPredict"
+        describe: function(st) { return st.pushFlowPredictPaused === true ? "stepped aside" : "forecasts " + Math.round(Number(st.pushFlowPredictFrames || 0)) + " held " + Number(st.pushFlowPredictHeldPercent || 0).toFixed(0) }
+    }
 
     TestCase {
         name: "PushFlow2"
@@ -40,6 +45,7 @@ Item {
             motion.readLive()
             fusion.readLive()
             guard.readLive()
+            predict.readLive()
         }
         function cleanup() { veyra.qualityModel = null; veyra.fgBackendName = "dlss"; veyra.hasSource = true }
         function control(item, name) { const c = findChild(item, name); verify(c !== null, name); return c }
@@ -147,6 +153,27 @@ Item {
             for (const word of ["no-grids", "too-small", "shader"]) verify(guard.why(word) !== word, word)
             control(guard, "list-pushflow2-guard").toggled(false)
             verify(!guard.asked && fusion.asked)
+            veyra.hasSource = false
+        }
+
+        function test_predict_says_what_it_does_and_when_it_steps_aside() {
+            control(predict, "list-pushflow2-predict").toggled(true)
+            verify(predict.asked && flags().predict === true)
+            veyra.liveStats = ({ running: true, pushFlowMotionWidth: 960, pushFlowMotionHeight: 540, pushFlowPredict: "on", pushFlowPredictFrames: 1200,
+                                 pushFlowPredictHeldPercent: 7.4, pushFlowPredictSuperseded: 2, pushFlowPredictPaused: false })
+            veyra.hasSource = true
+            tryCompare(predict, "cacheState", "on", 3000)
+            compare(predict.hint, "forecasts 1200 held 7")
+            veyra.liveStats = ({ running: true, pushFlowMotionWidth: 960, pushFlowMotionHeight: 540, pushFlowPredict: "on", pushFlowPredictPaused: true })
+            predict.readLive()
+            compare(predict.hint, "stepped aside")
+            // A file: asked for and not used, with the reason in words.
+            veyra.liveStats = ({ running: true, pushFlowMotionWidth: 960, pushFlowMotionHeight: 540, pushFlowPredict: "not-live" })
+            predict.readLive()
+            compare(predict.cacheState, "not-live")
+            verify(predict.why("not-live") !== "not-live" && predict.hint.indexOf(predict.why("not-live")) >= 0)
+            control(predict, "list-pushflow2-predict").toggled(false)
+            verify(!predict.asked)
             veyra.hasSource = false
         }
 

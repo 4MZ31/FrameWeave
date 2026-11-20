@@ -106,6 +106,15 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["pushFlowGuardFrames"] = QVariant::fromValue(qulonglong(s.pushFlowGuardFrames));
     m["pushFlowGuardMended"] = QVariant::fromValue(qulonglong(s.pushFlowGuardMended));
     m["pushFlowGuardHeld"] = QVariant::fromValue(qulonglong(s.pushFlowGuardHeld));
+    // PushFlow 2's Predict: "" not asked for, "on", or why not; forecast frames made, the share of the
+    // moving picture it did not trust and held (percent), forecasts not shown because the next real frame
+    // was already due, and whether it has stepped aside for a measurement.
+    m["pushFlowPredict"] = QString::fromStdString(s.pushFlowPredict);
+    m["pushFlowPredictFrames"] = QVariant::fromValue(qulonglong(s.pushFlowPredictFrames));
+    m["pushFlowPredictHeldPercent"] = s.pushFlowPredictMoving ? 100.0 * double(s.pushFlowPredictHeld) / double(s.pushFlowPredictMoving) : 0.0;
+    m["pushFlowPredictMovingPercent"] = s.pushFlowPredictCounted ? 100.0 * double(s.pushFlowPredictMoving) / double(s.pushFlowPredictCounted) : 0.0;
+    m["pushFlowPredictSuperseded"] = QVariant::fromValue(qulonglong(s.pushFlowPredictSuperseded));
+    m["pushFlowPredictPaused"] = pushflow2::predictPaused() || engine::pushBenchmarkProbe().active() || impl_->engine.qualityTest().running;
     m["pacingRepaired"] = QVariant::fromValue(qulonglong(s.pacingRepaired));
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;
@@ -738,6 +747,10 @@ void QmlPlayerBridge::pushFlowBudgetWatch() {
     if (now - w.last < std::chrono::seconds(1)) return;
     w.last = now;
     pushNoteSession();   // what is playing, for the crash notice (PushTools.cpp)
+    {   // PushFlow 2's Predict steps aside for the whole of "Optimise for my PC", which measures in-between frames.
+        const QString restoring = impl_->prefs.value(QStringLiteral("pushOptimizeRestore")).toString();
+        pushflow2::setPredictPaused(!restoring.isEmpty() && restoring != QLatin1String("{}"));
+    }
     pushSourceReference();   // scene sources fit their frames to the picture's width (PushStudio.cpp)
     const auto& s = impl_->snapshot;
     // The cadence notice (same second tick): the game is set to 30 FPS, the capture runs at 60 and

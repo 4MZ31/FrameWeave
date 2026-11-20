@@ -20,6 +20,7 @@
 //    folder holding pushflow\ (the release's runtime), two identical frames give the same picture back,
 //    and a square that moves 16 px lands near the middle at t = 0.5, far closer than a blend of the two
 //    frames, in both tiers' models. Without the variable the test is skipped (and says so).
+#include "veyra/pushflow/PushFlowPredict.h"
 #include "veyra/pushflow/PushFlowBackend.h"
 #include "veyra/pushflow/PushFlowMotion.h"
 #include "veyra/engine/PushHudSampler.h"
@@ -1502,6 +1503,7 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
     // encoder cache; its test sets the two frames' numbers and "the same pair again".
     uint64_t packPrevious = 0, packCurrent = 0;
     bool packTimeOnly = false;
+    float forecastAhead = -1.0f;   // 0..1: the run ends in PushFlow 2's forecast for that time after `pb`, not in resolve()
     const auto run = [&](const std::vector<uint8_t>& pa, const std::vector<uint8_t>& pb, float t, pushflow::PushFlowBackend& flow, double* ms) {
         std::vector<uint8_t> result;
         if (!gpu.begin()) return result;
@@ -1516,7 +1518,8 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
         bar.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         bar.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON; bar.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
         gpu.list->ResourceBarrier(1, &bar);
-        if (!flow.resolve(gpu.list.Get(), a.texture.Get(), b.texture.Get(), out.texture.Get())) return result;
+        if (forecastAhead >= 0.0f ? !flow.forecast(gpu.list.Get(), a.texture.Get(), b.texture.Get(), out.texture.Get(), forecastAhead)
+                                  : !flow.resolve(gpu.list.Get(), a.texture.Get(), b.texture.Get(), out.texture.Get())) return result;
         auto rb = recordRead(gpu, out, D3D12_RESOURCE_STATE_COPY_DEST);
         bar.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST; bar.Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
         gpu.list->ResourceBarrier(1, &bar);
@@ -1832,6 +1835,113 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
         checkOr(tel.guardFrames >= 5 && tel.guardMended + tel.guardHeld <= tel.guardFrames, tag + ": the frames it judged are counted, and never more mended or held than judged");
         checkOr(!gpu.debugErrors(), tag + ": no debug layer errors");
     }
+    // PushFlow 2's Predict (opt-in; shaders/PushPredict.hlsl, pushflow/PushFlowPredict.h): a frame for a
+    // time after the newest real frame, from the half-way grids. The shader is compared with the header's
+    // rule pixel by pixel from the network's own grids; a still picture must stay exact; and an in-between
+    // frame from the same PushFlow must be what it is without Predict (it steps aside for measurements).
+    for (const GuardRun predictRun : {GuardRun{2u, 0}, GuardRun{0u, 540}}) {
+        using pushflow::motion::reference::Rgb;
+        using pushflow::motion::reference::Vec2;
+        const uint32_t tier = predictRun.tier;
+        const std::string tag = "pushflow predict, tier " + std::to_string(tier) + (predictRun.motion ? " at a chosen motion size" : "");
+        const auto older = flowFrame(W, H, 100), newer = flowFrame(W, H, 104), later = flowFrame(W, H, 106), far16 = flowFrame(W, H, 116), other = detailFrame(W, H, 0);
+        const auto t0 = detailFrame(W, H, 0), t1 = detailFrame(W, H, 4);
+        const auto apart = [](const std::vector<uint8_t>& x, const std::vector<uint8_t>& y) {
+            if (x.empty() || x.size() != y.size()) return 255;
+            int worst = 0;
+            for (size_t i = 0; i < x.size(); ++i) worst = std::max(worst, std::abs(int(x[i]) - int(y[i])));
+            return worst;
+        };
+        const auto meanApart = [](const std::vector<uint8_t>& x, const std::vector<uint8_t>& y) {
+            if (x.empty() || x.size() != y.size()) return 255.0;
+            double sum = 0;
+            for (size_t i = 0; i < x.size(); ++i) sum += std::abs(int(x[i]) - int(y[i]));
+            return sum / double(x.size());
+        };
+        packPrevious = packCurrent = 0; packTimeOnly = false; forecastAhead = -1.0f;
+        std::vector<uint8_t> plainBetween;
+        {
+            pushflow::PushFlowBackend plain;
+            if (plain.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, tier, predictRun.motion)) {
+                plainBetween = run(older, far16, 0.5f, plain, nullptr);
+                checkOr(plain.status().predictState.empty() && !plain.status().predict && plain.telemetry().predictFrames == 0, tag + ": not asked for, nothing of it runs");
+            }
+        }
+        pushflow::PushFlowBackend flow;
+        const bool ready = flow.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, tier, predictRun.motion, false, false, true);
+        checkOr(ready, tag + ": PushFlow starts with Predict asked for");
+        if (!ready) continue;
+        checkOr(flow.status().predict && flow.status().predictState == "on", tag + ": Predict is in use ('" + flow.status().predictState + "')");
+        if (!flow.status().predict) continue;
+        const auto st = flow.status();
+        const pushflow::motion::Geometry geo{W, H, st.modelW, st.modelH, st.padW, st.padH, st.alignCorners, st.maskForFirst};
+        const uint64_t plane = uint64_t(st.padW) * st.padH;
+        // An in-between frame from this PushFlow is exactly PushFlow's own.
+        checkOr(!plainBetween.empty() && apart(run(older, far16, 0.5f, flow, nullptr), plainBetween) == 0, tag + ": an in-between frame is still exactly PushFlow's own");
+        // Nothing moves: the forecast is the newest frame, exactly.
+        forecastAhead = 0.5f;
+        const auto stillForecast = run(older, older, 0.5f, flow, nullptr);
+        checkOr(apart(stillForecast, older) == 0, std::format("{}: a still picture's forecast is the picture itself (worst of 255: {})", tag, apart(stillForecast, older)));
+        // The shader against the rule, from the network's own grids.
+        struct Pair { const char* name; const std::vector<uint8_t>* a; const std::vector<uint8_t>* b; float ahead; };
+        const Pair pairs[] = {{"a square moving 4 pixels a frame, half an interval ahead", &older, &newer, 0.5f}, {"the same, a quarter ahead", &older, &newer, 0.25f},
+                              {"a square moving 16 pixels a frame, three quarters ahead", &older, &far16, 0.75f}, {"fine texture panning 4 pixels a frame", &t0, &t1, 0.5f},
+                              {"two unrelated pictures", &older, &other, 0.5f}};
+        for (const Pair& pair : pairs) {
+            forecastAhead = pair.ahead;
+            const auto picture = run(*pair.a, *pair.b, 0.5f, flow, nullptr);
+            const auto g0 = readFloats(gpu, flow.motionBuffer(0), plane * 2), g1 = readFloats(gpu, flow.motionBuffer(1), plane * 2);
+            const bool ran = !picture.empty() && !g0.empty() && !g1.empty();
+            int worst = 255; double mean = 255, off = 100, heldShare = 0;
+            if (ran) {
+                const uint32_t width = W, padW = st.padW;
+                const auto frame = [width](const std::vector<uint8_t>& px) {
+                    const uint8_t* data = px.data();
+                    return [data, width](uint32_t x, uint32_t y) { const uint8_t* q = data + (size_t(y) * width + x) * 4; return Rgb{q[0] / 255.0f, q[1] / 255.0f, q[2] / 255.0f}; };
+                };
+                const auto grid = [padW](const std::vector<float>& g) {
+                    const float* data = g.data();
+                    return [data, padW](uint32_t x, uint32_t y) { const size_t i = (size_t(y) * padW + x) * 2; return Vec2{data[i], data[i + 1]}; };
+                };
+                double sum = 0; uint64_t beyond = 0, held = 0, moving = 0; worst = 0;
+                for (uint32_t y = 0; y < H; ++y)
+                    for (uint32_t x = 0; x < W; ++x) {
+                        const auto px = pushflow::predict::forecast(geo, x, y, pair.ahead, frame(*pair.b), frame(*pair.a), frame(*pair.b), grid(g0), grid(g1));
+                        const float want[3] = {px.colour.r, px.colour.g, px.colour.b};
+                        int here = 0;
+                        for (int k = 0; k < 3; ++k) here = std::max(here, std::abs(int(picture[(size_t(y) * W + x) * 4 + k]) - int(std::clamp(want[k], 0.0f, 1.0f) * 255.0f + 0.5f)));
+                        worst = std::max(worst, here); sum += here; beyond += here > 2;
+                        moving += px.moved >= pushflow::predict::kStill[1]; held += px.held;
+                    }
+                mean = sum / double(W * H); off = 100.0 * double(beyond) / double(W * H);
+                heldShare = moving ? 100.0 * double(held) / double(moving) : 0.0;
+            }
+            // A threshold (the picture's edge, the still zone) can fall the other way for a pixel whose value sits on it:
+            // the mean and the share of pixels that differ say whether the shader follows the rule.
+            checkOr(ran && mean < 0.3 && off < 0.5, std::format("{} {}: the picture is the rule's, from the network's own grids (mean {:.3f} of 255, {:.2f} % of pixels off by more than 2, worst {})",
+                                                               tag, pair.name, mean, off, worst));
+            std::printf("INFO %s %s: %.1f %% of the moving picture held\n", tag.c_str(), pair.name, heldShare);
+        }
+        // A square that keeps moving: the forecast is nearer to where it really is later than the newest frame is.
+        forecastAhead = 0.5f;
+        const auto ahead = run(older, newer, 0.5f, flow, nullptr);
+        const double forecastOff = meanApart(ahead, later), holdOff = meanApart(newer, later);
+        std::printf("INFO %s: a square moving 4 px a frame, half an interval on: the forecast is %.3f of 255 from the truth, the newest frame %.3f\n", tag.c_str(), forecastOff, holdOff);
+        checkOr(forecastOff <= holdOff + 0.02, tag + ": a forecast is never further from the true later frame than holding the newest frame");
+        if (tier == 2) checkOr(forecastOff < holdOff * 0.7, tag + ": and for a slow, followed object it is clearly nearer");
+        // Across a cut most of the picture is held: the forecast stays near the newest frame.
+        const auto cut = run(older, other, 0.5f, flow, nullptr);
+        std::printf("INFO %s: two unrelated pictures: the forecast is %.2f of 255 from the newest frame on average (worst %d)\n", tag.c_str(), meanApart(cut, other), apart(cut, other));
+        for (int i = 0; i < 4; ++i) run(older, newer, 0.5f, flow, nullptr);
+        forecastAhead = -1.0f;
+        const auto tel = flow.telemetry();
+        std::printf("INFO %s: %llu forecasts counted, %llu pixels counted, %llu moving, %llu held\n", tag.c_str(), static_cast<unsigned long long>(tel.predictFrames),
+                    static_cast<unsigned long long>(tel.predictCounted), static_cast<unsigned long long>(tel.predictMoving), static_cast<unsigned long long>(tel.predictHeld));
+        checkOr(tel.predictFrames >= 5 && tel.predictCounted >= tel.predictFrames && tel.predictMoving <= tel.predictCounted && tel.predictHeld <= tel.predictMoving,
+                tag + ": the forecasts and their pixels are counted, never more held than moving");
+        checkOr(!gpu.debugErrors(), tag + ": no debug layer errors");
+    }
+    forecastAhead = -1.0f;
     checkOr(!pushflow::crashedLastTime(), "pushflow: the crash marker is gone after a normal close");
 }
 

@@ -80,6 +80,10 @@ struct Status {
     // (the model gives no grids to judge by), "too-small" (the motion size has too few tiles), "shader".
     bool guard = false;
     std::string guardState;
+    // PushFlow 2's Predict (opt-in; shaders/PushPredict.hlsl): "" not asked for, "on", or why not:
+    // "no-grids", "shader".
+    bool predict = false;
+    std::string predictState;
 };
 
 struct Telemetry {
@@ -89,6 +93,9 @@ struct Telemetry {
     // With Guard: generated frames it judged, those it mended in places, those it replaced whole by the
     // nearer real frame (a held frame, not a generated one), and tiles replaced in all.
     uint64_t guardFrames = 0, guardMended = 0, guardHeld = 0, guardTiles = 0;
+    // With Predict: forecast frames made, and of the pixels counted in them (every 16th each way) how
+    // many the motion would move and how many of those were held instead (not trusted).
+    uint64_t predictFrames = 0, predictCounted = 0, predictMoving = 0, predictHeld = 0;
     double inferP50Ms = 0, inferP95Ms = 0, inferMaxMs = 0;   // the network's GPU span on the queue (CPU time of the call without timestamps)
 };
 
@@ -111,7 +118,8 @@ public:
     // encoderCache: PushFlow 2's encoder cache is asked for (Status::split / splitState say what came of it).
     // guard: PushFlow 2's Guard is asked for (Status::guard / guardState).
     bool initialize(ID3D12Device* device, ID3D12CommandQueue* queue, const std::wstring& runtimeDir, uint32_t width, uint32_t height,
-                    DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight = 0, bool encoderCache = false, bool guard = false);
+                    DXGI_FORMAT format, Encoding encoding, uint32_t tier, int motionHeight = 0, bool encoderCache = false, bool guard = false,
+                    bool predict = false);
     // Records the input packing: `previous` and `current` must be in NON_PIXEL_SHADER_RESOURCE.
     // timeOnly: the same pair as the last call (later subframes): only the time plane is written.
     // previousId / currentId: which real frames these are, for the encoder cache: the same number means
@@ -124,6 +132,11 @@ public:
     // Records the output into an internal picture, then copies it to `output` (left in COPY_DEST).
     // `previous` / `current` (the same pair, NON_PIXEL_SHADER_RESOURCE) feed the full-resolution rebuild.
     bool resolve(ID3D12GraphicsCommandList* list, ID3D12Resource* previous, ID3D12Resource* current, ID3D12Resource* output);
+    // PushFlow 2's Predict, in place of resolve(): a frame `ahead` of an interval (0..1) AFTER `current`,
+    // from the motion the last pack() / infer() found for this pair at the half-way time (pack it with
+    // timestep 0.5). Copied to `output` (left in COPY_DEST); the pair in NON_PIXEL_SHADER_RESOURCE.
+    // False when Predict is not in use (status().predict).
+    bool forecast(ID3D12GraphicsCommandList* list, ID3D12Resource* previous, ID3D12Resource* current, ID3D12Resource* output, float ahead);
     double lastInferCpuMs() const;
     Telemetry telemetry() const;
     // Tests: the network's input buffer and RGB output buffer (UNORDERED_ACCESS, planar float).

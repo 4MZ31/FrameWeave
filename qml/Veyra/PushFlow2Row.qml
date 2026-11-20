@@ -41,6 +41,7 @@ VRow {
         if (word === "no-grids") return qsTr("当前模型不提供运动数据")
         if (word === "too-small") return qsTr("运动估算尺寸太小")
         if (word === "shader") return qsTr("着色器没能载入")
+        if (word === "not-live") return qsTr("只用于采集卡、串流等实时画面")
         return word
     }
     function readLive() {

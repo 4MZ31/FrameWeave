@@ -27,7 +27,7 @@ inline constexpr uint32_t kCount = uint32_t(Experiment::Count);
 // The names in the preference; never change one that has shipped.
 inline constexpr const char* kKeys[kCount] = {"fusion", "guard", "predict", "dual", "response", "memory"};
 // What this build contains. A part is listed here in the commit that adds its code and its tests.
-inline constexpr bool kBuilt[kCount] = {true, true, false, false, false, false};
+inline constexpr bool kBuilt[kCount] = {true, true, true, false, false, false};
 
 inline constexpr bool built(Experiment e) { return uint32_t(e) < kCount && kBuilt[uint32_t(e)]; }
 inline constexpr const char* key(Experiment e) { return uint32_t(e) < kCount ? kKeys[uint32_t(e)] : ""; }
@@ -100,6 +100,7 @@ inline std::string serialize(Flags flags) {
 namespace detail {
 inline std::atomic<uint32_t>& requestedBits() { static std::atomic<uint32_t> bits{0}; return bits; }
 inline std::atomic<bool>& stopped() { static std::atomic<bool> off{false}; return off; }
+inline std::atomic<bool>& predictPausedFlag() { static std::atomic<bool> paused{false}; return paused; }
 }
 inline void setRequested(Flags flags) { detail::requestedBits().store(flags.bits, std::memory_order_relaxed); }
 inline Flags requested() { return Flags{detail::requestedBits().load(std::memory_order_relaxed)}; }
@@ -107,6 +108,10 @@ inline void setEmergencyOff(bool off) { detail::stopped().store(off, std::memory
 inline bool emergencyOff() { return detail::stopped().load(std::memory_order_relaxed); }
 // Whether a part should try to run: in this build, asked for, and not stopped for this run.
 inline bool wanted(Experiment e) { return built(e) && !emergencyOff() && requested().get(e); }
+// Predict steps aside, without anything being rebuilt, while something measures in-between frames (the
+// optimiser; the engine adds the quality test and the benchmark window itself): read for every pair.
+inline void setPredictPaused(bool paused) { detail::predictPausedFlag().store(paused, std::memory_order_relaxed); }
+inline bool predictPaused() { return detail::predictPausedFlag().load(std::memory_order_relaxed); }
 
 // What a user is shown for one experiment. `available` and `running` come from the part itself.
 enum class State : uint32_t { NotBuilt = 0, Stopped, Off, Unavailable, Waiting, Running };
