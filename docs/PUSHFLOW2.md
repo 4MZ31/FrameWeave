@@ -246,8 +246,9 @@ camera. Not built.
 frame, so the real frame waits about one frame interval. With Predict a batch is the real frame first and
 its forecasts after it (`pushflow::predict::pts`: the real frame's time plus a share of the last interval),
 and the engine gives the pair no frame interval of delay, only its own processing time
-(`EngineController.cpp`, `predictPair`). At 30 FPS that is 33 ms less between the console and the screen
-on paper. On paper only: nobody has filmed it.
+(`EngineController.cpp`, `predictPair`). At 30 FPS that is up to 33 ms less between the console and the
+screen on paper (the delay it replaces is one frame interval, or what the engine had learned was enough).
+On paper only: nobody has filmed it.
 
 **How a forecast is made** (`shaders/PushPredict.hlsl`; the rule for one pixel is `predict::forecast` in
 `include/veyra/pushflow/PushFlowPredict.h`, and the graphics test compares the two pixel by pixel). The
@@ -273,7 +274,7 @@ as built; dB against the true later frame, higher is nearer):
 So a forecast is never worse than holding on a moving picture, clearly better for slow motion, and no
 better for fast motion, where most of the object is held. Three things were measured and dropped: a limit
 on speed (it only took gains away: a fast pan is forecast well), the same checks without the one that the
-two frames agree (a cut then left a visibly warped frame, 28 to 33 dB), and asking the network for time 1
+two frames agree (a cut then left a visibly warped frame, 26 to 36 dB), and asking the network for time 1
 (its grid there is not the motion between the frames).
 
 **What it cannot do.** The next frame is not known. When something changes direction, appears or
