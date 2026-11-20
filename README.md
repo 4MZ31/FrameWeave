@@ -363,6 +363,21 @@ mode or in streaming mode.
   and shows the nearer real frame there, so the object moves at the game's own frame rate instead of
   blinking out. It never invents a picture, and it counts every frame it had to replace whole. Checked on
   test pictures only; whether it looks better in a real game is for you to judge.
+- **Experiment: Predict** (off by default, live sources only): ordinary frame generation waits for the next
+  real frame, so the real picture is shown about one frame late. Predict shows the newest real frame as
+  soon as it is processed and forecasts the frames after it from the two that have already arrived. Lower
+  delay on paper (up to one frame); a forecast can be wrong until the next real frame corrects it. Nothing
+  is invented: every pixel is a pixel of the newest real frame, moved or left where it is.
+- **Experiment: Dual** (off by default; with Predict, at 2X): recordings, instant replay and streams get
+  the real frames and the true in-between frames instead of the forecasts you see, one frame behind the
+  screen.
+- **Experiments: Response and Memory** (off by default; measurements only, nothing on the picture):
+  Response measures whether the picture's motion follows the right stick, how strongly and how late (PS5
+  Remote Play); Memory measures how much two neighbouring real frames differ once lined up. They say, on
+  your own setup, whether those two ideas are worth building.
+- None of the five experiments above has been measured on a real graphics card yet. They are in
+  *Professional → Frame generation* with PushFlow as the method; `docs/PUSHFLOW2.md` says what each was
+  tested with and what is still unknown.
 - **Tells you when your card can't keep up**: if nearly every frame pair has to be skipped, PushFlow steps
   down one tier and says why, where it used to sit at the game's frame rate without a word.
 - **Half precision, tested safely**: *Professional → Frame generation → PushFlow half precision → Test* tries
