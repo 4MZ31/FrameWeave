@@ -3284,6 +3284,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     if(transaction&&backendRecoveryWarning.empty()&&nvidiaAdapter&&(!graph->xessEnabled()||presenter.xessActive()))snapshot_.backendWarning.clear();
                     snapshot_.flowPerf=graph->actualFlowPerf();snapshot_.contentFps=isCapture&&!legacyCadence&&dedupContent(options.settings.content)&&contentDedup.contentFps()>0?int(std::lround(contentDedup.contentFps())):out.measuredContentRate;
                     snapshot_.nrEvaluated=graphStats.nrEvaluateCount;snapshot_.nvofExecuted=graphStats.nvofExecuteCount;
+                    {const auto& shown=presenter.displayLatency();snapshot_.presentToScanoutMs=shown.samples?shown.p50Ms:-1;snapshot_.presentToScanoutP95Ms=shown.samples?shown.p95Ms:-1;snapshot_.compositionMode=shown.compositionMode;}
                     snapshot_.captureReceived=captureStats.received;snapshot_.captureDropped=captureStats.dropped;snapshot_.captureFps=captureStats.callbackFps;snapshot_.captureReadAgeMs=captureStats.readAgeMs;snapshot_.captureAgeMs=liveScheduler?completed.ageMs:captureStats.frameAgeMs;snapshot_.captureAgeP95Ms=ageP95;
                     snapshot_.captureSampledBlack=captureStats.sampledBlack;
                     snapshot_.schedulingWaitP95Ms=waitP95;snapshot_.processCpuP95Ms=processTimes.p95();snapshot_.presentCpuP95Ms=presentP95;

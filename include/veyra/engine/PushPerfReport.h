@@ -37,6 +37,10 @@ struct Facts {
     bool softwareRenderer = false;           // Windows' software renderer: timings say nothing about a card
     double displayHz = 0;
     int vrrState = -1;                       // the bridge's vrrState (-1 unknown)
+    // Present call to the vblank that showed the frame, and how the picture reaches the screen
+    // (DXGI frame statistics): 0 composed by the desktop, 1 an overlay plane, 2 directly, -1 unknown.
+    double presentToScanoutMs = -1, presentToScanoutP95Ms = -1;
+    int compositionMode = -1;
     // What plays.
     bool playing = false;
     std::string source;                      // capture, remoteplay, moonlight, xbox, file, url, screen, frameinput
@@ -159,7 +163,14 @@ inline std::string json(const Facts& f) {
     o += "  \"windows\": " + quoted(versionText(f.windows)) + ",\n";
     o += "  \"gpu\": { \"name\": " + quoted(gpu) + ", \"driver\": " + quoted(versionText(f.driver)) + ", \"memoryMb\": " + std::to_string(f.gpuMemoryMb) +
          ", \"softwareRenderer\": " + yes(f.softwareRenderer) + " },\n";
-    o += "  \"display\": { \"refreshHz\": " + number(f.displayHz, 1) + ", \"vrrState\": " + std::to_string(f.vrrState) + " },\n";
+    // "path": how the picture reaches the screen. "composed" means the desktop draws it together with
+    // other windows, which costs about one refresh; "direct" and "overlay" do not.
+    const char* path = f.compositionMode == 0 ? "composed" : f.compositionMode == 1 ? "overlay" : f.compositionMode == 2 ? "direct" : nullptr;
+    const bool shown = f.playing && std::isfinite(f.presentToScanoutMs) && f.presentToScanoutMs >= 0 && f.presentToScanoutMs < 1000;
+    o += "  \"display\": { \"refreshHz\": " + number(f.displayHz, 1) + ", \"vrrState\": " + std::to_string(f.vrrState) +
+         ", \"path\": " + (f.playing && path ? "\"" + std::string(path) + "\"" : std::string("null")) +
+         ", \"presentToScreenMs\": " + (shown ? number(f.presentToScanoutMs, 1) : std::string("null")) +
+         ", \"presentToScreenP95Ms\": " + (shown && std::isfinite(f.presentToScanoutP95Ms) && f.presentToScanoutP95Ms >= 0 && f.presentToScanoutP95Ms < 1000 ? number(f.presentToScanoutP95Ms, 1) : std::string("null")) + " },\n";
     o += "  \"playing\": " + std::string(yes(f.playing)) + ",\n";
     o += "  \"source\": { \"kind\": " + quoted(word(f.source)) + ", \"width\": " + std::to_string(f.sourceWidth) + ", \"height\": " + std::to_string(f.sourceHeight) +
          ", \"hdr\": " + yes(f.hdr) + ", \"captureFps\": " + number(f.captureFps, 2) + ", \"captureReceived\": " + std::to_string(f.captureReceived) +
@@ -211,7 +222,9 @@ inline std::string json(const Facts& f) {
     o += "  },\n";
     o += "  \"notes\": \"Rates are frames PushFPS presented in the last second. softwareLatency is a frame's arrival in PushFPS to its Present call: "
          "not button to screen, and it leaves out the capture card, the console and the display. frameGenerationHealth: 0 fine, 1 nothing to add at this "
-         "target or on this screen, 2 the method is not running, 3 the card does not keep up, 4 nothing generated is shown.\"\n";
+         "target or on this screen, 2 the method is not running, 3 the card does not keep up, 4 nothing generated is shown. "
+         "display.presentToScreen is the Present call to the refresh that showed the frame, as Windows reports it (no light is measured); "
+         "display.path composed means the desktop draws the picture together with other windows, which costs about one refresh.\"\n";
     o += "}\n";
     return o;
 }

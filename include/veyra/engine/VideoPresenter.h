@@ -80,6 +80,9 @@ public:
     // A visible HDR panel can request sparse GPU statistics. No pixel readback.
     void observeHdrCoverage(bool on){probeObserved_=on;if(!on)liveCoverage_={};}
     const HdrCurveCoverage& liveCurveCoverage() const { return liveCoverage_; }
+    // PushFPS: the newest one-second summary of Present call to the vblank that showed the frame, and how
+    // the picture reaches the screen (DXGI frame statistics; see PresentSink::DisplayLatencySummary).
+    const gfx::PresentSink::DisplayLatencySummary& displayLatency() const { return lastDisplayLatency_; }
     // Test-only buffer reference for lossless HDR readback. Drains the private
     // queue; caller drains the shared queue and releases before resize/close.
     Microsoft::WRL::ComPtr<ID3D12Resource> presentedResourceForTest();
@@ -163,6 +166,7 @@ private:
     HdrCurveSettings probeCurve_{};
     pipeline::FrameIdentity probeIdentity_{};
     std::chrono::steady_clock::time_point probeNext_{};
+    gfx::PresentSink::DisplayLatencySummary lastDisplayLatency_{};
     HdrCurveCoverage liveCoverage_{};
     bool ensureCoverageProbe(ID3D12Device*);
     void publishLiveCoverage(const HdrCurveSettings&,pipeline::FrameIdentity);

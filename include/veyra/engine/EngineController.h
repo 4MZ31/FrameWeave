@@ -159,6 +159,9 @@ struct PlayerSnapshot {
     uint64_t pushFlowMotionPairs=0; float pushFlowAlignedApart=0;
     uint64_t frames=0,generated=0;
     uint64_t captureReceived=0,captureDropped=0,nrEvaluated=0,nvofExecuted=0;
+    // PushFPS: Present call to the vblank that showed the frame (milliseconds, -1 unknown), and how the
+    // picture reaches the screen: 0 composed by the desktop, 1 an overlay plane, 2 directly, -1 unknown.
+    double presentToScanoutMs=-1,presentToScanoutP95Ms=-1;int compositionMode=-1;
     uint64_t captureRateSkipped=0,processedCompleted=0;
     bool captureHalfRate=false;
     bool captureSampledBlack=false; // Sparse CPU-source samples, not no-signal detection.

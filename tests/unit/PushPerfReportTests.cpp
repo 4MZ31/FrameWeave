@@ -139,6 +139,16 @@ int main() {
     { auto f = session(); f.gpu.clear(); check(has(json(f), "\"name\": null"), "no card name: null"); }
     { auto f = session(); f.gpu = "AMD Radeon RX 7900 XT/XTX"; check(has(json(f), "\"name\": \"AMD Radeon RX 7900 XT XTX\""), "a slash in a card's name becomes a space"); }
     check(cardName("NVIDIA GeForce RTX 4070").size() == 23 && cardName("x@y").empty() && cardName("C:\\card").empty() && cardName("a\tb").empty(), "what is no card name is dropped whole");
+    // How the picture reaches the screen, and how long after Present (4.0).
+    { auto f = session(); check(has(json(f), "\"path\": null") && has(json(f), "\"presentToScreenMs\": null"), "nothing known about the screen side: null, never 0"); }
+    { auto f = session(); f.compositionMode = 2; f.presentToScanoutMs = 3.42; f.presentToScanoutP95Ms = 4.18;
+      check(has(json(f), "\"path\": \"direct\"") && has(json(f), "\"presentToScreenMs\": 3.4") && has(json(f), "\"presentToScreenP95Ms\": 4.2"), "direct to the screen, with the time from Present"); }
+    { auto f = session(); f.compositionMode = 0; f.presentToScanoutMs = 11.0; check(has(json(f), "\"path\": \"composed\"") && has(json(f), "\"presentToScreenP95Ms\": null"), "composed by the desktop; a missing 95th percentile is null"); }
+    { auto f = session(); f.compositionMode = 1; check(has(json(f), "\"path\": \"overlay\""), "an overlay plane"); }
+    { auto f = session(); f.compositionMode = 3; f.presentToScanoutMs = -1; check(has(json(f), "\"path\": null") && has(json(f), "\"presentToScreenMs\": null"), "a failed or unknown mode is null"); }
+    { auto f = session(); f.compositionMode = 2; f.presentToScanoutMs = 5; f.playing = false; check(has(json(f), "\"path\": null") && has(json(f), "\"presentToScreenMs\": null"), "nothing playing: nothing claimed"); }
+    { auto f = session(); f.compositionMode = 2; f.presentToScanoutMs = 1e9; check(has(json(f), "\"presentToScreenMs\": null"), "a value that cannot be a delay is dropped"); }
+    { auto f = session(); f.compositionMode = 2; f.presentToScanoutMs = 6; check(wellFormed(json(f)), "still well-formed text"); }
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "ALL PASSED", failures);
     return failures ? 1 : 0;
 }

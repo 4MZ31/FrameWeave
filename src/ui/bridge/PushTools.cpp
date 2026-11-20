@@ -130,6 +130,7 @@ QString QmlPlayerBridge::pushPerformanceReport() const {
     } else f.softwareRenderer = true;   // no hardware adapter: Windows' software renderer
     f.displayHz = impl_->displayRefreshHz;
     f.vrrState = vrrState();
+    f.presentToScanoutMs = s.presentToScanoutMs; f.presentToScanoutP95Ms = s.presentToScanoutP95Ms; f.compositionMode = s.compositionMode;
     f.playing = s.running && !s.image && hasSource();
     f.source = hasSource() ? sourceKind().toStdString() : std::string();
     f.sourceWidth = uint32_t(s.sourceWidth); f.sourceHeight = uint32_t(s.sourceHeight);
