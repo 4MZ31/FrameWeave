@@ -213,6 +213,7 @@ struct PushFlowBackend::Impl {
     double predictSlotInterval[kPredictRing] = {};
     uint64_t fullPackCount = 0, predictMotionPack = 0;
     std::atomic<float> lastMotionX{0}, lastMotionY{0};
+    std::atomic<float> alignedApart{0}, alignedApartNow{0};   // PushFlow 2's Memory: averaged over pairs, and the newest pair's
     std::atomic<uint64_t> motionPairs{0};
     uint32_t* predictMapped = nullptr;
     uint64_t predictWritten = 0;
@@ -790,6 +791,7 @@ Telemetry PushFlowBackend::telemetry() const {
     t.predictFrames = p.predictFrames.load(std::memory_order_relaxed); t.predictCounted = p.predictCounted.load(std::memory_order_relaxed);
     t.predictMoving = p.predictMoving.load(std::memory_order_relaxed); t.predictHeld = p.predictHeld.load(std::memory_order_relaxed);
     t.motionPairs = p.motionPairs.load(std::memory_order_relaxed); t.motionX = p.lastMotionX.load(std::memory_order_relaxed); t.motionY = p.lastMotionY.load(std::memory_order_relaxed);
+    t.alignedApart = p.alignedApart.load(std::memory_order_relaxed); t.alignedApartNow = p.alignedApartNow.load(std::memory_order_relaxed);
     const size_t n = std::min(p.inferSamples, kTelemetry);
     if (!n) return t;
     std::vector<float> v(p.inferRing.begin(), p.inferRing.begin() + ptrdiff_t(n));
@@ -1212,6 +1214,12 @@ bool PushFlowBackend::infer() {
                 const double mx = (double(totals[5]) - double(totals[6])) / 16.0 / believed, my = (double(totals[7]) - double(totals[8])) / 16.0 / believed;
                 p.lastMotionX.store(float(mx), std::memory_order_relaxed); p.lastMotionY.store(float(my), std::memory_order_relaxed);
                 p.motionPairs.fetch_add(1, std::memory_order_relaxed);
+                // PushFlow 2's Memory (a measurement): how far apart the two real frames are where the motion
+                // joins them, as a mean over those pixels, 0..255. Kept as a slow average over pairs.
+                const double apart = double(totals[9]) / 4096.0 / believed * 255.0;
+                const double before = p.alignedApart.load(std::memory_order_relaxed);
+                p.alignedApart.store(float(p.motionPairs.load(std::memory_order_relaxed) <= 1 ? apart : before + (apart - before) * 0.05), std::memory_order_relaxed);
+                p.alignedApartNow.store(float(apart), std::memory_order_relaxed);
                 const double seconds = p.predictSlotInterval[slot];
                 if (seconds > 0.001 && seconds <= 1.0)
                     engine::response::observer().motion(p.predictSlotHost[slot], float(mx / double(p.status.modelW) / seconds), float(my / double(p.status.modelH) / seconds));

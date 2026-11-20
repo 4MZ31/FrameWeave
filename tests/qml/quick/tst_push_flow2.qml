@@ -32,6 +32,11 @@ Item {
         }
     }
     PushFlow2Row {
+        id: memory; width: 620; y: 740; part: "memory"; title: "Memory"; explanation: "What it does"
+        stateKey: "pushFlowMemory"
+        describe: function(st) { return Number(st.pushFlowMemoryPairs || 0) < 60 ? "measuring" : "apart " + Number(st.pushFlowMemoryApart || 0).toFixed(2) }
+    }
+    PushFlow2Row {
         id: dual; width: 620; y: 500; part: "dual"; title: "Dual"; explanation: "What it does"
         stateKey: "pushFlowDual"
         describe: function(st) { return "handed on " + Math.round(Number(st.pushFlowDualReal || 0)) + " real, " + Math.round(Number(st.pushFlowDualBetween || 0)) + " in-between" }
@@ -61,6 +66,7 @@ Item {
             predict.readLive()
             dual.readLive()
             response.readLive()
+            memory.readLive()
         }
         function cleanup() { veyra.qualityModel = null; veyra.fgBackendName = "dlss"; veyra.hasSource = true }
         function control(item, name) { const c = findChild(item, name); verify(c !== null, name); return c }
@@ -230,6 +236,35 @@ Item {
             control(response, "list-pushflow2-response").toggled(false)
             verify(!response.asked)
             veyra.hasSource = false
+        }
+
+        function test_memory_only_measures() {
+            control(memory, "list-pushflow2-memory").toggled(true)
+            verify(memory.asked && flags().memory === true)
+            const base = { running: true, pushFlowMotionWidth: 960, pushFlowMotionHeight: 540 }
+            veyra.liveStats = Object.assign({}, base, { pushFlowMemory: "needs-predict" })
+            veyra.hasSource = true
+            tryCompare(memory, "cacheState", "needs-predict", 3000)
+            verify(memory.hint.indexOf(memory.why("needs-predict")) >= 0, "it says that it needs Predict")
+            veyra.liveStats = Object.assign({}, base, { pushFlowMemory: "on", pushFlowMemoryPairs: 12, pushFlowMemoryApart: 0.4 })
+            memory.readLive()
+            compare(memory.hint, "measuring")
+            veyra.liveStats = Object.assign({}, base, { pushFlowMemory: "on", pushFlowMemoryPairs: 900, pushFlowMemoryApart: 2.375 })
+            memory.readLive()
+            compare(memory.hint, "apart 2.38")
+            control(memory, "list-pushflow2-memory").toggled(false)
+            verify(!memory.asked)
+            veyra.hasSource = false
+        }
+        function test_every_part_of_the_plan_has_its_switch() {
+            // All six are built now: each has a row, and switching one never switches another.
+            const rows = [fusion, guard, predict, dual, response, memory]
+            for (const row of rows) verify(!row.asked, row.part + " starts off")
+            for (const row of rows) {
+                control(row, "list-pushflow2-" + row.part).toggled(true)
+                for (const other of rows) compare(other.asked, other === row, row.part + " alone")
+                control(row, "list-pushflow2-" + row.part).toggled(false)
+            }
         }
 
         // --- PushFlow's motion size ----------------------------------------------------------------

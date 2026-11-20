@@ -154,6 +154,9 @@ struct PlayerSnapshot {
     // PushFPS: PushFlow 2's Dual ("" not asked for, "on", "needs-predict", "needs-2x") and the frames it has
     // handed to recordings and streams in place of the ones shown: real frames, true in-between frames.
     std::string pushFlowDual; uint64_t pushFlowDualReal=0, pushFlowDualBetween=0;
+    // PushFPS: PushFlow 2's Memory, a measurement: pairs measured (with Predict), and how far apart two real
+    // frames are where the motion joins them (0..255, averaged over pairs).
+    uint64_t pushFlowMotionPairs=0; float pushFlowAlignedApart=0;
     uint64_t frames=0,generated=0;
     uint64_t captureReceived=0,captureDropped=0,nrEvaluated=0,nvofExecuted=0;
     uint64_t captureRateSkipped=0,processedCompleted=0;

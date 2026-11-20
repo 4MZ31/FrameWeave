@@ -779,7 +779,10 @@ public:
                              // counted in them how many the motion would move and how many of those were held.
                              std::string predict; uint64_t predictFrames = 0, predictCounted = 0, predictMoving = 0, predictHeld = 0;
                              // dual: "" not asked for, "on", "needs-predict" (Predict is not in use), "needs-2x".
-                             std::string dual; };
+                             std::string dual;
+                             // PushFlow 2's Memory (a measurement): pairs measured, and how far apart two real frames
+                             // are where the motion joins them (0..255, averaged over pairs).
+                             uint64_t motionPairs = 0; float alignedApart = 0; };
     PushFlowSummary pushFlowSummary() const;
     bool amfFrcActive() const;
     const char* fsrProviderVersion() const;

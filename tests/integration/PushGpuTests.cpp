@@ -1959,6 +1959,20 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
             checkOr(std::abs(still.motionX) * scale < 0.3 && std::abs(still.motionY) * scale < 0.3, tag + ": a still picture is found not to move");
             // Loose on purpose: the fine texture is hard for the models, and only the believed pixels count.
             checkOr(pan.motionX * scale > 1.5 && pan.motionX * scale < 6.5 && std::abs(pan.motionY) * scale < 1.0, tag + ": a pan to the right is found moving right, by about its size");
+            // PushFlow 2's Memory measures, in the same pass, how far apart two real frames are where the
+            // motion joins them: nothing for the same picture twice, and about 3 of 255 for a picture and
+            // itself made 3 brighter.
+            auto brighter = older;
+            for (size_t i = 0; i < brighter.size(); ++i) if (i % 4 != 3) brighter[i] = uint8_t(std::min(255, int(brighter[i]) + 3));
+            forecastAhead = 0.5f;
+            for (int i = 0; i < 4; ++i) run(older, older, 0.5f, flow, nullptr);
+            const auto same = flow.telemetry();
+            for (int i = 0; i < 4; ++i) run(older, brighter, 0.5f, flow, nullptr);
+            const auto lifted = flow.telemetry();
+            forecastAhead = -1.0f;
+            std::printf("INFO %s: two real frames, where the motion joins them: the same picture %.2f apart, one 3 of 255 brighter %.2f apart\n", tag.c_str(), same.alignedApartNow, lifted.alignedApartNow);
+            checkOr(same.alignedApartNow < 0.2, tag + ": the same picture twice is found the same");
+            checkOr(lifted.alignedApartNow > 2.0 && lifted.alignedApartNow < 4.0, tag + ": a picture 3 of 255 brighter is found about 3 apart");
         }
         checkOr(!gpu.debugErrors(), tag + ": no debug layer errors");
     }

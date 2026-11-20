@@ -1610,6 +1610,7 @@ EnhanceGraph::PushFlowSummary EnhanceGraph::pushFlowSummary() const {
     s.wholeMs=pushFlow_->status().wholeMs;s.splitMs=pushFlow_->status().splitMs;s.splitCheckDb=pushFlow_->status().splitCheckDb;
     s.guard=pushFlow_->status().guardState;s.guardFrames=t.guardFrames;s.guardMended=t.guardMended;s.guardHeld=t.guardHeld;
     s.predict=pushFlow_->status().predictState;s.predictFrames=t.predictFrames;s.predictCounted=t.predictCounted;s.predictMoving=t.predictMoving;s.predictHeld=t.predictHeld;
+    s.motionPairs=t.motionPairs;s.alignedApart=t.alignedApart;
     s.dual=!desc_.pushFlowDual?"":!(desc_.pushFlowPredict&&pushFlow_->status().predict)?"needs-predict":desc_.fgMultiplier!=2?"needs-2x":"on";
     return s;
 }

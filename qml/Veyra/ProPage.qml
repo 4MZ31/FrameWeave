@@ -1971,6 +1971,20 @@ VPage {
                                 title: qsTr("PushFlow 2：Response，先测量（实验）")
                                 explanation: qsTr("Response 的设想是：在主机自己的画面到达之前，先根据右摇杆把画面转动一点。这能不能只靠视频信号做到，还没有人证明过，所以第一步只测量，不改动画面：画面自身的运动是否跟随右摇杆、有多强、晚多少。它只观察两样已经在 PushFPS 里的东西：PushFPS 自己发给主机的右摇杆（目前只有 PS5 Remote Play；接在主机上的手柄看不到），以及 Predict 运行时 PushFlow 算出的画面整体运动。不读取任何按键，不写入磁盘，不发送到任何地方；关闭开关或更换画面来源时全部清除。玩几分钟、多转动视角，这里就会显示结果，性能报告里也有")
                             }
+                            PushFlow2Row {
+                                objectName: "list-pushflow2-memory-row"
+                                visible: veyra.fgBackendName === "pushflow"
+                                part: "memory"
+                                stateKey: "pushFlowMemory"
+                                describe: function(st) {
+                                    const pairs = Math.round(Number(st.pushFlowMemoryPairs || 0)), apart = Number(st.pushFlowMemoryApart || 0)
+                                    if (pairs < 60) return qsTr("正在测量。已测 %1 对真实帧，至少需要 60 对").arg(pairs)
+                                    if (apart < 1.0) return qsTr("相邻的真实帧对齐后几乎一样（平均相差 %1，满值 255）。这个画面来源很干净，Memory 没有什么可以补回的").arg(apart.toFixed(2))
+                                    return qsTr("相邻的真实帧对齐后平均相差 %1（满值 255）。把对齐的两帧取平均，大约能去掉其中三成：这是 Memory 能改善多少的估计，画面本身还没有改动").arg(apart.toFixed(2))
+                                }
+                                title: qsTr("PushFlow 2：Memory，先测量（实验）")
+                                explanation: qsTr("Memory 的设想是：把之前的真实帧里出现过的细节，按运动对齐后带回当前画面，让纹理更稳定、压缩噪点更少。只有相邻的真实帧之间确实有差别时，这才有意义，所以第一步只测量，不改动画面：在运动可信的位置，相邻两个真实帧对齐之后还相差多少。采集卡送来的画面没有压缩，差别通常很小；Remote Play 等串流画面压缩过，差别会大一些。需要 Predict 正在运行；结果也会写进性能报告")
+                            }
                             // Half precision is tested in a separate process first (PushFlowBench --fp16-probe):
                             // the switch only turns on after that test passed on this graphics card.
                             VRow {

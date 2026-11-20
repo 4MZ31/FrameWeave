@@ -15,7 +15,9 @@ RWStructuredBuffer<float> grid0 : register(u0);
 RWStructuredBuffer<float> grid1 : register(u1);
 // counted, would move, held, serial; then, for PushFlow 2's Response (a measurement only): pixels whose
 // motion is believed, and the sum of that motion over them, a frame, in sixteenths of a motion pixel,
-// right / left / down / up apart (the totals are whole and unsigned)
+// right / left / down / up apart (the totals are whole and unsigned); and, for PushFlow 2's Memory (a
+// measurement only): over the same pixels, the sum of how far the two real frames are apart where the motion
+// joins them (the largest channel, encoded, in 4096ths)
 RWStructuredBuffer<uint> totals : register(u2);
 RWTexture2D<float4> output : register(u3);
 cbuffer Constants : register(b0) {
@@ -95,7 +97,8 @@ void main(uint3 id : SV_DispatchThreadID) {
     float trust = fade(length(s + k * d - at), kSettle) * fade(length(back + d), kOpposite);
     if (place.x < -0.5 || place.y < -0.5 || place.x > float(modelW) - 0.5 || place.y > float(modelH) - 0.5) trust = 0.0;
     const float3 apart = abs(tapEncoded(previous, modelToSource(s + back)) - tapEncoded(current, modelToSource(place)));
-    trust *= fade(max(apart.r, max(apart.g, apart.b)), kAgree);
+    const float apartMost = max(apart.r, max(apart.g, apart.b));
+    trust *= fade(apartMost, kAgree);
     const float moved = length(place - at);
     const bool believed = trust >= 0.5;      // before the still zone: a still pixel's motion (none) is believed too
     const bool held = moved >= kStill.y && trust < 0.5;
@@ -117,6 +120,7 @@ void main(uint3 id : SV_DispatchThreadID) {
             InterlockedAdd(totals[4], 1u);
             InterlockedAdd(totals[frame.x >= 0.0 ? 5 : 6], uint(abs(frame.x) + 0.5));
             InterlockedAdd(totals[frame.y >= 0.0 ? 7 : 8], uint(abs(frame.y) + 0.5));
+            InterlockedAdd(totals[9], uint(saturate(apartMost) * 4096.0 + 0.5));
         }
     }
 }

@@ -15,7 +15,7 @@ contradict them. No dates.
 | Predict | Make frames from what has already arrived, without waiting for the next real frame | **Built, as an experiment that starts off** (*Professional → PushFlow 2: Predict*), for live sources only: the newest real frame is shown after its own processing instead of a frame interval later, and the frames after it are forecasts made from the two real frames that have arrived (below). On drawn pictures a forecast is level with holding the real frame at worst, and much nearer for slow motion. Never the normal mode. How much delay it saves and how it looks have not been measured on real hardware: that takes a camera |
 | Dual | A second, deliberately delayed timeline for recording and streaming, beside the one the player sees | **Its first step is built, as an experiment that starts off** (*Professional → PushFlow 2: Dual*; below). With Predict the player sees forecasts, and a recording is "as played", so it holds them too; Dual gives recordings, instant replay and streams the real frames and the true in-between frame of each pair, which Predict's one run of the network has already made. At 2X only, one frame behind the screen. The rest of the plan's Dual (a second timeline with its own method and rate, OBS) is not built |
 | Response | Turn the picture a little from the stick's movement before the console's own frame arrives | **Its first step is built, as an experiment that starts off, and it is a measurement only** (*Professional → PushFlow 2: Response*; below): does the picture's own motion follow the right stick, how strongly and how late? Nothing on the picture changes. Whether Response can work from a video signal at all is still unproven; this is how a PS5 owner finds out for a game |
-| Memory | Bring back detail that earlier real frames showed | Research only. It depends on motion that has been checked (Guard, Fusion) |
+| Memory | Bring back detail that earlier real frames showed | **Its first step is built, as an experiment that starts off, and it is a measurement only** (*Professional → PushFlow 2: Memory*; below): where the motion is believed, how far apart are two neighbouring real frames once lined up? That is what there would be to bring back. Nothing on the picture changes; bringing detail back is not built |
 
 ## The rules these parts are built under
 
@@ -339,6 +339,34 @@ exists here; the first real answer will come from a PS5 owner's performance repo
 **What it is not**: Response. Turning the picture needs, beyond a fit: what to show where the turned
 picture uncovers its edge, a HUD that must not turn, a way to tell the camera's motion from a moving
 object, and people who say whether it feels better or sick-making. None of that is built.
+
+## Memory, the first step as built: a measurement
+
+Memory would line earlier real frames up with the current one and take from them what the current one
+lacks. That is worth doing only where neighbouring real frames really differ once lined up: a capture
+card's picture is not compressed and should hardly differ; a streamed picture (Remote Play, Moonlight) is
+compressed and should. So the first step measures that, per source, and shows it.
+
+It costs one more sum in the pass that makes Predict's forecast (`shaders/PushPredict.hlsl`, total 9):
+over the pixels whose motion is believed, how far the older and the newer real frame are apart where the
+motion joins them (the largest channel, encoded). The backend keeps a slow average over pairs
+(`Telemetry::alignedApart`, 0..255); the row shows it after 60 pairs, with what it means: under 1 of 255,
+the source is clean and there is nothing to bring back; above, averaging two lined-up frames would take
+away about a third of it (the figure for noise that differs from frame to frame; compression faults that
+repeat would gain less). The performance report carries it (`pushFlowMemoryApart`).
+
+One thing it cannot see: the pixels it counts are the ones where the two frames already agree well enough
+for the motion to be believed (`kAgree`), so the number is the difference *within* that agreement, never
+the size of a fault that made them disagree.
+
+**What is checked**: on the software renderer, the same picture twice is found the same and a picture 3
+of 255 brighter is found about 3 apart (`testPushFlow`). **Not checked: any real source.** What a capture
+card and a Remote Play stream really give is exactly what this step is for.
+
+**What it is not**: Memory. Bringing detail back needs a history of real frames with its own bounds, a
+rule for when history may overrule nothing and add something, a place in the pipeline that Predict does
+not contradict (with Predict the real frame is shown before the pair's motion exists), and eyes. None of
+that is built.
 
 ## Dual, the first step as built
 

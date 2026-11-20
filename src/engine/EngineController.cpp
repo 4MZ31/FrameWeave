@@ -3231,6 +3231,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     snapshot_.pushFlowPredict=pf.predict;snapshot_.pushFlowPredictFrames=pf.predictFrames;snapshot_.pushFlowPredictCounted=pf.predictCounted;
                     snapshot_.pushFlowPredictMoving=pf.predictMoving;snapshot_.pushFlowPredictHeld=pf.predictHeld;snapshot_.pushFlowPredictSuperseded=predictSuperseded_;
                     snapshot_.pushFlowDual=pf.dual;snapshot_.pushFlowDualReal=dualRealGiven_;snapshot_.pushFlowDualBetween=dualBetweenGiven_;
+                    snapshot_.pushFlowMotionPairs=pf.motionPairs;snapshot_.pushFlowAlignedApart=pf.alignedApart;
                     // Asked for, and the source is a file: Predict is for live sources only, and says so.
                     if(snapshot_.pushFlowPredict.empty()&&!isCapture&&pushflow2::wanted(pushflow2::Experiment::Predict))snapshot_.pushFlowPredict="not-live";}snapshot_.colorStatus=graph->videoHdrActive()?L"SDR → RTX Video HDR":options.settings.videoHdr.enabled&&!gd.hdrInput?L"SDR → SDR（HDR显示未启用）":gd.hdrOutput?(graph->hdr10Output()?L"HDR → HDR10 / PQ":L"HDR → scRGB / 浮点"):gd.hdrInput?L"HDR → SDR色调映射":L"SDR → SDR";snapshot_.position=(isCapture||isImage?pts:lastFilePresentedMs)/1000;snapshot_.frames=sourceFrames;snapshot_.generated=graphStats.fgGeneratedFrames;snapshot_.lateMs=lateness;snapshot_.lateP95Ms=presentReturnDeviation.p95();
                     snapshot_.videoHdrActive=graph->videoHdrActive();

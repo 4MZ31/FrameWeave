@@ -100,6 +100,10 @@ struct Telemetry {
     // mean over the pixels whose motion is believed; right and down positive). A measurement only.
     uint64_t motionPairs = 0;
     float motionX = 0, motionY = 0;
+    // With Predict, for PushFlow 2's Memory (a measurement only): how far apart two real frames are where
+    // the motion joins them, over the pixels whose motion is believed: the largest channel, 0..255, averaged
+    // slowly over pairs, and the newest pair's own.
+    float alignedApart = 0, alignedApartNow = 0;
     double inferP50Ms = 0, inferP95Ms = 0, inferMaxMs = 0;   // the network's GPU span on the queue (CPU time of the call without timestamps)
 };
 

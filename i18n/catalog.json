@@ -4693,6 +4693,23 @@
    "ru": "MP4 воспроизводится везде (стандарт). MKV подходит для программ монтажа; мгновенные повторы всегда сохраняются в MP4"
   },
   {
+   "zh": "Memory 的设想是：把之前的真实帧里出现过的细节，按运动对齐后带回当前画面，让纹理更稳定、压缩噪点更少。只有相邻的真实帧之间确实有差别时，这才有意义，所以第一步只测量，不改动画面：在运动可信的位置，相邻两个真实帧对齐之后还相差多少。采集卡送来的画面没有压缩，差别通常很小；Remote Play 等串流画面压缩过，差别会大一些。需要 Predict 正在运行；结果也会写进性能报告",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "Memory 的設想是：把之前的真實幀裡出現過的細節，按運動對齊後帶回目前畫面，讓紋理更穩定、壓縮雜訊更少。只有相鄰的真實幀之間確實有差別時，這才有意義，所以第一步只測量，不改動畫面：在運動可信的位置，相鄰兩個真實幀對齊之後還相差多少。擷取卡送來的畫面沒有壓縮，差別通常很小；Remote Play 等串流畫面壓縮過，差別會大一些。需要 Predict 正在執行；結果也會寫進效能報告",
+   "en": "The idea of Memory is to bring detail that earlier real frames showed back into the current picture, lined up along the motion, for steadier textures and less compression noise. That only makes sense where neighbouring real frames really differ, so the first step only measures and changes nothing on the picture: where the motion is believed, how far apart are two neighbouring real frames once they are lined up? A capture card's picture is not compressed, so the difference is usually tiny; streamed pictures such as Remote Play are compressed, so it is larger. It needs Predict running; the result is also in the performance report",
+   "ja": "Memory の考え方は、以前の実フレームにあった細部を、動きに合わせて位置をそろえたうえで現在の映像に戻し、テクスチャを安定させ、圧縮ノイズを減らすことです。これは隣り合う実フレームのあいだに実際に差があるときだけ意味があります。そのため最初の段階では測定だけを行い、映像は変えません。動きを信頼できる場所で、隣り合う 2 枚の実フレームの位置を合わせたあとにどれだけ差が残るかを調べます。キャプチャーカードの映像は圧縮されていないので、差はふつうごくわずかです。リモートプレイなどのストリーム映像は圧縮されているので、差は大きくなります。Predict が動作している必要があります。結果は性能レポートにも入ります",
+   "nl": "The idea of Memory is to bring detail that earlier real frames showed back into the current picture, lined up along the motion, for steadier textures and less compression noise. That only makes sense where neighbouring real frames really differ, so the first step only measures and changes nothing on the picture: where the motion is believed, how far apart are two neighbouring real frames once they are lined up? A capture card's picture is not compressed, so the difference is usually tiny; streamed pictures such as Remote Play are compressed, so it is larger. It needs Predict running; the result is also in the performance report",
+   "de": "The idea of Memory is to bring detail that earlier real frames showed back into the current picture, lined up along the motion, for steadier textures and less compression noise. That only makes sense where neighbouring real frames really differ, so the first step only measures and changes nothing on the picture: where the motion is believed, how far apart are two neighbouring real frames once they are lined up? A capture card's picture is not compressed, so the difference is usually tiny; streamed pictures such as Remote Play are compressed, so it is larger. It needs Predict running; the result is also in the performance report",
+   "es": "The idea of Memory is to bring detail that earlier real frames showed back into the current picture, lined up along the motion, for steadier textures and less compression noise. That only makes sense where neighbouring real frames really differ, so the first step only measures and changes nothing on the picture: where the motion is believed, how far apart are two neighbouring real frames once they are lined up? A capture card's picture is not compressed, so the difference is usually tiny; streamed pictures such as Remote Play are compressed, so it is larger. It needs Predict running; the result is also in the performance report",
+   "fr": "The idea of Memory is to bring detail that earlier real frames showed back into the current picture, lined up along the motion, for steadier textures and less compression noise. That only makes sense where neighbouring real frames really differ, so the first step only measures and changes nothing on the picture: where the motion is believed, how far apart are two neighbouring real frames once they are lined up? A capture card's picture is not compressed, so the difference is usually tiny; streamed pictures such as Remote Play are compressed, so it is larger. It needs Predict running; the result is also in the performance report",
+   "it": "The idea of Memory is to bring detail that earlier real frames showed back into the current picture, lined up along the motion, for steadier textures and less compression noise. That only makes sense where neighbouring real frames really differ, so the first step only measures and changes nothing on the picture: where the motion is believed, how far apart are two neighbouring real frames once they are lined up? A capture card's picture is not compressed, so the difference is usually tiny; streamed pictures such as Remote Play are compressed, so it is larger. It needs Predict running; the result is also in the performance report",
+   "pt-BR": "The idea of Memory is to bring detail that earlier real frames showed back into the current picture, lined up along the motion, for steadier textures and less compression noise. That only makes sense where neighbouring real frames really differ, so the first step only measures and changes nothing on the picture: where the motion is believed, how far apart are two neighbouring real frames once they are lined up? A capture card's picture is not compressed, so the difference is usually tiny; streamed pictures such as Remote Play are compressed, so it is larger. It needs Predict running; the result is also in the performance report",
+   "tr": "The idea of Memory is to bring detail that earlier real frames showed back into the current picture, lined up along the motion, for steadier textures and less compression noise. That only makes sense where neighbouring real frames really differ, so the first step only measures and changes nothing on the picture: where the motion is believed, how far apart are two neighbouring real frames once they are lined up? A capture card's picture is not compressed, so the difference is usually tiny; streamed pictures such as Remote Play are compressed, so it is larger. It needs Predict running; the result is also in the performance report",
+   "ar": "The idea of Memory is to bring detail that earlier real frames showed back into the current picture, lined up along the motion, for steadier textures and less compression noise. That only makes sense where neighbouring real frames really differ, so the first step only measures and changes nothing on the picture: where the motion is believed, how far apart are two neighbouring real frames once they are lined up? A capture card's picture is not compressed, so the difference is usually tiny; streamed pictures such as Remote Play are compressed, so it is larger. It needs Predict running; the result is also in the performance report",
+   "pl": "The idea of Memory is to bring detail that earlier real frames showed back into the current picture, lined up along the motion, for steadier textures and less compression noise. That only makes sense where neighbouring real frames really differ, so the first step only measures and changes nothing on the picture: where the motion is believed, how far apart are two neighbouring real frames once they are lined up? A capture card's picture is not compressed, so the difference is usually tiny; streamed pictures such as Remote Play are compressed, so it is larger. It needs Predict running; the result is also in the performance report",
+   "ru": "The idea of Memory is to bring detail that earlier real frames showed back into the current picture, lined up along the motion, for steadier textures and less compression noise. That only makes sense where neighbouring real frames really differ, so the first step only measures and changes nothing on the picture: where the motion is believed, how far apart are two neighbouring real frames once they are lined up? A capture card's picture is not compressed, so the difference is usually tiny; streamed pictures such as Remote Play are compressed, so it is larger. It needs Predict running; the result is also in the performance report"
+  },
+  {
    "zh": "NGX 核心",
    "src": "include/veyra/engine/BackendRecovery.h",
    "zh-TW": "NGX 核心",
@@ -6646,6 +6663,23 @@
    "ar": "PushFlow 2: Guard, bring back objects that were left out (experimental)",
    "pl": "PushFlow 2: Guard, bring back objects that were left out (experimental)",
    "ru": "PushFlow 2: Guard, bring back objects that were left out (experimental)"
+  },
+  {
+   "zh": "PushFlow 2：Memory，先测量（实验）",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "PushFlow 2：Memory，先測量（實驗）",
+   "en": "PushFlow 2: Memory, measuring first (experimental)",
+   "ja": "PushFlow 2：Memory、まず測定（実験）",
+   "nl": "PushFlow 2: Memory, measuring first (experimental)",
+   "de": "PushFlow 2: Memory, measuring first (experimental)",
+   "es": "PushFlow 2: Memory, measuring first (experimental)",
+   "fr": "PushFlow 2: Memory, measuring first (experimental)",
+   "it": "PushFlow 2: Memory, measuring first (experimental)",
+   "pt-BR": "PushFlow 2: Memory, measuring first (experimental)",
+   "tr": "PushFlow 2: Memory, measuring first (experimental)",
+   "ar": "PushFlow 2: Memory, measuring first (experimental)",
+   "pl": "PushFlow 2: Memory, measuring first (experimental)",
+   "ru": "PushFlow 2: Memory, measuring first (experimental)"
   },
   {
    "zh": "PushFlow 2：Predict，不等下一帧（实验）",
@@ -41704,6 +41738,23 @@
    "ru": "Testing, about half a minute…"
   },
   {
+   "zh": "正在测量。已测 %1 对真实帧，至少需要 60 对",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "正在測量。已測 %1 對真實幀，至少需要 60 對",
+   "en": "Measuring. %1 pairs of real frames measured; at least 60 are needed",
+   "ja": "測定中です。実フレームの組を %1 組測定しました。60 組以上が必要です",
+   "nl": "Measuring. %1 pairs of real frames measured; at least 60 are needed",
+   "de": "Measuring. %1 pairs of real frames measured; at least 60 are needed",
+   "es": "Measuring. %1 pairs of real frames measured; at least 60 are needed",
+   "fr": "Measuring. %1 pairs of real frames measured; at least 60 are needed",
+   "it": "Measuring. %1 pairs of real frames measured; at least 60 are needed",
+   "pt-BR": "Measuring. %1 pairs of real frames measured; at least 60 are needed",
+   "tr": "Measuring. %1 pairs of real frames measured; at least 60 are needed",
+   "ar": "Measuring. %1 pairs of real frames measured; at least 60 are needed",
+   "pl": "Measuring. %1 pairs of real frames measured; at least 60 are needed",
+   "ru": "Measuring. %1 pairs of real frames measured; at least 60 are needed"
+  },
+  {
    "zh": "正在测量：",
    "src": "qml/PushOptimizeDialog.qml",
    "zh-TW": "正在測量：",
@@ -47720,6 +47771,40 @@
    "ar": "Versus a simple blend",
    "pl": "Versus a simple blend",
    "ru": "Versus a simple blend"
+  },
+  {
+   "zh": "相邻的真实帧对齐后几乎一样（平均相差 %1，满值 255）。这个画面来源很干净，Memory 没有什么可以补回的",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "相鄰的真實幀對齊後幾乎一樣（平均相差 %1，滿值 255）。這個畫面來源很乾淨，Memory 沒有什麼可以補回的",
+   "en": "Neighbouring real frames are almost the same once lined up (%1 apart on average, of 255). This source is clean: Memory would have nothing to bring back",
+   "ja": "隣り合う実フレームは、位置を合わせるとほぼ同じです（平均の差 %1、最大 255）。この映像ソースはきれいで、Memory が取り戻せるものはありません",
+   "nl": "Neighbouring real frames are almost the same once lined up (%1 apart on average, of 255). This source is clean: Memory would have nothing to bring back",
+   "de": "Neighbouring real frames are almost the same once lined up (%1 apart on average, of 255). This source is clean: Memory would have nothing to bring back",
+   "es": "Neighbouring real frames are almost the same once lined up (%1 apart on average, of 255). This source is clean: Memory would have nothing to bring back",
+   "fr": "Neighbouring real frames are almost the same once lined up (%1 apart on average, of 255). This source is clean: Memory would have nothing to bring back",
+   "it": "Neighbouring real frames are almost the same once lined up (%1 apart on average, of 255). This source is clean: Memory would have nothing to bring back",
+   "pt-BR": "Neighbouring real frames are almost the same once lined up (%1 apart on average, of 255). This source is clean: Memory would have nothing to bring back",
+   "tr": "Neighbouring real frames are almost the same once lined up (%1 apart on average, of 255). This source is clean: Memory would have nothing to bring back",
+   "ar": "Neighbouring real frames are almost the same once lined up (%1 apart on average, of 255). This source is clean: Memory would have nothing to bring back",
+   "pl": "Neighbouring real frames are almost the same once lined up (%1 apart on average, of 255). This source is clean: Memory would have nothing to bring back",
+   "ru": "Neighbouring real frames are almost the same once lined up (%1 apart on average, of 255). This source is clean: Memory would have nothing to bring back"
+  },
+  {
+   "zh": "相邻的真实帧对齐后平均相差 %1（满值 255）。把对齐的两帧取平均，大约能去掉其中三成：这是 Memory 能改善多少的估计，画面本身还没有改动",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "相鄰的真實幀對齊後平均相差 %1（滿值 255）。把對齊的兩幀取平均，大約能去掉其中三成：這是 Memory 能改善多少的估計，畫面本身還沒有改動",
+   "en": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet",
+   "ja": "隣り合う実フレームは、位置を合わせても平均で %1 の差があります（最大 255）。位置を合わせた 2 枚を平均すると、その約 3 割を取り除けます。これは Memory で改善できる量の見積もりで、映像自体はまだ変更していません",
+   "nl": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet",
+   "de": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet",
+   "es": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet",
+   "fr": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet",
+   "it": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet",
+   "pt-BR": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet",
+   "tr": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet",
+   "ar": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet",
+   "pl": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet",
+   "ru": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet"
   },
   {
    "zh": "着色器没能载入",

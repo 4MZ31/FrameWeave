@@ -77,7 +77,11 @@ int main() {
       const auto fitted = json(f);
       check(has(fitted, "\"pushFlowResponseFit\": { \"follows\": true, \"delayMs\": 70") && has(fitted, "\"gain\": [-0.500, 0.250]") && has(fitted, "\"explained\": 0.875") && wellFormed(fitted),
             "Response's measurement: follows or not, how late, how strongly, how much it explains");
-      f.pushFlowResponse = "no-stick"; check(has(json(f), "\"pushFlowResponse\": \"no-stick\"") && has(json(f), "\"pushFlowResponseFit\": null"), "no stick through PushFPS: said, with nothing measured"); }
+      f.pushFlowResponse = "no-stick"; check(has(json(f), "\"pushFlowResponse\": \"no-stick\"") && has(json(f), "\"pushFlowResponseFit\": null"), "no stick through PushFPS: said, with nothing measured");
+      check(has(fitted, "\"pushFlowMemory\": null") && has(fitted, "\"pushFlowMemoryApart\": null"), "Memory not asked for: null, with nothing measured");
+      f.pushFlowMemory = "on"; f.pushFlowMemoryPairs = 1800; f.pushFlowMemoryApart = 2.375; const auto mem = json(f);
+      check(has(mem, "\"pushFlowMemory\": \"on\"") && has(mem, "\"pushFlowMemoryApart\": [1800, 2.38]") && wellFormed(mem), "Memory's measurement: pairs, and how far apart the real frames are");
+      f.pushFlowMemory = "needs-predict"; check(has(json(f), "\"pushFlowMemoryApart\": null"), "without Predict nothing is measured, and nothing is claimed"); }
     { auto f = session(); f.pushFlowEncoderCache = "on"; f.pushFlowWholeMs = 9.5; f.pushFlowSplitMs = 8.25; const auto t = json(f);
       check(has(t, "\"pushFlowEncoderCache\": \"on\"") && has(t, "\"pushFlowEncoderCacheStartMs\": [9.5") && wellFormed(t), "the encoder cache in use, with one frame each way at start");
       f.pushFlowEncoderCache = "mismatch"; f.pushFlowSplitMs = 0; const auto u = json(f);

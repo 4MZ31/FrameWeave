@@ -8,6 +8,7 @@
 //    with a result the user can copy;
 //  - the performance report: what the session playing now really does (engine/PushPerfReport.h).
 #include "../QmlPlayerBridge_p.h"
+#include "veyra/pushflow/PushFlow2.h"
 #include "veyra/engine/PushResponse.h"
 #include "veyra/engine/PushCrashNote.h"
 #include "veyra/engine/PushPerfReport.h"
@@ -161,6 +162,10 @@ QString QmlPlayerBridge::pushPerformanceReport() const {
     f.pushFlowPredict = s.pushFlowPredict; f.pushFlowPredictFrames = s.pushFlowPredictFrames; f.pushFlowPredictSuperseded = s.pushFlowPredictSuperseded;
     f.pushFlowPredictCounted = s.pushFlowPredictCounted; f.pushFlowPredictMoving = s.pushFlowPredictMoving; f.pushFlowPredictHeld = s.pushFlowPredictHeld;
     f.pushFlowDual = s.pushFlowDual; f.pushFlowDualReal = s.pushFlowDualReal; f.pushFlowDualBetween = s.pushFlowDualBetween;
+    if (pushflow2::wanted(pushflow2::Experiment::Memory)) {
+        f.pushFlowMemory = s.pushFlowPredict != "on" ? "needs-predict" : "on";
+        f.pushFlowMemoryPairs = s.pushFlowMotionPairs; f.pushFlowMemoryApart = s.pushFlowAlignedApart;
+    }
     if (engine::response::observer().listening()) {
         const auto fit = engine::response::observer().fit();
         f.pushFlowResponse = s.pushFlowPredict != "on" ? "needs-predict" : engine::response::observer().sticksSeen() == 0 ? "no-stick" : "on";

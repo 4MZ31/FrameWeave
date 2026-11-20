@@ -140,6 +140,14 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
         }
         m["pushFlowResponse"] = state;
     }
+    // PushFlow 2's Memory, first step (a measurement): "" not asked for, "needs-predict", or "on" with how
+    // far apart two real frames are where the motion joins them (0..255) over the pairs measured so far.
+    {
+        const bool asked = pushflow2::wanted(pushflow2::Experiment::Memory);
+        m["pushFlowMemory"] = !asked ? QString() : s.pushFlowPredict != "on" ? QStringLiteral("needs-predict") : QStringLiteral("on");
+        m["pushFlowMemoryPairs"] = QVariant::fromValue(qulonglong(asked ? s.pushFlowMotionPairs : 0));
+        m["pushFlowMemoryApart"] = asked ? double(s.pushFlowAlignedApart) : 0.0;
+    }
     m["pacingRepaired"] = QVariant::fromValue(qulonglong(s.pacingRepaired));
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;

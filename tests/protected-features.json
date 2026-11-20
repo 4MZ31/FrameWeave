@@ -239,6 +239,16 @@
      "file": "tests/qml/quick/tst_push_flow2.qml",
      "ci": "tst_push_flow2",
      "contains": "test_response_only_measures_and_says_what_it_found"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_flow2.qml",
+     "ci": "tst_push_flow2",
+     "contains": "test_every_part_of_the_plan_has_its_switch"
+    },
+    {
+     "file": "tests/integration/PushGpuTests.cpp",
+     "ci": "veyra_push_gpu_tests",
+     "contains": "a picture 3 of 255 brighter is found about 3 apart"
     }
    ],
    "needs_hardware": "Speed on any real card; picture quality on real games."

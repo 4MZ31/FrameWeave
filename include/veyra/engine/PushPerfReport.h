@@ -82,6 +82,11 @@ struct Facts {
     std::string pushFlowResponse;
     bool pushFlowResponseEnough = false, pushFlowResponseFollows = false;
     double pushFlowResponseDelayMs = 0, pushFlowResponseGainX = 0, pushFlowResponseGainY = 0, pushFlowResponseExplained = 0;
+    // PushFlow 2's Memory, first step: "" not asked for, "on", or a word for why nothing is measured; pairs
+    // measured, and how far apart two real frames are where the motion joins them (0..255).
+    std::string pushFlowMemory;
+    uint64_t pushFlowMemoryPairs = 0;
+    double pushFlowMemoryApart = 0;
 };
 
 // A word from a fixed list: lower-case letters, digits and '-' only, else empty.
@@ -199,7 +204,10 @@ inline std::string json(const Facts& f) {
     o += "    \"pushFlowResponseFit\": " + (f.pushFlowResponseEnough && word(f.pushFlowResponse) == "on"
         ? std::string("{ \"follows\": ") + (f.pushFlowResponseFollows ? "true" : "false") + ", \"delayMs\": " + number(f.pushFlowResponseDelayMs, 0) + ", \"gain\": [" +
           number(f.pushFlowResponseGainX, 3) + ", " + number(f.pushFlowResponseGainY, 3) + "], \"explained\": " + number(f.pushFlowResponseExplained, 3) + " }"
-        : std::string("null")) + "\n";
+        : std::string("null")) + ",\n";
+    o += "    \"pushFlowMemory\": " + quoted(word(f.pushFlowMemory)) + ",\n";
+    o += "    \"pushFlowMemoryApart\": " + (f.pushFlowMemoryPairs && word(f.pushFlowMemory) == "on" ? "[" + std::to_string(f.pushFlowMemoryPairs) + ", " + number(f.pushFlowMemoryApart, 2) + "]"
+                                                                                                    : std::string("null")) + "\n";
     o += "  },\n";
     o += "  \"notes\": \"Rates are frames PushFPS presented in the last second. softwareLatency is a frame's arrival in PushFPS to its Present call: "
          "not button to screen, and it leaves out the capture card, the console and the display. frameGenerationHealth: 0 fine, 1 nothing to add at this "
