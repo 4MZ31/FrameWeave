@@ -773,6 +773,64 @@ def predict_report(path: Path, channels: int, align: int) -> list[dict]:
         forecast(f"square moving {move} px a frame", frame(w, h, 100), frame(w, h, 100 + move), frame(w, h, 100 + 1.5 * move), box, move)
     for pan in (4, 8, 16):
         forecast(f"fine texture panning {pan} px a frame", detail_frame(w, h, 0), detail_frame(w, h, pan), detail_frame(w, h, pan + pan // 2))
+
+    # Predict as built (shaders/PushPredict.hlsl, pushflow/PushFlowPredict.h): the forecast from the
+    # half-way grids for a time `ahead` of an interval after the newest frame, and per pixel how far it
+    # is trusted: the search for where the pixel came from must settle (`settle`), the two real frames'
+    # motions must be opposite (`opposite`: an occlusion or a lost object is where they are not), the
+    # place it reads must be inside the picture, and (optionally) it must not move further than `cap` of
+    # the picture's width a frame. An untrusted pixel shows the newest real frame (a hold).
+    def built(f0, f1, ahead, settle=(0.5, 1.5), opposite=(1.0, 3.0), cap=None):
+        _, h0, h1, _ = session.run(None, {name: tensor(f0, f1, 0.5, channels)})[:4]
+        ph, pw = rife_graph.to_hw2(h0).shape[:2]
+        grids = [np.moveaxis(rife_graph.to_hw2(g), -1, 0) for g in (h0, h1)]
+        def d_at(grid, py, px):
+            py, px = np.clip(py, 0, h - 1), np.clip(px, 0, w - 1)
+            gx_, gy_ = bilinear_at(grid, py, px)
+            if align:
+                mx = (gx_ + 1) * 0.5 * (pw - 1); my = (gy_ + 1) * 0.5 * (ph - 1)
+            else:
+                mx = ((gx_ + 1) * pw - 1) * 0.5; my = ((gy_ + 1) * ph - 1) * 0.5
+            return mx - px, my - py
+        k = 1.0 + 2.0 * ahead
+        sx, sy = xo, yo
+        for _ in range(2):
+            ddx, ddy = d_at(grids[1], sy, sx)
+            sx, sy = xo - k * ddx, yo - k * ddy
+        ddx, ddy = d_at(grids[1], sy, sx)
+        ax, ay = d_at(grids[0], sy, sx)
+        def fade(x, lo, hi):
+            t = np.clip((x - lo) / (hi - lo), 0.0, 1.0)
+            return 1.0 - t * t * (3.0 - 2.0 * t)
+        trust = fade(np.hypot(sx + k * ddx - xo, sy + k * ddy - yo), *settle) * fade(np.hypot(ax + ddx, ay + ddy), *opposite)
+        px, py = sx + ddx, sy + ddy                 # where the pixel is in the newest frame
+        trust = trust * ((px >= -0.5) & (px <= w - 0.5) & (py >= -0.5) & (py <= h - 0.5))
+        if cap is not None:
+            trust = trust * fade(2.0 * np.hypot(ddx, ddy) / w, cap * 0.8, cap * 1.2)
+        moved = np.hypot(px - xo, py - yo) >= 0.02
+        shown = np.clip(bilinear_at(f1, py, px), 0, 1)
+        shown = np.where(moved[None], shown, f1)
+        return f1 + (shown - f1) * trust[None], float((trust < 0.5).mean())
+    table = []
+    def as_built(label, f0, f1, truth_at):
+        for ahead in (0.25, 0.5, 0.75):
+            truth = truth_at(ahead)
+            line = [label, ahead, round(psnr(f1, truth), 1)]
+            for rule in ({}, {"cap": 0.05}, {"opposite": (0.5, 1.5)}, {"settle": (0.25, 0.75), "opposite": (0.5, 1.5)}):
+                picture, held = built(f0, f1, ahead, **rule)
+                line += [round(psnr(picture, truth), 1), round(100.0 * held, 1)]
+            table.append(line)
+    for move in (2, 8, 16, 32, 48, 96):
+        as_built(f"square {move} px", frame(w, h, 100), frame(w, h, 100 + move), lambda a, move=move: frame(w, h, 100 + (1.0 + a) * move))
+    for pan in (4, 8, 16, 32):
+        as_built(f"texture pan {pan} px", detail_frame(w, h, 0), detail_frame(w, h, pan), lambda a, pan=pan: detail_frame(w, h, int(round((1.0 + a) * pan))))
+    as_built("still", frame(w, h, 100), frame(w, h, 100), lambda a: frame(w, h, 100))
+    as_built("unrelated", frame(w, h, 100), detail_frame(w, h, 0), lambda a: detail_frame(w, h, 0))
+    # [pair, ahead, hold dB, then for each rule: forecast dB, % of the picture held]. Rules: as built;
+    # with a speed cap of 5 % of the width a frame; a stricter 'opposite'; stricter 'settle' and 'opposite'.
+    rows.append({"predict_as_built": table,
+                 "worst_against_hold_db": [round(min(line[3 + 2 * r] - line[2] for line in table), 1) for r in range(4)],
+                 "mean_gain_db": [round(sum(line[3 + 2 * r] - line[2] for line in table if line[0] not in ("still", "unrelated")) / max(1, sum(1 for line in table if line[0] not in ("still", "unrelated"))), 1) for r in range(4)]})
     return rows
 
 
