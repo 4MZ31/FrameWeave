@@ -76,14 +76,11 @@ QtObject {
         function cancelModelDownload() { downloading = false }
     }
     property real playbackRate: 1
-    property real volume: 1
     readonly property real maximumVolume: 3
-    property bool muted: false
     property real duration: 100
     property bool hasSource: true
     property bool isCapture: false
     property bool openingSource: false
-    property string sourceKind: "screen"
     property int sourceWidth: 1000
     property int sourceHeight: 500
     property string statusText: ""

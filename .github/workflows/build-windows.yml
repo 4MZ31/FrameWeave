@@ -622,6 +622,7 @@ jobs:
           Get-Content upstream-sha256.txt
 
       - name: Package the PushFPS release zip
+        id: package
         if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
           # The licences of the SDK code built into PushFPS.exe travel with it (licenses\sdk in the zip).
@@ -749,7 +750,11 @@ jobs:
           (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower() + "  " + (Split-Path $zip -Leaf) | Set-Content "$zip.sha256" -Encoding ascii
           Get-Item $zip | Format-List Name, Length
 
+      # The package is kept whenever it was made, also from a run in which a check failed: the screenshot workflow
+      # can then show such a build (its run_id input). Nothing is released from a failed run: the release job
+      # needs this job to succeed.
       - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() && steps.package.outcome == 'success' }}
         with:
           name: PushFPS-${{ env.PUSHFPS_VERSION }}
           path: |

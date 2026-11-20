@@ -18,6 +18,10 @@ on:
         description: Take only the screenshots whose name matches this regular expression (empty = all)
         default: ''
         required: false
+      run_id:
+        description: Use the package of this build-windows run, whatever its result (design work on a build whose tests still fail)
+        default: ''
+        required: false
       qml_from:
         description: Put the interface files (qml/) of this branch or commit over the installed build's (design work without a rebuild; the program itself stays that build's)
         default: ''
@@ -41,6 +45,7 @@ jobs:
       BUILD_BRANCH: ${{ inputs.branch || 'main' }}
       ONLY: ${{ inputs.only }}
       QML_FROM: ${{ inputs.qml_from }}
+      RUN_ID: ${{ inputs.run_id }}
     steps:
       # Only for the test-pattern sender (tools/frame-input): the screenshots that show a playing picture.
       - uses: actions/checkout@v4
@@ -59,9 +64,10 @@ jobs:
           if ($env:RELEASE_TAG) {
             gh release download $env:RELEASE_TAG -R $env:GITHUB_REPOSITORY -p 'PushFPS-[0-9]*-win64.zip' -O pf.zip
           } else {
-            $run = gh run list -R $env:GITHUB_REPOSITORY -w build-windows -b $env:BUILD_BRANCH -s success -L 1 --json databaseId -q '.[0].databaseId'
+            $run = $env:RUN_ID
+            if (-not $run) { $run = gh run list -R $env:GITHUB_REPOSITORY -w build-windows -b $env:BUILD_BRANCH -s success -L 1 --json databaseId -q '.[0].databaseId' }
             if (-not $run) { throw "no successful build-windows run on $env:BUILD_BRANCH" }
-            Write-Host "Using build run $run ($env:BUILD_BRANCH)"
+            Write-Host "Using build run $run ($(if ($env:RUN_ID) { 'given' } else { $env:BUILD_BRANCH }))"
             gh run download $run -R $env:GITHUB_REPOSITORY -p 'PushFPS-*' -D art
             Move-Item (Get-ChildItem art -Recurse -Filter 'PushFPS-*-win64.zip' | Where-Object Name -notlike '*OBS*' | Select-Object -First 1).FullName pf.zip
           }
