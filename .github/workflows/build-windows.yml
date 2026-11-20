@@ -418,6 +418,37 @@ jobs:
             Write-Host "::error::PushFlow did not generate frames through the enhancement graph"; exit 1
           }
 
+      # PushFlow 2's Predict through the whole engine, with a live source (a Frame Input channel the test feeds
+      # itself): the engine's pair timing, admission and presentation order with Predict on, which the graph
+      # test cannot reach. The program finds PushFlow under <its folder>\runtime\experimental, so that folder
+      # is linked in for this step only and taken away again. Software renderer: it says the engine keeps
+      # playing and shows real frames sooner, nothing about a real graphics card.
+      - name: PushFlow 2 Predict through the engine, with a live source
+        run: |
+          cmake --build $env:BUILD --target veyra_push_predict_engine_tests --parallel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $exe = Get-ChildItem $env:BUILD -Recurse -Filter 'veyra_push_predict_engine_tests.exe' | Select-Object -First 1
+          if (-not $exe) { Write-Host "::error::veyra_push_predict_engine_tests.exe not built"; exit 1 }
+          $root = $exe.DirectoryName
+          $madeRuntime = -not (Test-Path "$root\runtime")
+          $madeData = -not (Test-Path "$root\runtime_local")
+          if ($madeData) { New-Item -ItemType Directory -Force -Path "$root\runtime_local" | Out-Null }
+          if ($madeRuntime) {
+            New-Item -ItemType Directory -Force -Path "$root\runtime" | Out-Null
+            New-Item -ItemType Junction -Path "$root\runtime\experimental" -Target "$env:DEPS\pushflow\runtime" | Out-Null
+          }
+          $env:PATH = "$env:DEPS\vcpkg\installed\x64-windows\bin;$env:QT_ROOT_DIR\bin;$env:PATH"
+          & $exe.FullName "$env:RUNNER_TEMP\pushflow-predict-engine" 2>&1 | Out-Host
+          $code = $LASTEXITCODE
+          Write-Host "veyra_push_predict_engine_tests exit $code"
+          # The link is taken away, not what it points to.
+          if ($madeRuntime) { (Get-Item "$root\runtime\experimental").Delete(); Remove-Item "$root\runtime" -Force }
+          if ($madeData) { Remove-Item "$root\runtime_local" -Recurse -Force -ErrorAction SilentlyContinue }
+          if ($code -ne 0) {
+            Get-Content "$env:RUNNER_TEMP\pushflow-predict-engine\engine.log" -Tail 80 -ErrorAction SilentlyContinue | Out-Host
+            Write-Host "::error::Predict did not play a live source through the engine as expected"; exit 1
+          }
+
       # Going live: two outputs at once (RTMP + RTMPS through Schannel) to a local MediaMTX, read back,
       # server restart, a closed port, key redaction. Proves the FFmpeg build has rtmp/rtmps.
       - name: Going-live tests (local RTMP/RTMPS server)

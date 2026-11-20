@@ -1742,6 +1742,14 @@ add_executable(veyra_sr_reconstruction_tests tests/integration/SrReconstructionT
   target_compile_options(veyra_push_flow_graph_tests PRIVATE /utf-8)
   target_include_directories(veyra_push_flow_graph_tests PRIVATE ${FFMPEG_INCLUDE_DIRS})
   target_link_libraries(veyra_push_flow_graph_tests PRIVATE veyra_engine)
+  # PushFPS: PushFlow 2's Predict through the whole engine with a live source (a Frame Input channel fed by
+  # the test itself): the engine's side of Predict, which no graph test reaches.
+  add_executable(veyra_push_predict_engine_tests tests/integration/PushPredictEngineTests.cpp)
+  target_compile_features(veyra_push_predict_engine_tests PRIVATE cxx_std_20)
+  target_compile_options(veyra_push_predict_engine_tests PRIVATE /utf-8)
+  target_include_directories(veyra_push_predict_engine_tests PRIVATE ${FFMPEG_INCLUDE_DIRS})
+  target_link_libraries(veyra_push_predict_engine_tests PRIVATE veyra_engine)
+  target_link_options(veyra_push_predict_engine_tests PRIVATE /STACK:8388608)
   # PushFPS going live: RTMP/RTMPS outputs against a local MediaMTX (tests/data/stream/run-live-stream-tests.sh).
   add_executable(veyra_live_stream_tests tests/integration/LiveStreamTests.cpp src/engine/LiveStream.cpp)
   target_compile_features(veyra_live_stream_tests PRIVATE cxx_std_20)
