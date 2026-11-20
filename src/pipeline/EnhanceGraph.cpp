@@ -1557,10 +1557,12 @@ bool EnhanceGraph::initNis() {
 // inside its presenter); a pass that cannot be created leaves frame generation as it was.
 bool EnhanceGraph::initHudLock() {
     hudLock_.reset();
-    if(!desc_.hudLock||!fgEnabled_||presentSinkFg())return true;
+    // PushFPS 4.0: one pass serves Live HUD Lock (a setting) and the still rule (PushHudStill.h, on
+    // unless switched off). With the lock alone it does what it did before.
+    if((!desc_.hudLock&&!desc_.hudStill)||!fgEnabled_||presentSinkFg())return true;
     auto pass=std::make_unique<PushHudLock>();
-    if(!pass->initialize(context_.device(),workW_,workH_,outputFormat(),hdr10Output()?2u:desc_.hdrOutput?1u:0u)){
-        veyra::log::error("hud-lock",std::format("Live HUD Lock unavailable at {}x{}; frame generation runs without it",workW_,workH_));
+    if(!pass->initialize(context_.device(),workW_,workH_,outputFormat(),hdr10Output()?2u:desc_.hdrOutput?1u:0u,desc_.hudLock,desc_.hudStill)){
+        veyra::log::error("hud-lock",std::format("HUD protection unavailable at {}x{} (lock={} still={}); frame generation runs without it",workW_,workH_,desc_.hudLock,desc_.hudStill));
         return true;
     }
     hudLock_=std::move(pass);

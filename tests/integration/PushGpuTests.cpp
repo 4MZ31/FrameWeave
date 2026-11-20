@@ -25,6 +25,7 @@
 #include "veyra/pushflow/PushFlowMotion.h"
 #include "veyra/engine/PushHudSampler.h"
 #include "veyra/pipeline/PushHudLock.h"
+#include "veyra/pipeline/PushHudStill.h"
 #include "veyra/pipeline/PushAmbientPass.h"
 #include "veyra/pipeline/PushEnhanceShape.h"
 #include "veyra/engine/PushAmbient.h"
@@ -1033,6 +1034,125 @@ void testHudSampler(Gpu& gpu) {
     const auto failed = sampler.status();
     check(failed.failed && !failed.error.empty() && !failed.running, "hud: an unsupported format fails with a reason");
 }
+// The still rule (pipeline/PushHudStill.h) on the card: the three shaders against the rule in plain
+// C++, pixel by pixel. Two real frames: a world that moves, a HUD that does not (strokes one and two
+// pixels wide, a bar, a ring), and at the right a part of the picture that stands still with a ball
+// crossing it. A generated frame of plain grey comes back with exactly the pixels the rule names
+// replaced by the real frame's, and every other pixel untouched.
+void testHudStill(Gpu& gpu) {
+    constexpr uint32_t W = 320, H = 192;
+    constexpr DXGI_FORMAT F = DXGI_FORMAT_R8G8B8A8_UNORM;
+    auto* device = gpu.device.Get();
+    Plane real[2]{{pipeline::makeTexture(device, W, H, F, true), F, W, H, 4}, {pipeline::makeTexture(device, W, H, F, true), F, W, H, 4}};
+    Plane generated{pipeline::makeTexture(device, W, H, F, true), F, W, H, 4};
+    check(real[0].texture && real[1].texture && generated.texture, "still rule: textures created");
+    pipeline::PushHudLock pass;
+    check(pass.initialize(device, W, H, F, 0, false, true), "still rule: created without Live HUD Lock");
+    check(pass.stillActive() && !pass.lockActive(), "still rule: the still rule alone is active");
+    pipeline::DescriptorStager stager;
+    check(stager.initialize(device, 64), "still rule: staging heap");
+    ID3D12Resource* reals[2] = {real[0].texture.Get(), real[1].texture.Get()};
+    ID3D12Resource* gens[1] = {generated.texture.Get()};
+    pass.createViews(device, stager, reals, gens, 1);
+    const auto hud = [](uint32_t x, uint32_t y) {
+        if (x == 30 && y >= 20 && y < 60) return true;                          // one pixel wide
+        if ((x == 44 || x == 45) && y >= 20 && y < 60) return true;             // two pixels wide
+        if (y == 70 && x >= 20 && x < 120) return true;
+        if (y >= 150 && y < 160 && x >= 20 && x < 140) return true;             // a bar
+        const double r = std::hypot(double(x) - 110.0, double(y) - 40.0);
+        return r >= 14.0 && r <= 16.0;                                          // a ring
+    };
+    const auto picture = [&](int shift, int ball) {
+        std::vector<uint8_t> px(size_t(W) * H * 4);
+        for (uint32_t y = 0; y < H; ++y)
+            for (uint32_t x = 0; x < W; ++x) {
+                uint8_t v;
+                if (hud(x, y)) v = 235;
+                else if (x >= 224) {                                            // stands still, a ball crossing it
+                    const double r = std::hypot(double(x) - double(ball), double(y) - 96.0);
+                    uint32_t h = x * 2246822519u + y * 3266489917u; h = (h ^ (h >> 15)) * 2654435761u;
+                    v = r <= 7.0 ? 250 : uint8_t(60 + (h >> 26));
+                } else {
+                    uint32_t h = uint32_t(int(x) + shift) * 374761393u + uint32_t(int(y) + shift / 3) * 668265263u;
+                    h = (h ^ (h >> 13)) * 1274126177u;
+                    v = uint8_t(40 + (h >> 25));
+                }
+                uint8_t* p = px.data() + (size_t(y) * W + x) * 4;
+                p[0] = p[1] = p[2] = v; p[3] = 255;
+            }
+        return px;
+    };
+    const std::vector<uint8_t> first = picture(0, 244), second = picture(7, 292);
+    pipeline::StateTracker states;
+    const auto realFrame = [&](unsigned parity, const std::vector<uint8_t>& px, bool reset) {
+        gpu.begin();
+        auto up = recordFill(gpu, real[parity], px, states.get(real[parity].texture.Get()), D3D12_RESOURCE_STATE_COMMON);
+        states.set(real[parity].texture.Get(), D3D12_RESOURCE_STATE_COMMON);
+        const bool ok = pass.update(gpu.list.Get(), states, parity, reset);
+        return ok && gpu.submitAndWait();
+    };
+    const auto generatedFrame = [&](unsigned held, std::vector<uint8_t>& out) {
+        gpu.begin();
+        auto up = recordFill(gpu, generated, std::vector<uint8_t>(size_t(W) * H * 4, 128), states.get(generated.texture.Get()), D3D12_RESOURCE_STATE_COMMON);
+        states.set(generated.texture.Get(), D3D12_RESOURCE_STATE_COMMON);
+        const bool ok = pass.compose(gpu.list.Get(), states, 0, held);
+        auto rb = recordRead(gpu, generated, states.get(generated.texture.Get()));
+        if (!ok || !gpu.submitAndWait()) return false;
+        out = mapRead(generated, rb.Get());
+        return true;
+    };
+    check(realFrame(0, first, true), "still rule: the first real frame starts it over");
+    std::vector<uint8_t> out;
+    check(generatedFrame(0, out), "still rule: composed right after a start");
+    size_t untouched = 0; for (size_t k = 0; k < out.size(); k += 4) untouched += out[k] == 128;
+    check(untouched == size_t(W) * H, "still rule: with one real frame only, nothing is kept");
+    check(realFrame(1, second, false), "still rule: the second real frame is learned from");
+    check(generatedFrame(1, out), "still rule: a generated frame is composed");
+    // The same decision in plain C++.
+    std::vector<uint8_t> same(size_t(W) * H);
+    for (size_t i = 0; i < same.size(); ++i) {
+        int d = 0; for (int c = 0; c < 3; ++c) d = std::max(d, std::abs(int(first[i * 4 + c]) - int(second[i * 4 + c])));
+        same[i] = d <= 2;
+    }
+    const auto keep = pipeline::hudstill::decide(same, W, H);
+    size_t wrong = 0, kept = 0, hudKept = 0, hudTotal = 0, movingKept = 0, stillSide = 0;
+    for (uint32_t y = 0; y < H; ++y)
+        for (uint32_t x = 0; x < W; ++x) {
+            const size_t i = size_t(y) * W + x, k = i * 4;
+            const uint8_t expected = keep[i] ? second[k] : 128;
+            wrong += out[k] != expected || out[k + 1] != expected || out[k + 2] != expected;
+            kept += keep[i];
+            if (hud(x, y)) { ++hudTotal; hudKept += out[k] == second[k] && out[k] != 128; }
+            else if (x < 224) movingKept += out[k] != 128 && !same[i];
+            else stillSide += out[k] != 128;
+        }
+    std::printf("INFO still rule: %zu pixels differ from the rule in plain C++; %zu kept in all, HUD %zu of %zu, in the still part %zu\n", wrong, kept, hudKept, hudTotal, stillSide);
+    check(wrong == 0, "still rule: the shaders decide every pixel as the rule in plain C++ does");
+    check(hudKept >= hudTotal * 90 / 100, "still rule: the HUD comes from the real frame (" + std::to_string(hudKept) + " of " + std::to_string(hudTotal) + ")");
+    check(movingKept == 0, "still rule: no pixel that moves is touched");
+    // The ball's path, and the still part round it, stay frame generation's (most of its surrounding stands still).
+    size_t path = 0; for (uint32_t y = 90; y < 103; ++y) for (uint32_t x = 256; x < 280; ++x) path += out[(size_t(y) * W + x) * 4] != 128;
+    check(path == 0, "still rule: the path of a ball crossing a still part is not touched");
+    // The HUD goes away: the next pair no longer has it, and nothing of it is kept.
+    const auto bare = [&] {
+        std::vector<uint8_t> px = picture(14, 292);
+        for (uint32_t y = 0; y < H; ++y) for (uint32_t x = 0; x < 224; ++x) if (hud(x, y)) {
+            uint32_t h = (x + 14u) * 374761393u + (y + 4u) * 668265263u; h = (h ^ (h >> 13)) * 1274126177u;
+            uint8_t* p = px.data() + (size_t(y) * W + x) * 4; p[0] = p[1] = p[2] = uint8_t(40 + (h >> 25));
+        }
+        return px;
+    }();
+    check(realFrame(0, bare, false), "still rule: a frame without the HUD runs");
+    check(generatedFrame(0, out), "still rule: composed after the HUD went away");
+    size_t leftover = 0; for (uint32_t y = 0; y < H; ++y) for (uint32_t x = 0; x < 224; ++x) if (hud(x, y)) leftover += out[(size_t(y) * W + x) * 4] == 235;
+    check(leftover == 0, "still rule: a HUD that is gone is not held (it keeps no memory)");
+    // Live HUD Lock and the still rule together start and run.
+    pipeline::PushHudLock both;
+    check(both.initialize(device, W, H, F, 0, true, true) && both.lockActive() && both.stillActive(), "still rule: created together with Live HUD Lock");
+    pipeline::PushHudLock neither;
+    check(!neither.initialize(device, W, H, F, 0, false, false), "still rule: a pass with nothing to do is not created");
+}
+
 void testHudLock(Gpu& gpu) {
     constexpr uint32_t W = 256, H = 144;
     constexpr DXGI_FORMAT F = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -2009,6 +2129,7 @@ int main() {
     testCompareReveal(gpu, true);
     testHudSampler(gpu);
     testHudLock(gpu);
+    testHudStill(gpu);
     testAmbient(gpu);
     testEnhanceShape(gpu);
     testPushFlowSizes();

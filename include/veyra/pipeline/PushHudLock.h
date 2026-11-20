@@ -34,7 +34,13 @@ public:
     static constexpr UINT kConstants = 8;
     static constexpr UINT kMaxGenerated = 32;
     // outputMode: how the frames are encoded, as EffectExclusion (0 sRGB, 1 scRGB, 2 PQ).
-    bool initialize(ID3D12Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format, unsigned outputMode);
+    // lock: Live HUD Lock (what this pass did alone until 4.0). still: the still rule
+    // (PushHudStill.h). With lock alone every generated pixel is what it was before 4.0.
+    // If the still rule cannot be set up it is left out and the lock, when asked for, still runs.
+    bool initialize(ID3D12Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format, unsigned outputMode,
+                    bool lock = true, bool still = false);
+    bool lockActive() const { return lock_; }
+    bool stillActive() const { return still_; }
     // real[0..1]: the graph's two real-frame textures by parity; generated: the
     // generated-frame textures, in the graph's slot order.
     void createViews(ID3D12Device* device, DescriptorStager& stager, ID3D12Resource* const real[2],
@@ -50,8 +56,13 @@ private:
     uint32_t width_ = 0, height_ = 0;
     unsigned outputMode_ = 0, generatedCount_ = 0;
     DXGI_FORMAT format_ = DXGI_FORMAT_UNKNOWN;
-    ComputePass update_, compose_;
+    ComputePass update_, compose_, surround_;
     ComPtr<ID3D12Resource> state_, scratch_;
+    // The still rule: per block of 16 x 16 pixels, how much of it stands still, and the same averaged
+    // over the 5 x 5 blocks around (what the compose step reads).
+    ComPtr<ID3D12Resource> blocks_, share_;
+    uint32_t blocksWide_ = 0, blocksHigh_ = 0;
+    bool lock_ = true, still_ = false;
     ID3D12Resource* real_[2]{};
     ID3D12Resource* generated_[kMaxGenerated]{};
 };

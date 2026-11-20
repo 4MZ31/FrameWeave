@@ -175,6 +175,7 @@ struct EnhanceGraphDesc {
     // DLSS-G performance mode (ngx/DlssgLite.h): DLSS frame generation only.
     bool dlssgLite=false;
     bool hudLock=false; // PushFPS Live HUD Lock (PushHudLock.h), graph frame generation only
+    bool hudStill=false; // PushFPS still rule (PushHudStill.h): what stands still in front of a moving picture keeps its real pixels
     engine::ContentRate contentRate=engine::ContentRate::Transport;
     engine::NrSettings model;
     engine::ResidualSettings residual;
@@ -792,7 +793,10 @@ public:
     // PushFPS Live HUD Lock as it actually runs: 0 not asked for, 1 running, 2 asked for but its pass
     // could not be created (frame generation runs without it), 3 asked for but this frame generation
     // has no graph frames to lock (off, or XeSS generating inside its presenter).
-    int hudLockState() const { if(!desc_.hudLock)return 0; if(hudLock_)return 1; if(!fgEnabled_||presentSinkFg())return 3; return 2; }
+    int hudLockState() const { if(!desc_.hudLock)return 0; if(hudLock_&&hudLock_->lockActive())return 1; if(!fgEnabled_||presentSinkFg())return 3; return 2; }
+    // The still rule the same way: 0 not asked for, 1 running, 2 could not start, 3 nothing for it to do
+    // (no frame generation in the graph, or a method that presents its own frames).
+    int hudStillState() const { if(!desc_.hudStill)return 0; if(hudLock_&&hudLock_->stillActive())return 1; if(!fgEnabled_||presentSinkFg())return 3; return 2; }
     // AMD FSR upscaling replaces the SR stage; it is a FidelityFX effect, not
     // an NGX feature, so it also works on non-NVIDIA adapters.
     // Double SR may run FSR in either pass; each pass is its own FidelityFX context.

@@ -5,6 +5,7 @@
 #include "veyra/pipeline/ResolutionPlan.h"
 #include "veyra/pushflow/PushFlow2.h"
 #include "veyra/pushflow/PushFlowMotion.h"
+#include "veyra/pipeline/PushHudStill.h"
 
 namespace veyra::engine {
 // Shared by graph creation and drained live-parameter updates. Disabled list
@@ -200,7 +201,9 @@ inline pipeline::ResolutionPlan describeStages(const StageRequest& request,const
     desc.flowQuality=settings.flow;
     desc.contentRate=settings.content;
     desc.opticalFlowBackend=settings.opticalFlowBackend;
-    desc.amdFlowHalfResolution=settings.amdFlowHalfResolution;desc.fgMotionRefine=settings.fgMotionRefine;desc.dlssgLite=settings.dlssgLite;desc.hudLock=settings.hudLock;desc.vfgAutoRegulate=settings.vfgAutoRegulate;
+    desc.amdFlowHalfResolution=settings.amdFlowHalfResolution;desc.fgMotionRefine=settings.fgMotionRefine;desc.dlssgLite=settings.dlssgLite;desc.hudLock=settings.hudLock;
+    // PushFPS: only while the graph generates frames, so the choice never rebuilds a graph it has no part in.
+    desc.hudStill=desc.enableFg&&pipeline::hudstill::wanted();desc.vfgAutoRegulate=settings.vfgAutoRegulate;
     desc.nrLayersExtent.clear();
     for(uint32_t i=0;i<chain.nodeCount;++i){
         auto& node=chain.nodes[i];

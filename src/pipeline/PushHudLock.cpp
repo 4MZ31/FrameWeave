@@ -6,26 +6,40 @@
 
 namespace veyra::pipeline {
 namespace {
-constexpr DXGI_FORMAT kStateFormat = DXGI_FORMAT_R16G16_FLOAT;  // x: stillness 0..1, y: held contrast
+// x: stillness 0..1, y: held contrast, z: the same in this pair of real frames (the still rule).
+constexpr DXGI_FORMAT kStateFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+constexpr DXGI_FORMAT kShareFormat = DXGI_FORMAT_R16_FLOAT;
+constexpr uint32_t kBlock = 16;   // hudstill::kBlock
 // Descriptor layouts. update: per parity { t0 current, t1 previous, u0 state }.
-// compose: per (slot, held parity) { t0 generated, t1 held real, t2 state, u0 scratch }.
-constexpr UINT kUpdateStride = 3, kComposeStride = 4;
+// compose: per (slot, held parity) { t0 generated, t1 held real, t2 state, t3 share, u0 scratch }.
+// surround: { t0 state, u0 blocks } then { t0 blocks, u0 share }.
+constexpr UINT kUpdateStride = 3, kComposeStride = 5, kSurroundStride = 2;
 }
 
 std::string PushHudLock::describe() const {
-    return std::format("HUD lock {}x{} mode={} generated={}", width_, height_, outputMode_, generatedCount_);
+    return std::format("HUD lock {}x{} mode={} generated={} lock={} still={}", width_, height_, outputMode_, generatedCount_, lock_, still_);
 }
 
-bool PushHudLock::initialize(ID3D12Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format, unsigned outputMode) {
-    if (!device || !width || !height || format == DXGI_FORMAT_UNKNOWN) return false;
-    width_ = width; height_ = height; format_ = format; outputMode_ = outputMode;
+bool PushHudLock::initialize(ID3D12Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format, unsigned outputMode,
+                             bool lock, bool still) {
+    if (!device || !width || !height || format == DXGI_FORMAT_UNKNOWN || (!lock && !still)) return false;
+    width_ = width; height_ = height; format_ = format; outputMode_ = outputMode; lock_ = lock; still_ = still;
+    blocksWide_ = (width_ + kBlock - 1) / kBlock; blocksHigh_ = (height_ + kBlock - 1) / kBlock;
     state_ = makeTexture(device, width_, height_, kStateFormat, true);
     scratch_ = makeTexture(device, width_, height_, format_, true);
-    if (!state_ || !scratch_) return false;
+    // Small, and always there: the compose step's fourth view must be a real texture whether or not it is read.
+    blocks_ = makeTexture(device, blocksWide_, blocksHigh_, kShareFormat, true);
+    share_ = makeTexture(device, blocksWide_, blocksHigh_, kShareFormat, true);
+    if (!state_ || !scratch_ || !blocks_ || !share_) return false;
     std::vector<uint8_t> cs;
     if (!update_.loadShader("PushHudLockUpdate.dxil", cs) || !update_.create(device, cs, 2 * kUpdateStride, 2, 1, kConstants)) return false;
     if (!compose_.loadShader("PushHudLockCompose.dxil", cs) ||
-        !compose_.create(device, cs, kMaxGenerated * 2 * kComposeStride, 3, 1, kConstants)) return false;
+        !compose_.create(device, cs, kMaxGenerated * 2 * kComposeStride, 4, 1, kConstants)) return false;
+    if (still_ && (!surround_.loadShader("PushHudStill.dxil", cs) || !surround_.create(device, cs, 2 * kSurroundStride, 1, 1, kConstants))) {
+        veyra::log::warn("hud-lock", "the still rule could not be set up; it is left out");
+        still_ = false;
+        if (!lock_) return false;
+    }
     veyra::log::info("hud-lock", std::format("created {}", describe()));
     return true;
 }
@@ -47,8 +61,15 @@ void PushHudLock::createViews(ID3D12Device* device, DescriptorStager& stager, ID
             stager.stageSrv(generated_[slot], nullptr, compose_.heap.Get(), base);
             stager.stageSrv(real_[held], nullptr, compose_.heap.Get(), base + 1);
             stager.stageSrv(state_.Get(), nullptr, compose_.heap.Get(), base + 2);
-            makeUav(device, scratch_.Get(), format_, cpuHandleOf(compose_, base + 3));
+            stager.stageSrv(share_.Get(), nullptr, compose_.heap.Get(), base + 3);
+            makeUav(device, scratch_.Get(), format_, cpuHandleOf(compose_, base + 4));
         }
+    if (still_) {
+        stager.stageSrv(state_.Get(), nullptr, surround_.heap.Get(), 0);
+        makeUav(device, blocks_.Get(), kShareFormat, cpuHandleOf(surround_, 1));
+        stager.stageSrv(blocks_.Get(), nullptr, surround_.heap.Get(), kSurroundStride);
+        makeUav(device, share_.Get(), kShareFormat, cpuHandleOf(surround_, kSurroundStride + 1));
+    }
 }
 
 bool PushHudLock::update(ID3D12GraphicsCommandList* list, StateTracker& tracker, unsigned parity, bool reset) {
@@ -63,6 +84,26 @@ bool PushHudLock::update(ID3D12GraphicsCommandList* list, StateTracker& tracker,
     update_.bind(list, c, gpuHandleOf(update_, base).ptr, gpuHandleOf(update_, base + 2).ptr);
     list->Dispatch((width_ + 15) / 16, (height_ + 15) / 16, 1);
     tracker.uavBarrier(list, state_.Get());
+    if (still_) {
+        // How much of every pixel's surrounding stands still in this pair: per block, then over 5 x 5 blocks.
+        float s[kConstants]{};
+        s[0] = std::bit_cast<float>(width_); s[1] = std::bit_cast<float>(height_);
+        s[3] = std::bit_cast<float>(blocksWide_); s[4] = std::bit_cast<float>(blocksHigh_);
+        tracker.transition(list, state_.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        tracker.transition(list, blocks_.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        s[2] = std::bit_cast<float>(uint32_t(0));
+        surround_.bind(list, s, gpuHandleOf(surround_, 0).ptr, gpuHandleOf(surround_, 1).ptr);
+        list->Dispatch((blocksWide_ + 7) / 8, (blocksHigh_ + 7) / 8, 1);
+        tracker.uavBarrier(list, blocks_.Get());
+        tracker.transition(list, blocks_.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        tracker.transition(list, share_.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        s[2] = std::bit_cast<float>(uint32_t(1));
+        surround_.bind(list, s, gpuHandleOf(surround_, kSurroundStride).ptr, gpuHandleOf(surround_, kSurroundStride + 1).ptr);
+        list->Dispatch((blocksWide_ + 7) / 8, (blocksHigh_ + 7) / 8, 1);
+        tracker.uavBarrier(list, share_.Get());
+        tracker.transition(list, blocks_.Get(), D3D12_RESOURCE_STATE_COMMON);
+        tracker.transition(list, share_.Get(), D3D12_RESOURCE_STATE_COMMON);
+    }
     tracker.transition(list, state_.Get(), D3D12_RESOURCE_STATE_COMMON);
     tracker.transition(list, real_[parity], D3D12_RESOURCE_STATE_COMMON);
     tracker.transition(list, real_[1 - parity], D3D12_RESOURCE_STATE_COMMON);
@@ -75,12 +116,14 @@ bool PushHudLock::compose(ID3D12GraphicsCommandList* list, StateTracker& tracker
     float c[kConstants]{};
     c[0] = std::bit_cast<float>(width_); c[1] = std::bit_cast<float>(height_);
     c[2] = std::bit_cast<float>(uint32_t(outputMode_));
+    c[3] = std::bit_cast<float>(uint32_t((lock_ ? 1u : 0u) | (still_ ? 2u : 0u)));
     tracker.transition(list, generated, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
     tracker.transition(list, real_[heldParity], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
     tracker.transition(list, state_.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    tracker.transition(list, share_.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
     tracker.transition(list, scratch_.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     const UINT base = (slot * 2 + heldParity) * kComposeStride;
-    compose_.bind(list, c, gpuHandleOf(compose_, base).ptr, gpuHandleOf(compose_, base + 3).ptr);
+    compose_.bind(list, c, gpuHandleOf(compose_, base).ptr, gpuHandleOf(compose_, base + 4).ptr);
     list->Dispatch((width_ + 15) / 16, (height_ + 15) / 16, 1);
     tracker.uavBarrier(list, scratch_.Get());
     tracker.transition(list, scratch_.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE);
@@ -88,6 +131,7 @@ bool PushHudLock::compose(ID3D12GraphicsCommandList* list, StateTracker& tracker
     list->CopyResource(generated, scratch_.Get());
     tracker.transition(list, generated, D3D12_RESOURCE_STATE_COMMON);
     tracker.transition(list, scratch_.Get(), D3D12_RESOURCE_STATE_COMMON);
+    tracker.transition(list, share_.Get(), D3D12_RESOURCE_STATE_COMMON);
     tracker.transition(list, state_.Get(), D3D12_RESOURCE_STATE_COMMON);
     tracker.transition(list, real_[heldParity], D3D12_RESOURCE_STATE_COMMON);
     return true;

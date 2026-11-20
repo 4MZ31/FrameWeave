@@ -2,9 +2,11 @@
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 // PushFPS Live HUD Lock, step 1 (pipeline/PushHudLock.h): per pixel, how long it has stayed the
 // same (x, 0..1) and how much contrast it has with its neighbours (y, a held maximum that fades).
+// PushFPS 4.0: beside them, whether the pixel is the same in this pair of real frames at the tight
+// tolerance the still rule uses (z, 1 or 0; pipeline/PushHudStill.h).
 Texture2D<float4> currentTex : register(t0);
 Texture2D<float4> previousTex : register(t1);
-RWTexture2D<float2> stateTex : register(u0);
+RWTexture2D<float4> stateTex : register(u0);
 cbuffer Constants : register(b0) {
     uint width, height, reset, outputMode; // 0 sRGB, 1 scRGB (linear), 2 PQ
     uint pad0, pad1, pad2, pad3;
@@ -18,11 +20,12 @@ float3 at(int2 p) { return perceptual(currentTex[clamp(p, int2(0, 0), int2(width
 static const float kRise = 0.06;
 static const float kStill = 0.02;   // largest channel change still counted as the same pixel
 static const float kFade = 0.97;    // held contrast fades about 3 % per frame
+static const float kPairStill = 2.0 / 255.0 + 1e-4;   // hudstill::kPairStill
 
 [numthreads(16, 16, 1)]
 void main(uint3 id : SV_DispatchThreadID) {
     if (id.x >= width || id.y >= height) return;
-    if (reset != 0) { stateTex[id.xy] = float2(0, 0); return; }
+    if (reset != 0) { stateTex[id.xy] = float4(0, 0, 0, 0); return; }
     const int2 p = int2(id.xy);
     const float3 c = at(p);
     const float3 d = abs(c - perceptual(previousTex[id.xy].rgb));
@@ -30,8 +33,8 @@ void main(uint3 id : SV_DispatchThreadID) {
     const float l = luma(c);
     const float contrast = max(max(abs(l - luma(at(p + int2(1, 0)))), abs(l - luma(at(p - int2(1, 0))))),
                                max(abs(l - luma(at(p + int2(0, 1)))), abs(l - luma(at(p - int2(0, 1))))));
-    float2 s = stateTex[id.xy];
+    float2 s = stateTex[id.xy].xy;
     s.x = change < kStill ? s.x + (1 - s.x) * kRise : 0;
     s.y = change < kStill ? max(contrast, s.y * kFade) : contrast;
-    stateTex[id.xy] = s;
+    stateTex[id.xy] = float4(s, change <= kPairStill ? 1.0 : 0.0, 0);
 }

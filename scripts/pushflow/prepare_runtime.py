@@ -972,6 +972,30 @@ def keep_still(picture, img0, img1, still=2.0 / 255, near=3, around=5, surround=
     the network's."""
     import numpy as np
     same = np.abs(img0 - img1).max(axis=0) <= still
+    if surround == "built":
+        # As pipeline/PushHudStill.h has it: the share of still pixels per block of 16 x 16, averaged over the
+        # 5 x 5 blocks around the pixel's own block; the pixel takes the second real frame's value.
+        h, w = same.shape
+        bh, bw = -(-h // 16), -(-w // 16)
+        pad = np.zeros((bh * 16, bw * 16)); pad[:h, :w] = same
+        count = np.zeros((bh * 16, bw * 16)); count[:h, :w] = 1
+        blocks = pad.reshape(bh, 16, bw, 16).sum(axis=(1, 3)) / np.maximum(count.reshape(bh, 16, bw, 16).sum(axis=(1, 3)), 1)
+        total = np.zeros((bh, bw)); n = np.zeros((bh, bw))
+        for dy in range(-2, 3):
+            for dx in range(-2, 3):
+                ys = slice(max(0, dy), bh + min(0, dy)); xs = slice(max(0, dx), bw + min(0, dx))
+                yd = slice(max(0, -dy), bh + min(0, -dy)); xd = slice(max(0, -dx), bw + min(0, -dx))
+                total[yd, xd] += blocks[ys, xs]; n[yd, xd] += 1
+        share = np.repeat(np.repeat(total / n, 16, axis=0), 16, axis=1)[:h, :w]
+        edge = np.pad(same, 2, mode="edge").astype(np.float64)
+        def around_sum(r):
+            out = np.zeros((h, w))
+            for dy in range(-r, r + 1):
+                for dx in range(-r, r + 1):
+                    out += edge[2 + dy:2 + dy + h, 2 + dx:2 + dx + w]
+            return out
+        island = same & (share < moving) & (around_sum(1) >= near) & (around_sum(2) >= around)
+        return np.where(island, img1, picture), island
     island = same & (box_sum(same, 1) >= near) & (box_sum(same, 2) >= around) & (box_sum(same, surround) < moving * (2 * surround + 1) ** 2)
     return np.where(island, (img0 + img1) / 2, picture), island
 
@@ -1055,13 +1079,11 @@ def ghost_report(path: Path, channels: int, align: int, mask_for_first: bool) ->
                 pictures[key] = plain
                 reads, share = no_still_reads(f0, f1, samples, places, w0)
                 pictures[key + "+reads"] = np.clip(reads, 0, 1); row[key + "_reads_acts_percent"] = round(100.0 * share, 2)
-                for tag, kw in (("+still16", {"surround": 16}), ("+still32", {"surround": 32}), ("+still32_4", {"surround": 32, "still": 4.0 / 255})):
+                for tag, kw in (("+still32", {"surround": 32}), ("+built", {"surround": "built"})):
                     kept, island = keep_still(plain, f0, f1, **kw)
                     pictures[key + tag] = kept
                     row[key + tag + "_acts_percent"] = round(100.0 * float(island.mean()), 3)
                     row[key + tag + "_on_hud_percent"] = round(100.0 * float(island[sign].mean()), 1) if sign.any() else None
-                both, _ = keep_still(np.clip(reads, 0, 1), f0, f1, surround=32)
-                pictures[key + "+reads+still32"] = both
             except Exception as error:  # a size the model does not take
                 row[key] = f"not run: {type(error).__name__}: {error}"
         for key, picture in pictures.items():

@@ -817,6 +817,30 @@ Item {
             compare(veyra.compareMode, 0)
         }
 
+        function test_the_still_rule_is_on_unless_switched_off() {
+            veyra.fgEnabled = true; veyra.fgMultiplier = 2
+            const row = control("pushfps-hudstill-row"), sw = control("pushfps-hudstill")
+            // Nothing saved: on.
+            verify(row.on && sw.checked, "on by default")
+            // What runs is said: running, could not start, or just the description.
+            veyra.liveStats = ({ running: true, hudStillState: 1 }); quick.liveStats = veyra.liveStats
+            verify(row.hint.length > 0)
+            const running = row.hint
+            veyra.liveStats = ({ running: true, hudStillState: 2 }); quick.liveStats = veyra.liveStats
+            verify(row.hint !== running, "a pass that could not start says so")
+            // Switched off it is saved as off, and says so; switched on again it is saved as on.
+            sw.toggled(false)
+            compare(veyra.preferences.pushHudStill, false); verify(!row.on && !sw.checked)
+            const off = row.hint
+            sw.toggled(true)
+            compare(veyra.preferences.pushHudStill, true); verify(row.on && sw.checked && row.hint !== off)
+            // It is its own switch: Live HUD Lock is not touched by it.
+            compare(veyra.hudLock, false)
+            // Without frame generation there is nothing for it to do.
+            veyra.fgEnabled = false
+            verify(!sw.enabled)
+        }
+
         function test_lip_sync_is_trimmed_by_hand_on_top_of_automatic() {
             const row = control("pushfps-lipsync-row"), earlier = control("pushfps-lipsync-earlier"), later = control("pushfps-lipsync-later")
             const value = control("pushfps-lipsync-value"), reset = control("pushfps-lipsync-reset")

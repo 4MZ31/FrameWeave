@@ -6,10 +6,13 @@
 // and the pixel beside an edge belong to the overlay too. A pixel that moves is never locked.
 Texture2D<float4> generatedTex : register(t0);
 Texture2D<float4> heldTex : register(t1);
-Texture2D<float2> stateTex : register(t2);
+Texture2D<float4> stateTex : register(t2);
+// PushFPS 4.0, the still rule (pipeline/PushHudStill.h): per block of 16 x 16 pixels, the share of
+// pixels in the 5 x 5 blocks around it that are the same in both real frames.
+Texture2D<float4> shareTex : register(t3);
 RWTexture2D<float4> outputTex : register(u0);
 cbuffer Constants : register(b0) {
-    uint width, height, outputMode, pad0;
+    uint width, height, outputMode, flags;   // flags: 1 Live HUD Lock, 2 the still rule
     uint pad1, pad2, pad3, pad4;
 };
 float stillOf(float2 s) { return smoothstep(0.80, 0.95, s.x); }
@@ -20,16 +23,36 @@ float edgeOf(float2 s) {
 [numthreads(16, 16, 1)]
 void main(uint3 id : SV_DispatchThreadID) {
     if (id.x >= width || id.y >= height) return;
-    const float still = stillOf(stateTex[id.xy]);
-    float edge = 0;
-    if (still > 0) {
-        [unroll] for (int y = -1; y <= 1; ++y)
-            [unroll] for (int x = -1; x <= 1; ++x) {
-                const float2 q = stateTex[clamp(int2(id.xy) + int2(x, y), int2(0, 0), int2(width - 1, height - 1))];
-                edge = max(edge, edgeOf(q) * stillOf(q));
-            }
+    const float4 here = stateTex[id.xy];
+    const int2 last = int2(width - 1, height - 1);
+    // Live HUD Lock, exactly as before 4.0 when it is the only rule in use.
+    float w = 0;
+    if ((flags & 1) != 0) {
+        const float still = stillOf(here.xy);
+        float edge = 0;
+        if (still > 0) {
+            [unroll] for (int y = -1; y <= 1; ++y)
+                [unroll] for (int x = -1; x <= 1; ++x) {
+                    const float2 q = stateTex[clamp(int2(id.xy) + int2(x, y), int2(0, 0), last)].xy;
+                    edge = max(edge, edgeOf(q) * stillOf(q));
+                }
+        }
+        w = still * edge;
     }
-    const float w = still * edge;
+    // The still rule: the same in both real frames, with company, in a surrounding that mostly moves.
+    // The surrounding is asked first: over a still picture (a menu) the test ends there for every pixel.
+    bool keep = false;
+    if ((flags & 2) != 0 && here.z > 0.5 && shareTex[id.xy / 16].x < 0.5) {
+        uint near = 0, around = 0;
+        [unroll] for (int y = -2; y <= 2; ++y)
+            [unroll] for (int x = -2; x <= 2; ++x) {
+                const uint same = stateTex[clamp(int2(id.xy) + int2(x, y), int2(0, 0), last)].z > 0.5 ? 1 : 0;
+                around += same;
+                if (abs(x) <= 1 && abs(y) <= 1) near += same;
+            }
+        keep = near >= 3 && around >= 5;
+    }
     const float4 g = generatedTex[id.xy];
-    outputTex[id.xy] = w > 0 ? float4(lerp(g.rgb, heldTex[id.xy].rgb, w), g.a) : g;
+    if (keep) outputTex[id.xy] = float4(heldTex[id.xy].rgb, g.a);
+    else outputTex[id.xy] = w > 0 ? float4(lerp(g.rgb, heldTex[id.xy].rgb, w), g.a) : g;
 }

@@ -598,6 +598,50 @@
     }
    ],
    "needs_hardware": "An HDR display that reports a ceiling, AV1 and 10-bit SDR files on a card with hardware AV1 decoding, a profile 8.4 file tagged PQ."
+  },
+  {
+   "id": "F23",
+   "what": "The still rule: a HUD that stands still in front of a moving picture keeps its real pixels in generated frames; a still picture, a plain pan and a ball crossing a still world are not touched; the shaders decide every pixel as the rule in plain C++ does",
+   "guards": [
+    {
+     "file": "tests/unit/PushHudStillTests.cpp",
+     "ci": "veyra_push_hud_still_tests",
+     "contains": "a ball crossing a still world: its path is not touched"
+    },
+    {
+     "file": "tests/integration/PushGpuTests.cpp",
+     "ci": "veyra_push_gpu_tests",
+     "contains": "still rule: the shaders decide every pixel as the rule in plain C++ does"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_the_still_rule_is_on_unless_switched_off"
+    }
+   ],
+   "needs_hardware": "Real games on real cards: the rule was measured on drawn pictures with the shipped PushFlow models and compared with its reference on the software renderer."
+  },
+  {
+   "id": "F24",
+   "what": "Lip sync by hand on top of the automatic sound delay, the clear line of the live split comparison, and log files named after PushFPS",
+   "guards": [
+    {
+     "file": "tests/unit/PushAudioTrimTests.cpp",
+     "ci": "veyra_push_audio_trim_tests",
+     "contains": "without a trim every mode asks for what it asked for before 4.0"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_lip_sync_is_trimmed_by_hand_on_top_of_automatic"
+    },
+    {
+     "file": "tests/unit/PushCompareLineTests.cpp",
+     "ci": "veyra_push_compare_line_tests",
+     "contains": "no line"
+    }
+   ],
+   "needs_hardware": "A capture card and ears for the lip sync; a screen for the line (screenshot 88 photographs it on the software renderer)."
   }
  ]
 }
