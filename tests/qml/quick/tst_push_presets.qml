@@ -317,6 +317,11 @@ Item {
             veyra.captureDeviceLabel = "AVerMedia Live Gamer Ultra 2.1"
             compare(findChild(quick, "pushfps-card-status").text, qsTr("已测试"))
             compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
+            // Reported in November 2026: an Elgato HD60 Pro and an ezcap Game Link Raw.
+            veyra.captureDeviceLabel = "Game Capture HD60 Pro"
+            compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
+            veyra.captureDeviceLabel = "ezcap Game Link RAW"
+            compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
             veyra.captureDeviceLabel = "AVerMedia Live Gamer Ultra-Video"
             compare(findChild(quick, "pushfps-card-status").text, qsTr("未测试"))
             veyra.captureDeviceLabel = "USB Video"

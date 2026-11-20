@@ -183,9 +183,10 @@ Which capture card
                  KUHAIMI G50. Plug into a real 10 Gbps port (USB 3.2 Gen 2) on the PC: on 5 Gbps
                  they capture less.
   PCIe ......... 4K60 HDR. AVerMedia GC573, Elgato 4K Pro
-  Tested with PushFPS: Elgato 4K X, HD60 X and 4K S. Reported working by users: Elgato HD60 S and
-  AVerMedia Live Gamer Ultra 2.1 (GC553G2). The other models are Veyra's developer's picks and are
-  not tested with PushFPS yet. Any card that shows up as a camera in Windows works.
+  Tested with PushFPS: Elgato 4K X, HD60 X and 4K S. Reported working by users: Elgato HD60 S,
+  Elgato HD60 Pro, AVerMedia Live Gamer Ultra 2.1 (GC553G2) and ezcap Game Link Raw. The other
+  models are Veyra's developer's picks and are not tested with PushFPS yet. Any card that shows up
+  as a camera in Windows works.
 
 NVIDIA Video Frame Generation: Medium or High?
   For 30 FPS games it gives the least ghosting and wobble of the methods (RTX 40/50; RTX 30

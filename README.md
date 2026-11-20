@@ -845,6 +845,8 @@ the window.</sub>
 | Elgato 4K S | Tested with PushFPS |
 | Elgato HD60 S | Reported working by a user (PS5 at 1080p60, Radeon RX 7600) |
 | AVerMedia Live Gamer Ultra 2.1 (GC553G2) | Reported working by a user (PS5 Pro, RTX 4080 SUPER) |
+| Elgato HD60 Pro | Reported working by a user (no further details) |
+| ezcap Game Link Raw | Reported working by a user (Xbox Series X over USB 3.0, Radeon RX 9060 XT) |
 | Elgato 4K Pro / 4K60 Pro, HD60 S+ | Not tested yet |
 | AVerMedia Live Gamer 4K 2.1 (GC575) | Not tested yet |
 | Magewell USB Capture HDMI 4K Plus | Not tested yet (native low-latency mode from Veyra) |
