@@ -398,6 +398,42 @@ def guard_tiles(img0, img1, reads, w0, samples, tile=16, change=0.05, unused=0.2
     return changed & unused_either & inner, changed, unused_either
 
 
+def guard_as_built(img0, img1, reads, w0, samples, tile=16, change=0.05, unused=0.25, agree=0.08, edge=1.5):
+    """The rule as shaders/PushGuard.hlsl and pushflow/PushFlowGuard.h run it, where it differs from
+    guard_tiles: the edge band comes from the largest motion a tile has on average (not a percentile over
+    pixels), and a risky tile takes its changed neighbours with it. Returns the risky tiles and how many
+    tiles lie inside the edge band (the ones the rule can call risky at all)."""
+    import numpy as np
+    h, w = w0.shape
+    th, tw = h // tile, w // tile
+    def tiles(x):
+        return x[:th * tile, :tw * tile].reshape(th, tile, tw, tile)
+    l0, l1 = tiles(img0.mean(axis=0)), tiles(img1.mean(axis=0))
+    changed = np.abs((l0 - l0.mean(axis=(1, 3), keepdims=True)) - (l1 - l1.mean(axis=(1, 3), keepdims=True))).mean(axis=(1, 3)) > change
+    same = 1.0 - np.clip(np.abs(samples[0] - samples[1]).max(axis=0) / agree, 0.0, 1.0)
+    yo, xo = np.mgrid[0:h, 0:w]
+    used, far = [], []
+    for (xm, ym), weight in zip(reads, (w0, 1.0 - w0)):
+        tx, ty = np.floor(xm / tile).astype(np.int64), np.floor(ym / tile).astype(np.int64)
+        inside = (tx >= 0) & (tx < tw) & (ty >= 0) & (ty < th)
+        count = np.zeros((th, tw))
+        np.add.at(count, (ty[inside], tx[inside]), np.maximum(weight, same)[inside])
+        used.append(count / float(tile * tile))
+        far.append(np.hypot(xm - xo, ym - yo))
+    furthest = float(tiles(np.minimum(np.maximum(far[0], far[1]), 255.0)).mean(axis=(1, 3)).max())
+    reach = int(np.ceil(edge * furthest / tile)) + 1
+    inner = np.zeros((th, tw), bool)
+    if th > 2 * reach and tw > 2 * reach:
+        inner[reach:th - reach, reach:tw - reach] = True
+    first = changed & (np.minimum(used[0], used[1]) < unused) & inner
+    grown = np.zeros_like(first)
+    padded = np.pad(first, 1)
+    for dy in range(3):
+        for dx in range(3):
+            grown |= padded[dy:dy + th, dx:dx + tw]
+    return first | (grown & changed), int(inner.sum()), reach
+
+
 def guard_report(path: Path, channels: int, align: int, mask_for_first: bool) -> list[dict]:
     """Guard's rule on the shipped model, before anything is built on it (docs/PUSHFLOW2.md): for each drawn
     pair, how much of the picture the rule would replace with the nearer real frame, and what that does.
@@ -411,6 +447,7 @@ def guard_report(path: Path, channels: int, align: int, mask_for_first: bool) ->
     w, h, tile = 512, 320, 16
     yo, xo = np.mgrid[0:h, 0:w].astype(np.float64)
     rows = []
+    as_built = []
 
     def study(label, img0, img1, truth, move=None, **rule):
         _, g0, g1, m = session.run(None, {name: tensor(img0, img1, 0.5, channels)})[:4]
@@ -429,6 +466,17 @@ def guard_report(path: Path, channels: int, align: int, mask_for_first: bool) ->
         w0 = mask if mask_for_first else 1 - mask
         picture = samples[0] * w0 + samples[1] * (1 - w0)
         risky, changed, unused = guard_tiles(img0, img1, reads, w0, samples, tile, **rule)
+        if not rule:
+            # The same pair through the rule as it is built, for the whole-frame decision: how many tiles
+            # it calls risky, of all tiles and of those inside the edge band.
+            final, inner, reach = guard_as_built(img0, img1, reads, w0, samples, tile)
+            mended = np.zeros((h, w), bool)
+            patch = np.kron(final, np.ones((tile, tile), bool))
+            mended[:patch.shape[0], :patch.shape[1]] = patch
+            as_built.append({"pair": label, "reach": reach, "of_all": round(100.0 * float(final.mean()), 1),
+                             "of_inside": round(100.0 * float(final.sum()) / inner, 1) if inner else None,
+                             "db": None if truth is None else [round(psnr(picture, truth), 1), round(psnr(np.where(mended[None], img0, picture), truth), 1),
+                                                               round(psnr(img0, truth), 1)]})
         full = np.zeros((h, w), bool)
         area = np.kron(risky, np.ones((tile, tile), bool))
         full[:area.shape[0], :area.shape[1]] = area
@@ -479,6 +527,12 @@ def guard_report(path: Path, channels: int, align: int, mask_for_first: bool) ->
         mended = [f"{r['pair']}: old place {r['old_place_vs_earlier_frame'][0]} -> {r['old_place_vs_earlier_frame'][1]}" for r in lost]
         other = [f"{r['pair']}: {r['replaced']}%" for r in mine if r not in fine and r not in lost and r["replaced"] > 0.1]
         verdicts.append({"verdict_for_rule": rule, "right_pictures": len(fine), "harmed": harmed, "left_out": mended, "replaced_where_the_model_was_lost": other})
+    # As built: [pair, edge band in tiles, risky % of all tiles, risky % of the tiles inside the band,
+    # dB of the generated frame / mended in places / the earlier real frame whole]. Right pictures that
+    # the built rule touches are listed apart: there must be none.
+    right = [r for r in as_built if r["db"] and r["db"][0] >= 30.0]
+    verdicts.append({"as_built_touches_right_pictures": [r["pair"] for r in right if r["of_all"] > 0],
+                     "as_built": [[r["pair"], r["reach"], r["of_all"], r["of_inside"], r["db"]] for r in as_built if r not in right or r["of_all"] > 0]})
     return verdicts if not GUARD_ROWS else rows + verdicts
 
 
