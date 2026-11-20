@@ -16,6 +16,10 @@ Item {
         name: "ScreenCrop"
         when: windowShown
 
+        // The editor is for a captured screen or window; the shared fixture starts with no source kind.
+        function init() { veyra.sourceKind = "screen" }
+        function cleanup() { veyra.sourceKind = "" }
+
         function test_drag_resize_move_and_apply() {
             editor.begin({left:0, top:0, right:0, bottom:0})
             compare(editor.scaleFactor, 0.5)
