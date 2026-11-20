@@ -332,8 +332,12 @@ performance report carries it (`pushFlowResponseFit`).
 
 **What is checked**: the fit on made-up sticks and pictures with a known answer, including a picture that
 moves on its own, a stick at rest and a controller PushFPS cannot see (`veyra_push_response_tests`); on
-the software renderer, that the pass finds a pan's direction and size and finds a still picture still
-(`testPushFlow`). **Not checked: anything with a real controller and a real console.** No such thing
+the software renderer, that the pass finds a still picture still and a pan's direction (`testPushFlow`).
+Its size is another matter and must be said: a fine texture panning 4 pixels a frame was found moving
+4.02 by the Quality model and **0.85 by the Fast and Balanced tiers' model**, which follows such a
+texture poorly on the small test picture. So the strength Response reports is only as good as the motion
+the tier in use finds; the delay and whether it follows at all depend on it far less. Measure with the
+Quality tier where the card allows. **Not checked: anything with a real controller and a real console.** No such thing
 exists here; the first real answer will come from a PS5 owner's performance report.
 
 **What it is not**: Response. Turning the picture needs, beyond a fit: what to show where the turned
