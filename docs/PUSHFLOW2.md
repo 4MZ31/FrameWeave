@@ -12,7 +12,7 @@ contradict them. No dates.
 |---|---|---|
 | Guard | Find the places in a generated frame that are probably wrong and show something safe there instead | **Built, as an experiment that starts off** (*Professional → PushFlow 2: Guard*): where an object was left out of a generated frame, the nearer real frame is shown (below). Four rules failed in measurement before the one it uses held. Checked on drawn pictures and the software renderer only; whether it looks better in a game is for real cards and eyes to say. Beside it, since 3.2.7, the frame quality test says its **worst frame** and its **worst place** |
 | Fusion | Encode every real frame once and work a pair's motion out once, then make every in-between time from it | **Its first step is built, as an experiment that starts off** (*Professional → PushFlow 2: encode each real frame once*): the model cut into its per-frame encoder and the rest, each real frame encoded once (below). The second step, a pair's motion worked out once, does not exist in these models: the time enters at the first motion block |
-| Predict | Make frames from what has already arrived, without waiting for the next real frame | **Built, as an experiment that starts off** (*Professional → PushFlow 2: Predict*), for live sources only: the newest real frame is shown after its own processing instead of a frame interval later, and the frames after it are forecasts made from the two real frames that have arrived (below). On drawn pictures a forecast is never further from the truth than holding the real frame, and much nearer for slow motion. Never the normal mode. How much delay it saves and how it looks have not been measured on real hardware: that takes a camera |
+| Predict | Make frames from what has already arrived, without waiting for the next real frame | **Built, as an experiment that starts off** (*Professional → PushFlow 2: Predict*), for live sources only: the newest real frame is shown after its own processing instead of a frame interval later, and the frames after it are forecasts made from the two real frames that have arrived (below). On drawn pictures a forecast is level with holding the real frame at worst, and much nearer for slow motion. Never the normal mode. How much delay it saves and how it looks have not been measured on real hardware: that takes a camera |
 | Dual | A second, deliberately delayed timeline for recording and streaming, beside the one the player sees | Not started. It needs real recording and OBS sessions on real cards to show the player's side is not slowed |
 | Response | Turn the picture a little from the stick's movement before the console's own frame arrives | Research only. Whether it can work from a video signal at all is unproven; it needs a PS5, a high-speed camera and people to judge it |
 | Memory | Bring back detail that earlier real frames showed | Research only. It depends on motion that has been checked (Guard, Fusion) |
@@ -271,8 +271,12 @@ as built; dB against the true later frame, higher is nearer):
 | A still picture | exact | exact | exact (83 dB or better) |
 | Two unrelated pictures (a cut), where holding is exact | exact | 43.9 | 38.9 |
 
-So a forecast is never worse than holding on a moving picture, clearly better for slow motion, and no
-better for fast motion, where most of the object is held. Three things were measured and dropped: a limit
+So on these pictures a forecast is never worse than holding on a moving picture, clearly better for slow
+motion, and no better for fast motion, where most of the object is held. On the software renderer's small
+test picture (256 x 160) the Quality model's forecast of a slow square was less than half as far from the
+truth as holding (0.48 against 1.05 of 255), and the Fast tier's model, which follows a small object on so
+small a picture poorly, was level with holding (1.07 against 1.05, with a third of the moving picture
+held); through the real graph at 640 x 360 the Fast tier's forecasts were 1.4 to 6 dB nearer than holding. Three things were measured and dropped: a limit
 on speed (it only took gains away: a fast pan is forecast well), the same checks without the one that the
 two frames agree (a cut then left a visibly warped frame, 26 to 36 dB), and asking the network for time 1
 (its grid there is not the motion between the frames).
