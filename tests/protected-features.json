@@ -540,6 +540,18 @@
     }
    ],
    "needs_hardware": ""
+  },
+  {
+   "id": "F19",
+   "what": "The on-screen latency readout: shown by its switch, dragged anywhere over the picture, kept inside it and at its place",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_presets.qml",
+     "ci": "tst_push_presets",
+     "contains": "test_latency_badge_is_dragged_anywhere_over_the_picture_and_stays_there"
+    }
+   ],
+   "needs_hardware": "A playing source for the real cut-out in the video window (screenshots 86-87 show it on the software renderer)."
   }
  ]
 }

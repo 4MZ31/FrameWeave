@@ -88,9 +88,17 @@ Rectangle {
             if (!badge.dragging && Math.abs(left - badge.x) + Math.abs(top - badge.y) < 4) return
             badge.moveTo(left, top)
         }
-        onReleased: badge.drop()
-        onCanceled: badge.dragging = false
-        onDoubleClicked: badge.toCorner()
+        // A double click sends it back at the release, not at the second press: the main window's
+        // tap handlers decide at each press whether it landed on something that covers the picture.
+        // Were the readout gone from under the mouse by then, they would take the same double click
+        // for one on the picture, and full screen would toggle with it.
+        property bool backAtRelease: false
+        onDoubleClicked: backAtRelease = true
+        onReleased: {
+            if (backAtRelease) { backAtRelease = false; badge.toCorner() }
+            else badge.drop()
+        }
+        onCanceled: { backAtRelease = false; badge.dragging = false }
     }
 
     function refresh() { badge.stats = veyra.pushLiveStats() || {} }

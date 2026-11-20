@@ -13,7 +13,8 @@ Item {
     PushGamePresetsDialog { id: games; dialogHost: host }
     PushLatencyBadge { id: badge; x: 10; y: 10 }
     // The same readout the way the main window places it: over a picture's rectangle, where it can be dragged.
-    PushLatencyBadge { id: placed; areaX: 100; areaY: 300; areaWidth: 700; areaHeight: 400 }
+    // Above everything else here, as in the main window, so nothing below takes its mouse.
+    PushLatencyBadge { id: placed; z: 100; areaX: 100; areaY: 300; areaWidth: 700; areaHeight: 400 }
     PushQuickSetup { id: quick; width: 560; y: 400 }
     PushRecordingSaved { id: card; x: 10; y: 900 }
 
