@@ -146,7 +146,11 @@ and edits would conflict on every merge.
   that need `d3d12.h` build locally against a stub folder with empty Windows headers.
 
 - After any QML change, `tests/qml/quick` runs in CI (`tst_push_*.qml` strictly, the Veyra suite as a
-  report) and the install test opens every main page and fails on `[ERROR] [qml]`. The `screenshots` workflow
+  report) and the install test opens every main page and fails on `[ERROR] [qml]`. Two things a dialog's
+  test must wait for (`tryVerify(function() { … }, 3000)`), both met on 20 November 2026: a dialog fades
+  in, so a row's `visible` is false for a moment after it opens; and a layout gives an item its new size
+  at the next pass, not when the binding changes. A row's control is not the row's direct child: read the
+  row by its id, never through `parent`. The `screenshots` workflow
   (`-f branch=<branch>`) photographs the real app and writes `qml-report.txt`; `-f only=<regex>` takes a subset
   (pushed to the `screenshots-preview` branch; the `screenshots` branch is left alone), and entries with `sender` play the Frame Input
   test pattern, the only way here to see a playing picture (WARP).
