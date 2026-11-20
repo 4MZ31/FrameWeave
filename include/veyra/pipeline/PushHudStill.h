@@ -40,7 +40,23 @@ namespace veyra::pipeline::hudstill {
 inline constexpr float kPairStill = 2.0f / 255.0f + 1e-4f;   // largest channel change still "the same"
 inline constexpr unsigned kNear = 3, kAround = 5;            // of 9, of 25 (the pixel itself counts)
 inline constexpr unsigned kBlock = 16;                       // pixels a side
-inline constexpr float kSurround = 0.5f;
+// Under a quarter since 4.1 (a half in 4.0). With a half the rule also acted along the border of every
+// larger still region: the sky beside a moving head, a wall behind a moving object. Frame generation
+// leaves a soft trail there; the rule replaced part of that trail with real pixels, block by block,
+// and what was a soft trail became broken, hard-edged pieces around everything that moved (the owner,
+// on NVIDIA's frame generation, 20 November 2026: "mostly artifacting rather than ghosting", "around
+// edges of any object"). A quarter means an island: text, a thin bar, an icon, a crosshair. The border
+// of a large still region is never under a quarter still, so it is left to frame generation, as it was
+// before 4.0. A large panel's border is left alone with it: Live HUD Lock and the game presets are for those.
+inline constexpr float kSurround = 0.25f;
+
+// How far the surrounding reaches, in blocks each way. It was 2 at every size (80 pixels): an island
+// test made for a 1080p picture, and less than a letter's neighbourhood at 4K. By the picture's height
+// now: 2 up to 720 high, 3 at 1080 and 1440, 5 at 2160.
+constexpr unsigned reachFor(unsigned height) {
+    const unsigned r = (height + 216u) / 432u;
+    return r < 2u ? 2u : r > 6u ? 6u : r;
+}
 
 // The process-wide switch (preference pushHudStill; on unless the user turned it off).
 inline std::atomic<bool>& wantedStore() { static std::atomic<bool> value{true}; return value; }
@@ -48,7 +64,9 @@ inline void setWanted(bool on) { wantedStore().store(on, std::memory_order_relax
 inline bool wanted() { return wantedStore().load(std::memory_order_relaxed); }
 
 // same[y * width + x]: is the pixel the same in both real frames. Returns which pixels keep their real value.
-inline std::vector<uint8_t> decide(const std::vector<uint8_t>& same, unsigned width, unsigned height) {
+// reach: blocks each way that count as the surrounding (0 = by the picture's height, as the pass does).
+inline std::vector<uint8_t> decide(const std::vector<uint8_t>& same, unsigned width, unsigned height, unsigned reach = 0) {
+    const int r = int(reach ? reach : reachFor(height));
     std::vector<uint8_t> keep(same.size(), 0);
     if (!width || !height || same.size() != size_t(width) * height) return keep;
     const unsigned bw = (width + kBlock - 1) / kBlock, bh = (height + kBlock - 1) / kBlock;
@@ -61,13 +79,13 @@ inline std::vector<uint8_t> decide(const std::vector<uint8_t>& same, unsigned wi
                 for (unsigned x = bx * kBlock; x < std::min(width, (bx + 1) * kBlock); ++x) { ++total; still += same[size_t(y) * width + x] ? 1u : 0u; }
             stillIn[size_t(by) * bw + bx] = still; pixelsIn[size_t(by) * bw + bx] = total;
         }
-    // Per block: does the surrounding (the 5 x 5 blocks around it, as far as the picture goes) mostly move?
+    // Per block: does the surrounding (the blocks within reach of it, as far as the picture goes) mostly move?
     std::vector<uint8_t> moves(size_t(bw) * bh, 0);
     for (int by = 0; by < int(bh); ++by)
         for (int bx = 0; bx < int(bw); ++bx) {
             unsigned still = 0, total = 0;
-            for (int dy = -2; dy <= 2; ++dy)
-                for (int dx = -2; dx <= 2; ++dx) {
+            for (int dy = -r; dy <= r; ++dy)
+                for (int dx = -r; dx <= r; ++dx) {
                     const int qx = bx + dx, qy = by + dy;
                     if (qx < 0 || qy < 0 || qx >= int(bw) || qy >= int(bh)) continue;
                     still += stillIn[size_t(qy) * bw + qx]; total += pixelsIn[size_t(qy) * bw + qx];

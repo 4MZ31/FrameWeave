@@ -1168,6 +1168,9 @@ void testHudStill(Gpu& gpu) {
     testHudStillAt(gpu, 333, 201, false);
     // With Live HUD Lock on beside it (never in place then), the rule's pixels are the same.
     testHudStillAt(gpu, 320, 192, true, true);
+    // PushFPS 4.1: a picture 1080 high, where the surrounding reaches three blocks each way instead of
+    // two (hudstill::reachFor): the shader's loop over that reach against the same rule in plain C++.
+    testHudStillAt(gpu, 640, 1080, true);
 }
 
 void testHudLock(Gpu& gpu) {

@@ -511,7 +511,9 @@ generates inside its own presenter, so it can't be combined.
 
 ## Keep the HUD sharp
 
-On by default since 4.0, and it needs no setup. Frame generation works out one motion for every place of the
+On by default since 4.0, and it needs no setup. (Since 4.1 it only keeps small still things in a moving
+picture: text, thin bars, icons, a crosshair. 4.0 also took the border of every larger still region, which
+showed as artifacts around things that moved.) Frame generation works out one motion for every place of the
 picture, so a HUD that stands still in front of a moving world gets the world's motion too. With **Keep the HUD
 sharp**, a pixel that is the same in both real frames, and stands in a surrounding that mostly moves, keeps its
 real value in the generated frames between them. It works with every method PushFPS runs itself (NVIDIA's,

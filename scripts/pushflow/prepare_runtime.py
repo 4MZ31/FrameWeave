@@ -964,7 +964,7 @@ def rebuild_select(img0, img1, grid0, grid1, mask, align, mask_for_first, model_
     return np.where(edge, best, base), float(edge.mean())
 
 
-def keep_still(picture, img0, img1, still=2.0 / 255, near=3, around=5, surround=16, moving=0.5):
+def keep_still(picture, img0, img1, still=2.0 / 255, near=3, around=5, surround=16, moving=0.25):
     """A HUD in front of a moving world. A pixel that is the same in both real frames, with still pixels
     beside it (`near` of the 9 around it, `around` of the 25), inside a surrounding that mostly moves
     (under `moving` of the square of `surround` reach is still): it is given its real value. Where most
@@ -974,7 +974,10 @@ def keep_still(picture, img0, img1, still=2.0 / 255, near=3, around=5, surround=
     same = np.abs(img0 - img1).max(axis=0) <= still
     if surround == "built":
         # As pipeline/PushHudStill.h has it: the still pixels counted per block of 16 x 16, and their share of
-        # all pixels in the 5 x 5 blocks around the pixel's own block; the pixel takes the second real frame's value.
+        # all pixels in the 5 x 5 blocks around the pixel's own block (the reach for pictures up to 720 high);
+        # the pixel takes the second real frame's value. `moving` is a quarter since 4.1 (a half in 4.0, when the
+        # figures in the notes were measured: with a half the rule also took the border of every larger still
+        # region, which on a real card broke up frame generation's trail round moving things).
         h, w = same.shape
         bh, bw = -(-h // 16), -(-w // 16)
         pad = np.zeros((bh * 16, bw * 16)); pad[:h, :w] = same

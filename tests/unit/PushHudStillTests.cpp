@@ -64,23 +64,48 @@ int main() {
         const auto keep = p.keep();
         check(count(keep) == 0, "a ball crossing a still world: its path is not touched");
     }
-    {   // A character who stands still, the world moving round him: his outline is kept, his middle is left alone.
+    {   // A larger still region with the world moving round it (a character standing still, the sky beside
+        // a moving head, a wall behind a moving thing): since 4.1 nothing of it is kept, its border least of
+        // all. 4.0 kept that border, and on a real card that broke frame generation's soft trail round
+        // everything that moved into hard pieces.
         Picture p(W, H, false);
         p.box(110, 40, 210, 192, true);
         const auto keep = p.keep();
-        unsigned edge = 0; for (unsigned y = 60; y < 180; ++y) edge += keep[size_t(y) * W + 111];
-        check(edge >= 110, "the pixels at his outline keep their real value (" + std::to_string(edge) + " of 120)");
-        check(!keep[size_t(140) * W + 160], "deep inside, where everything round stands still, nothing is touched");
+        // All that is left is the block at each of its two corners, where the region is under a quarter of
+        // what surrounds the block (2 x 8 pixels each).
+        unsigned border = 0; for (unsigned y = 56; y < 192; ++y) border += keep[size_t(y) * W + 110] + keep[size_t(y) * W + 111] + keep[size_t(y) * W + 208] + keep[size_t(y) * W + 209];
+        check(border == 0 && count(keep) <= 32, "a still region 100 pixels wide: its border is left to frame generation (" + std::to_string(count(keep)) + " pixels kept, at its two corners)");
+        Picture sky(W, H, true);
+        sky.box(120, 60, 200, 192, false);               // a head and shoulders moving in front of a still sky
+        check(count(sky.keep()) == 0, "the still picture beside something that moves is left to frame generation");
+        Picture halfMoving(W, H, false);
+        halfMoving.box(0, 0, W, 90, true);               // the top half stands still, the bottom half moves
+        check(count(halfMoving.keep()) == 0, "the border between a still half and a moving half is left alone");
     }
-    {   // The line between "mostly moves" and "mostly still" is the surrounding's half.
-        Picture half(160, 160, false);
-        half.box(0, 0, 160, 86, true);                   // the top stands still, down to row 85
-        const auto keep = half.keep();
-        check(!keep[size_t(8) * 160 + 80], "far inside a still region: left alone");
-        check(keep[size_t(85) * 160 + 80] != 0, "at its edge, where less than half the surrounding stands still: kept");
-        Picture more(160, 160, false);
-        more.box(0, 0, 160, 96, true);                   // three of the five block rows round row 95 stand still
-        check(!more.keep()[size_t(95) * 160 + 80], "where more than half the surrounding stands still: left alone");
+    {   // An island is under a quarter of its surrounding (80 x 80 pixels at this size).
+        Picture small(160, 160, false);
+        small.box(64, 64, 96, 96, true);                 // 32 x 32 = 16 % of 80 x 80
+        const auto keep = small.keep();
+        bool whole = true; for (unsigned y = 64; y < 96; ++y) for (unsigned x = 64; x < 96; ++x) whole = whole && keep[size_t(y) * 160 + x];
+        check(whole, "a still block of 32 x 32 in a moving picture is an island: kept whole");
+        Picture big(160, 160, false);
+        big.box(48, 48, 112, 112, true);                 // 64 x 64 = 64 % of 80 x 80
+        check(count(big.keep()) == 0, "a still block of 64 x 64 is no island: left alone");
+        Picture line(160, 160, false);
+        line.box(0, 80, 160, 100, true);                 // a band 20 pixels high across the picture: exactly a quarter
+        check(count(line.keep()) == 0, "exactly a quarter still is not under a quarter: left alone");
+        Picture thinner(160, 160, false);
+        thinner.box(0, 80, 160, 99, true);               // 19 pixels high: under a quarter
+        check(count(thinner.keep()) == 160u * 19u, "one row less is under a quarter: kept");
+    }
+    {   // The surrounding reaches further in a larger picture.
+        using veyra::pipeline::hudstill::reachFor;
+        check(reachFor(192) == 2 && reachFor(720) == 2 && reachFor(1080) == 3 && reachFor(1440) == 3 && reachFor(2160) == 5 && reachFor(4320) == 6 && reachFor(0) == 2,
+              "2 blocks each way up to 720 high, 3 at 1080 and 1440, 5 at 2160, never more than 6");
+        // A block of 40 x 40 is a quarter of 80 x 80 (no island with a reach of 2) and 5 % of 176 x 176.
+        std::vector<uint8_t> same(size_t(400) * 400, 0);
+        for (unsigned y = 176; y < 216; ++y) for (unsigned x = 176; x < 216; ++x) same[size_t(y) * 400 + x] = 1;
+        check(count(decide(same, 400, 400, 2)) == 0 && count(decide(same, 400, 400, 5)) == 1600, "the same block is an island where the surrounding reaches further");
     }
     {   // Edges of the picture and odd sizes.
         Picture p(37, 21, false);
@@ -105,17 +130,17 @@ int main() {
         for (unsigned y = 40; y < h; ++y) for (unsigned x = 120; x < w; ++x) same[size_t(y) * w + x] = 1;
         keep = decide(same, w, h);
         check(!keep[size_t(85) * w + 163], "in a cut block: a still surrounding leaves it alone");
-        // Exactly half still is not "mostly moves": the test is under a half.
-        const unsigned w2 = 80, h2 = 80;                      // 5 x 5 blocks: every block has all 25 as its surrounding
-        std::vector<uint8_t> half(size_t(w2) * h2, 0);
-        for (unsigned y = 0; y < h2; ++y) for (unsigned x = 0; x < w2 / 2; ++x) half[size_t(y) * w2 + x] = 1;
-        keep = decide(half, w2, h2);
+        // Exactly a quarter still is no island: the test is under a quarter (counted in whole pixels).
+        const unsigned w2 = 80, h2 = 80;                      // 5 x 5 blocks: the middle column of blocks has all 25 as its surrounding
+        std::vector<uint8_t> quarter(size_t(w2) * h2, 0);
+        for (unsigned y = 0; y < h2; ++y) for (unsigned x = 30; x < 50; ++x) quarter[size_t(y) * w2 + x] = 1;   // 20 of 80 columns, through the middle
+        keep = decide(quarter, w2, h2);
         size_t any = 0; for (auto k : keep) any += k;
-        check(any == 0, "a surrounding that is exactly half still is left alone");
-        half[size_t(10) * w2 + 39] = 0;                        // one pixel fewer: under a half now
-        keep = decide(half, w2, h2);
+        check(any == 0, "a surrounding that is exactly a quarter still is left alone");
+        quarter[size_t(10) * w2 + 49] = 0;                     // one pixel fewer: under a quarter now
+        keep = decide(quarter, w2, h2);
         any = 0; for (auto k : keep) any += k;
-        check(any > 0, "one pixel under a half: the surrounding counts as moving");
+        check(any > 0, "one pixel under a quarter: it counts as an island");
     }
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "ALL PASSED", failures);
     return failures ? 1 : 0;

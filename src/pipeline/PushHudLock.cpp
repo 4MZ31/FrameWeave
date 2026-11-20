@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 #include "veyra/pipeline/PushHudLock.h"
+#include "veyra/pipeline/PushHudStill.h"
 #include <bit>
 #include <format>
 
@@ -116,6 +117,7 @@ bool PushHudLock::update(ID3D12GraphicsCommandList* list, StateTracker& tracker,
         float s[kConstants]{};
         s[0] = std::bit_cast<float>(width_); s[1] = std::bit_cast<float>(height_);
         s[3] = std::bit_cast<float>(blocksWide_); s[4] = std::bit_cast<float>(blocksHigh_);
+        s[5] = std::bit_cast<float>(uint32_t(hudstill::reachFor(height_)));
         tracker.transition(list, state_.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
         tracker.transition(list, blocks_.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         s[2] = std::bit_cast<float>(uint32_t(0));

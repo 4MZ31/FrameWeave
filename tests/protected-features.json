@@ -601,7 +601,7 @@
   },
   {
    "id": "F23",
-   "what": "The still rule: a HUD that stands still in front of a moving picture keeps its real pixels in generated frames; a still picture, a plain pan and a ball crossing a still world are not touched; the shaders decide every pixel as the rule in plain C++ does",
+   "what": "The still rule: a HUD that stands still in front of a moving picture keeps its real pixels in generated frames; a still picture, a plain pan and a ball crossing a still world are not touched; since 4.1 only an island (under a quarter of its surrounding still) is kept and the border of a larger still region is left to frame generation (4.0 kept it, which broke up the trail round moving things on a real card); the shaders decide every pixel as the rule in plain C++ does",
    "guards": [
     {
      "file": "tests/unit/PushHudStillTests.cpp",
@@ -617,6 +617,16 @@
      "file": "tests/qml/quick/tst_push_quick_setup.qml",
      "ci": "tst_push_quick_setup",
      "contains": "test_the_still_rule_is_on_unless_switched_off"
+    },
+    {
+     "file": "tests/unit/PushHudStillTests.cpp",
+     "ci": "veyra_push_hud_still_tests",
+     "contains": "the still picture beside something that moves is left to frame generation"
+    },
+    {
+     "file": "tests/unit/PushHudStillTests.cpp",
+     "ci": "veyra_push_hud_still_tests",
+     "contains": "a still block of 64 x 64 is no island: left alone"
     }
    ],
    "needs_hardware": "Real games on real cards: the rule was measured on drawn pictures with the shipped PushFlow models and compared with its reference on the software renderer."
@@ -770,6 +780,23 @@
     }
    ],
    "needs_hardware": "Two screens with different refresh rates: the move itself is not played in CI."
+  },
+  {
+   "id": "F32",
+   "what": "PS5 Remote Play: the sound sync is told when the shown frame arrived, so a sound or picture time line that runs late is not taken for picture delay (the sound was held back by up to the 1.5 second limit: about two seconds behind); generated frames are left out of it",
+   "guards": [
+    {
+     "file": "tests/unit/PushRemoteSyncTests.cpp",
+     "ci": "veyra_push_remote_sync_tests",
+     "contains": "with the arrival the sound waits as long as the picture really takes"
+    },
+    {
+     "file": "tests/unit/PushRemoteSyncTests.cpp",
+     "ci": "veyra_push_remote_sync_tests",
+     "contains": "a generated frame's stamp, between two real ones, is no frame that arrived"
+    }
+   ],
+   "needs_hardware": "A PS5 on Remote Play: the fault was reported by users and its mechanism found by reading; nobody has heard the fix."
   }
  ]
 }
