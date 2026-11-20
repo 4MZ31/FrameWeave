@@ -54,6 +54,38 @@ next step for each (rule 2).
 
 Still open after 4.0: ghosting in the moving world beside a character (nothing measured so far improves it).
 
+## Done in 4.1
+
+Built and passed the automatic tests (unit tests, interface tests, graphics tests on the software renderer).
+**None of it has been measured on a real card yet** (rule 2).
+
+- The frames a frame generation method is given, and what is done with the frames it makes, are the same code
+  as in 3.2.10 again (compared line by line). A saved "on" for the still rule is switched off once.
+- Check my setup: the running picture is read for a few seconds and what costs sharpness, smoothness or sound
+  is listed, each with its one change and its price. Its thresholds are estimates.
+- AI picture enhancement at 1080p, 1440p or the picture's own size; the quality of NVIDIA's frame generation
+  as a row in quick setup; a finer filter when the picture is resized to the window, as a switch.
+- Capture cards: a card is chosen before a webcam, a missing card gets help (ports, drivers, Windows' camera
+  permission), and a card that only sends a compressed picture at the chosen rate is offered its uncompressed
+  format at another rate.
+- Recording: clip markers, a vertical copy beside a wide recording (a second encoder), parts by size, the
+  console's name in comparison clips, the picture as a virtual camera, and local control for button boxes
+  and scripts on the same PC.
+- Reading the text on the picture with Windows' own recognition, on the PC, with an HDR frame brought into
+  range first; translating it with a model that runs on the PC or an engine the user chose.
+- PS5 Remote Play's sound no longer held seconds behind; a target above the screen's refresh rate put out at
+  the refresh rate; the low latency switch as the low queue on cards without NVIDIA's; the method chosen on the
+  home page.
+- Dolby Vision profiles 5, 7, 8 and 10 as input (shown as HDR10 or SDR; this is not Dolby Vision output),
+  live translated subtitles, network streams over RTP and UDP, live timeshift.
+- The interface in sections, each setting once per page, six backgrounds and seven accents, a high contrast
+  look, a larger latency readout.
+- Linux and macOS: a session no longer starts with extra delay, and spare margin is given back in seconds.
+
+Not built in 4.1, on purpose: a new direct path for processed frames into a streaming program (the plugin, the
+virtual camera and a custom RTMP output cover it today), and cutting a recording into parts without a gap
+between them (the recorder starts a new encoder between parts).
+
 ## Next: can be built now, ships after it is measured
 
 These need card test results and performance reports from real cards before they are switched on by default.
@@ -81,14 +113,13 @@ timeline for recording) and what was measured for it so far: [PushFlow 2](PUSHFL
 | An optional NVIDIA-native PushFlow path with a per-card engine cache | NVIDIA's licence terms for shipping the runtime; tests on RTX 30, 40 and 50 |
 | Latency modes (lowest delay, balanced, smoothest) with their measured cost shown | Camera measurements on real screens |
 | Smoothing real frame-rate dips, as an opt-in with its extra delay shown | Real games that dip; blind comparisons |
-| Processed frames to OBS straight from the graphics card, and a virtual camera | Real OBS sessions at 60 and 120 FPS on several cards |
+| Processed frames to a streaming program straight from the graphics card (the virtual camera is built since 4.1 and waits for the same sessions) | Real sessions at 60 and 120 FPS on several cards |
 | Windows code signing | A certificate (application in progress) |
 
 ## Later
 
 - Frame input API version 2: NV12 and P010, HDR metadata, per-frame "new / repeated / damaged" flags,
   optional compressed input, sound, and shared graphics card surfaces.
-- Dolby Vision profile 5 and 7 input (shown as HDR10; this is not Dolby Vision output).
 - Linux and macOS beyond the preview: tested capture cards, recording and going live.
 
 ## Not planned

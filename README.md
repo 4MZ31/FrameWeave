@@ -100,6 +100,10 @@ that, PushFPS adds what console players need:
 | **One-click signed updates** | New versions download and install from the app; every release is signed (RSA-3072, SHA-256) and the app refuses anything that doesn't match |
 | **Frame input API** | Other programs can send video straight into PushFPS through shared memory ([docs/FRAME-INPUT-API.md](docs/FRAME-INPUT-API.md)) |
 | **Optimise for my PC** | Tests every frame generation method your PC has, AI enhancement and the upscalers on your real game picture, measures frame rate, 1% low, latency and jitter, and keeps the best combination for your goal (balanced, lowest latency, smoothest or best picture), up to 144 or 240 Hz |
+| **Check my setup** | Looks at the running picture for a few seconds and says which setting costs you sharpness, smoothness or sound, each with the one change that answers it ([more](#check-my-setup)) |
+| **Read the text on the picture** | One key takes a frame, Windows reads the text on it on your PC, and you can copy or translate it: a menu in another language, a line of dialogue ([more](#read-the-text-on-the-picture)) |
+| **Clip markers and a vertical copy** | Mark a moment while you record so it is easy to find when editing, and record a 1080 × 1920 copy beside the wide recording for TikTok, Shorts and Reels |
+| **Local control** | A button box (Stream Deck and the like) or a script on your PC starts and stops a recording, saves the replay, marks a moment and switches a scene ([docs/LOCAL-CONTROL.md](docs/LOCAL-CONTROL.md)) |
 | **Streaming mode** | An OBS-style page: preview, PushFPS features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards) with webcam, window and video sources (cameras at up to 4K, shown live) and cut or fade transitions, a right-click menu to add, duplicate or delete scenes, a layout editor (move, resize and crop the game picture and every source), go live and record controls, an audio mixer for game sound, microphone, desktop audio, an extra input and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
 | **Video playback mode** | Frame generation, super resolution, AI enhancement and SDR to HDR on any video on your PC: a browser window with YouTube, a video app, a screen or a file |
 | **Ultrawide screens** | A console only sends 16:9. On a 21:9 or 32:9 screen choose black bars, **ambient fill** (a soft, dimmed extension of the picture in the bars, nothing cut or distorted), crop or stretch ([more](#ultrawide-screens)) |
@@ -128,7 +132,7 @@ that, PushFPS adds what console players need:
 | **OBS Studio plugin** | Your boosted picture as a source in OBS |
 | **Tested capture cards** | Which cards are known to work, shown in the app |
 | **14 languages** | English, 简体中文, 繁體中文, 日本語, Nederlands, Deutsch, Español, Français, Italiano, Português (Brasil), Türkçe, Polski, Русский, العربية |
-| **Light and black modes** | The default dark grey, an almost-black mode for OLED screens, and a light mode |
+| **Your colours** | Six backgrounds (graphite, black for OLED screens, light, midnight, plum, forest), seven accent colours and a high contrast look |
 | **Plug and play** | Connects to your capture card when PushFPS opens and goes fullscreen when the picture appears (both optional) |
 | **Measure total delay** | A guided slow-motion phone test that shows the whole delay PushFPS adds over your capture card's passthrough |
 | **Linux and macOS (preview)** | PushFPS's own frame generation, Frame Pacing Repair and Live HUD Lock on Vulkan, OpenGL or Metal, with no vendor components |
@@ -430,6 +434,23 @@ screen. If PushFPS ever stops while it is testing a method, your settings from b
 next start, and that method is not tested again in that version, so one method that fails on your PC can't
 break the optimisation (since 3.2.0).
 
+## Check my setup
+
+Most reports of a soft or broken picture come down to a setting nobody chose. **Check my setup** (a tile on the
+home page, and in *Settings*) looks at the picture that is running for a few seconds and lists what it finds,
+each with the one change that answers it:
+
+- frame generation that is on but shows no generated frames, or cannot keep up;
+- AI picture enhancement worked out at 1080p on a 1440p or 4K picture;
+- NVIDIA's frame generation on a lower quality than the card has room for, or PushFlow on a lower tier;
+- a target the screen cannot show, or one that cannot be paced evenly;
+- a capture card that sends a compressed picture where it also has an uncompressed format;
+- a capture card connected without its sound.
+
+Nothing changes until you press a button. Every change can be undone from the same row, and a change with a
+price (more work for the graphics card, half the capture frame rate) says its price. Its thresholds are
+estimates until they have been checked on more real cards.
+
 ## Game presets
 
 Click **Game presets** in the quick setup and pick a game:
@@ -649,6 +670,9 @@ quick setup has four controls for it, shown while AI picture enhancement is on:
   used. Balanced and Subtle stay closer to the original picture. **Reset** returns to Strong.
 - **Lighting**: how far the AI reworks light and colour. At 0% the original's light and colours stay.
 - **Detail**: how much fine texture, contact shadow and reflection the AI adds.
+- **Enhancement size** (since 4.1): the size the enhancement is worked out at. *1080p* is what PushFPS always
+  did, also for a 4K picture; *1440p* and *Full size* are sharper on a larger picture and cost more (full size
+  at 4K is about four times the work). If frame generation starts skipping frames, go back.
 - **Compare with the original**: splits the picture while you tune, original on the left, enhanced on the
   right. Frame generation pauses while it is on, so it turns itself off after two minutes, and when you turn
   the enhancement off or leave the page.
@@ -713,6 +737,11 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
   vertical 9:16 with *Fill* or *Fit*), the size (the picture's own, 4K, 1440p or 1080p) and the quality
   (*Best*, *High*, *Smaller files*), and says what will be recorded: size, frames a second, codec and bitrate.
   F8 never asks and uses what you chose last. *Ask before every recording* switches the question off.
+- **Mark a moment** (since 4.1): **F6**, or the button beside Record, notes the time while you record. The
+  times are saved in a text file with the recording's name (`…-markers.txt`), so the moment is easy to find
+  when you edit.
+- **A vertical copy** (since 4.1): switch it on in the record dialog and a 1080 × 1920 file is recorded beside
+  the wide one, filled or fitted, with its own encoder. It needs a graphics card that can run two encodes.
 - **Instant replay** keeps the last minute (15 seconds to 10 minutes) in memory; press **F9** to save it.
   Turn it on next to the Record button or under *Settings, Playback*. It can run while you record. It uses
   an extra hardware encoder and some memory while it is on, so it is off by default.
@@ -732,7 +761,12 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
 - **Output resolution**: recordings have their own size (the picture's, 4K, 1440p, 1080p, 720p, ultrawide
   3440 × 1440 or 2560 × 1080, vertical 1080 × 1920, 4:5 or square), separate from the stream. **Fit** keeps the whole picture with bars, **Fill**
   crops the edges, **Stretch** distorts.
-- **Split files** every 30, 60 or 120 minutes during long recordings, without stopping.
+- **Split files** every 30, 60 or 120 minutes during long recordings, or by size, without stopping.
+- **PushFPS as a camera** (since 4.1): *Settings → Recording → Virtual camera* adds "PushFPS Virtual Camera" as
+  a video device other programs can choose. It carries the whole processed picture, without full screen.
+- **Local control** (since 4.1): a button box or a script on the same PC can start and stop a recording, save
+  the replay, mark a moment, take a screenshot and switch a scene. Off unless you switch it on, this PC only,
+  and every request needs a token: [docs/LOCAL-CONTROL.md](docs/LOCAL-CONTROL.md).
 - **Encoders**: NVENC on NVIDIA; on AMD and Intel the card's own hardware encoder through Windows Media
   Foundation. Both do H.264 and HEVC; HDR recordings need NVIDIA (HEVC 10-bit).
 - **Standard settings**: about 37 Mbps for 1080p at 60 FPS, 66 Mbps at 1440p and 150 Mbps at 4K (H.264,
@@ -796,6 +830,31 @@ features built in:
 
 If a browser window captures black, turn off hardware acceleration in the browser's settings; copy-protected
 streams may stay black.
+
+Since 4.1 it also plays **Dolby Vision** files (profiles 5, 7, 8 and 10, converted for your screen), network
+streams over **RTP and UDP**, lets you go back in a running stream (**live timeshift**), and can show **live
+translated subtitles** on Windows 11: what is said is read by Windows' live captions and translated on the
+picture, with a model that runs on your PC unless you choose an online engine.
+
+## Read the text on the picture
+
+A menu in another language, a line of dialogue you want to look up: press **F4** (or *Settings → Playback → Read
+the text on the picture*). PushFPS takes one frame of the picture, Windows reads the text on it, and the dialog
+shows it to copy or translate.
+
+- **It happens on your PC.** The reading is Windows' own text recognition, with the languages Windows has it
+  for. To read Japanese, Korean or Chinese, add that language in Windows' language settings first; the dialog
+  has a button to that page.
+- **Only what PushFPS shows, only when you ask.** One frame, deleted as soon as it is read. Nothing is read
+  from the game or from another program, and nothing runs in the background.
+- **Read a part of the picture** (the lower third for subtitles and dialogue boxes): the text is read larger
+  and more accurately.
+- **Translation has its own button.** With the local model (a download of about 1.1 GB, once) the text stays
+  on your PC. With an online engine, the dialog says before you press it that the text will be sent there.
+- It works with an HDR picture too: bright text on a bright panel is brought into range first instead of
+  being cut off at white.
+
+It has been tested with drawn text; no real game's text has been read with it by us yet.
 
 ## Go live: Twitch, YouTube, Kick and TikTok
 
@@ -882,6 +941,15 @@ the window.</sub>
 Any card that Windows shows as a camera and that sends uncompressed 1080p60 or 4K60 should work. The quick
 setup shows whether your card is on this list.
 
+**If PushFPS does not find your card** (since 4.1): it now chooses a capture card before a webcam on a PC where
+none was used yet, and when nothing is listed the capture dialog says what to check: a USB 3 port, the maker's
+driver, another program that holds the card, and Windows' camera permission (Windows counts a capture card as
+a camera), with a button to that page.
+
+**If the picture looks soft**: many USB cards send the uncompressed format only up to 30 FPS at 1080p and a
+compressed one at 60. The capture dialog says when that is so and offers the switch; at 30 the card hands over
+half the frames of a 60 FPS game, so it is your choice.
+
 Capture at 60 FPS, even for 30 FPS games (PushFPS removes the repeated pictures), in uncompressed NV12 or
 P010 rather than MJPEG. Delay measured by Veyra's developer: about 10-20 ms at 1440p60 NV12, 30-40 ms at
 4K60 NV12 (10 Gbps or PCIe cards) and 80-100 ms at 4K30 HDR. For the lowest delay, capture 1440p60 and let
@@ -902,9 +970,13 @@ machine output was not usable. If a word reads wrong in your language, please op
 `scripts/i18n/hand/<language>.txt`. Arabic text is shown correctly, but the layout is not fully mirrored
 right-to-left yet.
 
-**Settings → Appearance** switches between *Default* (dark grey), *Black* (almost-black surfaces, good on
-OLED screens) and *Light*. Text and controls keep a readable contrast in every mode (checked by an
-automated test); the picture itself is never changed.
+**Settings → Appearance** has six backgrounds (*Graphite*, the default dark grey; *Black*, almost-black
+surfaces for OLED screens; *Light*; and the tinted *Midnight*, *Plum* and *Forest*), seven accent colours, and
+a *High contrast* look with white text and strong outlines. Every pair keeps a readable contrast (checked by an
+automated test); the picture itself is never changed. The latency readout over the picture comes in three
+sizes.
+
+Quick setup is in six sections that fold by their title, and each setting is on a page once.
 
 **Sunset City.** PushFPS opens with a three-second intro: a neon road out of the dark, the logo landing on the
 beat, the sky turning to sunset over a palm-lined city, and the logo gliding into place on the home page, where
@@ -964,10 +1036,12 @@ asks you to confirm the first start (right-click → Open).
 |---|---|
 | Black picture from a PlayStation | Turn HDCP off on the console |
 | Stutter every second or so | Set the capture card to exactly 60 FPS, close other apps that use the card, use a USB port directly on the PC |
-| Smeared HUD or text during fast motion | Pick a lower target (60 instead of 120), or a higher frame generation quality in Professional mode |
+| Not sure which setting is wrong | Run **Check my setup** on the home page while the game is on screen |
+| Smeared HUD or text during fast motion | Pick a lower target (60 instead of 120), or a higher frame generation quality (*Quick setup*, with NVIDIA's frame generation: Low, Medium, High) |
 | Picture looks washed out | Match the colour settings in the capture dialog to the console: HDR (PQ) or SDR, Limited or Full range |
 | The game feels slow to react | Turn on NVIDIA Low Latency. Frame generation can't reduce the game's own delay |
-| Frame rate drops with AI enhancement on | Turn AI enhancement off, or lower its resolution in Professional mode |
+| Frame rate drops with AI enhancement on | Lower *Quick setup → Enhancement size*, or turn AI enhancement off |
+| The picture is soft on a 4K screen | *Quick setup → Enhancement size*: 1440p or full size; and check the capture format (see Capture cards) |
 
 ## Latency
 
@@ -1102,6 +1176,9 @@ Most of it waits for measurements on real graphics cards: [how to take one](docs
 - [x] 4.0: the HUD kept sharp with every method, a steadier 60 → 30 rhythm, lip sync by hand, a line in the
       live comparison, a capture card's own sound input chosen for a new card, recording choices before
       a recording starts
+- [x] 4.1: the picture with frame generation as in 3.2.10 again, Check my setup, reading and translating the
+      text on the picture, clip markers, a vertical copy, local control, the virtual camera, help with capture
+      cards, six backgrounds and seven accents, the interface in sections
 - [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)
@@ -1109,8 +1186,9 @@ Most of it waits for measurements on real graphics cards: [how to take one](docs
 ## Privacy
 
 PushFPS has no accounts, analytics or telemetry. It only connects to the internet for the update check (GitHub),
-when you share a clip to your own Discord webhook, when you connect a streaming source, and when you go live
-(only to the platforms you chose). Details in [PRIVACY.md](PRIVACY.md).
+when you share a clip to your own Discord webhook, when you connect a streaming source, when you go live
+(only to the platforms you chose), and for translation when you download the local model or choose an online
+engine. Reading the text on the picture happens on your PC. Details in [PRIVACY.md](PRIVACY.md).
 
 ## Build from source
 

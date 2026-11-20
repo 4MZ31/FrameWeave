@@ -14,8 +14,22 @@ PushFPS connects to other systems only in these cases:
 | PC streaming (Moonlight), only when you connect | Your own Sunshine host on your network | Pairing and stream data | Do not use PC streaming |
 | Xbox streaming, only when you sign in and connect | Microsoft's sign-in and Xbox services, then your Xbox | Your Microsoft sign-in (in Microsoft's own page) and stream data; tokens are stored encrypted on this PC | Do not use Xbox streaming |
 | *Go live*, only while you stream | The servers of the platforms you added (Twitch, YouTube, Kick, TikTok, Facebook, Trovo or your own RTMP server) | The video and sound you stream, and that output's stream key. Keys are stored encrypted for your Windows user (DPAPI), never shown again and never written to logs | Do not go live |
+| Translation (*Live translation*, and *Read the text on the picture → Translate*) with the **local model**: only when you press *Download model* | GitHub (the program that runs the model) and Hugging Face (the model file) | A normal HTTPS download, once, about 1.1 GB; the files are checked against fixed SHA-256 values. After that the model runs on your PC and the text never leaves it | Do not download the model |
+| Translation with **MyMemory**, only if you choose that engine | `api.mymemory.translated.net` | The caption text, or the text you asked to translate, and the two languages | Keep the local model as the engine |
+| Translation with a **custom API**, only if you enter one | The address you entered | The caption text or the text you asked to translate, and your API key. The key is kept in memory only and is not saved | Do not enter one |
+| Opening a network stream (an address you enter) | The address you entered | A normal media request | Do not open one |
 | Links and buttons that open web pages (GitHub, Apex Compute, Veyra, PSN account ID lookup, Discord) | Your web browser opens the page | Nothing from PushFPS; the page's own privacy policy applies | Do not click them |
 | Installation (`Install-PushFPS.cmd`) | GitHub, to download Veyra's runtime package (Qt, FFmpeg and GPU components) | A normal HTTPS download | Install offline from a downloaded package |
+
+**Reading the text on the picture.** When you ask for it, PushFPS takes one frame of the picture it shows and
+Windows' own text recognition reads it on your PC. The frame is deleted as soon as it is read, the text is not
+written to the log, and nothing is sent anywhere. Translating that text is a separate button; what it sends, if
+anything, is in the table above.
+
+**Local control and the virtual camera.** Local control is off unless you switch it on. It listens on this PC
+only (127.0.0.1), every request needs a token that is stored encrypted for your Windows user, and it makes no
+connection to anything outside your PC. The virtual camera is a video device on your PC; PushFPS sends its
+picture nowhere.
 
 **Feedback.** *Settings → Report a problem* copies diagnostic information (version, GPU, source format and
 playback statistics) to your clipboard and opens GitHub Issues. Nothing is sent until you paste it into an issue

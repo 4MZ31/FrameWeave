@@ -220,6 +220,11 @@
     </div>
 
     <ul class="more">
+      <li><b>Check my setup</b><span>Looks at the running picture for a few seconds and says which setting costs you sharpness, smoothness or sound, each with the one change that answers it. Nothing changes until you press a button.</span></li>
+      <li><b>Read the text on the picture</b><span>One key takes a frame, Windows reads the text on it on your PC, and you can copy or translate it: a menu in another language, a line of dialogue. Nothing is read in the background.</span></li>
+      <li><b>Clip markers and a vertical copy</b><span>Mark a moment while you record so it is easy to find when editing, and record a 1080&nbsp;&times;&nbsp;1920 copy beside the wide recording.</span></li>
+      <li><b>Local control</b><span>A button box or a script on your PC starts and stops a recording, saves the replay, marks a moment and switches a scene. Off unless you switch it on, this PC only.</span></li>
+      <li><b>PushFPS as a camera</b><span>The processed picture as a video device other programs can choose.</span></li>
       <li><b>Video playback mode</b><span>Frame generation, sharper upscaling, AI enhancement and SDR to HDR on any video on your PC: YouTube in your browser, video apps or files.</span></li>
       <li><b>Streaming mode</b><span>An OBS-style page: scenes (logo and text overlays, Starting soon and Be right back cards; right-click the list to add, duplicate or delete one) with webcam, window and video sources and fade transitions, cameras at up to 4K with a live picture, a layout editor to move, resize and crop the game picture and every source, preview, controls, an audio mixer for game sound, microphone, desktop audio and an extra input with level meters, and microphone filters (EQ, noise gate, compressor).</span></li>
       <li><b>Output presets</b><span>Platform settings per resolution and frame rate for Twitch, YouTube, Kick, Facebook, TikTok LIVE and Trovo, and upload presets for YouTube (SDR and HDR), Shorts, TikTok, Instagram Reels and X. Every value stays editable.</span></li>
@@ -242,7 +247,7 @@
       <li><b>NVIDIA Image Scaling</b><span>Fast upscaling and sharpening on NVIDIA, AMD and Intel graphics.</span></li>
       <li><b>Tested capture cards</b><span>See in the app which cards are known to work, and report yours.</span></li>
       <li><b>14 languages</b><span>English, Simplified and Traditional Chinese, Japanese, Dutch, German, Spanish, French, Italian, Portuguese, Turkish, Polish, Russian, Arabic.</span></li>
-      <li><b>Dark, black and light</b><span>An almost-black mode for OLED screens and a light mode.</span></li>
+      <li><b>Your colours</b><span>Six backgrounds (graphite, black for OLED screens, light, midnight, plum, forest), seven accents and a high contrast look.</span></li>
       <li><b>Help where you need it</b><span>A small ? beside settings that need explaining.</span></li>
       <li><b>Plug and play</b><span>Connects to your capture card when PushFPS opens and goes fullscreen when the picture appears.</span></li>
       <li><b>Measure total delay</b><span>A guided slow-motion phone test of the whole delay over your passthrough.</span></li>
@@ -363,13 +368,15 @@
       <table class="spec tune">
         <thead><tr><th scope="col">If you see</th><th scope="col">Try</th></tr></thead>
         <tbody>
+          <tr><th scope="row">Not sure which setting is wrong</th><td data-label="Try"><b>Check my setup</b> on the home page, with the game on screen</td></tr>
           <tr><th scope="row">Smeared HUD or text in fast motion</th><td data-label="Try">The game preset or Automatic HUD detection, Live HUD Lock on, the Keep the HUD sharp option, or a lower target (60 instead of 120)</td></tr>
-          <tr><th scope="row">Wobbly edges in fast motion</th><td data-label="Try">A lower target, or a higher frame generation quality in Pro mode</td></tr>
+          <tr><th scope="row">Wobbly edges in fast motion</th><td data-label="Try">A lower target, or a higher frame generation quality (in quick setup with NVIDIA's frame generation: Low, Medium, High)</td></tr>
           <tr><th scope="row">Stutter or uneven motion</th><td data-label="Try">Smooth frame pacing on, G-SYNC/FreeSync on in your driver, capture card at exactly 60&nbsp;FPS, fullscreen (F11)</td></tr>
           <tr><th scope="row">The game feels slow to react</th><td data-label="Try">Lowest latency on, 120&nbsp;Hz console output if your card captures 120&nbsp;Hz, or target Off for competitive games</td></tr>
           <tr><th scope="row">Ghosting or wobbly "jelly" with a 30&nbsp;FPS game</th><td data-label="Try">On an RTX 40/50: NVIDIA Video Frame Generation, which handles low frame rates best. Quality <b>Medium</b> to start; <b>High</b> at 2× if your card keeps up (<a href="#guide-vfg">how heavy</a>)</td></tr>
           <tr><th scope="row">Soft or blocky picture</th><td data-label="Try">RTX Video Super Resolution at <b>Medium</b> (PushFPS's default) on NVIDIA, NVIDIA Image Scaling on any card, or AI picture enhancement (NVIDIA RTX and Radeon RX 7000 / 9000; needs the installer's experimental extras)</td></tr>
-          <tr><th scope="row">Frame rate drops with AI enhancement</th><td data-label="Try">AI enhancement off, or a lower target</td></tr>
+          <tr><th scope="row">AI enhancement looks soft on a 1440p or 4K picture</th><td data-label="Try"><b>Enhancement size</b> in quick setup: 1440p or full size (full size at 4K is about four times the work)</td></tr>
+          <tr><th scope="row">Frame rate drops with AI enhancement</th><td data-label="Try">A smaller Enhancement size, AI enhancement off, or a lower target</td></tr>
           <tr><th scope="row">Washed-out or too dark picture</th><td data-label="Try">Match the capture dialog's colour settings to the console: HDR or SDR, Limited or Full range</td></tr>
         </tbody>
       </table>
