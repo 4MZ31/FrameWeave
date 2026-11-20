@@ -185,6 +185,12 @@ jobs:
             # PushFPS 4.0: the record dialog (PushRecordDialog), wide at the standard rate and tall, filled.
             @{ name = '89-record-dialog'; args = @('--page', 'home', '--dialog', 'record', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '90-record-dialog-vertical'; args = @('--page', 'home', '--dialog', 'record', '--lang', 'en', '--pref', 'recordWidth=1080', '--pref', 'recordHeight=1920', '--pref', 'recordFit=1', '--pref', 'pushSunset=false') },
+            # PushFPS 4.1: the maximise button in the headers of Professional and Streaming mode, and the quick setup
+            # rows every card has now (the method where more than one is offered, the low latency switch).
+            @{ name = '91-pro-maximize'; args = @('--page', 'pro', '--lang', 'en', '--pref', 'pushSunset=false') },
+            @{ name = '92-studio-maximize'; args = @('--page', 'live', '--lang', 'en', '--pref', 'pushSunset=false') },
+            @{ name = '93-quick-method'; args = @('--page', 'home', '--scroll-to', 'pushfps-fg-backend-row', '--lang', 'en', '--pref', 'pushSunset=false') },
+            @{ name = '94-quick-low-latency'; args = @('--page', 'home', '--scroll-to', 'pushfps-low-latency-row', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '83-crop-editor'; args = @('--page', 'home', '--dialog', 'crop', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') },
             @{ name = '84-crop-quick-setup'; args = @('--page', 'home', '--scroll-to', 'pushfps-crop-row', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') }
           )
