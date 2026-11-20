@@ -308,6 +308,13 @@ TEST(controller_in_step_owner_sends_every_state){
     CHECK(wrong==0&&q.stats().merged==0&&q.stats().expired==0&&q.stats().highWaterPending==1&&q.stats().highWaterAge100ns==2*ms);
 }
 TEST(input_and_mailbox_zero_generation){InputGate g;THROWS(g.begin(0));LatestMailbox<int> m;THROWS(m.begin(0));VideoIngress v;THROWS(v.begin(0));AudioIngress a;THROWS(a.begin(0));}
+TEST(inbox_frame_stamped_after_reader_clock){
+    // The same through the session boundary, in the product's order: the reader's clock
+    // sample, then the callback stamps and queues a frame, then the reader takes the lock.
+    SessionInbox q;auto t=q.begin(monotonic100ns());const auto readerNow=monotonic100ns()-1;
+    CHECK(t.video(config(t.generation(),monotonic100ns())));CHECK(t.video(frame(0,true,monotonic100ns(),t.generation())));
+    auto v=q.tryVideo(readerNow);CHECK(v&&v->sample.wireFrameIndex==0);CHECK(q.snapshot().video.recoveries==0&&!q.snapshot().video.waitingForIdr);
+}
 TEST(inbox_real_sample_vs_config_counts){SessionInbox q;auto t=q.begin(monotonic100ns());auto now=monotonic100ns();CHECK(t.video(config(t.generation(),now)));CHECK(q.snapshot().video.accessUnits==0);CHECK(t.video(frame(0,true,monotonic100ns(),t.generation())));CHECK(q.snapshot().video.accessUnits==1);auto v=q.tryVideo(monotonic100ns());CHECK(v&&v->sample.generation==t.generation());}
 }
 TEST(recovery_keyframes_before_reconnect){

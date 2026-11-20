@@ -23,19 +23,43 @@ VPage {
     signal requestDialog(string key)
     signal requestFullscreen()
     // Fullscreen quick-adjust (Home, Main.qml): only the inspector is shown, moved
-    // to the left of the picture, with the performance orbs beside it. Both are cut
-    // out of the native video window like any other cover.
+    // to the left of the picture, cut out of the native video window.
     property bool overlay: false
+    property bool onboardingActive: false
+    function saveOnboardingView() {
+        return { tab: tab, scroll: inspFlick.contentY, fgOpen: fgCard.open,
+                 flowOpen: fgFlowGroup.expanded }
+    }
+    function restoreOnboardingView(view) {
+        fgCard.open = view.fgOpen
+        fgFlowGroup.expanded = view.flowOpen
+        tab = view.tab
+        inspFlick.contentY = view.scroll
+    }
+    function showOnboardingStep(step) {
+        const changedTab = tab !== step.tab
+        tab = step.tab
+        if (step.target === "fg" || step.target === "dedup") fgCard.open = true
+        if (step.target === "dedup") fgFlowGroup.expanded = true
+        if (changedTab || step.target === "fg") inspFlick.contentY = inspFlick.originY
+    }
+    function onboardingTarget(key) {
+        if (key === "fg") return { item: insp }
+        if (key === "timing") return { item: meters }
+        const items = { "sr": srCard.headerItem, "nr": nrStage.headerItem,
+                        "hdr": hdrCard.headerItem, "dedup": dedupRow }
+        return { item: items[key], viewport: inspFlick }
+    }
     readonly property bool hdrMeterObserved: visible && tab === "display" && displayCol.hdrMeterObserved
     onHdrMeterObservedChanged: veyra.observeHdrCoverage(hdrMeterObserved)
     function overlayContains(x, y) {
         const hit = item => x >= item.x && x <= item.x + item.width && y >= item.y && y <= item.y + item.height
-        return overlay && (hit(insp) || hit(quickOrbs))
+        return overlay && hit(insp)
     }
     // Leaving the page (or switching to the node editor) disarms region drawing;
     // showing it replays the GPU bars' staggered entrance (M27).
     onVisibleChanged: {
-        if (!visible && veyra.protectionDrawShape.length > 0) veyra.beginProtectionDraw("")
+        if (!visible && !onboardingActive && veyra.protectionDrawShape.length > 0) veyra.beginProtectionDraw("")
         if (visible) armBars()
     }
 
@@ -52,7 +76,7 @@ VPage {
     // (pages-pro.js render(true): 460 ms, i*30 ms, y 10).
     Component { id: staggerComp; VRise.Stagger {} }
     function stagger(col, step, span, dy) {
-        if (Theme.reduced || !col) return
+        if (Theme.reduced || onboardingActive || !col) return
         let i = 0
         for (let k = 0; k < col.children.length; ++k) {
             const c = col.children[k]
@@ -124,8 +148,7 @@ VPage {
     // The NR layer card wraps the shared editor (NrLayerEditor.qml).
     // 显示同步 and 输出上限 (1.4.4 PresentationSettings), shared by the list 补帧
     // page and the node editor's output box (ProPage.PresentationRows).
-    component PresentationRows: ProPresentationRows {}
-    // A performance orb: a ring filled to `fraction` (green under 70 %, amber
+    component PresentationRows: ProPresentationRows {}    // A performance orb: a ring filled to `fraction` (green under 70 %, amber
     // under 100 %, red above), the value in the middle, the label under it.
     // Shared with the node page as ProPage.PerfOrb.
     component PerfOrb: ProPerfOrb {}
@@ -264,7 +287,8 @@ VPage {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: 14
-        readonly property bool compact: width < 972
+        readonly property bool compactActions: width < 850
+        readonly property bool compact: width < 972 || width - headActions.implicitWidth < 320
         height: compact ? 72 : 32
 
         RowLayout {
@@ -272,7 +296,7 @@ VPage {
             objectName: "pro-source-info"
             anchors.left: parent.left
             anchors.top: parent.top
-            width: head.compact ? head.width : Math.max(0, head.width - headActions.width - 16)
+            width: head.compact ? head.width : Math.max(0, head.width - actionViewport.width - 16)
             height: 32
             spacing: 8
 
@@ -283,7 +307,8 @@ VPage {
                 iconName: veyra.sourceKind === "ps5" ? "gamepad" : veyra.sourceKind === "moonlight" ? "cast" : veyra.sourceKind === "xbox" ? "gamepad" : veyra.sourceKind === "screen" ? "monitor"
                         : veyra.sourceKind === "image" ? "image" : veyra.sourceKind === "file" ? "film" : "video"
                 text: veyra.sourceTitle.length > 0 ? veyra.sourceTitle : qsTr("片源")
-                maxTextWidth: Math.max(36, Math.min(260, sourceInfo.width - formatTag.implicitWidth
+                tip: text
+                maxTextWidth: Math.max(64, Math.min(260, sourceInfo.width - formatTag.implicitWidth
                                                   - (outputTag.visible ? outputTag.implicitWidth + 8 : 0) - 74))
                 trailingIcon: "down"
                 onClicked: sourceMenu.openAt(this, "down")
@@ -303,12 +328,26 @@ VPage {
             Item { Layout.fillWidth: true }
         }
 
-        RowLayout {
-            id: headActions
+        Flickable {
+            id: actionViewport
             objectName: "pro-header-actions"
             anchors.right: parent.right
             y: head.compact ? 40 : 0
+            width: Math.min(head.width, headActions.implicitWidth)
             height: 32
+            contentWidth: headActions.implicitWidth
+            contentHeight: height
+            flickableDirection: Flickable.HorizontalFlick
+            interactive: contentWidth > width
+            boundsBehavior: Flickable.StopAtBounds
+            clip: interactive
+            ScrollBar.horizontal: VScrollBar { }
+        }
+        RowLayout {
+            id: headActions
+            parent: actionViewport.contentItem
+            width: implicitWidth
+            height: actionViewport.height
             spacing: 8
 
             // View toggle. Choosing 节点 asks first, because switching rebuilds the
@@ -324,7 +363,16 @@ VPage {
                     switchDialog.open()
                 }
             }
-            VButton { iconName: "camera"; text: qsTr("截图"); onClicked: veyra.takeScreenshot() }
+            VButton {
+                id: screenshotButton
+                objectName: "pro-screenshot"
+                iconName: "camera"
+                text: head.compactActions ? "" : qsTr("截图")
+                icon: head.compactActions
+                tip: qsTr("截图")
+                Accessible.name: screenshotButton.tip
+                onClicked: veyra.takeScreenshot()
+            }
             // Recording: the red dot pulses while the file is open, and a
             // three second countdown runs before the engine is asked to open
             // it. The countdown is an interface animation; the file itself is
@@ -372,6 +420,8 @@ VPage {
                     }
                     Text {
                         id: recordLabel
+                        width: head.compactActions ? Math.min(96, implicitWidth) : implicitWidth
+                        elide: Text.ElideRight
                         anchors.verticalCenter: parent.verticalCenter
                         text: recordControl.countdown > 0 ? qsTr("录制 %1 秒").arg(recordControl.countdown)
                               : veyra.recording ? qsTr("停止 %1").arg(recordControl.elapsed)
@@ -382,6 +432,8 @@ VPage {
                         font.weight: Font.Medium
                     }
                 }
+                ToolTip.visible: recordMouse.containsMouse && recordLabel.truncated
+                ToolTip.text: recordLabel.text
                 MouseArea {
                     id: recordMouse
                     objectName: "pro-record-mouse"
@@ -426,10 +478,33 @@ VPage {
                 }
             }
             RowLayout {
+                objectName: "pro-virtual-camera-control"
+                Layout.alignment: Qt.AlignVCenter
+                spacing: 6
+                VIcon { visible: head.compactActions; name: "video"; size: 14 }
+                Text {
+                    visible: !head.compactActions
+                    text: qsTr("虚拟摄像机")
+                    color: veyra.virtualCameraEnabled ? Theme.accent : Theme.t2
+                    font.family: Theme.fontUi
+                    font.pixelSize: Theme.fsBody
+                }
+                VSwitch {
+                    objectName: "pro-virtual-camera-toggle"
+                    checked: veyra.virtualCameraEnabled
+                    onToggled: enabled => veyra.setVirtualCameraEnabled(enabled)
+                }
+                HoverHandler { id: cameraHover }
+                ToolTip.visible: head.compactActions && cameraHover.hovered
+                ToolTip.text: qsTr("虚拟摄像机")
+            }
+            RowLayout {
                 objectName: "pro-replay-control"
                 Layout.alignment: Qt.AlignVCenter
                 spacing: 6
+                VIcon { visible: head.compactActions; name: "clock"; size: 14 }
                 Text {
+                    visible: !head.compactActions
                     text: qsTr("即时回放")
                     color: Theme.t2
                     font.family: Theme.fontUi
@@ -440,6 +515,9 @@ VPage {
                     checked: veyra.replayEnabled
                     onToggled: checked => veyra.setPreference("replayEnabled", checked)
                 }
+                HoverHandler { id: replayHover }
+                ToolTip.visible: head.compactActions && replayHover.hovered
+                ToolTip.text: qsTr("即时回放")
             }
             // Instant replay (#103): while the buffer is on, the time it holds;
             // a click saves it, as the replay shortcut does.
@@ -453,6 +531,7 @@ VPage {
                 text: replay.saving ? qsTr("保存中…")
                       : qsTr("回放 %1").arg(Math.floor(held / 60) + ":" + (held % 60 < 10 ? "0" : "") + held % 60)
                 tip: qsTr("保存最近的画面和声音（%1）").arg(veyra.shortcuts.replay || qsTr("未设置快捷键"))
+                maxTextWidth: head.compactActions ? 84 : 0
                 enabled: !replay.saving && held > 0
                 onClicked: veyra.saveReplay("pro-button")
             }
@@ -461,7 +540,8 @@ VPage {
                 iconName: "layers"
                 trailingIcon: "down"
                 text: qsTr("预设：") + veyra.currentPresetName
-                maxTextWidth: 180
+                tip: text
+                maxTextWidth: head.compactActions ? 110 : 180
                 onClicked: presetMenu.openAt(this, "down")
             }
             // PushFPS 4.1: the window as large as the screen, and back, in sight (PushMaximizeButton.qml).
@@ -472,10 +552,13 @@ VPage {
     // One geometry contract for this layout and Main's native video HWND.
     // These are available before the first layout pass when a source is opened.
     readonly property real videoColumnWidth: Math.max(1, root.width - root.inspectorWidth - 14 * 2 - 10)
-    // PushFPS: the three meter cards show only while something plays. With nothing
-    // open they were a wall of "Not measured"; the picture card takes the room.
-    readonly property bool metersShown: !root.overlay && veyra.hasSource
-    readonly property real metersHeight: Math.max(172, meter3Content.implicitHeight + 28)
+    // PushFPS: the three meter cards show only while something plays (with nothing open they were a wall of
+    // "Not measured"), and, since 2.2.0's layout, only when the picture keeps room beside them. The guided
+    // tour shows them whatever plays.
+    readonly property real metersHeight: Math.max(172, meter3Content.implicitHeight + 28, stageGrid.implicitHeight + 66)
+    readonly property real pictureSpace: root.height - 14 * 2 - head.height - 10 - transport.height
+    readonly property bool showMeters: root.onboardingActive || (veyra.hasSource && pictureSpace >= metersHeight + 10 + 80)
+    readonly property bool metersShown: !root.overlay && root.showMeters
     readonly property real videoCardHeight: Math.max(transport.height + 1,
         root.height - 14 * 2 - head.height - 10 - (root.metersShown ? root.metersHeight + 10 : 0))
     readonly property rect videoViewport: Qt.rect(14, 14 + head.height + 10,
@@ -551,7 +634,7 @@ VPage {
             }
             Shortcut {
                 sequence: "Escape"
-                enabled: root.visible && (!root.shell || !root.shell.fullscreen) &&
+                enabled: root.visible && !root.onboardingActive && (!root.shell || !root.shell.fullscreen) &&
                          veyra.protectionDrawShape.length > 0
                 onActivated: veyra.beginProtectionDraw("")
             }
@@ -657,26 +740,28 @@ VPage {
                     }
                     Timer {
                         id: proScrubSeek
-                        interval: 120
-                        onTriggered: if (proSeekArea.scrubbing) veyra.seekTo(proSeekArea.scrubFrac * veyra.duration)
+                        // Restarted on every move, so it fires only once the drag settles
+                        // (see CineBar.qml for why overlapping seeks break playback).
+                        interval: 250
+                        onTriggered: if (proSeekArea.scrubbing) veyra.seekTo(veyra.timelineSeconds(proSeekArea.scrubFrac))
                     }
                     MouseArea {
                         id: proSeekMouse
                         anchors.fill: parent
                         hoverEnabled: true
-                        enabled: veyra.duration > 0 && !veyra.isCapture
+                        enabled: veyra.timelineSeekable
                         cursorShape: Qt.PointingHandCursor
                         preventStealing: true
                         function fracAt(x) { return Math.max(0, Math.min(1, x / Math.max(1, proSeekArea.width))) }
-                        onPressed: mouse => { proSeekArea.scrubFrac = fracAt(mouse.x); proSeekArea.scrubbing = true; proScrubSeek.start() }
+                        onPressed: mouse => { proSeekArea.scrubFrac = fracAt(mouse.x); proSeekArea.scrubbing = true }
                         onPositionChanged: mouse => {
                             if (!proSeekArea.scrubbing) return
                             proSeekArea.scrubFrac = fracAt(mouse.x)
-                            if (!proScrubSeek.running) proScrubSeek.start()
+                            proScrubSeek.restart()
                         }
                         onReleased: mouse => {
                             proScrubSeek.stop()
-                            const target = fracAt(mouse.x) * veyra.duration
+                            const target = veyra.timelineSeconds(fracAt(mouse.x))
                             proSeekArea.scrubbing = false
                             veyra.seekTo(target)
                         }
@@ -685,9 +770,17 @@ VPage {
                 }
                 Text {
                     text: veyra.durationText
+                    visible: !veyra.liveTimeshift.available
                     color: Theme.t2
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fsSmall
+                }
+                VButton {
+                    objectName: "pro-return-live"
+                    visible: veyra.liveTimeshift.available
+                    ghost: true
+                    text: qsTr("回到直播")
+                    onClicked: veyra.returnToLive()
                 }
             }
             RowLayout {
@@ -766,10 +859,13 @@ VPage {
         // first, so the stage timings beside it keep room to read.
         Rectangle {
             id: meter1
-            visible: meters.width >= 760
+            visible: meters.width >= 850
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.preferredWidth: 1.05
+            Layout.minimumWidth: 192
+            // Use pixel widths in the same range as the minimum. A ratio
+            // below the minimum is clamped and would squeeze the other cards.
+            Layout.preferredWidth: 210
             radius: Theme.rCard
             color: Theme.card
             border.width: 1
@@ -880,7 +976,7 @@ VPage {
             clip: true
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.preferredWidth: 1.5
+            Layout.preferredWidth: 300
             radius: Theme.rCard
             color: Theme.card
             border.width: 1
@@ -900,24 +996,28 @@ VPage {
                         font.pixelSize: 11
                     }
                 }
-                // Eight stages in two columns of four: a single column of eight
-                // overflowed the fixed 172px card.
+                // Switch to one column when two complete translated readings do not fit.
                 GridLayout {
+                    id: stageGrid
                     objectName: "pro-stage-grid"
                     // The label column fits the longest stage name in the interface
                     // language (52px held two Chinese characters; translations run longer).
                     FontMetrics { id: stageLabelMetrics; font.family: Theme.fontUi; font.pixelSize: Theme.fsSmall }
                     readonly property real stageLabelWidth: {
                         let w = 52
-                        for (const r of veyra.stageTimings) w = Math.max(w, Math.ceil(stageLabelMetrics.advanceWidth(r.label || "")) + 2)
-                        return Math.min(w, 104)
+                        for (const r of veyra.stageTimings) w = Math.max(w, Math.ceil(stageLabelMetrics.advanceWidth(r.label || "")) + 6)
+                        return w
                     }
+                    // The value column fits "000.0 ms" and the unmeasured word in the interface
+                    // language (a fixed 48px let the English "Not measured" run out of the card).
+                    FontMetrics { id: stageValueMetrics; font.family: Theme.fontMono; font.pixelSize: 11 }
+                    readonly property real stageValueWidth: Math.min(120, Math.ceil(Math.max(stageValueMetrics.advanceWidth("000.0 ms"), stageValueMetrics.advanceWidth(qsTr("未测量")))) + 2)
                     Layout.fillWidth: true
-                    columns: 2
+                    columns: meter2.width - 28 >= 2 * (stageLabelWidth + stageValueWidth + 16) + 16 ? 2 : 1
                     columnSpacing: 16
                     rowSpacing: 6
                     flow: GridLayout.TopToBottom
-                    rows: Math.ceil(veyra.stageTimings.length / 2)
+                    rows: Math.max(1, Math.ceil(veyra.stageTimings.length / columns))
                 // The model is the row count, not the list: the list is a new array on
                 // every snapshot, and a list model rebuilt the rows each time, so every
                 // bar restarted from 0 (the 0 / 5.8 / 0 / 5.8 flicker in the field).
@@ -931,7 +1031,8 @@ VPage {
                         Layout.preferredWidth: 1
                         spacing: 8
                         Text {
-                            Layout.preferredWidth: stageRow.parent ? stageRow.parent.stageLabelWidth : 52
+                            Layout.preferredWidth: stageGrid.stageLabelWidth
+                            Layout.minimumWidth: Math.min(stageGrid.stageLabelWidth, Math.max(0, stageRow.width - stageGrid.stageValueWidth - 16))
                             text: modelData.label
                             color: Theme.t2
                             font.family: Theme.fontUi
@@ -967,8 +1068,9 @@ VPage {
                             }
                         }
                         Text {
-                            Layout.preferredWidth: 48
-                            Layout.fillWidth: meter2.narrow
+                            Layout.preferredWidth: stageRow.parent ? stageRow.parent.stageValueWidth : 48
+                            Layout.minimumWidth: Math.min(stageGrid.stageValueWidth, stageRow.width * 0.54)
+                            elide: Text.ElideRight
                             text: modelData.measured ? modelData.ms.toFixed(1) + " ms" : qsTr("未测量")
                             HoverHandler { id: stageValueHover }
                             ToolTip.visible: stageValueHover.hovered && modelData.measured
@@ -991,7 +1093,7 @@ VPage {
             readonly property bool wide: width >= 380
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.preferredWidth: 1.15
+            Layout.preferredWidth: 230
             radius: Theme.rCard
             color: Theme.card
             border.width: 1
@@ -1160,35 +1262,6 @@ VPage {
             text: qsTr("拖动调整参数面板宽度 · 双击还原")
         }
     }
-    // Performance orbs beside the quick-adjust panel (fullscreen only).
-    Rectangle {
-        id: quickOrbs
-        objectName: "pro-quick-orbs"
-        readonly property bool videoCover: root.overlay
-        property real coverRadius: radius
-        visible: root.overlay
-        x: insp.x + insp.width + 10
-        y: insp.y
-        width: quickOrbRow.implicitWidth + 24
-        height: quickOrbRow.implicitHeight + 16
-        radius: 18
-        color: Theme.shade(22, 22, 26, 0.94)
-        border.width: 1
-        border.color: Theme.stroke2
-        RowLayout {
-            id: quickOrbRow
-            anchors.centerIn: parent
-            spacing: 12
-            PerfOrbs { size: 46; spacing: 10 }
-            Text {
-                text: qsTr("%1 关闭").arg(veyra.gameMode ? veyra.shortcuts.gamePanel : "Home")
-                color: Theme.t3
-                font.family: Theme.fontUi
-                font.pixelSize: 11
-            }
-        }
-    }
-
     Rectangle {
         id: insp
         objectName: "pro-inspector"
@@ -1238,13 +1311,18 @@ VPage {
                     delegate: Rectangle {
                         required property var modelData
                         Layout.fillWidth: true
-                        implicitHeight: 30
+                        implicitWidth: tabLabel.implicitWidth + 10
+                        implicitHeight: Math.max(30, tabLabel.implicitHeight + 8)
                         radius: 9
                         color: root.tab === modelData.id ? Theme.card3
                              : tabHover.hovered ? Theme.ink(0.04) : "transparent"
                         Behavior on color { ColorAnimation { duration: Theme.d(200) } }
                         Text {
+                            id: tabLabel
+                            width: Math.max(1, parent.width - 6)
                             anchors.centerIn: parent
+                            horizontalAlignment: Text.AlignHCenter
+                            wrapMode: Text.Wrap
                             text: modelData.label
                             color: root.tab === modelData.id ? Theme.t1 : Theme.t2
                             font.family: Theme.fontUi
@@ -1266,7 +1344,8 @@ VPage {
                 implicitHeight: chainCol.implicitHeight + 20
                 objectName: "pro-processing-order"
                 // The design draws the chain bar on the 画质 tab only.
-                visible: root.tab === "quality"
+                // Leave the controls a usable scroll area in short windows.
+                visible: root.tab === "quality" && insp.height >= 240
                 radius: 12
                 color: Theme.ink(0.03)
                 border.width: 1
@@ -1278,7 +1357,7 @@ VPage {
                     spacing: 7
                     RowLayout {
                         Layout.fillWidth: true
-                        VEyebrow { text: qsTr("处理顺序"); Layout.fillWidth: true }
+                        VEyebrow { text: qsTr("处理顺序"); Layout.fillWidth: true; Layout.minimumWidth: 0; wrapMode: Text.Wrap }
                         Text { text: qsTr("点击定位"); color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 11 }
                     }
                     Flow {
@@ -1388,6 +1467,7 @@ VPage {
                         }
 
                         VAccordion {
+                            id: srCard
                             objectName: "list-sr"
                             Layout.fillWidth: true
                             glyph: "sparkles"
@@ -1445,6 +1525,7 @@ VPage {
                         // RTX Video HDR: SDR -> HDR before frame generation. Runs
                         // only on an HDR display path; the status says why not.
                         VAccordion {
+                            id: hdrCard
                             objectName: "list-video-hdr"
                             Layout.fillWidth: true
                             glyph: "sun"
@@ -1764,12 +1845,14 @@ VPage {
                         VAccordion {
                             id: fgCard
                             objectName: "list-fg-card"
+                            readonly property var backendOption: veyra.fgBackendChoices.find(o => o.id === veyra.fgBackendName)
+                            instantExpansion: root.onboardingActive
                             Layout.fillWidth: true
                             glyph: "layers"
                             hue: "#3DDC84"
                             title: qsTr("补帧")
                             summary: qsTr("始终在所有画质效果之后") + (veyra.fgEnabled
-                                     ? " · " + veyra.fgMultiplier + "X " + (veyra.fgBackendChoices.find(o => o.id === veyra.fgBackendName) || {}).label
+                                     ? " · " + veyra.fgMultiplier + "X " + Support.fgBackendShortLabel(backendOption)
                                      : qsTr(" · 已关闭"))
                             switchObjectName: "list-fg-enabled"
                             switchAvailable: Support.available(veyra, "frame-generation")
@@ -1784,8 +1867,8 @@ VPage {
                                     id: fgBackendSelect
                                     objectName: "list-fg-backend"
                                     options: veyra.fgBackendChoices
-                                    // The label of the chosen backend, not its id.
-                                    value: (options.find(o => o.id === veyra.fgBackendName) || options[0]).label
+                                    value: (fgCard.backendOption || options[0] || {}).label || ""
+                                    displayValue: Support.fgBackendShortLabel(selectedOption) || value
                                     onPicked: id => veyra.fgBackendName = id
                                 }
                             }
@@ -1797,7 +1880,7 @@ VPage {
                             }
                             VRow {
                                 label: qsTr("倍率")
-                                // Live output hint: a suggestion, the multiplier stays as chosen.
+                                // 档位与作者原版一致（只有数字档）；自动选择由下方独立开关控制。
                                 hint: veyra.fgDisplayHint.length > 0 ? veyra.fgDisplayHint : veyra.fgMaxMultiplier + qsTr("X 为上限")
                                 hintColor: veyra.fgDisplayHint.length > 0 ? Theme.warn : Theme.t3
                                 VSeg {
@@ -2051,8 +2134,23 @@ VPage {
                                     onToggled: checked => veyra.fgStrict = checked
                                 }
                             }
+                            VRow {
+                                objectName: "list-fg-auto-multiplier"
+                                label: qsTr("自动选择倍率")
+                                visible: veyra.fgAutoMultiplierAvailable
+                                hint: veyra.fgAutoMultiplierEnabled
+                                      ? qsTr("按源帧率和输出上限自动选档；源帧率超过上限时关闭补帧")
+                                      : qsTr("关闭时按手动选的倍率 · 默认关闭")
+                                hintBelow: veyra.fgAutoMultiplierEnabled
+                                VSwitch {
+                                    checked: veyra.fgAutoMultiplierEnabled
+                                    onToggled: checked => veyra.fgAutoMultiplierEnabled = checked
+                                }
+                            }
                             VSubGroup {
+                                id: fgFlowGroup
                                 objectName: "list-fg-flow-group"
+                                instantExpansion: root.onboardingActive
                                 Layout.fillWidth: true
                                 Layout.topMargin: 6
                                 label: qsTr("光流 · 运动估算")
@@ -2096,7 +2194,7 @@ VPage {
                                         onPicked: id => veyra.flowQuality = Number(id)
                                     }
                                 }
-                                DedupModeRow { backend: veyra; namePrefix: "list" }
+                                DedupModeRow { id: dedupRow; backend: veyra; namePrefix: "list" }
                             }
                             NvidiaLowLatencyEditor { namePrefix: "list" }
                             VRow {
@@ -2143,10 +2241,11 @@ VPage {
             RowLayout {
                 objectName: "pro-inspector-footer"
                 Layout.fillWidth: true
-                Layout.margins: 10
+                Layout.margins: insp.height < 240 ? 6 : 10
                 spacing: 8
                 VDot { Layout.alignment: Qt.AlignTop; Layout.topMargin: 5; off: !veyra.running; warn: veyra.captureRecovering; err: veyra.failed }
                 Text {
+                    id: inspectorStatus
                     objectName: "pro-inspector-status"
                     Layout.fillWidth: true
                     Layout.minimumWidth: 0
@@ -2155,6 +2254,11 @@ VPage {
                     font.family: Theme.fontUi
                     font.pixelSize: Theme.fsSmall
                     wrapMode: Text.Wrap
+                    maximumLineCount: insp.height < 240 ? 1 : 4
+                    elide: Text.ElideRight
+                    HoverHandler { id: inspectorStatusHover }
+                    ToolTip.visible: inspectorStatusHover.hovered && inspectorStatus.truncated
+                    ToolTip.text: inspectorStatus.text
                 }
                 VButton {
                     objectName: "pro-reset-current-page"
@@ -2183,10 +2287,12 @@ VPage {
                                                      disabled: !t.usable, checked: t.index === veyra.subtitlePrimary })))
             .concat([{ label: qsTr("加载外部字幕…"), icon: "import", act: "load" },
                      { sep: true },
-                     { label: qsTr("字幕设置…"), note: qsTr("字体、字号、描边、位置、延时"), icon: "type", act: "dlg" }])
+                     { label: qsTr("字幕设置…"), note: qsTr("字体、字号、描边、位置、延时"), icon: "type", act: "dlg" },
+                     { label: qsTr("实时翻译设置…"), icon: "type", act: "translation" }])
         onPicked: (i, o) => {
             if (o.act === "load") veyra.loadSubtitleDialog()
             else if (o.act === "dlg") root.requestDialog("subtitle")
+            else if (o.act === "translation") root.requestDialog("translation")
             else if (o.track !== undefined) veyra.subtitlePrimary = o.track
         }
     }

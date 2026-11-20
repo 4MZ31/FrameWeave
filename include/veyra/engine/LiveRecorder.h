@@ -78,6 +78,9 @@ struct RecordingSettings {
     uint32_t compareMaxHeight=0;
     double compareRevealSeconds=3.0;  // Reveal: a sweep starts every so many seconds (compareRevealInterval)
     RecordingLabelRenderer compareLabels; // optional labels, called per file on the engine thread
+    // Recordings in parts by size too: 0 = no limit; a part can pass the size by about a second of video,
+    // and the next part starts as splitMinutes' parts do (a new file, -2, -3, ...).
+    uint64_t splitBytes=0;
     // Instant replay recorder only.
     uint32_t replaySeconds=60;   // how much the buffer keeps
     uint64_t replayMemoryBytes=0;// memory cap; 0: an eighth of the installed memory, 512 MB to 4 GB

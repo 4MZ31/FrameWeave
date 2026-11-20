@@ -19,6 +19,9 @@ public:
         uint32_t hdrMode=0;              // 0 SDR, 1 scRGB (linear BT.709), 2 HDR10 (PQ BT.2020)
         float ditherStep=0;              // graph output dither step (RgbToNv12 reserved.y)
         bool generated=false;
+        // Upstream's fields stay directly after `generated`: its code fills a frame by position.
+        uint32_t nativeWidth=0,nativeHeight=0; // Source extent, independent of real-time internal resolution.
+        bool highQuality=false;
         // PushFPS comparison clips: the raw console picture of a real frame (the graph's
         // untouched linear BT.709 copy of the input, float RGBA at the source size; COMMON on
         // entry, must be left in COMMON), null when not kept. rawSdrInHdr: an SDR source shown
@@ -39,6 +42,7 @@ public:
     // Whether the next frames should carry `raw` (the graph keeps it only when asked).
     virtual bool wantsRawFrames() const { return false; }
     virtual ~PresentCapture()=default;
+    virtual bool needsFrame() const {return false;}
     // true: commands were recorded into `list`; submitted() or discarded() follows.
     virtual bool record(ID3D12GraphicsCommandList* list,const Frame& frame)=0;
     // The list was submitted; this fence point covers the recorded commands.
@@ -52,6 +56,7 @@ public:
 class PresentCaptureFanout final : public PresentCapture {
 public:
     PresentCaptureFanout(PresentCapture& first,PresentCapture& second):first_(first),second_(second){}
+    bool needsFrame()const override{return first_.needsFrame()||second_.needsFrame();}
     bool record(ID3D12GraphicsCommandList* list,const Frame& frame) override {
         const bool a=first_.record(list,frame);
         const bool b=second_.record(list,frame);

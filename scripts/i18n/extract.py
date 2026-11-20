@@ -128,6 +128,9 @@ def collect():
     # unit. Keep collecting exactly that source alongside its domain modules.
     cpp += [ROOT / 'src/ui/QmlPlayerBridge_p.h']
     cpp += list((ROOT / 'portable/app/src').glob('*.cpp'))
+    # The live status words (正常 / 输出未达标 / ...) come from this header and
+    # are shown through uiText() in the status bar.
+    cpp += [ROOT / 'apps/veyra/ui/LiveStatusHistory.h']
     for d in ('engine', 'source', 'gfx', 'pipeline', 'moonlight', 'xbox', 'remoteplay', 'sink', 'media', 'ngx', 'base'):
         cpp += list((ROOT / 'src' / d).rglob('*.cpp'))
         # Default member values (a status set in a class body) live in the headers.

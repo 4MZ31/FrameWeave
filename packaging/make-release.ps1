@@ -52,6 +52,16 @@ Copy-Item (Join-Path $repo 'qml') $files -Recurse
 $shaders = Join-Path $BuildDir 'shaders'
 if (-not (Test-Path $shaders)) { throw "Compiled shaders not found in $shaders" }
 Copy-Item $shaders $files -Recurse
+# The virtual camera: PushFPS's own DirectShow servers for 64 and 32 bit programs and their setup helper
+# (src/virtualcam; licences in licenses\virtual-camera, copied with the licenses folder below). Nothing is
+# registered by installing PushFPS: the user turns the camera on in Settings.
+$camera = Join-Path $BuildDir 'virtualcam'
+$cameraFiles = 'pushfps-virtualcam64.dll', 'pushfps-virtualcam32.dll', 'pushfps-camera-setup.exe'
+if (@($cameraFiles | Where-Object { -not (Test-Path (Join-Path $camera $_)) }).Count -eq 0) {
+    $cameraOut = Join-Path $files 'virtualcam'
+    New-Item -ItemType Directory -Force $cameraOut | Out-Null
+    foreach ($f in $cameraFiles) { Copy-Item (Join-Path $camera $f) $cameraOut }
+} else { Write-Warning 'Virtual camera components not built: not packaged (the app then says the camera is unavailable)' }
 foreach ($doc in 'LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md') { Copy-Item (Join-Path $repo $doc) $files }
 Copy-Item (Join-Path $repo 'README.md') (Join-Path $files 'PushFPS-README.md')
 Copy-Item (Join-Path $repo 'licenses') $files -Recurse

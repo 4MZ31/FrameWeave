@@ -11,6 +11,12 @@ import QtQuick.Effects
 VPage {
     id: root
     signal requestPage(string page)
+    // 2.2.0's guided tour (OnboardingGuide in Main.qml) asks the home page for these. PushFPS's home has its own
+    // layout and offers no tour yet: nothing emits the signal, and these keep the tour's calls harmless.
+    signal requestOnboarding()
+    readonly property Item onboardingEntry: root
+    readonly property alias sourceViewport: content
+    function captureCard() { return null }
     // Opens 画面与声音 and scrolls it into view (the screenshot run's `--tab tuning`).
     function showTuning() {
         tuning.open = true

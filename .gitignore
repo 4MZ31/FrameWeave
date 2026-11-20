@@ -43,3 +43,4 @@ BGM.MP3
 # Python byte code (written when a script imports another; never part of the source)
 __pycache__/
 *.pyc
+__pycache__/

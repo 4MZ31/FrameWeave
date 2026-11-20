@@ -351,17 +351,17 @@ std::array<int, 7> QmlPlayerBridge::pushCropValues() const {
 void QmlPlayerBridge::applyAspect(bool force) {
     auto& i = *impl_;
     const bool aligned=gameMode()&&i.presentation.fullscreen&&!gameScaledPreview();
-    const int mode = i.screenFillActive ? 2 : i.aspectMode;
+    const int mode = i.screenCropPreview ? 0 : i.screenFillActive ? 2 : i.aspectMode;
     if (!i.videoWindow) return;
     RECT r{}; GetClientRect(i.videoWindow, &r);
     const auto e = i.snapshot.metrics.resolution.output;
     const QSize client(r.right, r.bottom), image(int(e.width), int(e.height));
     const double dar=sourceAspect();
     // PushFPS crop and resize: never in game mode's aligned view, where the picture and the mouse match.
-    const std::array<int, 7> crop = aligned ? std::array<int, 7>{0, 0, 0, 0, 100, 0, 0} : pushCropValues();
+    const std::array<int, 7> crop = aligned || i.screenCropPreview ? std::array<int, 7>{0, 0, 0, 0, 100, 0, 0} : pushCropValues();
     if (!force && mode == i.aspectApplied && client == i.screenFitClient && image == i.screenFitImage && dar == i.screenFitAspect && crop == i.pushCropApplied) return;
     i.screenFitClient = client; i.screenFitImage = image; i.aspectApplied = mode; i.screenFitAspect = dar; i.pushCropApplied = crop;
-    auto view=force||aligned?engine::PreviewView{}:i.engine.previewView();
+    auto view=force||aligned||i.screenCropPreview?engine::PreviewView{}:i.engine.previewView();
     view.mode=mode;
     view.displayAspect=dar>0&&image.height()>0&&std::abs(dar-double(image.width())/image.height())>.001?dar:0;
     // The crop, the size and the position, every time: with the neutral values this is the view as it

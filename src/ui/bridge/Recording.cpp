@@ -67,6 +67,8 @@ engine::RecordingSettings QmlPlayerBridge::recordingOptions() const {
     options.microphone = recordingMicrophone();
     options.microphoneId = recordingMicrophoneId().toStdWString();
     options.microphoneTrack = recordingMicrophoneTrack();
+    // A new file every so many MiB (0 = off). Under 64 a part would be shorter than its own start-up.
+    if (const int mib = impl_->prefInt("recordSplitMiB", 0); mib > 0) options.splitBytes = uint64_t(std::clamp(mib, 64, 1048576)) << 20;
     options.replaySeconds = uint32_t(replaySeconds());
     // PushFPS outputs and canvas: the recording's own size and the game picture's place on it.
     options.outputWidth = uint32_t(std::clamp(impl_->prefInt("recordWidth", 0), 0, 8192));
@@ -176,7 +178,7 @@ void QmlPlayerBridge::pollReplay() {
     state["failed"] = live.failed;
     state["error"] = live.error.empty() ? QString() : uiText(live.error);
     state["path"] = QString::fromStdWString(live.path);
-    state["encoder"] = QString::fromStdWString(live.encoder);
+    state["encoder"] = uiText(live.encoder);
     state["audio"] = live.audio;
     state["microphone"] = live.microphone;
     state["microphoneError"] = live.microphoneError.empty() ? QString() : uiText(live.microphoneError);

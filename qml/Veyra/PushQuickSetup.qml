@@ -128,12 +128,20 @@ VGroup {
         const hz = Number(veyra.displayRefreshHz || 0)
         return hz > 85 && hz < 95
     }
+    // A screen whose refresh rate is a whole number of 90s (180, 270, 360 Hz): 90 FPS divides it evenly, so a
+    // 30 FPS game at exactly 3X is paced evenly there as well. Offered beside 120 (a user's request for a
+    // 360 Hz screen, 20 November 2026).
+    readonly property bool screenFits90: {
+        const hz = Number(veyra.displayRefreshHz || 0)
+        const n = Math.round(hz / 90)
+        return n >= 2 && Math.abs(hz - n * 90) <= n * 1.5
+    }
     readonly property var targetOptions: {
         const list = [{ id: "off", label: qsTr("关闭", "off") }]
         // 60 FPS is only a target when the game runs below it; 90 only for such a game too
         // (a 60 FPS game would need one and a half frames per frame, which cannot be paced evenly).
         if (quick.baseFps < 60) list.push({ id: "60", label: "60 FPS" })
-        if (quick.currentTarget === "90" || (quick.screen90 && quick.baseFps < 60)) list.push({ id: "90", label: "90 FPS" })
+        if (quick.currentTarget === "90" || ((quick.screen90 || quick.screenFits90) && quick.baseFps < 60)) list.push({ id: "90", label: "90 FPS" })
         if (!quick.screen90 || quick.currentTarget === "120") list.push({ id: "120", label: "120 FPS" })
         list.push({ id: "monitor", label: qsTr("匹配显示器") })
         return list

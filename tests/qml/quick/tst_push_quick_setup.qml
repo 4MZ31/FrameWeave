@@ -145,6 +145,30 @@ Item {
             veyra.displayRefreshHz = 89.91; verify(quick.screen90)
             veyra.displayRefreshHz = 100; verify(!quick.screen90)
         }
+        // A screen that is a whole number of 90s (360 Hz = 4 x 90): 90 FPS is offered beside 120.
+        function test_90_fps_target_on_a_screen_that_is_a_multiple_of_90() {
+            const seg = control("pushfps-target")
+            veyra.displayRefreshHz = 360
+            verify(quick.screenFits90 && !quick.screen90)
+            compare(seg.options.map(o => o.id).join(","), "off,60,90,120,monitor")
+            seg.picked("90")
+            verify(veyra.fgEnabled)
+            compare(veyra.fgMultiplier, 3, "30 FPS x 3")
+            compare(veyra.outputRateMode, 2)
+            compare(veyra.outputCustomFps, 90)
+            compare(quick.currentTarget, "90")
+            // A 60 FPS game is not offered 90 there either.
+            quick.setGameFps("60")
+            verify(!veyra.fgEnabled, "no uneven 1.5x")
+            verify(seg.options.map(o => o.id).indexOf("90") < 0)
+            quick.setGameFps("30")
+            quick.applyTarget("off")
+            // 180 and 270 Hz and their near values count; 144, 165, 240 and 90 itself (its own rule) do not.
+            veyra.displayRefreshHz = 179.96; verify(quick.screenFits90)
+            veyra.displayRefreshHz = 270; verify(quick.screenFits90)
+            veyra.displayRefreshHz = 359.9; verify(quick.screenFits90)
+            for (const hz of [60, 90, 120, 144, 165, 175, 240, 280, 0]) { veyra.displayRefreshHz = hz; verify(!quick.screenFits90, String(hz)) }
+        }
         function test_90_fps_target_in_profiles_and_adaptive() {
             veyra.displayRefreshHz = 90
             quick.applyTarget("90")

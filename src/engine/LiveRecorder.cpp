@@ -526,6 +526,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
     std::atomic<size_t> backlogBytes{0};
     std::atomic<int64_t> endUs{-1};
     std::atomic<uint64_t> videoWritten{0};
+    std::atomic<uint64_t> fileBytes{0};         // a recording: how far the file has been written (split by size)
     std::atomic<int64_t> writtenUs{0};
 
     // Sound: the played sound (tap) and the microphone, each on its own lane;
@@ -1080,6 +1081,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
         av_packet_free(&out);
         if(rc<0){veyra::log::error("live-recorder",std::format("video write failed rc={}",rc));return false;}
         ++videoWritten;writtenUs=packet.ptsUs;
+        if(mux&&mux->pb)fileBytes=uint64_t(std::max<int64_t>(0,avio_tell(mux->pb)));
         return true;
     }
     bool processAudio(bool final,int64_t endTimeUs){
@@ -1541,10 +1543,14 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         s.retire(s.current,(s.replayMode||s.streamMode)?std::wstring{}:L"画面尺寸或 HDR 模式变化，已接着写入新文件");s.current.reset();
     }
     // PushFPS: long recordings in parts (new file every N minutes, -2, -3, ...).
-    if(s.current&&!s.replayMode&&!s.streamMode&&s.settings.splitMinutes&&!s.current->compareClip){
+    // Also by size (splitBytes): the same hand-over, when the file has grown that far.
+    if(s.current&&!s.replayMode&&!s.streamMode&&(s.settings.splitMinutes||s.settings.splitBytes)&&!s.current->compareClip){
         const int64_t started=s.current->t0Us.load();
-        if(started&&now-started>=int64_t(s.settings.splitMinutes)*60000000){
-            veyra::log::info("live-recorder",std::format("split after {} minutes; continuing in a new file",s.settings.splitMinutes));
+        const bool byTime=s.settings.splitMinutes&&started&&now-started>=int64_t(s.settings.splitMinutes)*60000000;
+        const bool bySize=s.settings.splitBytes&&s.current->fileBytes.load()>=s.settings.splitBytes;
+        if(byTime||bySize){
+            veyra::log::info("live-recorder",byTime?std::format("split after {} minutes; continuing in a new file",s.settings.splitMinutes)
+                :std::format("split at {} MiB; continuing in a new file",s.current->fileBytes.load()>>20));
             s.reap();
             s.retire(s.current,{});s.current.reset();
         }

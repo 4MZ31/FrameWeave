@@ -152,7 +152,7 @@ QString translatePieces(const CatalogTranslator& t, const QString& s, int depth)
             part.replace(trimmed, done);
         }
         // Full-width separators read oddly between Latin sentences.
-        const QString glue = sep == QStringLiteral("；") && currentCode != QStringLiteral("zh-TW") && currentCode != QStringLiteral("ja") ? QStringLiteral("; ") : sep;
+        const QString glue = sep == QStringLiteral("；") && (currentCode != QStringLiteral("ja") && !currentCode.startsWith(QStringLiteral("zh"))) ? QStringLiteral("; ") : sep;
         return parts.join(glue);
     }
     return s;

@@ -14,7 +14,15 @@ Item {
     property string dialog: ""
     // The game scene the layout editor opens on (StudioPage.requestLayout).
     property string layoutScene: ""
-    onDialogChanged: if (dialog !== "capture") legacyCapturePicker.close()
+    property bool onboardingActive: false
+    readonly property alias captureSettings: captureDialog
+    readonly property bool captureGuideOpen: captureGuide.visible
+    onDialogChanged: {
+        if (dialog !== "capture") {
+            legacyCapturePicker.close()
+            captureGuide.close()
+        }
+    }
 
     function open(key) {
         if (key === "save") saveDialog.resetForOpen()
@@ -27,11 +35,13 @@ Item {
     }
     function close() { host.dialog = "" }
 
-    signal startCapture()
     signal startPs5()
     signal startMoonlight()
     signal startXbox()
     signal startScreen()
+    signal startScreenCrop()
+
+    CaptureGuideDialog { id: captureGuide }
 
     CaptureLegacyPicker {
         id: legacyCapturePicker
@@ -50,7 +60,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         color: Qt.rgba(0, 0, 0, 0.55)
-        opacity: host.dialog !== "" ? 1 : 0
+        opacity: host.dialog !== "" && !host.onboardingActive ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: Theme.d(200) } }
         TapHandler { onTapped: host.close() }
@@ -73,7 +83,9 @@ Item {
     CaptureSourceDialog {
         id: captureDialog
         dialogHost: host
+        onboardingActive: host.onboardingActive
         legacyPicker: legacyCapturePicker
+        onGuideRequested: captureGuide.open()
     }
 
     // --- PS5 串流 ---------------------------------------------------------
@@ -81,8 +93,7 @@ Item {
     // %LOCALAPPDATA%\Veyra\remoteplay and shared with 1.4.4.
     Ps5SourceDialog {
         id: ps5Dialog
-        dialogHost: host
-    }
+        dialogHost: host    }
 
     // --- PC 串流（Sunshine / GameStream） ----------------------------------
     // Hosts, pairing, the host's apps and the stream-core settings. The effect chain is not here: once
@@ -97,8 +108,7 @@ Item {
     // start. The software never sees the password; only a refresh token is kept, encrypted for this user.
     XboxSourceDialog {
         id: xbDialog
-        dialogHost: host
-    }
+        dialogHost: host    }
 
     // --- 屏幕捕获 ---------------------------------------------------------
     ScreenSourceDialog {
@@ -109,6 +119,9 @@ Item {
     // --- 字幕设置 ---------------------------------------------------------
     SubtitleSettingsDialog {
         id: subtitleDialog
+        dialogHost: host
+    }
+    LiveTranslationDialog {
         dialogHost: host
     }
 
