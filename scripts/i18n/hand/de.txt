@@ -1428,3 +1428,43 @@ zh:亮|Licht
 1425|Aufnahme starten
 1426|Länge
 1427|Flüssige Bildausgabe
+zh:令牌|Token
+zh:端口|Port
+zh:标记|Markierungen
+zh:问题|Problem
+zh:提示|Hinweis
+zh:已更改|Geändert
+zh:特大|Sehr groß
+zh:高对比度|Hoher Kontrast
+zh:锐利缩放|Scharfe Skalierung
+zh:本机控制|Lokale Steuerung
+zh:重新检查|Erneut prüfen
+zh:建议更改|Empfohlen
+zh:可以试试|Einen Versuch wert
+zh:复制令牌|Token kopieren
+zh:换一个|Neues Token
+zh:怎么用|So wird es benutzt
+zh:打开说明|Anleitung öffnen
+zh:检查我的设置|Meine Einstellungen prüfen
+zh:标记这一刻|Diesen Moment markieren
+zh:画面读数大小|Größe der Bildschirmanzeige
+zh:同时录一份竖屏副本|Auch eine Hochkant-Kopie aufnehmen
+zh:打开采集设置|Capture-Einstellungen öffnen
+zh:改用「高」|Hoch verwenden
+zh:补帧没有开|Frame generation ist aus
+zh:没有选声音输入|Kein Toneingang gewählt
+zh:试试「%1」|%1 ausprobieren
+zh:标记 %1|Markierung %1
+zh:已标记 %1|Markiert bei %1
+zh:找出影响画质的设置|Finden, was Bildqualität kostet
+zh:正在读取数据…|Werte werden gelesen…
+zh:没有发现需要改的地方|Nichts gefunden, das geändert werden muss
+zh:录制时标记这一刻|Diesen Moment während der Aufnahme markieren
+zh:端口 %1 无法使用，可能被别的程序占用|Port %1 kann nicht verwendet werden; vielleicht belegt ihn ein anderes Programm
+zh:已关闭：没有打开任何端口|Aus: kein Port ist geöffnet
+zh:正在监听 127.0.0.1:%1（仅本机）|Lauscht auf 127.0.0.1:%1 (nur dieser PC)
+zh:竖屏副本已保存：%1|Hochkant-Kopie gespeichert: %1
+zh:竖屏副本：%1|Hochkant-Kopie: %1
+zh:补帧开着，但没有生成的画面显示出来|Frame generation ist an, aber kein erzeugtes Bild erreicht den Bildschirm
+zh:「保持 HUD 清晰」开着|Keep the HUD sharp ist an
+zh:采集卡送来的是压缩画面|Die Capture-Karte sendet ein komprimiertes Bild

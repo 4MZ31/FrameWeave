@@ -1428,3 +1428,43 @@ zh:亮|Işık
 1425|Kaydı başlat
 1426|Süre
 1427|Akıcı kare zamanlaması
+zh:令牌|Belirteç
+zh:端口|Bağlantı noktası
+zh:标记|İşaretler
+zh:问题|Sorun
+zh:提示|Not
+zh:已更改|Değiştirildi
+zh:特大|En büyük
+zh:高对比度|Yüksek karşıtlık
+zh:锐利缩放|Keskin ölçekleme
+zh:本机控制|Yerel denetim
+zh:重新检查|Yeniden denetle
+zh:建议更改|Önerilen
+zh:可以试试|Denemeye değer
+zh:复制令牌|Belirteci kopyala
+zh:换一个|Yeni belirteç
+zh:怎么用|Nasıl kullanılır
+zh:打开说明|Kılavuzu aç
+zh:检查我的设置|Ayarlarımı denetle
+zh:标记这一刻|Bu anı işaretle
+zh:画面读数大小|Ekran göstergesinin boyutu
+zh:同时录一份竖屏副本|Dikey bir kopya da kaydet
+zh:打开采集设置|Yakalama ayarlarını aç
+zh:改用「高」|Yüksek kullan
+zh:补帧没有开|Frame generation kapalı
+zh:没有选声音输入|Ses girişi seçilmedi
+zh:试试「%1」|%1 dene
+zh:标记 %1|İşaret %1
+zh:已标记 %1|%1 işaretlendi
+zh:找出影响画质的设置|Kaliteyi düşüreni bul
+zh:正在读取数据…|Veriler okunuyor…
+zh:没有发现需要改的地方|Değiştirilmesi gereken bir şey yok
+zh:录制时标记这一刻|Kayıt sırasında bu anı işaretle
+zh:端口 %1 无法使用，可能被别的程序占用|%1 bağlantı noktası kullanılamıyor; başka bir program kullanıyor olabilir
+zh:已关闭：没有打开任何端口|Kapalı: açık bağlantı noktası yok
+zh:正在监听 127.0.0.1:%1（仅本机）|127.0.0.1:%1 dinleniyor (yalnızca bu PC)
+zh:竖屏副本已保存：%1|Dikey kopya kaydedildi: %1
+zh:竖屏副本：%1|Dikey kopya: %1
+zh:补帧开着，但没有生成的画面显示出来|Frame generation açık, ancak üretilen hiçbir kare ekrana ulaşmıyor
+zh:「保持 HUD 清晰」开着|Keep the HUD sharp açık
+zh:采集卡送来的是压缩画面|Yakalama kartı sıkıştırılmış görüntü gönderiyor
