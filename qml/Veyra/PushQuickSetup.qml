@@ -950,6 +950,7 @@ VGroup {
     // The still rule (pipeline/PushHudStill.h): on unless switched off. What stands still in front of a
     // moving picture keeps its real pixels in generated frames, with every method the graph runs.
     VRow {
+        id: hudStill
         objectName: "pushfps-hudstill-row"
         label: qsTr("保持 HUD 清晰")
         help: qsTr("补帧会给画面的每个位置算一个运动。HUD 静止而背后的画面在动时，HUD 的像素会被当成背景一起拉动，文字、血条和准星就会发糊、重影或消失。开启后，在两张真实画面里完全相同、并且周围大部分在动的像素，会在补出来的帧里直接使用真实画面的像素。它不需要预热，每一对画面单独判断；画面整体静止时（菜单、镜头不动）不会改动任何像素。对带噪点的信号（模拟连接、压缩很重的串流）它找不到完全相同的像素，补帧就和原来一样。")
@@ -964,7 +965,7 @@ VGroup {
             objectName: "pushfps-hudstill"
             enabled: quick.ownTechPossible && veyra.fgEnabled
             opacity: enabled ? 1 : 0.4
-            checked: quick.ownTechPossible && parent.on
+            checked: quick.ownTechPossible && hudStill.on   // by id: a row's control is not the row's direct child
             onToggled: checked => veyra.setPreference("pushHudStill", checked)
         }
     }

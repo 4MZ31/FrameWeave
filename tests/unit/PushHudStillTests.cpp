@@ -94,6 +94,29 @@ int main() {
         setWanted(false); check(!wanted(), "off"); setWanted(true); check(wanted(), "and on again");
         check(kPairStill > 2.0f / 255.0f && kPairStill < 3.0f / 255.0f, "two steps of 255 are still the same, three are not");
     }
+    {   // A picture that is no multiple of the blocks: the cut blocks at the right and the bottom count
+        // only the pixels they have. A stroke in the cut corner, in a surrounding that moves, is kept;
+        // the same stroke with the cut blocks standing still around it is not.
+        const unsigned w = 167, h = 91;                       // 10 whole blocks and 7 px; 5 whole blocks and 11 px
+        std::vector<uint8_t> same(size_t(w) * h, 0);
+        for (unsigned y = 82; y < 90; ++y) { same[size_t(y) * w + 163] = 1; same[size_t(y) * w + 164] = 1; }
+        auto keep = decide(same, w, h);
+        check(keep[size_t(85) * w + 163] && keep[size_t(85) * w + 164], "in a cut block at the picture's corner: a stroke in a moving surrounding is kept");
+        for (unsigned y = 40; y < h; ++y) for (unsigned x = 120; x < w; ++x) same[size_t(y) * w + x] = 1;
+        keep = decide(same, w, h);
+        check(!keep[size_t(85) * w + 163], "in a cut block: a still surrounding leaves it alone");
+        // Exactly half still is not "mostly moves": the test is under a half.
+        const unsigned w2 = 80, h2 = 80;                      // 5 x 5 blocks: every block has all 25 as its surrounding
+        std::vector<uint8_t> half(size_t(w2) * h2, 0);
+        for (unsigned y = 0; y < h2; ++y) for (unsigned x = 0; x < w2 / 2; ++x) half[size_t(y) * w2 + x] = 1;
+        keep = decide(half, w2, h2);
+        size_t any = 0; for (auto k : keep) any += k;
+        check(any == 0, "a surrounding that is exactly half still is left alone");
+        half[size_t(10) * w2 + 39] = 0;                        // one pixel fewer: under a half now
+        keep = decide(half, w2, h2);
+        any = 0; for (auto k : keep) any += k;
+        check(any > 0, "one pixel under a half: the surrounding counts as moving");
+    }
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "ALL PASSED", failures);
     return failures ? 1 : 0;
 }

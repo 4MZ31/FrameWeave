@@ -303,6 +303,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"pushCropZoom", {25, 400}}, {"pushCropX", {-1000, 1000}}, {"pushCropY", {-1000, 1000}},
         // Lip sync by hand: milliseconds on top of the automatic sound delay (sink/PushAudioTrim.h).
         {"pushAudioTrimMs", {-250, 250}},
+        // How often "this card is connected without sound" was said (Capture.cpp; at most three times).
+        {"pushCaptureSilentNotices", {0, 3}},
         // Where the on-screen latency readout was dragged to: shares of its room over the picture, thousandths.
         {"pushLatencyX", {0, 1000}}, {"pushLatencyY", {0, 1000}},
         {"canvasBackground", {0, 0xFFFFFF}}};

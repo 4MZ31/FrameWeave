@@ -7,8 +7,8 @@
 Texture2D<float4> generatedTex : register(t0);
 Texture2D<float4> heldTex : register(t1);
 Texture2D<float4> stateTex : register(t2);
-// PushFPS 4.0, the still rule (pipeline/PushHudStill.h): per block of 16 x 16 pixels, the share of
-// pixels in the 5 x 5 blocks around it that are the same in both real frames.
+// PushFPS 4.0, the still rule (pipeline/PushHudStill.h): per block of 16 x 16 pixels, 0 when the
+// surrounding (the 5 x 5 blocks around it) mostly moves, 1 when half or more of it stands still.
 Texture2D<float4> shareTex : register(t3);
 RWTexture2D<float4> outputTex : register(u0);
 cbuffer Constants : register(b0) {
@@ -43,14 +43,14 @@ void main(uint3 id : SV_DispatchThreadID) {
     // The surrounding is asked first: over a still picture (a menu) the test ends there for every pixel.
     bool keep = false;
     if ((flags & 2) != 0 && here.z > 0.5 && shareTex[id.xy / 16].x < 0.5) {
-        uint near = 0, around = 0;
+        uint beside = 0, around = 0;
         [unroll] for (int y = -2; y <= 2; ++y)
             [unroll] for (int x = -2; x <= 2; ++x) {
                 const uint same = stateTex[clamp(int2(id.xy) + int2(x, y), int2(0, 0), last)].z > 0.5 ? 1 : 0;
                 around += same;
-                if (abs(x) <= 1 && abs(y) <= 1) near += same;
+                if (abs(x) <= 1 && abs(y) <= 1) beside += same;
             }
-        keep = near >= 3 && around >= 5;
+        keep = beside >= 3 && around >= 5;
     }
     const float4 g = generatedTex[id.xy];
     if (keep) outputTex[id.xy] = float4(heldTex[id.xy].rgb, g.a);

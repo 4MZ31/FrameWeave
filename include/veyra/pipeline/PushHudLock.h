@@ -58,8 +58,8 @@ private:
     DXGI_FORMAT format_ = DXGI_FORMAT_UNKNOWN;
     ComputePass update_, compose_, surround_;
     ComPtr<ID3D12Resource> state_, scratch_;
-    // The still rule: per block of 16 x 16 pixels, how much of it stands still, and the same averaged
-    // over the 5 x 5 blocks around (what the compose step reads).
+    // The still rule: per block of 16 x 16 pixels, how many of its pixels stand still, and whether
+    // the 5 x 5 blocks around it mostly stand still (what the compose step reads: 0 = mostly moves).
     ComPtr<ID3D12Resource> blocks_, share_;
     uint32_t blocksWide_ = 0, blocksHigh_ = 0;
     bool lock_ = true, still_ = false;

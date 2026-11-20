@@ -513,10 +513,14 @@ bool QmlPlayerBridge::startCaptureSession() {
     if(!format->supported){emit notice(tr("设备提供此格式，但当前播放器不支持其尺寸或像素布局，请选择其他格式"),true);return false;}
     if(i.captureAudioMissing){emit notice(tr("上次的音频输入未连接，请插回设备或重新选择音频输入"),true);return false;}
     const int audio = i.captureAudioChoice;
-    // PushFPS: connecting without sound while the card's own input is there is said once a run, so a
-    // card set up before 4.0 (which started with "none") does not stay silent without a word.
-    if (audio == source::kCaptureAudioDisabled && !i.captureSilentNoted && captureAudioSuggestion() != source::kSuggestNone) {
+    // PushFPS: connecting without sound while the card's own input is there is said, so a card set up
+    // before 4.0 (which started with "none") does not stay silent without a word. Once a run and three
+    // times in all: someone who wants no sound from the card is not told at every start for ever.
+    if (audio == source::kCaptureAudioDisabled && !i.captureSilentNoted && i.prefInt("pushCaptureSilentNotices", 0) < 3 &&
+        captureAudioSuggestion() != source::kSuggestNone) {
         i.captureSilentNoted = true;
+        i.prefs[QStringLiteral("pushCaptureSilentNotices")] = i.prefInt("pushCaptureSilentNotices", 0) + 1;
+        if (!i.savePrefs()) veyra::log::warn("ui-prefs", "the count of no-sound notices was not saved");
         emit notice(tr("这张采集卡没有选择声音输入，所以没有声音。它自己的声音输入已经找到：打开采集设置，在“音频输入”里选它"), false);
     }
     const source::CaptureDevice* audioDevice = audio >= 0 && size_t(audio) < i.captureAudio.size() ? &i.captureAudio[size_t(audio)] : nullptr;

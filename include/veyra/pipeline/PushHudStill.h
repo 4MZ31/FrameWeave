@@ -19,7 +19,8 @@
 //   2. it has company: kNear of the 9 pixels around it and kAround of the 25 are the same too
 //      (a thin stroke has, a chance match in a moving texture has not), and
 //   3. it stands in a surrounding that mostly moves: under kSurround of the pixels in the 5 x 5
-//      blocks of kBlock pixels around it are the same in both frames.
+//      blocks of kBlock pixels around it are the same in both frames (counted, not averaged, so
+//      the shaders and this header decide in whole numbers and can never differ by a rounding).
 // Point 3 is what makes it safe. Where most of the surrounding stands still (a still camera, a
 // menu) nothing is touched, so a small thing that crosses a still world between two real frames,
 // and is at a place both real frames show empty, stays what frame generation made of it.
@@ -51,38 +52,42 @@ inline std::vector<uint8_t> decide(const std::vector<uint8_t>& same, unsigned wi
     std::vector<uint8_t> keep(same.size(), 0);
     if (!width || !height || same.size() != size_t(width) * height) return keep;
     const unsigned bw = (width + kBlock - 1) / kBlock, bh = (height + kBlock - 1) / kBlock;
-    std::vector<float> blocks(size_t(bw) * bh, 0.0f), share(size_t(bw) * bh, 0.0f);
+    // Per block: how many of its pixels are the same, and how many pixels it has (the last column and row may be cut).
+    std::vector<unsigned> stillIn(size_t(bw) * bh, 0), pixelsIn(size_t(bw) * bh, 0);
     for (unsigned by = 0; by < bh; ++by)
         for (unsigned bx = 0; bx < bw; ++bx) {
             unsigned still = 0, total = 0;
             for (unsigned y = by * kBlock; y < std::min(height, (by + 1) * kBlock); ++y)
                 for (unsigned x = bx * kBlock; x < std::min(width, (bx + 1) * kBlock); ++x) { ++total; still += same[size_t(y) * width + x] ? 1u : 0u; }
-            blocks[size_t(by) * bw + bx] = total ? float(still) / float(total) : 0.0f;
+            stillIn[size_t(by) * bw + bx] = still; pixelsIn[size_t(by) * bw + bx] = total;
         }
+    // Per block: does the surrounding (the 5 x 5 blocks around it, as far as the picture goes) mostly move?
+    std::vector<uint8_t> moves(size_t(bw) * bh, 0);
     for (int by = 0; by < int(bh); ++by)
         for (int bx = 0; bx < int(bw); ++bx) {
-            float sum = 0; unsigned n = 0;
+            unsigned still = 0, total = 0;
             for (int dy = -2; dy <= 2; ++dy)
                 for (int dx = -2; dx <= 2; ++dx) {
                     const int qx = bx + dx, qy = by + dy;
                     if (qx < 0 || qy < 0 || qx >= int(bw) || qy >= int(bh)) continue;
-                    sum += blocks[size_t(qy) * bw + qx]; ++n;
+                    still += stillIn[size_t(qy) * bw + qx]; total += pixelsIn[size_t(qy) * bw + qx];
                 }
-            share[size_t(by) * bw + bx] = n ? sum / float(n) : 0.0f;
+            moves[size_t(by) * bw + bx] = float(still) < kSurround * float(total) ? 1 : 0;
         }
     const auto at = [&](int x, int y) { return same[size_t(std::clamp(y, 0, int(height) - 1)) * width + size_t(std::clamp(x, 0, int(width) - 1))] != 0; };
     for (int y = 0; y < int(height); ++y)
         for (int x = 0; x < int(width); ++x) {
             if (!same[size_t(y) * width + x]) continue;
-            if (!(share[size_t(unsigned(y) / kBlock) * bw + unsigned(x) / kBlock] < kSurround)) continue;
-            unsigned near = 0, around = 0;
+            if (!moves[size_t(unsigned(y) / kBlock) * bw + unsigned(x) / kBlock]) continue;
+            // Not "near": the Windows headers define that word away, and this header is read after them.
+            unsigned beside = 0, around = 0;
             for (int dy = -2; dy <= 2; ++dy)
                 for (int dx = -2; dx <= 2; ++dx) {
                     const bool s = at(x + dx, y + dy);
                     around += s ? 1u : 0u;
-                    if (dx >= -1 && dx <= 1 && dy >= -1 && dy <= 1) near += s ? 1u : 0u;
+                    if (dx >= -1 && dx <= 1 && dy >= -1 && dy <= 1) beside += s ? 1u : 0u;
                 }
-            keep[size_t(y) * width + x] = near >= kNear && around >= kAround ? 1 : 0;
+            keep[size_t(y) * width + x] = beside >= kNear && around >= kAround ? 1 : 0;
         }
     return keep;
 }

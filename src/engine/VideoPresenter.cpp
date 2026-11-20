@@ -418,7 +418,8 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
         // the enhancement changes little the split could hardly be found. A white core between two
         // dark edges, so it shows on bright and on dark pictures alike; as high as the picture, not
         // through the bars; its thickness follows the buffer (1080 high: 3 + 2 pixels). It is drawn by
-        // clearing three rectangles of the target: no shader, no state, nothing sampled. White is the
+        // clearing two rectangles of the target (the dark one, then the core inside it): no shader, no
+        // state, nothing sampled. White is the
         // output's own reference white (203 nits on an HDR output), never its peak.
         if(comparison==2&&rc.right>0&&rc.bottom>0){
             const LONG x=rect.right;

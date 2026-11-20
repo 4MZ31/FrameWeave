@@ -973,19 +973,19 @@ def keep_still(picture, img0, img1, still=2.0 / 255, near=3, around=5, surround=
     import numpy as np
     same = np.abs(img0 - img1).max(axis=0) <= still
     if surround == "built":
-        # As pipeline/PushHudStill.h has it: the share of still pixels per block of 16 x 16, averaged over the
-        # 5 x 5 blocks around the pixel's own block; the pixel takes the second real frame's value.
+        # As pipeline/PushHudStill.h has it: the still pixels counted per block of 16 x 16, and their share of
+        # all pixels in the 5 x 5 blocks around the pixel's own block; the pixel takes the second real frame's value.
         h, w = same.shape
         bh, bw = -(-h // 16), -(-w // 16)
         pad = np.zeros((bh * 16, bw * 16)); pad[:h, :w] = same
         count = np.zeros((bh * 16, bw * 16)); count[:h, :w] = 1
-        blocks = pad.reshape(bh, 16, bw, 16).sum(axis=(1, 3)) / np.maximum(count.reshape(bh, 16, bw, 16).sum(axis=(1, 3)), 1)
+        blocks = pad.reshape(bh, 16, bw, 16).sum(axis=(1, 3)); pixels = count.reshape(bh, 16, bw, 16).sum(axis=(1, 3))
         total = np.zeros((bh, bw)); n = np.zeros((bh, bw))
         for dy in range(-2, 3):
             for dx in range(-2, 3):
                 ys = slice(max(0, dy), bh + min(0, dy)); xs = slice(max(0, dx), bw + min(0, dx))
                 yd = slice(max(0, -dy), bh + min(0, -dy)); xd = slice(max(0, -dx), bw + min(0, -dx))
-                total[yd, xd] += blocks[ys, xs]; n[yd, xd] += 1
+                total[yd, xd] += blocks[ys, xs]; n[yd, xd] += pixels[ys, xs]
         share = np.repeat(np.repeat(total / n, 16, axis=0), 16, axis=1)[:h, :w]
         edge = np.pad(same, 2, mode="edge").astype(np.float64)
         def around_sum(r):

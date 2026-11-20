@@ -1039,9 +1039,9 @@ void testHudSampler(Gpu& gpu) {
 // pixels wide, a bar, a ring), and at the right a part of the picture that stands still with a ball
 // crossing it. A generated frame of plain grey comes back with exactly the pixels the rule names
 // replaced by the real frame's, and every other pixel untouched.
-void testHudStill(Gpu& gpu) {
-    constexpr uint32_t W = 320, H = 192;
+void testHudStillAt(Gpu& gpu, const uint32_t W, const uint32_t H) {
     constexpr DXGI_FORMAT F = DXGI_FORMAT_R8G8B8A8_UNORM;
+    std::printf("INFO still rule: a picture of %u x %u\n", W, H);
     auto* device = gpu.device.Get();
     Plane real[2]{{pipeline::makeTexture(device, W, H, F, true), F, W, H, 4}, {pipeline::makeTexture(device, W, H, F, true), F, W, H, 4}};
     Plane generated{pipeline::makeTexture(device, W, H, F, true), F, W, H, 4};
@@ -1151,6 +1151,12 @@ void testHudStill(Gpu& gpu) {
     check(both.initialize(device, W, H, F, 0, true, true) && both.lockActive() && both.stillActive(), "still rule: created together with Live HUD Lock");
     pipeline::PushHudLock neither;
     check(!neither.initialize(device, W, H, F, 0, false, false), "still rule: a pass with nothing to do is not created");
+}
+void testHudStill(Gpu& gpu) {
+    testHudStillAt(gpu, 320, 192);
+    // A size that is no multiple of the rule's blocks: the last column and row of blocks are cut by the
+    // picture's edge, and the shader counts their pixels as the rule in plain C++ does.
+    testHudStillAt(gpu, 333, 201);
 }
 
 void testHudLock(Gpu& gpu) {
