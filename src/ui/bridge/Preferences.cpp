@@ -299,6 +299,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         // PushFPS crop and resize of the console picture (View.cpp pushCropValues, PushCrop.js).
         {"pushCropL", {0, 450}}, {"pushCropT", {0, 450}}, {"pushCropR", {0, 450}}, {"pushCropB", {0, 450}},
         {"pushCropZoom", {25, 400}}, {"pushCropX", {-1000, 1000}}, {"pushCropY", {-1000, 1000}},
+        // Where the on-screen latency readout was dragged to: shares of its room over the picture, thousandths.
+        {"pushLatencyX", {0, 1000}}, {"pushLatencyY", {0, 1000}},
         {"canvasBackground", {0, 0xFFFFFF}}};
     static const QStringList flags{"canvasStretch", "recordHevc", "recordAdvanced", "recordAudio", "recordMic", "recordMicTrack", "replayEnabled", "subtitleEnabled", "subtitleBackground", "subtitleFit",
                                    "subtitleSecondLanguage", "audioForceStereo", "captureAudioMonitor", "holdCompare",

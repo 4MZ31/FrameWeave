@@ -175,6 +175,10 @@ jobs:
             @{ name = '82-crop-off-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--pref', 'pushCropOn=false', '--pref', 'pushCropL=200', '--pref', 'pushCropR=200', '--pref', 'pushCropT=100', '--pref', 'pushSunset=false') },
             # 85: a smaller picture moved off centre with odd shares cut, so all four edges of the kept part lie inside the window.
             @{ name = '85-crop-small-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--pref', 'pushCropOn=true', '--pref', 'pushCropL=131', '--pref', 'pushCropT=73', '--pref', 'pushCropB=41', '--pref', 'pushCropZoom=77', '--pref', 'pushCropX=-83', '--pref', 'pushCropY=37', '--pref', 'pushSunset=false') },
+            # 86 / 87: the on-screen latency readout over a playing picture, in its corner and where a user dragged it to
+            # (the bottom right). The picture must show all round it: the video window is cut out under it wherever it sits.
+            @{ name = '86-latency-corner-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--lang', 'en', '--pref', 'pushLatencyOverlay=true', '--pref', 'pushSunset=false') },
+            @{ name = '87-latency-moved-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--lang', 'en', '--pref', 'pushLatencyOverlay=true', '--pref', 'pushLatencyX=1000', '--pref', 'pushLatencyY=1000', '--pref', 'pushSunset=false') },
             @{ name = '83-crop-editor'; args = @('--page', 'home', '--dialog', 'crop', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') },
             @{ name = '84-crop-quick-setup'; args = @('--page', 'home', '--scroll-to', 'pushfps-crop-row', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') }
           )
