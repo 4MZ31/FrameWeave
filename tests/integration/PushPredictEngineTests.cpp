@@ -90,8 +90,10 @@ Played play(bool predict, const std::filesystem::path& out, int seconds) {
         // The engine's latency readout covers the last second (two frames here): one reading is kept for
         // every new real frame shown, and the middle one of those after the first few is what is compared.
         std::vector<double> latencies; uint64_t lastReal = 0;
-        // Play until enough has been shown to judge, or the time is up: 18 real frames, 6 generated ones and
-        // 6 latency readings. Where no frame is generated at all the time runs out, which the caller reports.
+        // Play until enough has been shown to judge, or the time is up: 34 real frames (the engine refreshes
+        // what it reports of PushFlow every 32nd real frame, which is half a second for a game and half a
+        // minute here), 6 generated ones and 6 latency readings. Where no frame is generated at all the
+        // time runs out, which the caller reports.
         while (std::chrono::steady_clock::now() < deadline) {
             MSG msg; while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) { TranslateMessage(&msg); DispatchMessageW(&msg); }
             const auto s = player.snapshot();
@@ -102,7 +104,7 @@ Played play(bool predict, const std::filesystem::path& out, int seconds) {
             if (r.real != lastReal) { lastReal = r.real; if (flow.softwareLatencyMs && r.real > 6) latencies.push_back(*flow.softwareLatencyMs); }
             r.predict = s.pushFlowPredict; r.forecasts = s.pushFlowPredictFrames; r.superseded = s.pushFlowPredictSuperseded;
             if (s.failed) break;
-            if (r.real >= 18 && r.generated >= 6 && latencies.size() >= 6) break;
+            if (r.real >= 34 && r.generated >= 6 && latencies.size() >= 6) break;
             std::this_thread::sleep_for(20ms);
         }
         if (!latencies.empty()) { std::sort(latencies.begin(), latencies.end()); r.latencyMs = latencies[latencies.size() / 2]; }
@@ -138,30 +140,31 @@ int wmain(int argc, wchar_t** argv) {
                   << p.superseded << (p.failed ? ", FAILED: " + narrow(p.status) : std::string()) << std::endl;
     };
 
-    const Played plain = play(false, out, 150);
+    const Played plain = play(false, out, 75);
     say("in-between frames", plain);
     check(plain.started && !plain.failed, "the engine plays the live source with PushFlow and comes to rest");
-    check(plain.real >= 16, "its real frames reach the screen (" + std::to_string(plain.real) + ")");
+    check(plain.real >= 34, "its real frames reach the screen (" + std::to_string(plain.real) + ")");
     check(plain.predict.empty() && plain.forecasts == 0, "Predict is not asked for and nothing of it runs ('" + plain.predict + "')");
-    // If PushFlow cannot generate here at all (too slow, or its runtime is missing), the comparison below
-    // says nothing: reported, and the Predict run is then judged on playing and not failing only.
+    // On the software renderer the engine has shown no in-between frame from this source in any run so far
+    // (they miss their time), so the two runs are compared only when it does; Predict is judged on its own.
     const bool generates = plain.generated >= 6;
     std::cout << "PREDICT_ENGINE INFO in-between frames reached the screen: " << (generates ? "yes" : "no") << std::endl;
 
     const Played ahead = play(true, out, 150);
     say("Predict", ahead);
     check(ahead.started && !ahead.failed, "with Predict on the engine plays the live source and comes to rest");
-    check(ahead.real >= 16, "its real frames reach the screen (" + std::to_string(ahead.real) + ")");
+    check(ahead.real >= 34, "its real frames reach the screen (" + std::to_string(ahead.real) + ")");
     check(ahead.predict == "on", "Predict is in use ('" + ahead.predict + "')");
     check(ahead.forecasts > 0, "forecasts are made (" + std::to_string(ahead.forecasts) + ")");
-    if (generates) {
-        check(ahead.generated >= 6, "forecasts reach the screen (" + std::to_string(ahead.generated) + ")");
-        // A real frame is shown sooner after it arrives: in-between frames hold it back about one interval
-        // (909 ms here), Predict only for its own processing. A tenth of the interval is asked for.
-        if (plain.latencyMs >= 0 && ahead.latencyMs >= 0)
-            check(ahead.latencyMs + 100.0 < plain.latencyMs, "a real frame is shown sooner after it arrives (" + std::to_string(ahead.latencyMs) + " ms against " + std::to_string(plain.latencyMs) + " ms)");
-        else std::cout << "PREDICT_ENGINE INFO no latency samples to compare (" << plain.latencyMs << ", " << ahead.latencyMs << ")" << std::endl;
-    }
+    check(ahead.generated >= 6, "forecasts reach the screen (" + std::to_string(ahead.generated) + ")");
+    // The real frame is not held back for them. In-between frames at 2X cannot be shown without holding
+    // the real frame for at least half an interval (454 ms here); with forecasts on screen the real frame
+    // must be shown within a quarter of an interval of arriving.
+    const double interval = 1000.0 * kRateDen / kRateNum;
+    check(ahead.latencyMs >= 0 && ahead.latencyMs < interval / 4.0, "while forecasts are shown, a real frame is on screen " + std::to_string(ahead.latencyMs) +
+                                                                     " ms after it arrives (in-between frames would hold it " + std::to_string(interval / 2.0) + " ms or more)");
+    if (generates && plain.latencyMs >= 0 && ahead.latencyMs >= 0)
+        check(ahead.latencyMs + interval / 10.0 < plain.latencyMs, "and sooner than with in-between frames (" + std::to_string(ahead.latencyMs) + " ms against " + std::to_string(plain.latencyMs) + " ms)");
     std::cout << "PREDICT_ENGINE " << failures << " failure(s)" << std::endl;
     Logger::instance().closeFile();
     {
