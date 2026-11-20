@@ -13,7 +13,7 @@ contradict them. No dates.
 | Guard | Find the places in a generated frame that are probably wrong and show something safe there instead | **Built, as an experiment that starts off** (*Professional → PushFlow 2: Guard*): where an object was left out of a generated frame, the nearer real frame is shown (below). Four rules failed in measurement before the one it uses held. Checked on drawn pictures and the software renderer only; whether it looks better in a game is for real cards and eyes to say. Beside it, since 3.2.7, the frame quality test says its **worst frame** and its **worst place** |
 | Fusion | Encode every real frame once and work a pair's motion out once, then make every in-between time from it | **Its first step is built, as an experiment that starts off** (*Professional → PushFlow 2: encode each real frame once*): the model cut into its per-frame encoder and the rest, each real frame encoded once (below). The second step, a pair's motion worked out once, does not exist in these models: the time enters at the first motion block |
 | Predict | Make frames from what has already arrived, without waiting for the next real frame | **Built, as an experiment that starts off** (*Professional → PushFlow 2: Predict*), for live sources only: the newest real frame is shown after its own processing instead of a frame interval later, and the frames after it are forecasts made from the two real frames that have arrived (below). On drawn pictures a forecast is level with holding the real frame at worst, and much nearer for slow motion. Never the normal mode. How much delay it saves and how it looks have not been measured on real hardware: that takes a camera |
-| Dual | A second, deliberately delayed timeline for recording and streaming, beside the one the player sees | Not started. It needs real recording and OBS sessions on real cards to show the player's side is not slowed |
+| Dual | A second, deliberately delayed timeline for recording and streaming, beside the one the player sees | **Designed, not built** (below: "Dual, the first step as designed"). With Predict the player sees forecasts, and a recording is "as played", so it holds them too; the first step gives recordings and streams the true in-between frame of the same pair, which Predict's one run of the network has already made |
 | Response | Turn the picture a little from the stick's movement before the console's own frame arrives | Research only. Whether it can work from a video signal at all is unproven; it needs a PS5, a high-speed camera and people to judge it |
 | Memory | Bring back detail that earlier real frames showed | Research only. It depends on motion that has been checked (Guard, Fusion) |
 
@@ -299,6 +299,47 @@ in-between frame still exactly PushFlow's own (`testPushFlow`); through the real
 order and times and that no forecast is worse than holding (`veyra_push_flow_graph_tests`). **What is not
 checked anywhere: the engine's timing with a real source.** No test here plays a capture card; the delay
 saved, the evenness of the frames and whether forecasts arrive in time on a real card are unknown.
+
+## Dual, the first step as designed
+
+Written down so that it is built the same way whoever builds it; nothing of it is in the program yet.
+
+**What it is for.** With Predict on, the screen shows `real B, forecast, real C, forecast …`, and the
+recorder takes what is shown, so a recording or a stream contains the forecasts with their overshoots.
+A viewer has no use for a lower delay; a viewer wants the true frames.
+
+**What is already there.** For a pair A, B Predict runs the network once, for the half-way time. That run
+also gives the true in-between frame of A and B (it is what PushFlow shows without Predict), for the price
+of `resolve()`, with no second run. So at 2X the creator's timeline `in-between(A,B), B, in-between(B,C),
+C …` costs almost nothing beside the player's.
+
+**How, without a second recorder path.** The recorder takes exactly one frame per presented frame, from
+the present's own command list (`PresentCapture::record`), and that contract stays. Only *which texture*
+it is given changes, one interval behind the screen:
+
+| The screen shows | The recorder is given |
+|---|---|
+| real B (pair A, B) | real A |
+| forecast after B | the true in-between frame of A and B |
+| real C (pair B, C) | real B |
+
+Every texture named is still held by the graph at that moment (A is the pair's older frame; the in-between
+frame has its own slot). A forecast that is dropped drops its in-between frame from the recording, as a
+dropped generated frame is missing today. After a break in the source the recorder is given the real frame
+itself.
+
+**What it needs before it is built**: the presenter given the texture to hand on (`VideoPresenter::present`
+builds `PresentCapture::Frame` from the texture it shows); a slot in the graph for the in-between frame and
+its HUD and exclusion compose from the older frame; that the read is ordered against the graph's next write
+when the presenter has its own queue (the lease's fence covers the shown texture only: the first version
+runs with the shared queue only, and says so otherwise); the recorded sound, which then leads the picture
+by one interval (33 ms at 30 FPS), delayed by as much; comparison clips, the quality test and the HUD
+sampler keep taking what is shown. 3X and 4X need in-between frames for times the half-way run does not
+give: as played until a rebuild for any time from the half-way grids is measured.
+
+**What it is not**: the audit's full Dual (a second timeline with its own clock, queue, rate and method,
+OBS output). That needs a second run of the method per pair and a say over the graphics card's time
+between the two, which cannot be judged without real cards.
 
 ## Guard's rule, found by measuring: changed, and shown nowhere
 
