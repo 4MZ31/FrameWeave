@@ -842,13 +842,30 @@ def predict_report(path: Path, channels: int, align: int) -> list[dict]:
     return rows
 
 
-def ghost_scene(w, h, pan, bob=0, hud=True, character=True):
+def world_frame(w, h, shift):
+    """A world as games draw it: broad shapes, some edges and a little grain, panning sideways. (The
+    hashed noise of detail_frame is the hardest thing there is for these networks and hides everything
+    else; this one they follow, so what goes wrong round a character or a HUD stands out.)"""
+    import numpy as np
+    y, x = np.mgrid[0:h, 0:w].astype(np.float64)
+    u = x - shift
+    a = 0.5 + 0.22 * np.sin(u * 0.021 + y * 0.013) + 0.14 * np.sin(u * 0.057 - y * 0.031) + 0.08 * np.sin(u * 0.13 + y * 0.09)
+    blocks = ((np.floor(u / 96) + np.floor(y / 80)) % 2) * 0.10                      # buildings: hard edges
+    posts = (np.mod(u, 173) < 6) * 0.25                                             # thin uprights
+    ui = u.astype(np.int64); yi = y.astype(np.int64)
+    hsh = (ui * 73856093) ^ (yi * 19349663)
+    grain = (((hsh ^ (hsh >> 13)) * 1274126177 & 0xFFFF) / 65535.0 - 0.5) * 0.06
+    t = np.clip(a + blocks + posts + grain, 0.02, 0.98)
+    return np.stack([t * 0.95, t * 0.85 + 0.08 * np.sin(u * 0.011), 0.75 * t + 0.12]).clip(0, 1).astype(np.float32)
+
+
+def ghost_scene(w, h, pan, bob=0, hud=True, character=True, world=None):
     """A third-person picture, drawn: a fine texture (the world) panning sideways behind a character who
     stays where he is on screen (head and shoulders, with his own texture; `bob` moves him a little), and
     a HUD that never moves (thin strokes, a ring, a bar, a block). Returns the picture and the masks of
     the character and of the HUD."""
     import numpy as np
-    img = detail_frame(w, h, pan).copy()
+    img = (world or detail_frame)(w, h, pan).copy()
     y, x = np.mgrid[0:h, 0:w].astype(np.float64)
     who = np.zeros((h, w), bool)
     if character:
@@ -959,6 +976,47 @@ def keep_still(picture, img0, img1, still=2.0 / 255, near=3, around=5, surround=
     return np.where(island, (img0 + img1) / 2, picture), island
 
 
+def rebuild_parts(img0, img1, grid0, grid1, mask, align, mask_for_first, model_hw):
+    """rebuild_scaled, with what it was made of: the two samples, where each was read from, and the weight of the first."""
+    import numpy as np
+    import rife_graph
+    _, H, W = img0.shape
+    mh, mw = model_hw
+    ph, pw = rife_graph.to_hw2(grid0).shape[:2]
+    yo, xo = np.mgrid[0:H, 0:W].astype(np.float64)
+    qy = (yo + 0.5) * mh / H - 0.5; qx = (xo + 0.5) * mw / W - 0.5
+    samples, places = [], []
+    for img, grid in ((img0, grid0), (img1, grid1)):
+        g = np.moveaxis(rife_graph.to_hw2(grid), -1, 0)
+        gx, gy = bilinear_at(g, qy, qx)
+        if align:
+            xm = (gx + 1) * 0.5 * (pw - 1); ym = (gy + 1) * 0.5 * (ph - 1)
+        else:
+            xm = ((gx + 1) * pw - 1) * 0.5; ym = ((gy + 1) * ph - 1) * 0.5
+        xs = (xm + 0.5) * W / mw - 0.5; ys = (ym + 0.5) * H / mh - 0.5
+        samples.append(bilinear_at(img, ys, xs)); places.append((ys, xs))
+    m = bilinear_at(np.asarray(mask)[0], qy, qx)[0]
+    w0 = m if mask_for_first else 1 - m
+    return samples, places, w0
+
+
+def no_still_reads(img0, img1, samples, places, w0, still=2.0 / 255):
+    """A pixel that changes between the two real frames cannot show a thing that stands still somewhere
+    else. So where the picture changes, a sample read from a place that is the same in both frames
+    (while the other sample is not) is the still thing in front bleeding in: the other sample is taken
+    alone. Where both samples are from still places, or neither, nothing changes."""
+    import numpy as np
+    changes = np.abs(img0 - img1).max(axis=0) > still
+    a, b = samples
+    a_other = bilinear_at(img1, *places[0]); b_other = bilinear_at(img0, *places[1])
+    a_still = np.abs(a - a_other).max(axis=0) <= still
+    b_still = np.abs(b - b_other).max(axis=0) <= still
+    only_b = changes & a_still & ~b_still
+    only_a = changes & b_still & ~a_still
+    w = np.where(only_b, 0.0, np.where(only_a, 1.0, w0))
+    return a * w + b * (1 - w), float((only_a | only_b).mean())
+
+
 def ghost_report(path: Path, channels: int, align: int, mask_for_first: bool) -> list[dict]:
     """Ghosting where a third-person game shows it: round a character the world moves behind, and in a HUD
     that stands still in front of it (CPU, drawn pictures, a report in the log).
@@ -988,21 +1046,24 @@ def ghost_report(path: Path, channels: int, align: int, mask_for_first: bool) ->
         rest = ~(grow(who, reach) | grow(sign, 3))
         row = {"picture": label}
         pictures = {}
-        _, g0, g1, m = session.run(None, {name: tensor(f0, f1, 0.5, channels)})[:4]
-        pictures["whole"] = np.clip(rebuild_scaled(f0, f1, g0, g1, m, align, mask_for_first, (H, W)), 0, 1)
-        try:
-            s0, s1 = resize_box(f0, 2), resize_box(f1, 2)
-            _, h0, h1, hm = session.run(None, {name: tensor(s0, s1, 0.5, channels)})[:4]
-            pictures["half"] = np.clip(rebuild_scaled(f0, f1, h0, h1, hm, align, mask_for_first, (H // 2, W // 2)), 0, 1)
-            chosen, share = rebuild_select(f0, f1, h0, h1, hm, align, mask_for_first, (H // 2, W // 2))
-            pictures["half_select"] = np.clip(chosen, 0, 1); row["select_acts_percent"] = round(100.0 * share, 2)
-        except Exception as error:  # a size the model does not take
-            row["half"] = f"not run: {type(error).__name__}"
-        for key in list(pictures):
-            kept, island = keep_still(pictures[key], f0, f1)
-            pictures[key + "_still"] = kept
-            row["still_acts_percent"] = round(100.0 * float(island.mean()), 3)
-            row["still_on_hud_percent"] = round(100.0 * float(island[sign].mean()), 1) if sign.any() else None
+        for key, factor in (("whole", 1), ("half", 2)):
+            try:
+                s0, s1 = (f0, f1) if factor == 1 else (resize_box(f0, factor), resize_box(f1, factor))
+                _, g0, g1, m = session.run(None, {name: tensor(s0, s1, 0.5, channels)})[:4]
+                samples, places, w0 = rebuild_parts(f0, f1, g0, g1, m, align, mask_for_first, (H // factor, W // factor))
+                plain = np.clip(samples[0] * w0 + samples[1] * (1 - w0), 0, 1)
+                pictures[key] = plain
+                reads, share = no_still_reads(f0, f1, samples, places, w0)
+                pictures[key + "+reads"] = np.clip(reads, 0, 1); row[key + "_reads_acts_percent"] = round(100.0 * share, 2)
+                for tag, kw in (("+still16", {"surround": 16}), ("+still32", {"surround": 32}), ("+still32_4", {"surround": 32, "still": 4.0 / 255})):
+                    kept, island = keep_still(plain, f0, f1, **kw)
+                    pictures[key + tag] = kept
+                    row[key + tag + "_acts_percent"] = round(100.0 * float(island.mean()), 3)
+                    row[key + tag + "_on_hud_percent"] = round(100.0 * float(island[sign].mean()), 1) if sign.any() else None
+                both, _ = keep_still(np.clip(reads, 0, 1), f0, f1, surround=32)
+                pictures[key + "+reads+still32"] = both
+            except Exception as error:  # a size the model does not take
+                row[key] = f"not run: {type(error).__name__}: {error}"
         for key, picture in pictures.items():
             row[key] = {"db": round(psnr(picture, truth), 2), "outline_band": err(picture, truth, band), "outline_inside": err(picture, truth, inner),
                         "hud": err(picture, truth, sign), "round_hud": err(picture, truth, round_hud), "rest": err(picture, truth, rest)}
@@ -1010,27 +1071,34 @@ def ghost_report(path: Path, channels: int, align: int, mask_for_first: bool) ->
                 row[key]["thing"] = err(picture, truth, extra)
         rows.append(row)
 
-    for pan in (16, 32, 64):
-        f0, who, sign = ghost_scene(W, H, 0); f1, _, _ = ghost_scene(W, H, pan); truth, _, _ = ghost_scene(W, H, pan // 2)
+    def scene(pan, **kw):
+        return ghost_scene(W, H, pan, world=world_frame, **kw)
+    for pan in (16, 32, 48):
+        f0, who, sign = scene(0); f1, _, _ = scene(pan); truth, _, _ = scene(pan // 2)
         study(f"world panned {pan} px behind a still character, with a HUD", f0, f1, truth, who, sign, pan // 2 + 4)
-    f0, who, sign = ghost_scene(W, H, 0, bob=0); f1, _, _ = ghost_scene(W, H, 32, bob=4); truth, who_mid, _ = ghost_scene(W, H, 16, bob=2)
+    f0, who, sign = scene(0, bob=0); f1, _, _ = scene(32, bob=4); truth, who_mid, _ = scene(16, bob=2)
     study("world panned 32 px, the character moved 4 px", f0, f1, truth, who_mid, sign, 20)
-    f0, who, sign = ghost_scene(W, H, 0, character=False); f1, _, _ = ghost_scene(W, H, 24, character=False); truth, _, _ = ghost_scene(W, H, 12, character=False)
-    study("world panned 24 px behind a HUD, no character", f0, f1, truth, who, sign, 4)
-    f0, who, sign = ghost_scene(W, H, 0, hud=False, character=False); f1, _, _ = ghost_scene(W, H, 24, hud=False, character=False); truth, _, _ = ghost_scene(W, H, 12, hud=False, character=False)
-    study("a plain pan of 24 px (nothing to protect)", f0, f1, truth, who, sign, 4)
-    # A ball crossing a still world: where it is at the middle time, both real frames show the world.
-    def ball(x):
-        img = detail_frame(W, H, 0).copy()
+    # The same with a little noise on every frame (a compressed stream, an analogue link): still things are no longer exactly still.
+    rng = np.random.default_rng(7)
+    f0, who, sign = scene(0); f1, _, _ = scene(32); truth, _, _ = scene(16)
+    n0 = np.clip(f0 + rng.normal(0, 0.7 / 255, f0.shape), 0, 1).astype(np.float32); n1 = np.clip(f1 + rng.normal(0, 0.7 / 255, f1.shape), 0, 1).astype(np.float32)
+    study("world panned 32 px, with noise of 0.7 / 255 on each frame", n0, n1, truth, who, sign, 20)
+    none = np.zeros((H, W), bool)
+    study("a plain pan of 32 px (nothing to protect)", world_frame(W, H, 0), world_frame(W, H, 32), world_frame(W, H, 16), none, none, 4)
+    # A ball crossing a still world, and crossing a still character while the world pans: where it is at
+    # the middle time, both real frames show what stands still.
+    def ball(base, x, yy0):
+        img = base.copy()
         yy, xx = np.mgrid[0:H, 0:W]
-        inside = (xx - x) ** 2 + (yy - H * 0.5) ** 2 <= 10 ** 2
+        inside = (xx - x) ** 2 + (yy - yy0) ** 2 <= 10 ** 2
         img[0][inside], img[1][inside], img[2][inside] = 0.95, 0.85, 0.1
         return img.astype(np.float32), inside
-    (b0, _), (b1, _), (bt, at) = ball(300), ball(380), ball(340)
-    none = np.zeros((H, W), bool)
-    study("a ball moved 80 px over a still world", b0, b1, bt, none, none, 4, extra=at)
-    (b0, _), (b1, _), (bt, at) = ball(300), ball(316), ball(308)
-    study("a ball moved 16 px over a still world", b0, b1, bt, none, none, 4, extra=at)
+    still_world = world_frame(W, H, 0)
+    (b0, _), (b1, _), (bt, at) = ball(still_world, 300, H * 0.5), ball(still_world, 348, H * 0.5), ball(still_world, 324, H * 0.5)
+    study("a ball moved 48 px over a still world", b0, b1, bt, none, none, 4, extra=at)
+    f0, who, sign = scene(0); f1, _, _ = scene(32); truth, _, _ = scene(16)
+    (b0, _), (b1, _), (bt, at) = ball(f0, W * 0.5 - 24, H * 0.75), ball(f1, W * 0.5 + 24, H * 0.75), ball(truth, W * 0.5, H * 0.75)
+    study("world panned 32 px, a ball moved 48 px across the still character", b0, b1, bt, who, sign, 20, extra=at)
     return rows
 
 
