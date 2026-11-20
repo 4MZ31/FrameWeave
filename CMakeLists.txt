@@ -1192,6 +1192,10 @@ target_include_directories(veyra_push_capture_device_pick_tests PRIVATE ${CMAKE_
 add_executable(veyra_push_capture_sharper_tests tests/unit/PushCaptureSharperTests.cpp)
 target_compile_features(veyra_push_capture_sharper_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_capture_sharper_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: the graphics card's load as Task Manager counts it (ui/PushGpuLoad.h, pure; also builds with g++).
+add_executable(veyra_push_gpu_load_tests tests/unit/PushGpuLoadTests.cpp)
+target_compile_features(veyra_push_gpu_load_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_gpu_load_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_push_fg_health_tests tests/unit/PushFgHealthTests.cpp)
 target_compile_features(veyra_push_fg_health_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_fg_health_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

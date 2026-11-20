@@ -1,6 +1,7 @@
 // QML bridge: Status responsibilities.
 #include "veyra/media/FormatBadgeWindow.h"
 #include "../QmlPlayerBridge_p.h"
+#include "veyra/ui/PushGpuLoad.h"
 
 namespace veyra::ui {
 // --- professional-page readouts ---------------------------------------------
@@ -300,8 +301,9 @@ double QmlPlayerBridge::outputRateRatio() const { return impl_->rateRatio; }
 
 void QmlPlayerBridge::startGpuSampler() {
     // Task Manager's source: the "GPU Engine" utilization counters, summed per
-    // engine type across processes, busiest type wins. Sampled once a second on
-    // its own thread; -1 means the counters are unavailable.
+    // engine across processes, busiest engine wins (ui/PushGpuLoad.h; summed per
+    // engine TYPE it read 100 % on a card at a quarter of that). Sampled once a
+    // second on its own thread; -1 means the counters are unavailable.
     auto* impl = impl_.get();
     impl->gpuSampler = std::jthread([impl](std::stop_token stop) {
         PDH_HQUERY query = nullptr; PDH_HCOUNTER counter = nullptr;
@@ -320,7 +322,8 @@ void QmlPlayerBridge::startGpuSampler() {
             buffer.resize(bytes);
             auto* items = reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM_W*>(buffer.data());
             if (PdhGetFormattedCounterArrayW(counter, PDH_FMT_DOUBLE, &bytes, &count, items) != ERROR_SUCCESS) continue;
-            std::map<std::wstring, double> byType;
+            std::vector<PushGpuEngineSample> samples;
+            samples.reserve(count);
             // Instance names carry the adapter: pid_<n>_luid_0x<high>_0x<low>_phys_..._engtype_<type>.
             const uint64_t luid = impl->gpuMonitorLuid.load();
             const std::wstring luidKey = luid ? std::format(L"luid_0x{:08x}_0x{:08x}_", uint32_t(luid >> 32), uint32_t(luid)) : std::wstring{};
@@ -328,13 +331,9 @@ void QmlPlayerBridge::startGpuSampler() {
                 if (items[i].FmtValue.CStatus != PDH_CSTATUS_VALID_DATA && items[i].FmtValue.CStatus != PDH_CSTATUS_NEW_DATA) continue;
                 std::wstring name = items[i].szName ? items[i].szName : L"";
                 std::transform(name.begin(), name.end(), name.begin(), [](wchar_t ch) { return wchar_t(towlower(ch)); });
-                if (!luidKey.empty() && name.find(luidKey) == std::wstring::npos) continue;
-                const auto at = name.find(L"engtype_");
-                byType[at == std::wstring::npos ? std::wstring{} : name.substr(at + 8)] += items[i].FmtValue.doubleValue;
+                samples.push_back({std::move(name), items[i].FmtValue.doubleValue});
             }
-            double busiest = 0;
-            for (const auto& [type, value] : byType) busiest = std::max(busiest, value);
-            impl->gpuUtil = std::clamp(busiest, 0.0, 100.0);
+            impl->gpuUtil = pushGpuLoad(samples, luidKey);
         }
         PdhCloseQuery(query);
     });

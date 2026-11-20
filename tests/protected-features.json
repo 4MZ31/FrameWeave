@@ -887,6 +887,22 @@
     }
    ],
    "needs_hardware": "A capture card that offers YUY2 at 1080p30 and MJPEG at 60: the row and its button in the capture dialog. No capture card exists in CI."
+  },
+  {
+   "id": "F36",
+   "what": "The graphics card's load is counted per engine and the busiest engine wins, as Task Manager counts it; added up per engine type it read 100 % on a card whose monitoring showed 23 %",
+   "guards": [
+    {
+     "file": "tests/unit/PushGpuLoadTests.cpp",
+     "ci": "veyra_push_gpu_load_tests",
+     "contains": "the busiest engine, not every Copy engine added together"
+    },
+    {
+     "file": "src/ui/bridge/Status.cpp",
+     "contains": "impl->gpuUtil = pushGpuLoad(samples, luidKey);"
+    }
+   ],
+   "needs_hardware": "A real card: the figure beside Task Manager's while PushFPS plays."
   }
  ]
 }
