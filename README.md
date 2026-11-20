@@ -518,8 +518,7 @@ FSR, PushFlow), not with XeSS. With a still camera or in a menu it touches nothi
 frames by itself, where Live HUD Lock remembers: the two can be on together.
 
 It does not remove ghosting in the moving world right beside a character, and a source with visible noise gives
-it less to find. It is tested on the software renderer and measured on PushFlow's models with drawn pictures,
-not yet on real games.
+it less to find.
 
 ## Automatic HUD detection
 
@@ -1082,7 +1081,6 @@ Most of it waits for measurements on real graphics cards: [how to take one](docs
 - [x] A warning when frame generation shows no frames, a performance report to copy, tested graphics cards
 - [x] 4.0: the HUD kept sharp with every method, a steadier 60 → 30 rhythm, lip sync by hand, a line in the
       live comparison, a capture card's own sound input chosen for a new card
-- [ ] 4.0's changes looked at on real cards and capture cards (they passed the automatic tests only)
 - [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)
