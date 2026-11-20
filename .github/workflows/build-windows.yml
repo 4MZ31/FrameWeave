@@ -277,11 +277,44 @@ jobs:
           & $py -I scripts/pushflow/prepare_runtime.py --out "$env:DEPS\pushflow"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      # Dolby Vision metadata parsing (quietvoid/dovi_tool, MIT), built here from the pinned source: nothing of it is
+      # in the repository. When this step fails the program is built without it (Dolby Vision files then play through
+      # FFmpeg's own parsing, without the enhancement-layer cases) and the Configure step says so.
+      - name: Dolby Vision parsing library (libdovi 3.4.0, built from pinned source)
+        continue-on-error: true
+        timeout-minutes: 25
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = "$env:DEPS\dovi_tool"; $out = "$env:DEPS\libdovi"
+          git clone -q https://github.com/quietvoid/dovi_tool $src
+          git -C $src checkout -q d1abe0e27ff2c7ab3339614d06db9f8a058af6b2
+          Push-Location "$src\dolby_vision"
+          cargo rustc --release --features capi --crate-type cdylib
+          if ($LASTEXITCODE -ne 0) { throw 'libdovi did not build' }
+          cargo install cbindgen --version 0.29.4 --locked
+          if ($LASTEXITCODE -ne 0) { throw 'cbindgen did not install' }
+          New-Item -ItemType Directory -Force "$out\include\libdovi", "$out\lib", "$out\bin" | Out-Null
+          cbindgen --config cbindgen.toml --crate dolby_vision --output "$out\include\libdovi\rpu_parser.h"
+          if ($LASTEXITCODE -ne 0) { throw 'the libdovi header was not generated' }
+          Pop-Location
+          $dll = Get-ChildItem $src -Recurse -File -Filter dolby_vision.dll | Where-Object FullName -match '\\release\\' | Select-Object -First 1
+          $lib = Get-ChildItem $src -Recurse -File -Filter dolby_vision.dll.lib | Where-Object FullName -match '\\release\\' | Select-Object -First 1
+          if (-not $dll -or -not $lib) { throw 'libdovi: the built library was not found' }
+          Copy-Item $dll.FullName "$out\bin"; Copy-Item $lib.FullName "$out\lib"
+          Copy-Item (Get-ChildItem $src -File -Filter 'LICENSE*' | Select-Object -First 1).FullName "$out\LICENSE"
+          Get-ChildItem $out -Recurse -File | Format-Table FullName, Length
+          Select-String -Path "$out\include\libdovi\rpu_parser.h" -Pattern 'dovi_parse|dovi_rpu' | Select-Object -First 5
+          "LIBDOVI_ROOT=$out" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+
       - name: Configure
         run: |
           $ffmpeg = "$env:DEPS\vcpkg\installed\x64-windows"
           $stream = "$env:DEPS\stream-installed\x64-windows-static"
           $env:PKG_CONFIG_PATH = "$stream\lib\pkgconfig"
+          $dovi = @('-DVEYRA_ENABLE_LIBDOVI=OFF')
+          if ($env:LIBDOVI_ROOT -and (Test-Path "$env:LIBDOVI_ROOT\bin\dolby_vision.dll") -and (Test-Path "$env:LIBDOVI_ROOT\include\libdovi\rpu_parser.h")) {
+            $dovi = @('-DVEYRA_ENABLE_LIBDOVI=ON', "-DVEYRA_LIBDOVI_ROOT=$env:LIBDOVI_ROOT")
+          } else { Write-Host '::warning::libdovi was not built: this build has no Dolby Vision enhancement-layer parsing' }
           cmake -S . -B $env:BUILD -G Ninja -DCMAKE_BUILD_TYPE=Release `
             "-DCMAKE_PREFIX_PATH=$env:QT_ROOT_DIR;$ffmpeg;$stream" `
             -DVEYRA_BUILD_QML_UI=ON -DVEYRA_ENABLE_EXPERIMENTAL_DLSSNR=ON -DVEYRA_ENABLE_D3D12_DEBUG=OFF `
@@ -300,12 +333,13 @@ jobs:
             "-DVEYRA_FIDELITYFX2_ROOT=$env:DEPS\ffx2\Kits\FidelityFX" `
             "-DVEYRA_AMF_SDK_ROOT=$env:DEPS\amf\amf\public" `
             "-DVEYRA_NVOF_SDK_ROOT=$env:NVOF_SDK_ROOT" `
-            "-DVEYRA_ONNXRUNTIME_ROOT=$env:DEPS\pushflow\ort" "-DVEYRA_DIRECTML_ROOT=$env:DEPS\pushflow\dml"
+            "-DVEYRA_ONNXRUNTIME_ROOT=$env:DEPS\pushflow\ort" "-DVEYRA_DIRECTML_ROOT=$env:DEPS\pushflow\dml" @dovi
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build PushFPS.exe
         run: |
-          cmake --build $env:BUILD --target veyra_qml_ui --parallel
+          # -k 0: every compile error of a run in one log, not the first one only.
+          cmake --build $env:BUILD --target veyra_qml_ui --parallel -- -k 0
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Get-Item "$env:BUILD\PushFPS.exe" | Format-List Name, Length, VersionInfo
 

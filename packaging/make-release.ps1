@@ -52,6 +52,15 @@ Copy-Item (Join-Path $repo 'qml') $files -Recurse
 $shaders = Join-Path $BuildDir 'shaders'
 if (-not (Test-Path $shaders)) { throw "Compiled shaders not found in $shaders" }
 Copy-Item $shaders $files -Recurse
+# Dolby Vision metadata parsing (libdovi, MIT), when this build has it: the library next to the program and its licence.
+$dovi = Join-Path $BuildDir 'dolby_vision.dll'
+if (Test-Path $dovi) {
+    Copy-Item $dovi $files
+    if ($env:LIBDOVI_ROOT -and (Test-Path (Join-Path $env:LIBDOVI_ROOT 'LICENSE'))) {
+        New-Item -ItemType Directory -Force (Join-Path $repo 'licenses\libdovi') | Out-Null
+        Copy-Item (Join-Path $env:LIBDOVI_ROOT 'LICENSE') (Join-Path $repo 'licenses\libdovi\LICENSE.txt')
+    }
+}
 # The virtual camera: PushFPS's own DirectShow servers for 64 and 32 bit programs and their setup helper
 # (src/virtualcam; licences in licenses\virtual-camera, copied with the licenses folder below). Nothing is
 # registered by installing PushFPS: the user turns the camera on in Settings.
