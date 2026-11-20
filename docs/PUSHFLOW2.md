@@ -12,7 +12,7 @@ contradict them. No dates.
 |---|---|---|
 | Guard | Find the places in a generated frame that are probably wrong and show something safe there instead | **Built, as an experiment that starts off** (*Professional → PushFlow 2: Guard*): where an object was left out of a generated frame, the nearer real frame is shown (below). Four rules failed in measurement before the one it uses held. Checked on drawn pictures and the software renderer only; whether it looks better in a game is for real cards and eyes to say. Beside it, since 3.2.7, the frame quality test says its **worst frame** and its **worst place** |
 | Fusion | Encode every real frame once and work a pair's motion out once, then make every in-between time from it | **Its first step is built, as an experiment that starts off** (*Professional → PushFlow 2: encode each real frame once*): the model cut into its per-frame encoder and the rest, each real frame encoded once (below). The second step, a pair's motion worked out once, does not exist in these models: the time enters at the first motion block |
-| Predict | Make frames from what has already arrived, without waiting for the next real frame | Measured (below): a frame half a step ahead can be made from what the network already gives, with no extra run; on drawn pictures it beats holding the last frame for slow motion and is no better for fast motion. Not built, and never the normal mode. It needs its own way onto the screen, Guard's checking of predictions against the frames that arrive later, and a camera for any claim about delay |
+| Predict | Make frames from what has already arrived, without waiting for the next real frame | **Built, as an experiment that starts off** (*Professional → PushFlow 2: Predict*), for live sources only: the newest real frame is shown after its own processing instead of a frame interval later, and the frames after it are forecasts made from the two real frames that have arrived (below). On drawn pictures a forecast is never further from the truth than holding the real frame, and much nearer for slow motion. Never the normal mode. How much delay it saves and how it looks have not been measured on real hardware: that takes a camera |
 | Dual | A second, deliberately delayed timeline for recording and streaming, beside the one the player sees | Not started. It needs real recording and OBS sessions on real cards to show the player's side is not slowed |
 | Response | Turn the picture a little from the stick's movement before the console's own frame arrives | Research only. Whether it can work from a video signal at all is unproven; it needs a PS5, a high-speed camera and people to judge it |
 | Memory | Bring back detail that earlier real frames showed | Research only. It depends on motion that has been checked (Guard, Fusion) |
@@ -240,6 +240,61 @@ frames, a forecast frame has to be checked against the real frame that follows (
 onto the screen and its own pacing, and whether it lowers the delay a player feels can only be shown with a
 camera. Not built.
 
+## Predict as built
+
+**What changes on screen.** Ordinary frame generation shows a pair's in-between frames and then its real
+frame, so the real frame waits about one frame interval. With Predict a batch is the real frame first and
+its forecasts after it (`pushflow::predict::pts`: the real frame's time plus a share of the last interval),
+and the engine gives the pair no frame interval of delay, only its own processing time
+(`EngineController.cpp`, `predictPair`). At 30 FPS that is 33 ms less between the console and the screen
+on paper. On paper only: nobody has filmed it.
+
+**How a forecast is made** (`shaders/PushPredict.hlsl`; the rule for one pixel is `predict::forecast` in
+`include/veyra/pushflow/PushFlowPredict.h`, and the graphics test compares the two pixel by pixel). The
+network runs **once** for the pair, for the half-way time, whatever the multiplier; every forecast is the
+newest real frame moved along the motion its grids give. A pixel is moved only as far as the motion there
+is trusted: the search for where it came from must settle, the motion to the older frame must be the
+opposite of the motion to the newer one, the two real frames must show the same thing where the motion
+joins them, and what it reads must lie inside the picture. Where it is not trusted the newest real frame
+is left as it is. Less than a quarter of a pixel is not moved at all, so a still picture and a HUD stay
+exact. Nothing is invented: every pixel is a pixel of the newest real frame.
+
+**Measured before it was built** (`predict_report`, runs 44645655282 and 44646229341, 512 x 320, the rule
+as built; dB against the true later frame, higher is nearer):
+
+| Half an interval ahead | Holding the real frame | Fast model | Quality model |
+|---|---|---|---|
+| A square moving 2 / 8 / 16 px a frame | 33.9 / 27.8 / 24.8 | 46.2 / 42.9 / 27.0 | 52.0 / 48.3 / 36.6 |
+| A square moving 32 / 48 / 96 px a frame | 30.1 / 25.4 / 26.0 | 30.2 / 25.7 / 26.0 | 30.3 / 26.0 / 26.0 |
+| Fine texture panning 4 / 8 / 16 / 32 px a frame | 13.9 | 18.4 / 20.1 / 15.2 / 17.3 | 29.1 / 17.1 / 26.0 / 21.2 |
+| A still picture | exact | exact | exact (83 dB or better) |
+| Two unrelated pictures (a cut), where holding is exact | exact | 43.9 | 38.9 |
+
+So a forecast is never worse than holding on a moving picture, clearly better for slow motion, and no
+better for fast motion, where most of the object is held. Three things were measured and dropped: a limit
+on speed (it only took gains away: a fast pan is forecast well), the same checks without the one that the
+two frames agree (a cut then left a visibly warped frame, 28 to 33 dB), and asking the network for time 1
+(its grid there is not the motion between the frames).
+
+**What it cannot do.** The next frame is not known. When something changes direction, appears or
+disappears between two real frames, the forecast shows what would have happened had it carried on, until
+the next real frame corrects it: a moving object can overshoot and snap back. A cut is seen one frame
+late, as it is by any frame generation. At 60 FPS and 2X a forecast must be ready 8 ms after its real
+frame, so a card that needs longer for PushFlow shows no forecasts at all (the row counts them).
+
+**The engine's side**, all of it behind the switch: a pair's delay; its admission against the first
+forecast's time; a forecast is dropped, never shown, once the next real frame is due (counted); the
+learned pair delay is not fed from Predict's pairs; it steps aside, without anything being rebuilt, while
+the quality test or *Optimise for my PC* measures in-between frames; a file, an export and a still image
+never use it.
+
+**What is checked**: the rule on its own (`veyra_push_flow_predict_tests`); on the software renderer with
+both models, the shader against the rule, a still picture exact, a slow square nearer to the truth, an
+in-between frame still exactly PushFlow's own (`testPushFlow`); through the real graph at 3X, the batch's
+order and times and that no forecast is worse than holding (`veyra_push_flow_graph_tests`). **What is not
+checked anywhere: the engine's timing with a real source.** No test here plays a capture card; the delay
+saved, the evenness of the frames and whether forecasts arrive in time on a real card are unknown.
+
 ## Guard's rule, found by measuring: changed, and shown nowhere
 
 Three more rules were run on the shipped models before any shader was written (`guard_report`, runs
@@ -331,7 +386,7 @@ pictures. Those need:
 | Real 60 FPS game clips, and people to judge them | Whether Guard should ever be on by default, and its thresholds; any automatic choice of the motion size (the choice by hand exists since 3.2.7) |
 | Frame quality test results from real games at each motion size (the worst place, with the performance report, which names the motion size) | Whether a tier's own motion size should change |
 | Card tests and performance reports from real cards (*Settings → Test my graphics card*, *Performance report*) | Fusion (the encoder split must be faster at equal quality on two classes of card, for a ceiling of 7 to 24 %); half precision per card |
-| A camera filming screen and controller (240 FPS or more) | Every statement about delay: Predict (its forecast exists as a study), Response, latency modes |
+| A camera filming screen and controller (240 FPS or more) | Every statement about delay: what Predict really saves, Response, latency modes |
 | A PS5 with Remote Play, and testers | Response |
 | Real recording, streaming and OBS sessions on several cards | Dual |
 | Licence terms for runtimes and for any new model's weights | An NVIDIA-native path; any learned refinement |
@@ -348,4 +403,4 @@ pictures. Those need:
 | Read-only motion data with tested coordinates | `PushFlowMotion.h`, `PushFlowBackend::motionBuffer` (tests only), `veyra_push_flow_motion_tests` |
 | Guard's risk map and safe fallback | Built as an experiment that starts off (above), after four rules that failed in measurement |
 | Encode once, reuse | Built as an experiment that starts off: the encoder cache (above) |
-| Frames from the past only | Measured: possible from the half-way grids for slow motion (above). Not built |
+| Frames from the past only | Built as an experiment that starts off: Predict (above) |
