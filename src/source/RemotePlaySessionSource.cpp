@@ -9,7 +9,7 @@ extern "C" {
 namespace veyra::source {
 bool RemotePlaySessionSource::connect(RemotePlayConnectDesc desc) {
     close();
-    { std::lock_guard lock(mutex_); initialized_=started_=failed_=false; skipped_=publishedSequence_=0; recovery_={}; rates_={}; feedback_={}; controller_={}; pendingControllers_.clear(); snapshot_={}; }
+    { std::lock_guard lock(mutex_); initialized_=started_=failed_=false; skipped_=publishedSequence_=0; recovery_={}; rates_={}; feedback_={}; controllers_.clear(); controllers_.resetStats(); snapshot_={}; }
     owner_=std::jthread([this, request=std::move(desc)](std::stop_token stop) mutable { run(stop,std::move(request)); });
     std::unique_lock lock(mutex_);
     ready_.wait(lock,[&]{return initialized_;});
@@ -98,11 +98,22 @@ void RemotePlaySessionSource::run(std::stop_token stop, RemotePlayConnectDesc de
                 else Sleep(1);
             }
         } else if(ok) {
-            monitor=std::jthread([inbox=source.telemetryInbox()](std::stop_token cancel){
+            monitor=std::jthread([this,inbox=source.telemetryInbox()](std::stop_token cancel){
                 while(!cancel.stop_requested()){
                     const auto s=inbox->snapshot();const auto now=remoteplay::monotonic100ns();
                     const auto age=[&](auto stamp){return stamp>0?double(now-stamp)/10000:-1.0;};
-                    log::info("remoteplay-progress",std::format("state={} received={} decoded={} inputFps={:.1f} decodeFps={:.1f} videoMbps={:.3f} receiveAgeMs={:.1f} decodeAgeMs={:.1f} decodeBusyMs={:.1f} queue={} waitingIdr={} idrRequests={} errors={} (complete-video callback; not network latency)",int(s.state),s.video.accessUnits,s.decodedFrames,s.receivedFps,s.decodedFps,s.videoMbps,age(s.lastVideo100ns),age(s.lastDecoded100ns),age(s.decodeStarted100ns),s.video.depth,s.video.waitingForIdr,s.video.idrRequests,s.errorCode));
+                    // PushFPS: why the queue was emptied (each recovery once, by what started it), and the
+                    // controller queue as counts. The picture freezes from a recovery until the next keyframe.
+                    std::string causes;
+                    for(std::size_t i=0;i<s.video.causes.size();++i)if(s.video.causes[i]){
+                        if(!causes.empty())causes+=',';
+                        causes+=remoteplay::recoveryCauseName(remoteplay::RecoveryCause(i));causes+=':';causes+=std::to_string(s.video.causes[i]);
+                    }
+                    if(causes.empty())causes="none";
+                    const auto input=controllerStats();
+                    log::info("remoteplay-progress",std::format("state={} received={} decoded={} inputFps={:.1f} decodeFps={:.1f} videoMbps={:.3f} receiveAgeMs={:.1f} decodeAgeMs={:.1f} decodeBusyMs={:.1f} queue={} waitingIdr={} idrRequests={} errors={} recoveries={} causes={} droppedQueued={} queuePeak={} queuePeakAgeMs={:.1f} readerClockBehind={} controller: states={} merged={} expired={} overflows={} silences={} peakPending={} peakAgeMs={:.1f} (complete-video callback; not network latency)",int(s.state),s.video.accessUnits,s.decodedFrames,s.receivedFps,s.decodedFps,s.videoMbps,age(s.lastVideo100ns),age(s.lastDecoded100ns),age(s.decodeStarted100ns),s.video.depth,s.video.waitingForIdr,s.video.idrRequests,s.errorCode,
+                        s.video.recoveries,causes,s.video.droppedQueued,s.video.highWaterDepth,double(s.video.highWaterAge100ns)/10000,s.video.readerClockBehind,
+                        input.states,input.merged,input.expired,input.overflows,input.silences,input.highWaterPending,double(input.highWaterAge100ns)/10000));
                     for(int i=0;i<10&&!cancel.stop_requested();++i)std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
             });
@@ -211,7 +222,7 @@ void RemotePlaySessionSource::run(std::stop_token stop, RemotePlayConnectDesc de
             ?std::format(L"PS5 正在释放上一个串流会话，等待后自动重试（{}/3）…",recovery.episodeRetries())
             :desc.controlOnly?std::format(L"PS5 手柄控制中断，正在重新连接（{}/3）…",recovery.episodeRetries())
             :std::format(L"串流中断，正在重新连接（{}/3）…",recovery.episodeRetries())};
-        latest_.reset();pendingControllers_.clear();controller_={};feedback_={};
+        latest_.reset();controllers_.clear();feedback_={};
     }
     log::info("remoteplay-recovery",std::format("teardown begin attempt={} retry={} cancelled={}",recovery.reconnects(),retry,stop.stop_requested()));
     if(monitor.joinable()){monitor.request_stop();monitor.join();}
@@ -259,24 +270,12 @@ void RemotePlaySessionSource::close() noexcept {
     SecureZeroMemory(pin_.data(),pin_.size());pin_.clear();
 }
 void RemotePlaySessionSource::controller(remoteplay::ControllerState state){
-    std::lock_guard lock(mutex_);controllerStamp_=remoteplay::monotonic100ns();
-    // A neutral input (focus/device loss) cancels queued actions immediately.
-    if(!state.inputActive)pendingControllers_.clear();
-    if(pendingControllers_.size()>=16){
-        pendingControllers_.clear();pendingControllers_.push_back({controllerStamp_,{}});
-        log::warn("remoteplay-input","Controller queue overflow; releasing before latest state");
-    }
-    pendingControllers_.push_back({controllerStamp_,std::move(state)});
+    bool fits=true;
+    {std::lock_guard lock(mutex_);fits=controllers_.push(std::move(state),remoteplay::monotonic100ns());}
+    if(!fits)log::warn("remoteplay-input","Controller queue overflow; releasing before latest state");
 }
-remoteplay::ControllerState RemotePlaySessionSource::takeControllerLocked(remoteplay::HostTime now){
-    if(now-controllerStamp_>1000000){pendingControllers_.clear();controller_={};return controller_;}
-    if(!pendingControllers_.empty()&&now-pendingControllers_.front().first>1000000){
-        while(!pendingControllers_.empty()&&now-pendingControllers_.front().first>1000000)pendingControllers_.pop_front();
-        controller_={};return controller_;
-    }
-    if(!pendingControllers_.empty()){controller_=std::move(pendingControllers_.front().second);pendingControllers_.pop_front();}
-    return controller_;
-}
+remoteplay::ControllerState RemotePlaySessionSource::takeControllerLocked(remoteplay::HostTime now){return controllers_.take(now);}
+remoteplay::ControllerQueue::Stats RemotePlaySessionSource::controllerStats()const{std::lock_guard lock(mutex_);return controllers_.stats();}
 void RemotePlaySessionSource::loginPin(std::string pin){std::lock_guard lock(mutex_);SecureZeroMemory(pin_.data(),pin_.size());pin_=std::move(pin);}
 remoteplay::SessionInbox::Snapshot RemotePlaySessionSource::sessionSnapshot()const{
     std::shared_ptr<const remoteplay::SessionInbox> inbox;{std::lock_guard lock(mutex_);inbox=telemetryInbox_;if(!inbox)return snapshot_;}

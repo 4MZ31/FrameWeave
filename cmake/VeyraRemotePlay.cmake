@@ -10,6 +10,10 @@ target_include_directories(veyra_remoteplay_core PUBLIC "${VEYRA_ROOT}/include")
 target_compile_features(veyra_remoteplay_core PUBLIC cxx_std_20)
 set_target_properties(veyra_remoteplay_core PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(veyra_remoteplay_core PUBLIC Threads::Threads)
+# PushFPS: the queue, session and recovery contracts of the stream sources, with no console and no
+# network (it also builds with g++). Until 4.0 no build compiled this file.
+add_executable(veyra_remoteplay_core_tests "${VEYRA_ROOT}/tests/remoteplay/CoreTests.cpp")
+target_link_libraries(veyra_remoteplay_core_tests PRIVATE veyra_remoteplay_core)
 # Shared pinned native dependency for the product and probes. No stub fallback.
 enable_language(C)
 set(VEYRA_RP_CHIAKI_SOURCE_DIR "" CACHE PATH "Patched chiaki-ng staging source tree")

@@ -2,6 +2,7 @@
 #include "veyra/remoteplay/Types.h"
 #include "veyra/remoteplay/Timeline.h"
 #include "veyra/remoteplay/VideoIngress.h"
+#include "veyra/remoteplay/ControllerQueue.h"
 #include "veyra/remoteplay/LatestMailbox.h"
 #include "veyra/remoteplay/PacketPump.h"
 #include "veyra/remoteplay/InputGate.h"
@@ -94,6 +95,69 @@ TEST(queue_fifo_not_latest_compressed){VideoIngress q;start(q);q.push(frame(1,fa
 TEST(queue_overflow_requires_idr){QueueLimits l;l.maxFrames=2;VideoIngress q(l);start(q);q.push(frame(1,false),0);CHECK(q.push(frame(2,false),0)==PushStatus::WaitingForIdr);CHECK(q.stats().depth==0);CHECK(q.stats().waitingForIdr);CHECK(q.push(frame(3,false),0)==PushStatus::WaitingForIdr);CHECK(q.push(frame(4,true),0)==PushStatus::Accepted);auto s=q.tryPop(0);CHECK(s&&s->resetDecoder&&s->configBefore);CHECK(s->epoch==2);}
 TEST(queue_overflow_incoming_idr){QueueLimits l;l.maxFrames=1;VideoIngress q(l);start(q);CHECK(q.push(frame(1,true),0)==PushStatus::Accepted);auto s=q.tryPop(0);CHECK(s&&s->sample.wireFrameIndex==1&&s->resetDecoder);}
 TEST(queue_age_recovery){VideoIngress q;start(q);CHECK(!q.tryPop(1000001));CHECK(q.stats().waitingForIdr&&q.stats().depth==0);}
+// PushFPS 4.0. The reader samples its clock, and only then waits for the lock; the stream's callback
+// can stamp and queue a frame in between. That frame's stamp is later than the reader's clock: it is
+// new. Until 4.0 the queue called it expired, threw it away and waited for the next keyframe.
+TEST(queue_frame_stamped_after_the_readers_clock_is_new){
+    VideoIngress q;q.begin(1);CHECK(q.push(config(1,5000),5000)==PushStatus::ConfigStored);
+    CHECK(q.push(frame(0,true,5000),5000)==PushStatus::Accepted);
+    auto s=q.tryPop(4999);CHECK(s&&s->sample.wireFrameIndex==0&&s->resetDecoder);
+    auto st=q.stats();CHECK(st.recoveries==0&&!st.waitingForIdr&&st.epoch==1&&st.dropped==0&&st.readerClockBehind==1);
+    CHECK(!q.takeIdrRequest(6000));
+    // The same with frames behind it: all of them come out, in order, with one stale clock sample.
+    for(std::uint16_t i=1;i<=3;++i)CHECK(q.push(frame(i,false,6000+i),6000+i)==PushStatus::Accepted);
+    for(std::uint16_t i=1;i<=3;++i){auto f=q.tryPop(5990);CHECK(f&&f->sample.wireFrameIndex==i&&!f->resetDecoder);}
+    st=q.stats();CHECK(st.recoveries==0&&st.consumed==4&&st.dropped==0&&st.depth==0&&!st.waitingForIdr);
+    // An equal stamp is age zero too.
+    CHECK(q.push(frame(4,false,7000),7000)==PushStatus::Accepted);CHECK(q.tryPop(7000));CHECK(q.stats().recoveries==0);
+}
+TEST(queue_a_frame_that_really_waited_too_long_still_expires){
+    QueueLimits l;VideoIngress q(l);q.begin(1);q.push(config(1,100),100);
+    // Exactly the limit is still in time; one tick over is not.
+    CHECK(q.push(frame(0,true,100),100)==PushStatus::Accepted);
+    auto s=q.tryPop(100+l.maxAge100ns);CHECK(s&&s->sample.wireFrameIndex==0);CHECK(q.stats().highWaterAge100ns==l.maxAge100ns);
+    CHECK(q.push(frame(1,false,200),200)==PushStatus::Accepted);
+    CHECK(!q.tryPop(200+l.maxAge100ns+1));
+    auto st=q.stats();CHECK(st.recoveries==1&&st.waitingForIdr&&st.depth==0&&st.cause(RecoveryCause::Age)==1&&st.droppedQueued==1);
+    // The next frame's arrival finds a stale one in front: the same cause, from the other side.
+    VideoIngress p(l);p.begin(1);p.push(config(1,100),100);CHECK(p.push(frame(0,true,100),100)==PushStatus::Accepted);
+    const HostTime late=100+l.maxAge100ns+1;
+    CHECK(p.push(frame(1,false,late),late)==PushStatus::WaitingForIdr);
+    st=p.stats();CHECK(st.recoveries==1&&st.cause(RecoveryCause::Age)==1&&st.depth==0&&st.waitingForIdr);
+    // And a stale reader clock never hides a frame that is old by the clock of the one who queues.
+    VideoIngress r(l);r.begin(1);r.push(config(1,100),100);CHECK(r.push(frame(0,true,100),100)==PushStatus::Accepted);
+    CHECK(r.tryPop(50));CHECK(r.stats().recoveries==0);   // new for this reader: handed out, not kept
+    CHECK(r.stats().depth==0);
+}
+TEST(queue_a_sample_stamped_after_its_own_clock_is_refused){
+    // What makes the rule above safe: nothing gets in with a stamp from the future.
+    VideoIngress q;start(q);CHECK(q.push(frame(1,false,1000),999)==PushStatus::Malformed);
+    auto st=q.stats();CHECK(st.rejected==1&&st.recoveries==1&&st.cause(RecoveryCause::Malformed)==1&&st.waitingForIdr);
+}
+TEST(queue_recoveries_are_counted_by_what_started_them){
+    const auto sum=[](const VideoQueueStats& s){std::uint64_t n=0;for(auto c:s.causes)n+=c;return n;};
+    const auto whole=[&](const VideoQueueStats& s){return s.accepted==s.consumed+s.droppedQueued+s.depth&&sum(s)==s.recoveries;};
+    {QueueLimits l;l.maxFrames=2;VideoIngress q(l);start(q);q.push(frame(1,false),0);CHECK(q.push(frame(2,false),0)==PushStatus::WaitingForIdr);
+     auto s=q.stats();CHECK(s.cause(RecoveryCause::Depth)==1&&s.recoveries==1&&s.droppedQueued==2&&whole(s));
+     // While it waits for a keyframe nothing more is counted: one recovery, one cause.
+     CHECK(q.push(frame(3,false),0)==PushStatus::WaitingForIdr);q.requireKeyframe();s=q.stats();CHECK(s.recoveries==1&&sum(s)==1&&whole(s));
+     CHECK(q.push(frame(4,true),0)==PushStatus::Accepted);q.requireKeyframe();s=q.stats();
+     CHECK(s.recoveries==2&&s.cause(RecoveryCause::Decoder)==1&&s.cause(RecoveryCause::Depth)==1&&whole(s));}
+    {VideoIngress q;start(q);CHECK(q.push(frame(5,false),0)==PushStatus::WaitingForIdr);auto s=q.stats();CHECK(s.cause(RecoveryCause::Gap)==1&&whole(s));}
+    {VideoIngress q;start(q);auto f=frame(1,false);f.framesLost=2;q.push(std::move(f),0);auto s=q.stats();CHECK(s.cause(RecoveryCause::Lost)==1&&whole(s));}
+    {VideoIngress q;start(q);auto c=config();c.width=1280;c.height=720;q.push(std::move(c),0);auto s=q.stats();CHECK(s.cause(RecoveryCause::Config)==1&&whole(s));}
+    {VideoIngress q;start(q);auto f=frame(1,false);f.width=1280;f.height=720;CHECK(q.push(std::move(f),0)==PushStatus::WaitingForIdr);auto s=q.stats();CHECK(s.cause(RecoveryCause::Mismatch)==1&&whole(s));}
+    {VideoIngress q;start(q);CHECK(q.push(frame(1,false,0),2000000)==PushStatus::WaitingForIdr);auto s=q.stats();CHECK(s.cause(RecoveryCause::StaleSample)==1&&whole(s));}
+    {QueueLimits l;l.maxBytes=1024;l.maxConfigBytes=64;VideoIngress q(l);start(q);std::vector<std::uint8_t>b(600,0x88);b[0]=0;b[1]=0;b[2]=1;b[3]=0x41;
+     auto f=frame(1,false);f.payload=PaddedBytes::copy(b);CHECK(q.push(std::move(f),0)==PushStatus::Accepted);
+     auto g=frame(2,false);g.payload=PaddedBytes::copy(b);CHECK(q.push(std::move(g),0)==PushStatus::WaitingForIdr);
+     auto s=q.stats();CHECK(s.cause(RecoveryCause::Bytes)==1&&whole(s));
+     std::vector<std::uint8_t>big(2000,0x88);big[0]=0;big[1]=0;big[2]=1;big[3]=0x65;auto h=frame(3,true);h.payload=PaddedBytes::copy(big);
+     CHECK(q.push(std::move(h),0)==PushStatus::WaitingForIdr);CHECK(whole(q.stats()));}
+    // A new session starts from nothing.
+    {VideoIngress q;start(q);q.requireKeyframe();q.begin(2);auto s=q.stats();CHECK(s.recoveries==0&&sum(s)==0&&s.droppedQueued==0&&s.readerClockBehind==0&&s.highWaterAge100ns==0);}
+    for(std::size_t i=0;i<std::size_t(RecoveryCause::Count);++i)CHECK(std::string(recoveryCauseName(RecoveryCause(i)))!="?");
+}
 TEST(queue_idr_coalescing){VideoIngress q;q.begin(1);q.push(config(),0);q.push(frame(0,false),0);CHECK(q.takeIdrRequest(0));q.push(frame(1,false),0);CHECK(!q.takeIdrRequest(100000));CHECK(q.takeIdrRequest(5000000));CHECK(!q.takeIdrRequest(10000000));}
 TEST(queue_config_change_clears_history){VideoIngress q;start(q);auto c=config();c.width=1280;c.height=720;q.push(std::move(c),0);CHECK(q.stats().depth==0&&q.stats().epoch==2);auto f=frame(1,true);f.width=1280;f.height=720;CHECK(q.push(std::move(f),0)==PushStatus::Accepted);CHECK(q.tryPop(0)->configBefore->width==1280);}
 TEST(queue_identical_config_no_reset){VideoIngress q;start(q);q.push(config(),0);CHECK(q.stats().depth==1&&q.stats().epoch==1);}
@@ -129,6 +193,120 @@ TEST(inbox_failure_closes_media){SessionInbox q;auto t=q.begin(monotonic100ns())
 TEST(inbox_begin_and_stop_guards){SessionInbox q;THROWS(q.begin(-1));auto t=q.begin(monotonic100ns());THROWS(q.begin(monotonic100ns()));THROWS(q.finishStop());q.invalidate();THROWS(q.begin(monotonic100ns()));q.finishStop();CHECK(q.begin(monotonic100ns()).generation()>t.generation());}
 TEST(inbox_callbacks_race_invalidate){SessionInbox q;auto t=q.begin(monotonic100ns());std::atomic<bool> finish=false;std::thread worker([&]{while(!finish){t.connected();(void)t.audio(audio(0,480,t.generation()));}});q.invalidate();finish=true;worker.join();CHECK(!q.isCurrent(t.generation()));CHECK(!q.tryAudio());q.finishStop();CHECK(q.snapshot().state==SessionState::Idle);}
 TEST(inbox_failed_requires_backend_join){SessionInbox q;auto t=q.begin(monotonic100ns());t.failed(42);THROWS(q.begin(monotonic100ns()));q.invalidate();q.finishStop();CHECK(q.begin(monotonic100ns()).generation()>t.generation());}
+TEST(inbox_frame_stamped_after_the_readers_clock_is_new){
+    // Through the session's boundary with the real clock, in the order the product has it: the
+    // reader's clock sample, then the callback stamps and queues, then the reader gets the lock.
+    SessionInbox q;auto t=q.begin(monotonic100ns());
+    CHECK(t.video(config(t.generation(),monotonic100ns())));
+    for(std::uint16_t i=0;i<200;++i){
+        const auto readerNow=monotonic100ns()-1;
+        CHECK(t.video(frame(i,i==0,monotonic100ns(),t.generation())));
+        auto v=q.tryVideo(readerNow);CHECK(v&&v->sample.wireFrameIndex==i);
+    }
+    const auto s=q.snapshot().video;CHECK(s.recoveries==0&&!s.waitingForIdr&&s.consumed==200&&s.dropped==0&&s.epoch==1);
+}
+// PushFPS 4.0: controller states on their way to the console (remoteplay/ControllerQueue.h).
+namespace pad {
+using S=ControllerState;
+constexpr HostTime ms=10000;
+S held(std::uint32_t buttons=0,std::uint8_t r2=0,std::int16_t rightX=0){S s;s.inputActive=true;s.buttons=buttons;s.r2=r2;s.rightX=rightX;return s;}
+}
+TEST(controller_a_slow_owner_never_gets_a_release_or_an_old_stick){
+    // The interface reads the pad 125 times a second; the owner, behind a decoder backlog, sends
+    // 62.5 times. A held trigger with the stick moving: five seconds of it.
+    ControllerQueue q;unsigned neutral=0,old=0;
+    for(int tick=0;tick<625;++tick){
+        const HostTime now=1000*pad::ms+tick*8*pad::ms;
+        const auto state=pad::held(0,255,std::int16_t(tick));CHECK(q.push(state,now));
+        if(tick%2==0){const auto out=q.take(now);neutral+=!out.inputActive||out.r2!=255;old+=out.rightX!=state.rightX;}
+    }
+    CHECK(neutral==0&&old==0);CHECK(q.stats().highWaterPending==1&&q.stats().expired==0&&q.stats().overflows==0&&q.stats().merged>300);
+    // A stalled owner (300 ms) while a button is held: the state it finds is the newest, and it is still held.
+    ControllerQueue stall;HostTime t=5000*pad::ms;
+    for(int i=0;i<38;++i,t+=8*pad::ms)CHECK(stall.push(pad::held(pad::S::Cross,0,std::int16_t(i)),t));
+    const auto out=stall.take(t);CHECK(out.inputActive&&out.buttons==pad::S::Cross&&out.rightX==37);CHECK(stall.stats().expired==0);
+}
+TEST(controller_an_old_state_is_dropped_alone_and_what_is_fresh_still_arrives_in_order){
+    using namespace pad;
+    // Cross pressed and too old; behind it Cross let go with Circle pressed, then Circle let go.
+    ControllerQueue q;const HostTime t0=2000*ms;
+    CHECK(q.push(held(S::Cross),t0));CHECK(q.push(held(S::Circle),t0+60*ms));CHECK(q.push(held(0),t0+110*ms));
+    CHECK(q.pending()==3);
+    const auto a=q.take(t0+115*ms);CHECK(a.inputActive&&a.buttons==S::Circle);   // until 4.0: a neutral state here
+    const auto b=q.take(t0+116*ms);CHECK(b.inputActive&&b.buttons==0);
+    CHECK(q.stats().expired==1&&q.pending()==0);
+    // With nothing waiting, the state sent last stands (the console keeps it).
+    CHECK(q.take(t0+117*ms)==b);
+    // Exactly 100 ms is still in time; one tick more is not.
+    ControllerQueue edge;CHECK(edge.push(held(S::Square),t0));CHECK(edge.push(held(0),t0+100*ms));
+    CHECK(edge.take(t0+100*ms).buttons==S::Square);
+    ControllerQueue over;CHECK(over.push(held(S::Square),t0));CHECK(over.push(held(0),t0+100*ms+1));
+    CHECK(over.take(t0+100*ms+1).buttons==0&&over.stats().expired==1);
+    // A clock sample from before the state was stamped is no age at all.
+    ControllerQueue behind;CHECK(behind.push(held(S::Up),t0));CHECK(behind.take(t0-5).buttons==S::Up);
+}
+TEST(controller_neutral_only_when_nothing_true_can_be_sent){
+    using namespace pad;const HostTime t0=3000*ms;
+    // The interface stopped reporting: released, whatever was waiting.
+    ControllerQueue silent;CHECK(silent.push(held(S::Cross,200),t0));
+    CHECK(silent.take(t0+100*ms+1)==S{});CHECK(silent.stats().silences==1&&silent.pending()==0);
+    CHECK(silent.take(t0+300*ms)==S{});CHECK(silent.stats().silences==1);   // counted once, not every time round
+    // Input switched off (focus or device lost) cancels what waited, and coming back resumes the held state.
+    ControllerQueue focus;CHECK(focus.push(held(S::Cross),t0));CHECK(focus.push(held(S::Cross|S::Circle),t0+8*ms));CHECK(focus.push({},t0+16*ms));
+    CHECK(focus.pending()==1);CHECK(focus.take(t0+16*ms)==S{});
+    CHECK(focus.push(held(0,255),t0+24*ms));const auto back=focus.take(t0+24*ms);CHECK(back.inputActive&&back.r2==255);
+    // More edges than the queue holds: released first, then the latest, and never more than the bound.
+    ControllerQueue mash;bool fitted=true;
+    for(int i=0;i<40;++i)fitted=mash.push(held(i%2?S::Cross:0),t0+i*ms)&&fitted;
+    CHECK(!fitted&&mash.stats().overflows>=1&&mash.pending()<=ControllerQueue::kMaxPending&&mash.stats().highWaterPending<=ControllerQueue::kMaxPending);
+    // A new session starts with nothing waiting and nothing held.
+    mash.clear();CHECK(mash.pending()==0);CHECK(mash.push(held(S::L1),t0+50*ms));mash.clear();CHECK(mash.take(t0+50*ms)==S{});
+}
+TEST(controller_presses_releases_and_trigger_pulls_keep_their_order){
+    using namespace pad;const HostTime t0=4000*ms;
+    // A quick full pull of the trigger while the owner is busy: 0, 80, 255, 120, 0. It arrives with its peak.
+    ControllerQueue pull;int i=0;
+    for(std::uint8_t travel:{0,80,255,120,0}){CHECK(pull.push(held(0,travel),t0+i*8*ms));++i;}
+    std::vector<int> seen;while(pull.pending())seen.push_back(pull.take(t0+40*ms).r2);
+    CHECK(seen==std::vector<int>({0,80,255,120,0}));
+    // Held and wobbling inside one part of its travel it is a level: one state waits, the newest.
+    ControllerQueue wobble;for(int k=0;k<50;++k)CHECK(wobble.push(held(0,std::uint8_t(200+k%7)),t0+k*8*ms));
+    CHECK(wobble.pending()==1&&wobble.take(t0+392*ms).r2==200+49%7);
+    CHECK(ControllerQueue::triggerPart(0)==0&&ControllerQueue::triggerPart(1)==1&&ControllerQueue::triggerPart(85)==1&&ControllerQueue::triggerPart(86)==2&&
+          ControllerQueue::triggerPart(170)==2&&ControllerQueue::triggerPart(171)==3&&ControllerQueue::triggerPart(255)==3);
+    // A tap of the PS button (the latency test presses it) and two buttons in quick turns.
+    ControllerQueue taps;const std::uint32_t order[]={0,S::PS,0,S::Cross,S::Cross|S::Square,S::Square,0};
+    i=0;for(auto b:order){CHECK(taps.push(held(b,0,std::int16_t(i)),t0+i*4*ms));++i;}
+    for(auto b:order)CHECK(taps.take(t0+30*ms).buttons==b);
+    // Touch: a finger down, sliding, up, and another finger with the number of the first.
+    ControllerQueue touch;S none=held(),down=held(),slide=held(),second=held();
+    down.touches[0]={0,100,100};slide.touches[0]={0,900,400};second.touches[0]={1,50,50};
+    CHECK(touch.push(none,t0));CHECK(touch.push(down,t0+8*ms));CHECK(touch.push(slide,t0+16*ms));CHECK(touch.push(none,t0+24*ms));CHECK(touch.push(second,t0+32*ms));
+    CHECK(touch.pending()==4);
+    CHECK(touch.take(t0+32*ms).touches[0].id==-1);const auto moved=touch.take(t0+32*ms);CHECK(moved.touches[0].id==0&&moved.touches[0].x==900);
+    CHECK(touch.take(t0+32*ms).touches[0].id==-1);CHECK(touch.take(t0+32*ms).touches[0].id==1);
+    // Two fingers: the second one coming down is an edge of its own.
+    ControllerQueue two;S both=down;both.touches[1]={1,300,300};
+    CHECK(two.push(down,t0));CHECK(two.push(both,t0+8*ms));CHECK(two.pending()==2);
+}
+TEST(controller_motion_samples_survive_being_replaced){
+    using namespace pad;const HostTime t0=6000*ms;ControllerQueue q;
+    for(unsigned i=1;i<=20;++i){auto s=held(0,255);s.motionValid=true;s.motionSampleCount=1;s.motionTimestampUs=i;s.motionSamples[0].timestampUs=i;s.motionSamples[0].gyro={float(i),0,0};CHECK(q.push(s,t0+i*ms));}
+    CHECK(q.pending()==1);const auto out=q.take(t0+20*ms);
+    CHECK(out.motionSampleCount==16&&out.motionSamples[0].timestampUs==5&&out.motionSamples[15].timestampUs==20&&out.motionSamples[15].gyro[0]==20.0f&&out.motionTimestampUs==20);
+    // Samples already sent are not sent again, and a sample that is not newer is left out.
+    auto next=held(0,255);next.motionValid=true;next.motionSampleCount=2;next.motionSamples[0].timestampUs=21;next.motionSamples[1].timestampUs=21;
+    CHECK(q.push(next,t0+21*ms));auto again=next;again.motionSamples[0].timestampUs=22;again.motionSampleCount=1;CHECK(q.push(again,t0+22*ms));
+    const auto merged=q.take(t0+22*ms);CHECK(merged.motionSampleCount==2&&merged.motionSamples[0].timestampUs==21&&merged.motionSamples[1].timestampUs==22);
+    // Without valid motion on both sides the newest stands as it is.
+    auto plain=held(0,255);CHECK(q.push(next,t0+23*ms));CHECK(q.push(plain,t0+24*ms));CHECK(q.take(t0+24*ms).motionSampleCount==0);
+}
+TEST(controller_in_step_owner_sends_every_state){
+    // The usual case: the owner comes round more often than the pad is read. Nothing merges, nothing waits.
+    using namespace pad;ControllerQueue q;HostTime t=7000*ms;unsigned wrong=0;
+    for(int i=0;i<500;++i){const auto s=held(i%50<25?S::R1:0,0,std::int16_t(i));CHECK(q.push(s,t));wrong+=!(q.take(t+2*ms)==s);wrong+=!(q.take(t+6*ms)==s);t+=8*ms;}
+    CHECK(wrong==0&&q.stats().merged==0&&q.stats().expired==0&&q.stats().highWaterPending==1&&q.stats().highWaterAge100ns==2*ms);
+}
 TEST(input_and_mailbox_zero_generation){InputGate g;THROWS(g.begin(0));LatestMailbox<int> m;THROWS(m.begin(0));VideoIngress v;THROWS(v.begin(0));AudioIngress a;THROWS(a.begin(0));}
 TEST(inbox_real_sample_vs_config_counts){SessionInbox q;auto t=q.begin(monotonic100ns());auto now=monotonic100ns();CHECK(t.video(config(t.generation(),now)));CHECK(q.snapshot().video.accessUnits==0);CHECK(t.video(frame(0,true,monotonic100ns(),t.generation())));CHECK(q.snapshot().video.accessUnits==1);auto v=q.tryVideo(monotonic100ns());CHECK(v&&v->sample.generation==t.generation());}
 }

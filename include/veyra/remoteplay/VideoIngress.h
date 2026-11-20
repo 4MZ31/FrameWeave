@@ -5,6 +5,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <deque>
+#include <array>
 #include <memory>
 #include <mutex>
 namespace veyra::remoteplay {
@@ -14,11 +15,39 @@ struct QueueLimits {
     void validate() const;
 };
 enum class PushStatus {Accepted,ConfigStored,WaitingForIdr,Malformed,WrongGeneration,Closed};
+// PushFPS: why the queue was emptied and a keyframe asked for. One cause is counted for each
+// recovery, the one that started it, so the causes add up to `recoveries`.
+enum class RecoveryCause : std::uint8_t {
+    Age,        // a queued frame waited longer than the limit (the reader or the decoder stalled)
+    Depth,      // the frame limit was reached
+    Bytes,      // the byte limit was reached
+    Oversized,  // one access unit larger than the whole queue
+    StaleSample,// a sample already too old when it was handed in
+    Gap,        // the stream's own frame numbers skipped
+    Lost,       // the stream reported lost frames or a recovered reference
+    Malformed,  // a sample that is not what it says it is
+    Config,     // the stream's configuration changed
+    Mismatch,   // an access unit that does not fit the configuration (or came before one)
+    Decoder,    // the decoder asked for a keyframe
+    Count
+};
+constexpr const char* recoveryCauseName(RecoveryCause c) {
+    constexpr const char* names[]={"age","depth","bytes","oversized","stale","gap","lost","malformed","config","mismatch","decoder"};
+    return std::size_t(c)<std::size_t(RecoveryCause::Count)?names[std::size_t(c)]:"?";
+}
 struct VideoQueueStats {
     std::uint64_t accessUnits=0,configMessages=0,accepted=0,consumed=0,dropped=0,
         rejected=0,recoveries=0,idrRequests=0;
     std::size_t depth=0,bytes=0,highWaterDepth=0,highWaterBytes=0;
     bool waitingForIdr=true;std::uint64_t epoch=1;
+    // PushFPS: accepted == consumed + droppedQueued + depth, at any moment (`dropped` also counts
+    // access units refused at the door, which were never accepted).
+    std::uint64_t droppedQueued=0;
+    std::array<std::uint64_t,std::size_t(RecoveryCause::Count)> causes{};
+    std::uint64_t cause(RecoveryCause c) const {return causes[std::size_t(c)];}
+    // The longest a frame that was handed out had waited, and how often the reader's clock sample
+    // was older than the frame it then took (harmless since 4.0; it used to empty the queue).
+    HostTime highWaterAge100ns=0;std::uint64_t readerClockBehind=0;
 };
 struct QueuedVideo {
     VideoSample sample;
@@ -41,7 +70,7 @@ public:
     void close();
     VideoQueueStats stats() const;
 private:
-    void recoverLocked();
+    void recoverLocked(RecoveryCause);
     void updateStatsLocked();
     bool expiredLocked(HostTime now) const;
     QueueLimits limits_;mutable std::mutex mutex_;std::condition_variable cv_;

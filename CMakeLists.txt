@@ -1030,6 +1030,10 @@ add_executable(veyra_push_compare_plan_tests tests/unit/PushComparePlanTests.cpp
 target_compile_features(veyra_push_compare_plan_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_compare_plan_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS frame generation health (engine/PushFgHealth.h, pure): on and nothing generated is said, with its cause.
+# PushFPS 60 -> 30 selection below 30 FPS (engine/CaptureHalfRate.h, pure; also builds with g++).
+add_executable(veyra_push_half_rate_tests tests/unit/PushHalfRateTests.cpp)
+target_compile_features(veyra_push_half_rate_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_half_rate_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_push_fg_health_tests tests/unit/PushFgHealthTests.cpp)
 target_compile_features(veyra_push_fg_health_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_fg_health_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -16,10 +16,10 @@ void VideoIngress::begin(Generation g) {
     std::lock_guard lock(mutex_);queue_.clear();config_.reset();generation_=g;payloadBytes_=0;
     closed_=false;waiting_=true;pendingIdr_=false;lastIdr_=-1;sequence_.reset();stats_={};cv_.notify_all();
 }
-void VideoIngress::recoverLocked() {
-    stats_.dropped+=queue_.size();queue_.clear();payloadBytes_=0;
+void VideoIngress::recoverLocked(RecoveryCause cause) {
+    stats_.dropped+=queue_.size();stats_.droppedQueued+=queue_.size();queue_.clear();payloadBytes_=0;
     // Only one epoch increment per recovery episode; repeated P frames do not reset forever.
-    if(!waiting_){++stats_.epoch;++stats_.recoveries;}
+    if(!waiting_){++stats_.epoch;++stats_.recoveries;++stats_.causes[std::size_t(cause)];}
     waiting_=true;pendingIdr_=true;updateStatsLocked();
 }
 void VideoIngress::updateStatsLocked() {
@@ -29,8 +29,14 @@ void VideoIngress::updateStatsLocked() {
     stats_.highWaterBytes=std::max(stats_.highWaterBytes,stats_.bytes);
 }
 bool VideoIngress::expiredLocked(HostTime now) const {
-    return !queue_.empty() && (now<queue_.front().sample.arrival100ns ||
-        now-queue_.front().sample.arrival100ns>limits_.maxAge100ns);
+    // `now` is the caller's clock sample from before it had the lock. A frame stamped and queued
+    // in between carries a later stamp, and that makes it new, not expired: until 4.0 it emptied
+    // the queue and the picture froze until the next keyframe. A stamp can only be later than
+    // `now` this way, because push() refuses a sample stamped after its own clock sample and
+    // both samples come from the one monotonic clock.
+    if(queue_.empty())return false;
+    const auto arrival=queue_.front().sample.arrival100ns;
+    return now>arrival && now-arrival>limits_.maxAge100ns;
 }
 PushStatus VideoIngress::push(VideoSample sample,HostTime now) {
     std::lock_guard lock(mutex_);
@@ -39,35 +45,37 @@ PushStatus VideoIngress::push(VideoSample sample,HostTime now) {
     if(sample.payload.size()==0 || sample.arrival100ns<0 || now<sample.arrival100ns ||
        !sample.payload.paddingIsZero() || sample.framesLost<0 ||
        !((sample.width==1280&&sample.height==720)||(sample.width==1920&&sample.height==1080))){
-        ++stats_.rejected;recoverLocked();return PushStatus::Malformed;
+        ++stats_.rejected;recoverLocked(RecoveryCause::Malformed);return PushStatus::Malformed;
     }
     const auto nal=inspectAnnexB(sample.payload.bytes(),sample.codec);
-    if(!nal.valid){++stats_.rejected;recoverLocked();return PushStatus::Malformed;}
+    if(!nal.valid){++stats_.rejected;recoverLocked(RecoveryCause::Malformed);return PushStatus::Malformed;}
     if(sample.kind==SampleKind::CodecConfig){
         if(!nal.hasConfig||nal.hasPicture||sample.wireFrameIndex||sample.payload.size()>limits_.maxConfigBytes){
-            ++stats_.rejected;recoverLocked();return PushStatus::Malformed;
+            ++stats_.rejected;recoverLocked(RecoveryCause::Malformed);return PushStatus::Malformed;
         }
         ++stats_.configMessages;
         const bool same=config_&&config_->codec==sample.codec&&config_->width==sample.width&&config_->height==sample.height&&
             std::ranges::equal(config_->payload.bytes(),sample.payload.bytes());
-        if(!same){recoverLocked();config_=std::make_shared<const VideoSample>(std::move(sample));}
+        if(!same){recoverLocked(RecoveryCause::Config);config_=std::make_shared<const VideoSample>(std::move(sample));}
         updateStatsLocked();return PushStatus::ConfigStored;
     }
-    if(sample.kind!=SampleKind::AccessUnit || !nal.hasPicture){++stats_.rejected;recoverLocked();return PushStatus::Malformed;}
+    if(sample.kind!=SampleKind::AccessUnit || !nal.hasPicture){++stats_.rejected;recoverLocked(RecoveryCause::Malformed);return PushStatus::Malformed;}
     ++stats_.accessUnits;
     if(sample.wireFrameIndex){
         const auto seq=sequence_.observe(*sample.wireFrameIndex);
         if(!seq.accepted){++stats_.rejected;return PushStatus::Malformed;}
-        if(seq.gap)recoverLocked();
+        if(seq.gap)recoverLocked(RecoveryCause::Gap);
     }
-    if(sample.framesLost>0 || sample.referenceRecovered)recoverLocked();
-    if(now-sample.arrival100ns>limits_.maxAge100ns){++stats_.dropped;recoverLocked();return PushStatus::WaitingForIdr;}
+    if(sample.framesLost>0 || sample.referenceRecovered)recoverLocked(RecoveryCause::Lost);
+    if(now-sample.arrival100ns>limits_.maxAge100ns){++stats_.dropped;recoverLocked(RecoveryCause::StaleSample);return PushStatus::WaitingForIdr;}
     if(!config_ || sample.codec!=config_->codec || sample.width!=config_->width || sample.height!=config_->height){
-        ++stats_.dropped;recoverLocked();return PushStatus::WaitingForIdr;
+        ++stats_.dropped;recoverLocked(RecoveryCause::Mismatch);return PushStatus::WaitingForIdr;
     }
     const auto headerBytes=config_->payload.size();
-    if(sample.payload.size()>limits_.maxBytes-headerBytes){++stats_.dropped;recoverLocked();return PushStatus::WaitingForIdr;}
-    if(expiredLocked(now)||queue_.size()>=limits_.maxFrames||payloadBytes_>limits_.maxBytes-headerBytes-sample.payload.size())recoverLocked();
+    if(sample.payload.size()>limits_.maxBytes-headerBytes){++stats_.dropped;recoverLocked(RecoveryCause::Oversized);return PushStatus::WaitingForIdr;}
+    if(expiredLocked(now))recoverLocked(RecoveryCause::Age);
+    else if(queue_.size()>=limits_.maxFrames)recoverLocked(RecoveryCause::Depth);
+    else if(payloadBytes_>limits_.maxBytes-headerBytes-sample.payload.size())recoverLocked(RecoveryCause::Bytes);
     if(waiting_&&!nal.idr){++stats_.dropped;pendingIdr_=true;return PushStatus::WaitingForIdr;}
     const bool reset=waiting_;
     queue_.push_back(QueuedVideo{std::move(sample),reset?config_:nullptr,stats_.epoch,reset});
@@ -78,9 +86,11 @@ PushStatus VideoIngress::push(VideoSample sample,HostTime now) {
 std::optional<QueuedVideo> VideoIngress::tryPop(HostTime now) {
     std::lock_guard lock(mutex_);
     if(closed_)return {};
-    if(expiredLocked(now)){recoverLocked();return {};}
+    if(expiredLocked(now)){recoverLocked(RecoveryCause::Age);return {};}
     if(queue_.empty())return {};
     auto out=std::move(queue_.front());queue_.pop_front();payloadBytes_-=out.sample.payload.size();
+    if(now>out.sample.arrival100ns)stats_.highWaterAge100ns=std::max(stats_.highWaterAge100ns,now-out.sample.arrival100ns);
+    else if(now<out.sample.arrival100ns)++stats_.readerClockBehind;
     ++stats_.consumed;updateStatsLocked();return out;
 }
 bool VideoIngress::waitForData(std::chrono::milliseconds timeout) {
@@ -91,7 +101,7 @@ bool VideoIngress::takeIdrRequest(HostTime now) {
     if(closed_||!pendingIdr_||now<0||(lastIdr_>=0&&(now<lastIdr_||now-lastIdr_<5000000)))return false;
     lastIdr_=now;pendingIdr_=false;++stats_.idrRequests;return true;
 }
-void VideoIngress::requireKeyframe(){std::lock_guard lock(mutex_);if(!closed_)recoverLocked();}
+void VideoIngress::requireKeyframe(){std::lock_guard lock(mutex_);if(!closed_)recoverLocked(RecoveryCause::Decoder);}
 void VideoIngress::close(){std::lock_guard lock(mutex_);closed_=true;queue_.clear();config_.reset();payloadBytes_=0;pendingIdr_=false;updateStatsLocked();cv_.notify_all();}
 VideoQueueStats VideoIngress::stats()const{std::lock_guard lock(mutex_);return stats_;}
 
