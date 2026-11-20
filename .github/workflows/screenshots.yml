@@ -182,6 +182,9 @@ jobs:
             # 88: the live split comparison over a playing picture. A white line between two dark edges must stand where
             # the two sides meet, from the picture's top to its bottom.
             @{ name = '88-compare-line-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--lang', 'en', '--compare', '0.4', '--pref', 'pushSunset=false') },
+            # PushFPS 4.0: the record dialog (PushRecordDialog), wide at the standard rate and tall, filled.
+            @{ name = '89-record-dialog'; args = @('--page', 'home', '--dialog', 'record', '--lang', 'en', '--pref', 'pushSunset=false') },
+            @{ name = '90-record-dialog-vertical'; args = @('--page', 'home', '--dialog', 'record', '--lang', 'en', '--pref', 'recordWidth=1080', '--pref', 'recordHeight=1920', '--pref', 'recordFit=1', '--pref', 'pushSunset=false') },
             @{ name = '83-crop-editor'; args = @('--page', 'home', '--dialog', 'crop', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') },
             @{ name = '84-crop-quick-setup'; args = @('--page', 'home', '--scroll-to', 'pushfps-crop-row', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') }
           )

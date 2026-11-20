@@ -164,6 +164,10 @@ Item {
         id: compareDialog
         dialogHost: host
     }
+    PushRecordDialog {
+        id: recordDialog
+        dialogHost: host
+    }
     PushMicFiltersDialog {
         id: micFiltersDialog
         dialogHost: host

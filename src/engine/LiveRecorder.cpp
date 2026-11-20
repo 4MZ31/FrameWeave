@@ -1,4 +1,5 @@
 #include "veyra/engine/LiveRecorder.h"
+#include "veyra/engine/PushRecordQuality.h"
 #include "veyra/engine/Mp4Finalize.h"
 #include "veyra/Brand.h"
 #include "veyra/engine/MicrophoneCapture.h"
@@ -81,14 +82,10 @@ std::wstring fileStamp(){
     swprintf_s(buffer,L"%04d-%02d-%02d-%02d%02d%02d",local.tm_year+1900,local.tm_mon+1,local.tm_mday,local.tm_hour,local.tm_min,local.tm_sec);
     return buffer;
 }
-// PushFPS: about 0.3 bit per pixel for H.264 (HEVC ~2/3 of it), so fast game motion
-// stays sharp (0.15 was soft: field report 2026-11-16). Frames above 60 per second
-// count half: generated frames sit between two real ones and cost the encoder less.
-// 1080p60 ~37 Mbps, 1080p120 ~56, 1440p60 ~66, 4K60 ~149 (H.264).
-uint32_t autoBitrateMbps(uint32_t width,uint32_t height,uint32_t fps,bool hevc){
-    const double rate=std::min(fps,60u)+std::max(int(fps)-60,0)*0.5;
-    const double mbps=double(width)*height*rate*0.3*(hevc?0.65:1.0)/1e6;
-    return uint32_t(std::clamp<long>(std::lround(mbps),hevc?8:10,160));
+// PushFPS: the standard bitrate (about 0.3 bit per pixel for H.264) and the share of it a
+// recording asks for are in engine/PushRecordQuality.h, where they are tested.
+uint32_t autoBitrateMbps(uint32_t width,uint32_t height,uint32_t fps,bool hevc,uint32_t scalePercent=100){
+    return pushRecordAutoMbps(width,height,fps,hevc,scalePercent);
 }
 uint32_t adapterVendor(ID3D12Device* device){
     ComPtr<IDXGIFactory4> factory;
@@ -1300,7 +1297,7 @@ struct LiveRecorder::State {
 };
 
 LiveRecorder::LiveRecorder(bool replay):s_(std::make_unique<State>()){s_->replayMode=replay;}
-uint32_t recordingAutoBitrateMbps(uint32_t width,uint32_t height,uint32_t fps,bool hevc){return autoBitrateMbps(width,height,fps,hevc);}
+uint32_t recordingAutoBitrateMbps(uint32_t width,uint32_t height,uint32_t fps,bool hevc,uint32_t scalePercent){return autoBitrateMbps(width,height,fps,hevc,scalePercent);}
 uint64_t replayMemoryCapBytes(){return defaultReplayMemory();}
 
 LiveRecorder::LiveRecorder(Mode mode):s_(std::make_unique<State>()){s_->replayMode=mode==Mode::Replay;s_->streamMode=mode==Mode::Stream;}
@@ -1602,7 +1599,10 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         segment->hevc=s.settings.hevc||frame.hdrMode!=0||segment->width>4096||segment->height>4096;
         const double hint=s.presentFps.load();
         segment->fps=s.settings.fpsLimit?s.settings.fpsLimit:uint32_t(std::clamp<long>(std::lround(hint>1?hint:60.0),10,480));
-        segment->bitrateMbps=s.settings.bitrateMbps?s.settings.bitrateMbps:s.streamMode?6u:autoBitrateMbps(segment->width,segment->height,segment->fps,segment->hevc);
+        // PushFPS: recordings and replays take the share of the standard rate that was asked for
+        // (the record dialog's "smaller files"); a comparison clip keeps the standard, as it always had.
+        segment->bitrateMbps=s.settings.bitrateMbps?s.settings.bitrateMbps:s.streamMode?6u:
+            autoBitrateMbps(segment->width,segment->height,segment->fps,segment->hevc,s.settings.compare?100u:s.settings.bitrateScalePercent);
         if(s.settings.bitrateKbps){
             segment->bitrateKbps=std::clamp(s.settings.bitrateKbps,300u,400000u);
             segment->bitrateMbps=std::max(1u,(segment->bitrateKbps+500)/1000);

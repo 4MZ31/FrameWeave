@@ -12,6 +12,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import "EffectSupport.js" as Support
 import "PushCompareClip.js" as CompareClip
+import "PushRecord.js" as Record
 
 VPage {
     id: watch
@@ -276,7 +277,8 @@ VPage {
                             iconName: "video"
                             text: veyra.recording ? qsTr("停止 %1").arg(watch.recordElapsed) : watch.recordSaving ? qsTr("保存中…") : qsTr("录制")
                             enabled: veyra.recording || (veyra.hasSource && !watch.recordSaving)
-                            onClicked: veyra.toggleRecording("watch")
+                            // PushFPS 4.0: the choices first (PushRecordDialog), unless that was switched off.
+                            onClicked: !veyra.recording && Record.asks(veyra.preferences) ? veyra.navigate("record") : veyra.toggleRecording("watch")
                         }
                     }
                     VRow {

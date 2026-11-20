@@ -13,6 +13,7 @@ import QtQuick.Controls
 import QtQuick.Controls.Basic as Basic
 import QtQuick.Layouts
 import "EffectSupport.js" as Support
+import "PushRecord.js" as Record
 import QtQuick.Shapes
 import QtQuick.Effects
 
@@ -391,6 +392,9 @@ VPage {
                     onClicked: {
                         if (veyra.recording) { veyra.stopRecording("pro-button"); recordControl.countdown = 0; recordTick.stop(); return }
                         if (recordControl.countdown > 0) { recordControl.countdown = 0; recordTick.stop(); return }
+                        // PushFPS 4.0: the choices first (PushRecordDialog); its start button records at once.
+                        // With "ask before every recording" off, the three-second countdown as before.
+                        if (Record.asks(veyra.preferences)) { veyra.navigate("record"); return }
                         recordControl.countdown = 3
                         recordTick.restart()
                     }

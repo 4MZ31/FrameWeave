@@ -258,6 +258,10 @@ QtObject {
     property bool muted: false
     property int recordingToggles: 0
     function toggleRecording(source) { recordingToggles++; recording = !recording }
+    // PushFPS record dialog (PushRecordDialog): a recording started from it, and from where.
+    property int recordingStarts: 0
+    property string recordingSource: ""
+    function startRecording(source) { recordingStarts++; recordingSource = source === undefined ? "" : source; recording = true }
     readonly property bool replayEnabled: preferences.replayEnabled === true
     property int replaySeconds: 60
     property int replaySaves: 0

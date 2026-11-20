@@ -303,6 +303,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"pushCropZoom", {25, 400}}, {"pushCropX", {-1000, 1000}}, {"pushCropY", {-1000, 1000}},
         // Lip sync by hand: milliseconds on top of the automatic sound delay (sink/PushAudioTrim.h).
         {"pushAudioTrimMs", {-250, 250}},
+        // The record dialog's "smaller files": the share of the automatic recording rate (engine/PushRecordQuality.h).
+        {"pushRecordBitrateScale", {25, 200}},
         // How often "this card is connected without sound" was said (Capture.cpp; at most three times).
         {"pushCaptureSilentNotices", {0, 3}},
         // Where the on-screen latency readout was dragged to: shares of its room over the picture, thousandths.
@@ -316,7 +318,7 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    // 设置 → 外观 → 启动音乐 and the music button (Main.qml); unset = off in PushFPS.
                                    "introMusic", "exclusionOverlay",
                                    // PushFPS: on-screen latency readout, fullscreen on connect, window on top.
-                                   "pushLatencyOverlay", "pushHudStill", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset",
+                                   "pushLatencyOverlay", "pushHudStill", "pushRecordAsk", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset",
                                    // PushFPS ambient fill (engine/PushAmbient.h): the bars beside the picture.
                                    "pushAmbientFill",
                                    // PushFPS crop and resize: the switch, and whether recordings and streams follow.
@@ -569,7 +571,7 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
     // The replay buffer re-arms with what a recording would use.
     static const QStringList replayKeys{"replayEnabled", "replaySeconds", "recordBitrateMbps", "recordFps", "recordHevc",
                                         // PushFPS outputs and canvas
-                                        "recordWidth", "recordHeight", "recordFit", "recordBitrateKbps",
+                                        "recordWidth", "recordHeight", "recordFit", "recordBitrateKbps", "pushRecordBitrateScale",
                                         "recordAudio", "recordMic", "recordMicDevice", "recordMicTrack",
                                         // PushFPS advanced recording
                                         "recordAdvanced", "recordRateControl", "recordQuality", "recordPreset", "recordKeyframe", "recordAudioKbps",

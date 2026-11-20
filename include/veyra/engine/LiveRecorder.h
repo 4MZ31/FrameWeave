@@ -39,6 +39,9 @@ struct RecordingSettings {
     std::wstring directory;      // output folder (created when missing)
     uint32_t bitrateMbps=0;      // 0: automatic from the picture size and frame rate
     uint32_t bitrateKbps=0;      // PushFPS output presets: the same in kbps (wins when set)
+    // PushFPS record dialog: the share of the automatic rate, in percent (PushRecordQuality.h; 100 is
+    // the standard and what every recording had before 4.0). Only while the rate is automatic.
+    uint32_t bitrateScalePercent=100;
     // PushFPS outputs and canvas (PushCanvas.h): the size this output is encoded at (0 x 0: the
     // presented picture's), where the game picture sits on it, and new files every N minutes.
     uint32_t outputWidth=0,outputHeight=0;
@@ -112,7 +115,7 @@ struct RecordingStatus {
 
 // What the interface needs to say how much memory instant replay takes before it runs: the automatic
 // bitrate for a picture (the recorder's own rule) and the replay buffer's memory cap on this PC.
-uint32_t recordingAutoBitrateMbps(uint32_t width,uint32_t height,uint32_t fps,bool hevc);
+uint32_t recordingAutoBitrateMbps(uint32_t width,uint32_t height,uint32_t fps,bool hevc,uint32_t scalePercent=100);
 uint64_t replayMemoryCapBytes();
 
 class LiveRecorder final : public PresentCapture {

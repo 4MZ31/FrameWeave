@@ -768,6 +768,16 @@ VPage {
                                 }
                             }
                         }
+                        // PushFPS 4.0: the record buttons show the choices first (PushRecordDialog.qml).
+                        VRow {
+                            label: qsTr("每次录制前都询问")
+                            hint: qsTr("点录制按钮时先选形状、大小和画质再开始。录制快捷键总是直接开始")
+                            VSwitch {
+                                objectName: "set-record-ask"
+                                checked: veyra.preferences.pushRecordAsk !== false
+                                onToggled: v => veyra.setPreference("pushRecordAsk", v)
+                            }
+                        }
                         VRow {
                             label: qsTr("自动分段")
                             hint: qsTr("长时间录制时每隔一段时间开始一个新文件，不中断录制；单个文件更小，出问题时损失更少")

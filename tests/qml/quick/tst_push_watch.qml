@@ -78,9 +78,23 @@ Item {
             veyra.hasSource = true
             verify(record.enabled)
             const toggles = veyra.recordingToggles
+            // The choices first (dialog "record"); nothing is recorded by the click itself.
+            veyra.setPreference("pushRecordAsk", true)
+            navigations.clear()
+            record.clicked()
+            compare(navigations.count, 1); compare(navigations.signalArguments[0][0], "record")
+            compare(veyra.recordingToggles, toggles); verify(!veyra.recording)
+            // With asking switched off the button records at once, as before 4.0.
+            veyra.setPreference("pushRecordAsk", false)
             record.clicked()
             compare(veyra.recordingToggles, toggles + 1)
             verify(veyra.recording)
+            // And it always stops at once, asking or not.
+            veyra.setPreference("pushRecordAsk", true)
+            record.clicked()
+            compare(veyra.recordingToggles, toggles + 2); verify(!veyra.recording)
+            veyra.setPreference("pushRecordAsk", false)
+            record.clicked(); verify(veyra.recording)
             verify(!control("watch-compare").enabled, "no comparison clip while recording")
             record.clicked()
             verify(!veyra.recording)

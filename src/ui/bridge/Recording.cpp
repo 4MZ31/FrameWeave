@@ -74,6 +74,8 @@ engine::RecordingSettings QmlPlayerBridge::recordingOptions() const {
     options.canvas = pushCanvas(impl_->prefInt("recordFit", 0));
     options.splitMinutes = uint32_t(std::clamp(impl_->prefInt("recordSplitMinutes", 0), 0, 240));
     if (const int kbps = impl_->prefInt("recordBitrateKbps", 0); kbps > 0) options.bitrateKbps = uint32_t(std::clamp(kbps, 300, 400000));
+    // PushFPS record dialog: "smaller files" asks for a share of the automatic rate (100 unless chosen).
+    options.bitrateScalePercent = uint32_t(std::clamp(impl_->prefInt("pushRecordBitrateScale", 100), 25, 200));
     // PushFPS advanced recording: only while 设置 → 录制 → 高级 is on; otherwise
     // the standard encoding (the RecordingSettings defaults).
     if (impl_->prefBool("recordAdvanced", false)) {
@@ -196,7 +198,8 @@ void QmlPlayerBridge::pollReplay() {
                 const int limit = recordingFpsLimit();
                 const double shown = snap.submissionFps.value_or(snap.fps);
                 const uint32_t fps = uint32_t(std::clamp(limit > 0 ? std::min<double>(limit, shown > 1 ? shown : limit) : shown, 1.0, 480.0));
-                videoKbps = engine::recordingAutoBitrateMbps(out.width, out.height, fps, recordingHevc()) * 1000.0;
+                videoKbps = engine::recordingAutoBitrateMbps(out.width, out.height, fps, recordingHevc(),
+                                                             uint32_t(std::clamp(impl_->prefInt("pushRecordBitrateScale", 100), 25, 200))) * 1000.0;
             }
             const double audioKbps = recordingAudio() ? (impl_->prefBool("recordAdvanced", false) ? double(std::clamp(impl_->prefInt("recordAudioKbps", 192), 64, 320)) : 192.0) : 0.0;
             if (videoKbps > 0) fullMb = (videoKbps + audioKbps) * wanted / 8.0 / 1000.0;

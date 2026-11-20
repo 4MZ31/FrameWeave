@@ -107,6 +107,10 @@ Item {
             verify(!studio.live)
         }
         function test_record_replay_compare_screenshot() {
+            // The choices first (dialog "record"), unless asking is switched off.
+            control(studio, "studio-record").clicked()
+            verify(!veyra.recording); compare(root.navigated[root.navigated.length - 1], "record")
+            veyra.setPreference("pushRecordAsk", false)
             control(studio, "studio-record").clicked()
             verify(veyra.recording)
             verify(control(studio, "studio-rec-badge").visible)

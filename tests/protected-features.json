@@ -664,6 +664,33 @@
       }
     ],
     "needs_hardware": "A capture card that was never set up on the PC: the path through the capture dialog is not run by any test."
+  },
+  {
+    "id": "F26",
+    "what": "The record dialog: shape, fill or fit, size and picture quality before a normal recording starts; the shortcut never asks; the standard rate is what it always was",
+    "guards": [
+      {
+        "file": "tests/qml/quick/tst_push_record.qml",
+        "ci": "tst_push_record",
+        "contains": "test_what_settings_chose_is_shown_and_kept_until_something_is_picked"
+      },
+      {
+        "file": "tests/qml/quick/tst_push_record.qml",
+        "ci": "tst_push_record",
+        "contains": "test_a_tall_recording_fills_or_fits"
+      },
+      {
+        "file": "tests/unit/PushRecordQualityTests.cpp",
+        "ci": "veyra_push_record_quality_tests",
+        "contains": "at 100 % every size, rate and codec gives the number the recorder always gave"
+      },
+      {
+        "file": "tests/qml/quick/tst_push_watch.qml",
+        "ci": "tst_push_watch",
+        "contains": "With asking switched off the button records at once, as before 4.0"
+      }
+    ],
+    "needs_hardware": "A graphics card with an encoder: no recording is encoded in CI, so the file a choice gives is not looked at."
   }
  ]
 }

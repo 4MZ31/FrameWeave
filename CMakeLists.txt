@@ -1083,6 +1083,10 @@ target_include_directories(veyra_push_hud_still_tests PRIVATE ${CMAKE_CURRENT_SO
 add_executable(veyra_push_capture_audio_suggest_tests tests/unit/PushCaptureAudioSuggestTests.cpp)
 target_compile_features(veyra_push_capture_audio_suggest_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_capture_audio_suggest_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: the recorder's standard bitrate and its scale (engine/PushRecordQuality.h, pure; also builds with g++).
+add_executable(veyra_push_record_quality_tests tests/unit/PushRecordQualityTests.cpp)
+target_compile_features(veyra_push_record_quality_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_record_quality_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_push_fg_health_tests tests/unit/PushFgHealthTests.cpp)
 target_compile_features(veyra_push_fg_health_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_fg_health_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

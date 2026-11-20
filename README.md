@@ -113,6 +113,7 @@ that, PushFPS adds what console players need:
 | **Keep the HUD sharp** | On by default: what stands still in front of a moving picture keeps its real pixels in generated frames, with every method PushFPS runs itself |
 | **Live HUD Lock** | Finds still text, crosshairs and bars on every frame and keeps them sharp in generated frames, no boxes needed |
 | **Lip sync by hand** | Move the sound earlier or later in steps of 10 ms on top of automatic sync, for the delay your capture card, screen or headphones add |
+| **Choose before you record** | Click Record and pick horizontal or vertical, fill or fit, the size (4K, 1440p, 1080p) and the quality, and see the bitrate before it starts |
 | **Adaptive multiplier** | Follows the game when its frame rate drops, so the output stays even |
 | **Game presets** | GTA VI and other layouts in one click, with the minimap and HUD kept sharp. Save your own and share them as a code |
 | **Automatic HUD detection** | Watches your game for a few seconds and finds the minimap, health and ammo, so they are never interpolated. Correct the boxes by dragging them |
@@ -700,6 +701,10 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
 
 - **Record** (F8) saves what you see and hear, with the picture, sound profile and frame generation applied,
   for as long as you like: a recording runs until you stop it or the disk is full.
+- **Choose before you record** (since 4.0): the Record button first asks for the shape (horizontal, or
+  vertical 9:16 with *Fill* or *Fit*), the size (the picture's own, 4K, 1440p or 1080p) and the quality
+  (*Best*, *High*, *Smaller files*), and says what will be recorded: size, frames a second, codec and bitrate.
+  F8 never asks and uses what you chose last. *Ask before every recording* switches the question off.
 - **Instant replay** keeps the last minute (15 seconds to 10 minutes) in memory; press **F9** to save it.
   Turn it on next to the Record button or under *Settings, Playback*. It can run while you record. It uses
   an extra hardware encoder and some memory while it is on, so it is off by default.

@@ -25,6 +25,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "StudioLayout.js" as StudioGeometry
+import "PushRecord.js" as Record
 
 VPage {
     id: studio
@@ -855,7 +856,8 @@ VPage {
                     iconName: "video"
                     text: studio.recordingNow ? qsTr("停止录制") : qsTr("开始录制")
                     enabled: studio.recordingNow || veyra.hasSource
-                    onClicked: veyra.toggleRecording("studio")
+                    // PushFPS 4.0: the choices first (PushRecordDialog), unless that was switched off.
+                    onClicked: !studio.recordingNow && Record.asks(veyra.preferences) ? veyra.navigate("record") : veyra.toggleRecording("studio")
                 }
                 VButton {
                     objectName: "studio-replay"

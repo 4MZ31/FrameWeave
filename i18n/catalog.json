@@ -9912,6 +9912,23 @@
    "ru": "Compare with the original"
   },
   {
+   "zh": "与画面相同",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "與畫面相同",
+   "en": "Same as the picture",
+   "ja": "映像と同じ",
+   "nl": "Same as the picture",
+   "de": "Same as the picture",
+   "es": "Same as the picture",
+   "fr": "Same as the picture",
+   "it": "Same as the picture",
+   "pt-BR": "Same as the picture",
+   "tr": "Same as the picture",
+   "ar": "Same as the picture",
+   "pl": "Same as the picture",
+   "ru": "Same as the picture"
+  },
+  {
    "zh": "专业模式",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "專業模式",
@@ -14416,6 +14433,23 @@
    "ar": "وحينما لا تزال التسجيلات والمعاودة تستقبل سمعة؛ لا يُلعب صوت الإمساك محلياً.",
    "pl": "Po wyłączeniu nagrywania i odtwarzania nadal odbierają dźwięk audio; dźwięk przechwytywania nie jest odtwarzany lokalnie.",
    "ru": "При выключении запись и воспроизведение по-прежнему получают аудио; звук захвата не воспроизводится локально."
+  },
+  {
+   "zh": "关闭后，点录制按钮会直接开始，用的是这里最后选的。录制快捷键总是直接开始",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "關閉後，點錄製按鈕會直接開始，用的是這裡最後選的。錄製快速鍵總是直接開始",
+   "en": "When off, the record button starts at once with what was chosen here last. The recording shortcut always starts at once",
+   "ja": "オフにすると、録画ボタンはここで最後に選んだ内容ですぐに始まります。録画のショートカットは常にすぐ始まります",
+   "nl": "When off, the record button starts at once with what was chosen here last. The recording shortcut always starts at once",
+   "de": "When off, the record button starts at once with what was chosen here last. The recording shortcut always starts at once",
+   "es": "When off, the record button starts at once with what was chosen here last. The recording shortcut always starts at once",
+   "fr": "When off, the record button starts at once with what was chosen here last. The recording shortcut always starts at once",
+   "it": "When off, the record button starts at once with what was chosen here last. The recording shortcut always starts at once",
+   "pt-BR": "When off, the record button starts at once with what was chosen here last. The recording shortcut always starts at once",
+   "tr": "When off, the record button starts at once with what was chosen here last. The recording shortcut always starts at once",
+   "ar": "When off, the record button starts at once with what was chosen here last. The recording shortcut always starts at once",
+   "pl": "When off, the record button starts at once with what was chosen here last. The recording shortcut always starts at once",
+   "ru": "When off, the record button starts at once with what was chosen here last. The recording shortcut always starts at once"
   },
   {
    "zh": "关闭弹性与转场",
@@ -21014,6 +21048,23 @@
    "ru": "Заполните окно и обрезайте то, что переполнено"
   },
   {
+   "zh": "填满：画面占满整个竖屏，左右两边被裁掉",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "填滿：畫面占滿整個直式畫面，左右兩邊被裁掉",
+   "en": "Fill: the picture fills the whole vertical frame, and its left and right sides are cut off",
+   "ja": "全面：映像が縦長の枠いっぱいに広がり、左右が切り取られます",
+   "nl": "Fill: the picture fills the whole vertical frame, and its left and right sides are cut off",
+   "de": "Fill: the picture fills the whole vertical frame, and its left and right sides are cut off",
+   "es": "Fill: the picture fills the whole vertical frame, and its left and right sides are cut off",
+   "fr": "Fill: the picture fills the whole vertical frame, and its left and right sides are cut off",
+   "it": "Fill: the picture fills the whole vertical frame, and its left and right sides are cut off",
+   "pt-BR": "Fill: the picture fills the whole vertical frame, and its left and right sides are cut off",
+   "tr": "Fill: the picture fills the whole vertical frame, and its left and right sides are cut off",
+   "ar": "Fill: the picture fills the whole vertical frame, and its left and right sides are cut off",
+   "pl": "Fill: the picture fills the whole vertical frame, and its left and right sides are cut off",
+   "ru": "Fill: the picture fills the whole vertical frame, and its left and right sides are cut off"
+  },
+  {
    "zh": "增加 NR 带来的提亮；0 取消这部分变化。",
    "src": "qml/NrLayerEditor.qml",
    "zh-TW": "增加 NR 帶來的提亮；0 取消這部分變化。",
@@ -22358,7 +22409,7 @@
   },
   {
    "zh": "大小",
-   "src": "qml/StudioPage.qml",
+   "src": "qml/PushRecordDialog.qml",
    "zh-TW": "大小",
    "en": "Size",
    "ja": "サイズ",
@@ -23190,6 +23241,23 @@
    "ru": "Full effect (the default)"
   },
   {
+   "zh": "完整显示",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "完整顯示",
+   "en": "Fit",
+   "ja": "全体表示",
+   "nl": "Fit",
+   "de": "Fit",
+   "es": "Fit",
+   "fr": "Fit",
+   "it": "Fit",
+   "pt-BR": "Fit",
+   "tr": "Fit",
+   "ar": "Fit",
+   "pl": "Fit",
+   "ru": "Fit"
+  },
+  {
    "zh": "完整显示，不裁切也不变形；黑边换成画面本身柔和、变暗的延伸",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "完整顯示，不裁切也不變形；黑邊換成畫面本身柔和、變暗的延伸",
@@ -23205,6 +23273,23 @@
    "ar": "Shown whole, not cut and not distorted; the bars become a soft, dimmed extension of the picture itself",
    "pl": "Shown whole, not cut and not distorted; the bars become a soft, dimmed extension of the picture itself",
    "ru": "Shown whole, not cut and not distorted; the bars become a soft, dimmed extension of the picture itself"
+  },
+  {
+   "zh": "完整显示：整个画面都在，上下留黑边",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "完整顯示：整個畫面都在，上下留黑邊",
+   "en": "Fit: the whole picture is there, with black bars above and below",
+   "ja": "全体表示：映像全体が入り、上下に黒帯が付きます",
+   "nl": "Fit: the whole picture is there, with black bars above and below",
+   "de": "Fit: the whole picture is there, with black bars above and below",
+   "es": "Fit: the whole picture is there, with black bars above and below",
+   "fr": "Fit: the whole picture is there, with black bars above and below",
+   "it": "Fit: the whole picture is there, with black bars above and below",
+   "pt-BR": "Fit: the whole picture is there, with black bars above and below",
+   "tr": "Fit: the whole picture is there, with black bars above and below",
+   "ar": "Fit: the whole picture is there, with black bars above and below",
+   "pl": "Fit: the whole picture is there, with black bars above and below",
+   "ru": "Fit: the whole picture is there, with black bars above and below"
   },
   {
    "zh": "完整画面并排两份：左边是原帧率，右边是 PushFPS",
@@ -24652,6 +24737,40 @@
    "ru": "Что будет сохранено, что используется сейчас"
   },
   {
+   "zh": "将录制：%1，恒定画质",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "將錄製：%1，固定畫質",
+   "en": "Will record: %1, constant quality",
+   "ja": "録画内容：%1、固定品質",
+   "nl": "Will record: %1, constant quality",
+   "de": "Will record: %1, constant quality",
+   "es": "Will record: %1, constant quality",
+   "fr": "Will record: %1, constant quality",
+   "it": "Will record: %1, constant quality",
+   "pt-BR": "Will record: %1, constant quality",
+   "tr": "Will record: %1, constant quality",
+   "ar": "Will record: %1, constant quality",
+   "pl": "Will record: %1, constant quality",
+   "ru": "Will record: %1, constant quality"
+  },
+  {
+   "zh": "将录制：%1，约 %2 Mbps（每分钟约 %3）",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "將錄製：%1，約 %2 Mbps（每分鐘約 %3）",
+   "en": "Will record: %1, about %2 Mbps (about %3 a minute)",
+   "ja": "録画内容：%1、約 %2 Mbps（1 分あたり約 %3）",
+   "nl": "Will record: %1, about %2 Mbps (about %3 a minute)",
+   "de": "Will record: %1, about %2 Mbps (about %3 a minute)",
+   "es": "Will record: %1, about %2 Mbps (about %3 a minute)",
+   "fr": "Will record: %1, about %2 Mbps (about %3 a minute)",
+   "it": "Will record: %1, about %2 Mbps (about %3 a minute)",
+   "pt-BR": "Will record: %1, about %2 Mbps (about %3 a minute)",
+   "tr": "Will record: %1, about %2 Mbps (about %3 a minute)",
+   "ar": "Will record: %1, about %2 Mbps (about %3 a minute)",
+   "pl": "Will record: %1, about %2 Mbps (about %3 a minute)",
+   "ru": "Will record: %1, about %2 Mbps (about %3 a minute)"
+  },
+  {
    "zh": "将手柄平放并保持静止：采集 120 个稳定样本完成校准；10 秒内不稳定则保留原校准。",
    "src": "src/ui/bridge/RemotePlay.cpp",
    "zh-TW": "將手把平放並保持靜止：擷取 120 個穩定樣本完成校準；10 秒內不穩定則保留原校準。",
@@ -24735,6 +24854,23 @@
    "ar": "Minimap bottom left, health and focus bars top left, weapon, wanted level and cash top right (from the footage Rockstar showed before release). The edges are estimates: check them with Adjust HUD areas once you play. The frame rate dips on the base PS5, so the adaptive multiplier is on",
    "pl": "Minimap bottom left, health and focus bars top left, weapon, wanted level and cash top right (from the footage Rockstar showed before release). The edges are estimates: check them with Adjust HUD areas once you play. The frame rate dips on the base PS5, so the adaptive multiplier is on",
    "ru": "Minimap bottom left, health and focus bars top left, weapon, wanted level and cash top right (from the footage Rockstar showed before release). The edges are estimates: check them with Adjust HUD areas once you play. The frame rate dips on the base PS5, so the adaptive multiplier is on"
+  },
+  {
+   "zh": "小文件",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "小檔案",
+   "en": "Smaller files",
+   "ja": "小さいファイル",
+   "nl": "Smaller files",
+   "de": "Smaller files",
+   "es": "Smaller files",
+   "fr": "Smaller files",
+   "it": "Smaller files",
+   "pt-BR": "Smaller files",
+   "tr": "Smaller files",
+   "ar": "Smaller files",
+   "pl": "Smaller files",
+   "ru": "Smaller files"
   },
   {
    "zh": "尚无导出任务",
@@ -28613,6 +28749,23 @@
    "ru": "Начать запись"
   },
   {
+   "zh": "开始录制时按画面的大小和帧率录",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "開始錄製時按畫面的大小和影格率錄",
+   "en": "Records at the picture's size and frame rate when it starts",
+   "ja": "録画開始時の映像のサイズとフレームレートで録画します",
+   "nl": "Records at the picture's size and frame rate when it starts",
+   "de": "Records at the picture's size and frame rate when it starts",
+   "es": "Records at the picture's size and frame rate when it starts",
+   "fr": "Records at the picture's size and frame rate when it starts",
+   "it": "Records at the picture's size and frame rate when it starts",
+   "pt-BR": "Records at the picture's size and frame rate when it starts",
+   "tr": "Records at the picture's size and frame rate when it starts",
+   "ar": "Records at the picture's size and frame rate when it starts",
+   "pl": "Records at the picture's size and frame rate when it starts",
+   "ru": "Records at the picture's size and frame rate when it starts"
+  },
+  {
    "zh": "开始捕获",
    "src": "qml/ScreenSourceDialog.qml",
    "zh-TW": "開始擷取",
@@ -31180,6 +31333,23 @@
    "ru": "Общая сила изменений"
   },
   {
+   "zh": "恒定画质：画面再复杂也不会糊，文件最大",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "固定畫質：畫面再複雜也不會糊，檔案最大",
+   "en": "Constant quality: stays sharp however busy the picture gets. The largest files",
+   "ja": "固定品質：映像がどれほど複雑でもぼやけません。ファイルは最大になります",
+   "nl": "Constant quality: stays sharp however busy the picture gets. The largest files",
+   "de": "Constant quality: stays sharp however busy the picture gets. The largest files",
+   "es": "Constant quality: stays sharp however busy the picture gets. The largest files",
+   "fr": "Constant quality: stays sharp however busy the picture gets. The largest files",
+   "it": "Constant quality: stays sharp however busy the picture gets. The largest files",
+   "pt-BR": "Constant quality: stays sharp however busy the picture gets. The largest files",
+   "tr": "Constant quality: stays sharp however busy the picture gets. The largest files",
+   "ar": "Constant quality: stays sharp however busy the picture gets. The largest files",
+   "pl": "Constant quality: stays sharp however busy the picture gets. The largest files",
+   "ru": "Constant quality: stays sharp however busy the picture gets. The largest files"
+  },
+  {
    "zh": "恒定质量",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "恆定品質",
@@ -33456,6 +33626,23 @@
    "ar": "Recorded at the picture's own size, up to 1440p",
    "pl": "Recorded at the picture's own size, up to 1440p",
    "ru": "Recorded at the picture's own size, up to 1440p"
+  },
+  {
+   "zh": "按画面原本的大小录，不缩放",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "按畫面原本的大小錄，不縮放",
+   "en": "Recorded at the picture's own size, not scaled",
+   "ja": "映像そのままのサイズで録画し、拡大縮小しません",
+   "nl": "Recorded at the picture's own size, not scaled",
+   "de": "Recorded at the picture's own size, not scaled",
+   "es": "Recorded at the picture's own size, not scaled",
+   "fr": "Recorded at the picture's own size, not scaled",
+   "it": "Recorded at the picture's own size, not scaled",
+   "pt-BR": "Recorded at the picture's own size, not scaled",
+   "tr": "Recorded at the picture's own size, not scaled",
+   "ar": "Recorded at the picture's own size, not scaled",
+   "pl": "Recorded at the picture's own size, not scaled",
+   "ru": "Recorded at the picture's own size, not scaled"
   },
   {
    "zh": "按键到画面",
@@ -38457,6 +38644,23 @@
    "ru": "Минимальная задержка"
   },
   {
+   "zh": "最佳",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "最佳",
+   "en": "Best",
+   "ja": "最高",
+   "nl": "Best",
+   "de": "Best",
+   "es": "Best",
+   "fr": "Best",
+   "it": "Best",
+   "pt-BR": "Best",
+   "tr": "Best",
+   "ar": "Best",
+   "pl": "Best",
+   "ru": "Best"
+  },
+  {
    "zh": "最佳画质",
    "src": "qml/PushOptimizeDialog.qml",
    "zh-TW": "最佳畫質",
@@ -40174,6 +40378,40 @@
    "ru": "Стандарт"
   },
   {
+   "zh": "标准码率的一半：文件小一半，快速运动时画面会软一些",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "標準位元率的一半：檔案小一半，快速運動時畫面會軟一些",
+   "en": "Half the standard bitrate: files half the size, a little softer in fast motion",
+   "ja": "標準ビットレートの半分：ファイルは半分になり、速い動きでは少し甘くなります",
+   "nl": "Half the standard bitrate: files half the size, a little softer in fast motion",
+   "de": "Half the standard bitrate: files half the size, a little softer in fast motion",
+   "es": "Half the standard bitrate: files half the size, a little softer in fast motion",
+   "fr": "Half the standard bitrate: files half the size, a little softer in fast motion",
+   "it": "Half the standard bitrate: files half the size, a little softer in fast motion",
+   "pt-BR": "Half the standard bitrate: files half the size, a little softer in fast motion",
+   "tr": "Half the standard bitrate: files half the size, a little softer in fast motion",
+   "ar": "Half the standard bitrate: files half the size, a little softer in fast motion",
+   "pl": "Half the standard bitrate: files half the size, a little softer in fast motion",
+   "ru": "Half the standard bitrate: files half the size, a little softer in fast motion"
+  },
+  {
+   "zh": "标准码率：快速运动也保持清晰，适合保存和剪辑",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "標準位元率：快速運動也保持清晰，適合保存和剪輯",
+   "en": "The standard bitrate: sharp in fast motion too, good for keeping and editing",
+   "ja": "標準ビットレート：速い動きでも鮮明で、保存や編集に向いています",
+   "nl": "The standard bitrate: sharp in fast motion too, good for keeping and editing",
+   "de": "The standard bitrate: sharp in fast motion too, good for keeping and editing",
+   "es": "The standard bitrate: sharp in fast motion too, good for keeping and editing",
+   "fr": "The standard bitrate: sharp in fast motion too, good for keeping and editing",
+   "it": "The standard bitrate: sharp in fast motion too, good for keeping and editing",
+   "pt-BR": "The standard bitrate: sharp in fast motion too, good for keeping and editing",
+   "tr": "The standard bitrate: sharp in fast motion too, good for keeping and editing",
+   "ar": "The standard bitrate: sharp in fast motion too, good for keeping and editing",
+   "pl": "The standard bitrate: sharp in fast motion too, good for keeping and editing",
+   "ru": "The standard bitrate: sharp in fast motion too, good for keeping and editing"
+  },
+  {
    "zh": "标题",
    "src": "qml/StudioPage.qml",
    "zh-TW": "標題",
@@ -40871,6 +41109,40 @@
    "ru": "Moves the picture sideways and up or down; the middle is the centre of the screen"
   },
   {
+   "zh": "横屏",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "橫式",
+   "en": "Horizontal",
+   "ja": "横長",
+   "nl": "Horizontal",
+   "de": "Horizontal",
+   "es": "Horizontal",
+   "fr": "Horizontal",
+   "it": "Horizontal",
+   "pt-BR": "Horizontal",
+   "tr": "Horizontal",
+   "ar": "Horizontal",
+   "pl": "Horizontal",
+   "ru": "Horizontal"
+  },
+  {
+   "zh": "横屏：和画面一样的形状",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "橫式：和畫面一樣的形狀",
+   "en": "Horizontal: the same shape as the picture",
+   "ja": "横長：映像と同じ形",
+   "nl": "Horizontal: the same shape as the picture",
+   "de": "Horizontal: the same shape as the picture",
+   "es": "Horizontal: the same shape as the picture",
+   "fr": "Horizontal: the same shape as the picture",
+   "it": "Horizontal: the same shape as the picture",
+   "pt-BR": "Horizontal: the same shape as the picture",
+   "tr": "Horizontal: the same shape as the picture",
+   "ar": "Horizontal: the same shape as the picture",
+   "pl": "Horizontal: the same shape as the picture",
+   "ru": "Horizontal: the same shape as the picture"
+  },
+  {
    "zh": "橙色",
    "src": "qml/ColourMixer.qml",
    "zh-TW": "橙色",
@@ -41005,6 +41277,23 @@
    "ar": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due",
    "pl": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due",
    "ru": "In use. Made %1 forecast frames; %2 % of the moving picture was not trusted and left as it is; %3 forecast frames were not shown because the next real frame was already due"
+  },
+  {
+   "zh": "正在使用设置里选的码率或平台预设（%1 Mbps）。在这里选一项就会改用它",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "正在使用設定裡選的位元率或平台預設（%1 Mbps）。在這裡選一項就會改用它",
+   "en": "Using the bitrate or platform preset chosen in Settings (%1 Mbps). Pick one here to use that instead",
+   "ja": "設定で選んだビットレートまたはプラットフォームのプリセット（%1 Mbps）を使用中です。ここで選ぶとそちらに切り替わります",
+   "nl": "Using the bitrate or platform preset chosen in Settings (%1 Mbps). Pick one here to use that instead",
+   "de": "Using the bitrate or platform preset chosen in Settings (%1 Mbps). Pick one here to use that instead",
+   "es": "Using the bitrate or platform preset chosen in Settings (%1 Mbps). Pick one here to use that instead",
+   "fr": "Using the bitrate or platform preset chosen in Settings (%1 Mbps). Pick one here to use that instead",
+   "it": "Using the bitrate or platform preset chosen in Settings (%1 Mbps). Pick one here to use that instead",
+   "pt-BR": "Using the bitrate or platform preset chosen in Settings (%1 Mbps). Pick one here to use that instead",
+   "tr": "Using the bitrate or platform preset chosen in Settings (%1 Mbps). Pick one here to use that instead",
+   "ar": "Using the bitrate or platform preset chosen in Settings (%1 Mbps). Pick one here to use that instead",
+   "pl": "Using the bitrate or platform preset chosen in Settings (%1 Mbps). Pick one here to use that instead",
+   "ru": "Using the bitrate or platform preset chosen in Settings (%1 Mbps). Pick one here to use that instead"
   },
   {
    "zh": "正在保存正式文件",
@@ -43047,6 +43336,23 @@
    "ru": "Играет один раз за запуск, продолжаясь после ввода. Эта настройка сохраняется; кнопка угла останавливает только этот запуск."
   },
   {
+   "zh": "每次录制前都询问",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "每次錄製前都詢問",
+   "en": "Ask before every recording",
+   "ja": "録画のたびに確認する",
+   "nl": "Ask before every recording",
+   "de": "Ask before every recording",
+   "es": "Ask before every recording",
+   "fr": "Ask before every recording",
+   "it": "Ask before every recording",
+   "pt-BR": "Ask before every recording",
+   "tr": "Ask before every recording",
+   "ar": "Ask before every recording",
+   "pl": "Ask before every recording",
+   "ru": "Ask before every recording"
+  },
+  {
    "zh": "每秒最多显示多少帧。补帧时把输出锁在目标帧率，画面的节奏更均匀",
    "src": "qml/ProPresentationRows.qml",
    "zh-TW": "每秒最多顯示多少幀。補幀時把輸出鎖在目標幀率，畫面的節奏更均勻",
@@ -43079,6 +43385,23 @@
    "ar": "Every second real frame is withheld, frame generation recreates it, and the result is compared with the original. It measures your own game with your current settings",
    "pl": "Every second real frame is withheld, frame generation recreates it, and the result is compared with the original. It measures your own game with your current settings",
    "ru": "Every second real frame is withheld, frame generation recreates it, and the result is compared with the original. It measures your own game with your current settings"
+  },
+  {
+   "zh": "比画面本身大：会被放大，不会更清晰",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "比畫面本身大：會被放大，不會更清晰",
+   "en": "Larger than the picture itself: it is enlarged, which does not make it sharper",
+   "ja": "映像そのものより大きいサイズです。拡大されますが、鮮明にはなりません",
+   "nl": "Larger than the picture itself: it is enlarged, which does not make it sharper",
+   "de": "Larger than the picture itself: it is enlarged, which does not make it sharper",
+   "es": "Larger than the picture itself: it is enlarged, which does not make it sharper",
+   "fr": "Larger than the picture itself: it is enlarged, which does not make it sharper",
+   "it": "Larger than the picture itself: it is enlarged, which does not make it sharper",
+   "pt-BR": "Larger than the picture itself: it is enlarged, which does not make it sharper",
+   "tr": "Larger than the picture itself: it is enlarged, which does not make it sharper",
+   "ar": "Larger than the picture itself: it is enlarged, which does not make it sharper",
+   "pl": "Larger than the picture itself: it is enlarged, which does not make it sharper",
+   "ru": "Larger than the picture itself: it is enlarged, which does not make it sharper"
   },
   {
    "zh": "比较源画面与上一帧：没有明显变化的像素沿用上一帧输出，明显变化的位置直接用新结果。",
@@ -45733,6 +46056,23 @@
    "ru": "Нажмите файл слева для предварительного просмотра"
   },
   {
+   "zh": "点录制按钮时先选形状、大小和画质再开始。录制快捷键总是直接开始",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "點錄製按鈕時先選形狀、大小和畫質再開始。錄製快速鍵總是直接開始",
+   "en": "The record button shows shape, size and quality first. The recording shortcut always starts at once",
+   "ja": "録画ボタンを押すと、先に形・サイズ・画質を選んでから始まります。録画のショートカットは常にすぐ始まります",
+   "nl": "The record button shows shape, size and quality first. The recording shortcut always starts at once",
+   "de": "The record button shows shape, size and quality first. The recording shortcut always starts at once",
+   "es": "The record button shows shape, size and quality first. The recording shortcut always starts at once",
+   "fr": "The record button shows shape, size and quality first. The recording shortcut always starts at once",
+   "it": "The record button shows shape, size and quality first. The recording shortcut always starts at once",
+   "pt-BR": "The record button shows shape, size and quality first. The recording shortcut always starts at once",
+   "tr": "The record button shows shape, size and quality first. The recording shortcut always starts at once",
+   "ar": "The record button shows shape, size and quality first. The recording shortcut always starts at once",
+   "pl": "The record button shows shape, size and quality first. The recording shortcut always starts at once",
+   "ru": "The record button shows shape, size and quality first. The recording shortcut always starts at once"
+  },
+  {
    "zh": "点曲线",
    "src": "qml/ColourPanel.qml",
    "zh-TW": "點曲線",
@@ -46904,6 +47244,23 @@
    "ar": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help",
    "pl": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help",
    "ru": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help"
+  },
+  {
+   "zh": "画面缩放到这个大小再录",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "畫面縮放到這個大小再錄",
+   "en": "The picture is scaled to this size and then recorded",
+   "ja": "映像をこのサイズに変えてから録画します",
+   "nl": "The picture is scaled to this size and then recorded",
+   "de": "The picture is scaled to this size and then recorded",
+   "es": "The picture is scaled to this size and then recorded",
+   "fr": "The picture is scaled to this size and then recorded",
+   "it": "The picture is scaled to this size and then recorded",
+   "pt-BR": "The picture is scaled to this size and then recorded",
+   "tr": "The picture is scaled to this size and then recorded",
+   "ar": "The picture is scaled to this size and then recorded",
+   "pl": "The picture is scaled to this size and then recorded",
+   "ru": "The picture is scaled to this size and then recorded"
   },
   {
    "zh": "画面调控",
@@ -48844,6 +49201,23 @@
    "ru": "Вертикально"
   },
   {
+   "zh": "竖屏 9:16，适合 TikTok、Shorts 和 Reels",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "直式 9:16，適合 TikTok、Shorts 和 Reels",
+   "en": "Vertical 9:16, for TikTok, Shorts and Reels",
+   "ja": "縦長 9:16。TikTok、Shorts、Reels 向け",
+   "nl": "Vertical 9:16, for TikTok, Shorts and Reels",
+   "de": "Vertical 9:16, for TikTok, Shorts and Reels",
+   "es": "Vertical 9:16, for TikTok, Shorts and Reels",
+   "fr": "Vertical 9:16, for TikTok, Shorts and Reels",
+   "it": "Vertical 9:16, for TikTok, Shorts and Reels",
+   "pt-BR": "Vertical 9:16, for TikTok, Shorts and Reels",
+   "tr": "Vertical 9:16, for TikTok, Shorts and Reels",
+   "ar": "Vertical 9:16, for TikTok, Shorts and Reels",
+   "pl": "Vertical 9:16, for TikTok, Shorts and Reels",
+   "ru": "Vertical 9:16, for TikTok, Shorts and Reels"
+  },
+  {
    "zh": "竖屏 9:16，适合 TikTok、Shorts 和 Reels：上面是原帧率，下面是 PushFPS，各占半屏（取画面中间部分）",
    "src": "qml/PushCompareDialog.qml",
    "zh-TW": "直式 9:16，適合 TikTok、Shorts 和 Reels：上面是原幀率，下面是 PushFPS，各占半屏（取畫面中間部分）",
@@ -48859,6 +49233,23 @@
    "ar": "عمودي 9:16 لـ TikTok وShorts وReels: في الأعلى المعدل الأصلي وفي الأسفل PushFPS، كل منهما نصف الشاشة (وسط الصورة)",
    "pl": "Pion 9:16 do TikTok, Shorts i Reels: u góry oryginalna liczba klatek, na dole PushFPS, każde na pół ekranu (środek obrazu)",
    "ru": "Вертикально 9:16 для TikTok, Shorts и Reels: сверху исходная частота, снизу PushFPS, каждое на половину экрана (середина картинки)"
+  },
+  {
+   "zh": "竖屏里的画面",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "直式畫面裡的畫面",
+   "en": "Picture in the vertical frame",
+   "ja": "縦長の枠内の映像",
+   "nl": "Picture in the vertical frame",
+   "de": "Picture in the vertical frame",
+   "es": "Picture in the vertical frame",
+   "fr": "Picture in the vertical frame",
+   "it": "Picture in the vertical frame",
+   "pt-BR": "Picture in the vertical frame",
+   "tr": "Picture in the vertical frame",
+   "ar": "Picture in the vertical frame",
+   "pl": "Picture in the vertical frame",
+   "ru": "Picture in the vertical frame"
   },
   {
    "zh": "端点已打开",
@@ -54947,6 +55338,23 @@
    "ru": "Не удалось слить презентацию для восстановления настроек. Воспроизведение прекратилось."
   },
   {
+   "zh": "设置里选了另一种大小（%1 × %2）。在这里选一项就会改用它",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "設定裡選了另一種大小（%1 × %2）。在這裡選一項就會改用它",
+   "en": "Settings has another size chosen (%1 × %2). Pick one here to use that instead",
+   "ja": "設定で別のサイズ（%1 × %2）が選ばれています。ここで選ぶとそちらに切り替わります",
+   "nl": "Settings has another size chosen (%1 × %2). Pick one here to use that instead",
+   "de": "Settings has another size chosen (%1 × %2). Pick one here to use that instead",
+   "es": "Settings has another size chosen (%1 × %2). Pick one here to use that instead",
+   "fr": "Settings has another size chosen (%1 × %2). Pick one here to use that instead",
+   "it": "Settings has another size chosen (%1 × %2). Pick one here to use that instead",
+   "pt-BR": "Settings has another size chosen (%1 × %2). Pick one here to use that instead",
+   "tr": "Settings has another size chosen (%1 × %2). Pick one here to use that instead",
+   "ar": "Settings has another size chosen (%1 × %2). Pick one here to use that instead",
+   "pl": "Settings has another size chosen (%1 × %2). Pick one here to use that instead",
+   "ru": "Settings has another size chosen (%1 × %2). Pick one here to use that instead"
+  },
+  {
    "zh": "访问页面",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "造訪頁面",
@@ -59960,6 +60368,23 @@
    "ar": "اختيار مجلد التسجيلات",
    "pl": "Wybierz folder nagrań",
    "ru": "Выбрать папку записей"
+  },
+  {
+   "zh": "选择录成什么样，然后开始",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "選擇錄成什麼樣，然後開始",
+   "en": "Choose what the recording will be, then start",
+   "ja": "どのように録画するかを選んでから開始します",
+   "nl": "Choose what the recording will be, then start",
+   "de": "Choose what the recording will be, then start",
+   "es": "Choose what the recording will be, then start",
+   "fr": "Choose what the recording will be, then start",
+   "it": "Choose what the recording will be, then start",
+   "pt-BR": "Choose what the recording will be, then start",
+   "tr": "Choose what the recording will be, then start",
+   "ar": "Choose what the recording will be, then start",
+   "pl": "Choose what the recording will be, then start",
+   "ru": "Choose what the recording will be, then start"
   },
   {
    "zh": "选择截图目录",
