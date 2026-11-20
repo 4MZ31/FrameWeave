@@ -159,6 +159,9 @@ struct EnhanceGraphDesc {
     // PushFlow only: PushFlow 2's Predict is asked for (the same rules; live sources only, set by the
     // engine's stage request). The batch then holds the real frame first and forecasts after it.
     bool pushFlowPredict=false;
+    // PushFlow only: PushFlow 2's Dual is asked for. It acts only while Predict does, at 2X: each batch
+    // then also carries the two frames a recording takes in place of the ones shown.
+    bool pushFlowDual=false;
     bool vfgAsyncSubmission=false; // preview-only; export retains synchronous SDK verdicts
     bool vfgAutoRegulate=false;
     bool vfgFastFallback=false; // live 2X with vfgAutoRegulate: also load the next faster VFG model
@@ -605,6 +608,12 @@ public:
         bool historyReset=false,fgRecovery=false,fgBudgetSeed=false,fgReduced=false,fgFast=false,fgFastForBudget=false;
         // PushFlow 2's Predict made this batch: the real frame is first, the generated frames are forecasts after it.
         bool fgPredict=false;
+        // PushFlow 2's Dual: what a recording takes in place of this batch's real frame (a copy of the
+        // real frame before it, as shown) and in place of its first forecast (the true in-between frame
+        // of the pair). Null when Dual does not act for this batch. The leases keep the pool from
+        // reusing the two textures while this batch is shown.
+        ID3D12Resource* creatorReal=nullptr;ID3D12Resource* creatorBetween=nullptr;
+        std::shared_ptr<FrameLease> creatorRealLease,creatorBetweenLease;
         ResetReason detectedReset=ResetReason::None;
         int measuredContentRate=0;
         double ptsMs = 0.0;
@@ -757,6 +766,8 @@ public:
     // Predict steps aside for the pairs that follow (in-between frames again) until this is taken back:
     // the quality test and the optimiser measure in-between frames. Nothing is rebuilt.
     void setPushFlowPredictPaused(bool paused) { pushFlowPredictPaused_ = paused; }
+    // PushFlow 2's Dual acts: Predict is in use at 2X and Dual is asked for.
+    bool pushFlowDualActive() const;
     // PushFlow summary for the live stats: "fp32"/"fp16", rebuild, inference p50/p95 ms (0 when not running).
     // motionWidth / motionHeight: the size the network works the motion out at (0 while PushFlow is not running).
     // encoderCache: "" not asked for, "on", or why it is not used (PushFlowBackend.h Status::splitState).
@@ -766,7 +777,9 @@ public:
                              std::string guard; uint64_t guardFrames = 0, guardMended = 0, guardHeld = 0;
                              // predict: "" not asked for, "on", or why not; forecast frames made, and of the pixels
                              // counted in them how many the motion would move and how many of those were held.
-                             std::string predict; uint64_t predictFrames = 0, predictCounted = 0, predictMoving = 0, predictHeld = 0; };
+                             std::string predict; uint64_t predictFrames = 0, predictCounted = 0, predictMoving = 0, predictHeld = 0;
+                             // dual: "" not asked for, "on", "needs-predict" (Predict is not in use), "needs-2x".
+                             std::string dual; };
     PushFlowSummary pushFlowSummary() const;
     bool amfFrcActive() const;
     const char* fsrProviderVersion() const;

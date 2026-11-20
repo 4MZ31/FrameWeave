@@ -28,6 +28,13 @@ public:
         // PushFPS quality test (PushQualityProbe.h): the frame's presentation timestamp (100 ns, the
         // source clock; generated frames carry their in-between time), 0 when unknown.
         int64_t pts100ns=0;
+        // PushFlow 2's Dual: what a recording, the replay buffer and a stream take in place of `texture`:
+        // the true frame for this place in their own timeline, which runs one frame interval behind the
+        // screen (the screen shows a real frame: the real frame before it; the screen shows a forecast: the
+        // true in-between frame of the pair). Null = as played. COMMON on entry, left in COMMON, same
+        // format and size as `texture`. Comparison clips and every other consumer take `texture`.
+        ID3D12Resource* creator=nullptr;
+        bool creatorGenerated=false;
     };
     // Whether the next frames should carry `raw` (the graph keeps it only when asked).
     virtual bool wantsRawFrames() const { return false; }

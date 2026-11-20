@@ -1940,6 +1940,18 @@ VPage {
                                 title: qsTr("PushFlow 2：Predict，不等下一帧（实验）")
                                 explanation: qsTr("普通补帧要等下一个真实帧到达，才能在两帧之间生成画面，所以真实画面会晚大约一帧才显示。Predict 不等：最新的真实帧处理完就显示，它之后的画面由已经到达的两帧预测出来。延迟更低，但预测可能出错：物体突然改变方向或新物体出现时，预测帧会和实际不同，直到下一个真实帧纠正。不可信的位置保持最新真实帧不动，不会凭空生成画面。只用于采集卡、串流等实时画面，不用于视频文件和导出。延迟实际降低多少、画面是否可以接受，还没有在真实硬件上测量过，需要你来判断")
                             }
+                            PushFlow2Row {
+                                objectName: "list-pushflow2-dual-row"
+                                visible: veyra.fgBackendName === "pushflow"
+                                part: "dual"
+                                stateKey: "pushFlowDual"
+                                describe: function(st) {
+                                    return qsTr("正在使用。已交给录制和直播：%1 个真实帧，%2 个真实的中间帧")
+                                        .arg(Math.round(Number(st.pushFlowDualReal || 0))).arg(Math.round(Number(st.pushFlowDualBetween || 0)))
+                                }
+                                title: qsTr("PushFlow 2：Dual，录制和直播得到真实的帧（实验）")
+                                explanation: qsTr("开启 Predict 后，屏幕上显示的是预测帧。录制、即时回放和直播记录的是屏幕上的画面，所以也会包含这些预测帧。Dual 让它们改用真实的画面：真实帧本身，以及同一对真实帧之间真实的中间帧（Predict 已经算出了它，几乎不增加开销），时间上比屏幕晚一帧。你看到的画面和延迟都不变。只在 Predict 正在运行并且倍率是 2X 时起作用；对比短片仍然记录屏幕上的画面；录下的声音会比画面早一帧（30 FPS 时约 33 毫秒）。还没有在真实硬件上验证过")
+                            }
                             // Half precision is tested in a separate process first (PushFlowBench --fp16-probe):
                             // the switch only turns on after that test passed on this graphics card.
                             VRow {

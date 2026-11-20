@@ -73,6 +73,9 @@ struct Facts {
     // not shown because the next real frame was due, and the pixels counted / moving / held in them.
     std::string pushFlowPredict;
     uint64_t pushFlowPredictFrames = 0, pushFlowPredictSuperseded = 0, pushFlowPredictCounted = 0, pushFlowPredictMoving = 0, pushFlowPredictHeld = 0;
+    // PushFlow 2's Dual: "" not asked for, "on", or a word for why not; frames handed to recordings: real, in-between.
+    std::string pushFlowDual;
+    uint64_t pushFlowDualReal = 0, pushFlowDualBetween = 0;
 };
 
 // A word from a fixed list: lower-case letters, digits and '-' only, else empty.
@@ -183,7 +186,9 @@ inline std::string json(const Facts& f) {
     o += "    \"pushFlowPredict\": " + quoted(word(f.pushFlowPredict)) + ",\n";
     o += "    \"pushFlowPredictFrames\": " + (f.pushFlowPredictFrames ? "[" + std::to_string(f.pushFlowPredictFrames) + ", " + std::to_string(f.pushFlowPredictSuperseded) + "]" : std::string("null")) + ",\n";
     o += "    \"pushFlowPredictPixels\": " + (f.pushFlowPredictCounted ? "[" + std::to_string(f.pushFlowPredictCounted) + ", " + std::to_string(f.pushFlowPredictMoving) + ", " +
-                                               std::to_string(f.pushFlowPredictHeld) + "]" : std::string("null")) + "\n";
+                                               std::to_string(f.pushFlowPredictHeld) + "]" : std::string("null")) + ",\n";
+    o += "    \"pushFlowDual\": " + quoted(word(f.pushFlowDual)) + ",\n";
+    o += "    \"pushFlowDualFrames\": " + (f.pushFlowDualReal ? "[" + std::to_string(f.pushFlowDualReal) + ", " + std::to_string(f.pushFlowDualBetween) + "]" : std::string("null")) + "\n";
     o += "  },\n";
     o += "  \"notes\": \"Rates are frames PushFPS presented in the last second. softwareLatency is a frame's arrival in PushFPS to its Present call: "
          "not button to screen, and it leaves out the capture card, the console and the display. frameGenerationHealth: 0 fine, 1 nothing to add at this "

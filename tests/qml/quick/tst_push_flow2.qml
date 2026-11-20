@@ -24,6 +24,11 @@ Item {
         describe: function(st) { return "judged " + Math.round(Number(st.pushFlowGuardFrames || 0)) + " mended " + Math.round(Number(st.pushFlowGuardMended || 0)) + " held " + Math.round(Number(st.pushFlowGuardHeld || 0)) }
     }
     PushFlow2Row {
+        id: dual; width: 620; y: 500; part: "dual"; title: "Dual"; explanation: "What it does"
+        stateKey: "pushFlowDual"
+        describe: function(st) { return "handed on " + Math.round(Number(st.pushFlowDualReal || 0)) + " real, " + Math.round(Number(st.pushFlowDualBetween || 0)) + " in-between" }
+    }
+    PushFlow2Row {
         id: predict; width: 620; y: 380; part: "predict"; title: "Predict"; explanation: "What it does"
         stateKey: "pushFlowPredict"
         describe: function(st) { return st.pushFlowPredictPaused === true ? "stepped aside" : "forecasts " + Math.round(Number(st.pushFlowPredictFrames || 0)) + " held " + Number(st.pushFlowPredictHeldPercent || 0).toFixed(0) }
@@ -46,6 +51,7 @@ Item {
             fusion.readLive()
             guard.readLive()
             predict.readLive()
+            dual.readLive()
         }
         function cleanup() { veyra.qualityModel = null; veyra.fgBackendName = "dlss"; veyra.hasSource = true }
         function control(item, name) { const c = findChild(item, name); verify(c !== null, name); return c }
@@ -174,6 +180,24 @@ Item {
             verify(predict.why("not-live") !== "not-live" && predict.hint.indexOf(predict.why("not-live")) >= 0)
             control(predict, "list-pushflow2-predict").toggled(false)
             verify(!predict.asked)
+            veyra.hasSource = false
+        }
+
+        function test_dual_says_what_it_hands_on_and_what_it_needs() {
+            control(dual, "list-pushflow2-dual").toggled(true)
+            verify(dual.asked && flags().dual === true && flags().predict !== true, "Dual's switch does not turn Predict on")
+            veyra.liveStats = ({ running: true, pushFlowMotionWidth: 960, pushFlowMotionHeight: 540, pushFlowDual: "needs-predict" })
+            veyra.hasSource = true
+            tryCompare(dual, "cacheState", "needs-predict", 3000)
+            verify(dual.why("needs-predict") !== "needs-predict" && dual.hint.indexOf(dual.why("needs-predict")) >= 0, "it says that it needs Predict")
+            veyra.liveStats = ({ running: true, pushFlowMotionWidth: 960, pushFlowMotionHeight: 540, pushFlowDual: "needs-2x" })
+            dual.readLive()
+            verify(dual.why("needs-2x") !== "needs-2x" && dual.hint.indexOf(dual.why("needs-2x")) >= 0)
+            veyra.liveStats = ({ running: true, pushFlowMotionWidth: 960, pushFlowMotionHeight: 540, pushFlowDual: "on", pushFlowDualReal: 300, pushFlowDualBetween: 297 })
+            dual.readLive()
+            compare(dual.hint, "handed on 300 real, 297 in-between")
+            control(dual, "list-pushflow2-dual").toggled(false)
+            verify(!dual.asked)
             veyra.hasSource = false
         }
 

@@ -108,11 +108,15 @@ int wmain(int argc, wchar_t** argv) {
     // The sixth is PushFlow 2's Predict (opt-in): the batch holds the real frame first and forecasts after
     // it, in order, and each forecast is at least as near to where the square really is later as the
     // real frame it follows.
-    struct Run { unsigned multiplier; int motion; bool cache; bool guard = false; bool predict = false; };
+    // The seventh is Predict with PushFlow 2's Dual at 2X: beside the forecasts each batch carries what a
+    // recording takes instead, the real frame before this one and the true in-between frame of the pair,
+    // which must be the plain 2X run's frame. (The 3X Predict run asks for Dual too: it does not act there.)
+    struct Run { unsigned multiplier; int motion; bool cache; bool guard = false; bool predict = false; bool dual = false; };
     std::map<std::pair<unsigned, unsigned>, std::vector<uint8_t>> plain3x;   // (frame, subframe) -> picture without the cache
-    for (const Run run : {Run{2u, 0, false}, Run{3u, 0, false}, Run{2u, 540, false}, Run{3u, 0, true}, Run{3u, 0, false, true}, Run{3u, 0, false, false, true}}) {
+    std::map<std::pair<unsigned, unsigned>, std::vector<uint8_t>> plain2x;   // the same for 2X: what Dual's in-between frames must be
+    for (const Run run : {Run{2u, 0, false}, Run{3u, 0, false}, Run{2u, 540, false}, Run{3u, 0, true}, Run{3u, 0, false, true}, Run{3u, 0, false, false, true, true}, Run{2u, 0, false, false, true, true}}) {
         const unsigned multiplier = run.multiplier;
-        const std::string tag = std::to_string(multiplier) + "X" + (run.motion ? " at a chosen motion size" : "") + (run.cache ? " with the encoder cache" : "") + (run.guard ? " with Guard" : "") + (run.predict ? " with Predict" : "");
+        const std::string tag = std::to_string(multiplier) + "X" + (run.motion ? " at a chosen motion size" : "") + (run.cache ? " with the encoder cache" : "") + (run.guard ? " with Guard" : "") + (run.predict ? " with Predict" : "") + (run.dual ? " and Dual" : "");
         const unsigned frames = run.motion ? 5 : multiplier == 2 ? 12 : 7;
         pipeline::EnhanceGraph graph(ctx, ring);
         pipeline::EnhanceGraphDesc desc; desc.sourceWidth = desc.workWidth = W; desc.sourceHeight = desc.workHeight = H;
@@ -123,6 +127,7 @@ int wmain(int argc, wchar_t** argv) {
         desc.pushFlowEncoderCache = run.cache;
         desc.pushFlowGuard = run.guard;
         desc.pushFlowPredict = run.predict;
+        desc.pushFlowDual = run.dual;
         desc.runtimeAbsPath = argv[2]; desc.settingsRevision = multiplier;
         const bool opened = graph.initialize(desc) && graph.createViews();
         if (!check(opened, tag + ": the graph opens with PushFlow") || !check(graph.pushFlowActive(), tag + ": PushFlow is ready")) {
@@ -138,12 +143,15 @@ int wmain(int argc, wchar_t** argv) {
             check(summary.encoderCache == (run.cache ? "on" : ""), tag + (run.cache ? ": the encoder cache is in use" : ": the encoder cache is not asked for and not in use") + " ('" + summary.encoderCache + "')");
             check(summary.guard == (run.guard ? "on" : ""), tag + (run.guard ? ": Guard is in use" : ": Guard is not asked for and not in use") + " ('" + summary.guard + "')");
             check(summary.predict == (run.predict ? "on" : "") && graph.pushFlowPredicting() == run.predict, tag + (run.predict ? ": Predict is in use" : ": Predict is not asked for and not in use") + " ('" + summary.predict + "')");
+            const std::string dualWanted = !run.dual ? "" : multiplier == 2 ? "on" : "needs-2x";
+            check(summary.dual == dualWanted && graph.pushFlowDualActive() == (dualWanted == "on"), tag + ": Dual is '" + summary.dual + "' (expected '" + dualWanted + "')");
             if (run.cache) std::cout << "PUSHFLOW_GRAPH " << tag << " start-up check " << summary.splitCheckDb << " dB, whole " << summary.wholeMs << " ms, split " << summary.splitMs << " ms" << std::endl;
             if (run.motion) check(summary.motionWidth == W && summary.motionHeight == H && !summary.rebuild, tag + ": the network runs at the chosen size, here the whole picture");
             else check(summary.motionWidth == W / 2 && summary.motionHeight == H / 2 && summary.rebuild, tag + ": the tier's own motion size is what it was (half the picture, rebuilt at full size)");
         }
         unsigned offered = 0, pairs = 0, generated = 0, checked = 0, between = 0, ordered = 0, resetsWithoutFrame = 0, cacheChecked = 0, cacheSame = 0;
         unsigned realFirst = 0, forecastsInOrder = 0, plainOrder = 0, notWorse = 0, nearer = 0;
+        unsigned creatorSeen = 0, dualPairs = 0, dualRealSame = 0, dualBetweenSame = 0; int dualWorst = 0;
         double worstAgainstHold = 1e9;
         int cacheWorst = 0;
         double worstMargin = 1e9, realDb = 0, slowestMs = 0; bool ok = true;
@@ -180,6 +188,23 @@ int wmain(int argc, wchar_t** argv) {
                 realFirst += first; forecastsInOrder += rising;
                 plainOrder += batch.count == multiplier && batch.frames[batch.count - 1].kind == pipeline::FrameKind::Real && batch.frames[batch.count - 1].pts100ns == batch.b100ns && !out.fgPredict;
             }
+            creatorSeen += (out.creatorReal != nullptr) + (out.creatorBetween != nullptr);
+            if (graph.pushFlowDualActive()) {
+                // What a recording takes in place of this batch's frames: the real frame before this one, and
+                // the true in-between frame of the pair (the plain 2X run's generated frame for it).
+                ++dualPairs;
+                const auto same = [&](ID3D12Resource* texture, const std::vector<uint8_t>* want) {
+                    sink::RgbaImage image;
+                    if (!texture || !want || !sink::readRgba8(ctx, ring, texture, image) || image.pixels.size() != want->size()) return false;
+                    int worst = 0;
+                    for (size_t k = 0; k < image.pixels.size(); ++k) worst = std::max(worst, std::abs(int(image.pixels[k]) - int((*want)[k])));
+                    dualWorst = std::max(dualWorst, worst);
+                    return worst <= 1;
+                };
+                const auto between = plain2x.find({i, 1u});
+                dualRealSame += same(out.creatorReal, &previous);
+                dualBetweenSame += same(out.creatorBetween, between != plain2x.end() ? &between->second : nullptr);
+            }
             if (run.predict && out.hasGenerated && out.fgEvaluated == multiplier - 1) {
                 ++generated;
                 for (unsigned sub = 1; sub < multiplier; ++sub) {
@@ -209,6 +234,7 @@ int wmain(int argc, wchar_t** argv) {
                     ++checked; between += flowDb > blendDb + 2.0; worstMargin = std::min(worstMargin, flowDb - blendDb);
                     if (i <= 2) std::cout << "PUSHFLOW_GRAPH " << tag << " frame=" << i << " sub=" << sub << " generated " << flowDb << " dB, blend " << blendDb << " dB" << std::endl;
                     if (multiplier == 3 && !run.motion && !run.cache && !run.guard) plain3x[{i, sub}] = image.pixels;
+                    if (multiplier == 2 && !run.motion && !run.cache && !run.guard) plain2x[{i, sub}] = image.pixels;
                     if (run.cache || run.guard) {
                         const auto found = plain3x.find({i, sub});
                         int worst = 255;
@@ -244,12 +270,17 @@ int wmain(int argc, wchar_t** argv) {
             // One run of the network for a pair, however many forecasts are made from it.
             check(summary.predictFrames > 0, tag + ": the forecasts are counted");
             // It steps aside without anything being rebuilt: the next pair is an ordinary one again.
+            if (run.dual && multiplier == 2)
+                check(dualPairs == pairs && dualRealSame == pairs && dualBetweenSame == pairs, tag + ": for every pair a recording is given the real frame before it and the true in-between frame (" +
+                      std::to_string(dualRealSame) + " and " + std::to_string(dualBetweenSame) + " of " + std::to_string(pairs) + ", worst difference " + std::to_string(dualWorst) + " of 255)");
+            else check(creatorSeen == 0, tag + ": Dual does not act, and no batch carries a frame for recordings");
             graph.setPushFlowPredictPaused(true);
-            check(!graph.pushFlowPredicting(), tag + ": it steps aside when asked to (a measurement is running)");
+            check(!graph.pushFlowPredicting() && !graph.pushFlowDualActive(), tag + ": it steps aside when asked to (a measurement is running)");
             graph.setPushFlowPredictPaused(false);
             check(graph.pushFlowPredicting(), tag + ": and comes back");
         } else {
             check(pairs > 0 && plainOrder == pairs && realFirst == 0, tag + ": every batch ends with its real frame, as it always did (" + std::to_string(plainOrder) + "/" + std::to_string(pairs) + ")");
+            check(creatorSeen == 0, tag + ": no batch carries a frame for recordings in place of the one shown");
             check(checked > 0 && between == checked, tag + ": each generated frame shows the square between its neighbours (" + std::to_string(between) + "/" + std::to_string(checked) +
                                                          ", worst margin over a blend " + std::to_string(worstMargin) + " dB)");
             if (multiplier == 3) check(generated > 0 && ordered == generated, tag + ": the two generated frames of a pair are in order (" + std::to_string(ordered) + "/" + std::to_string(generated) + ")");

@@ -151,6 +151,9 @@ struct PlayerSnapshot {
     // counted in them, how many of those the motion would move and how many of those were held, and the
     // forecasts not shown because the next real frame was already due.
     std::string pushFlowPredict; uint64_t pushFlowPredictFrames=0, pushFlowPredictCounted=0, pushFlowPredictMoving=0, pushFlowPredictHeld=0, pushFlowPredictSuperseded=0;
+    // PushFPS: PushFlow 2's Dual ("" not asked for, "on", "needs-predict", "needs-2x") and the frames it has
+    // handed to recordings and streams in place of the ones shown: real frames, true in-between frames.
+    std::string pushFlowDual; uint64_t pushFlowDualReal=0, pushFlowDualBetween=0;
     uint64_t frames=0,generated=0;
     uint64_t captureReceived=0,captureDropped=0,nrEvaluated=0,nvofExecuted=0;
     uint64_t captureRateSkipped=0,processedCompleted=0;
@@ -383,6 +386,8 @@ private:
     // PushFlow 2's Predict, engine thread only: the newest real frame's time and when it is due, so a
     // forecast made from the frame before it is never shown after it; and how many were dropped for that.
     int64_t predictNewestReal100ns_=0,predictNewestDue100ns_=0;uint64_t predictSuperseded_=0;
+    // PushFlow 2's Dual, engine thread only: frames handed to recordings in place of the ones shown.
+    uint64_t dualRealGiven_=0,dualBetweenGiven_=0;
     std::atomic<bool> captureAudioMonitoring_{true};
     std::atomic<float> volume_{1};uint64_t sessionId_=0;
     std::atomic<double> seekSeconds_{-1};

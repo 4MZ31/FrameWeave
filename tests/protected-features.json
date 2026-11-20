@@ -204,6 +204,21 @@
      "file": "tests/integration/PushPredictEngineTests.cpp",
      "ci": "veyra_push_predict_engine_tests",
      "contains": "while forecasts are shown, a real frame is on screen"
+    },
+    {
+     "file": "tests/integration/PushFlowGraphTests.cpp",
+     "ci": "veyra_push_flow_graph_tests",
+     "contains": "no batch carries a frame for recordings in place of the one shown"
+    },
+    {
+     "file": "tests/integration/PushFlowGraphTests.cpp",
+     "ci": "veyra_push_flow_graph_tests",
+     "contains": "a recording is given the real frame before it and the true in-between frame"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_flow2.qml",
+     "ci": "tst_push_flow2",
+     "contains": "test_dual_says_what_it_hands_on_and_what_it_needs"
     }
    ],
    "needs_hardware": "Speed on any real card; picture quality on real games."

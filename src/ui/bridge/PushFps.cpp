@@ -115,6 +115,11 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["pushFlowPredictMovingPercent"] = s.pushFlowPredictCounted ? 100.0 * double(s.pushFlowPredictMoving) / double(s.pushFlowPredictCounted) : 0.0;
     m["pushFlowPredictSuperseded"] = QVariant::fromValue(qulonglong(s.pushFlowPredictSuperseded));
     m["pushFlowPredictPaused"] = pushflow2::predictPaused() || engine::pushBenchmarkProbe().active() || impl_->engine.qualityTest().running;
+    // PushFlow 2's Dual: "" not asked for, "on", "needs-predict", "needs-2x"; frames handed to recordings
+    // and streams in place of the ones shown (real frames, true in-between frames).
+    m["pushFlowDual"] = QString::fromStdString(s.pushFlowDual);
+    m["pushFlowDualReal"] = QVariant::fromValue(qulonglong(s.pushFlowDualReal));
+    m["pushFlowDualBetween"] = QVariant::fromValue(qulonglong(s.pushFlowDualBetween));
     m["pacingRepaired"] = QVariant::fromValue(qulonglong(s.pacingRepaired));
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;

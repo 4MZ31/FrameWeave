@@ -1823,7 +1823,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                        gd.srInputWidth!=nextDesc.srInputWidth||gd.srInputHeight!=nextDesc.srInputHeight||
                        gd.srOutputWidth!=nextDesc.srOutputWidth||gd.srOutputHeight!=nextDesc.srOutputHeight||
                        // PushFPS: PushFlow's motion size (a preference, not a field of the settings) sizes its network.
-                       gd.pushFlowMotion!=nextDesc.pushFlowMotion||gd.pushFlowEncoderCache!=nextDesc.pushFlowEncoderCache||gd.pushFlowGuard!=nextDesc.pushFlowGuard||gd.pushFlowPredict!=nextDesc.pushFlowPredict)rebuild=true;
+                       gd.pushFlowMotion!=nextDesc.pushFlowMotion||gd.pushFlowEncoderCache!=nextDesc.pushFlowEncoderCache||gd.pushFlowGuard!=nextDesc.pushFlowGuard||gd.pushFlowPredict!=nextDesc.pushFlowPredict||gd.pushFlowDual!=nextDesc.pushFlowDual)rebuild=true;
                     bool accepted=ring.drainQueue();out={};hasOutput=false;
                     resetRecord->rebuilt=rebuild;
                     markResetStage(diagnostics::ResetStage::Drain);
@@ -3024,6 +3024,10 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                             const auto begin=Clock::now();const auto before=presenter.submittedCount();
                             presenter.reflexFrame(watch->reflexFrame);
                             presenter.observeHdrCoverage(hdrCoverageObserved_.load());
+                            // PushFlow 2's Dual: what recordings and streams take in place of the frame shown
+                            // (the real frame before this one; the true in-between frame for the first forecast).
+                            auto* const creatorFrame=!generated?batch.creatorReal:(batch.fgPredict&&item.subframe==1?batch.creatorBetween:nullptr);
+                            if(creatorFrame){presenter.setNextCaptureCreator(creatorFrame,generated);++(generated?dualBetweenGiven_:dualRealGiven_);}
                             if(!presenter.present(ctx,ring,*graph,item.lease->slot,generated,item.lease->referencesValid,comparisonMode_,comparisonBase_,comparisonSplit_,item.identity,previewView(),item.pts100ns))return {State::Failed};
                             const auto presentEndHost=host100ns();
                             const double returnDeviation=deviationValid?nowMs()-itemPtsMs:0;
@@ -3224,6 +3228,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     snapshot_.pushFlowGuard=pf.guard;snapshot_.pushFlowGuardFrames=pf.guardFrames;snapshot_.pushFlowGuardMended=pf.guardMended;snapshot_.pushFlowGuardHeld=pf.guardHeld;
                     snapshot_.pushFlowPredict=pf.predict;snapshot_.pushFlowPredictFrames=pf.predictFrames;snapshot_.pushFlowPredictCounted=pf.predictCounted;
                     snapshot_.pushFlowPredictMoving=pf.predictMoving;snapshot_.pushFlowPredictHeld=pf.predictHeld;snapshot_.pushFlowPredictSuperseded=predictSuperseded_;
+                    snapshot_.pushFlowDual=pf.dual;snapshot_.pushFlowDualReal=dualRealGiven_;snapshot_.pushFlowDualBetween=dualBetweenGiven_;
                     // Asked for, and the source is a file: Predict is for live sources only, and says so.
                     if(snapshot_.pushFlowPredict.empty()&&!isCapture&&pushflow2::wanted(pushflow2::Experiment::Predict))snapshot_.pushFlowPredict="not-live";}snapshot_.colorStatus=graph->videoHdrActive()?L"SDR → RTX Video HDR":options.settings.videoHdr.enabled&&!gd.hdrInput?L"SDR → SDR（HDR显示未启用）":gd.hdrOutput?(graph->hdr10Output()?L"HDR → HDR10 / PQ":L"HDR → scRGB / 浮点"):gd.hdrInput?L"HDR → SDR色调映射":L"SDR → SDR";snapshot_.position=(isCapture||isImage?pts:lastFilePresentedMs)/1000;snapshot_.frames=sourceFrames;snapshot_.generated=graphStats.fgGeneratedFrames;snapshot_.lateMs=lateness;snapshot_.lateP95Ms=presentReturnDeviation.p95();
                     snapshot_.videoHdrActive=graph->videoHdrActive();

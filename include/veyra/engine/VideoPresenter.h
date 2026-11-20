@@ -23,6 +23,9 @@ class VideoPresenter {
 public:
     // Live recording hook; the object must outlive every present() call.
     void setCapture(PresentCapture* capture){capture_=capture;}
+    // PushFlow 2's Dual: for the next present() only, the frame recordings and streams take in place of
+    // the one shown (PresentCapture::Frame::creator). Taken by that call whether or not it presents.
+    void setNextCaptureCreator(ID3D12Resource* texture,bool generated){captureCreator_=texture;captureCreatorGenerated_=generated;}
     // Shared refresh/VRR states (the engine's); must outlive the presenter.
     void setDisplayStates(DisplayStateService* states){displayStates_=states;}
     ~VideoPresenter(){close();}
@@ -131,6 +134,7 @@ private:
     int64_t lastPresentCallHost100ns_=0;
     bool providerOwnedPresentation_=false;
     PresentCapture* capture_=nullptr;
+    ID3D12Resource* captureCreator_=nullptr;bool captureCreatorGenerated_=false;
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> presentationQueue_;
     Microsoft::WRL::ComPtr<ID3D12Fence> presentationFence_;
     HANDLE presentationEvent_=nullptr;

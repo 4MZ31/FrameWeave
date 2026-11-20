@@ -6614,6 +6614,23 @@
    "ru": "PushFPS предустановленный цвет (*.vpcolor); все файлы (*.*)"
   },
   {
+   "zh": "PushFlow 2：Dual，录制和直播得到真实的帧（实验）",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "PushFlow 2：Dual，錄製和直播得到真實的幀（實驗）",
+   "en": "PushFlow 2: Dual, true frames for recordings and streams (experimental)",
+   "ja": "PushFlow 2：Dual、録画と配信に本物のフレームを（実験）",
+   "nl": "PushFlow 2: Dual, true frames for recordings and streams (experimental)",
+   "de": "PushFlow 2: Dual, true frames for recordings and streams (experimental)",
+   "es": "PushFlow 2: Dual, true frames for recordings and streams (experimental)",
+   "fr": "PushFlow 2: Dual, true frames for recordings and streams (experimental)",
+   "it": "PushFlow 2: Dual, true frames for recordings and streams (experimental)",
+   "pt-BR": "PushFlow 2: Dual, true frames for recordings and streams (experimental)",
+   "tr": "PushFlow 2: Dual, true frames for recordings and streams (experimental)",
+   "ar": "PushFlow 2: Dual, true frames for recordings and streams (experimental)",
+   "pl": "PushFlow 2: Dual, true frames for recordings and streams (experimental)",
+   "ru": "PushFlow 2: Dual, true frames for recordings and streams (experimental)"
+  },
+  {
    "zh": "PushFlow 2：Guard，补回被漏掉的物体（实验）",
    "src": "qml/ProPage.qml",
    "zh-TW": "PushFlow 2：Guard，補回被漏掉的物體（實驗）",
@@ -18311,6 +18328,23 @@
    "ru": "Сжимайте изменения в сторону выдуваемых белых; сохраняйте яркое затемнение"
   },
   {
+   "zh": "只在 2X 倍率下起作用",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "只在 2X 倍率下起作用",
+   "en": "it only acts at 2X",
+   "ja": "2X のときだけ働きます",
+   "nl": "it only acts at 2X",
+   "de": "it only acts at 2X",
+   "es": "it only acts at 2X",
+   "fr": "it only acts at 2X",
+   "it": "it only acts at 2X",
+   "pt-BR": "it only acts at 2X",
+   "tr": "it only acts at 2X",
+   "ar": "it only acts at 2X",
+   "pl": "it only acts at 2X",
+   "ru": "it only acts at 2X"
+  },
+  {
    "zh": "只在“界面绘制”选 GPU 时起作用；软件绘制时小飞机 OSD 只显示在视频上",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "只在「介面繪製」選 GPU 時起作用；軟體繪製時小飛機 OSD 只顯示在影片上",
@@ -28050,6 +28084,23 @@
    "ar": "للمطورين: دليل الواجهة وملف ترويسة C/C++ ومثال Python على GitHub",
    "pl": "Dla programistów: opis API, nagłówek C/C++ i przykład w Pythonie są na GitHubie",
    "ru": "Разработчикам: описание API, заголовок C/C++ и пример на Python — на GitHub"
+  },
+  {
+   "zh": "开启 Predict 后，屏幕上显示的是预测帧。录制、即时回放和直播记录的是屏幕上的画面，所以也会包含这些预测帧。Dual 让它们改用真实的画面：真实帧本身，以及同一对真实帧之间真实的中间帧（Predict 已经算出了它，几乎不增加开销），时间上比屏幕晚一帧。你看到的画面和延迟都不变。只在 Predict 正在运行并且倍率是 2X 时起作用；对比短片仍然记录屏幕上的画面；录下的声音会比画面早一帧（30 FPS 时约 33 毫秒）。还没有在真实硬件上验证过",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "開啟 Predict 後，螢幕上顯示的是預測幀。錄製、即時重播和直播記錄的是螢幕上的畫面，所以也會包含這些預測幀。Dual 讓它們改用真實的畫面：真實幀本身，以及同一對真實幀之間真實的中間幀（Predict 已經算出了它，幾乎不增加開銷），時間上比螢幕晚一幀。你看到的畫面和延遲都不變。只在 Predict 正在執行並且倍率是 2X 時起作用；對比短片仍然記錄螢幕上的畫面；錄下的聲音會比畫面早一幀（30 FPS 時約 33 毫秒）。還沒有在真實硬體上驗證過",
+   "en": "With Predict on, the screen shows forecast frames. Recordings, instant replay and streams record what is on screen, so they contain those forecasts too. Dual gives them the true picture instead: the real frames themselves, and the true in-between frame of each pair of real frames (Predict has already worked it out, so it costs almost nothing), one frame behind the screen. What you see and its delay do not change. It only acts while Predict is running at 2X; comparison clips still record what is on screen; recorded sound is one frame ahead of the picture (about 33 ms at 30 FPS). Not verified on real hardware yet",
+   "ja": "Predict をオンにすると、画面には予測フレームが表示されます。録画、インスタントリプレイ、配信は画面の内容を記録するため、予測フレームも含まれます。Dual はそれらに本物の映像を渡します。実フレームそのものと、2 枚の実フレームのあいだの本物の中間フレーム（Predict がすでに計算済みなので、負荷はほとんど増えません）で、画面より 1 フレーム遅れます。あなたが見る映像と遅延は変わりません。Predict が 2X で動作しているときだけ働きます。比較クリップは引き続き画面の内容を記録します。録音される音は映像より 1 フレーム早くなります（30 FPS で約 33 ミリ秒）。実機ではまだ確認していません",
+   "nl": "With Predict on, the screen shows forecast frames. Recordings, instant replay and streams record what is on screen, so they contain those forecasts too. Dual gives them the true picture instead: the real frames themselves, and the true in-between frame of each pair of real frames (Predict has already worked it out, so it costs almost nothing), one frame behind the screen. What you see and its delay do not change. It only acts while Predict is running at 2X; comparison clips still record what is on screen; recorded sound is one frame ahead of the picture (about 33 ms at 30 FPS). Not verified on real hardware yet",
+   "de": "With Predict on, the screen shows forecast frames. Recordings, instant replay and streams record what is on screen, so they contain those forecasts too. Dual gives them the true picture instead: the real frames themselves, and the true in-between frame of each pair of real frames (Predict has already worked it out, so it costs almost nothing), one frame behind the screen. What you see and its delay do not change. It only acts while Predict is running at 2X; comparison clips still record what is on screen; recorded sound is one frame ahead of the picture (about 33 ms at 30 FPS). Not verified on real hardware yet",
+   "es": "With Predict on, the screen shows forecast frames. Recordings, instant replay and streams record what is on screen, so they contain those forecasts too. Dual gives them the true picture instead: the real frames themselves, and the true in-between frame of each pair of real frames (Predict has already worked it out, so it costs almost nothing), one frame behind the screen. What you see and its delay do not change. It only acts while Predict is running at 2X; comparison clips still record what is on screen; recorded sound is one frame ahead of the picture (about 33 ms at 30 FPS). Not verified on real hardware yet",
+   "fr": "With Predict on, the screen shows forecast frames. Recordings, instant replay and streams record what is on screen, so they contain those forecasts too. Dual gives them the true picture instead: the real frames themselves, and the true in-between frame of each pair of real frames (Predict has already worked it out, so it costs almost nothing), one frame behind the screen. What you see and its delay do not change. It only acts while Predict is running at 2X; comparison clips still record what is on screen; recorded sound is one frame ahead of the picture (about 33 ms at 30 FPS). Not verified on real hardware yet",
+   "it": "With Predict on, the screen shows forecast frames. Recordings, instant replay and streams record what is on screen, so they contain those forecasts too. Dual gives them the true picture instead: the real frames themselves, and the true in-between frame of each pair of real frames (Predict has already worked it out, so it costs almost nothing), one frame behind the screen. What you see and its delay do not change. It only acts while Predict is running at 2X; comparison clips still record what is on screen; recorded sound is one frame ahead of the picture (about 33 ms at 30 FPS). Not verified on real hardware yet",
+   "pt-BR": "With Predict on, the screen shows forecast frames. Recordings, instant replay and streams record what is on screen, so they contain those forecasts too. Dual gives them the true picture instead: the real frames themselves, and the true in-between frame of each pair of real frames (Predict has already worked it out, so it costs almost nothing), one frame behind the screen. What you see and its delay do not change. It only acts while Predict is running at 2X; comparison clips still record what is on screen; recorded sound is one frame ahead of the picture (about 33 ms at 30 FPS). Not verified on real hardware yet",
+   "tr": "With Predict on, the screen shows forecast frames. Recordings, instant replay and streams record what is on screen, so they contain those forecasts too. Dual gives them the true picture instead: the real frames themselves, and the true in-between frame of each pair of real frames (Predict has already worked it out, so it costs almost nothing), one frame behind the screen. What you see and its delay do not change. It only acts while Predict is running at 2X; comparison clips still record what is on screen; recorded sound is one frame ahead of the picture (about 33 ms at 30 FPS). Not verified on real hardware yet",
+   "ar": "With Predict on, the screen shows forecast frames. Recordings, instant replay and streams record what is on screen, so they contain those forecasts too. Dual gives them the true picture instead: the real frames themselves, and the true in-between frame of each pair of real frames (Predict has already worked it out, so it costs almost nothing), one frame behind the screen. What you see and its delay do not change. It only acts while Predict is running at 2X; comparison clips still record what is on screen; recorded sound is one frame ahead of the picture (about 33 ms at 30 FPS). Not verified on real hardware yet",
+   "pl": "With Predict on, the screen shows forecast frames. Recordings, instant replay and streams record what is on screen, so they contain those forecasts too. Dual gives them the true picture instead: the real frames themselves, and the true in-between frame of each pair of real frames (Predict has already worked it out, so it costs almost nothing), one frame behind the screen. What you see and its delay do not change. It only acts while Predict is running at 2X; comparison clips still record what is on screen; recorded sound is one frame ahead of the picture (about 33 ms at 30 FPS). Not verified on real hardware yet",
+   "ru": "With Predict on, the screen shows forecast frames. Recordings, instant replay and streams record what is on screen, so they contain those forecasts too. Dual gives them the true picture instead: the real frames themselves, and the true in-between frame of each pair of real frames (Predict has already worked it out, so it costs almost nothing), one frame behind the screen. What you see and its delay do not change. It only acts while Predict is running at 2X; comparison clips still record what is on screen; recorded sound is one frame ahead of the picture (about 33 ms at 30 FPS). Not verified on real hardware yet"
   },
   {
    "zh": "开启使用 Small 模型；关闭使用原模型。每层独立选择，切换会重建 NR，画面可能有所不同。",
@@ -40614,6 +40665,23 @@
    "ar": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
    "pl": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times",
    "ru": "In use. Measured at start: the whole model %1 ms a frame, split %2 ms; kept and reused %3 times, encoded again %4 times"
+  },
+  {
+   "zh": "正在使用。已交给录制和直播：%1 个真实帧，%2 个真实的中间帧",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "正在使用。已交給錄製和直播：%1 個真實幀，%2 個真實的中間幀",
+   "en": "In use. Handed to recordings and streams: %1 real frames, %2 true in-between frames",
+   "ja": "使用中です。録画と配信に渡したフレーム：実フレーム %1 枚、本物の中間フレーム %2 枚",
+   "nl": "In use. Handed to recordings and streams: %1 real frames, %2 true in-between frames",
+   "de": "In use. Handed to recordings and streams: %1 real frames, %2 true in-between frames",
+   "es": "In use. Handed to recordings and streams: %1 real frames, %2 true in-between frames",
+   "fr": "In use. Handed to recordings and streams: %1 real frames, %2 true in-between frames",
+   "it": "In use. Handed to recordings and streams: %1 real frames, %2 true in-between frames",
+   "pt-BR": "In use. Handed to recordings and streams: %1 real frames, %2 true in-between frames",
+   "tr": "In use. Handed to recordings and streams: %1 real frames, %2 true in-between frames",
+   "ar": "In use. Handed to recordings and streams: %1 real frames, %2 true in-between frames",
+   "pl": "In use. Handed to recordings and streams: %1 real frames, %2 true in-between frames",
+   "ru": "In use. Handed to recordings and streams: %1 real frames, %2 true in-between frames"
   },
   {
    "zh": "正在使用。已检查 %1 个生成帧：%2 帧局部改用真实帧，%3 帧整帧改用真实帧",
@@ -61796,6 +61864,23 @@
    "ar": "Needs PS5 Remote Play",
    "pl": "Needs PS5 Remote Play",
    "ru": "Needs PS5 Remote Play"
+  },
+  {
+   "zh": "需要 Predict 已开启并且正在运行",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "需要 Predict 已開啟並且正在執行",
+   "en": "it needs Predict switched on and running",
+   "ja": "Predict がオンで動作している必要があります",
+   "nl": "it needs Predict switched on and running",
+   "de": "it needs Predict switched on and running",
+   "es": "it needs Predict switched on and running",
+   "fr": "it needs Predict switched on and running",
+   "it": "it needs Predict switched on and running",
+   "pt-BR": "it needs Predict switched on and running",
+   "tr": "it needs Predict switched on and running",
+   "ar": "it needs Predict switched on and running",
+   "pl": "it needs Predict switched on and running",
+   "ru": "it needs Predict switched on and running"
   },
   {
    "zh": "需要主机显示器开启 HDR，且编码选 HEVC 或 AV1；本机需要硬件解码",

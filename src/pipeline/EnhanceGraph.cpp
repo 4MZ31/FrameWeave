@@ -1599,6 +1599,7 @@ bool EnhanceGraph::initVfg()
 bool EnhanceGraph::amfFrcActive() const { return amfFrc_&&amfFrc_->ready(); }
 bool EnhanceGraph::pushFlowActive() const { return pushFlow_&&pushFlow_->status().ready; }
 bool EnhanceGraph::pushFlowPredicting() const { return pushFlow_ && desc_.pushFlowPredict && !pushFlowPredictPaused_ && pushFlow_->status().predict; }
+bool EnhanceGraph::pushFlowDualActive() const { return desc_.pushFlowDual && desc_.fgMultiplier == 2 && pushFlowPredicting(); }
 EnhanceGraph::PushFlowSummary EnhanceGraph::pushFlowSummary() const {
     PushFlowSummary s;
     if(!pushFlowActive())return s;
@@ -1609,6 +1610,7 @@ EnhanceGraph::PushFlowSummary EnhanceGraph::pushFlowSummary() const {
     s.wholeMs=pushFlow_->status().wholeMs;s.splitMs=pushFlow_->status().splitMs;s.splitCheckDb=pushFlow_->status().splitCheckDb;
     s.guard=pushFlow_->status().guardState;s.guardFrames=t.guardFrames;s.guardMended=t.guardMended;s.guardHeld=t.guardHeld;
     s.predict=pushFlow_->status().predictState;s.predictFrames=t.predictFrames;s.predictCounted=t.predictCounted;s.predictMoving=t.predictMoving;s.predictHeld=t.predictHeld;
+    s.dual=!desc_.pushFlowDual?"":!(desc_.pushFlowPredict&&pushFlow_->status().predict)?"needs-predict":desc_.fgMultiplier!=2?"needs-2x":"on";
     return s;
 }
 // PushFlow (pushflow/PushFlowBackend.h): RIFE on DirectML, any multiplier (the time of each frame).
@@ -4094,11 +4096,29 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
     if(!composeExclusion(list,parity,parity,presentSinkFg()))return false;
     // Live HUD Lock learns from this real frame against the previous one (enhanced colours).
     if(hudLock_&&!hudLock_->update(list,tracker_,parity,!prevValid_))veyra::log::warn("hud-lock","update skipped");
+    // PushFlow 2's Dual: a recording runs one frame behind the screen, so while this real frame is shown it
+    // takes the one before it, as it was shown. That frame's own texture is reused two frames on, so it
+    // is copied here, in the list this real frame is made in (its fence then covers the copy).
+    const bool dualPair=pushFlowDualActive()&&prevValid_&&!resetFg&&videoFrameResource(1-parity);
+    const unsigned dualRealSlot=parity+4,dualBetweenSlot=parity+2;
+    if(dualPair){
+        auto* shownBefore=videoFrameResource(1-parity);
+        tracker_.transition(list,shownBefore,D3D12_RESOURCE_STATE_COPY_SOURCE);
+        tracker_.transition(list,genFrame_[dualRealSlot].Get(),D3D12_RESOURCE_STATE_COPY_DEST);
+        list->CopyResource(genFrame_[dualRealSlot].Get(),shownBefore);
+        tracker_.transition(list,shownBefore,D3D12_RESOURCE_STATE_COMMON);
+        tracker_.transition(list,genFrame_[dualRealSlot].Get(),D3D12_RESOURCE_STATE_COMMON);
+    }
     if(!runFg)gpuTimer_.resolve(list);
     if (!submitGraph(slot)) return false;
     if(!runFg)gpuTimer_.submitted(ring_.lastSignaledValue());
     out.videoFenceValue = ring_.lastSignaledValue();
     out.videoFenceObject = context_.fence();
+    if(dualPair){
+        out.creatorRealLease=std::make_shared<FrameLease>();out.creatorRealLease->texture=genFrame_[dualRealSlot];out.creatorRealLease->slot=dualRealSlot;
+        out.creatorRealLease->readyFence=out.videoFenceValue;out.creatorRealLease->readyFenceObject=out.videoFenceObject;
+        generatedLeases_[dualRealSlot]=out.creatorRealLease;out.creatorReal=genFrame_[dualRealSlot].Get();
+    }
 
     // PushFlow 2's Predict (opt-in, live sources): this pair's generated frames are forecasts for after
     // the real frame (a reduced group has one, half an interval after it).
@@ -4137,9 +4157,22 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
                 tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_COPY_DEST);
                 tracker_.transition(flist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
                 tracker_.transition(flist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+                // PushFlow 2's Dual: the true in-between frame of the pair, which this run of the network has
+                // already made, for the recording (resolved first: it is the first reader of the network's output).
+                const bool dualBetween=dualPair&&sub==1&&outputMultiplier==2;
+                if(dualBetween){
+                    tracker_.transition(flist,genFrame_[dualBetweenSlot].Get(),D3D12_RESOURCE_STATE_COPY_DEST);
+                    if(!pushFlow_->resolve(flist,videoFrame_[1-parity].Get(),videoFrame_[parity].Get(),genFrame_[dualBetweenSlot].Get())){failedBackend_=engine::FailedBackend::Fg;return false;}
+                }
                 if(!pushFlow_->forecast(flist,videoFrame_[1-parity].Get(),videoFrame_[parity].Get(),genFrame_[generatedSlot].Get(),pushflow::predict::ahead(sub,outputMultiplier))){failedBackend_=engine::FailedBackend::Fg;return false;}
                 tracker_.transition(flist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_COMMON);
                 tracker_.transition(flist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COMMON);
+                if(dualBetween){
+                    // An in-between frame lies before this real frame: its HUD and excluded regions are the older frame's.
+                    composeHudLock(flist,dualBetweenSlot,1-parity);
+                    if(!composeExclusion(flist,dualBetweenSlot+2,1-parity,false))return false;
+                    tracker_.transition(flist,genFrame_[dualBetweenSlot].Get(),D3D12_RESOURCE_STATE_COMMON);
+                }
                 // A forecast follows this real frame, so its HUD and excluded regions are this frame's.
                 composeHudLock(flist,generatedSlot,parity);
                 if(!composeExclusion(flist,generatedSlot+2,parity,false))return false;
@@ -4155,6 +4188,11 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
                 f.pts100ns=pushflow::predict::pts(out.batch.a100ns,out.batch.b100ns,sub,outputMultiplier);
                 f.lease=std::make_shared<FrameLease>();f.lease->texture=genFrame_[generatedSlot];f.lease->slot=generatedSlot;
                 f.lease->readyFence=out.genFenceValue;f.lease->readyFenceObject=out.genFenceObject;generatedLeases_[generatedSlot]=f.lease;
+                if(dualBetween){
+                    out.creatorBetweenLease=std::make_shared<FrameLease>();out.creatorBetweenLease->texture=genFrame_[dualBetweenSlot];out.creatorBetweenLease->slot=dualBetweenSlot;
+                    out.creatorBetweenLease->readyFence=out.genFenceValue;out.creatorBetweenLease->readyFenceObject=out.genFenceObject;
+                    generatedLeases_[dualBetweenSlot]=out.creatorBetweenLease;out.creatorBetween=genFrame_[dualBetweenSlot].Get();
+                }
                 // The real frame goes into the batch first (below); the forecasts follow it.
                 if(f.pts100ns>out.batch.b100ns&&afterRealCount<afterReal.size())afterReal[afterRealCount++]=std::move(f);
                 continue;

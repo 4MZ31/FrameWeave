@@ -65,7 +65,11 @@ int main() {
       check(has(t, "\"pushFlowGuard\": \"on\"") && has(t, "\"pushFlowGuardFrames\": [600, 12, 3]") && wellFormed(t), "Guard in use: frames judged, mended, held");
       check(has(t, "\"pushFlowPredict\": \"on\"") && has(t, "\"pushFlowPredictFrames\": [900, 4]") && has(t, "\"pushFlowPredictPixels\": [81000, 20000, 1500]"),
             "Predict in use: forecasts made and not shown, pixels counted, moving and held");
-      f.pushFlowPredict = "D:\\games"; check(has(json(f), "\"pushFlowPredict\": null"), "a state that is not a word is dropped"); }
+      f.pushFlowPredict = "D:\\games"; check(has(json(f), "\"pushFlowPredict\": null"), "a state that is not a word is dropped");
+      check(has(t, "\"pushFlowDual\": null") && has(t, "\"pushFlowDualFrames\": null"), "Dual not asked for: null, with no counts");
+      f.pushFlowPredict = "on"; f.pushFlowDual = "on"; f.pushFlowDualReal = 880; f.pushFlowDualBetween = 870; const auto d = json(f);
+      check(has(d, "\"pushFlowDual\": \"on\"") && has(d, "\"pushFlowDualFrames\": [880, 870]") && wellFormed(d), "Dual in use: real and in-between frames handed to recordings");
+      f.pushFlowDual = "needs-predict"; check(has(json(f), "\"pushFlowDual\": \"needs-predict\""), "why Dual does not act is a word from the engine"); }
     { auto f = session(); f.pushFlowEncoderCache = "on"; f.pushFlowWholeMs = 9.5; f.pushFlowSplitMs = 8.25; const auto t = json(f);
       check(has(t, "\"pushFlowEncoderCache\": \"on\"") && has(t, "\"pushFlowEncoderCacheStartMs\": [9.5") && wellFormed(t), "the encoder cache in use, with one frame each way at start");
       f.pushFlowEncoderCache = "mismatch"; f.pushFlowSplitMs = 0; const auto u = json(f);

@@ -179,6 +179,8 @@ inline pipeline::ResolutionPlan describeStages(const StageRequest& request,const
     desc.pushFlowGuard=desc.enableFg&&settings.frameGenerationBackend==FrameGenerationBackend::PushFlow&&pushflow2::wanted(pushflow2::Experiment::Guard);
     desc.pushFlowPredict=desc.enableFg&&settings.frameGenerationBackend==FrameGenerationBackend::PushFlow&&request.liveSource&&!request.exportJob&&!request.stillImage&&
         pushflow2::wanted(pushflow2::Experiment::Predict);
+    desc.pushFlowDual=desc.enableFg&&settings.frameGenerationBackend==FrameGenerationBackend::PushFlow&&request.liveSource&&!request.exportJob&&!request.stillImage&&
+        pushflow2::wanted(pushflow2::Experiment::Dual);
     desc.color=settings.color;
     desc.additionalColors=settings.additionalColors;
     desc.additionalColorCount=settings.additionalColorCount;

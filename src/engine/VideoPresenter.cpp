@@ -194,6 +194,8 @@ bool VideoPresenter::refresh(ID3D12Device* device){
     return true;
 }
 bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& sharedRing,pipeline::EnhanceGraph& graph,unsigned slot,bool generated,bool referencesValid,int comparison,bool baseReference,float split,pipeline::FrameIdentity identity,PreviewView view,int64_t sourcePts100ns,bool retainUnchanged) {
+    // One call only: whatever happens below, the next present starts without it.
+    ID3D12Resource* const creator=captureCreator_;const bool creatorGenerated=captureCreatorGenerated_;captureCreator_=nullptr;captureCreatorGenerated_=false;
     const auto reflexFrame=reflexFrame_;reflexFrame_=0;
     auto& ring=presentationQueue_?presentationRing_:sharedRing;
     auto* fence=presentationFence_?presentationFence_.Get():ctx.fence();
@@ -428,6 +430,7 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
         const uint32_t hdrMode=graph.hdrOutput()?(graph.hdr10Output()?2u:1u):0u;
         PresentCapture::Frame captured{source,graph.outputFormat(),graph.workWidth(),graph.workHeight(),hdrMode,graph.outputDitherStep(),generated};
         captured.pts100ns=sourcePts100ns>0?sourcePts100ns:0;
+        captured.creator=creator;captured.creatorGenerated=creatorGenerated;
         // PushFPS comparison clips: the raw console picture of this real frame, when kept.
         if(!generated&&referencesValid){captured.raw=graph.sourceReference(slot);captured.rawSdrInHdr=graph.videoHdrActive();}
         captureRecorded=capture_->record(list,captured);

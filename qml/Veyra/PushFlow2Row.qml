@@ -42,6 +42,8 @@ VRow {
         if (word === "too-small") return qsTr("运动估算尺寸太小")
         if (word === "shader") return qsTr("着色器没能载入")
         if (word === "not-live") return qsTr("只用于采集卡、串流等实时画面")
+        if (word === "needs-predict") return qsTr("需要 Predict 已开启并且正在运行")
+        if (word === "needs-2x") return qsTr("只在 2X 倍率下起作用")
         return word
     }
     function readLive() {

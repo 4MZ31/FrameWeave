@@ -1661,7 +1661,11 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
             s.replayMode?"replay buffer":s.streamMode?"live stream":"file",s.files,segment->name(),segment->width,segment->height,segment->hdrMode,segment->hevc?"HEVC":"H264",segment->fps,segment->bitrateMbps,
             segment->nvenc?"NVENC":"MediaFoundation",segment->sound,segment->microphone?(segment->microphoneTrack?"track":"mixed"):"off"));
     }
-    if(!s.current->capture(list,frame,now))return false;
+    // PushFlow 2's Dual: recordings, the replay buffer and streams take the creator's frame when one is
+    // given. A comparison clip shows what was played, so it keeps the frame shown.
+    Frame taken=frame;
+    if(frame.creator&&!s.current->compareClip){taken.texture=frame.creator;taken.generated=frame.creatorGenerated;taken.raw=nullptr;taken.rawSdrInHdr=false;}
+    if(!s.current->capture(list,taken,now))return false;
     if(!s.firstFrameUs)s.firstFrameUs=now;
     s.pendingCapture=s.current;
     return true;
