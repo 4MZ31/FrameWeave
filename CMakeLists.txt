@@ -1205,6 +1205,15 @@ target_include_directories(veyra_push_clip_markers_tests PRIVATE ${CMAKE_CURRENT
 add_executable(veyra_push_control_tests tests/unit/PushControlTests.cpp)
 target_compile_features(veyra_push_control_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_control_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_executable(veyra_push_ocr_tests tests/unit/PushOcrTests.cpp)
+target_compile_features(veyra_push_ocr_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_ocr_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS reading the text on the picture (ui/PushOcr.h): Windows' own recogniser on a picture drawn by the test.
+add_executable(veyra_push_ocr_windows_tests tests/integration/PushOcrWindowsTests.cpp src/ui/PushOcrWinrt.cpp)
+target_compile_features(veyra_push_ocr_windows_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_ocr_windows_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_definitions(veyra_push_ocr_windows_tests PRIVATE UNICODE _UNICODE NOMINMAX)
+target_compile_options(veyra_push_ocr_windows_tests PRIVATE /utf-8 /EHsc)
 add_executable(veyra_push_fg_health_tests tests/unit/PushFgHealthTests.cpp)
 target_compile_features(veyra_push_fg_health_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_fg_health_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -1540,6 +1549,8 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
     src/ui/LiveTranslation.cpp src/ui/LiveTranslation.h
     src/ui/TranslationAssets.cpp src/ui/TranslationAssets.h
     src/ui/WinCaptionReader.cpp src/ui/WinCaptionReader.h
+    # PushFPS: reading the text on the picture with Windows' recogniser (no Qt in this file).
+    src/ui/PushOcrWinrt.cpp include/veyra/ui/PushOcr.h
     include/veyra/ui/QmlPlayerBridge.h include/veyra/ui/ThumbnailProvider.h
     # PushFPS streaming mode: a scene source's live picture for the interface.
     src/ui/PushSourceImageProvider.cpp include/veyra/ui/PushSourceImageProvider.h
@@ -1556,6 +1567,7 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
     src/ui/bridge/PushTools.cpp
     src/ui/bridge/PushStream.cpp
     src/ui/bridge/PushControl.cpp
+    src/ui/bridge/PushOcr.cpp
     src/ui/bridge/PushStudio.cpp
     src/ui/bridge/PushFrameInput.cpp
     src/ui/bridge/PushLatencyTest.cpp

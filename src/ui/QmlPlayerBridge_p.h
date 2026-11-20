@@ -22,6 +22,8 @@
 #include "veyra/engine/FrameGenerationSelection.h"
 #include "veyra/engine/PushFgHealth.h"
 #include "veyra/engine/PushClipMarkers.h"
+#include "veyra/ui/PushOcr.h"
+#include <future>
 #include "veyra/ui/QmlExportQueueModel.h"
 #include "veyra/ui/PlaylistModel.h"
 #include "veyra/ui/UpdateChecker.h"
@@ -410,6 +412,17 @@ struct QmlPlayerBridge::Impl {
     uint64_t recordingSaved = 0;   // LiveRecorder's finished-file counter already announced
     engine::clipmarks::Book markerBook;   // PushFPS clip markers of the file being written (Recording.cpp)
     QObject* controlServer = nullptr;     // PushFPS local control's socket (PushControl.cpp; a child of the bridge)
+    // PushFPS reading the text on the picture (ui/PushOcr.h, bridge/PushOcr.cpp). The two jobs take
+    // copies of what they need and touch nothing of the bridge.
+    int readPhase = 0;                    // 0 idle, 1 waiting for the frame, 2 reading it
+    bool readDropResult = false;          // cleared while under way: finished, then forgotten
+    bool readLanguagesAsked = false;
+    int readRegion = 0;
+    qint64 readDeadline = 0, readStartedAt = 0;
+    QString readFrame, readLanguage;      // the frame file asked for, and the language to read it with
+    QVariantMap readState{{QStringLiteral("phase"), QStringLiteral("idle")}};
+    std::future<ocr::Result> readJob;
+    std::future<std::vector<ocr::Language>> readLanguagesJob;
     uint64_t verticalSaved = 0;           // PushFPS vertical copy: its finished-file counter already announced
     std::wstring verticalError;           // and the failure last announced
     int compareGeneration = 0;     // PushFPS comparison clip whose timer may stop the recording

@@ -82,7 +82,7 @@ bool loopbackListenerIsOwned(quint16 port, DWORD pid) {
     return false;
 }
 
-QByteArray chatRequest(const QString& text, const QString& model, const QString& source, const QString& target, bool local) {
+QByteArray chatRequest(const QString& text, const QString& model, const QString& source, const QString& target, bool local, int maxTokens = 220) {
     QString instruction = QStringLiteral("Translate the subtitle into %1. Preserve the meaning and tone. Return only the translation.")
         .arg(languageName(target));
     if (languageCode(source)) instruction += QStringLiteral(" Input language: %1.").arg(languageName(source));
@@ -95,7 +95,7 @@ QByteArray chatRequest(const QString& text, const QString& model, const QString&
     };
     if (local) {
         request.insert(QStringLiteral("temperature"), 0.1);
-        request.insert(QStringLiteral("max_tokens"), 220);
+        request.insert(QStringLiteral("max_tokens"), maxTokens);
     }
     return QJsonDocument(request).toJson(QJsonDocument::Compact);
 }
@@ -136,7 +136,7 @@ LiveTranslation::LiveTranslation(const QString& directory, QObject* parent)
         setStatus(tr("字幕读取已停止，请重新启用"));
     });
     connect(&server_, &QProcess::started, this, [this] {
-        if (!enabled_ || provider_ != Local) { server_.kill(); return; }
+        if ((!enabled_ && !onceHeld()) || provider_ != Local) { server_.kill(); return; }   // PushFPS: or one text uses it
         const HANDLE job = CreateJobObjectW(nullptr, nullptr);
         const HANDLE child = OpenProcess(PROCESS_SET_QUOTA | PROCESS_TERMINATE, FALSE, DWORD(server_.processId()));
         JOBOBJECT_EXTENDED_LIMIT_INFORMATION limit{};
@@ -168,6 +168,8 @@ LiveTranslation::LiveTranslation(const QString& directory, QObject* parent)
     });
     timer_.setInterval(100);
     connect(&timer_, &QTimer::timeout, this, &LiveTranslation::tick);
+    onceTimer_.setInterval(250);    // PushFPS: only runs while one text waits for, or holds, the local model
+    connect(&onceTimer_, &QTimer::timeout, this, &LiveTranslation::onceTick);
     clock_.start();
 }
 
@@ -175,6 +177,7 @@ LiveTranslation::~LiveTranslation() {
     reader_.disconnect(this);
     server_.disconnect(this);
     cancelRequest();
+    onceDrop();
     stopLocal();
     for (auto* process : {&reader_, &server_}) {
         if (process->state() == QProcess::NotRunning) continue;
@@ -224,7 +227,7 @@ void LiveTranslation::setEnabled(bool value) {
     } else {
         timer_.stop();
         if (reader_.state() != QProcess::NotRunning) reader_.kill();
-        stopLocal();
+        if (!onceHeld()) stopLocal();   // PushFPS: unless one text uses it (onceTick stops it then)
         status_.clear();
     }
     emit changed();
@@ -232,6 +235,8 @@ void LiveTranslation::setEnabled(bool value) {
 
 void LiveTranslation::setProvider(int value) {
     if (value < Local || value > MyMemory || provider_ == value) return;
+    onceDrop();                     // PushFPS: a text waiting for the old engine is over,
+    if (!enabled_) stopLocal();     // and so is the local model kept for it
     setEnabled(false);
     provider_ = value;
     if (provider_ == MyMemory && sourceLanguage_.isEmpty()) setSourceLanguage(QStringLiteral("en"));
@@ -371,7 +376,7 @@ void LiveTranslation::tick() {
     }
     if (!caption_.isEmpty() && now - newTextAt_ > captionLifetimeMs) resetCaption();
     if (!active_) {
-        if (serverPort_) stopLocal();
+        if (serverPort_ && !onceHeld()) stopLocal();   // PushFPS: unless one text uses it
         setStatus(tr("播放或连接片源后开始翻译"));
         return;
     }
@@ -536,5 +541,221 @@ void LiveTranslation::receiveTranslation(QNetworkReply* reply, const QString& te
     translated_ = translation.simplified().left(500);
     setStatus(tr("实时翻译运行中"));
     emit captionChanged();
+}
+
+// --- PushFPS: one text, apart from the captions (reading the text on the picture, ui/PushOcr.h) ---
+// The same engines, the same request and the same limits as a caption. It changes no setting. With
+// the local model it starts the model's process when that is not running (the live path only runs
+// it while captions arrive) and keeps it for two minutes after the last text, so a second text is
+// answered at once; then it is stopped again unless live translation is using it.
+namespace {
+constexpr qint64 onceHoldMs = 120000;      // the local model stays this long after the last text
+constexpr qint64 onceStartMs = 60000;      // and may take this long to load before it is given up
+constexpr int onceLocalChars = 400;        // what the local model's context holds with its answer
+constexpr int onceChars = 600;
+}
+
+int LiveTranslation::onceReady() const {
+    if (provider_ == MyMemory) return sourceLanguage_.isEmpty() ? 3 : 0;
+    if (provider_ == Local) return assets_.downloading() ? 4 : assets_.installed() ? 0 : 1;
+    return !completionEndpoint(apiBase_).isEmpty() && !apiModel_.isEmpty() ? 0 : 2;
+}
+
+bool LiveTranslation::onceOnline() const {
+    if (provider_ == Local) return false;
+    if (provider_ == MyMemory) return true;
+    return !QHostAddress(completionEndpoint(apiBase_).host()).isLoopback();
+}
+
+// The local model's download, asked for from the text reader. Live translation itself needs Windows 11's
+// live captions and offers the download only there; the model does not need them.
+void LiveTranslation::onceDownloadModel() {
+    if (provider_ == Local && server_.state() == QProcess::NotRunning && !assets_.downloading() && !assets_.installed())
+        assets_.download();
+}
+
+// Ends a text that is waiting or being translated; the result and the hold stay.
+void LiveTranslation::clearOnce() {
+    if (auto* reply = std::exchange(onceRequest_, nullptr)) {
+        reply->disconnect(this);
+        reply->abort();
+        reply->deleteLater();
+    }
+    oncePending_.clear();
+    onceText_.clear();
+    onceStatus_.clear();
+    onceCut_ = false;
+    emit onceChanged();
+}
+
+// Ends everything of it, the hold included (the engine was changed, or PushFPS closes).
+void LiveTranslation::onceDrop() {
+    if (auto* reply = std::exchange(onceRequest_, nullptr)) {
+        reply->disconnect(this);
+        reply->abort();
+        reply->deleteLater();
+    }
+    oncePending_.clear();
+    onceHoldUntil_ = 0;
+    onceTimer_.stop();
+}
+
+void LiveTranslation::onceFail(const QString& why) {
+    oncePending_.clear();
+    onceStatus_ = why;
+    emit onceChanged();
+}
+
+bool LiveTranslation::translateOnce(const QString& text) {
+    clearOnce();
+    QString input = text.trimmed();
+    const int limit = provider_ == Local ? onceLocalChars : onceChars;
+    if (input.size() > limit) { input.truncate(limit); onceCut_ = true; }
+    if (provider_ == MyMemory)
+        while (input.toUtf8().size() > 500) { input.chop(1); onceCut_ = true; }
+    if (!input.isEmpty() && input.back().isHighSurrogate()) input.chop(1);
+    if (input.isEmpty()) { onceCut_ = false; return false; }
+    const int ready = onceReady();
+    if (ready != 0) {
+        onceCut_ = false;
+        onceFail(ready == 1 ? tr("请先下载本地翻译模型") : ready == 4 ? tr("本地翻译模型正在下载") : ready == 3 ? tr("MyMemory 需要选择原文语言")
+                            : tr("请填写 HTTPS 接口地址和模型名，本机服务可使用 HTTP"));
+        return false;
+    }
+    if (!sourceLanguage_.isEmpty() && sourceLanguage_.compare(targetLanguage_, Qt::CaseInsensitive) == 0) {
+        onceText_ = input;
+        emit onceChanged();
+        return true;
+    }
+    oncePending_ = input;
+    onceAskedAt_ = clock_.elapsed();
+    onceRetryAt_ = 0;
+    onceStarts_ = 0;
+    if (provider_ == Local) {
+        // The model's process is kept from now on (onceTick starts it when it is not running, sends
+        // when it answers, and lets it go again). The hold is only ever set with the timer running.
+        onceHoldUntil_ = clock_.elapsed() + onceHoldMs;
+        if (!enabled_) serverFailed_ = false;
+        if (!onceTimer_.isActive()) onceTimer_.start();
+        onceTick();
+        emit onceChanged();
+        return onceBusy();
+    }
+    onceSend();
+    emit onceChanged();
+    return onceBusy();
+}
+
+// The local model: starts its process when it is not running, waits until it answers on its own
+// port, then sends; and lets it go when the hold has run out.
+void LiveTranslation::onceTick() {
+    const auto now = clock_.elapsed();
+    // What went wrong, with the model's process ended unless live translation is using it. The live
+    // path's status line is its own: with live translation off it is left empty, as it was.
+    const auto giveUp = [this](const QString& fallback) {
+        const QString why = serverFailed_ && !status_.isEmpty() ? status_ : fallback;
+        if (!enabled_) {
+            stopLocal();
+            onceHoldUntil_ = 0;   // nothing is kept for it any more: the end of this step stops the timer
+            if (!status_.isEmpty()) { status_.clear(); emit changed(); }
+        }
+        onceFail(why);
+    };
+    if (!oncePending_.isEmpty() && !onceRequest_) {
+        if (provider_ != Local) onceSend();
+        else if (serverFailed_) giveUp(tr("无法启动本地翻译进程"));
+        else if (server_.state() == QProcess::NotRunning) {
+            // Not running: started, once (twice when a process that was just let go was still ending).
+            if (!serverPort_ && onceStarts_ < 2) {
+                ++onceStarts_;
+                startLocal();
+                if (serverFailed_) giveUp(tr("无法启动本地翻译进程"));
+                else if (!enabled_ && !status_.isEmpty()) { status_.clear(); emit changed(); }
+            } else giveUp(tr("无法启动本地翻译进程"));
+        } else if (serverJob_ && server_.state() == QProcess::Running && serverPort_
+                   && loopbackListenerIsOwned(serverPort_, DWORD(server_.processId()))) {
+            if (now >= onceRetryAt_) onceSend();
+        } else if (now - std::max(serverStartedAt_, onceAskedAt_) > onceStartMs) giveUp(tr("本地翻译服务启动超时，请重新启用"));
+    }
+    if (oncePending_.isEmpty() && !onceRequest_ && now > onceHoldUntil_) {
+        onceHoldUntil_ = 0;
+        onceTimer_.stop();
+        // Live translation, when it is on, decides about the process itself from here on.
+        if (!enabled_) stopLocal();
+    }
+}
+
+void LiveTranslation::onceSend() {
+    const QString input = oncePending_;
+    if (input.isEmpty() || onceRequest_) return;
+    QUrl url;
+    QByteArray token, payload;
+    const int engine = provider_;
+    if (engine == MyMemory) {
+        url = QUrl(QStringLiteral("https://api.mymemory.translated.net/get"));
+        QUrlQuery query;
+        query.addQueryItem(QStringLiteral("q"), QString::fromLatin1(QUrl::toPercentEncoding(input)));
+        query.addQueryItem(QStringLiteral("langpair"), sourceLanguage_ + QLatin1Char('|') + targetLanguage_);
+        url.setQuery(query);
+    } else if (engine == Local) {
+        url = completionEndpoint(QStringLiteral("http://127.0.0.1:%1/v1").arg(serverPort_));
+        token = serverKey_;
+        payload = chatRequest(input, QString::fromLatin1(localAlias), sourceLanguage_, targetLanguage_, true, 400);
+    } else {
+        url = completionEndpoint(apiBase_);
+        token = apiKey_;
+        payload = chatRequest(input, apiModel_, sourceLanguage_, targetLanguage_, false);
+    }
+    if (url.isEmpty()) { onceFail(tr("翻译请求失败，请检查连接")); return; }
+    QNetworkRequest request(url);
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
+    request.setAttribute(QNetworkRequest::CookieLoadControlAttribute, QNetworkRequest::Manual);
+    request.setAttribute(QNetworkRequest::CookieSaveControlAttribute, QNetworkRequest::Manual);
+    request.setTransferTimeout(engine == Local ? 60000 : 20000);
+    if (!token.isEmpty()) request.setRawHeader("Authorization", "Bearer " + token);
+    auto& manager = engine == Local || QHostAddress(url.host()).isLoopback() || url.host() == QLatin1String("localhost")
+        ? localNetwork_ : remoteNetwork_;
+    QNetworkReply* reply = nullptr;
+    if (payload.isEmpty()) reply = manager.get(request);
+    else {
+        request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+        reply = manager.post(request, payload);
+    }
+    onceRequest_ = reply;
+    reply->setReadBufferSize(maxResponseBytes + 1);
+    connect(reply, &QNetworkReply::readyRead, this, [reply] {
+        if (reply->bytesAvailable() > maxResponseBytes) reply->abort();
+    });
+    connect(reply, &QNetworkReply::finished, this, [this, reply, engine] {
+        reply->deleteLater();
+        if (onceRequest_ != reply) return;   // cleared or replaced meanwhile
+        onceRequest_ = nullptr;
+        const int code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        const auto now = clock_.elapsed();
+        // The local model answers 503 while it is still loading: asked again shortly.
+        if (engine == Local && code == 503 && now - std::max(serverStartedAt_, onceAskedAt_) < onceStartMs && !oncePending_.isEmpty()) {
+            onceRetryAt_ = now + 700;
+            return;
+        }
+        oncePending_.clear();
+        if (engine == Local) onceHoldUntil_ = now + onceHoldMs;
+        if (code < 200 || code >= 300 || reply->error() != QNetworkReply::NoError) {
+            onceStatus_ = code ? tr("翻译接口返回 HTTP %1").arg(code) : tr("翻译请求失败，请检查连接");
+        } else {
+            const auto result = QJsonDocument::fromJson(reply->readAll()).object();
+            QString translation;
+            if (engine == MyMemory) {
+                if (result.value(QStringLiteral("responseStatus")).toVariant().toInt() == 200)
+                    translation = result.value(QStringLiteral("responseData")).toObject().value(QStringLiteral("translatedText")).toString();
+            } else {
+                const auto choices = result.value(QStringLiteral("choices")).toArray();
+                if (!choices.isEmpty())
+                    translation = choices.first().toObject().value(QStringLiteral("message")).toObject().value(QStringLiteral("content")).toString();
+            }
+            if (translation.trimmed().isEmpty()) onceStatus_ = tr("翻译接口未返回译文");
+            else onceText_ = translation.trimmed().left(4000);
+        }
+        emit onceChanged();
+    });
 }
 } // namespace veyra::ui

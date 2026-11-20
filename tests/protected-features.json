@@ -1114,6 +1114,63 @@
     }
    ],
    "needs_hardware": "A real card: two encodes at once, both files, and what it costs. No test encodes a recording."
+  },
+  {
+   "id": "F45",
+   "what": "Reading the text on the picture: one frame, only when asked, read by Windows on this PC and deleted; the text is never logged; an HDR frame is brought down from its darkest to its brightest value and never cut off at white; a translation is asked for with its own button and says when the text leaves the PC; with nothing asked, live translation's own path is what it was",
+   "guards": [
+    {
+     "file": "tests/unit/PushOcrTests.cpp",
+     "ci": "veyra_push_ocr_tests",
+     "contains": "The case the usual way loses: grey text at 240 nits on a panel of 800, both above white."
+    },
+    {
+     "file": "tests/unit/PushOcrTests.cpp",
+     "ci": "veyra_push_ocr_tests",
+     "contains": "Text and what is behind it, 2 to 1, anywhere from a tenth of white up: at least 16 of 255 apart."
+    },
+    {
+     "file": "tests/integration/PushOcrWindowsTests.cpp",
+     "ci": "veyra_push_ocr_windows_tests",
+     "contains": "CHECK(lowest == ink && paper - ink >= 190);"
+    },
+    {
+     "file": "tests/integration/PushOcrWindowsTests.cpp",
+     "ci": "veyra_push_ocr_windows_tests",
+     "contains": "CHECK(holds(joinLines(hdr.lines), L\"GENERATION\") && holds(joinLines(hdr.lines), L\"CONTINUE\"));"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_read_text.qml",
+     "ci": "tst_push_read_text",
+     "contains": "test_a_translation_is_asked_for_with_its_own_button_and_says_where_the_text_goes"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_read_text.qml",
+     "ci": "tst_push_read_text",
+     "contains": "test_closing_it_forgets_the_text"
+    },
+    {
+     "file": "src/ui/bridge/PushOcr.cpp",
+     "contains": "std::filesystem::remove(file, ignored);   // whatever the reading gave"
+    },
+    {
+     "file": "src/ui/bridge/PushOcr.cpp",
+     "contains": "done ok={} error={} lines={} chars={} language={} size={}x{} hdr={} ms={}"
+    },
+    {
+     "file": "src/engine/EngineController.cpp",
+     "contains": "rfind(L\"pushfps-read-\",0)!=0)status(message);"
+    },
+    {
+     "file": "src/ui/LiveTranslation.cpp",
+     "contains": "if ((!enabled_ && !onceHeld()) || provider_ != Local) { server_.kill(); return; }"
+    },
+    {
+     "file": "src/ui/LiveTranslation.cpp",
+     "contains": "&& loopbackListenerIsOwned(serverPort_, DWORD(server_.processId()))) {\n            if (now >= onceRetryAt_) onceSend();"
+    }
+   ],
+   "needs_hardware": "A real PC: a game's own text at 1080p and 4K, SDR and HDR, in the languages Windows has; the local model started for one text and let go again; what a reading costs while frame generation runs. CI reads drawn text only, and only where the runner has a recognition language."
   }
  ]
 }

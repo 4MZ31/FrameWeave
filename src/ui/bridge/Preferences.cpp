@@ -318,6 +318,9 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"pushLatencyX", {0, 1000}}, {"pushLatencyY", {0, 1000}},
         // PushFPS: the size of the on-screen readout (PushLatencyBadge.qml): 0 standard, 1 large, 2 largest.
         {"pushLatencySize", {0, 2}},
+        // PushFPS reading the text on the picture: the part read (ui/PushOcr.h regionFor: 0 whole, 1 lower
+        // half, 2 lower third, 3 upper half).
+        {"pushReadRegion", {0, 3}},
         // PushFPS local control: the loopback port it listens on.
         {"pushControlPort", {1024, 65535}},
         // PushFPS vertical copy: 0 the whole picture with bars, 1 the picture fills it (sides cut).
@@ -524,6 +527,13 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         const QString v = value.toString();
         static const QStringList themes{"default", "black", "light", "midnight", "plum", "forest", "contrast"};
         if (!themes.contains(v)) return false;
+        stored = v;
+    } else if (key == QLatin1String("pushReadLanguage")) {
+        // PushFPS reading the text on the picture: the language to read with, as Windows writes its tags
+        // ("ja", "en-US"); empty = the user's own languages.
+        const QString v = value.toString();
+        static const QRegularExpression tag(QStringLiteral("^[A-Za-z0-9-]{0,35}$"));
+        if (!tag.match(v).hasMatch()) return false;
         stored = v;
     } else if (key == QLatin1String("pushDiscordWebhook")) {
         // PushFPS: only a Discord webhook address is accepted, so a clip is never sent elsewhere.
@@ -847,7 +857,7 @@ namespace {
 const QVariantMap& shortcutDefaults() {
     // Screenshot was Ctrl+S before 2026-10-27; saved custom keys are kept.
     static const QVariantMap d{{"playPause", "Space"}, {"fullscreen", "F"}, {"lock", "Ctrl+L"},
-                               {"hold", "V"}, {"screenshot", "F7"}, {"record", "F8"}, {"replay", "F9"}, {"marker", "F6"}, {"toggleMode", "Tab"},
+                               {"hold", "V"}, {"screenshot", "F7"}, {"record", "F8"}, {"replay", "F9"}, {"marker", "F6"}, {"readText", "F4"}, {"toggleMode", "Tab"},
                                {"gamePanel", "Home"}, {"gameExit", "Ctrl+Alt+Home"}};
     return d;
 }

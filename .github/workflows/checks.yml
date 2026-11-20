@@ -5,6 +5,7 @@
 #  3. QML lint (informational): qmllint findings for the PushFPS-specific QML files.
 #  4. Protected features (tests/protected-features.json): every test that guards a feature still exists
 #     and is still run by a workflow.
+#  5. Every workflow file is valid YAML.
 name: checks
 
 on:
@@ -46,6 +47,24 @@ jobs:
         run: |
           set -e
           for t in tests/js/*_test.js; do node "$t"; done
+
+      # A workflow file that is not valid YAML never runs, and nothing else says so (a stray line broke
+      # the screenshots workflow on 21 November 2026 and it simply did not start).
+      - name: Workflow files parse
+        run: |
+          python3 -c 'import yaml' 2>/dev/null || sudo apt-get install -y -qq python3-yaml
+          python3 - <<'PY'
+          import glob, sys, yaml
+          bad = 0
+          for f in sorted(glob.glob('.github/workflows/*.yml')):
+              try:
+                  yaml.safe_load(open(f, encoding='utf-8'))
+              except Exception as e:
+                  bad += 1
+                  print(f"::error file={f}::{str(e)[:300]}")
+          print('workflow files:', 'all parse' if not bad else f'{bad} broken')
+          sys.exit(1 if bad else 0)
+          PY
 
       - name: PowerShell scripts parse
         shell: pwsh

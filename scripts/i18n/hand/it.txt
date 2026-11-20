@@ -1468,3 +1468,39 @@ zh:竖屏副本：%1|Copia verticale: %1
 zh:补帧开着，但没有生成的画面显示出来|Frame generation è attivo, ma nessun fotogramma generato arriva sullo schermo
 zh:「保持 HUD 清晰」开着|Keep the HUD sharp è attivo
 zh:采集卡送来的是压缩画面|La scheda di acquisizione invia un'immagine compressa
+zh:上半部分|Metà superiore
+zh:下半部分|Metà inferiore
+zh:下面三分之一（字幕、对话）|Terzo inferiore (sottotitoli, dialoghi)
+zh:再读一次|Leggi di nuovo
+zh:去设置|Configura
+zh:已复制|Copiato
+zh:文字的语言|Lingua del testo
+zh:正在翻译…|Traduzione…
+zh:正在读取…|Lettura…
+zh:翻译|Traduci
+zh:自动（Windows 的语言）|Automatico (le tue lingue di Windows)
+zh:语言设置|Impostazioni lingua
+zh:读到 %1 行|%1 righe lette
+zh:读取|Leggi
+zh:读取失败，请再试一次|La lettura non è riuscita. Riprova
+zh:读取画面上的文字|Leggi il testo nell'immagine
+zh:读哪一部分|Parte dell'immagine
+zh:本地翻译模型正在下载|Il modello di traduzione locale è in download
+zh:自定义 API 还没有设置好|L'API personalizzata non è ancora configurata
+zh:本地模型正在下载… %1%|Download del modello locale… %1%
+zh:按「读取」来读正在播放的画面|Premi Leggi per leggere l'immagine in riproduzione
+zh:先让画面播放起来，再来读取|Avvia prima un'immagine, poi leggila
+zh:Windows 没有可用的文字识别语言。在 Windows 的语言设置里添加一种语言（带「光学字符识别」）后再试|Windows non ha una lingua con cui leggere il testo. Aggiungi una lingua nelle impostazioni della lingua di Windows (con «Riconoscimento ottico dei caratteri») e riprova
+zh:Windows 里没有装文字识别语言：在语言设置里添加语言（带「光学字符识别」）|In Windows non è installata alcuna lingua per il riconoscimento del testo: aggiungi una lingua nelle impostazioni della lingua (con «Riconoscimento ottico dei caratteri»)
+zh:取一帧画面，由 Windows 在这台电脑上识别其中的文字，可以复制或翻译。快捷键 %1|Prende un fotogramma dell'immagine e fa leggere il testo a Windows, su questo PC. Il testo si può copiare o tradurre. Scorciatoia: %1
+zh:取正在播放的一帧画面，由 Windows 在这台电脑上识别其中的文字。识别过程不联网，这一帧用完即删|Prende un fotogramma dell'immagine in riproduzione e fa leggere il testo a Windows, su questo PC. La lettura non usa la rete e il fotogramma viene poi eliminato
+zh:只能读 Windows 里装了文字识别的语言。要读日文、韩文等，先在 Windows 的语言设置里添加它|Si possono leggere solo le lingue per cui Windows ha il riconoscimento del testo. Per giapponese, coreano e così via, aggiungi prima la lingua nelle impostazioni della lingua di Windows
+zh:只读一部分时字更大，读得更准|Una parte dell'immagine viene letta più in grande e quindi con più precisione
+zh:在这台电脑上翻译，文字不会离开这台电脑。第一次需要一点时间加载模型|Tradotto su questo PC: il testo non lo lascia. La prima volta serve un momento per caricare il modello
+zh:打开后立即读取；窗口开着时再按一次，读现在的画面|Apre e legge subito; premuto di nuovo con la finestra aperta, legge l'immagine com'è adesso
+zh:按下「翻译」后，读到的文字会发送给 %1|Quando premi Traduci, il testo letto viene inviato a %1
+zh:文字太长，只翻译了开头的一部分|Il testo è troppo lungo: è stato tradotto solo l'inizio
+zh:本地模型还没有下载（约 %1 GB，只需一次）|Il modello locale non è ancora stato scaricato (circa %1 GB, una sola volta)
+zh:正在保存截图或导出图片，请稍后再试|È in corso il salvataggio di uno screenshot o di un'esportazione di immagine. Riprova tra un momento
+zh:没有拿到画面：现在没有画面在播放|Nessun fotogramma ricevuto: al momento non c'è alcuna immagine in riproduzione
+zh:这一帧里没有读到文字。试试只读画面的一部分，或换一种语言|In questo fotogramma non è stato trovato testo. Prova a leggere solo una parte dell'immagine o un'altra lingua

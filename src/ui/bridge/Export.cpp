@@ -9,7 +9,7 @@ int QmlPlayerBridge::imageBatchTotal() const { return int(impl_->imageFiles.size
 int QmlPlayerBridge::imageBatchFailures() const { return impl_->imageFailures; }
 QString QmlPlayerBridge::imageBatchStatus() const { return impl_->imageStatus; }
 void QmlPlayerBridge::saveFrameDialog() {
-    if(!impl_->pendingFrameExport.isEmpty()||!impl_->pendingScreenshot.isEmpty()||imageBatchActive()){emit notice(tr("请等待当前图片导出完成"),true);return;}
+    if(!impl_->pendingFrameExport.isEmpty()||!impl_->pendingScreenshot.isEmpty()||imageBatchActive()||impl_->readPhase==1){emit notice(tr("请等待当前图片导出完成"),true);return;}
     if (!hasSource()) { emit notice(tr("没有可保存的画面"), true); return; }
     if (impl_->chain.mode == engine::ChainMode::Node) {
         emit notice(tr("图片导出只接受列表模式；请切回列表模式再导出"), true); return;

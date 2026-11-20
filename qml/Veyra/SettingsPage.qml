@@ -809,6 +809,13 @@ VPage {
                                 onClicked: root.requestPage("translation")
                             }
                         }
+                        // PushFPS: read the text on the picture (PushReadTextDialog.qml).
+                        VRow {
+                            objectName: "set-readtext"
+                            label: qsTr("读取画面上的文字")
+                            hint: qsTr("取一帧画面，由 Windows 在这台电脑上识别其中的文字，可以复制或翻译。快捷键 %1").arg(String((veyra.shortcuts || ({})).readText || "") || qsTr("未设置"))
+                            VButton { objectName: "set-readtext-open"; text: qsTr("打开"); onClicked: veyra.navigate("readtext") }
+                        }
                         VRow {
                             label: qsTr("截图保存位置")
                             hint: veyra.screenshotDirectory + qsTr("（SDR 存 PNG，HDR 存 JPEG XR）")
@@ -1820,6 +1827,7 @@ VPage {
                                 { id: "record", a: qsTr("开始 / 停止录制"), note: qsTr("游戏模式下在游戏里也能用") },
                                 { id: "replay", a: qsTr("保存即时回放"), note: qsTr("需先在 设置 → 录制 开启即时回放；游戏模式下在游戏里也能用") },
                                 { id: "marker", a: qsTr("录制时标记这一刻"), note: qsTr("时间记在录像旁边的文本文件里，剪辑时好找") },
+                                { id: "readText", a: qsTr("读取画面上的文字"), note: qsTr("打开后立即读取；窗口开着时再按一次，读现在的画面") },
                                 { id: "toggleMode", a: qsTr("切换极简 / 专业") },
                                 { id: "gamePanel", a: qsTr("游戏模式：调整画面"), note: qsTr("仅在游戏模式中接管按键；支持 Ctrl、Alt、Shift 组合") },
                                 { id: "gameExit", a: qsTr("游戏模式：退出鼠标穿透"), note: qsTr("退出全屏，恢复普通窗口操作") }

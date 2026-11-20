@@ -438,7 +438,7 @@ void QmlPlayerBridge::stepFrame(int direction) {
 
 void QmlPlayerBridge::takeScreenshot() {
     if (!hasSource()) { emit notice(tr("没有正在播放的画面，无法截图"), true); return; }
-    if(!impl_->pendingScreenshot.isEmpty()||!impl_->pendingFrameExport.isEmpty()||imageBatchActive()){emit notice(tr("请等待当前图片导出完成"),true);return;}
+    if(!impl_->pendingScreenshot.isEmpty()||!impl_->pendingFrameExport.isEmpty()||imageBatchActive()||impl_->readPhase==1){emit notice(tr("请等待当前图片导出完成"),true);return;}
     const QString folder = screenshotDirectory();
     if (!QDir().mkpath(folder)) { emit notice(tr("截图目录不可用：%1").arg(folder), true); return; }
     const QString name = QStringLiteral("veyra-%1.png")

@@ -1984,7 +1984,9 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                 if(!save.empty()){try{sink::RgbaImage result;const auto e=std::filesystem::path(save).extension().wstring();
                     const auto saved=[this](const std::wstring& path,const std::wstring& message){
                         {std::lock_guard lock(mutex_);snapshot_.savedFramePath=path;}
-                        status(message);
+                        // PushFPS: a frame taken to read the text on it (ui/PushOcr.h, "pushfps-read-frame") is not a
+                        // screenshot anyone asked for: it is read and deleted, and nothing is said about a file.
+                        if(std::filesystem::path(path).filename().wstring().rfind(L"pushfps-read-",0)!=0)status(message);
                     };
                     drainLivePresentation();
                     if(graph->hdrOutput()){auto hdrPath=std::filesystem::path(save);hdrPath.replace_extension(L".jxr");if(sink::saveHdrScreenshot(hdrPath.wstring(),ctx,ring,graph->videoFrameResource(out.videoSlot)))saved(hdrPath.wstring(),L"HDR截图已保存："+hdrPath.wstring());else status(L"HDR截图保存失败，请查看日志",false);}else if(!sink::readRgba8(ctx,ring,graph->videoFrameResource(out.videoSlot),result)||!sink::saveImage(save,result,e==L".jpg"||e==L".jpeg",isImage?sink::ImageAlpha::Preserve:sink::ImageAlpha::Opaque))status(L"保存失败（目标文件可能已存在），播放已保留",false);else{saved(save,L"图片已保存："+save);veyra::log::info("image-save",std::format("saved extent={}x{} revision={}",gd.workWidth,gd.workHeight,options.settings.revision));}}

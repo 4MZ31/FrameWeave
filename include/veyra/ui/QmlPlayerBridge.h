@@ -1544,6 +1544,17 @@ public:
     Q_INVOKABLE bool pushSetControlEnabled(bool on);
     Q_INVOKABLE bool pushCopyControlToken();
     Q_INVOKABLE bool pushNewControlToken();
+    // PushFPS: reading the text that is on the picture (ui/PushOcr.h, bridge/PushOcr.cpp): one frame of the
+    // picture, taken when asked, read by Windows' own recogniser on this PC and deleted. pushReadText is
+    // { phase: idle | frame | reading | done | failed, error: no-picture | busy | no-frame | no-language |
+    //   no-file | failed, text, lines: [{ text, x, y, w, h }], count, language, region,
+    //   languages: [{ tag, name }], languagesKnown }. The text is never logged.
+    Q_PROPERTY(QVariantMap pushReadText READ pushReadText NOTIFY pushReadTextChanged)
+    QVariantMap pushReadText() const;
+    Q_INVOKABLE void pushReadTextPrepare();
+    Q_INVOKABLE bool pushReadTextStart(const QString& languageTag, int region);
+    Q_INVOKABLE void pushReadTextClear();
+    Q_INVOKABLE bool pushOpenLanguageSettings();
     Q_INVOKABLE QString pushImportTextFile(const QString& title);
     Q_INVOKABLE bool pushExportTextFile(const QString& title, const QString& suggestedName, const QString& text);
     // Apex Neural Rendering: install the package the user downloaded from Apex Compute
@@ -1682,6 +1693,7 @@ signals:
     void virtualCameraChanged();
     void replayChanged();
     void pushShareFinished(bool ok, const QString& message);
+    void pushReadTextChanged();           // reading the text on the picture: its state changed
     void pushControlChanged();            // local control was switched, its port or its token changed
     void pushControlScene(int number);    // local control asks for scene 1..9 of Streaming mode (StudioPage.qml)
     void microphoneDevicesChanged();
@@ -1811,6 +1823,7 @@ private:
     void refreshSubtitles(const std::wstring& media);
     void tickSubtitles();
     void tickImageBatch();
+    void tickPushReadText();
     void tickCapture();
     void tickPs5();
     void tickPs5Control(bool force = false);

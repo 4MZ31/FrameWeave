@@ -1468,3 +1468,39 @@ zh:竖屏副本：%1|Verticale kopie: %1
 zh:补帧开着，但没有生成的画面显示出来|Frame generation staat aan, maar er komt geen gegenereerd beeld op het scherm
 zh:「保持 HUD 清晰」开着|Keep the HUD sharp staat aan
 zh:采集卡送来的是压缩画面|De capturekaart stuurt een gecomprimeerd beeld
+zh:上半部分|Bovenste helft
+zh:下半部分|Onderste helft
+zh:下面三分之一（字幕、对话）|Onderste derde (ondertitels, dialoog)
+zh:再读一次|Opnieuw lezen
+zh:去设置|Instellen
+zh:已复制|Gekopieerd
+zh:文字的语言|Taal van de tekst
+zh:正在翻译…|Vertalen…
+zh:正在读取…|Lezen…
+zh:翻译|Vertalen
+zh:自动（Windows 的语言）|Automatisch (je Windows-talen)
+zh:语言设置|Taalinstellingen
+zh:读到 %1 行|%1 regels gelezen
+zh:读取|Lezen
+zh:读取失败，请再试一次|Het lezen is mislukt. Probeer het opnieuw
+zh:读取画面上的文字|De tekst op het beeld lezen
+zh:读哪一部分|Deel van het beeld
+zh:本地翻译模型正在下载|Het lokale vertaalmodel wordt gedownload
+zh:自定义 API 还没有设置好|De aangepaste API is nog niet ingesteld
+zh:本地模型正在下载… %1%|Lokaal model wordt gedownload… %1%
+zh:按「读取」来读正在播放的画面|Druk op Lezen om het beeld dat speelt te lezen
+zh:先让画面播放起来，再来读取|Laat eerst een beeld spelen en lees het dan
+zh:Windows 没有可用的文字识别语言。在 Windows 的语言设置里添加一种语言（带「光学字符识别」）后再试|Windows heeft geen taal waarmee het tekst kan lezen. Voeg in de taalinstellingen van Windows een taal toe (met 'Optische tekenherkenning') en probeer het opnieuw
+zh:Windows 里没有装文字识别语言：在语言设置里添加语言（带「光学字符识别」）|Windows heeft geen taal voor tekstherkenning geïnstalleerd: voeg in de taalinstellingen een taal toe (met 'Optische tekenherkenning')
+zh:取一帧画面，由 Windows 在这台电脑上识别其中的文字，可以复制或翻译。快捷键 %1|Neemt één frame van het beeld en laat Windows de tekst erop lezen, op deze pc. De tekst kan worden gekopieerd of vertaald. Sneltoets: %1
+zh:取正在播放的一帧画面，由 Windows 在这台电脑上识别其中的文字。识别过程不联网，这一帧用完即删|Neemt één frame van het beeld dat speelt en laat Windows de tekst erop lezen, op deze pc. Het lezen gebruikt geen netwerk en het frame wordt daarna verwijderd
+zh:只能读 Windows 里装了文字识别的语言。要读日文、韩文等，先在 Windows 的语言设置里添加它|Alleen talen waarvoor Windows tekstherkenning heeft, kunnen worden gelezen. Voeg voor Japans, Koreaans enzovoort eerst de taal toe in de taalinstellingen van Windows
+zh:只读一部分时字更大，读得更准|Een deel van het beeld wordt groter gelezen en dus nauwkeuriger
+zh:在这台电脑上翻译，文字不会离开这台电脑。第一次需要一点时间加载模型|Wordt op deze pc vertaald: de tekst verlaat de pc niet. De eerste keer duurt het even terwijl het model laadt
+zh:打开后立即读取；窗口开着时再按一次，读现在的画面|Opent en leest meteen; nogmaals indrukken terwijl het open is, leest het beeld zoals het nu is
+zh:按下「翻译」后，读到的文字会发送给 %1|Als je op Vertalen drukt, wordt de gelezen tekst naar %1 gestuurd
+zh:文字太长，只翻译了开头的一部分|De tekst is te lang: alleen het begin is vertaald
+zh:本地模型还没有下载（约 %1 GB，只需一次）|Het lokale model is nog niet gedownload (ongeveer %1 GB, eenmalig)
+zh:正在保存截图或导出图片，请稍后再试|Er wordt een schermafbeelding of afbeeldingsexport opgeslagen. Probeer het zo opnieuw
+zh:没有拿到画面：现在没有画面在播放|Er kwam geen frame: er speelt nu geen beeld
+zh:这一帧里没有读到文字。试试只读画面的一部分，或换一种语言|In dit frame is geen tekst gevonden. Probeer alleen een deel van het beeld te lezen, of een andere taal

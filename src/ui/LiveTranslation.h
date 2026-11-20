@@ -23,6 +23,18 @@ class LiveTranslation final : public QObject {
     Q_PROPERTY(bool downloading READ downloading NOTIFY changed)
     Q_PROPERTY(double downloadProgress READ downloadProgress NOTIFY changed)
     Q_PROPERTY(qint64 downloadBytes READ downloadBytes CONSTANT)
+    // PushFPS (ui/PushOcr.h, reading the text on the picture): one text translated with the engine
+    // chosen here, apart from the captions and whether or not live translation is on. onceReady:
+    // 0 the engine can be used, 1 the local model is not downloaded, 2 the API is not set up,
+    // 3 MyMemory has no source language, 4 the local model is being downloaded. onceOnline: the
+    // text leaves this PC with the engine chosen now. onceCut: the text was longer than one request
+    // takes and only its beginning was translated.
+    Q_PROPERTY(QString onceText READ onceText NOTIFY onceChanged)
+    Q_PROPERTY(QString onceStatus READ onceStatus NOTIFY onceChanged)
+    Q_PROPERTY(bool onceBusy READ onceBusy NOTIFY onceChanged)
+    Q_PROPERTY(bool onceCut READ onceCut NOTIFY onceChanged)
+    Q_PROPERTY(int onceReady READ onceReady NOTIFY changed)
+    Q_PROPERTY(bool onceOnline READ onceOnline NOTIFY changed)
 public:
     enum Provider { Local, OpenAi, MyMemory };
     explicit LiveTranslation(const QString& directory, QObject* parent = nullptr);
@@ -54,10 +66,20 @@ public:
     Q_INVOKABLE void openWindowsCaptions();
     Q_INVOKABLE void downloadModel();
     Q_INVOKABLE void cancelModelDownload();
+    QString onceText() const { return onceText_; }
+    QString onceStatus() const { return onceStatus_; }
+    bool onceBusy() const { return onceRequest_ != nullptr || !oncePending_.isEmpty(); }
+    bool onceCut() const { return onceCut_; }
+    int onceReady() const;
+    bool onceOnline() const;
+    Q_INVOKABLE bool translateOnce(const QString& text);
+    Q_INVOKABLE void clearOnce();
+    Q_INVOKABLE void onceDownloadModel();
     void setPlayback(quint64 session, bool active, bool discontinuity);
 signals:
     void changed();
     void captionChanged();
+    void onceChanged();
 private:
     void setStatus(QString status);
     void tick();
@@ -88,5 +110,18 @@ private:
     QString raw_, caption_, translated_, requestedText_, status_;
     QString sourceLanguage_, targetLanguage_, apiBase_, apiModel_;
     QByteArray apiKey_;
+    // PushFPS: translateOnce. While `onceHoldUntil_` is set the local model is kept running for it,
+    // also with live translation off; with it at 0 every line of the live path is what it was.
+    bool onceHeld() const { return onceHoldUntil_ > 0; }
+    void onceTick();
+    void onceSend();
+    void onceFail(const QString& why);
+    void onceDrop();
+    QNetworkReply* onceRequest_ = nullptr;
+    QTimer onceTimer_;
+    QString onceText_, onceStatus_, oncePending_;
+    qint64 onceHoldUntil_ = 0, onceRetryAt_ = 0, onceAskedAt_ = 0;
+    bool onceCut_ = false;
+    int onceStarts_ = 0;
 };
 }

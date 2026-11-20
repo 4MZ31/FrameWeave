@@ -1468,3 +1468,39 @@ zh:竖屏副本：%1|Kopia pionowa: %1
 zh:补帧开着，但没有生成的画面显示出来|Frame generation jest włączone, ale żadna wygenerowana klatka nie trafia na ekran
 zh:「保持 HUD 清晰」开着|Keep the HUD sharp jest włączone
 zh:采集卡送来的是压缩画面|Karta przechwytująca wysyła skompresowany obraz
+zh:上半部分|Górna połowa
+zh:下半部分|Dolna połowa
+zh:下面三分之一（字幕、对话）|Dolna jedna trzecia (napisy, dialogi)
+zh:再读一次|Odczytaj ponownie
+zh:去设置|Skonfiguruj
+zh:已复制|Skopiowano
+zh:文字的语言|Język tekstu
+zh:正在翻译…|Tłumaczenie…
+zh:正在读取…|Odczytywanie…
+zh:翻译|Przetłumacz
+zh:自动（Windows 的语言）|Automatycznie (Twoje języki Windows)
+zh:语言设置|Ustawienia języka
+zh:读到 %1 行|Odczytano wierszy: %1
+zh:读取|Odczytaj
+zh:读取失败，请再试一次|Odczyt się nie powiódł. Spróbuj ponownie
+zh:读取画面上的文字|Odczytaj tekst z obrazu
+zh:读哪一部分|Część obrazu
+zh:本地翻译模型正在下载|Trwa pobieranie lokalnego modelu tłumaczenia
+zh:自定义 API 还没有设置好|Własne API nie jest jeszcze skonfigurowane
+zh:本地模型正在下载… %1%|Pobieranie modelu lokalnego… %1%
+zh:按「读取」来读正在播放的画面|Naciśnij Odczytaj, aby odczytać odtwarzany obraz
+zh:先让画面播放起来，再来读取|Najpierw uruchom obraz, potem go odczytaj
+zh:Windows 没有可用的文字识别语言。在 Windows 的语言设置里添加一种语言（带「光学字符识别」）后再试|Windows nie ma języka, w którym może odczytać tekst. Dodaj język w ustawieniach języka Windows (z „Optycznym rozpoznawaniem znaków”) i spróbuj ponownie
+zh:Windows 里没有装文字识别语言：在语言设置里添加语言（带「光学字符识别」）|W Windows nie ma zainstalowanego języka rozpoznawania tekstu: dodaj język w ustawieniach języka (z „Optycznym rozpoznawaniem znaków”)
+zh:取一帧画面，由 Windows 在这台电脑上识别其中的文字，可以复制或翻译。快捷键 %1|Pobiera jedną klatkę obrazu, a Windows odczytuje z niej tekst na tym komputerze. Tekst można skopiować lub przetłumaczyć. Skrót: %1
+zh:取正在播放的一帧画面，由 Windows 在这台电脑上识别其中的文字。识别过程不联网，这一帧用完即删|Pobiera jedną klatkę odtwarzanego obrazu, a Windows odczytuje z niej tekst na tym komputerze. Odczyt nie korzysta z sieci, a klatka jest potem usuwana
+zh:只能读 Windows 里装了文字识别的语言。要读日文、韩文等，先在 Windows 的语言设置里添加它|Odczytać można tylko języki, dla których Windows ma rozpoznawanie tekstu. Aby czytać japoński, koreański itd., najpierw dodaj język w ustawieniach języka Windows
+zh:只读一部分时字更大，读得更准|Część obrazu jest odczytywana w większym rozmiarze, a więc dokładniej
+zh:在这台电脑上翻译，文字不会离开这台电脑。第一次需要一点时间加载模型|Tłumaczone na tym komputerze: tekst go nie opuszcza. Za pierwszym razem trwa to chwilę, bo wczytuje się model
+zh:打开后立即读取；窗口开着时再按一次，读现在的画面|Otwiera i od razu odczytuje; naciśnięty ponownie przy otwartym oknie odczytuje obraz taki, jaki jest teraz
+zh:按下「翻译」后，读到的文字会发送给 %1|Po naciśnięciu Przetłumacz odczytany tekst zostanie wysłany do %1
+zh:文字太长，只翻译了开头的一部分|Tekst jest za długi: przetłumaczono tylko początek
+zh:本地模型还没有下载（约 %1 GB，只需一次）|Model lokalny nie został jeszcze pobrany (około %1 GB, jednorazowo)
+zh:正在保存截图或导出图片，请稍后再试|Trwa zapisywanie zrzutu ekranu lub eksportu obrazu. Spróbuj ponownie za chwilę
+zh:没有拿到画面：现在没有画面在播放|Nie otrzymano klatki: teraz nie jest odtwarzany żaden obraz
+zh:这一帧里没有读到文字。试试只读画面的一部分，或换一种语言|W tej klatce nie znaleziono tekstu. Spróbuj odczytać tylko część obrazu albo wybierz inny język

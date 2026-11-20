@@ -1468,3 +1468,39 @@ zh:竖屏副本：%1|Dikey kopya: %1
 zh:补帧开着，但没有生成的画面显示出来|Frame generation açık, ancak üretilen hiçbir kare ekrana ulaşmıyor
 zh:「保持 HUD 清晰」开着|Keep the HUD sharp açık
 zh:采集卡送来的是压缩画面|Yakalama kartı sıkıştırılmış görüntü gönderiyor
+zh:上半部分|Üst yarı
+zh:下半部分|Alt yarı
+zh:下面三分之一（字幕、对话）|Alt üçte bir (altyazı, diyalog)
+zh:再读一次|Yeniden oku
+zh:去设置|Ayarla
+zh:已复制|Kopyalandı
+zh:文字的语言|Metnin dili
+zh:正在翻译…|Çevriliyor…
+zh:正在读取…|Okunuyor…
+zh:翻译|Çevir
+zh:自动（Windows 的语言）|Otomatik (Windows dilleriniz)
+zh:语言设置|Dil ayarları
+zh:读到 %1 行|%1 satır okundu
+zh:读取|Oku
+zh:读取失败，请再试一次|Okuma başarısız oldu. Yeniden deneyin
+zh:读取画面上的文字|Görüntüdeki metni oku
+zh:读哪一部分|Görüntünün bölümü
+zh:本地翻译模型正在下载|Yerel çeviri modeli indiriliyor
+zh:自定义 API 还没有设置好|Özel API henüz ayarlanmadı
+zh:本地模型正在下载… %1%|Yerel model indiriliyor… %1%
+zh:按「读取」来读正在播放的画面|Oynatılan görüntüyü okumak için Oku'ya basın
+zh:先让画面播放起来，再来读取|Önce bir görüntü oynatın, sonra okuyun
+zh:Windows 没有可用的文字识别语言。在 Windows 的语言设置里添加一种语言（带「光学字符识别」）后再试|Windows'ta metin okuyabileceği bir dil yok. Windows dil ayarlarından bir dil ekleyin ("Optik karakter tanıma" ile) ve yeniden deneyin
+zh:Windows 里没有装文字识别语言：在语言设置里添加语言（带「光学字符识别」）|Windows'ta metin tanıma dili yüklü değil: dil ayarlarından bir dil ekleyin ("Optik karakter tanıma" ile)
+zh:取一帧画面，由 Windows 在这台电脑上识别其中的文字，可以复制或翻译。快捷键 %1|Görüntüden bir kare alır ve üzerindeki metni bu bilgisayarda Windows'a okutur. Metin kopyalanabilir veya çevrilebilir. Kısayol: %1
+zh:取正在播放的一帧画面，由 Windows 在这台电脑上识别其中的文字。识别过程不联网，这一帧用完即删|Oynatılan görüntüden bir kare alır ve üzerindeki metni bu bilgisayarda Windows'a okutur. Okuma ağ kullanmaz ve kare okunduktan sonra silinir
+zh:只能读 Windows 里装了文字识别的语言。要读日文、韩文等，先在 Windows 的语言设置里添加它|Yalnızca Windows'ta metin tanıması bulunan diller okunabilir. Japonca, Korece vb. okumak için önce dili Windows dil ayarlarından ekleyin
+zh:只读一部分时字更大，读得更准|Görüntünün bir bölümü daha büyük okunur, bu yüzden daha doğru olur
+zh:在这台电脑上翻译，文字不会离开这台电脑。第一次需要一点时间加载模型|Bu bilgisayarda çevrilir: metin bilgisayardan çıkmaz. İlk seferde model yüklenirken biraz zaman alır
+zh:打开后立即读取；窗口开着时再按一次，读现在的画面|Açar ve hemen okur; pencere açıkken yeniden basılırsa görüntüyü şu anki haliyle okur
+zh:按下「翻译」后，读到的文字会发送给 %1|Çevir'e bastığınızda okunan metin %1 hizmetine gönderilir
+zh:文字太长，只翻译了开头的一部分|Metin çok uzun: yalnızca başı çevrildi
+zh:本地模型还没有下载（约 %1 GB，只需一次）|Yerel model henüz indirilmedi (yaklaşık %1 GB, bir kez)
+zh:正在保存截图或导出图片，请稍后再试|Bir ekran görüntüsü veya resim dışa aktarımı kaydediliyor. Birazdan yeniden deneyin
+zh:没有拿到画面：现在没有画面在播放|Kare gelmedi: şu anda oynatılan bir görüntü yok
+zh:这一帧里没有读到文字。试试只读画面的一部分，或换一种语言|Bu karede metin bulunamadı. Görüntünün yalnızca bir bölümünü okumayı veya başka bir dili deneyin

@@ -112,6 +112,7 @@ PushLevelMeter 1.0 PushLevelMeter.qml
 PushMicFiltersDialog 1.0 PushMicFiltersDialog.qml
 PushLayoutDialog 1.0 PushLayoutDialog.qml
 PushCropDialog 1.0 PushCropDialog.qml
+PushReadTextDialog 1.0 PushReadTextDialog.qml
 PushRecordDialog 1.0 PushRecordDialog.qml
 PushMaximizeButton 1.0 PushMaximizeButton.qml
 PushSection 1.0 PushSection.qml

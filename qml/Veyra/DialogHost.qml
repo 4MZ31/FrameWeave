@@ -34,6 +34,8 @@ Item {
         host.dialog = key
     }
     function close() { host.dialog = "" }
+    // PushFPS: the read-text key pressed with its dialog open reads the picture as it is now.
+    function readTextAgain() { readTextDialog.start() }
 
     signal startPs5()
     signal startMoonlight()
@@ -167,6 +169,11 @@ Item {
     }
     PushDiagnoseDialog {
         id: diagnoseDialog
+        dialogHost: host
+    }
+    // PushFPS: read the text on the picture (key "readtext").
+    PushReadTextDialog {
+        id: readTextDialog
         dialogHost: host
     }
     PushCardTestDialog {

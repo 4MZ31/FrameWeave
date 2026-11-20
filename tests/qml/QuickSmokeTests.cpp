@@ -74,6 +74,24 @@ QtObject {
         property string status: ""
         function downloadModel() { downloading = true }
         function cancelModelDownload() { downloading = false }
+        // PushFPS: one text translated apart from the captions (tst_push_read_text.qml).
+        property string onceText: ""
+        property string onceStatus: ""
+        property bool onceBusy: false
+        property bool onceCut: false
+        property bool onceOnline: provider !== 0
+        readonly property int onceReady: provider === 2 ? (sourceLanguage === "" ? 3 : 0)
+            : provider === 0 ? (downloading ? 4 : modelInstalled ? 0 : 1) : (apiBase !== "" && apiModel !== "" ? 0 : 2)
+        property var onceAsked: []
+        property int onceClears: 0
+        function translateOnce(text) {
+            if (onceReady !== 0 || String(text).length === 0) return false
+            onceAsked = onceAsked.concat([String(text)])
+            onceText = "[" + targetLanguage + "] " + text
+            return true
+        }
+        function clearOnce() { onceClears++; onceText = ""; onceStatus = ""; onceCut = false }
+        function onceDownloadModel() { downloading = true }
     }
     property real playbackRate: 1
     readonly property real maximumVolume: 3
@@ -311,6 +329,32 @@ QtObject {
     }
     function pushCopyControlToken() { if (!controlState.hasToken) return false; controlTokenCopies++; return true }
     function pushNewControlToken() { controlTokensMade++; return true }
+)qml"
+    R"qml(    // PushFPS reading the text on the picture (tst_push_read_text.qml). `readTextAnswer` is what a reading gives.
+    signal pushReadTextChanged()
+    property var pushReadText: ({phase: "idle"})
+    property var readTextAnswer: ({phase: "done", error: "", text: "New game\nOptions", count: 2, language: "en-US",
+        lines: [{text: "New game", x: 0.1, y: 0.1, w: 0.2, h: 0.05}, {text: "Options", x: 0.1, y: 0.2, w: 0.2, h: 0.05}]})
+    property var readTextStarts: []
+    property int readTextPrepared: 0
+    property int readTextCleared: 0
+    property int languageSettingsOpened: 0
+    function pushReadTextPrepare() {
+        readTextPrepared++
+        pushReadText = Object.assign({}, pushReadText, {languagesKnown: true,
+            languages: [{tag: "en-US", name: "English (United States)"}, {tag: "ja", name: "Japanese"}]})
+    }
+    function pushReadTextStart(tag, region) {
+        if (!hasSource) { pushReadText = Object.assign({}, pushReadText, {phase: "failed", error: "no-picture", text: "", count: 0}); return false }
+        readTextStarts = readTextStarts.concat([{tag: String(tag), region: Number(region)}])
+        pushReadText = Object.assign({}, pushReadText, readTextAnswer, {region: Number(region)})
+        return readTextAnswer.phase !== "failed"
+    }
+    function pushReadTextClear() {
+        readTextCleared++
+        pushReadText = {phase: "idle", languages: pushReadText.languages, languagesKnown: pushReadText.languagesKnown}
+    }
+    function pushOpenLanguageSettings() { languageSettingsOpened++; return true }
     property int markersAdded: 0
     function pushAddMarker(source) {
         if (!recording) return false

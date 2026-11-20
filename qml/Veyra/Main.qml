@@ -865,6 +865,14 @@ Window {
     Shortcut { sequence: veyra.shortcuts.replay; autoRepeat: false; onActivated: veyra.saveReplay("shortcut") }
     // PushFPS clip markers: only while a recording runs, so the key does nothing (and says nothing) otherwise.
     Shortcut { sequence: veyra.shortcuts.marker || ""; autoRepeat: false; enabled: veyra.recording === true; onActivated: veyra.pushAddMarker("shortcut") }
+    // PushFPS: read the text on the picture (PushReadTextDialog.qml). The key opens the dialog, which reads
+    // at once; pressed again with the dialog open it reads the picture as it is now.
+    Shortcut {
+        sequence: veyra.shortcuts.readText || ""
+        autoRepeat: false
+        enabled: veyra.hasSource === true
+        onActivated: { if (dialogs.dialog === "readtext") dialogs.readTextAgain(); else dialogs.open("readtext") }
+    }
     Shortcut {
         sequence: veyra.shortcuts.toggleMode
         enabled: dialogs.dialog === ""
@@ -1020,7 +1028,7 @@ Window {
             onboarding.close()
             // A dialog key opens the dialog; anything else is a page.
             if (p === "network" || p === "capture" || p === "ps5" || p === "moonlight" || p === "xbox" || p === "screen"
-                || p === "subtitle" || p === "translation" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud" || p === "latencyguide" || p === "crop" || p === "stream" || p === "compare" || p === "record" || p === "micfilters" || p === "layout" || p === "frameinput" || p === "qualitytest" || p === "latencytest" || p === "crash" || p === "cardtest" || p === "diagnose") {
+                || p === "subtitle" || p === "translation" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud" || p === "latencyguide" || p === "crop" || p === "stream" || p === "compare" || p === "record" || p === "micfilters" || p === "layout" || p === "frameinput" || p === "qualitytest" || p === "latencytest" || p === "crash" || p === "cardtest" || p === "diagnose" || p === "readtext") {
                 dialogs.open(p)
                 return
             }
