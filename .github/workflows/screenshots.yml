@@ -191,6 +191,10 @@ jobs:
             @{ name = '92-studio-maximize'; args = @('--page', 'live', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '93-quick-method'; args = @('--page', 'home', '--scroll-to', 'pushfps-fg-backend-row', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '94-quick-low-latency'; args = @('--page', 'home', '--scroll-to', 'pushfps-low-latency-row', '--lang', 'en', '--pref', 'pushSunset=false') },
+            # 95: the comparison clip dialog names the console chosen in quick setup; 96: the enhancement's size row
+            # (shown where the enhancement can run, so on the runner it may be scrolled to and absent).
+            @{ name = '95-compare-console-name'; args = @('--page', 'home', '--dialog', 'compare', '--lang', 'en', '--pref', 'pushConsole=ps5pro', '--pref', 'pushSunset=false') },
+            @{ name = '96-quick-smooth-screen'; args = @('--page', 'home', '--scroll-to', 'pushfps-smooth-row', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '83-crop-editor'; args = @('--page', 'home', '--dialog', 'crop', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') },
             @{ name = '84-crop-quick-setup'; args = @('--page', 'home', '--scroll-to', 'pushfps-crop-row', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') }
           )
