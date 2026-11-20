@@ -13,6 +13,21 @@
 // (plus the motion estimation time, plus up to one capture refresh with Frame Pacing Repair) behind
 // the capture, like every frame generation. With frame generation off, the newest frame is shown at
 // once. Times are nanoseconds on one steady clock.
+//
+// What the picture waits beyond that (4.1; people who tried the macOS build found the delay higher
+// than on Windows with the same capture card). Three things were found by reading and are changed:
+//   - Motion for a pair started only after the new frame's colour conversion (6 ms for 1080p, 10 ms
+//     for 1440p on the build machine). It needs the brightness picture only, so it starts before the
+//     conversion now and the two run side by side.
+//   - Before the first pair was measured the allowance for motion was its 6 ms floor, so the first
+//     seconds of every session ran late, and each late refresh added a millisecond of margin (up to
+//     40) that was given back at two thousandths of a millisecond a refresh: over five minutes at
+//     60 Hz. Every session began with tens of milliseconds it did not need. The allowance now starts
+//     at kStartBudgetMs until a pair has been measured.
+//   - The margin is given back when it is shown to be spare: for every pair the engine notes how long
+//     before it was needed its motion was ready (the slack), and while the least slack of the last
+//     pairs stays above a guard, the margin comes down by that excess, half a millisecond a pair at
+//     most. It never probes by running late; the old slow giving back is still there under it.
 #include "veyra/portable/HudLock.h"
 #include "veyra/portable/Image.h"
 #include "veyra/portable/Motion.h"
@@ -47,6 +62,7 @@ struct ContentFrame {
 
 struct PairFields {
     uint64_t aId = 0, bId = 0;
+    int64_t readyNs = 0;  // when the motion was ready, on the engine's clock
     MotionField forward, backward;
     std::shared_ptr<const Gray> hudMask;  // null when Live HUD Lock is off
     double estimateMs = 0;
@@ -70,6 +86,8 @@ struct EngineStats {
     double delayMs = 0;        // current display delay behind the content
     uint64_t framesIn = 0, duplicates = 0, kept = 0, sceneCuts = 0, pacingRepaired = 0;
     uint64_t lateFields = 0;   // refreshes that showed a real frame because the motion was not ready yet
+    double marginMs = 0;       // extra delay this machine turned out to need (0..40)
+    double slackMs = 0;        // least time before it was needed that a recent pair's motion was ready
     uint64_t picks = 0;        // refreshes asked for
     int width = 0, height = 0;
 };
@@ -95,9 +113,24 @@ public:
     void reset();
     // Tests: waits until the worker has finished every queued pair.
     void waitIdle();
+    // Tests: the clock the worker reads when a pair's motion is ready (the same clock arrival and
+    // display times are on). The default is the steady clock in nanoseconds, which is what the app
+    // stamps its frames and refreshes with.
+    void setClock(std::function<int64_t()> clock);
+    // Tests: while held, queued pairs are not estimated (a slow machine, on a simulated clock).
+    void holdWorker(bool hold);
+
+    // The allowance for motion before any pair has been measured, and what the margin is steered by.
+    static constexpr double kStartBudgetMs = 24.0;
+    static constexpr double kSlackGuardMs = 4.0;   // least slack the margin is never taken below
+    static constexpr double kSlackStepMs = 0.5;    // most the margin comes down for one pair
+    static constexpr size_t kSlackPairs = 240;     // pairs looked back on (8 s at 30 FPS)
+    static constexpr size_t kSlackMinPairs = 45;   // pairs before anything is given back
 
 private:
-    struct Job { std::shared_ptr<const ContentFrame> a, b; };
+    // A pair to estimate: the two brightness pyramids and the frames' numbers. Not the frames: the
+    // newer one is still being converted to colour when its pair starts.
+    struct Job { uint64_t aId = 0, bId = 0; std::shared_ptr<const Pyramid> a, b; };
     void workerLoop();
     void resetLocked();
 
@@ -107,7 +140,10 @@ private:
     std::deque<std::shared_ptr<const ContentFrame>> frames_;
     std::deque<std::shared_ptr<const PairFields>> pairs_;
     std::deque<Job> jobs_;
-    bool busy_ = false, stop_ = false, hudReset_ = false;
+    bool busy_ = false, stop_ = false, hudReset_ = false, held_ = false;
+    std::function<int64_t()> clock_;
+    std::deque<double> slack_;       // ms, one per pair, newest last
+    uint64_t slackSeenB_ = 0;        // the newest pair already noted
     uint64_t nextId_ = 1, generation_ = 0;
     std::shared_ptr<const Gray> lastQuarter_;
     int64_t lastArrival_ = 0, lastKeptArrival_ = 0, lastContent_ = 0;

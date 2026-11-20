@@ -25,6 +25,9 @@ class FrameView : public QQuickItem {
     Q_PROPERTY(qreal saturation READ saturation WRITE setSaturation NOTIFY pictureChanged)
     Q_PROPERTY(qreal gamma READ gamma WRITE setGamma NOTIFY pictureChanged)
     Q_PROPERTY(bool running READ running WRITE setRunning NOTIFY runningChanged)
+    // How a picture of another shape than the window is shown: 0 whole with bars, 1 the window filled
+    // and the picture's sides cut, 2 stretched.
+    Q_PROPERTY(int fill READ fill WRITE setFill NOTIFY pictureChanged)
 public:
     explicit FrameView(QQuickItem* parent = nullptr);
     ~FrameView() override;
@@ -34,6 +37,8 @@ public:
     qreal saturation() const { return saturation_; }
     qreal gamma() const { return gamma_; }
     bool running() const { return running_; }
+    int fill() const { return fill_; }
+    void setFill(int v);
     void setBrightness(qreal v);
     void setContrast(qreal v);
     void setSaturation(qreal v);
@@ -65,6 +70,7 @@ private:
 
     qreal brightness_ = 0, contrast_ = 1, saturation_ = 1, gamma_ = 1;
     bool running_ = true;
+    int fill_ = 0;
     std::vector<CachedTexture> cache_;
     quint64 frameCounter_ = 0;
     QSGTexture* black_ = nullptr;

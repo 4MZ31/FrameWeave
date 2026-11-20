@@ -21,6 +21,7 @@ Rectangle {
         contrast: app.contrast
         saturation: app.saturation
         gamma: app.gamma
+        fill: app.fillMode
     }
 
     readonly property var st: app.stats
@@ -58,6 +59,12 @@ Rectangle {
                 visible: app.pacingRepair
                 color: Qt.rgba(1, 1, 1, 0.75); font.pixelSize: 12; font.family: Theme.fontUi
                 text: qsTr("正在修复：%1% 的画面重新对齐").arg(Math.round((player.st.pacingShare || 0) * 100))
+            }
+            // What the picture waits on top of what frame generation needs, while this machine needs it.
+            Text {
+                visible: (player.st.marginMs || 0) >= 1
+                color: Qt.rgba(1, 1, 1, 0.75); font.pixelSize: 12; font.family: Theme.fontUi
+                text: qsTr("这台电脑的额外等待：%1 ms").arg(Math.round(player.st.marginMs || 0))
             }
         }
     }

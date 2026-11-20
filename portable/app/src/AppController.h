@@ -48,6 +48,12 @@ class AppController : public QObject {
     Q_PROPERTY(qreal saturation READ saturation WRITE setSaturation NOTIFY settingsChanged)
     Q_PROPERTY(qreal gamma READ gamma WRITE setGamma NOTIFY settingsChanged)
     Q_PROPERTY(bool showStats READ showStats WRITE setShowStats NOTIFY settingsChanged)
+    // 4.1: one tap for the shortest delay, the sound moved by hand, the capture card connected when the
+    // app opens, and how a picture of another shape than the window is shown.
+    Q_PROPERTY(bool lowLatency READ lowLatency WRITE setLowLatency NOTIFY settingsChanged)
+    Q_PROPERTY(int audioTrimMs READ audioTrimMs WRITE setAudioTrimMs NOTIFY settingsChanged)
+    Q_PROPERTY(bool autoConnect READ autoConnect WRITE setAutoConnect NOTIFY settingsChanged)
+    Q_PROPERTY(int fillMode READ fillMode WRITE setFillMode NOTIFY settingsChanged)
     Q_PROPERTY(bool alwaysOnTop READ alwaysOnTop WRITE setAlwaysOnTop NOTIFY settingsChanged)
     Q_PROPERTY(QString language READ language WRITE setLanguage NOTIFY settingsChanged)
     Q_PROPERTY(QStringList languageCodes READ languageCodes CONSTANT)
@@ -101,6 +107,14 @@ public:
     void setGamma(qreal v);
     bool showStats() const { return showStats_; }
     void setShowStats(bool v);
+    bool lowLatency() const { return lowLatency_; }
+    void setLowLatency(bool v);
+    int audioTrimMs() const { return audioTrim_; }
+    void setAudioTrimMs(int ms);
+    bool autoConnect() const { return autoConnect_; }
+    void setAutoConnect(bool v);
+    int fillMode() const { return fillMode_; }
+    void setFillMode(int m);
     bool alwaysOnTop() const { return onTop_; }
     void setAlwaysOnTop(bool v);
     QString language() const { return language_; }
@@ -141,6 +155,8 @@ private:
     void updateStats();
     void startAudioIfWanted();
     void startCameraNow();
+    QString formatKey() const;
+    void restoreFormat();
 
     QQmlEngine* qml_;
     CatalogTranslator* translator_;
@@ -155,6 +171,8 @@ private:
     int videoIndex_ = 0, formatIndex_ = -1, audioInIndex_ = 0, audioOutIndex_ = 0;
     int targetMode_ = 3, quality_ = 1;
     bool pacing_ = false, hud_ = false, dedup_ = true, audioOn_ = true, showStats_ = false, onTop_ = false;
+    bool lowLatency_ = false, autoConnect_ = false, applyingLowLatency_ = false, savedCameraFound_ = false;
+    int audioTrim_ = 0, fillMode_ = 0;
     qreal volume_ = 1.0, brightness_ = 0, contrast_ = 1, saturation_ = 1, gamma_ = 1;
     QString language_ = QStringLiteral("auto");
     QVariantMap stats_;

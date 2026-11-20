@@ -370,6 +370,90 @@ void testEngineTiming(bool uneven, bool repair, double target, int64_t refreshNs
     else CHECK(sd > mean * 0.3, "uneven input stays uneven without repair (sd %.3f of %.3f)", sd, mean);
 }
 
+// A machine that runs late for a while gets a margin, and gives it back once its motion is ready in
+// good time again, without running late to find that out. The clock is simulated: frames arrive every
+// 60th of a second (each picture twice: a 30 FPS game), the screen refreshes 120 times a second and
+// asks, as the app does, for the picture of the next refresh.
+void testEngineMargin() {
+    const Scene bg(160, 96, 420, 11), fg(16, 16, 2, 12);
+    EngineSettings s;
+    s.estimateBudgetMs = 6;
+    Engine e(s);
+    std::atomic<int64_t> sim{1'000'000'000};
+    e.setClock([&] { return sim.load(); });
+    const int64_t T = 16666667, R = 8333333;
+    int64_t nextCapture = sim.load(), nextRefresh = sim.load() + 1'000'000;
+    int slot = 0;
+    bool pending = false;
+    int64_t releaseAt = 0;
+    // slowNs: how long after a new picture arrives its pair's motion is ready (0: at once).
+    const auto run = [&](int slots, int64_t slowNs) {
+        e.holdWorker(slowNs > 0);
+        for (const int until = slot + slots; slot < until;) {
+            const bool capture = nextCapture <= nextRefresh;
+            const int64_t t = capture ? nextCapture : nextRefresh;
+            sim = t;
+            if (pending && t >= releaseAt) { e.holdWorker(false); e.waitIdle(); e.holdWorker(true); pending = false; }
+            if (capture) {
+                // The background goes two pixels a picture one way and then back (the scene is only so
+                // wide, and the run is long); no two pictures in a row are the same.
+                const int content = slot / 2 + 1, k = content % 400;
+                e.push(render(bg, fg, float(k < 200 ? k * 2 : (400 - k) * 2), 0, 50.f + float(content % 60), 40, 16), t);
+                if (slowNs > 0) { if (slot % 2 == 0) { pending = true; releaseAt = t + slowNs; } }
+                else e.waitIdle();
+                ++slot;
+                nextCapture += T;
+            } else {
+                (void)e.pick(t + R);
+                nextRefresh += R;
+            }
+        }
+        if (pending) { e.holdWorker(false); e.waitIdle(); pending = false; }
+        e.holdWorker(false);
+    };
+    run(240, 0);
+    EngineStats st = e.stats();
+    std::printf("  margin: steady          delay %.1f ms, margin %.1f ms, least slack %.1f ms, late %llu\n", st.delayMs, st.marginMs, st.slackMs, (unsigned long long)st.lateFields);
+    CHECK(st.lateFields == 0 && st.marginMs == 0.0, "a machine that keeps up needs no margin (late %llu, margin %.2f)", (unsigned long long)st.lateFields, st.marginMs);
+    CHECK(std::abs(st.slackMs - 6.0) < 1.0, "its motion is ready the whole allowance early (%.2f ms)", st.slackMs);
+    const double steadyDelay = st.delayMs;
+    run(120, 30'000'000);
+    st = e.stats();
+    std::printf("  margin: 30 ms motion    delay %.1f ms, margin %.1f ms, least slack %.1f ms, late %llu\n", st.delayMs, st.marginMs, st.slackMs, (unsigned long long)st.lateFields);
+    CHECK(st.lateFields > 0 && st.marginMs > 15.0 && st.marginMs <= 40.0, "running late builds a margin (%.1f ms after %llu late refreshes)", st.marginMs, (unsigned long long)st.lateFields);
+    const double slowMargin = st.marginMs;
+    const uint64_t lateAfterSlow = st.lateFields;
+    // Fast again. For as long as the slow pairs are among those looked back on, their margin is kept.
+    run(240, 0);
+    st = e.stats();
+    std::printf("  margin: fast again, 4 s delay %.1f ms, margin %.1f ms, least slack %.1f ms\n", st.delayMs, st.marginMs, st.slackMs);
+    CHECK(st.marginMs > slowMargin - 4.0, "what was needed four seconds ago is not given away yet (%.1f of %.1f ms)", st.marginMs, slowMargin);
+    run(660, 0);
+    st = e.stats();
+    std::printf("  margin: fast again, 15 s delay %.1f ms, margin %.1f ms, least slack %.1f ms, late %llu\n", st.delayMs, st.marginMs, st.slackMs, (unsigned long long)st.lateFields);
+    CHECK(st.marginMs < 0.5, "the margin is given back (%.2f ms left)", st.marginMs);
+    CHECK(st.lateFields == lateAfterSlow, "and never by running late to find out (%llu more)", (unsigned long long)(st.lateFields - lateAfterSlow));
+    CHECK(std::abs(st.delayMs - steadyDelay) < 1.0, "the delay is what it was before (%.1f, was %.1f ms)", st.delayMs, steadyDelay);
+    CHECK(st.slackMs > Engine::kSlackGuardMs - 0.01, "with the guard's slack to spare (%.2f ms)", st.slackMs);
+}
+
+// The allowance before any pair has been measured is not the floor (a session's first seconds ran
+// late with it and filled the margin).
+void testEngineStartBudget() {
+    const Scene bg(160, 96, 420, 11), fg(16, 16, 2, 12);
+    Engine e;  // measured allowance, as the app runs
+    e.holdWorker(true);  // nothing measured yet
+    int64_t now = 1'000'000'000;
+    for (int i = 1; i <= 4; ++i) { e.push(render(bg, fg, float(i * 2), 0, 50.f + float(i), 40, 16), now); now += 33'333'333; }
+    for (int k = 0; k < 8; ++k) (void)e.pick(now + k * 8'333'333);
+    const EngineStats st = e.stats();
+    // One interval of 33.3 ms and the allowance (the screen's own refresh is added once it is known;
+    // with the 6 ms floor this was 39 ms, and every pair of a session's first seconds came late).
+    CHECK(st.delayMs > 33.3 + Engine::kStartBudgetMs - 1.0, "the first delay leaves room for motion that is not measured yet (%.1f ms)", st.delayMs);
+    e.holdWorker(false);
+    e.waitIdle();
+}
+
 void testEngineOff() {
     const Scene bg(64, 48, 40, 21), fg(8, 8, 1, 22);
     EngineSettings s;
@@ -489,6 +573,8 @@ int main(int argc, char** argv) {
     testEngineTiming(true, false, 0, 8333333, 120.0);    // uneven 17/50 ms, no repair
     testEngineTiming(true, true, 0, 8333333, 120.0);     // uneven, repaired
     testEngineTiming(false, false, 0, 16666667, 60.0);   // 60 Hz display
+    testEngineMargin();
+    testEngineStartBudget();
     testEngineOff();
     testEngineHardContent();
     testEngineAbuse();

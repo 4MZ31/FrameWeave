@@ -940,6 +940,13 @@ Metal.
 
 Try it without a capture card: **Home → Test picture**. `PushFPS --selftest 6` checks the whole chain.
 
+Since 4.1 the picture waits less: the motion of a pair of frames starts while the newer frame is still being
+converted to colour, the first seconds of a session no longer run late, and a margin the app gave itself after
+a slow moment is given back within seconds instead of minutes. Also new there: **Lowest latency** (one tap),
+**lip sync by hand**, **connect when PushFPS opens**, a remembered capture format per card, and how a picture of
+another shape than the window is shown (bars, fill or stretch). Frame generation on these systems finds motion on
+the processor, so its delay stays above the Windows version's, which does it on the graphics card.
+
 Not in the preview yet: the NVIDIA/AMD/Intel frame generation and AI enhancement (Windows only), recording,
 going live and the streaming sources. It is tested automatically (core tests with sanitizers, self-tests, a GPU
 check against the processor reference, a clean Ubuntu container); it is not code signed or notarised, so macOS

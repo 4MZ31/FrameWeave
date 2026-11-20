@@ -8807,6 +8807,23 @@
    "ru": "Меньше ожидания одним нажатием: качество картинки, генерация кадров и улучшение ИИ не меняются"
   },
   {
+   "zh": "一键减少等待：补帧照常，每对画面的运动更快算好，画面少等一会儿",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "一鍵減少等待：補幀照常，每對畫面的運動更快算好，畫面少等一會兒",
+   "en": "One tap for less waiting: frame generation stays on, the motion of each pair of pictures is worked out sooner, and the picture waits less",
+   "ja": "ワンタップで待ち時間を短く：フレーム生成はそのまま、各ペアの動きをより速く求め、映像の待ちが減ります",
+   "nl": "One tap for less waiting: frame generation stays on, the motion of each pair of pictures is worked out sooner, and the picture waits less",
+   "de": "One tap for less waiting: frame generation stays on, the motion of each pair of pictures is worked out sooner, and the picture waits less",
+   "es": "One tap for less waiting: frame generation stays on, the motion of each pair of pictures is worked out sooner, and the picture waits less",
+   "fr": "One tap for less waiting: frame generation stays on, the motion of each pair of pictures is worked out sooner, and the picture waits less",
+   "it": "One tap for less waiting: frame generation stays on, the motion of each pair of pictures is worked out sooner, and the picture waits less",
+   "pt-BR": "One tap for less waiting: frame generation stays on, the motion of each pair of pictures is worked out sooner, and the picture waits less",
+   "tr": "One tap for less waiting: frame generation stays on, the motion of each pair of pictures is worked out sooner, and the picture waits less",
+   "ar": "One tap for less waiting: frame generation stays on, the motion of each pair of pictures is worked out sooner, and the picture waits less",
+   "pl": "One tap for less waiting: frame generation stays on, the motion of each pair of pictures is worked out sooner, and the picture waits less",
+   "ru": "One tap for less waiting: frame generation stays on, the motion of each pair of pictures is worked out sooner, and the picture waits less"
+  },
+  {
    "zh": "一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "一鍵開啟所有不影響畫質的低延遲設定：顯示卡只排隊一幀（NVIDIA 顯示卡用 NVIDIA 低延遲），連接後進入全螢幕（繞過桌面合成，少等一次刷新），螢幕支援 G-SYNC/FreeSync 時用可變刷新同步（不撕裂、不跳幀）。補幀、AI 增強、HUD 鎖定和幀節奏修復保持不變。關閉後恢復之前的設定",
@@ -20708,6 +20725,23 @@
    "ru": "Скопируйте идентификатор учетной записи PSN с веб-сайта в поле сопряжения, а затем введите 8-значный код сопряжения консоли."
   },
   {
+   "zh": "在自动延迟之上再调 %1 毫秒",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "在自動延遲之上再調 %1 毫秒",
+   "en": "%1 ms on top of the automatic delay",
+   "ja": "自動の遅延に加えて %1 ms",
+   "nl": "%1 ms on top of the automatic delay",
+   "de": "%1 ms on top of the automatic delay",
+   "es": "%1 ms on top of the automatic delay",
+   "fr": "%1 ms on top of the automatic delay",
+   "it": "%1 ms on top of the automatic delay",
+   "pt-BR": "%1 ms on top of the automatic delay",
+   "tr": "%1 ms on top of the automatic delay",
+   "ar": "%1 ms on top of the automatic delay",
+   "pl": "%1 ms on top of the automatic delay",
+   "ru": "%1 ms on top of the automatic delay"
+  },
+  {
    "zh": "在这块显卡上，结果和完整模型不一致",
    "src": "qml/PushFlow2Row.qml",
    "zh-TW": "在這張顯示卡上，結果和完整模型不一致",
@@ -21556,6 +21590,23 @@
    "ar": "Sound %1 ms earlier than automatic",
    "pl": "Sound %1 ms earlier than automatic",
    "ru": "Sound %1 ms earlier than automatic"
+  },
+  {
+   "zh": "声音自动跟着画面延迟。人声比嘴型早就调晚，比嘴型晚就调早",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "聲音自動跟著畫面延遲。人聲比嘴型早就調晚，比嘴型晚就調早",
+   "en": "Sound is delayed with the picture automatically. Voices before the mouths move: later. Voices after: earlier",
+   "ja": "音は映像に合わせて自動で遅らせます。声が口の動きより早ければ「遅く」、遅ければ「早く」",
+   "nl": "Sound is delayed with the picture automatically. Voices before the mouths move: later. Voices after: earlier",
+   "de": "Sound is delayed with the picture automatically. Voices before the mouths move: later. Voices after: earlier",
+   "es": "Sound is delayed with the picture automatically. Voices before the mouths move: later. Voices after: earlier",
+   "fr": "Sound is delayed with the picture automatically. Voices before the mouths move: later. Voices after: earlier",
+   "it": "Sound is delayed with the picture automatically. Voices before the mouths move: later. Voices after: earlier",
+   "pt-BR": "Sound is delayed with the picture automatically. Voices before the mouths move: later. Voices after: earlier",
+   "tr": "Sound is delayed with the picture automatically. Voices before the mouths move: later. Voices after: earlier",
+   "ar": "Sound is delayed with the picture automatically. Voices before the mouths move: later. Voices after: earlier",
+   "pl": "Sound is delayed with the picture automatically. Voices before the mouths move: later. Voices after: earlier",
+   "ru": "Sound is delayed with the picture automatically. Voices before the mouths move: later. Voices after: earlier"
   },
   {
    "zh": "声音配置",
@@ -26964,6 +27015,23 @@
    "ru": "Включён: настройки и скриншоты сохраняются в папке рядом с программой"
   },
   {
+   "zh": "已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "已開啟：運動估計用「快速」，幀節奏修復關閉。關閉後恢復原來的設定",
+   "en": "On: motion is found the fast way and Frame Pacing Repair is off. Switching it off brings back what was set before",
+   "ja": "オン：動き推定は「高速」、フレームペーシング修復はオフ。オフにすると元の設定に戻ります",
+   "nl": "On: motion is found the fast way and Frame Pacing Repair is off. Switching it off brings back what was set before",
+   "de": "On: motion is found the fast way and Frame Pacing Repair is off. Switching it off brings back what was set before",
+   "es": "On: motion is found the fast way and Frame Pacing Repair is off. Switching it off brings back what was set before",
+   "fr": "On: motion is found the fast way and Frame Pacing Repair is off. Switching it off brings back what was set before",
+   "it": "On: motion is found the fast way and Frame Pacing Repair is off. Switching it off brings back what was set before",
+   "pt-BR": "On: motion is found the fast way and Frame Pacing Repair is off. Switching it off brings back what was set before",
+   "tr": "On: motion is found the fast way and Frame Pacing Repair is off. Switching it off brings back what was set before",
+   "ar": "On: motion is found the fast way and Frame Pacing Repair is off. Switching it off brings back what was set before",
+   "pl": "On: motion is found the fast way and Frame Pacing Repair is off. Switching it off brings back what was set before",
+   "ru": "On: motion is found the fast way and Frame Pacing Repair is off. Switching it off brings back what was set before"
+  },
+  {
    "zh": "已恢复录制里的游戏声音：之前的版本在用过图卡场景后可能让它一直静音（直播模式 → 音频混音器）",
    "src": "src/ui/QmlPlayerBridge.cpp",
    "zh-TW": "已恢復錄製裡的遊戲聲音：先前的版本在用過圖卡場景後可能讓它一直靜音（直播模式 → 音訊混音器）",
@@ -28373,6 +28441,23 @@
    "ar": "المسافة من الأسفل",
    "pl": "Odległość od dołu",
    "ru": "Отступ снизу"
+  },
+  {
+   "zh": "延后",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "延後",
+   "en": "Later",
+   "ja": "遅く",
+   "nl": "Later",
+   "de": "Later",
+   "es": "Later",
+   "fr": "Later",
+   "it": "Later",
+   "pt-BR": "Later",
+   "tr": "Later",
+   "ar": "Later",
+   "pl": "Later",
+   "ru": "Later"
   },
   {
    "zh": "延迟 %1 ms",
@@ -32064,6 +32149,23 @@
    "ru": "Until stopped"
   },
   {
+   "zh": "手动对口型",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "手動對口型",
+   "en": "Lip sync by hand",
+   "ja": "リップシンクの手動調整",
+   "nl": "Lip sync by hand",
+   "de": "Lip sync by hand",
+   "es": "Lip sync by hand",
+   "fr": "Lip sync by hand",
+   "it": "Lip sync by hand",
+   "pt-BR": "Lip sync by hand",
+   "tr": "Lip sync by hand",
+   "ar": "Lip sync by hand",
+   "pl": "Lip sync by hand",
+   "ru": "Lip sync by hand"
+  },
+  {
    "zh": "手动比例以最高 1080p 预算内的输入为基准；适用于预览与视频导出，输出尺寸不变。",
    "src": "qml/NrLayerEditor.qml",
    "zh-TW": "手動比例以最高 1080p 預算內的輸入為基準；適用於預覽與影片匯出，輸出尺寸不變。",
@@ -32283,6 +32385,23 @@
    "ar": "يعرض مقدمة Sunset City لمدة 3 ثوانٍ عند فتح PushFPS؛ انقر أو اضغط أي مفتاح للتخطي",
    "pl": "Odtwarza 3-sekundowe intro Sunset City przy otwarciu PushFPS; kliknij lub naciśnij klawisz, aby pominąć",
    "ru": "Показывает 3-секундную заставку Sunset City при запуске PushFPS; щёлкните или нажмите любую клавишу, чтобы пропустить"
+  },
+  {
+   "zh": "打开 PushFPS 时直接连接上次使用的采集卡",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "開啟 PushFPS 時直接連接上次使用的擷取卡",
+   "en": "Connects the capture card used last when PushFPS opens",
+   "ja": "PushFPS を開いたとき、前回使ったキャプチャーカードに接続します",
+   "nl": "Connects the capture card used last when PushFPS opens",
+   "de": "Connects the capture card used last when PushFPS opens",
+   "es": "Connects the capture card used last when PushFPS opens",
+   "fr": "Connects the capture card used last when PushFPS opens",
+   "it": "Connects the capture card used last when PushFPS opens",
+   "pt-BR": "Connects the capture card used last when PushFPS opens",
+   "tr": "Connects the capture card used last when PushFPS opens",
+   "ar": "Connects the capture card used last when PushFPS opens",
+   "pl": "Connects the capture card used last when PushFPS opens",
+   "ru": "Connects the capture card used last when PushFPS opens"
   },
   {
    "zh": "打开 PushFPS 时直接连接上次的采集卡（沿用上次的设置）或串流",
@@ -32538,6 +32657,23 @@
    "ar": "الصفحة عند بدء التشغيل",
    "pl": "Strona przy uruchomieniu",
    "ru": "Страница при запуске"
+  },
+  {
+   "zh": "打开时自动连接",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "開啟時自動連接",
+   "en": "Connect when PushFPS opens",
+   "ja": "起動時に自動接続",
+   "nl": "Connect when PushFPS opens",
+   "de": "Connect when PushFPS opens",
+   "es": "Connect when PushFPS opens",
+   "fr": "Connect when PushFPS opens",
+   "it": "Connect when PushFPS opens",
+   "pt-BR": "Connect when PushFPS opens",
+   "tr": "Connect when PushFPS opens",
+   "ar": "Connect when PushFPS opens",
+   "pl": "Connect when PushFPS opens",
+   "ru": "Connect when PushFPS opens"
   },
   {
    "zh": "打开游戏预设",
@@ -34034,6 +34170,23 @@
    "ar": "تعويض الغرفة المضيئة",
    "pl": "Kompensacja jasnego pokoju",
    "ru": "Компенсация светлой комнаты"
+  },
+  {
+   "zh": "提前",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "提前",
+   "en": "Earlier",
+   "ja": "早く",
+   "nl": "Earlier",
+   "de": "Earlier",
+   "es": "Earlier",
+   "fr": "Earlier",
+   "it": "Earlier",
+   "pt-BR": "Earlier",
+   "tr": "Earlier",
+   "ar": "Earlier",
+   "pl": "Earlier",
+   "ru": "Earlier"
   },
   {
    "zh": "提示音设置保存失败",
@@ -49167,6 +49320,23 @@
    "ru": "Windows может быть получен только с помощью Windows графического захвата"
   },
   {
+   "zh": "窗口和画面形状不同时：保留黑边、裁掉两侧铺满，或拉伸铺满",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "視窗和畫面形狀不同時：保留黑邊、裁掉兩側鋪滿，或拉伸鋪滿",
+   "en": "When the window and the picture have different shapes: keep bars, fill the window and cut the sides, or stretch",
+   "ja": "ウィンドウと映像の形が違うとき：黒帯を残す、両端を切って埋める、または引き伸ばす",
+   "nl": "When the window and the picture have different shapes: keep bars, fill the window and cut the sides, or stretch",
+   "de": "When the window and the picture have different shapes: keep bars, fill the window and cut the sides, or stretch",
+   "es": "When the window and the picture have different shapes: keep bars, fill the window and cut the sides, or stretch",
+   "fr": "When the window and the picture have different shapes: keep bars, fill the window and cut the sides, or stretch",
+   "it": "When the window and the picture have different shapes: keep bars, fill the window and cut the sides, or stretch",
+   "pt-BR": "When the window and the picture have different shapes: keep bars, fill the window and cut the sides, or stretch",
+   "tr": "When the window and the picture have different shapes: keep bars, fill the window and cut the sides, or stretch",
+   "ar": "When the window and the picture have different shapes: keep bars, fill the window and cut the sides, or stretch",
+   "pl": "When the window and the picture have different shapes: keep bars, fill the window and cut the sides, or stretch",
+   "ru": "When the window and the picture have different shapes: keep bars, fill the window and cut the sides, or stretch"
+  },
+  {
    "zh": "窗口在其他虚拟桌面上，暂时没有新画面：部分程序（如 Chrome、Edge）在所在桌面不显示时会暂停绘制",
    "src": "src/source/ScreenCaptureSource.cpp",
    "zh-TW": "視窗在其他虛擬桌面上，暫時沒有新畫面：部分程式（如 Chrome、Edge）在所在桌面不顯示時會暫停繪製",
@@ -54231,6 +54401,23 @@
    "ar": "Crop",
    "pl": "Crop",
    "ru": "Crop"
+  },
+  {
+   "zh": "裁切铺满",
+   "src": "portable/app/qml/HomePage.qml",
+   "zh-TW": "裁切鋪滿",
+   "en": "Fill",
+   "ja": "切り抜いて埋める",
+   "nl": "Fill",
+   "de": "Fill",
+   "es": "Fill",
+   "fr": "Fill",
+   "it": "Fill",
+   "pt-BR": "Fill",
+   "tr": "Fill",
+   "ar": "Fill",
+   "pl": "Fill",
+   "ru": "Fill"
   },
   {
    "zh": "裁剪上边",
@@ -59654,6 +59841,23 @@
    "ar": "هذا PC والمضيف ما زالا مقترنين؛ لا حاجة للزواج مرة أخرى.",
    "pl": "Ten PC i host są nadal sparowane; nie ma potrzeby, aby się ponownie.",
    "ru": "Это PC и хозяин все еще в паре; нет необходимости в паре снова."
+  },
+  {
+   "zh": "这台电脑的额外等待：%1 ms",
+   "src": "portable/app/qml/PlayerPage.qml",
+   "zh-TW": "這台電腦的額外等待：%1 ms",
+   "en": "Extra wait on this computer: %1 ms",
+   "ja": "この PC での追加の待ち：%1 ms",
+   "nl": "Extra wait on this computer: %1 ms",
+   "de": "Extra wait on this computer: %1 ms",
+   "es": "Extra wait on this computer: %1 ms",
+   "fr": "Extra wait on this computer: %1 ms",
+   "it": "Extra wait on this computer: %1 ms",
+   "pt-BR": "Extra wait on this computer: %1 ms",
+   "tr": "Extra wait on this computer: %1 ms",
+   "ar": "Extra wait on this computer: %1 ms",
+   "pl": "Extra wait on this computer: %1 ms",
+   "ru": "Extra wait on this computer: %1 ms"
   },
   {
    "zh": "这块屏幕是 %2 Hz：现在按 %2 FPS 输出。换到更快的屏幕会回到 %1 FPS",

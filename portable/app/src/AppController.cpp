@@ -6,7 +6,10 @@
 #include "Settings.h"
 #include "VideoFrames.h"
 
+#include "veyra/sink/PushAudioTrim.h"  // pure C++, shared with the Windows build: the limit of the trim
+
 #include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QDateTime>
 #include <QDesktopServices>
 #include <QGuiApplication>
@@ -58,6 +61,10 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
     showStats_ = s.value(QStringLiteral("showStats"), false).toBool();
     onTop_ = s.value(QStringLiteral("alwaysOnTop"), false).toBool();
     language_ = s.value(QStringLiteral("language"), QStringLiteral("auto")).toString();
+    lowLatency_ = s.value(QStringLiteral("lowLatency"), false).toBool();
+    autoConnect_ = s.value(QStringLiteral("autoConnect"), false).toBool();
+    audioTrim_ = std::clamp(s.value(QStringLiteral("audioTrimMs"), 0).toInt(), -veyra::sink::kPushAudioTrimLimitMs, veyra::sink::kPushAudioTrimLimitMs);
+    fillMode_ = std::clamp(s.value(QStringLiteral("fillMode"), 0).toInt(), 0, 2);
 
     engine_ = std::make_shared<veyra::portable::Engine>();
     applyEngineSettings();
@@ -79,8 +86,13 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
     const QString savedCamera = s.value(QStringLiteral("camera")).toString();
     cameras_ = QMediaDevices::videoInputs();
     for (int i = 0; i < cameras_.size(); ++i)
-        if (QString::fromUtf8(cameras_[i].id()) == savedCamera) videoIndex_ = i;
+        if (QString::fromUtf8(cameras_[i].id()) == savedCamera) { videoIndex_ = i; savedCameraFound_ = true; }
     refreshDevices();
+    restoreFormat();
+    // Plug and play: the capture card that was used last is connected when the app opens. Only that
+    // card, and only on the home page (a screenshot or self-test run starts elsewhere or has no card).
+    if (autoConnect_ && savedCameraFound_ && startPage_ == QLatin1String("home"))
+        QTimer::singleShot(400, this, [this] { if (!running()) startCamera(); });
 }
 
 AppController::~AppController() {
@@ -126,7 +138,10 @@ void AppController::refreshDevices() {
     audioOutIndex_ = std::clamp(audioOutIndex_, 0, int(outputs_.size()));
     if (videoIndex_ < cameras_.size()) {
         const auto list = cameras_[videoIndex_].videoFormats();
-        if (formatIndex_ < 0 || formatIndex_ >= list.size()) formatIndex_ = CaptureSource::preferredFormat(list);
+        if (formatIndex_ < 0 || formatIndex_ >= list.size()) {
+            formatIndex_ = CaptureSource::preferredFormat(list);
+            restoreFormat();  // the format chosen for this card before, when it is still offered
+        }
     } else {
         formatIndex_ = -1;
     }
@@ -144,7 +159,25 @@ void AppController::setVideoDeviceIndex(int i) {
     videoIndex_ = i;
     formatIndex_ = CaptureSource::preferredFormat(cameras_[i].videoFormats());
     save(QStringLiteral("camera"), QString::fromUtf8(cameras_[i].id()));
+    restoreFormat();
     emit devicesChanged();
+}
+
+// The format chosen for a capture card is kept for that card (until 4.1 the choice was gone at the
+// next start). Stored under a hash of the card's id, as the label the list shows.
+QString AppController::formatKey() const {
+    if (videoIndex_ < 0 || videoIndex_ >= cameras_.size()) return {};
+    return QStringLiteral("format-") + QString::fromLatin1(QCryptographicHash::hash(cameras_[videoIndex_].id(), QCryptographicHash::Sha1).toHex().left(16));
+}
+
+void AppController::restoreFormat() {
+    const QString key = formatKey();
+    if (key.isEmpty()) return;
+    const QString wanted = settings_->value(key).toString();
+    if (wanted.isEmpty()) return;
+    const auto list = cameras_[videoIndex_].videoFormats();
+    for (int i = 0; i < list.size(); ++i)
+        if (formatLabel(list[i]) == wanted) { formatIndex_ = i; return; }
 }
 
 QStringList AppController::formats() const {
@@ -157,6 +190,10 @@ QStringList AppController::formats() const {
 void AppController::setFormatIndex(int i) {
     if (i == formatIndex_) return;
     formatIndex_ = i;
+    if (videoIndex_ >= 0 && videoIndex_ < cameras_.size()) {
+        const auto list = cameras_[videoIndex_].videoFormats();
+        if (i >= 0 && i < list.size()) save(formatKey(), formatLabel(list[i]));
+    }
     emit devicesChanged();
 }
 
@@ -293,6 +330,8 @@ void AppController::setTargetMode(int m) {
 
 void AppController::setPacingRepair(bool v) {
     if (v == pacing_) return;
+    // Chosen by hand while the one tap is on: the one tap no longer describes what is set.
+    if (v && lowLatency_ && !applyingLowLatency_) { lowLatency_ = false; save(QStringLiteral("lowLatency"), false); }
     pacing_ = v;
     // Frame Pacing Repair re-times what duplicate removal finds.
     if (v && !dedup_) { dedup_ = true; save(QStringLiteral("removeDuplicates"), true); }
@@ -321,9 +360,57 @@ void AppController::setRemoveDuplicates(bool v) {
 void AppController::setQuality(int q) {
     q = std::clamp(q, 0, 1);
     if (q == quality_) return;
+    if (q != 0 && lowLatency_ && !applyingLowLatency_) { lowLatency_ = false; save(QStringLiteral("lowLatency"), false); }
     quality_ = q;
     save(QStringLiteral("quality"), q);
     applyEngineSettings();
+    emit settingsChanged();
+}
+
+// One tap for the shortest delay with frame generation still on: motion found the fast way (a pair
+// is ready sooner, so the picture waits less for it) and Frame Pacing Repair off (it may hold a frame
+// for up to one capture refresh). What was set before comes back when it is switched off.
+void AppController::setLowLatency(bool v) {
+    if (v == lowLatency_) return;
+    applyingLowLatency_ = true;
+    if (v) {
+        save(QStringLiteral("lowLatencyQuality"), quality_);
+        save(QStringLiteral("lowLatencyPacing"), pacing_);
+        lowLatency_ = true;
+        setQuality(0);
+        setPacingRepair(false);
+    } else {
+        lowLatency_ = false;
+        setQuality(std::clamp(settings_->value(QStringLiteral("lowLatencyQuality"), 1).toInt(), 0, 1));
+        setPacingRepair(settings_->value(QStringLiteral("lowLatencyPacing"), false).toBool());
+    }
+    applyingLowLatency_ = false;
+    save(QStringLiteral("lowLatency"), lowLatency_);
+    emit settingsChanged();
+}
+
+// The sound moved by hand on top of the automatic delay: later (+) when voices come before the mouths
+// move, earlier (-) when they come after. Earlier than "no delay at all" is not possible.
+void AppController::setAudioTrimMs(int ms) {
+    ms = std::clamp(ms, -veyra::sink::kPushAudioTrimLimitMs, veyra::sink::kPushAudioTrimLimitMs);
+    if (ms == audioTrim_) return;
+    audioTrim_ = ms;
+    save(QStringLiteral("audioTrimMs"), ms);
+    emit settingsChanged();
+}
+
+void AppController::setAutoConnect(bool v) {
+    if (v == autoConnect_) return;
+    autoConnect_ = v;
+    save(QStringLiteral("autoConnect"), v);
+    emit settingsChanged();
+}
+
+void AppController::setFillMode(int m) {
+    m = std::clamp(m, 0, 2);
+    if (m == fillMode_) return;
+    fillMode_ = m;
+    save(QStringLiteral("fillMode"), m);
     emit settingsChanged();
 }
 
@@ -425,6 +512,7 @@ void AppController::updateStats() {
     m[QStringLiteral("latencyMs")] = st.latencyMs;
     m[QStringLiteral("estimateMs")] = st.estimateMs;
     m[QStringLiteral("delayMs")] = st.delayMs;
+    m[QStringLiteral("marginMs")] = st.marginMs;
     m[QStringLiteral("duplicates")] = qulonglong(st.duplicates);
     m[QStringLiteral("sceneCuts")] = qulonglong(st.sceneCuts);
     m[QStringLiteral("lateFields")] = qulonglong(st.lateFields);
@@ -432,10 +520,14 @@ void AppController::updateStats() {
     m[QStringLiteral("width")] = st.width;
     m[QStringLiteral("height")] = st.height;
     m[QStringLiteral("framesRead")] = source_->framesRead();
+    // Sound waits as long as the picture does, moved by what was set by hand (never before it arrives).
+    const double automatic = targetMode_ != 0 ? st.delayMs : 0.0;
+    const double soundDelay = std::max(0.0, automatic + double(audioTrim_));
+    m[QStringLiteral("audioDelayMs")] = soundDelay;
+    m[QStringLiteral("audioAutomaticMs")] = automatic;
     stats_ = m;
     emit statsChanged();
-    // Sound waits as long as the picture does.
-    audio_->setDelayMs(targetMode_ != 0 ? st.delayMs : 0.0);
+    audio_->setDelayMs(soundDelay);
     // Nothing arrives: say so instead of a black window.
     if (source_->framesRead() == 0 && startedAt_ > 0 && nowNs() - startedAt_ > 5'000'000'000LL && error_.isEmpty())
         setError(tr("没有收到画面：检查采集卡的连接、主机是否开机，以及采集卡是否被其他程序占用"));

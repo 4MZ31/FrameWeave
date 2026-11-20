@@ -99,6 +99,11 @@ Rectangle {
                         onActivated: index => app.formatIndex = index
                     }
                 }
+                SettingRow {
+                    label: qsTr("打开时自动连接")
+                    hint: qsTr("打开 PushFPS 时直接连接上次使用的采集卡")
+                    Toggle { objectName: "home-autoconnect"; checked: app.autoConnect; onToggled: on => app.autoConnect = on }
+                }
                 RowLayout {
                     Layout.fillWidth: true
                     Item { Layout.fillWidth: true }
@@ -143,6 +148,12 @@ Rectangle {
                     }
                 }
                 SettingRow {
+                    label: qsTr("最低延迟")
+                    hint: app.lowLatency ? qsTr("已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置")
+                                         : qsTr("一键减少等待：补帧照常，每对画面的运动更快算好，画面少等一会儿")
+                    Toggle { objectName: "home-lowlatency"; checked: app.lowLatency; enabled2: app.targetMode !== 0; onToggled: on => app.lowLatency = on }
+                }
+                SettingRow {
                     label: qsTr("帧节奏修复")
                     hint: qsTr("把出帧不均匀的锁帧游戏重新对齐到均匀的时间，每帧最多晚一次刷新。需要开启自动去重")
                     Toggle { objectName: "home-pacing"; checked: app.pacingRepair; enabled2: app.targetMode !== 0; onToggled: on => app.pacingRepair = on }
@@ -182,6 +193,24 @@ Rectangle {
                     Slider2 { from: 0; to: 1; value: app.volume; neutral: 1; decimals: 2; onMoved: v => app.volume = v }
                 }
                 SettingRow {
+                    label: qsTr("手动对口型")
+                    hint: app.audioTrimMs === 0 ? qsTr("声音自动跟着画面延迟。人声比嘴型早就调晚，比嘴型晚就调早")
+                                                : qsTr("在自动延迟之上再调 %1 毫秒").arg((app.audioTrimMs > 0 ? "+" : "") + app.audioTrimMs)
+                    RowLayout {
+                        spacing: 8
+                        Button2 { objectName: "home-lipsync-earlier"; text: qsTr("提前"); enabled2: app.audioTrimMs > -250; onClicked: app.audioTrimMs = app.audioTrimMs - 10 }
+                        Text {
+                            objectName: "home-lipsync-value"
+                            text: (app.audioTrimMs > 0 ? "+" : "") + app.audioTrimMs + " ms"
+                            color: Theme.t1; font.pixelSize: Theme.fsBody; font.family: Theme.fontUi
+                            horizontalAlignment: Text.AlignHCenter
+                            Layout.preferredWidth: 64
+                        }
+                        Button2 { objectName: "home-lipsync-later"; text: qsTr("延后"); enabled2: app.audioTrimMs < 250; onClicked: app.audioTrimMs = app.audioTrimMs + 10 }
+                        Button2 { visible: app.audioTrimMs !== 0; text: qsTr("重置"); onClicked: app.audioTrimMs = 0 }
+                    }
+                }
+                SettingRow {
                     label: qsTr("输入")
                     Choice { model: app.audioInputs; currentIndex: app.audioInputIndex; onActivated: index => app.audioInputIndex = index }
                 }
@@ -194,6 +223,11 @@ Rectangle {
             Card {
                 Layout.fillWidth: true
                 title: qsTr("画面")
+                SettingRow {
+                    label: qsTr("画面比例")
+                    hint: qsTr("窗口和画面形状不同时：保留黑边、裁掉两侧铺满，或拉伸铺满")
+                    Segmented { objectName: "home-fill"; options: [qsTr("黑边"), qsTr("裁切铺满"), qsTr("拉伸")]; currentIndex: app.fillMode; onPicked: index => app.fillMode = index }
+                }
                 SettingRow { label: qsTr("亮度"); Slider2 { from: -0.5; to: 0.5; value: app.brightness; neutral: 0; onMoved: v => app.brightness = v } }
                 SettingRow { label: qsTr("对比度"); Slider2 { from: 0.5; to: 1.5; value: app.contrast; neutral: 1; onMoved: v => app.contrast = v } }
                 SettingRow { label: qsTr("饱和度"); Slider2 { from: 0; to: 2; value: app.saturation; neutral: 1; onMoved: v => app.saturation = v } }

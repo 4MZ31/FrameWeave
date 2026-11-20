@@ -47,7 +47,21 @@ double rateOver(const std::deque<int64_t>& times) {
 }  // namespace
 
 Engine::Engine(EngineSettings settings) : s_(settings), pacing_(std::make_unique<Pacing>()) {
+    clock_ = [] { return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count(); };
     worker_ = std::thread([this] { workerLoop(); });
+}
+
+void Engine::setClock(std::function<int64_t()> clock) {
+    std::lock_guard lk(m_);
+    if (clock) clock_ = std::move(clock);
+}
+
+void Engine::holdWorker(bool hold) {
+    {
+        std::lock_guard lk(m_);
+        held_ = hold;
+    }
+    cv_.notify_all();
 }
 
 Engine::~Engine() {
@@ -69,6 +83,8 @@ void Engine::setSettings(const EngineSettings& settings) {
         hudReset_ = true;
         lastForward_ = {};
         lastBackward_ = {};
+        // Another quality costs another time: what was measured says nothing about it.
+        slack_.clear();
     }
 }
 
@@ -93,6 +109,8 @@ void Engine::resetLocked() {
     lastWidth_ = lastHeight_ = 0;
     delayNs_ = 0;
     lateMarginMs_ = 0;
+    slack_.clear();
+    slackSeenB_ = 0;
     pacing_->repair.reset();
     hudReset_ = true;
     lastForward_ = {};
@@ -119,6 +137,14 @@ void Engine::push(Gray&& luma, const std::function<Bgra()>& makeImage, int64_t a
     std::shared_ptr<const Gray> quarter;
     if (!pyramid->levels.empty()) quarter = std::make_shared<const Gray>(pyramid->levels[std::min<size_t>(2, pyramid->levels.size() - 1)]);
 
+    // Decided before the colour conversion, from arrival times alone: where the timing starts over,
+    // and this frame's number. The pair's motion needs the brightness pictures only, so it is queued
+    // here and estimated while the colour picture is made (the conversion was 6 to 10 ms in front of
+    // every pair's motion).
+    double transport = 0;
+    bool boundary = false;
+    uint64_t id = 0, generation = 0;
+    bool queued = false;
     {
         std::lock_guard lk(m_);
         ++st_.framesIn;
@@ -140,18 +166,29 @@ void Engine::push(Gray&& luma, const std::function<Bgra()>& makeImage, int64_t a
             if (r.duplicate) { ++st_.duplicates; return; }
         }
         lastQuarter_ = quarter;
+        transport = medianInterval(arrivals_);
+        // A long pause (menu, loading, the source stopped) starts the timing over.
+        const double expected = keptTimes_.size() >= 3 ? 1e9 / std::max(1e-9, rateOver(keptTimes_)) : 0;
+        boundary = lastKeptArrival_ == 0 || (expected > 0 && double(arrivalNs - lastKeptArrival_) > 4.0 * expected) ||
+                   double(arrivalNs - lastKeptArrival_) > 250.0 * kMs;
+        id = nextId_++;
+        generation = generation_;
+        if (!frames_.empty() && !boundary && s_.frameGeneration) {
+            // Only the newest pair matters: a worker that fell behind skips the older ones (they show the
+            // nearer real frame instead of a generated one).
+            jobs_.clear();
+            jobs_.push_back({frames_.back()->id, id, frames_.back()->pyramid, pyramid});
+            queued = true;
+        }
     }
+    if (queued) cv_.notify_one();
     // The colour picture only for real frames (the conversion costs more than everything above).
     auto frameImage = std::make_shared<const Bgra>(makeImage());
     if (frameImage->width != width || frameImage->height != height) return;
 
-    std::unique_lock lk(m_);
-    if (width != lastWidth_ || height != lastHeight_) return;  // reset by another size meanwhile
-    const double transport = medianInterval(arrivals_);
-    // A long pause (menu, loading, the source stopped) starts the timing over.
-    const double expected = keptTimes_.size() >= 3 ? 1e9 / std::max(1e-9, rateOver(keptTimes_)) : 0;
-    const bool boundary = lastKeptArrival_ == 0 || (expected > 0 && double(arrivalNs - lastKeptArrival_) > 4.0 * expected) ||
-                          double(arrivalNs - lastKeptArrival_) > 250.0 * kMs;
+    std::lock_guard lk(m_);
+    // Started over meanwhile (another size, a reset): this frame belongs to what was thrown away.
+    if (generation != generation_ || width != lastWidth_ || height != lastHeight_) return;
     lastKeptArrival_ = arrivalNs;
     int64_t content = arrivalNs;
     if (s_.pacingRepair) {
@@ -167,35 +204,27 @@ void Engine::push(Gray&& luma, const std::function<Bgra()>& makeImage, int64_t a
     if (boundary && keptTimes_.size() > 1) { keptTimes_.clear(); keptTimes_.push_back(arrivalNs); }
 
     auto frame = std::make_shared<ContentFrame>();
-    frame->id = nextId_++;
+    frame->id = id;
     frame->time = content;
     frame->arrival = arrivalNs;
     frame->image = std::move(frameImage);
     frame->pyramid = std::move(pyramid);
     ++st_.kept;
-    std::shared_ptr<const ContentFrame> previous = frames_.empty() ? nullptr : frames_.back();
     frames_.push_back(frame);
     while (frames_.size() > kMaxFrames) frames_.pop_front();
-    if (previous && !boundary && s_.frameGeneration) {
-        // Only the newest pair matters: a worker that fell behind skips the older ones (they show the
-        // nearer real frame instead of a generated one).
-        jobs_.clear();
-        jobs_.push_back({previous, frame});
-        lk.unlock();
-        cv_.notify_one();
-    }
 }
 
 void Engine::workerLoop() {
     std::unique_lock lk(m_);
     for (;;) {
-        cv_.wait(lk, [&] { return stop_ || !jobs_.empty(); });
+        cv_.wait(lk, [&] { return stop_ || (!held_ && !jobs_.empty()); });
         if (stop_) return;
         Job job = std::move(jobs_.front());
         jobs_.pop_front();
         busy_ = true;
         const uint64_t generation = generation_;
         const EngineSettings s = s_;
+        const auto clock = clock_;
         MotionField prevF = lastForward_, prevB = lastBackward_;
         const bool resetHud = hudReset_;
         hudReset_ = false;
@@ -207,18 +236,19 @@ void Engine::workerLoop() {
         ms.finestLevel = s.quality <= 0 ? 2 : 1;
         const MotionEstimator estimator(ms);
         auto pair = std::make_shared<PairFields>();
-        pair->aId = job.a->id;
-        pair->bId = job.b->id;
-        auto back = std::async(std::launch::async, [&] { return estimator.estimate(*job.b->pyramid, *job.a->pyramid, &prevB); });
-        pair->forward = estimator.estimate(*job.a->pyramid, *job.b->pyramid, &prevF);
+        pair->aId = job.aId;
+        pair->bId = job.bId;
+        auto back = std::async(std::launch::async, [&] { return estimator.estimate(*job.b, *job.a, &prevB); });
+        pair->forward = estimator.estimate(*job.a, *job.b, &prevF);
         pair->backward = back.get();
         std::shared_ptr<const Gray> mask;
-        if (s.hudLock && job.b->pyramid->levels.size() > 1) {
+        if (s.hudLock && job.b->levels.size() > 1) {
             // hud_ belongs to this thread; others only ask for a reset through hudReset_.
-            mask = std::make_shared<const Gray>(hud_.update(job.b->pyramid->levels[1]));
+            mask = std::make_shared<const Gray>(hud_.update(job.b->levels[1]));
         }
         pair->hudMask = mask;
         pair->estimateMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+        pair->readyNs = clock();
 
         lk.lock();
         busy_ = false;
@@ -274,13 +304,41 @@ Pick Engine::pick(int64_t displayNs) {
         // Headroom: motion estimation (1.5x its average plus 4 ms of capture-arrival jitter), and one
         // display refresh, because pick() is asked for the moment the picture will be seen, which is
         // ahead of now.
-        const double budget = s_.estimateBudgetMs > 0 ? s_.estimateBudgetMs : std::clamp(estimateMsAvg_ * 1.5 + 4.0, 6.0, 40.0);
+        // Until a pair has been measured the allowance is kStartBudgetMs, not the 6 ms floor: with the
+        // floor, the first seconds of every session ran late and filled the margin below.
+        const double budget = s_.estimateBudgetMs > 0 ? s_.estimateBudgetMs
+                              : estimateMsAvg_ > 0 ? std::clamp(estimateMsAvg_ * 1.5 + 4.0, 6.0, 40.0) : kStartBudgetMs;
         const double refresh = displayHz_ > 0 ? 1e9 / displayHz_ : 0.0;
         // Plus what this machine turned out to need: every refresh that found the motion not ready yet
         // adds 1 ms (up to 40), and it slowly gives that back while everything is on time.
         const double target = spacing + (budget + lateMarginMs_) * double(kMs) + refresh;
         if (delayNs_ <= 0) delayNs_ = target;
         delayNs_ += std::clamp(target - delayNs_, -0.25 * double(kMs), 0.25 * double(kMs));
+        // The newest pair's slack, noted once: its motion was ready at readyNs, and the first refresh
+        // that needs it is drawn at (A's time + the delay - one refresh). While the least slack of the
+        // last pairs stays above the guard, the margin gives that excess back, a little for each pair;
+        // what was noted so far shrinks with it, so one excess is never given back twice.
+        if (!pairs_.empty() && pairs_.back()->bId > slackSeenB_ && pairs_.back()->readyNs > 0) {
+            const auto& newest = pairs_.back();
+            for (const auto& f : frames_) {
+                if (f->id != newest->aId) continue;
+                slackSeenB_ = newest->bId;
+                const double slack = (double(f->time) + delayNs_ - refresh - double(newest->readyNs)) / double(kMs);
+                // A time from another clock (or a pause) is no measurement.
+                if (!std::isfinite(slack) || std::abs(slack) > 1000.0) break;
+                slack_.push_back(slack);
+                while (slack_.size() > kSlackPairs) slack_.pop_front();
+                if (slack_.size() >= kSlackMinPairs && lateMarginMs_ > 0) {
+                    const double least = *std::min_element(slack_.begin(), slack_.end());
+                    const double give = std::min({least - kSlackGuardMs, kSlackStepMs, lateMarginMs_});
+                    if (give > 0) {
+                        lateMarginMs_ -= give;
+                        for (auto& v : slack_) v -= give;
+                    }
+                }
+                break;
+            }
+        }
         const int64_t tau = displayNs - int64_t(delayNs_);
         size_t k = 0;
         while (k + 1 < frames_.size() && frames_[k + 1]->time <= tau) ++k;
@@ -301,7 +359,10 @@ Pick Engine::pick(int64_t displayNs) {
             } else if (!fields || fields->forward.sceneCut || fields->backward.sceneCut) {
                 if (!fields) {
                     ++st_.lateFields;
-                    lateMarginMs_ = std::min(40.0, lateMarginMs_ + 1.0);
+                    // What was noted of earlier pairs was noted with less margin: it moves with it.
+                    const double more = std::min(40.0, lateMarginMs_ + 1.0) - lateMarginMs_;
+                    lateMarginMs_ += more;
+                    for (auto& v : slack_) v += more;
                 }
                 showOne(t < 0.5f ? A : B);
             } else {
@@ -320,7 +381,11 @@ Pick Engine::pick(int64_t displayNs) {
                 p.t = t;
                 p.fields = fields;
                 if (t <= 0.f) { p.b = p.a; p.bId = p.aId; p.fields = nullptr; }
-                lateMarginMs_ = std::max(0.0, lateMarginMs_ - 0.002);
+                {
+                    const double less = lateMarginMs_ - std::max(0.0, lateMarginMs_ - 0.002);
+                    lateMarginMs_ -= less;
+                    for (auto& v : slack_) v -= less;
+                }
             }
         }
     }
@@ -357,6 +422,8 @@ EngineStats Engine::stats() const {
     s.latencyMs = latencyAvgMs_;
     s.estimateMs = estimateMsAvg_;
     s.delayMs = delayNs_ / double(kMs);
+    s.marginMs = lateMarginMs_;
+    s.slackMs = slack_.empty() ? 0.0 : *std::min_element(slack_.begin(), slack_.end());
     return s;
 }
 

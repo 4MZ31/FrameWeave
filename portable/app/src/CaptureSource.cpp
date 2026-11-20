@@ -65,8 +65,10 @@ void CaptureSource::enqueue(const QVideoFrame& frame) {
     {
         std::lock_guard lk(m_);
         queue_.emplace_back(frame, t);
-        // Never let the capture wait: if the engine falls behind, the oldest waiting frame goes.
-        while (queue_.size() > 3) queue_.pop_front();
+        // Never let the capture wait: if the engine falls behind, the oldest waiting frame goes. Two may
+        // wait (4.1; three before): a machine that cannot keep up showed every picture two capture
+        // frames late for nothing, since waiting longer makes no frame arrive sooner.
+        while (queue_.size() > 2) queue_.pop_front();
     }
     cv_.notify_one();
 }

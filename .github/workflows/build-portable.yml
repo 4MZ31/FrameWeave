@@ -21,6 +21,7 @@ on:
     paths:
       - 'portable/**'
       - 'include/veyra/engine/PushPacingRepair.h'
+      - 'include/veyra/sink/PushAudioTrim.h'
       - 'include/veyra/engine/LiveStream.h'
       - 'src/engine/LiveStream.cpp'
       - 'tests/integration/LiveStreamTests.cpp'

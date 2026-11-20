@@ -151,6 +151,13 @@ void FrameView::setBrightness(qreal v) { if (v != brightness_) { brightness_ = v
 void FrameView::setContrast(qreal v) { if (v != contrast_) { contrast_ = v; emit pictureChanged(); update(); } }
 void FrameView::setSaturation(qreal v) { if (v != saturation_) { saturation_ = v; emit pictureChanged(); update(); } }
 void FrameView::setGamma(qreal v) { if (v != gamma_) { gamma_ = v; emit pictureChanged(); update(); } }
+void FrameView::setFill(int v) {
+    v = std::clamp(v, 0, 2);
+    if (v == fill_) return;
+    fill_ = v;
+    emit pictureChanged();
+    update();
+}
 void FrameView::setRunning(bool v) {
     if (v == running_) return;
     running_ = v;
@@ -230,10 +237,21 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
         if (!pick.valid()) dropTextures();
         return nullptr;
     }
-    // Fit the picture into the item, keeping its shape (black bars).
+    // The picture in the item: whole with black bars, filling it with the sides cut, or stretched.
+    // source is the part of the picture drawn, as shares of it.
     const double fw = pick.a->width, fh = pick.a->height;
-    const double scale = std::min(width() / fw, height() / fh);
-    const QRectF rect((width() - fw * scale) / 2, (height() - fh * scale) / 2, fw * scale, fh * scale);
+    QRectF rect, source(0, 0, 1, 1);
+    if (fill_ == 2) {
+        rect = QRectF(0, 0, width(), height());
+    } else if (fill_ == 1) {
+        rect = QRectF(0, 0, width(), height());
+        const double scale = std::max(width() / fw, height() / fh);
+        const double sw = std::clamp(width() / (fw * scale), 0.0, 1.0), sh = std::clamp(height() / (fh * scale), 0.0, 1.0);
+        source = QRectF((1 - sw) / 2, (1 - sh) / 2, sw, sh);
+    } else {
+        const double scale = std::min(width() / fw, height() / fh);
+        rect = QRectF((width() - fw * scale) / 2, (height() - fh * scale) / 2, fw * scale, fh * scale);
+    }
     const quint64 keyA = pick.aId << 3, keyB = pick.bId << 3;
 
     const bool software = win->rendererInterface()->graphicsApi() == QSGRendererInterface::Software;
@@ -247,6 +265,7 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
         node->setTexture(t);
         node->setOwnsTexture(false);
         node->setRect(rect);
+        node->setSourceRect(QRectF(source.x() * fw, source.y() * fh, source.width() * fw, source.height() * fh));
         node->setFiltering(QSGTexture::Linear);
         node->markDirty(QSGNode::DirtyMaterial);
         return node;
@@ -296,7 +315,7 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
     u.contrast = float(contrast_);
     u.saturation = float(saturation_);
     u.gamma = float(gamma_);
-    QSGGeometry::updateTexturedRectGeometry(&node->geometry_, rect, QRectF(0, 0, 1, 1));
+    QSGGeometry::updateTexturedRectGeometry(&node->geometry_, rect, source);
     node->markDirty(QSGNode::DirtyGeometry | QSGNode::DirtyMaterial);
     return node;
 }
