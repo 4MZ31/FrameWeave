@@ -14,7 +14,7 @@ contradict them. No dates.
 | Fusion | Encode every real frame once and work a pair's motion out once, then make every in-between time from it | **Its first step is built, as an experiment that starts off** (*Professional → PushFlow 2: encode each real frame once*): the model cut into its per-frame encoder and the rest, each real frame encoded once (below). The second step, a pair's motion worked out once, does not exist in these models: the time enters at the first motion block |
 | Predict | Make frames from what has already arrived, without waiting for the next real frame | **Built, as an experiment that starts off** (*Professional → PushFlow 2: Predict*), for live sources only: the newest real frame is shown after its own processing instead of a frame interval later, and the frames after it are forecasts made from the two real frames that have arrived (below). On drawn pictures a forecast is level with holding the real frame at worst, and much nearer for slow motion. Never the normal mode. How much delay it saves and how it looks have not been measured on real hardware: that takes a camera |
 | Dual | A second, deliberately delayed timeline for recording and streaming, beside the one the player sees | **Its first step is built, as an experiment that starts off** (*Professional → PushFlow 2: Dual*; below). With Predict the player sees forecasts, and a recording is "as played", so it holds them too; Dual gives recordings, instant replay and streams the real frames and the true in-between frame of each pair, which Predict's one run of the network has already made. At 2X only, one frame behind the screen. The rest of the plan's Dual (a second timeline with its own method and rate, OBS) is not built |
-| Response | Turn the picture a little from the stick's movement before the console's own frame arrives | Research only. Whether it can work from a video signal at all is unproven; it needs a PS5, a high-speed camera and people to judge it |
+| Response | Turn the picture a little from the stick's movement before the console's own frame arrives | **Its first step is built, as an experiment that starts off, and it is a measurement only** (*Professional → PushFlow 2: Response*; below): does the picture's own motion follow the right stick, how strongly and how late? Nothing on the picture changes. Whether Response can work from a video signal at all is still unproven; this is how a PS5 owner finds out for a game |
 | Memory | Bring back detail that earlier real frames showed | Research only. It depends on motion that has been checked (Guard, Fusion) |
 
 ## The rules these parts are built under
@@ -304,6 +304,41 @@ after it arrived, where in-between frames at 2X must hold it at least half an in
 1.1 frames a second, because that renderer needs a third of a second for one run of the network. **What
 is not checked anywhere: a real graphics card and a real capture card.** The delay saved in milliseconds,
 the evenness of the frames and whether forecasts arrive in time at 60 FPS are unknown.
+
+## Response, the first step as built: a measurement
+
+Nothing is turned, shifted or drawn. The first step asks the question the whole part stands on, on the
+user's own setup, and shows the answer.
+
+**What is observed**, both already inside PushFPS, and only while the switch is on
+(`include/veyra/engine/PushResponse.h`, pure):
+
+- the right stick, where PushFPS itself reads the controller to send it to the console
+  (`src/remoteplay/ControllerInput.cpp`: PS5 Remote Play). Its two axes and the time, in memory. No button,
+  nothing else of the controller, nothing written to disk, nothing sent anywhere. A controller plugged into
+  the console never passes through PushFPS, and the row then says so;
+- how far the whole picture moved from one real frame to the next: the mean of PushFlow's own motion over
+  the pixels whose motion is believed, added up in the pass that makes Predict's forecast
+  (`shaders/PushPredict.hlsl`, the totals' second half). So it needs Predict running.
+
+Both are cleared when the switch is turned off and when a source is opened.
+
+**What is worked out**: for every delay from 0 to 400 ms, in steps of 10, a line through the origin from
+the stick (at that delay) to the picture's motion, each axis on its own; the delay that explains most of
+the motion is kept. It says nothing until 90 real frames with the stick held have been seen; then: the
+delay, the strength (picture widths and heights a second at full stick, with its sign), and the share of
+the picture's motion the stick explains. At half or more it is called a fit. The row shows it, and the
+performance report carries it (`pushFlowResponseFit`).
+
+**What is checked**: the fit on made-up sticks and pictures with a known answer, including a picture that
+moves on its own, a stick at rest and a controller PushFPS cannot see (`veyra_push_response_tests`); on
+the software renderer, that the pass finds a pan's direction and size and finds a still picture still
+(`testPushFlow`). **Not checked: anything with a real controller and a real console.** No such thing
+exists here; the first real answer will come from a PS5 owner's performance report.
+
+**What it is not**: Response. Turning the picture needs, beyond a fit: what to show where the turned
+picture uncovers its edge, a HUD that must not turn, a way to tell the camera's motion from a moving
+object, and people who say whether it feels better or sick-making. None of that is built.
 
 ## Dual, the first step as built
 

@@ -24,6 +24,14 @@ Item {
         describe: function(st) { return "judged " + Math.round(Number(st.pushFlowGuardFrames || 0)) + " mended " + Math.round(Number(st.pushFlowGuardMended || 0)) + " held " + Math.round(Number(st.pushFlowGuardHeld || 0)) }
     }
     PushFlow2Row {
+        id: response; width: 620; y: 620; part: "response"; title: "Response"; explanation: "What it does"
+        stateKey: "pushFlowResponse"
+        describe: function(st) {
+            if (st.pushFlowResponseEnough !== true) return "watching " + Math.round(Number(st.pushFlowResponseActive || 0))
+            return st.pushFlowResponseFollows === true ? "follows, " + Number(st.pushFlowResponseDelayMs || 0).toFixed(0) + " ms late" : "does not follow"
+        }
+    }
+    PushFlow2Row {
         id: dual; width: 620; y: 500; part: "dual"; title: "Dual"; explanation: "What it does"
         stateKey: "pushFlowDual"
         describe: function(st) { return "handed on " + Math.round(Number(st.pushFlowDualReal || 0)) + " real, " + Math.round(Number(st.pushFlowDualBetween || 0)) + " in-between" }
@@ -52,6 +60,7 @@ Item {
             guard.readLive()
             predict.readLive()
             dual.readLive()
+            response.readLive()
         }
         function cleanup() { veyra.qualityModel = null; veyra.fgBackendName = "dlss"; veyra.hasSource = true }
         function control(item, name) { const c = findChild(item, name); verify(c !== null, name); return c }
@@ -198,6 +207,28 @@ Item {
             compare(dual.hint, "handed on 300 real, 297 in-between")
             control(dual, "list-pushflow2-dual").toggled(false)
             verify(!dual.asked)
+            veyra.hasSource = false
+        }
+
+        function test_response_only_measures_and_says_what_it_found() {
+            control(response, "list-pushflow2-response").toggled(true)
+            verify(response.asked && flags().response === true)
+            const base = { running: true, pushFlowMotionWidth: 960, pushFlowMotionHeight: 540 }
+            veyra.liveStats = Object.assign({}, base, { pushFlowResponse: "no-stick" })
+            veyra.hasSource = true
+            tryCompare(response, "cacheState", "no-stick", 3000)
+            verify(response.why("no-stick") !== "no-stick" && response.hint.indexOf(response.why("no-stick")) >= 0, "a controller on the console is said, not guessed at")
+            veyra.liveStats = Object.assign({}, base, { pushFlowResponse: "on", pushFlowResponseEnough: false, pushFlowResponseActive: 40 })
+            response.readLive()
+            compare(response.hint, "watching 40")
+            veyra.liveStats = Object.assign({}, base, { pushFlowResponse: "on", pushFlowResponseEnough: true, pushFlowResponseFollows: true, pushFlowResponseDelayMs: 70 })
+            response.readLive()
+            compare(response.hint, "follows, 70 ms late")
+            veyra.liveStats = Object.assign({}, base, { pushFlowResponse: "on", pushFlowResponseEnough: true, pushFlowResponseFollows: false })
+            response.readLive()
+            compare(response.hint, "does not follow")
+            control(response, "list-pushflow2-response").toggled(false)
+            verify(!response.asked)
             veyra.hasSource = false
         }
 

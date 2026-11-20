@@ -9,6 +9,7 @@
 #include "veyra/engine/PushArchivePaths.h"
 #include "veyra/engine/PushBenchmarkProbe.h"
 #include "veyra/pushflow/PushFlow2.h"
+#include "veyra/engine/PushResponse.h"
 #include "veyra/pushflow/PushFlowMotion.h"
 #include "veyra/Brand.h"
 #include "veyra/RuntimePaths.h"
@@ -120,6 +121,25 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["pushFlowDual"] = QString::fromStdString(s.pushFlowDual);
     m["pushFlowDualReal"] = QVariant::fromValue(qulonglong(s.pushFlowDualReal));
     m["pushFlowDualBetween"] = QVariant::fromValue(qulonglong(s.pushFlowDualBetween));
+    // PushFlow 2's Response, first step (a measurement): "" not asked for, "needs-predict", "no-stick" (no
+    // right stick is being sent through PushFPS), or "on" with what was found so far.
+    {
+        auto& watch = engine::response::observer();
+        QString state;
+        if (watch.listening()) {
+            const auto fit = watch.fit();
+            state = s.pushFlowPredict != "on" ? QStringLiteral("needs-predict") : watch.sticksSeen() == 0 ? QStringLiteral("no-stick") : QStringLiteral("on");
+            m["pushFlowResponseFrames"] = QVariant::fromValue(qulonglong(fit.frames));
+            m["pushFlowResponseActive"] = QVariant::fromValue(qulonglong(fit.active));
+            m["pushFlowResponseEnough"] = fit.enough;
+            m["pushFlowResponseFollows"] = fit.follows;
+            m["pushFlowResponseDelayMs"] = double(fit.delayMs);
+            m["pushFlowResponseGainX"] = double(fit.gainX);
+            m["pushFlowResponseGainY"] = double(fit.gainY);
+            m["pushFlowResponseExplained"] = double(fit.explained);
+        }
+        m["pushFlowResponse"] = state;
+    }
     m["pacingRepaired"] = QVariant::fromValue(qulonglong(s.pacingRepaired));
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;

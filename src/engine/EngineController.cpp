@@ -1,3 +1,4 @@
+#include "veyra/engine/PushResponse.h"
 #include "veyra/pushflow/PushFlowPredict.h"
 #include "veyra/engine/EngineController.h"
 #include "veyra/engine/PlaybackRate.h"
@@ -183,6 +184,7 @@ void EngineController::setFullscreenMemoryProtection(bool enabled){
     if(!enabled){std::lock_guard lock(mutex_);snapshot_.vramFullscreenUnsafe=false;}
 }
 void EngineController::open(HWND video,const std::wstring& path,PlayerOptions opts){
+    response::observer().clear();   // PushFlow 2's Response: what it saw belongs to the source before
     const bool captureReplay=opts.captureReplayForTest;
     // Diagnostics-only PlayerOptions fields never enter EnhancementSettings;
     // keep them across the snapshot round-trip below.

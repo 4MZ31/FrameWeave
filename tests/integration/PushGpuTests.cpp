@@ -1941,6 +1941,25 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
                     static_cast<unsigned long long>(tel.predictCounted), static_cast<unsigned long long>(tel.predictMoving), static_cast<unsigned long long>(tel.predictHeld));
         checkOr(tel.predictFrames >= 5 && tel.predictCounted >= tel.predictFrames && tel.predictMoving <= tel.predictCounted && tel.predictHeld <= tel.predictMoving,
                 tag + ": the forecasts and their pixels are counted, never more held than moving");
+        // PushFlow 2's Response measures the picture's own motion in the same pass: a whole picture panning 4
+        // pixels a frame to the right must be found moving right by about that much, a still one not at all.
+        {
+            forecastAhead = 0.5f;
+            for (int i = 0; i < 3; ++i) run(t0, t1, 0.5f, flow, nullptr);
+            for (int i = 0; i < 4; ++i) run(t1, t1, 0.5f, flow, nullptr);   // the totals of the panning pairs come back with these
+            const auto still = flow.telemetry();
+            for (int i = 0; i < 3; ++i) run(t0, t1, 0.5f, flow, nullptr);
+            run(t0, t1, 0.5f, flow, nullptr);
+            const auto pan = flow.telemetry();
+            forecastAhead = -1.0f;
+            const double scale = double(W) / double(st.modelW);
+            std::printf("INFO %s: the picture's own motion: a still pair %.2f, %.2f; a pan of 4 pixels to the right %.2f, %.2f (picture pixels a frame; %llu pairs measured)\n", tag.c_str(),
+                        still.motionX * scale, still.motionY * scale, pan.motionX * scale, pan.motionY * scale, static_cast<unsigned long long>(pan.motionPairs));
+            checkOr(pan.motionPairs > still.motionPairs && still.motionPairs >= 4, tag + ": every pair's own motion is measured once");
+            checkOr(std::abs(still.motionX) * scale < 0.3 && std::abs(still.motionY) * scale < 0.3, tag + ": a still picture is found not to move");
+            // Loose on purpose: the fine texture is hard for the models, and only the believed pixels count.
+            checkOr(pan.motionX * scale > 1.5 && pan.motionX * scale < 6.5 && std::abs(pan.motionY) * scale < 1.0, tag + ": a pan to the right is found moving right, by about its size");
+        }
         checkOr(!gpu.debugErrors(), tag + ": no debug layer errors");
     }
     forecastAhead = -1.0f;

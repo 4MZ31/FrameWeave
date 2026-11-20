@@ -1045,6 +1045,10 @@ target_include_directories(veyra_push_view_crop_tests PRIVATE ${CMAKE_CURRENT_SO
 add_executable(veyra_push_flow_motion_tests tests/unit/PushFlowMotionTests.cpp)
 target_compile_features(veyra_push_flow_motion_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_flow_motion_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFlow 2's Response, first step (engine/PushResponse.h, pure): does the picture's motion follow the stick?
+add_executable(veyra_push_response_tests tests/unit/PushResponseTests.cpp)
+target_compile_features(veyra_push_response_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_response_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFlow 2's Predict, the rule for one pixel and where the frames stand in time (pushflow/PushFlowPredict.h, pure).
 add_executable(veyra_push_flow_predict_tests tests/unit/PushFlowPredictTests.cpp)
 target_compile_features(veyra_push_flow_predict_tests PRIVATE cxx_std_20)

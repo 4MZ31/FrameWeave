@@ -10,6 +10,7 @@
 #include "veyra/pipeline/NisSettings.h"
 #include "veyra/pipeline/PushEnhanceShape.h"
 #include "veyra/pushflow/PushFlow2.h"
+#include "veyra/engine/PushResponse.h"
 #include "veyra/pushflow/PushFlowMotion.h"
 #include <QJsonArray>
 #include <QJsonObject>
@@ -619,6 +620,8 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
         const auto flags = pushflow2::parse(impl_->prefs.value(QStringLiteral("pushFlow2")).toString().toStdString()).flags;
         const bool changed = !(pushflow2::requested() == flags);
         pushflow2::setRequested(flags);
+        // Response's first step observes only while it is switched on; switched off, what it saw is gone.
+        engine::response::observer().listen(pushflow2::wanted(pushflow2::Experiment::Response));
         if (changed && impl_->snapshot.running && settings().multiplier > 1 &&
             settings().frameGenerationBackend == engine::FrameGenerationBackend::PushFlow) impl_->engine.refreshGraph();
     }

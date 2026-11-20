@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 // PushFlow: RIFE through ONNX Runtime + DirectML on the graph's D3D12 queue (see PushFlowBackend.h).
+#include "veyra/engine/PushResponse.h"
 #include "veyra/pushflow/PushFlowBackend.h"
 #include "veyra/pipeline/GpuPassUtils.h"
 #include "veyra/Log.h"
@@ -205,6 +206,14 @@ struct PushFlowBackend::Impl {
     UINT predictRing = 0;
     bool predictOn = false;
     static constexpr UINT kPredictRing = 8;
+    static constexpr UINT kPredictTotals = 12;   // uints a forecast's totals take (PushPredict.hlsl)
+    // PushFlow 2's Response: per ring slot, whether it is its pair's first forecast, when and over what interval.
+    bool predictSlotPair[kPredictRing] = {};
+    int64_t predictSlotHost[kPredictRing] = {};
+    double predictSlotInterval[kPredictRing] = {};
+    uint64_t fullPackCount = 0, predictMotionPack = 0;
+    std::atomic<float> lastMotionX{0}, lastMotionY{0};
+    std::atomic<uint64_t> motionPairs{0};
     uint32_t* predictMapped = nullptr;
     uint64_t predictWritten = 0;
     std::atomic<uint64_t> predictFrames{0}, predictCounted{0}, predictMoving{0}, predictHeld{0};
@@ -780,6 +789,7 @@ Telemetry PushFlowBackend::telemetry() const {
     t.guardHeld = p.guardHeld.load(std::memory_order_relaxed); t.guardTiles = p.guardTilesReplaced.load(std::memory_order_relaxed);
     t.predictFrames = p.predictFrames.load(std::memory_order_relaxed); t.predictCounted = p.predictCounted.load(std::memory_order_relaxed);
     t.predictMoving = p.predictMoving.load(std::memory_order_relaxed); t.predictHeld = p.predictHeld.load(std::memory_order_relaxed);
+    t.motionPairs = p.motionPairs.load(std::memory_order_relaxed); t.motionX = p.lastMotionX.load(std::memory_order_relaxed); t.motionY = p.lastMotionY.load(std::memory_order_relaxed);
     const size_t n = std::min(p.inferSamples, kTelemetry);
     if (!n) return t;
     std::vector<float> v(p.inferRing.begin(), p.inferRing.begin() + ptrdiff_t(n));
@@ -969,15 +979,15 @@ bool PushFlowBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue
     if (predict) {
         if (!p.haveGrids) p.status.predictState = "no-grids";
         else if (!p.predictPass.loadShader("PushPredict.dxil", cs) || !p.predictPass.create(device, cs, 4 + 2 * kSrvRing, 2, 4, 12) ||
-                 !makeBuffer(4 * 4, p.predictTotals) || !(p.predicted = pipeline::makeTexture(device, width, height, p.format, true))) p.status.predictState = "shader";
+                 !makeBuffer(Impl::kPredictTotals * 4, p.predictTotals) || !(p.predicted = pipeline::makeTexture(device, width, height, p.format, true))) p.status.predictState = "shader";
         else {
             bufferUav(p.buffers[2].Get(), floats[2], cpuSlot(p.predictPass, 0));
             bufferUav(p.buffers[3].Get(), floats[3], cpuSlot(p.predictPass, 1));
-            bufferUav(p.predictTotals.Get(), 4, cpuSlot(p.predictPass, 2));
+            bufferUav(p.predictTotals.Get(), Impl::kPredictTotals, cpuSlot(p.predictPass, 2));
             pipeline::makeUav(device, p.predicted.Get(), p.format, cpuSlot(p.predictPass, 3));
-            p.predictReadback = readbackBuffer(device, Impl::kPredictRing * 4 * sizeof(uint32_t));
+            p.predictReadback = readbackBuffer(device, Impl::kPredictRing * Impl::kPredictTotals * sizeof(uint32_t));
             if (p.predictReadback && SUCCEEDED(p.predictReadback->Map(0, nullptr, reinterpret_cast<void**>(&p.predictMapped))))
-                std::memset(p.predictMapped, 0, Impl::kPredictRing * 4 * sizeof(uint32_t));
+                std::memset(p.predictMapped, 0, Impl::kPredictRing * Impl::kPredictTotals * sizeof(uint32_t));
             else { p.predictReadback.Reset(); p.predictMapped = nullptr; }
             p.predictOn = true; p.status.predict = true; p.status.predictState = "on";
         }
@@ -1150,6 +1160,7 @@ bool PushFlowBackend::pack(ID3D12GraphicsCommandList* list, ID3D12Resource* prev
     if (p.timeQueries) { list->EndQuery(p.timeQueries.Get(), D3D12_QUERY_TYPE_TIMESTAMP, UINT(2 * (p.timeWritten % Impl::kTimeRing))); p.timePending = true; }
     std::lock_guard lock(p.telemetryMutex);
     ++(timeOnly ? p.timePacks : p.fullPacks);
+    if (!timeOnly) ++p.fullPackCount;   // never reset: one per pair
     return true;
 }
 
@@ -1191,10 +1202,21 @@ bool PushFlowBackend::infer() {
     // Predict's totals of earlier forecast frames, the same way: counted, would move, held, a serial.
     if (p.predictMapped) {
         for (UINT slot = 0; slot < Impl::kPredictRing; ++slot) {
-            uint32_t* totals = p.predictMapped + 4 * slot;
+            uint32_t* totals = p.predictMapped + Impl::kPredictTotals * slot;
             if (!totals[3] || !totals[0]) continue;
             const uint32_t counted = totals[0], moving = totals[1], held = totals[2];
-            totals[0] = totals[1] = totals[2] = totals[3] = 0;
+            // PushFlow 2's Response (a measurement): how far the whole picture moved over this pair's
+            // interval, as a share of its width and height a second, from the pixels whose motion is believed.
+            if (p.predictSlotPair[slot] && totals[4] >= 16 && p.status.modelW && p.status.modelH) {
+                const double believed = double(totals[4]);
+                const double mx = (double(totals[5]) - double(totals[6])) / 16.0 / believed, my = (double(totals[7]) - double(totals[8])) / 16.0 / believed;
+                p.lastMotionX.store(float(mx), std::memory_order_relaxed); p.lastMotionY.store(float(my), std::memory_order_relaxed);
+                p.motionPairs.fetch_add(1, std::memory_order_relaxed);
+                const double seconds = p.predictSlotInterval[slot];
+                if (seconds > 0.001 && seconds <= 1.0)
+                    engine::response::observer().motion(p.predictSlotHost[slot], float(mx / double(p.status.modelW) / seconds), float(my / double(p.status.modelH) / seconds));
+            }
+            for (UINT k = 0; k < Impl::kPredictTotals; ++k) totals[k] = 0;
             p.predictFrames.fetch_add(1, std::memory_order_relaxed);
             p.predictCounted.fetch_add(counted, std::memory_order_relaxed);
             p.predictMoving.fetch_add(moving, std::memory_order_relaxed);
@@ -1314,7 +1336,8 @@ bool PushFlowBackend::resolve(ID3D12GraphicsCommandList* list, ID3D12Resource* p
     return true;
 }
 
-bool PushFlowBackend::forecast(ID3D12GraphicsCommandList* list, ID3D12Resource* previous, ID3D12Resource* current, ID3D12Resource* output, float ahead) {
+bool PushFlowBackend::forecast(ID3D12GraphicsCommandList* list, ID3D12Resource* previous, ID3D12Resource* current, ID3D12Resource* output, float ahead,
+                               double intervalSeconds) {
     auto& p = *p_;
     if (!p.status.ready || !p.predictOn || !list || !previous || !current || !output) return false;
     // The network's time, as resolve() takes it: this is the first reader of its output.
@@ -1353,7 +1376,11 @@ bool PushFlowBackend::forecast(ID3D12GraphicsCommandList* list, ID3D12Resource* 
         copy.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         copy.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS; copy.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
         list->ResourceBarrier(1, &copy);
-        list->CopyBufferRegion(p.predictReadback.Get(), (p.predictWritten % Impl::kPredictRing) * 4 * sizeof(uint32_t), p.predictTotals.Get(), 0, 4 * sizeof(uint32_t));
+        const UINT ringSlot = UINT(p.predictWritten % Impl::kPredictRing);
+        list->CopyBufferRegion(p.predictReadback.Get(), ringSlot * Impl::kPredictTotals * sizeof(uint32_t), p.predictTotals.Get(), 0, Impl::kPredictTotals * sizeof(uint32_t));
+        // PushFlow 2's Response: this pair's own motion, once a pair (its first forecast), with when it was asked for.
+        p.predictSlotPair[ringSlot] = p.fullPackCount != p.predictMotionPack; p.predictMotionPack = p.fullPackCount;
+        p.predictSlotHost[ringSlot] = engine::response::hostNow100ns(); p.predictSlotInterval[ringSlot] = intervalSeconds;
         std::swap(copy.Transition.StateBefore, copy.Transition.StateAfter);
         list->ResourceBarrier(1, &copy);
     }

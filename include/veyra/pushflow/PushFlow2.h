@@ -27,7 +27,7 @@ inline constexpr uint32_t kCount = uint32_t(Experiment::Count);
 // The names in the preference; never change one that has shipped.
 inline constexpr const char* kKeys[kCount] = {"fusion", "guard", "predict", "dual", "response", "memory"};
 // What this build contains. A part is listed here in the commit that adds its code and its tests.
-inline constexpr bool kBuilt[kCount] = {true, true, true, true, false, false};
+inline constexpr bool kBuilt[kCount] = {true, true, true, true, true, false};
 
 inline constexpr bool built(Experiment e) { return uint32_t(e) < kCount && kBuilt[uint32_t(e)]; }
 inline constexpr const char* key(Experiment e) { return uint32_t(e) < kCount ? kKeys[uint32_t(e)] : ""; }

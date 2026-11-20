@@ -8,6 +8,7 @@
 //    with a result the user can copy;
 //  - the performance report: what the session playing now really does (engine/PushPerfReport.h).
 #include "../QmlPlayerBridge_p.h"
+#include "veyra/engine/PushResponse.h"
 #include "veyra/engine/PushCrashNote.h"
 #include "veyra/engine/PushPerfReport.h"
 #include "veyra/gfx/D3D12DeviceContext.h"
@@ -160,6 +161,12 @@ QString QmlPlayerBridge::pushPerformanceReport() const {
     f.pushFlowPredict = s.pushFlowPredict; f.pushFlowPredictFrames = s.pushFlowPredictFrames; f.pushFlowPredictSuperseded = s.pushFlowPredictSuperseded;
     f.pushFlowPredictCounted = s.pushFlowPredictCounted; f.pushFlowPredictMoving = s.pushFlowPredictMoving; f.pushFlowPredictHeld = s.pushFlowPredictHeld;
     f.pushFlowDual = s.pushFlowDual; f.pushFlowDualReal = s.pushFlowDualReal; f.pushFlowDualBetween = s.pushFlowDualBetween;
+    if (engine::response::observer().listening()) {
+        const auto fit = engine::response::observer().fit();
+        f.pushFlowResponse = s.pushFlowPredict != "on" ? "needs-predict" : engine::response::observer().sticksSeen() == 0 ? "no-stick" : "on";
+        f.pushFlowResponseEnough = fit.enough; f.pushFlowResponseFollows = fit.follows; f.pushFlowResponseDelayMs = fit.delayMs;
+        f.pushFlowResponseGainX = fit.gainX; f.pushFlowResponseGainY = fit.gainY; f.pushFlowResponseExplained = fit.explained;
+    }
     return QString::fromStdString(engine::perfreport::json(f));
 }
 

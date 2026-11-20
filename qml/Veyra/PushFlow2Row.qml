@@ -44,6 +44,7 @@ VRow {
         if (word === "not-live") return qsTr("只用于采集卡、串流等实时画面")
         if (word === "needs-predict") return qsTr("需要 Predict 已开启并且正在运行")
         if (word === "needs-2x") return qsTr("只在 2X 倍率下起作用")
+        if (word === "no-stick") return qsTr("没有右摇杆经过 PushFPS（目前只有 PS5 Remote Play；接在主机上的手柄看不到）")
         return word
     }
     function readLive() {

@@ -96,6 +96,10 @@ struct Telemetry {
     // With Predict: forecast frames made, and of the pixels counted in them (every 16th each way) how
     // many the motion would move and how many of those were held instead (not trusted).
     uint64_t predictFrames = 0, predictCounted = 0, predictMoving = 0, predictHeld = 0;
+    // With Predict: pairs whose own motion was measured, and the newest one's (motion pixels a frame, the
+    // mean over the pixels whose motion is believed; right and down positive). A measurement only.
+    uint64_t motionPairs = 0;
+    float motionX = 0, motionY = 0;
     double inferP50Ms = 0, inferP95Ms = 0, inferMaxMs = 0;   // the network's GPU span on the queue (CPU time of the call without timestamps)
 };
 
@@ -136,7 +140,9 @@ public:
     // from the motion the last pack() / infer() found for this pair at the half-way time (pack it with
     // timestep 0.5). Copied to `output` (left in COPY_DEST); the pair in NON_PIXEL_SHADER_RESOURCE.
     // False when Predict is not in use (status().predict).
-    bool forecast(ID3D12GraphicsCommandList* list, ID3D12Resource* previous, ID3D12Resource* current, ID3D12Resource* output, float ahead);
+    // `intervalSeconds`: the time between the pair's two real frames (0 = unknown), for PushFlow 2's Response.
+    bool forecast(ID3D12GraphicsCommandList* list, ID3D12Resource* previous, ID3D12Resource* current, ID3D12Resource* output, float ahead,
+                  double intervalSeconds = 0);
     double lastInferCpuMs() const;
     Telemetry telemetry() const;
     // Tests: the network's input buffer and RGB output buffer (UNORDERED_ACCESS, planar float).

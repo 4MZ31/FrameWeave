@@ -4164,7 +4164,7 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
                     tracker_.transition(flist,genFrame_[dualBetweenSlot].Get(),D3D12_RESOURCE_STATE_COPY_DEST);
                     if(!pushFlow_->resolve(flist,videoFrame_[1-parity].Get(),videoFrame_[parity].Get(),genFrame_[dualBetweenSlot].Get())){failedBackend_=engine::FailedBackend::Fg;return false;}
                 }
-                if(!pushFlow_->forecast(flist,videoFrame_[1-parity].Get(),videoFrame_[parity].Get(),genFrame_[generatedSlot].Get(),pushflow::predict::ahead(sub,outputMultiplier))){failedBackend_=engine::FailedBackend::Fg;return false;}
+                if(!pushFlow_->forecast(flist,videoFrame_[1-parity].Get(),videoFrame_[parity].Get(),genFrame_[generatedSlot].Get(),pushflow::predict::ahead(sub,outputMultiplier),(ptsMs-prevPtsMs_)/1000.0)){failedBackend_=engine::FailedBackend::Fg;return false;}
                 tracker_.transition(flist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_COMMON);
                 tracker_.transition(flist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COMMON);
                 if(dualBetween){

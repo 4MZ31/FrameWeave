@@ -69,7 +69,15 @@ int main() {
       check(has(t, "\"pushFlowDual\": null") && has(t, "\"pushFlowDualFrames\": null"), "Dual not asked for: null, with no counts");
       f.pushFlowPredict = "on"; f.pushFlowDual = "on"; f.pushFlowDualReal = 880; f.pushFlowDualBetween = 870; const auto d = json(f);
       check(has(d, "\"pushFlowDual\": \"on\"") && has(d, "\"pushFlowDualFrames\": [880, 870]") && wellFormed(d), "Dual in use: real and in-between frames handed to recordings");
-      f.pushFlowDual = "needs-predict"; check(has(json(f), "\"pushFlowDual\": \"needs-predict\""), "why Dual does not act is a word from the engine"); }
+      f.pushFlowDual = "needs-predict"; check(has(json(f), "\"pushFlowDual\": \"needs-predict\""), "why Dual does not act is a word from the engine");
+      check(has(d, "\"pushFlowResponse\": null") && has(d, "\"pushFlowResponseFit\": null"), "Response not asked for: null, with nothing measured");
+      f.pushFlowResponse = "on"; const auto early = json(f);
+      check(has(early, "\"pushFlowResponse\": \"on\"") && has(early, "\"pushFlowResponseFit\": null"), "Response before enough stick movement: on, and still nothing claimed");
+      f.pushFlowResponseEnough = true; f.pushFlowResponseFollows = true; f.pushFlowResponseDelayMs = 70; f.pushFlowResponseGainX = -0.5; f.pushFlowResponseGainY = 0.25; f.pushFlowResponseExplained = 0.875;
+      const auto fitted = json(f);
+      check(has(fitted, "\"pushFlowResponseFit\": { \"follows\": true, \"delayMs\": 70") && has(fitted, "\"gain\": [-0.500, 0.250]") && has(fitted, "\"explained\": 0.875") && wellFormed(fitted),
+            "Response's measurement: follows or not, how late, how strongly, how much it explains");
+      f.pushFlowResponse = "no-stick"; check(has(json(f), "\"pushFlowResponse\": \"no-stick\"") && has(json(f), "\"pushFlowResponseFit\": null"), "no stick through PushFPS: said, with nothing measured"); }
     { auto f = session(); f.pushFlowEncoderCache = "on"; f.pushFlowWholeMs = 9.5; f.pushFlowSplitMs = 8.25; const auto t = json(f);
       check(has(t, "\"pushFlowEncoderCache\": \"on\"") && has(t, "\"pushFlowEncoderCacheStartMs\": [9.5") && wellFormed(t), "the encoder cache in use, with one frame each way at start");
       f.pushFlowEncoderCache = "mismatch"; f.pushFlowSplitMs = 0; const auto u = json(f);

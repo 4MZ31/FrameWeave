@@ -13,7 +13,10 @@ Texture2D<float4> previous : register(t0);
 Texture2D<float4> current : register(t1);
 RWStructuredBuffer<float> grid0 : register(u0);
 RWStructuredBuffer<float> grid1 : register(u1);
-RWStructuredBuffer<uint> totals : register(u2);    // counted, would move, held, serial
+// counted, would move, held, serial; then, for PushFlow 2's Response (a measurement only): pixels whose
+// motion is believed, and the sum of that motion over them, a frame, in sixteenths of a motion pixel,
+// right / left / down / up apart (the totals are whole and unsigned)
+RWStructuredBuffer<uint> totals : register(u2);
 RWTexture2D<float4> output : register(u3);
 cbuffer Constants : register(b0) {
     uint srcW, srcH, padW, padH;
@@ -79,7 +82,7 @@ float2 stepAt(RWStructuredBuffer<float> grid, float2 s) {
 [numthreads(8, 8, 1)]
 void main(uint3 id : SV_DispatchThreadID) {
     if (stage == 0) {
-        if (id.x == 0 && id.y == 0) { totals[0] = 0; totals[1] = 0; totals[2] = 0; totals[3] = serial; }
+        if (id.x == 0 && id.y == 0) { for (uint k = 0; k < 12; ++k) totals[k] = 0; totals[3] = serial; }
         return;
     }
     if (id.x >= srcW || id.y >= srcH) return;
@@ -94,6 +97,7 @@ void main(uint3 id : SV_DispatchThreadID) {
     const float3 apart = abs(tapEncoded(previous, modelToSource(s + back)) - tapEncoded(current, modelToSource(place)));
     trust *= fade(max(apart.r, max(apart.g, apart.b)), kAgree);
     const float moved = length(place - at);
+    const bool believed = trust >= 0.5;      // before the still zone: a still pixel's motion (none) is believed too
     const bool held = moved >= kStill.y && trust < 0.5;
     trust *= 1.0 - fade(moved, kStill);
     const float3 own = current[id.xy].rgb;
@@ -107,5 +111,12 @@ void main(uint3 id : SV_DispatchThreadID) {
         InterlockedAdd(totals[0], 1u);
         if (moved >= kStill.y) InterlockedAdd(totals[1], 1u);
         if (held) InterlockedAdd(totals[2], 1u);
+        if (believed) {
+            // The picture's own motion over one frame interval is twice the step to the newer frame.
+            const float2 frame = clamp(2.0 * d, -255.0, 255.0) * 16.0;
+            InterlockedAdd(totals[4], 1u);
+            InterlockedAdd(totals[frame.x >= 0.0 ? 5 : 6], uint(abs(frame.x) + 0.5));
+            InterlockedAdd(totals[frame.y >= 0.0 ? 7 : 8], uint(abs(frame.y) + 0.5));
+        }
     }
 }

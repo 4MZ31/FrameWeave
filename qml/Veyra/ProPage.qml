@@ -1952,6 +1952,25 @@ VPage {
                                 title: qsTr("PushFlow 2：Dual，录制和直播得到真实的帧（实验）")
                                 explanation: qsTr("开启 Predict 后，屏幕上显示的是预测帧。录制、即时回放和直播记录的是屏幕上的画面，所以也会包含这些预测帧。Dual 让它们改用真实的画面：真实帧本身，以及同一对真实帧之间真实的中间帧（Predict 已经算出了它，几乎不增加开销），时间上比屏幕晚一帧。你看到的画面和延迟都不变。只在 Predict 正在运行并且倍率是 2X 时起作用；对比短片仍然记录屏幕上的画面；录下的声音会比画面早一帧（30 FPS 时约 33 毫秒）。还没有在真实硬件上验证过")
                             }
+                            PushFlow2Row {
+                                objectName: "list-pushflow2-response-row"
+                                visible: veyra.fgBackendName === "pushflow"
+                                part: "response"
+                                stateKey: "pushFlowResponse"
+                                describe: function(st) {
+                                    if (st.pushFlowResponseEnough !== true)
+                                        return qsTr("正在观察。已看到 %1 个真实帧，其中 %2 个右摇杆被推动；至少需要 90 个才下结论")
+                                            .arg(Math.round(Number(st.pushFlowResponseFrames || 0))).arg(Math.round(Number(st.pushFlowResponseActive || 0)))
+                                    if (st.pushFlowResponseFollows === true)
+                                        return qsTr("画面跟随右摇杆。推满时，画面每秒横向移动自身宽度的 %1 %、纵向移动自身高度的 %2 %；画面比摇杆晚 %3 毫秒；摇杆能解释这些运动的 %4 %")
+                                            .arg((Math.abs(Number(st.pushFlowResponseGainX || 0)) * 100).toFixed(0)).arg((Math.abs(Number(st.pushFlowResponseGainY || 0)) * 100).toFixed(0))
+                                            .arg(Number(st.pushFlowResponseDelayMs || 0).toFixed(0)).arg((Number(st.pushFlowResponseExplained || 0) * 100).toFixed(0))
+                                    return qsTr("画面的运动和右摇杆对不上（摇杆只能解释 %1 %）。在这个游戏或这个场景里，Response 可能帮不上忙")
+                                        .arg((Number(st.pushFlowResponseExplained || 0) * 100).toFixed(0))
+                                }
+                                title: qsTr("PushFlow 2：Response，先测量（实验）")
+                                explanation: qsTr("Response 的设想是：在主机自己的画面到达之前，先根据右摇杆把画面转动一点。这能不能只靠视频信号做到，还没有人证明过，所以第一步只测量，不改动画面：画面自身的运动是否跟随右摇杆、有多强、晚多少。它只观察两样已经在 PushFPS 里的东西：PushFPS 自己发给主机的右摇杆（目前只有 PS5 Remote Play；接在主机上的手柄看不到），以及 Predict 运行时 PushFlow 算出的画面整体运动。不读取任何按键，不写入磁盘，不发送到任何地方；关闭开关或更换画面来源时全部清除。玩几分钟、多转动视角，这里就会显示结果，性能报告里也有")
+                            }
                             // Half precision is tested in a separate process first (PushFlowBench --fp16-probe):
                             // the switch only turns on after that test passed on this graphics card.
                             VRow {

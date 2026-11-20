@@ -6665,6 +6665,23 @@
    "ru": "PushFlow 2: Predict, no waiting for the next frame (experimental)"
   },
   {
+   "zh": "PushFlow 2：Response，先测量（实验）",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "PushFlow 2：Response，先測量（實驗）",
+   "en": "PushFlow 2: Response, measuring first (experimental)",
+   "ja": "PushFlow 2：Response、まず測定（実験）",
+   "nl": "PushFlow 2: Response, measuring first (experimental)",
+   "de": "PushFlow 2: Response, measuring first (experimental)",
+   "es": "PushFlow 2: Response, measuring first (experimental)",
+   "fr": "PushFlow 2: Response, measuring first (experimental)",
+   "it": "PushFlow 2: Response, measuring first (experimental)",
+   "pt-BR": "PushFlow 2: Response, measuring first (experimental)",
+   "tr": "PushFlow 2: Response, measuring first (experimental)",
+   "ar": "PushFlow 2: Response, measuring first (experimental)",
+   "pl": "PushFlow 2: Response, measuring first (experimental)",
+   "ru": "PushFlow 2: Response, measuring first (experimental)"
+  },
+  {
    "zh": "PushFlow 2：每个真实帧只编码一次（实验）",
    "src": "qml/ProPage.qml",
    "zh-TW": "PushFlow 2：每個真實幀只編碼一次（實驗）",
@@ -7139,6 +7156,23 @@
    "ar": "RX 9000 · lmxxf (تجريبي)",
    "pl": "RX 9000 · lmxxf (eksperymentalne)",
    "ru": "RX 9000 · lmxxf (экспериментально)"
+  },
+  {
+   "zh": "Response 的设想是：在主机自己的画面到达之前，先根据右摇杆把画面转动一点。这能不能只靠视频信号做到，还没有人证明过，所以第一步只测量，不改动画面：画面自身的运动是否跟随右摇杆、有多强、晚多少。它只观察两样已经在 PushFPS 里的东西：PushFPS 自己发给主机的右摇杆（目前只有 PS5 Remote Play；接在主机上的手柄看不到），以及 Predict 运行时 PushFlow 算出的画面整体运动。不读取任何按键，不写入磁盘，不发送到任何地方；关闭开关或更换画面来源时全部清除。玩几分钟、多转动视角，这里就会显示结果，性能报告里也有",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "Response 的設想是：在主機自己的畫面到達之前，先根據右搖桿把畫面轉動一點。這能不能只靠視訊訊號做到，還沒有人證明過，所以第一步只測量，不改動畫面：畫面自身的運動是否跟隨右搖桿、有多強、晚多少。它只觀察兩樣已經在 PushFPS 裡的東西：PushFPS 自己發給主機的右搖桿（目前只有 PS5 Remote Play；接在主機上的手把看不到），以及 Predict 執行時 PushFlow 算出的畫面整體運動。不讀取任何按鍵，不寫入磁碟，不傳送到任何地方；關閉開關或更換畫面來源時全部清除。玩幾分鐘、多轉動視角，這裡就會顯示結果，效能報告裡也有",
+   "en": "The idea of Response is to turn the picture a little from the right stick before the console's own frame arrives. Nobody has shown that this can be done from a video signal alone, so the first step only measures and changes nothing on the picture: does the picture's own motion follow the right stick, how strongly, and how late? It observes only two things that are already inside PushFPS: the right stick PushFPS itself sends to the console (only PS5 Remote Play for now; a controller plugged into the console is not seen), and the whole picture's motion that PushFlow works out while Predict runs. No button is read, nothing is written to disk, nothing is sent anywhere, and it is all cleared when the switch is turned off or the source changes. Play for a few minutes and turn the camera a lot: the result appears here and in the performance report",
+   "ja": "Response の考え方は、本体のフレームが届く前に、右スティックの動きに合わせて映像を少し回すことです。映像信号だけでそれができるかは、まだ誰も示していません。そのため最初の段階では測定だけを行い、映像は変えません。映像自体の動きが右スティックに追従しているか、どれくらい強く、どれくらい遅れてかを調べます。観察するのは、すでに PushFPS の中にある 2 つだけです。PushFPS が本体に送っている右スティック（現在は PS5 リモートプレイのみ。本体に接続したコントローラーは見えません）と、Predict の動作中に PushFlow が求める映像全体の動きです。ボタンは読み取らず、ディスクに書き込まず、どこにも送信しません。スイッチを切るか映像ソースを変えると、すべて消去されます。数分プレイして視点をたくさん動かすと、ここと性能レポートに結果が表示されます",
+   "nl": "The idea of Response is to turn the picture a little from the right stick before the console's own frame arrives. Nobody has shown that this can be done from a video signal alone, so the first step only measures and changes nothing on the picture: does the picture's own motion follow the right stick, how strongly, and how late? It observes only two things that are already inside PushFPS: the right stick PushFPS itself sends to the console (only PS5 Remote Play for now; a controller plugged into the console is not seen), and the whole picture's motion that PushFlow works out while Predict runs. No button is read, nothing is written to disk, nothing is sent anywhere, and it is all cleared when the switch is turned off or the source changes. Play for a few minutes and turn the camera a lot: the result appears here and in the performance report",
+   "de": "The idea of Response is to turn the picture a little from the right stick before the console's own frame arrives. Nobody has shown that this can be done from a video signal alone, so the first step only measures and changes nothing on the picture: does the picture's own motion follow the right stick, how strongly, and how late? It observes only two things that are already inside PushFPS: the right stick PushFPS itself sends to the console (only PS5 Remote Play for now; a controller plugged into the console is not seen), and the whole picture's motion that PushFlow works out while Predict runs. No button is read, nothing is written to disk, nothing is sent anywhere, and it is all cleared when the switch is turned off or the source changes. Play for a few minutes and turn the camera a lot: the result appears here and in the performance report",
+   "es": "The idea of Response is to turn the picture a little from the right stick before the console's own frame arrives. Nobody has shown that this can be done from a video signal alone, so the first step only measures and changes nothing on the picture: does the picture's own motion follow the right stick, how strongly, and how late? It observes only two things that are already inside PushFPS: the right stick PushFPS itself sends to the console (only PS5 Remote Play for now; a controller plugged into the console is not seen), and the whole picture's motion that PushFlow works out while Predict runs. No button is read, nothing is written to disk, nothing is sent anywhere, and it is all cleared when the switch is turned off or the source changes. Play for a few minutes and turn the camera a lot: the result appears here and in the performance report",
+   "fr": "The idea of Response is to turn the picture a little from the right stick before the console's own frame arrives. Nobody has shown that this can be done from a video signal alone, so the first step only measures and changes nothing on the picture: does the picture's own motion follow the right stick, how strongly, and how late? It observes only two things that are already inside PushFPS: the right stick PushFPS itself sends to the console (only PS5 Remote Play for now; a controller plugged into the console is not seen), and the whole picture's motion that PushFlow works out while Predict runs. No button is read, nothing is written to disk, nothing is sent anywhere, and it is all cleared when the switch is turned off or the source changes. Play for a few minutes and turn the camera a lot: the result appears here and in the performance report",
+   "it": "The idea of Response is to turn the picture a little from the right stick before the console's own frame arrives. Nobody has shown that this can be done from a video signal alone, so the first step only measures and changes nothing on the picture: does the picture's own motion follow the right stick, how strongly, and how late? It observes only two things that are already inside PushFPS: the right stick PushFPS itself sends to the console (only PS5 Remote Play for now; a controller plugged into the console is not seen), and the whole picture's motion that PushFlow works out while Predict runs. No button is read, nothing is written to disk, nothing is sent anywhere, and it is all cleared when the switch is turned off or the source changes. Play for a few minutes and turn the camera a lot: the result appears here and in the performance report",
+   "pt-BR": "The idea of Response is to turn the picture a little from the right stick before the console's own frame arrives. Nobody has shown that this can be done from a video signal alone, so the first step only measures and changes nothing on the picture: does the picture's own motion follow the right stick, how strongly, and how late? It observes only two things that are already inside PushFPS: the right stick PushFPS itself sends to the console (only PS5 Remote Play for now; a controller plugged into the console is not seen), and the whole picture's motion that PushFlow works out while Predict runs. No button is read, nothing is written to disk, nothing is sent anywhere, and it is all cleared when the switch is turned off or the source changes. Play for a few minutes and turn the camera a lot: the result appears here and in the performance report",
+   "tr": "The idea of Response is to turn the picture a little from the right stick before the console's own frame arrives. Nobody has shown that this can be done from a video signal alone, so the first step only measures and changes nothing on the picture: does the picture's own motion follow the right stick, how strongly, and how late? It observes only two things that are already inside PushFPS: the right stick PushFPS itself sends to the console (only PS5 Remote Play for now; a controller plugged into the console is not seen), and the whole picture's motion that PushFlow works out while Predict runs. No button is read, nothing is written to disk, nothing is sent anywhere, and it is all cleared when the switch is turned off or the source changes. Play for a few minutes and turn the camera a lot: the result appears here and in the performance report",
+   "ar": "The idea of Response is to turn the picture a little from the right stick before the console's own frame arrives. Nobody has shown that this can be done from a video signal alone, so the first step only measures and changes nothing on the picture: does the picture's own motion follow the right stick, how strongly, and how late? It observes only two things that are already inside PushFPS: the right stick PushFPS itself sends to the console (only PS5 Remote Play for now; a controller plugged into the console is not seen), and the whole picture's motion that PushFlow works out while Predict runs. No button is read, nothing is written to disk, nothing is sent anywhere, and it is all cleared when the switch is turned off or the source changes. Play for a few minutes and turn the camera a lot: the result appears here and in the performance report",
+   "pl": "The idea of Response is to turn the picture a little from the right stick before the console's own frame arrives. Nobody has shown that this can be done from a video signal alone, so the first step only measures and changes nothing on the picture: does the picture's own motion follow the right stick, how strongly, and how late? It observes only two things that are already inside PushFPS: the right stick PushFPS itself sends to the console (only PS5 Remote Play for now; a controller plugged into the console is not seen), and the whole picture's motion that PushFlow works out while Predict runs. No button is read, nothing is written to disk, nothing is sent anywhere, and it is all cleared when the switch is turned off or the source changes. Play for a few minutes and turn the camera a lot: the result appears here and in the performance report",
+   "ru": "The idea of Response is to turn the picture a little from the right stick before the console's own frame arrives. Nobody has shown that this can be done from a video signal alone, so the first step only measures and changes nothing on the picture: does the picture's own motion follow the right stick, how strongly, and how late? It observes only two things that are already inside PushFPS: the right stick PushFPS itself sends to the console (only PS5 Remote Play for now; a controller plugged into the console is not seen), and the whole picture's motion that PushFlow works out while Predict runs. No button is read, nothing is written to disk, nothing is sent anywhere, and it is all cleared when the switch is turned off or the source changes. Play for a few minutes and turn the camera a lot: the result appears here and in the performance report"
   },
   {
    "zh": "SDK 提交",
@@ -41823,6 +41857,23 @@
    "ru": "Получение изображения…"
   },
   {
+   "zh": "正在观察。已看到 %1 个真实帧，其中 %2 个右摇杆被推动；至少需要 90 个才下结论",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "正在觀察。已看到 %1 個真實幀，其中 %2 個右搖桿被推動；至少需要 90 個才下結論",
+   "en": "Watching. Seen %1 real frames, %2 of them with the right stick held; at least 90 are needed before anything is said",
+   "ja": "観察中です。実フレーム %1 枚のうち、右スティックが倒されていたのは %2 枚。結論には 90 枚以上が必要です",
+   "nl": "Watching. Seen %1 real frames, %2 of them with the right stick held; at least 90 are needed before anything is said",
+   "de": "Watching. Seen %1 real frames, %2 of them with the right stick held; at least 90 are needed before anything is said",
+   "es": "Watching. Seen %1 real frames, %2 of them with the right stick held; at least 90 are needed before anything is said",
+   "fr": "Watching. Seen %1 real frames, %2 of them with the right stick held; at least 90 are needed before anything is said",
+   "it": "Watching. Seen %1 real frames, %2 of them with the right stick held; at least 90 are needed before anything is said",
+   "pt-BR": "Watching. Seen %1 real frames, %2 of them with the right stick held; at least 90 are needed before anything is said",
+   "tr": "Watching. Seen %1 real frames, %2 of them with the right stick held; at least 90 are needed before anything is said",
+   "ar": "Watching. Seen %1 real frames, %2 of them with the right stick held; at least 90 are needed before anything is said",
+   "pl": "Watching. Seen %1 real frames, %2 of them with the right stick held; at least 90 are needed before anything is said",
+   "ru": "Watching. Seen %1 real frames, %2 of them with the right stick held; at least 90 are needed before anything is said"
+  },
+  {
    "zh": "正在观察画面 %1 / %2",
    "src": "qml/PushHudDialog.qml",
    "zh-TW": "正在觀察畫面 %1 / %2",
@@ -42977,6 +43028,23 @@
    "ar": "لا يوجد جهاز فيديو",
    "pl": "Brak kodera wideo",
    "ru": "Видеокодер недоступен"
+  },
+  {
+   "zh": "没有右摇杆经过 PushFPS（目前只有 PS5 Remote Play；接在主机上的手柄看不到）",
+   "src": "qml/PushFlow2Row.qml",
+   "zh-TW": "沒有右搖桿經過 PushFPS（目前只有 PS5 Remote Play；接在主機上的手把看不到）",
+   "en": "no right stick passes through PushFPS (only PS5 Remote Play for now; a controller plugged into the console is not seen)",
+   "ja": "右スティックの入力が PushFPS を通っていません（現在は PS5 リモートプレイのみ。本体に接続したコントローラーは見えません）",
+   "nl": "no right stick passes through PushFPS (only PS5 Remote Play for now; a controller plugged into the console is not seen)",
+   "de": "no right stick passes through PushFPS (only PS5 Remote Play for now; a controller plugged into the console is not seen)",
+   "es": "no right stick passes through PushFPS (only PS5 Remote Play for now; a controller plugged into the console is not seen)",
+   "fr": "no right stick passes through PushFPS (only PS5 Remote Play for now; a controller plugged into the console is not seen)",
+   "it": "no right stick passes through PushFPS (only PS5 Remote Play for now; a controller plugged into the console is not seen)",
+   "pt-BR": "no right stick passes through PushFPS (only PS5 Remote Play for now; a controller plugged into the console is not seen)",
+   "tr": "no right stick passes through PushFPS (only PS5 Remote Play for now; a controller plugged into the console is not seen)",
+   "ar": "no right stick passes through PushFPS (only PS5 Remote Play for now; a controller plugged into the console is not seen)",
+   "pl": "no right stick passes through PushFPS (only PS5 Remote Play for now; a controller plugged into the console is not seen)",
+   "ru": "no right stick passes through PushFPS (only PS5 Remote Play for now; a controller plugged into the console is not seen)"
   },
   {
    "zh": "没有应用在这个通道发送画面",
@@ -46481,6 +46549,23 @@
    "ru": "Изображение с карты захвата"
   },
   {
+   "zh": "画面的运动和右摇杆对不上（摇杆只能解释 %1 %）。在这个游戏或这个场景里，Response 可能帮不上忙",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "畫面的運動和右搖桿對不上（搖桿只能解釋 %1 %）。在這個遊戲或這個場景裡，Response 可能幫不上忙",
+   "en": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help",
+   "ja": "映像の動きが右スティックと一致しません（スティックで説明できるのは %1 % だけです）。このゲームやこの場面では、Response は役に立たないかもしれません",
+   "nl": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help",
+   "de": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help",
+   "es": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help",
+   "fr": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help",
+   "it": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help",
+   "pt-BR": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help",
+   "tr": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help",
+   "ar": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help",
+   "pl": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help",
+   "ru": "The picture's motion does not match the right stick (the stick explains only %1 % of it). In this game or this scene Response may be of no help"
+  },
+  {
    "zh": "画面调控",
    "src": "qml/NrLayerEditor.qml",
    "zh-TW": "畫面調控",
@@ -46513,6 +46598,23 @@
    "ar": "ضبط التصويب على الاستقرار الزمني؛ وهذا يُحدِد العودة عند انتهاء التصويب",
    "pl": "Korekta obrazu kontroluje stabilność czasową; to ustawienie powraca, gdy korekta jest wyłączona",
    "ru": "Коррекция изображения контролирует временную стабильность; эта настройка возвращается, когда коррекция отключена."
+  },
+  {
+   "zh": "画面跟随右摇杆。推满时，画面每秒横向移动自身宽度的 %1 %、纵向移动自身高度的 %2 %；画面比摇杆晚 %3 毫秒；摇杆能解释这些运动的 %4 %",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "畫面跟隨右搖桿。推滿時，畫面每秒橫向移動自身寬度的 %1 %、縱向移動自身高度的 %2 %；畫面比搖桿晚 %3 毫秒；搖桿能解釋這些運動的 %4 %",
+   "en": "The picture follows the right stick. At full stick it moves %1 % of its width a second sideways and %2 % of its height up and down; the picture is %3 ms behind the stick; the stick explains %4 % of that motion",
+   "ja": "映像は右スティックに追従しています。スティックを倒しきると、映像は 1 秒あたり横に幅の %1 %、縦に高さの %2 % 動きます。映像はスティックより %3 ミリ秒遅れます。この動きの %4 % をスティックで説明できます",
+   "nl": "The picture follows the right stick. At full stick it moves %1 % of its width a second sideways and %2 % of its height up and down; the picture is %3 ms behind the stick; the stick explains %4 % of that motion",
+   "de": "The picture follows the right stick. At full stick it moves %1 % of its width a second sideways and %2 % of its height up and down; the picture is %3 ms behind the stick; the stick explains %4 % of that motion",
+   "es": "The picture follows the right stick. At full stick it moves %1 % of its width a second sideways and %2 % of its height up and down; the picture is %3 ms behind the stick; the stick explains %4 % of that motion",
+   "fr": "The picture follows the right stick. At full stick it moves %1 % of its width a second sideways and %2 % of its height up and down; the picture is %3 ms behind the stick; the stick explains %4 % of that motion",
+   "it": "The picture follows the right stick. At full stick it moves %1 % of its width a second sideways and %2 % of its height up and down; the picture is %3 ms behind the stick; the stick explains %4 % of that motion",
+   "pt-BR": "The picture follows the right stick. At full stick it moves %1 % of its width a second sideways and %2 % of its height up and down; the picture is %3 ms behind the stick; the stick explains %4 % of that motion",
+   "tr": "The picture follows the right stick. At full stick it moves %1 % of its width a second sideways and %2 % of its height up and down; the picture is %3 ms behind the stick; the stick explains %4 % of that motion",
+   "ar": "The picture follows the right stick. At full stick it moves %1 % of its width a second sideways and %2 % of its height up and down; the picture is %3 ms behind the stick; the stick explains %4 % of that motion",
+   "pl": "The picture follows the right stick. At full stick it moves %1 % of its width a second sideways and %2 % of its height up and down; the picture is %3 ms behind the stick; the stick explains %4 % of that motion",
+   "ru": "The picture follows the right stick. At full stick it moves %1 % of its width a second sideways and %2 % of its height up and down; the picture is %3 ms behind the stick; the stick explains %4 % of that motion"
   },
   {
    "zh": "画面输入内存不足",

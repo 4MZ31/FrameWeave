@@ -76,6 +76,12 @@ struct Facts {
     // PushFlow 2's Dual: "" not asked for, "on", or a word for why not; frames handed to recordings: real, in-between.
     std::string pushFlowDual;
     uint64_t pushFlowDualReal = 0, pushFlowDualBetween = 0;
+    // PushFlow 2's Response, first step: "" not asked for, "on", or a word for why nothing is measured; then,
+    // once enough stick movement was seen: whether the picture follows the stick, how late (ms), how
+    // strongly (picture widths and heights a second at full stick) and how much of the motion it explains.
+    std::string pushFlowResponse;
+    bool pushFlowResponseEnough = false, pushFlowResponseFollows = false;
+    double pushFlowResponseDelayMs = 0, pushFlowResponseGainX = 0, pushFlowResponseGainY = 0, pushFlowResponseExplained = 0;
 };
 
 // A word from a fixed list: lower-case letters, digits and '-' only, else empty.
@@ -188,7 +194,12 @@ inline std::string json(const Facts& f) {
     o += "    \"pushFlowPredictPixels\": " + (f.pushFlowPredictCounted ? "[" + std::to_string(f.pushFlowPredictCounted) + ", " + std::to_string(f.pushFlowPredictMoving) + ", " +
                                                std::to_string(f.pushFlowPredictHeld) + "]" : std::string("null")) + ",\n";
     o += "    \"pushFlowDual\": " + quoted(word(f.pushFlowDual)) + ",\n";
-    o += "    \"pushFlowDualFrames\": " + (f.pushFlowDualReal ? "[" + std::to_string(f.pushFlowDualReal) + ", " + std::to_string(f.pushFlowDualBetween) + "]" : std::string("null")) + "\n";
+    o += "    \"pushFlowDualFrames\": " + (f.pushFlowDualReal ? "[" + std::to_string(f.pushFlowDualReal) + ", " + std::to_string(f.pushFlowDualBetween) + "]" : std::string("null")) + ",\n";
+    o += "    \"pushFlowResponse\": " + quoted(word(f.pushFlowResponse)) + ",\n";
+    o += "    \"pushFlowResponseFit\": " + (f.pushFlowResponseEnough && word(f.pushFlowResponse) == "on"
+        ? std::string("{ \"follows\": ") + (f.pushFlowResponseFollows ? "true" : "false") + ", \"delayMs\": " + number(f.pushFlowResponseDelayMs, 0) + ", \"gain\": [" +
+          number(f.pushFlowResponseGainX, 3) + ", " + number(f.pushFlowResponseGainY, 3) + "], \"explained\": " + number(f.pushFlowResponseExplained, 3) + " }"
+        : std::string("null")) + "\n";
     o += "  },\n";
     o += "  \"notes\": \"Rates are frames PushFPS presented in the last second. softwareLatency is a frame's arrival in PushFPS to its Present call: "
          "not button to screen, and it leaves out the capture card, the console and the display. frameGenerationHealth: 0 fine, 1 nothing to add at this "

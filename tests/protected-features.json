@@ -224,6 +224,21 @@
      "file": "tests/integration/PushPredictEngineTests.cpp",
      "ci": "veyra_push_predict_engine_tests",
      "contains": "recordings are handed the real frame before each real frame shown"
+    },
+    {
+     "file": "tests/unit/PushResponseTests.cpp",
+     "ci": "veyra_push_response_tests",
+     "contains": "switched off, nothing is kept"
+    },
+    {
+     "file": "tests/unit/PushResponseTests.cpp",
+     "ci": "veyra_push_response_tests",
+     "contains": "a picture that moves on its own is not said to follow the stick"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_flow2.qml",
+     "ci": "tst_push_flow2",
+     "contains": "test_response_only_measures_and_says_what_it_found"
     }
    ],
    "needs_hardware": "Speed on any real card; picture quality on real games."

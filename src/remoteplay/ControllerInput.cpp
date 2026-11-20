@@ -1,3 +1,4 @@
+#include "veyra/engine/PushResponse.h"
 #include "veyra/remoteplay/ControllerInput.h"
 #include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_events.h>
@@ -131,6 +132,9 @@ ControllerState ControllerInput::poll(bool focused){
     for(auto b:buttons)if(SDL_GetGamepadButton(gamepad_,b.input))state.buttons|=b.output;
     state.leftX=SDL_GetGamepadAxis(gamepad_,SDL_GAMEPAD_AXIS_LEFTX);state.leftY=SDL_GetGamepadAxis(gamepad_,SDL_GAMEPAD_AXIS_LEFTY);
     state.rightX=SDL_GetGamepadAxis(gamepad_,SDL_GAMEPAD_AXIS_RIGHTX);state.rightY=SDL_GetGamepadAxis(gamepad_,SDL_GAMEPAD_AXIS_RIGHTY);
+    // PushFlow 2's Response, first step (engine/PushResponse.h): the right stick as it is about to be sent,
+    // looked at and nothing more. Kept in memory only while that part is switched on; nothing here is changed.
+    veyra::engine::response::observer().stick(veyra::engine::response::hostNow100ns(),float(state.rightX)/32767.0f,float(state.rightY)/32767.0f);
     state.l2=uint8_t(std::max(0,int(SDL_GetGamepadAxis(gamepad_,SDL_GAMEPAD_AXIS_LEFT_TRIGGER)))*255/32767);
     state.r2=uint8_t(std::max(0,int(SDL_GetGamepadAxis(gamepad_,SDL_GAMEPAD_AXIS_RIGHT_TRIGGER)))*255/32767);
     if(!touchQueue_.empty()){state.touches=touchQueue_.front();touchQueue_.pop_front();}
