@@ -1391,6 +1391,71 @@ VPage {
                                   .arg(cam.presentedFps).arg(cam.consumerFps)
                         }
                     }
+                    // PushFPS local control (ui/PushControl.h): a button box (Stream Deck) or a script on this PC
+                    // starts and stops a recording, saves the replay, marks a moment, switches a scene. Off unless
+                    // switched on; this PC only; a token for every request, which is copied here and never shown.
+                    VH3 { text: qsTr("本机控制"); Layout.topMargin: 6 }
+                    VGroup {
+                        id: controlGroup
+                        objectName: "set-control-group"
+                        // (Not named "state": every item already has a property of that name.)
+                        property var info: veyra.pushControlState ? veyra.pushControlState() : ({})
+                        property bool copied: false
+                        function refresh() { controlGroup.info = veyra.pushControlState ? veyra.pushControlState() : ({}) }
+                        Connections {
+                            target: veyra
+                            ignoreUnknownSignals: true
+                            function onPushControlChanged() { controlGroup.refresh() }
+                        }
+                        VRow {
+                            objectName: "set-control-row"
+                            label: qsTr("允许按钮盒和脚本控制")
+                            help: qsTr("开启后，Stream Deck、脚本或直播软件可以开始和停止录制、保存即时回放、标记这一刻、截图、切换场景，并读取是否正在播放和录制。只在这台电脑上监听（127.0.0.1），每个请求都要带令牌；网页发来的请求一律拒绝。它不能读取文件、改设置，也接触不到串流密钥。用法见 docs/LOCAL-CONTROL.md。")
+                            hint: controlGroup.info.enabled !== true ? qsTr("已关闭：没有打开任何端口")
+                                : controlGroup.info.listening === true ? qsTr("正在监听 127.0.0.1:%1（仅本机）").arg(controlGroup.info.port)
+                                : qsTr("端口 %1 无法使用，可能被别的程序占用").arg(controlGroup.info.port)
+                            hintColor: controlGroup.info.enabled === true && controlGroup.info.listening !== true ? Theme.warn : Theme.t3
+                            VSwitch {
+                                objectName: "set-control"
+                                checked: controlGroup.info.enabled === true
+                                onToggled: checked => { veyra.pushSetControlEnabled(checked); controlGroup.copied = false; controlGroup.refresh() }
+                            }
+                        }
+                        VRow {
+                            objectName: "set-control-token-row"
+                            visible: controlGroup.info.enabled === true
+                            label: qsTr("令牌")
+                            hint: controlGroup.copied ? qsTr("已复制。把它当密码保管：有它就能控制录制")
+                                                      : qsTr("每个请求都要带上它。只能复制，不会显示在屏幕上")
+                            RowLayout {
+                                spacing: 8
+                                VButton {
+                                    objectName: "set-control-token-new"
+                                    ghost: true
+                                    text: qsTr("换一个")
+                                    tip: qsTr("生成新令牌；用旧令牌的设备会立刻失效")
+                                    onClicked: { veyra.pushNewControlToken(); controlGroup.copied = false }
+                                }
+                                VButton {
+                                    objectName: "set-control-token-copy"
+                                    text: qsTr("复制令牌")
+                                    onClicked: controlGroup.copied = veyra.pushCopyControlToken() === true
+                                }
+                            }
+                        }
+                        VRow {
+                            objectName: "set-control-port-row"
+                            visible: controlGroup.info.enabled === true
+                            label: qsTr("端口")
+                            hint: qsTr("默认 18766。被占用时换一个（1024 到 65535）")
+                            VSeg {
+                                objectName: "set-control-port"
+                                options: [{ id: "18766", label: "18766" }, { id: "28766", label: "28766" }, { id: "38766", label: "38766" }]
+                                current: String(controlGroup.info.port || 18766)
+                                onPicked: id => { veyra.setPreference("pushControlPort", Number(id)); controlGroup.refresh() }
+                            }
+                        }
+                    }
                 }
 
                 // --- 音频 ---

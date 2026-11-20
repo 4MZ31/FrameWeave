@@ -409,6 +409,7 @@ struct QmlPlayerBridge::Impl {
     QVariantMap virtualCameraState;
     uint64_t recordingSaved = 0;   // LiveRecorder's finished-file counter already announced
     engine::clipmarks::Book markerBook;   // PushFPS clip markers of the file being written (Recording.cpp)
+    QObject* controlServer = nullptr;     // PushFPS local control's socket (PushControl.cpp; a child of the bridge)
     int compareGeneration = 0;     // PushFPS comparison clip whose timer may stop the recording
     uint64_t hudPreviewRevision = 0; // PushFPS HUD detection: picture written for this run
     QString hudPreviewPath;

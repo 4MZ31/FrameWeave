@@ -298,6 +298,19 @@ QtObject {
     property int replaySaves: 0
     function saveReplay(source) { replaySaves++ }
     // PushFPS clip markers (tst_push_studio.qml, tst_push_watch.qml).
+    signal pushControlScene(int number)
+    signal pushControlChanged()
+    property var controlState: ({enabled: false, listening: false, port: 18766, hasToken: false, error: ""})
+    property int controlTokenCopies: 0
+    property int controlTokensMade: 0
+    function pushControlState() { return controlState }
+    function pushSetControlEnabled(on) {
+        controlState = Object.assign({}, controlState, {enabled: on, listening: on, hasToken: controlState.hasToken || on})
+        pushControlChanged()
+        return true
+    }
+    function pushCopyControlToken() { if (!controlState.hasToken) return false; controlTokenCopies++; return true }
+    function pushNewControlToken() { controlTokensMade++; return true }
     property int markersAdded: 0
     function pushAddMarker(source) {
         if (!recording) return false

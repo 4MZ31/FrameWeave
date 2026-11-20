@@ -97,6 +97,11 @@ VPage {
     onMicUsedChanged: if (current) studio.meters(true)
     Connections {
         target: veyra
+        // Local control (ui/PushControl.h) asks for a scene by its number, as Ctrl+1..9 does.
+        function onPushControlScene(number) {
+            const n = Math.round(Number(number))
+            if (n >= 1 && n <= studio.scenes.length) studio.activate(studio.scenes[n - 1].id)
+        }
         function onPreferencesChanged() {
             const id = veyra.recordingMicrophoneId
             if (studio.current && studio.micUsed && id !== studio.meterDevice) { studio.meterDevice = id; studio.meters(false); studio.meters(true) }

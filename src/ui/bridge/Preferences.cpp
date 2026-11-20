@@ -183,9 +183,11 @@ void QmlPlayerBridge::copyDiagnostics() {
 // --- shell preferences (P4-f / P4-c / P4-d) --------------------------------
 QVariantMap QmlPlayerBridge::preferences() const {
     // PushFPS: the encrypted stream keys stay in C++ (PushStream.cpp); QML only asks whether one exists.
-    if (!impl_->prefs.contains(QStringLiteral("streamKeys"))) return impl_->prefs;
+    // The same for local control's token (PushControl.cpp): it can be copied and replaced, never read here.
+    if (!impl_->prefs.contains(QStringLiteral("streamKeys")) && !impl_->prefs.contains(QStringLiteral("pushControlToken"))) return impl_->prefs;
     QVariantMap visible = impl_->prefs;
     visible.remove(QStringLiteral("streamKeys"));
+    visible.remove(QStringLiteral("pushControlToken"));
     return visible;
 }
 QString QmlPlayerBridge::gpuPriorityStatus() const {
@@ -316,6 +318,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"pushLatencyX", {0, 1000}}, {"pushLatencyY", {0, 1000}},
         // PushFPS: the size of the on-screen readout (PushLatencyBadge.qml): 0 standard, 1 large, 2 largest.
         {"pushLatencySize", {0, 2}},
+        // PushFPS local control: the loopback port it listens on.
+        {"pushControlPort", {1024, 65535}},
         {"canvasBackground", {0, 0xFFFFFF}}};
     static const QStringList flags{"canvasStretch", "recordHevc", "recordAdvanced", "recordAudio", "recordMic", "recordMicTrack", "replayEnabled", "subtitleEnabled", "subtitleBackground", "subtitleFit",
                                    "subtitleSecondLanguage", "audioForceStereo", "captureAudioMonitor", "holdCompare",
@@ -330,6 +334,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    "pushAmbientFill",
                                    // PushFPS: the picture resized to the window with the fine path (engine/PushPresentScaling.h).
                                    "pushSharpScaling",
+                                   // PushFPS local control (ui/PushControl.h): off unless switched on.
+                                   "pushControl",
                                    // PushFPS crop and resize: the switch, and whether recordings and streams follow.
                                    "pushCropOn", "pushCropOutputs",
                                    // PushFPS quick setup: the fine-tuning sliders of AI picture enhancement are unfolded.
@@ -587,6 +593,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
 }
 void QmlPlayerBridge::applyPreference(const QString& key) {
     if(key==QLatin1String("virtualCameraFps")&&virtualCameraEnabled())setVirtualCameraEnabled(true);
+    // PushFPS local control: listen, close, or move to another port (PushControl.cpp).
+    if(key==QLatin1String("pushControl")||key==QLatin1String("pushControlPort"))pushApplyControl();
     if(key==QLatin1String("captureAudioMonitor"))
         impl_->engine.setCaptureAudioMonitoring(impl_->prefBool("captureAudioMonitor",true));
     // The replay buffer re-arms with what a recording would use.

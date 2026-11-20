@@ -225,6 +225,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     applyPreference(QStringLiteral("nisSharpness"));
     applyPreference(QStringLiteral("pushAmbientFill"));
     applyPreference(QStringLiteral("pushSharpScaling"));
+    applyPreference(QStringLiteral("pushControl"));   // local control: listens only when it was switched on
     applyPreference(QStringLiteral("pushShapeShadows"));   // all six fine-tune values (Preferences.cpp)
     pushValidateHalfApproval();   // PushFlow half precision holds for one card, driver and version (PushFps.cpp)
     applyPreference(QStringLiteral("pushFlowHalf"));

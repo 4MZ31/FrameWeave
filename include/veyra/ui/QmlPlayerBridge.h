@@ -1537,6 +1537,13 @@ public:
     // Uploads a clip to the Discord webhook saved in pushDiscordWebhook; the result
     // arrives as pushShareFinished. Larger files than Discord takes are refused here.
     Q_INVOKABLE bool pushShareToDiscord(const QString& path);
+    // PushFPS local control (ui/PushControl.h, bridge/PushControl.cpp): a button box or a script on this PC
+    // starts and stops a recording, saves the replay, marks a moment, switches a scene. Off unless switched
+    // on; 127.0.0.1 only; every request needs the token, which the interface can copy and replace but never read.
+    Q_INVOKABLE QVariantMap pushControlState() const;   // { enabled, listening, port, hasToken, error }
+    Q_INVOKABLE bool pushSetControlEnabled(bool on);
+    Q_INVOKABLE bool pushCopyControlToken();
+    Q_INVOKABLE bool pushNewControlToken();
     Q_INVOKABLE QString pushImportTextFile(const QString& title);
     Q_INVOKABLE bool pushExportTextFile(const QString& title, const QString& suggestedName, const QString& text);
     // Apex Neural Rendering: install the package the user downloaded from Apex Compute
@@ -1675,6 +1682,8 @@ signals:
     void virtualCameraChanged();
     void replayChanged();
     void pushShareFinished(bool ok, const QString& message);
+    void pushControlChanged();            // local control was switched, its port or its token changed
+    void pushControlScene(int number);    // local control asks for scene 1..9 of Streaming mode (StudioPage.qml)
     void microphoneDevicesChanged();
     void colourLibraryChanged();
     // Emitted only when the underlying snapshot actually changed, so QML
@@ -1774,6 +1783,8 @@ private:
     // audio endpoint). Called after load and after every accepted change.
     void applyPreference(const QString& key);
     void applyPushMix();   // PushFPS mixer preferences -> engine::setPushMix (PushStudio.cpp)
+    void pushApplyControl();                             // local control: listen or close as the preferences say (PushControl.cpp)
+    QByteArray pushControlHandle(int action, int scene);  // one request that passed every check
     // Said once when a recording starts and will not hold what the user expects: a card scene is
     // the picture, or the mixer has the game muted (PushStudio.cpp).
     void pushRecordingNotices(bool sound, bool microphone, bool comparisonClip);

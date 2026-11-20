@@ -1202,6 +1202,9 @@ target_include_directories(veyra_push_present_scaling_tests PRIVATE ${CMAKE_CURR
 add_executable(veyra_push_clip_markers_tests tests/unit/PushClipMarkersTests.cpp)
 target_compile_features(veyra_push_clip_markers_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_clip_markers_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_executable(veyra_push_control_tests tests/unit/PushControlTests.cpp)
+target_compile_features(veyra_push_control_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_control_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_push_fg_health_tests tests/unit/PushFgHealthTests.cpp)
 target_compile_features(veyra_push_fg_health_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_fg_health_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -1552,6 +1555,7 @@ if(VEYRA_BUILD_QML_UI AND Qt6_FOUND)
     src/ui/bridge/PushFps.cpp
     src/ui/bridge/PushTools.cpp
     src/ui/bridge/PushStream.cpp
+    src/ui/bridge/PushControl.cpp
     src/ui/bridge/PushStudio.cpp
     src/ui/bridge/PushFrameInput.cpp
     src/ui/bridge/PushLatencyTest.cpp
