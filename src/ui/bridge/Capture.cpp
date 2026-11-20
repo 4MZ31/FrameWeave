@@ -32,6 +32,8 @@ QVariantList QmlPlayerBridge::captureDevices() const {
         const bool enabled=impl_->prefBool("blackmagicNativeCapture",false);
         if(native&&!enabled)continue;
         if(!native&&enabled&&source::isBlackmagicCaptureDevice(d.name,d.path))continue;
+        // PushFPS's own virtual camera is its output, never a source (source/PushCaptureDevicePick.h).
+        if(source::pushIsOwnCamera(d.name))continue;
         out << QVariantMap{{"id", utf8Of(d.path)}, {"label", captureDeviceUiLabel(d)}, {"embeddedAudio", d.hasEmbeddedAudio}};
     }
     return out;

@@ -44,6 +44,10 @@ int main() {
     CHECK(pushPickCaptureDevice({L"OBS Virtual Camera", L"PushFPS Virtual Camera"}) == -1);                    // programs' cameras only: nothing
     CHECK(pushPickCaptureDevice({L"Elgato Facecam", L"Elgato 4K X"}) == 1);
     CHECK(pushPickCaptureDevice({L"HD Webcam C920", L"Logitech BRIO"}) == 0);
+    // PushFPS's own virtual camera is not offered as a capture source; other programs' cameras stay listed.
+    CHECK(pushIsOwnCamera(L"PushFPS Virtual Camera"));
+    CHECK(!pushIsOwnCamera(L"OBS Virtual Camera") && !pushIsOwnCamera(L"Veyra Virtual Camera") && !pushIsOwnCamera(L"PushFPS Virtual Camera 2"));
+    CHECK(kind(L"PushFPS Virtual Camera") == K::Virtual);   // and never chosen by itself: the pick's own rule
     std::printf(failures ? "%d FAILED\n" : "ALL PASSED (0 failures)\n", failures);
     return failures ? 1 : 0;
 }

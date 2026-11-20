@@ -811,6 +811,23 @@
      "file": "tests/unit/PushCaptureDevicePickTests.cpp",
      "ci": "veyra_push_capture_device_pick_tests",
      "contains": "programs' cameras only: nothing"
+    },
+    {
+     "file": "tests/unit/PushCaptureDevicePickTests.cpp",
+     "ci": "veyra_push_capture_device_pick_tests",
+     "contains": "pushIsOwnCamera(L\"PushFPS Virtual Camera\")"
+    },
+    {
+     "file": "src/virtualcam/virtualcam-guid.h",
+     "contains": "VeyraCameraName[]=L\"PushFPS Virtual Camera\""
+    },
+    {
+     "file": "include/veyra/source/PushCaptureDevicePick.h",
+     "contains": "kPushOwnCameraName = L\"PushFPS Virtual Camera\""
+    },
+    {
+     "file": "src/ui/bridge/Capture.cpp",
+     "contains": "if(source::pushIsOwnCamera(d.name))continue;"
     }
    ],
    "needs_hardware": "A PC with a webcam and a capture card that was never used with PushFPS: the dialog's first choice. No capture card exists in CI."

@@ -74,6 +74,12 @@ inline PushDeviceKind pushDeviceKind(std::wstring_view name) {
     return camera ? PushDeviceKind::Camera : PushDeviceKind::Unknown;
 }
 
+// PushFPS's own virtual camera carries PushFPS's output: as a capture source it would feed the picture back into
+// itself, so the capture dialog does not list it. The name is the one the camera registers
+// (src/virtualcam/virtualcam-guid.h, VeyraCameraName: the protected-features check holds the two together).
+inline constexpr std::wstring_view kPushOwnCameraName = L"PushFPS Virtual Camera";
+inline bool pushIsOwnCamera(std::wstring_view name) { return name == kPushOwnCameraName; }
+
 // The device to start with when none was ever chosen: an index into `names`, or -1 when there is none to
 // choose (an empty list, or programs' cameras only).
 inline int pushPickCaptureDevice(const std::vector<std::wstring>& names) {
