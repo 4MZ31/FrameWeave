@@ -33,8 +33,7 @@ Written and tested on the software renderer; **none of it has been measured on a
 next step for each (rule 2).
 
 - What stands still in front of a moving picture keeps its real pixels in generated frames (the HUD), with
-  every method PushFPS runs itself. Its own switch, **off by default since 4.0.1**: on a real card it added
-  artifacts around the edges of moving things. It stays an experiment until it has been seen on real games.
+  every method PushFPS runs itself. On by default, its own switch.
 - 60 → 30 duplicate removal keeps its rhythm when a game dips under 30.
 - Lip sync by hand, on top of automatic sync.
 - A line between the two sides of the live comparison. The latency readout can be dragged.

@@ -1095,6 +1095,10 @@ target_include_directories(veyra_push_compare_name_tests PRIVATE ${CMAKE_CURRENT
 add_executable(veyra_push_display_cap_tests tests/unit/PushDisplayCapTests.cpp)
 target_compile_features(veyra_push_display_cap_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_display_cap_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: PS5 Remote Play's sound sync is told when the shown frame arrived (remoteplay/PresentedArrivals.h, pure; also builds with g++).
+add_executable(veyra_push_remote_sync_tests tests/unit/PushRemoteSyncTests.cpp)
+target_compile_features(veyra_push_remote_sync_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_remote_sync_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_push_fg_health_tests tests/unit/PushFgHealthTests.cpp)
 target_compile_features(veyra_push_fg_health_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_fg_health_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

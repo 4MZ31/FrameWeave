@@ -252,9 +252,17 @@ void RemotePlaySessionSource::publishDecoded(const AVFrame* frame,pipeline::Fram
     std::lock_guard lock(mutex_);
     item.packet.sequence=++publishedSequence_;
     ++rates_.decoded;
+    // PushFPS 4.1: when this frame arrived, for the sound sync to ask about once it is shown.
+    if(!packet.pts.isUnknown()&&packet.pts.den==10000000)presented_.note(packet.pts.num,packet.arrivalHost100ns);
     if(latest_){++skipped_;item.packet.flags|=latest_->packet.flags;
         item.packet.flags|=static_cast<pipeline::FrameFlags>(pipeline::FrameFlagBits::Drop);}
     latest_=std::move(item);
+}
+void RemotePlaySessionSource::videoPresented(double pts,int64_t host,bool sourceFrame){
+    if(!sourceFrame)return;
+    std::optional<int64_t> arrival;
+    {std::lock_guard lock(mutex_);arrival=presented_.find(static_cast<int64_t>(std::llround(pts*10000.0)));}
+    audio_.videoPresented(pts,host,arrival);
 }
 SourceReadStatus RemotePlaySessionSource::read(pipeline::FramePacket& packet,const AVFrame** frame) {
     if(frame)*frame=nullptr;

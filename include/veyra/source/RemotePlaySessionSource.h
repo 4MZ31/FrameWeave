@@ -2,6 +2,7 @@
 #include "RemotePlaySource.h"
 #include "veyra/sink/CaptureAudioSession.h"
 #include "veyra/remoteplay/ControllerQueue.h"
+#include "veyra/remoteplay/PresentedArrivals.h"
 #include <atomic>
 #include <condition_variable>
 #include <deque>
@@ -35,7 +36,10 @@ public:
     sink::CaptureAudioState audioState() const { return audio_.snapshot(); }
     void setAudioGain(float value) { audio_.setGain(value); }
     void setAudioSync(unsigned mode, int offset) { audio_.setSync(mode, offset); }
-    void videoPresented(double pts, int64_t host) { audio_.videoPresented(pts, host); }
+    // PushFPS 4.1: sourceFrame = a frame the console sent (not a generated one). The sound sync is told
+    // when that frame arrived, so a time line that runs late is not taken for picture delay
+    // (remoteplay/PresentedArrivals.h); a generated frame says nothing about either and is left out.
+    void videoPresented(double pts, int64_t host, bool sourceFrame = true);
     void videoReset(bool resetAudio=true) { audio_.videoReset(resetAudio); }
 private:
     friend struct RemotePlaySessionSourceTestAccess;
@@ -53,6 +57,7 @@ private:
     std::atomic<bool> alive_{false};
     bool initialized_=false, started_=false, failed_=false;
     std::optional<Frame> latest_;
+    remoteplay::PresentedArrivals presented_;   // under mutex_
     std::shared_ptr<AVFrame> view_;
     SourceInfo info_, publishedInfo_;
     remoteplay::SessionInbox::Snapshot snapshot_;
