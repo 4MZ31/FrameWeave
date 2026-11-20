@@ -1,4 +1,5 @@
 #include "veyra/engine/VideoPresenter.h"
+#include "veyra/engine/PushDisplayCap.h"
 #include "veyra/engine/PushCompareLine.h"
 #include "veyra/engine/PresentationGeometry.h"
 #include "veyra/engine/PushAmbient.h"
@@ -774,6 +775,17 @@ PresentationSettings VideoPresenter::configurePresentation(gfx::D3D12DeviceConte
     if(vrrSync_&&!wasVrrSync)vrrConfirmAt_=std::chrono::steady_clock::now()+std::chrono::seconds(3);
     if(vrrSync_){requested.display=DisplaySync::Vsync;effective.display=DisplaySync::Vsync;}
     const bool vsync=presentationVsync(requested),tearing=presentationTearing(requested);
+    // PushFPS 4.1 (PushDisplayCap.h): a fixed cap the screen cannot show, while every present waits
+    // for a refresh, is the screen's refresh rate. A 120 FPS target on a window moved to a 60 Hz
+    // screen made 120 frames for 60 refreshes; the generated ones ran late and were turned away,
+    // and the game's own 30 was what stayed. The cap that follows the display is already that rate.
+    if(!followDisplay&&requested.outputRate==OutputRateMode::Custom&&effective.outputRate==OutputRateMode::Custom){
+        const double fitted=pushCapForDisplay(requested.customFps,refreshHz_,vsync);
+        if(fitted!=requested.customFps){
+            veyra::log::info("push-cap",std::format("fixed cap {:.3f} FPS lowered to the screen's {:.3f} Hz (vertical sync: every present waits for a refresh)",requested.customFps,fitted));
+            requested.customFps=effective.customFps=fitted;
+        }
+    }
     providerOwnedPresentation_=xessActive();
     // The interface translates this line piece by piece at " · " and "；"
     // (UiLanguage), so every piece is its own catalog entry without separators.

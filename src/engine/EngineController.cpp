@@ -1445,7 +1445,9 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                 // Poll completed display/VRR queries before comparing policy.
                 // It must not make synchronous driver calls on the GPU owner.
                 const double refreshHz=presenter.displayRefreshHz();
-                const bool capRefreshChanged=requested.outputRate==OutputRateMode::FollowDisplay&&std::abs(refreshHz-pacingRefreshHz)>0.001;
+                // PushFPS 4.1: a fixed cap is fitted to the screen too (PushDisplayCap.h), so another
+                // screen's refresh rate applies it again, as it always did for the cap that follows the display.
+                const bool capRefreshChanged=(requested.outputRate==OutputRateMode::FollowDisplay||requested.outputRate==OutputRateMode::Custom)&&std::abs(refreshHz-pacingRefreshHz)>0.001;
                 // 可变刷新: the monitor's VRR availability is read again on events
                 // (another monitor, a display change, 重新检测, the VRR
                 // confirmation); a change re-applies.

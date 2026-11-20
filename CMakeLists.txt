@@ -1087,6 +1087,14 @@ target_include_directories(veyra_push_capture_audio_suggest_tests PRIVATE ${CMAK
 add_executable(veyra_push_record_quality_tests tests/unit/PushRecordQualityTests.cpp)
 target_compile_features(veyra_push_record_quality_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_record_quality_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: what the original's side of a comparison clip is called (engine/PushCompareName.h, pure; also builds with g++).
+add_executable(veyra_push_compare_name_tests tests/unit/PushCompareNameTests.cpp)
+target_compile_features(veyra_push_compare_name_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_compare_name_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: a fixed output cap fitted to the screen the window is on (engine/PushDisplayCap.h, pure; also builds with g++).
+add_executable(veyra_push_display_cap_tests tests/unit/PushDisplayCapTests.cpp)
+target_compile_features(veyra_push_display_cap_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_display_cap_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_push_fg_health_tests tests/unit/PushFgHealthTests.cpp)
 target_compile_features(veyra_push_fg_health_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_fg_health_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

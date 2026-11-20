@@ -1565,6 +1565,8 @@ public:
     // half is the console's real frames. layout: 0 split picture, 1 both pictures side by
     // side, 2 vertical 9:16.
     Q_INVOKABLE bool pushStartCompareClip(int seconds, int layout = 0);
+    // What the original's side of a comparison clip is called: "Original", "Console", or the console's name.
+    Q_INVOKABLE QString pushCompareSourceName() const;
     // PushFlow half precision: PushFlowBench --fp16-probe in its own process; the result goes to the
     // preference pushFlowHalfProbe and, when half precision matches and is faster, pushFlowHalf.
     Q_INVOKABLE bool pushTestPushFlowHalf();

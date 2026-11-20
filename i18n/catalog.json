@@ -2211,6 +2211,23 @@
    "ru": "ИИ-улучшение изображения"
   },
   {
+   "zh": "AI 画面增强在多大的画面上计算。标准是 1080p：画面是 4K 时，增强的改动按四分之一的像素算出来，再加到 4K 画面上，细节会软一些。选「完整大小」就在每个像素上计算，更清晰，4K 时工作量约为四倍，需要较强的显卡。补帧开始跳帧时请改回 1080p。",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "AI 畫面增強在多大的畫面上計算。標準是 1080p：畫面是 4K 時，增強的改動按四分之一的像素算出來，再加到 4K 畫面上，細節會軟一些。選「完整大小」就在每個像素上計算，更清晰，4K 時工作量約為四倍，需要較強的顯示卡。補幀開始跳幀時請改回 1080p。",
+   "en": "The size AI picture enhancement works at. Standard is 1080p: with a 4K picture the enhancement is worked out on a quarter of the pixels and then added to the 4K picture, so fine detail is a little softer. \"Full size\" works on every pixel: sharper, about four times the work at 4K, and it needs a strong graphics card. If frame generation starts skipping frames, go back to 1080p.",
+   "ja": "AI 画質強化を計算する大きさです。標準は 1080p：映像が 4K のとき、強化の変化は 4 分の 1 の画素で計算してから 4K の映像に加えるため、細部が少し柔らかくなります。「フルサイズ」はすべての画素で計算します：より鮮明ですが、4K では処理量が約 4 倍になり、強力なグラフィックカードが必要です。フレーム生成がコマ落ちし始めたら 1080p に戻してください。",
+   "nl": "The size AI picture enhancement works at. Standard is 1080p: with a 4K picture the enhancement is worked out on a quarter of the pixels and then added to the 4K picture, so fine detail is a little softer. \"Full size\" works on every pixel: sharper, about four times the work at 4K, and it needs a strong graphics card. If frame generation starts skipping frames, go back to 1080p.",
+   "de": "The size AI picture enhancement works at. Standard is 1080p: with a 4K picture the enhancement is worked out on a quarter of the pixels and then added to the 4K picture, so fine detail is a little softer. \"Full size\" works on every pixel: sharper, about four times the work at 4K, and it needs a strong graphics card. If frame generation starts skipping frames, go back to 1080p.",
+   "es": "The size AI picture enhancement works at. Standard is 1080p: with a 4K picture the enhancement is worked out on a quarter of the pixels and then added to the 4K picture, so fine detail is a little softer. \"Full size\" works on every pixel: sharper, about four times the work at 4K, and it needs a strong graphics card. If frame generation starts skipping frames, go back to 1080p.",
+   "fr": "The size AI picture enhancement works at. Standard is 1080p: with a 4K picture the enhancement is worked out on a quarter of the pixels and then added to the 4K picture, so fine detail is a little softer. \"Full size\" works on every pixel: sharper, about four times the work at 4K, and it needs a strong graphics card. If frame generation starts skipping frames, go back to 1080p.",
+   "it": "The size AI picture enhancement works at. Standard is 1080p: with a 4K picture the enhancement is worked out on a quarter of the pixels and then added to the 4K picture, so fine detail is a little softer. \"Full size\" works on every pixel: sharper, about four times the work at 4K, and it needs a strong graphics card. If frame generation starts skipping frames, go back to 1080p.",
+   "pt-BR": "The size AI picture enhancement works at. Standard is 1080p: with a 4K picture the enhancement is worked out on a quarter of the pixels and then added to the 4K picture, so fine detail is a little softer. \"Full size\" works on every pixel: sharper, about four times the work at 4K, and it needs a strong graphics card. If frame generation starts skipping frames, go back to 1080p.",
+   "tr": "The size AI picture enhancement works at. Standard is 1080p: with a 4K picture the enhancement is worked out on a quarter of the pixels and then added to the 4K picture, so fine detail is a little softer. \"Full size\" works on every pixel: sharper, about four times the work at 4K, and it needs a strong graphics card. If frame generation starts skipping frames, go back to 1080p.",
+   "ar": "The size AI picture enhancement works at. Standard is 1080p: with a 4K picture the enhancement is worked out on a quarter of the pixels and then added to the 4K picture, so fine detail is a little softer. \"Full size\" works on every pixel: sharper, about four times the work at 4K, and it needs a strong graphics card. If frame generation starts skipping frames, go back to 1080p.",
+   "pl": "The size AI picture enhancement works at. Standard is 1080p: with a 4K picture the enhancement is worked out on a quarter of the pixels and then added to the 4K picture, so fine detail is a little softer. \"Full size\" works on every pixel: sharper, about four times the work at 4K, and it needs a strong graphics card. If frame generation starts skipping frames, go back to 1080p.",
+   "ru": "The size AI picture enhancement works at. Standard is 1080p: with a 4K picture the enhancement is worked out on a quarter of the pixels and then added to the 4K picture, so fine detail is a little softer. \"Full size\" works on every pixel: sharper, about four times the work at 4K, and it needs a strong graphics card. If frame generation starts skipping frames, go back to 1080p."
+  },
+  {
    "zh": "AI 画面增强改动画面的力度。「强烈」是完整效果，也是一直以来的默认值；觉得画面不像原作、过于锐利或人脸不自然时，选「均衡」或「柔和」。也可以用下面两个滑块自己调",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "AI 畫面增強改動畫面的力度。「強烈」是完整效果，也是一直以來的預設值；覺得畫面不像原作、過於銳利或人臉不自然時，選「均衡」或「柔和」。也可以用下面兩個滑桿自己調",
@@ -10882,7 +10899,7 @@
   },
   {
    "zh": "主机原画",
-   "src": "src/ui/bridge/PushFps.cpp",
+   "src": "qml/PushCompareDialog.qml",
    "zh-TW": "主機原始畫面",
    "en": "Console",
    "ja": "ゲーム機の元映像",
@@ -10896,23 +10913,6 @@
    "ar": "جهاز الألعاب",
    "pl": "Konsola",
    "ru": "Консоль"
-  },
-  {
-   "zh": "主机原画 · %1 FPS",
-   "src": "qml/PushCompareDialog.qml",
-   "zh-TW": "主機原始畫面 · %1 FPS",
-   "en": "Console · %1 FPS",
-   "ja": "ゲーム機の元映像 · %1 FPS",
-   "nl": "Console · %1 FPS",
-   "de": "Konsole · %1 FPS",
-   "es": "Consola · %1 FPS",
-   "fr": "Console · %1 FPS",
-   "it": "Console · %1 FPS",
-   "pt-BR": "Console · %1 FPS",
-   "tr": "Konsol · %1 FPS",
-   "ar": "الجهاز · %1 FPS",
-   "pl": "Konsola · %1 FPS",
-   "ru": "Консоль · %1 FPS"
   },
   {
    "zh": "主机只输出 16:9 画面，带鱼屏两侧会空出来。这里选择怎么处理：留黑边、用画面本身的柔和延伸填满（氛围填充）、裁掉上下铺满，或者拉伸铺满。游戏本身不会显示更宽的视野。录像和直播不受影响",
@@ -15387,6 +15387,23 @@
    "ru": "Меньше очереди, ниже задержка ввода"
   },
   {
+   "zh": "减少排队等待屏幕的画面，降低输入延迟",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "減少排隊等待螢幕的畫面，降低輸入延遲",
+   "en": "Fewer frames waiting for the screen, less input delay",
+   "ja": "画面待ちのフレームを減らし、入力遅延を下げます",
+   "nl": "Fewer frames waiting for the screen, less input delay",
+   "de": "Fewer frames waiting for the screen, less input delay",
+   "es": "Fewer frames waiting for the screen, less input delay",
+   "fr": "Fewer frames waiting for the screen, less input delay",
+   "it": "Fewer frames waiting for the screen, less input delay",
+   "pt-BR": "Fewer frames waiting for the screen, less input delay",
+   "tr": "Fewer frames waiting for the screen, less input delay",
+   "ar": "Fewer frames waiting for the screen, less input delay",
+   "pl": "Fewer frames waiting for the screen, less input delay",
+   "ru": "Fewer frames waiting for the screen, less input delay"
+  },
+  {
    "zh": "减少暗部被进一步压黑，保留提亮细节",
    "src": "qml/NrLayerEditor.qml",
    "zh-TW": "減少暗部被進一步壓黑，保留提亮細節",
@@ -17580,23 +17597,6 @@
    "ru": "Сравнение оригинала и улучшенного"
   },
   {
-   "zh": "原画 · %1 FPS",
-   "src": "qml/PushCompareDialog.qml",
-   "zh-TW": "原畫 · %1 FPS",
-   "en": "Original · %1 FPS",
-   "ja": "オリジナル · %1 FPS",
-   "nl": "Original · %1 FPS",
-   "de": "Original · %1 FPS",
-   "es": "Original · %1 FPS",
-   "fr": "Original · %1 FPS",
-   "it": "Original · %1 FPS",
-   "pt-BR": "Original · %1 FPS",
-   "tr": "Original · %1 FPS",
-   "ar": "Original · %1 FPS",
-   "pl": "Original · %1 FPS",
-   "ru": "Original · %1 FPS"
-  },
-  {
    "zh": "原画保护 %1%",
    "src": "src/ui/bridge/Enhancement.cpp",
    "zh-TW": "原畫保護 %1%",
@@ -18717,6 +18717,23 @@
    "ar": "يمكن فتح الملفات المحلية فقط",
    "pl": "Można otwierać tylko pliki lokalne",
    "ru": "Открывать можно только локальные файлы"
+  },
+  {
+   "zh": "只让一帧画面排队等待屏幕，而不是三帧：从按下按键到画面反应更快。任何显卡都能用",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "只讓一幀畫面排隊等待螢幕，而不是三幀：從按下按鍵到畫面反應更快。任何顯示卡都能用",
+   "en": "Only one frame waits for the screen instead of three, so the picture reacts sooner to a button press. Works on every graphics card",
+   "ja": "画面を待つフレームを 3 枚ではなく 1 枚だけにします：ボタンを押してから映像が反応するまでが速くなります。どのグラフィックカードでも使えます",
+   "nl": "Only one frame waits for the screen instead of three, so the picture reacts sooner to a button press. Works on every graphics card",
+   "de": "Only one frame waits for the screen instead of three, so the picture reacts sooner to a button press. Works on every graphics card",
+   "es": "Only one frame waits for the screen instead of three, so the picture reacts sooner to a button press. Works on every graphics card",
+   "fr": "Only one frame waits for the screen instead of three, so the picture reacts sooner to a button press. Works on every graphics card",
+   "it": "Only one frame waits for the screen instead of three, so the picture reacts sooner to a button press. Works on every graphics card",
+   "pt-BR": "Only one frame waits for the screen instead of three, so the picture reacts sooner to a button press. Works on every graphics card",
+   "tr": "Only one frame waits for the screen instead of three, so the picture reacts sooner to a button press. Works on every graphics card",
+   "ar": "Only one frame waits for the screen instead of three, so the picture reacts sooner to a button press. Works on every graphics card",
+   "pl": "Only one frame waits for the screen instead of three, so the picture reacts sooner to a button press. Works on every graphics card",
+   "ru": "Only one frame waits for the screen instead of three, so the picture reacts sooner to a button press. Works on every graphics card"
   },
   {
    "zh": "只达到 %1 FPS",
@@ -20606,6 +20623,23 @@
    "ru": "Показывать задержку на экране"
   },
   {
+   "zh": "在画面的每个像素上计算：最清晰，最吃显卡",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "在畫面的每個像素上計算：最清晰，最吃顯示卡",
+   "en": "Works on every pixel of the picture: sharpest, heaviest on the graphics card",
+   "ja": "映像のすべての画素で計算：最も鮮明で、グラフィックカードへの負荷も最大",
+   "nl": "Works on every pixel of the picture: sharpest, heaviest on the graphics card",
+   "de": "Works on every pixel of the picture: sharpest, heaviest on the graphics card",
+   "es": "Works on every pixel of the picture: sharpest, heaviest on the graphics card",
+   "fr": "Works on every pixel of the picture: sharpest, heaviest on the graphics card",
+   "it": "Works on every pixel of the picture: sharpest, heaviest on the graphics card",
+   "pt-BR": "Works on every pixel of the picture: sharpest, heaviest on the graphics card",
+   "tr": "Works on every pixel of the picture: sharpest, heaviest on the graphics card",
+   "ar": "Works on every pixel of the picture: sharpest, heaviest on the graphics card",
+   "pl": "Works on every pixel of the picture: sharpest, heaviest on the graphics card",
+   "ru": "Works on every pixel of the picture: sharpest, heaviest on the graphics card"
+  },
+  {
    "zh": "在程序旁边放一个名为 portable.txt 的文件，设置和截图就会保存在那里，删除文件夹即可彻底移除",
    "src": "portable/app/qml/SettingsPage.qml",
    "zh-TW": "在程式旁邊放一個名為 portable.txt 的檔案，設定和截圖就會儲存在那裡，刪除資料夾即可徹底移除",
@@ -21267,6 +21301,23 @@
    "ar": "لا يمكن الاستنزاف في الوقت الذي يتعافى من فشل التعزيز",
    "pl": "Nie można drenaż podczas odzyskiwania po awarii wzmocnienia",
    "ru": "Не мог слиться при восстановлении после сбоя усиления"
+  },
+  {
+   "zh": "增强的处理大小",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "增強的處理大小",
+   "en": "Enhancement size",
+   "ja": "強化の処理サイズ",
+   "nl": "Enhancement size",
+   "de": "Enhancement size",
+   "es": "Enhancement size",
+   "fr": "Enhancement size",
+   "it": "Enhancement size",
+   "pt-BR": "Enhancement size",
+   "tr": "Enhancement size",
+   "ar": "Enhancement size",
+   "pl": "Enhancement size",
+   "ru": "Enhancement size"
   },
   {
    "zh": "增强管线初始化失败，请查看诊断",
@@ -23222,6 +23273,23 @@
    "ar": "نسخة كاملة من البيئات، توضع جانبا، غير متصلة",
    "pl": "Pełna kopia ustawień, umieszczona na bok, niepodłączona",
    "ru": "Полная копия настроек, размещенных в стороне, не подключенных"
+  },
+  {
+   "zh": "完整大小",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "完整大小",
+   "en": "Full size",
+   "ja": "フルサイズ",
+   "nl": "Full size",
+   "de": "Full size",
+   "es": "Full size",
+   "fr": "Full size",
+   "it": "Full size",
+   "pt-BR": "Full size",
+   "tr": "Full size",
+   "ar": "Full size",
+   "pl": "Full size",
+   "ru": "Full size"
   },
   {
    "zh": "完整效果（默认）",
@@ -26350,6 +26418,23 @@
    "ar": "اضبطه يدويًا في الوضع الاحترافي",
    "pl": "Ustaw ręcznie w trybie Profesjonalnym",
    "ru": "Настроить вручную в профессиональном режиме"
+  },
+  {
+   "zh": "已在专业模式里设为其他大小；在这里选一项就会改用它",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "已在專業模式裡設為其他大小；在這裡選一項就會改用它",
+   "en": "Set to another size in Professional mode; picking one here replaces it",
+   "ja": "プロモードで別のサイズに設定されています。ここで選ぶとそれに置き換わります",
+   "nl": "Set to another size in Professional mode; picking one here replaces it",
+   "de": "Set to another size in Professional mode; picking one here replaces it",
+   "es": "Set to another size in Professional mode; picking one here replaces it",
+   "fr": "Set to another size in Professional mode; picking one here replaces it",
+   "it": "Set to another size in Professional mode; picking one here replaces it",
+   "pt-BR": "Set to another size in Professional mode; picking one here replaces it",
+   "tr": "Set to another size in Professional mode; picking one here replaces it",
+   "ar": "Set to another size in Professional mode; picking one here replaces it",
+   "pl": "Set to another size in Professional mode; picking one here replaces it",
+   "ru": "Set to another size in Professional mode; picking one here replaces it"
   },
   {
    "zh": "已复制。可以贴到 GitHub 的反馈里，或发给帮你的人",
@@ -38815,7 +38900,7 @@
   },
   {
    "zh": "最大化",
-   "src": "qml/TopDock.qml",
+   "src": "qml/PushMaximizeButton.qml",
    "zh-TW": "最大化",
    "en": "Maximize",
    "ja": "最大化",
@@ -38965,6 +39050,40 @@
    "ar": "The frame rate of the slowest 1% of submit intervals in the last 10 s, computed the same way as overlays such as RTSS",
    "pl": "Wskaźnik ramki najwolniejszego 1% przedziałów w ostatnich 10 s, obliczony w ten sam sposób co nakłady, takie jak RTSS",
    "ru": "Частота кадров самого медленного 1% интервалов представления за последние 10 с, вычисляется так же, как и наложения, такие как RTSS"
+  },
+  {
+   "zh": "最高按 1080p 计算（默认）：最省显卡",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "最高按 1080p 計算（預設）：最省顯示卡",
+   "en": "Works at up to 1080p (default): lightest on the graphics card",
+   "ja": "最大 1080p で計算（既定）：グラフィックカードへの負荷が最小",
+   "nl": "Works at up to 1080p (default): lightest on the graphics card",
+   "de": "Works at up to 1080p (default): lightest on the graphics card",
+   "es": "Works at up to 1080p (default): lightest on the graphics card",
+   "fr": "Works at up to 1080p (default): lightest on the graphics card",
+   "it": "Works at up to 1080p (default): lightest on the graphics card",
+   "pt-BR": "Works at up to 1080p (default): lightest on the graphics card",
+   "tr": "Works at up to 1080p (default): lightest on the graphics card",
+   "ar": "Works at up to 1080p (default): lightest on the graphics card",
+   "pl": "Works at up to 1080p (default): lightest on the graphics card",
+   "ru": "Works at up to 1080p (default): lightest on the graphics card"
+  },
+  {
+   "zh": "最高按 1440p 计算：比标准清晰，比完整大小省",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "最高按 1440p 計算：比標準清晰，比完整大小省",
+   "en": "Works at up to 1440p: sharper than standard, lighter than full size",
+   "ja": "最大 1440p で計算：標準より鮮明で、フルサイズより軽い",
+   "nl": "Works at up to 1440p: sharper than standard, lighter than full size",
+   "de": "Works at up to 1440p: sharper than standard, lighter than full size",
+   "es": "Works at up to 1440p: sharper than standard, lighter than full size",
+   "fr": "Works at up to 1440p: sharper than standard, lighter than full size",
+   "it": "Works at up to 1440p: sharper than standard, lighter than full size",
+   "pt-BR": "Works at up to 1440p: sharper than standard, lighter than full size",
+   "tr": "Works at up to 1440p: sharper than standard, lighter than full size",
+   "ar": "Works at up to 1440p: sharper than standard, lighter than full size",
+   "pl": "Works at up to 1440p: sharper than standard, lighter than full size",
+   "ru": "Works at up to 1440p: sharper than standard, lighter than full size"
   },
   {
    "zh": "最高按 4K 录制，每一帧都录：需要较强的显卡。若有帧没录下，录完会提示，请选低一档",
@@ -48451,6 +48570,23 @@
    "ar": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet",
    "pl": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet",
    "ru": "Neighbouring real frames are %1 apart on average once lined up (of 255). Averaging two lined-up frames would take away about a third of that: an estimate of what Memory could improve; the picture itself is not changed yet"
+  },
+  {
+   "zh": "看到重影或拖影？试试 PushFlow：PushFPS 自己的补帧，任何显卡都能用。「为我的电脑优化」会在你的显卡上实测每一种方式",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "看到重影或拖影？試試 PushFlow：PushFPS 自己的補幀，任何顯示卡都能用。「為我的電腦最佳化」會在你的顯示卡上實測每一種方式",
+   "en": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card",
+   "ja": "ゴーストや残像が見えますか？PushFlow をお試しください：PushFPS 独自のフレーム生成で、どのグラフィックカードでも動きます。「この PC に最適化」はお使いのカードですべての方式を実測します",
+   "nl": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card",
+   "de": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card",
+   "es": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card",
+   "fr": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card",
+   "it": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card",
+   "pt-BR": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card",
+   "tr": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card",
+   "ar": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card",
+   "pl": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card",
+   "ru": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card"
   },
   {
    "zh": "着色器没能载入",
@@ -59011,7 +59147,7 @@
   },
   {
    "zh": "还原",
-   "src": "qml/TopDock.qml",
+   "src": "qml/PushMaximizeButton.qml",
    "zh-TW": "還原",
    "en": "Reset",
    "ja": "リセット",
@@ -59518,6 +59654,23 @@
    "ar": "هذا PC والمضيف ما زالا مقترنين؛ لا حاجة للزواج مرة أخرى.",
    "pl": "Ten PC i host są nadal sparowane; nie ma potrzeby, aby się ponownie.",
    "ru": "Это PC и хозяин все еще в паре; нет необходимости в паре снова."
+  },
+  {
+   "zh": "这块屏幕是 %2 Hz：现在按 %2 FPS 输出。换到更快的屏幕会回到 %1 FPS",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "這塊螢幕是 %2 Hz：現在按 %2 FPS 輸出。換到更快的螢幕會回到 %1 FPS",
+   "en": "This screen is %2 Hz: the output is %2 FPS here. On a faster screen it is %1 FPS again",
+   "ja": "この画面は %2 Hz です：ここでは %2 FPS で出力します。より速い画面では %1 FPS に戻ります",
+   "nl": "This screen is %2 Hz: the output is %2 FPS here. On a faster screen it is %1 FPS again",
+   "de": "This screen is %2 Hz: the output is %2 FPS here. On a faster screen it is %1 FPS again",
+   "es": "This screen is %2 Hz: the output is %2 FPS here. On a faster screen it is %1 FPS again",
+   "fr": "This screen is %2 Hz: the output is %2 FPS here. On a faster screen it is %1 FPS again",
+   "it": "This screen is %2 Hz: the output is %2 FPS here. On a faster screen it is %1 FPS again",
+   "pt-BR": "This screen is %2 Hz: the output is %2 FPS here. On a faster screen it is %1 FPS again",
+   "tr": "This screen is %2 Hz: the output is %2 FPS here. On a faster screen it is %1 FPS again",
+   "ar": "This screen is %2 Hz: the output is %2 FPS here. On a faster screen it is %1 FPS again",
+   "pl": "This screen is %2 Hz: the output is %2 FPS here. On a faster screen it is %1 FPS again",
+   "ru": "This screen is %2 Hz: the output is %2 FPS here. On a faster screen it is %1 FPS again"
   },
   {
    "zh": "这块显卡跑 4K 的 PushFlow 太慢：请改用其他补帧方式，或让主机输出 1080p",

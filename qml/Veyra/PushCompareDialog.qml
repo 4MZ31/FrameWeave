@@ -58,7 +58,15 @@ DialogLayer {
     // Video playback mode labels the left side "Original" instead of "Console" (as the recording does).
     readonly property bool videoSource: veyra.hasSource ? ["file", "url", "screen", "frameinput"].indexOf(String(veyra.sourceKind)) >= 0
                                                         : veyra.currentPage === "watch"
-    readonly property string leftTag: (cmp.videoSource ? qsTr("原画 · %1 FPS") : qsTr("主机原画 · %1 FPS")).arg(cmp.gameFps)
+    // The original's side is called what the clip will call it: the chosen console's name where that is
+    // known (the bridge's pushCompareSourceName, engine/PushCompareName.h), "Original" for a video.
+    readonly property string leftName: {
+        veyra.preferences.pushConsole; veyra.sourceKind; veyra.hasSource   // asked again when any of them changes
+        if (!veyra.hasSource && cmp.videoSource) return qsTr("原画")
+        return typeof veyra.pushCompareSourceName === "function" ? String(veyra.pushCompareSourceName())
+                                                                 : cmp.videoSource ? qsTr("原画") : qsTr("主机原画")
+    }
+    readonly property string leftTag: cmp.leftName + " · " + cmp.gameFps + " FPS"
     readonly property string rightTag: "PushFPS · " + cmp.shownFps + " FPS"
 
     // The preview drawn: portrait for the vertical layout, landscape for the others.

@@ -638,6 +638,18 @@ Item {
             verify(!quick.unevenTarget, "60 divides 240 Hz")
             veyra.displayRefreshHz = 144
             verify(quick.unevenTarget, "60 on 144 Hz without VRR is uneven")
+            // A target the screen cannot show (the window moved to a slower screen): the output is the
+            // screen's refresh rate, the row says so, and the target stays chosen.
+            const row = findChild(quick, "pushfps-smooth-row")
+            veyra.outputCustomFps = 120; veyra.displayRefreshHz = 60
+            verify(quick.screenLimitedTarget && !quick.unevenTarget, "120 on a 60 Hz screen is fitted, not uneven")
+            verify(row.hint.indexOf("60") >= 0 && row.hint.indexOf("120") >= 0, "the row says what is put out and what comes back")
+            verify(veyra.outputRateMode === 2 && veyra.outputCustomFps === 120, "the target stays as chosen: nothing is written")
+            veyra.displayRefreshHz = 144
+            verify(!quick.screenLimitedTarget, "back on a screen that can show it")
+            veyra.displayRefreshHz = 59.94; veyra.outputCustomFps = 60
+            verify(!quick.screenLimitedTarget, "60 on a 59.94 Hz screen fits")
+            veyra.outputCustomFps = 60
             veyra.displayRefreshHz = 240
             sw.toggled(false)
             compare(veyra.displaySync, 2)
@@ -841,6 +853,79 @@ Item {
             verify(!sw.enabled)
         }
 
+        // The size AI picture enhancement works at: 1080p (the standard), 1440p or the picture's full size,
+        // written to every enhancement layer as Professional mode's own setting.
+        function test_enhancement_size_is_a_choice() {
+            veyra.nrAnyEnabled = true
+            veyra.nrLayers = [{ index: 1, runtime: 2 }, { index: 3, runtime: 2 }]
+            const row = control("pushfps-enhance-size-row"), seg = control("pushfps-enhance-size")
+            verify(row.visible, "shown with the look, while the enhancement is on")
+            compare(quick.enhanceSize, 0); compare(seg.current, "0", "nothing set: the standard, 1080p")
+            const standard = row.hint
+            seg.picked("1")
+            compare(veyra.nrLayers[0].sizePolicy, 1); compare(veyra.nrLayers[1].sizePolicy, 1, "every layer")
+            compare(seg.current, "1"); verify(row.hint !== standard)
+            seg.picked("5")
+            compare(veyra.nrLayers[0].sizePolicy, 5)
+            seg.picked("0")
+            compare(veyra.nrLayers[0].sizePolicy, 0); compare(row.hint, standard)
+            // A size set in Professional mode that is none of the three is shown as such and left alone.
+            veyra.nrLayers = [{ index: 1, runtime: 2, sizePolicy: 3 }]
+            compare(seg.current, ""); verify(!quick.enhanceSizeKnown && row.hint !== standard)
+            verify(!quick.setEnhanceSize(3), "only the three sizes offered here are written from here")
+            compare(veyra.nrLayers[0].sizePolicy, 3)
+            // The AMD enhancement runtime works at 1080p at most: no row.
+            veyra.nrLayers = [{ index: 1, runtime: 4 }]
+            verify(!row.visible)
+            veyra.nrLayers = [{ index: 1 }]
+            veyra.nrAnyEnabled = false
+        }
+        // A card without NVIDIA's low latency has the low queue under the same switch, not a dead row.
+        function test_low_latency_switch_works_on_every_card() {
+            const had = veyra.nvidiaLowLatencyAvailable, mode = veyra.nvidiaLowLatency, queue = veyra.fgLowQueue
+            const sw = control("pushfps-low-latency"), row = control("pushfps-low-latency-row")
+            veyra.nvidiaLowLatencyAvailable = false; veyra.nvidiaLowLatency = 0; veyra.fgLowQueue = false
+            verify(sw.enabled && !sw.checked, "usable on a card that is not NVIDIA's")
+            const other = row.label
+            sw.toggled(true)
+            compare(veyra.fgLowQueue, true, "it is the low queue there")
+            compare(veyra.nvidiaLowLatency, 0, "and NVIDIA's setting is left alone")
+            verify(sw.checked)
+            sw.toggled(false)
+            compare(veyra.fgLowQueue, false)
+            veyra.nvidiaLowLatencyAvailable = true
+            verify(row.label !== other, "NVIDIA's own name on an NVIDIA card")
+            sw.toggled(true)
+            compare(veyra.nvidiaLowLatency, 1, "on NVIDIA it is NVIDIA low latency, as before")
+            compare(veyra.fgLowQueue, false)
+            veyra.nvidiaLowLatencyAvailable = had; veyra.nvidiaLowLatency = mode; veyra.fgLowQueue = queue
+        }
+
+        // The method is chosen on the home page too, wherever the card offers more than one; an AMD card
+        // on FSR is told about PushFlow, and nothing is switched for it.
+        function test_method_is_chosen_on_the_home_page_and_amd_is_told_about_pushflow() {
+            const choices = veyra.fgBackendChoices, name = veyra.fgBackendName, amd = veyra.amdNrGpu, text = veyra.fgProviderText
+            const row = control("pushfps-fg-backend-row"), pick = control("pushfps-fg-backend")
+            veyra.fgBackendChoices = [{ id: "fsr3", label: "FSR 3.1" }]
+            verify(!quick.compactPro && !row.visible, "one method: nothing to choose")
+            veyra.fgBackendChoices = [{ id: "pushflow", label: "PushFlow" }, { id: "fsr3", label: "FSR 3.1" }, { id: "vfg", label: "VFG", disabled: true }]
+            compare(quick.methodsOffered, 2, "a method this card cannot run is not counted")
+            verify(row.visible)
+            veyra.fgBackendName = "fsr3"; veyra.fgProviderText = "FSR"; veyra.amdNrGpu = false
+            compare(row.hint, "FSR", "another maker's card: what the method says of itself")
+            veyra.amdNrGpu = true
+            verify(quick.amdMethodTip && row.hint !== "FSR" && row.hint.indexOf("PushFlow") >= 0, "an AMD card on FSR is told about PushFlow")
+            compare(veyra.fgBackendName, "fsr3", "and nothing is switched for it")
+            pick.picked("pushflow")
+            compare(veyra.fgBackendName, "pushflow")
+            verify(!quick.amdMethodTip, "on PushFlow there is nothing more to say")
+            verify(control("pushfps-pushflow-tier-row").visible, "PushFlow's tier is chosen here too")
+            // Without PushFlow's files the tip has nothing to offer.
+            veyra.fgBackendName = "fsr3"
+            veyra.fgBackendChoices = [{ id: "pushflow", label: "PushFlow", disabled: true }, { id: "fsr3", label: "FSR 3.1" }, { id: "amdfrc", label: "AMD FRC" }]
+            verify(!quick.amdMethodTip)
+            veyra.fgBackendChoices = choices; veyra.fgBackendName = name; veyra.amdNrGpu = amd; veyra.fgProviderText = text
+        }
         function test_lip_sync_is_trimmed_by_hand_on_top_of_automatic() {
             const row = control("pushfps-lipsync-row"), earlier = control("pushfps-lipsync-earlier"), later = control("pushfps-lipsync-later")
             const value = control("pushfps-lipsync-value"), reset = control("pushfps-lipsync-reset")

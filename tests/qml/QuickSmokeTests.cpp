@@ -127,6 +127,7 @@ QtObject {
     property string fgBackendName: "dlss"
     property var fgBackendChoices: [{id: "dlss", label: "DLSS"}]
     property string fgProviderText: ""
+    property bool amdNrGpu: false
     property int vfgQuality: 1
     property bool srEnabled: false
     property string captureDeviceLabel: ""
@@ -209,6 +210,13 @@ QtObject {
     function pushCancelHudDetection() { hudCancels++; hudState = ({running: false, done: false, failed: false, taken: 0, target: 0, regions: [], preview: ""}) }
     function pushHudDetection() { return hudState }
     function pushStartCompareClip(seconds, layout) { compareStarts++; compareSeconds = seconds; compareLayout = layout === undefined ? 0 : layout; return true }
+    // What the bridge calls the original's side (engine/PushCompareName.h, tested there): here the rule in small.
+    function pushCompareSourceName() {
+        if (["file", "url", "screen", "frameinput"].indexOf(String(sourceKind)) >= 0) return "原画"
+        const names = { ps5: "PS5", ps5pro: "PS5 Pro", xbox: "Xbox Series X|S", "switch": "Switch", switch2: "Switch 2" }
+        const chosen = preferences.pushConsole === undefined ? "" : String(preferences.pushConsole)
+        return names[chosen] !== undefined ? names[chosen] : "主机原画"
+    }
     // PushFPS going live (src/ui/bridge/PushStream.cpp, tst_push_stream.qml).
     property var streamKeys: ({})
     property var streamState: ({active: false, live: false, outputs: []})

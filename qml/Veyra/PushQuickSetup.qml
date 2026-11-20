@@ -33,8 +33,17 @@ VGroup {
     }
     // A capped target that does not divide the refresh rate (60 on 144 Hz) without a variable refresh
     // display: frames stay on screen for uneven times however well they are made.
+    // A fixed target the screen cannot show (120 FPS on a 60 Hz screen) while every frame waits for a
+    // refresh: the engine then puts out the screen's refresh rate (PushDisplayCap.h, 4.1; before, a
+    // window moved to a slower screen fell back to the game's own frame rate). The target stays
+    // chosen, and it is the output again on a screen that can show it.
+    readonly property bool screenLimitedTarget: {
+        const hz = Number(veyra.displayRefreshHz || 0)
+        return veyra.outputRateMode === 2 && veyra.displaySync === 1 && hz >= 1 && Number(veyra.outputCustomFps) > hz * 1.02
+    }
     readonly property bool unevenTarget: {
         const hz = Number(veyra.displayRefreshHz || 0)
+        if (quick.screenLimitedTarget) return false
         if (veyra.outputRateMode !== 2 || hz < 1 || Number(veyra.vrrState || 0) >= 2) return false
         const ratio = hz / Math.max(1, Number(veyra.outputCustomFps))
         return Math.abs(ratio - Math.round(ratio)) > 0.05
@@ -288,6 +297,23 @@ VGroup {
         return false
     }
     function resetLook() { return quick.setLook(1, 1) }
+    // The size AI picture enhancement works at (the layer's sizePolicy: Professional mode's "internal
+    // processing resolution"). The standard is 1080p whatever the picture's size: on a 4K picture the
+    // enhancement's change is worked out at a quarter of the pixels and added to the 4K picture.
+    // "Full size" works it out on every pixel, which is sharper and about four times the work at 4K.
+    // Ids as the engine has them: 0 the standard (up to 1080p), 5 up to 1440p, 1 the picture's own size.
+    readonly property var enhanceSizes: [
+        { id: 0, label: "1080p" }, { id: 5, label: "1440p" }, { id: 1, label: qsTr("完整大小") }
+    ]
+    readonly property int enhanceSize: lookLayer && lookLayer.sizePolicy !== undefined && isFinite(Number(lookLayer.sizePolicy)) ? Number(lookLayer.sizePolicy) : 0
+    readonly property bool enhanceSizeKnown: quick.enhanceSizes.some(s => s.id === quick.enhanceSize)
+    function setEnhanceSize(id) {
+        if (!quick.nrPossible || !quick.enhanceSizes.some(s => s.id === Number(id))) return false
+        let ok = true
+        const layers = veyra.nrLayers.map(l => l.index)
+        for (const index of layers) ok = veyra.setNrLayerParameter(index, "sizePolicy", Number(id)) && ok
+        return ok && layers.length > 0
+    }
     // Split view while tuning: the picture without the enhancement on the left, with it on the right
     // (the comparison Professional mode has under Display). Frame generation pauses while it is on,
     // so a split this panel turned on never stays: it ends when the look controls go away, when this
@@ -876,13 +902,29 @@ VGroup {
         }
     }
 
-    // Streaming mode has no Professional page beside it: the frame generation method (PushFlow, DLSS, FSR,
-    // ...) and PushFlow's tier are chosen here too.
+    // The frame generation method (PushFlow, DLSS, FSR, ...) and PushFlow's tier. Streaming mode has no
+    // Professional page beside it, so they were chosen here there; since 4.1 the home page has them
+    // too, wherever the card offers more than one method: an AMD card starts on FSR, and until now the
+    // only ways from there to PushFlow or AMD FRC were Professional mode and the optimiser.
+    readonly property int methodsOffered: {
+        let n = 0
+        const list = veyra.fgBackendChoices || []
+        for (let i = 0; i < list.length; ++i) if (list[i] && list[i].disabled !== true) ++n
+        return n
+    }
+    readonly property bool methodShown: quick.compactPro || (quick.fgPossible && quick.methodsOffered > 1)
+    readonly property bool pushFlowOffered: (veyra.fgBackendChoices || []).some(o => o && o.id === "pushflow" && o.disabled !== true)
+    // An AMD card on FSR or AMD FRC: ghosting is what people report there, and PushFlow is the other
+    // method such a card has. Said as a thing to try, never switched for them (nobody has measured
+    // the two against each other on an AMD card).
+    readonly property bool amdMethodTip: veyra.amdNrGpu === true && quick.pushFlowOffered
+                                         && (veyra.fgBackendName === "fsr3" || veyra.fgBackendName === "fsr4" || veyra.fgBackendName === "amdfrc")
     VRow {
         objectName: "pushfps-fg-backend-row"
-        visible: quick.compactPro
+        visible: quick.methodShown
         label: qsTr("补帧方式")
-        hint: veyra.fgProviderText
+        hint: quick.amdMethodTip ? qsTr("看到重影或拖影？试试 PushFlow：PushFPS 自己的补帧，任何显卡都能用。「为我的电脑优化」会在你的显卡上实测每一种方式")
+                                 : veyra.fgProviderText
         hintBelow: true
         VSelect {
             objectName: "pushfps-fg-backend"
@@ -894,7 +936,7 @@ VGroup {
 
     VRow {
         objectName: "pushfps-pushflow-tier-row"
-        visible: quick.compactPro && veyra.fgBackendName === "pushflow"
+        visible: quick.methodShown && veyra.fgBackendName === "pushflow"
         label: qsTr("PushFlow 档位")
         // While it runs: the precision this graphics card passed with and the network's time per frame.
         hint: quick.liveStats.pushFlowP50Ms > 0
@@ -1031,6 +1073,23 @@ VGroup {
                 opacity: enabled ? 1 : 0.4
                 onClicked: quick.resetLook()
             }
+        }
+    }
+    // The size the enhancement works at (shown with the look; the AMD runtime stays at 1080p).
+    VRow {
+        objectName: "pushfps-enhance-size-row"
+        visible: quick.lookShown
+        label: qsTr("增强的处理大小")
+        help: qsTr("AI 画面增强在多大的画面上计算。标准是 1080p：画面是 4K 时，增强的改动按四分之一的像素算出来，再加到 4K 画面上，细节会软一些。选「完整大小」就在每个像素上计算，更清晰，4K 时工作量约为四倍，需要较强的显卡。补帧开始跳帧时请改回 1080p。")
+        hint: !quick.enhanceSizeKnown ? qsTr("已在专业模式里设为其他大小；在这里选一项就会改用它")
+            : quick.enhanceSize === 1 ? qsTr("在画面的每个像素上计算：最清晰，最吃显卡")
+            : quick.enhanceSize === 5 ? qsTr("最高按 1440p 计算：比标准清晰，比完整大小省")
+            : qsTr("最高按 1080p 计算（默认）：最省显卡")
+        VSeg {
+            objectName: "pushfps-enhance-size"
+            options: quick.enhanceSizes.map(s => ({ id: String(s.id), label: s.label }))
+            current: quick.enhanceSizeKnown ? String(quick.enhanceSize) : ""
+            onPicked: id => quick.setEnhanceSize(Number(id))
         }
     }
     VRow {
@@ -1341,7 +1400,9 @@ VGroup {
         visible: !quick.compact
         label: qsTr("流畅帧同步")
         help: qsTr("等屏幕刷新再显示每一帧，并把输出限制在屏幕刷新率：补出来的每一帧都完整显示，玩起来和录像一样流畅。屏幕支持 G-SYNC/FreeSync 时会请求可变刷新，几乎不增加延迟")
-        hint: quick.smoothPacing && quick.unevenTarget
+        hint: quick.screenLimitedTarget
+              ? qsTr("这块屏幕是 %2 Hz：现在按 %2 FPS 输出。换到更快的屏幕会回到 %1 FPS").arg(Math.round(veyra.outputCustomFps)).arg(Math.round(veyra.displayRefreshHz))
+              : quick.smoothPacing && quick.unevenTarget
               ? qsTr("%1 FPS 不能整除 %2 Hz：每帧显示时间不均匀。请选「匹配显示器」，或把屏幕设为 %1 的整数倍").arg(Math.round(veyra.outputCustomFps)).arg(Math.round(veyra.displayRefreshHz))
               : quick.smoothPacing ? qsTr("每一帧都完整显示；没有可变刷新时最多多等一次屏幕刷新")
                                    : qsTr("延迟最低，但补帧画面可能偶尔跳帧，直播画面比录像卡顿")
@@ -1397,18 +1458,25 @@ VGroup {
         }
     }
 
+    // Until 4.1 this row was NVIDIA's only: on an AMD or Intel card it stood there greyed out saying
+    // "needs an NVIDIA card", although the engine's own low queue (one frame waiting for the screen
+    // instead of three) works on every card and was only reachable through "Lowest latency" above or
+    // Professional mode. Now the row is that queue there. On NVIDIA nothing changes.
+    readonly property bool nvidiaLatency: veyra.nvidiaLowLatencyAvailable === true
     VRow {
         objectName: "pushfps-low-latency-row"
         visible: !quick.compact
-        label: qsTr("英伟达低延迟")
-        help: qsTr("减少在显卡里排队等待的画面，从按下按键到画面反应更快。只在 NVIDIA 显卡上可用")
-        hint: veyra.nvidiaLowLatencyAvailable === true ? qsTr("减少处理排队，降低输入延迟") : qsTr("需要 NVIDIA 显卡")
+        label: quick.nvidiaLatency ? qsTr("英伟达低延迟") : qsTr("低延迟队列")
+        help: quick.nvidiaLatency ? qsTr("减少在显卡里排队等待的画面，从按下按键到画面反应更快。只在 NVIDIA 显卡上可用")
+                                  : qsTr("只让一帧画面排队等待屏幕，而不是三帧：从按下按键到画面反应更快。任何显卡都能用")
+        hint: quick.nvidiaLatency ? qsTr("减少处理排队，降低输入延迟") : qsTr("减少排队等待屏幕的画面，降低输入延迟")
         VSwitch {
             objectName: "pushfps-low-latency"
-            enabled: veyra.nvidiaLowLatencyAvailable === true
-            opacity: enabled ? 1 : 0.4
-            checked: veyra.nvidiaLowLatencyAvailable === true && (veyra.nvidiaLowLatency ?? 0) > 0
-            onToggled: checked => veyra.nvidiaLowLatency = checked ? 1 : 0
+            checked: quick.nvidiaLatency ? (veyra.nvidiaLowLatency ?? 0) > 0 : veyra.fgLowQueue === true
+            onToggled: checked => {
+                if (quick.nvidiaLatency) veyra.nvidiaLowLatency = checked ? 1 : 0
+                else veyra.fgLowQueue = checked
+            }
         }
     }
 }

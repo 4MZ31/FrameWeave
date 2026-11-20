@@ -7,6 +7,7 @@
 #include "veyra/engine/PushHalfApproval.h"
 #include "../QmlPlayerBridge_p.h"
 #include "veyra/engine/PushArchivePaths.h"
+#include "veyra/engine/PushCompareName.h"
 #include "veyra/engine/PushBenchmarkProbe.h"
 #include "veyra/pushflow/PushFlow2.h"
 #include "veyra/engine/PushResponse.h"
@@ -529,6 +530,16 @@ veyra::engine::RecordingLabel labelOf(const QImage& painted) {
         std::memcpy(label.rgba.data() + size_t(y) * image.width() * 4, image.constScanLine(y), size_t(image.width()) * 4);
     return label;
 }
+}
+// What the original's side of a comparison clip is called: the video's "Original", a console by its
+// name where it is known, "Console" otherwise (engine/PushCompareName.h). The dialog's preview asks too.
+QString QmlPlayerBridge::pushCompareSourceName() const {
+    const std::string kind = sourceKind().toStdString();
+    const std::string console = impl_->prefs.contains(QStringLiteral("pushConsole")) ? impl_->prefs.value(QStringLiteral("pushConsole")).toString().toStdString() : std::string();
+    const auto name = engine::pushCompareSourceName(kind, console);
+    return name.side == engine::PushCompareSide::Original ? tr("原画") : name.side == engine::PushCompareSide::Console ? tr("主机原画") : QString::fromLatin1(name.name);
+}
+namespace {
 veyra::engine::RecordingLabel drawCompareBadge(bool pushFps, const QString& word, int fps, uint32_t pictureHeight) {
     const int text = std::max(14, int(pictureHeight / 30));             // 36 px at 1080p
     const int height = int(std::lround(text * 1.9)) & ~1;
@@ -653,10 +664,8 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     const int shownFps = std::max(gameFps, int(std::lround(shown)));
     // Video playback mode (a video file, a web video, a window or screen, the frame input API):
     // the left side is the video's own picture, not a console's.
-    const QString kind = sourceKind();
-    const bool video = kind == QLatin1String("file") || kind == QLatin1String("url") || kind == QLatin1String("screen")
-        || kind == QLatin1String("frameinput");
-    const QString leftName = video ? tr("原画") : tr("主机原画");
+    // PushFPS 4.1: a console is called by its name where that is known (engine/PushCompareName.h).
+    const QString leftName = pushCompareSourceName();
     const QString leftText = QStringLiteral("%1 · %2 FPS").arg(leftName).arg(gameFps);
     const QString rightText = QStringLiteral("%1 · %2 FPS").arg(QString::fromLatin1(brand::kProductName)).arg(shownFps);
     // Drawn here (UI thread) for the expected picture height; the recorder blends them in.

@@ -464,6 +464,8 @@ VPage {
                 maxTextWidth: 180
                 onClicked: presetMenu.openAt(this, "down")
             }
+            // PushFPS 4.1: the window as large as the screen, and back, in sight (PushMaximizeButton.qml).
+            PushMaximizeButton { objectName: "pro-maximize" }
         }
     }
 

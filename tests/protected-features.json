@@ -644,53 +644,132 @@
    "needs_hardware": "A capture card and ears for the lip sync; a screen for the line (screenshot 88 photographs it on the software renderer)."
   },
   {
-    "id": "F25",
-    "what": "A new capture card starts with its own sound input chosen where that is beyond doubt; a microphone is never chosen, and a card already set up keeps its setting",
-    "guards": [
-      {
-        "file": "tests/unit/PushCaptureAudioSuggestTests.cpp",
-        "ci": "veyra_push_capture_audio_suggest_tests",
-        "contains": "an input Windows calls a microphone or a headset is never chosen, even with the card's name"
-      },
-      {
-        "file": "tests/unit/PushCaptureAudioSuggestTests.cpp",
-        "ci": "veyra_push_capture_audio_suggest_tests",
-        "contains": "two inputs that both fit are a question for the user"
-      },
-      {
-        "file": "tests/qml/quick/tst_push_presets.qml",
-        "ci": "tst_push_presets",
-        "contains": "ezcap Game Link RAW"
-      }
-    ],
-    "needs_hardware": "A capture card that was never set up on the PC: the path through the capture dialog is not run by any test."
+   "id": "F25",
+   "what": "A new capture card starts with its own sound input chosen where that is beyond doubt; a microphone is never chosen, and a card already set up keeps its setting",
+   "guards": [
+    {
+     "file": "tests/unit/PushCaptureAudioSuggestTests.cpp",
+     "ci": "veyra_push_capture_audio_suggest_tests",
+     "contains": "an input Windows calls a microphone or a headset is never chosen, even with the card's name"
+    },
+    {
+     "file": "tests/unit/PushCaptureAudioSuggestTests.cpp",
+     "ci": "veyra_push_capture_audio_suggest_tests",
+     "contains": "two inputs that both fit are a question for the user"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_presets.qml",
+     "ci": "tst_push_presets",
+     "contains": "ezcap Game Link RAW"
+    }
+   ],
+   "needs_hardware": "A capture card that was never set up on the PC: the path through the capture dialog is not run by any test."
   },
   {
-    "id": "F26",
-    "what": "The record dialog: shape, fill or fit, size and picture quality before a normal recording starts; the shortcut never asks; the standard rate is what it always was",
-    "guards": [
-      {
-        "file": "tests/qml/quick/tst_push_record.qml",
-        "ci": "tst_push_record",
-        "contains": "test_what_settings_chose_is_shown_and_kept_until_something_is_picked"
-      },
-      {
-        "file": "tests/qml/quick/tst_push_record.qml",
-        "ci": "tst_push_record",
-        "contains": "test_a_tall_recording_fills_or_fits"
-      },
-      {
-        "file": "tests/unit/PushRecordQualityTests.cpp",
-        "ci": "veyra_push_record_quality_tests",
-        "contains": "at 100 % every size, rate and codec gives the number the recorder always gave"
-      },
-      {
-        "file": "tests/qml/quick/tst_push_watch.qml",
-        "ci": "tst_push_watch",
-        "contains": "With asking switched off the button records at once, as before 4.0"
-      }
-    ],
-    "needs_hardware": "A graphics card with an encoder: no recording is encoded in CI, so the file a choice gives is not looked at."
+   "id": "F26",
+   "what": "The record dialog: shape, fill or fit, size and picture quality before a normal recording starts; the shortcut never asks; the standard rate is what it always was",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_record.qml",
+     "ci": "tst_push_record",
+     "contains": "test_what_settings_chose_is_shown_and_kept_until_something_is_picked"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_record.qml",
+     "ci": "tst_push_record",
+     "contains": "test_a_tall_recording_fills_or_fits"
+    },
+    {
+     "file": "tests/unit/PushRecordQualityTests.cpp",
+     "ci": "veyra_push_record_quality_tests",
+     "contains": "at 100 % every size, rate and codec gives the number the recorder always gave"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_watch.qml",
+     "ci": "tst_push_watch",
+     "contains": "With asking switched off the button records at once, as before 4.0"
+    }
+   ],
+   "needs_hardware": "A graphics card with an encoder: no recording is encoded in CI, so the file a choice gives is not looked at."
+  },
+  {
+   "id": "F27",
+   "what": "A comparison clip names the console chosen in quick setup (PS5, PS5 Pro, Xbox Series X|S, Switch, Switch 2) instead of \"Console\"; a console never chosen is not named, and a video file stays \"Original\"",
+   "guards": [
+    {
+     "file": "tests/unit/PushCompareNameTests.cpp",
+     "ci": "veyra_push_compare_name_tests",
+     "contains": "pushCompareSourceName"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_compare.qml",
+     "ci": "tst_push_compare",
+     "contains": "test_preview_names_the_chosen_console"
+    }
+   ],
+   "needs_hardware": "A playing console picture and an encoder: the label is drawn into a real clip only there."
+  },
+  {
+   "id": "F28",
+   "what": "A maximize / restore button in the headers of Professional and Streaming mode",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_studio.qml",
+     "ci": "tst_push_studio",
+     "contains": "test_maximize_button_in_the_header"
+    }
+   ]
+  },
+  {
+   "id": "F29",
+   "what": "The size AI picture enhancement works at is a choice in quick setup (1080p as always, 1440p, the picture's full size), written to every enhancement layer",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_enhancement_size_is_a_choice"
+    }
+   ],
+   "needs_hardware": "A card that runs the enhancement: what full size costs and looks like at 4K is not measured."
+  },
+  {
+   "id": "F30",
+   "what": "Every card: the frame generation method is chosen on the home page wherever more than one is offered (an AMD card on FSR is told about PushFlow, nothing is switched for it), and the low latency switch is the low queue on a card without NVIDIA's",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_method_is_chosen_on_the_home_page_and_amd_is_told_about_pushflow"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_low_latency_switch_works_on_every_card"
+    }
+   ],
+   "needs_hardware": "An AMD card: which method ghosts less and what the low queue gains there is not measured."
+  },
+  {
+   "id": "F31",
+   "what": "A fixed output target the screen cannot show (120 FPS on a 60 Hz screen, vertical sync on) is put out at the screen's refresh rate, so a window moved to a slower screen keeps generating frames; the target comes back on a screen that can show it",
+   "guards": [
+    {
+     "file": "tests/unit/PushDisplayCapTests.cpp",
+     "ci": "veyra_push_display_cap_tests",
+     "contains": "a 30 FPS game then runs at 2X"
+    },
+    {
+     "file": "tests/unit/PushDisplayCapTests.cpp",
+     "ci": "veyra_push_display_cap_tests",
+     "contains": "no vertical sync: unchanged"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "120 on a 60 Hz screen is fitted, not uneven"
+    }
+   ],
+   "needs_hardware": "Two screens with different refresh rates: the move itself is not played in CI."
   }
  ]
 }

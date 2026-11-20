@@ -262,9 +262,27 @@ Item {
         }
         function test_preview_labels_name_both_rates() {
             veyra.fgMultiplier = 4
-            compare(cmp.leftTag, qsTr("主机原画 · %1 FPS").arg(30))
+            compare(cmp.leftTag, qsTr("主机原画") + " · 30 FPS")
             compare(cmp.rightTag, "PushFPS · 120 FPS")
             veyra.fgMultiplier = 1
+        }
+        // The original's side is called by the console chosen in quick setup, as the clip will call it;
+        // a console nobody chose stays "Console", and a video is the original.
+        function test_preview_names_the_chosen_console() {
+            const before = veyra.preferences
+            compare(cmp.leftName, qsTr("主机原画"), "nothing chosen: not named")
+            veyra.setPreference("pushConsole", "xbox")
+            compare(cmp.leftTag, "Xbox Series X|S · 30 FPS")
+            veyra.setPreference("pushConsole", "switch2")
+            compare(cmp.leftName, "Switch 2")
+            veyra.setPreference("pushConsole", "other")
+            compare(cmp.leftName, qsTr("主机原画"))
+            veyra.setPreference("pushConsole", "ps5pro")
+            veyra.sourceKind = "file"
+            compare(cmp.leftName, qsTr("原画"), "a video is the original whatever console is chosen")
+            veyra.sourceKind = ""
+            compare(cmp.leftName, "PS5 Pro")
+            veyra.preferences = before
         }
         function test_tile_opens_the_dialog_with_nothing_playing() {
             veyra.hasSource = false

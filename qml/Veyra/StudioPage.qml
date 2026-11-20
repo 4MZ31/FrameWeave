@@ -362,6 +362,8 @@ VPage {
                 color: Theme.t1; font.family: Theme.fontUi; font.pixelSize: 12
             }
         }
+        // PushFPS 4.1: the window as large as the screen, and back, in sight (PushMaximizeButton.qml).
+        PushMaximizeButton { objectName: "studio-maximize" }
     }
 
     // --- left: PushFPS features --------------------------------------------------------------

@@ -17,6 +17,14 @@ Item {
     StudioPage { id: studio; pageId: "live"; parent: fixture; width: fixture.width; height: fixture.height; visible: true; enabled: true }
     PushMicFiltersDialog { id: filters; dialogHost: host }
 
+    // A window as Main.qml is one, for the header's maximize button.
+    QtObject {
+        id: fakeShell
+        property bool maximized: false
+        property bool fullscreen: false
+        property int toggles: 0
+        function toggleMaximized() { toggles++; maximized = !maximized }
+    }
     property var navigated: []
     Connections { target: veyra; function onNavigate(p) { root.navigated.push(p) } }
 
@@ -105,6 +113,25 @@ Item {
             compare(studio.streamKbps, 6100)
             control(studio, "studio-go-live").clicked()
             verify(!studio.live)
+        }
+        // The header's maximize button (PushMaximizeButton): it does what the window's own does, says
+        // which way it goes, and is not there without a window that can be maximized.
+        function test_maximize_button_in_the_header() {
+            const b = control(studio, "studio-maximize")
+            verify(!b.usable && !b.visible, "the test's own window cannot be maximized this way: no button")
+            b.shell = fakeShell
+            verify(b.usable && b.visible && !b.maximized)
+            const maximize = b.tip
+            b.clicked()
+            compare(fakeShell.toggles, 1); verify(b.maximized)
+            verify(b.tip !== maximize, "it now says restore")
+            b.clicked()
+            compare(fakeShell.toggles, 2); verify(!b.maximized)
+            compare(b.tip, maximize)
+            // Full screen counts as large: the button then leads back, as the window's own does.
+            fakeShell.fullscreen = true
+            verify(b.maximized)
+            fakeShell.fullscreen = false
         }
         function test_record_replay_compare_screenshot() {
             // The choices first (dialog "record"), unless asking is switched off.

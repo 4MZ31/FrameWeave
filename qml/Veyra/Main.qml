@@ -843,11 +843,13 @@ Window {
     Shortcut { sequence: "Y"; onActivated: veyra.cycleSubtitle(true) }
 
     // Toasts: a refused edit, a finished export, a failed open.
+    // PushFPS 4.1: at the bottom of the window. It used to come up at the top, over the navigation
+    // dock, which is exactly where the mouse goes to change page (the owner's note, 20 November 2026).
     UpdateBanner {
         id: updateBanner
         z: 35
-        anchors.top: parent.top
-        anchors.topMargin: 12
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 16
         anchors.horizontalCenter: parent.horizontalCenter
         width: Math.min(500, root.width - 32)
         installable: veyra.updates.canInstall
