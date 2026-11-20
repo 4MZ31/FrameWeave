@@ -219,6 +219,11 @@
      "file": "tests/qml/quick/tst_push_flow2.qml",
      "ci": "tst_push_flow2",
      "contains": "test_dual_says_what_it_hands_on_and_what_it_needs"
+    },
+    {
+     "file": "tests/integration/PushPredictEngineTests.cpp",
+     "ci": "veyra_push_predict_engine_tests",
+     "contains": "recordings are handed the real frame before each real frame shown"
     }
    ],
    "needs_hardware": "Speed on any real card; picture quality on real games."

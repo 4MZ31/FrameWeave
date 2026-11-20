@@ -346,7 +346,10 @@ test keep taking what is shown.
 
 **What is checked**: through the real graph at 2X, for every pair the frame for recordings in place of
 the real frame is the real frame before it, and the one in place of the forecast is exactly the plain 2X
-run's in-between frame; at 3X and without Predict no batch carries one (`veyra_push_flow_graph_tests`).
+run's in-between frame; at 3X and without Predict no batch carries one (`veyra_push_flow_graph_tests`);
+through the whole engine with a live source, the two frames are handed to the presenter at the presents
+(30 real and 22 in-between frames for 34 real frames and 23 forecasts shown) and the screen is as with
+Predict alone (`veyra_push_predict_engine_tests`, software renderer).
 **What is not checked anywhere: a recording made with it.** No test here encodes a file from a playing
 source, so that the recorder takes the creator's frame is read from three lines of code, not measured.
 
