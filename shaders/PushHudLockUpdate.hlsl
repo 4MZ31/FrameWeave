@@ -9,7 +9,7 @@ Texture2D<float4> previousTex : register(t1);
 RWTexture2D<float4> stateTex : register(u0);
 cbuffer Constants : register(b0) {
     uint width, height, reset, outputMode; // 0 sRGB, 1 scRGB (linear), 2 PQ
-    uint pad0, pad1, pad2, pad3;
+    uint lockOn, pad1, pad2, pad3;         // lockOn 0: only the still rule runs, and only z is worked out
 };
 // A roughly perceptual value: sRGB and PQ are already encoded; scRGB is linear (1 = 80 nits).
 float3 perceptual(float3 v) { return outputMode == 1 ? sqrt(max(v, 0) / 2.5) : v; }
@@ -30,11 +30,15 @@ void main(uint3 id : SV_DispatchThreadID) {
     const float3 c = at(p);
     const float3 d = abs(c - perceptual(previousTex[id.xy].rgb));
     const float change = max(d.r, max(d.g, d.b));
+    const float same = change <= kPairStill ? 1.0 : 0.0;
+    // The still rule alone needs neither the neighbours nor what the state held: four reads of the
+    // frame and one of the state less for every pixel (the rule is on for everyone, the lock is a choice).
+    if (lockOn == 0) { stateTex[id.xy] = float4(0, 0, same, 0); return; }
     const float l = luma(c);
     const float contrast = max(max(abs(l - luma(at(p + int2(1, 0)))), abs(l - luma(at(p - int2(1, 0))))),
                                max(abs(l - luma(at(p + int2(0, 1)))), abs(l - luma(at(p - int2(0, 1))))));
     float2 s = stateTex[id.xy].xy;
     s.x = change < kStill ? s.x + (1 - s.x) * kRise : 0;
     s.y = change < kStill ? max(contrast, s.y * kFade) : contrast;
-    stateTex[id.xy] = float4(s, change <= kPairStill ? 1.0 : 0.0, 0);
+    stateTex[id.xy] = float4(s, same, 0);
 }

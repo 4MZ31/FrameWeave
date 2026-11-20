@@ -642,6 +642,28 @@
     }
    ],
    "needs_hardware": "A capture card and ears for the lip sync; a screen for the line (screenshot 88 photographs it on the software renderer)."
+  },
+  {
+    "id": "F25",
+    "what": "A new capture card starts with its own sound input chosen where that is beyond doubt; a microphone is never chosen, and a card already set up keeps its setting",
+    "guards": [
+      {
+        "file": "tests/unit/PushCaptureAudioSuggestTests.cpp",
+        "ci": "veyra_push_capture_audio_suggest_tests",
+        "contains": "an input Windows calls a microphone or a headset is never chosen, even with the card's name"
+      },
+      {
+        "file": "tests/unit/PushCaptureAudioSuggestTests.cpp",
+        "ci": "veyra_push_capture_audio_suggest_tests",
+        "contains": "two inputs that both fit are a question for the user"
+      },
+      {
+        "file": "tests/qml/quick/tst_push_presets.qml",
+        "ci": "tst_push_presets",
+        "contains": "ezcap Game Link RAW"
+      }
+    ],
+    "needs_hardware": "A capture card that was never set up on the PC: the path through the capture dialog is not run by any test."
   }
  ]
 }

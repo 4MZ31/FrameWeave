@@ -1039,21 +1039,28 @@ void testHudSampler(Gpu& gpu) {
 // pixels wide, a bar, a ring), and at the right a part of the picture that stands still with a ball
 // crossing it. A generated frame of plain grey comes back with exactly the pixels the rule names
 // replaced by the real frame's, and every other pixel untouched.
-void testHudStillAt(Gpu& gpu, const uint32_t W, const uint32_t H) {
+// inPlace: the rule's pixels written straight into the generated frame (what the graph's textures
+// allow, and so what runs in the program); otherwise through the scratch copy, as with Live HUD Lock on.
+// withLock: Live HUD Lock on beside it. In two real frames the lock has locked nothing yet (it needs
+// about a second of stillness), so the picture must be the rule's alone, through the lock's own path.
+void testHudStillAt(Gpu& gpu, const uint32_t W, const uint32_t H, const bool inPlace, const bool withLock = false) {
     constexpr DXGI_FORMAT F = DXGI_FORMAT_R8G8B8A8_UNORM;
-    std::printf("INFO still rule: a picture of %u x %u\n", W, H);
+    std::printf("INFO still rule: a picture of %u x %u, %s%s\n", W, H, inPlace ? "written in place" : "through the scratch copy", withLock ? ", with Live HUD Lock on" : "");
+    SetEnvironmentVariableA("VEYRA_HUD_STILL_COPY", inPlace ? nullptr : "1");
     auto* device = gpu.device.Get();
     Plane real[2]{{pipeline::makeTexture(device, W, H, F, true), F, W, H, 4}, {pipeline::makeTexture(device, W, H, F, true), F, W, H, 4}};
     Plane generated{pipeline::makeTexture(device, W, H, F, true), F, W, H, 4};
     check(real[0].texture && real[1].texture && generated.texture, "still rule: textures created");
     pipeline::PushHudLock pass;
-    check(pass.initialize(device, W, H, F, 0, false, true), "still rule: created without Live HUD Lock");
-    check(pass.stillActive() && !pass.lockActive(), "still rule: the still rule alone is active");
+    check(pass.initialize(device, W, H, F, 0, withLock, true), withLock ? "still rule: created together with Live HUD Lock" : "still rule: created without Live HUD Lock");
+    check(pass.stillActive() && pass.lockActive() == withLock, withLock ? "still rule: both are active" : "still rule: the still rule alone is active");
     pipeline::DescriptorStager stager;
     check(stager.initialize(device, 64), "still rule: staging heap");
     ID3D12Resource* reals[2] = {real[0].texture.Get(), real[1].texture.Get()};
     ID3D12Resource* gens[1] = {generated.texture.Get()};
     pass.createViews(device, stager, reals, gens, 1);
+    SetEnvironmentVariableA("VEYRA_HUD_STILL_COPY", nullptr);
+    check(pass.composesInPlace(0) == (inPlace && !withLock), inPlace && !withLock ? "still rule: the generated frame is written in place" : "still rule: the scratch copy is used");
     const auto hud = [](uint32_t x, uint32_t y) {
         if (x == 30 && y >= 20 && y < 60) return true;                          // one pixel wide
         if ((x == 44 || x == 45) && y >= 20 && y < 60) return true;             // two pixels wide
@@ -1153,10 +1160,14 @@ void testHudStillAt(Gpu& gpu, const uint32_t W, const uint32_t H) {
     check(!neither.initialize(device, W, H, F, 0, false, false), "still rule: a pass with nothing to do is not created");
 }
 void testHudStill(Gpu& gpu) {
-    testHudStillAt(gpu, 320, 192);
+    testHudStillAt(gpu, 320, 192, true);
     // A size that is no multiple of the rule's blocks: the last column and row of blocks are cut by the
     // picture's edge, and the shader counts their pixels as the rule in plain C++ does.
-    testHudStillAt(gpu, 333, 201);
+    testHudStillAt(gpu, 333, 201, true);
+    // The other way of writing the result gives the same picture.
+    testHudStillAt(gpu, 333, 201, false);
+    // With Live HUD Lock on beside it (never in place then), the rule's pixels are the same.
+    testHudStillAt(gpu, 320, 192, true, true);
 }
 
 void testHudLock(Gpu& gpu) {

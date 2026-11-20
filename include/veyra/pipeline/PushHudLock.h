@@ -41,6 +41,11 @@ public:
                     bool lock = true, bool still = false);
     bool lockActive() const { return lock_; }
     bool stillActive() const { return still_; }
+    // The still rule alone writes its pixels straight into the generated frame where that texture
+    // allows it (the graph's do): nothing is read from it, written whole or copied back. With the lock
+    // on, with a texture that cannot be written this way, or with VEYRA_HUD_STILL_COPY=1 (for
+    // comparison), the frame goes through the scratch copy as before 4.0.
+    bool composesInPlace(unsigned slot) const { return slot < generatedCount_ && inPlace_[slot]; }
     // real[0..1]: the graph's two real-frame textures by parity; generated: the
     // generated-frame textures, in the graph's slot order.
     void createViews(ID3D12Device* device, DescriptorStager& stager, ID3D12Resource* const real[2],
@@ -62,7 +67,8 @@ private:
     // the 5 x 5 blocks around it mostly stand still (what the compose step reads: 0 = mostly moves).
     ComPtr<ID3D12Resource> blocks_, share_;
     uint32_t blocksWide_ = 0, blocksHigh_ = 0;
-    bool lock_ = true, still_ = false;
+    bool lock_ = true, still_ = false, copyOnly_ = false;
+    bool inPlace_[kMaxGenerated]{};
     ID3D12Resource* real_[2]{};
     ID3D12Resource* generated_[kMaxGenerated]{};
 };

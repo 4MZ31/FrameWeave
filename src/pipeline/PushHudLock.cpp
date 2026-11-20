@@ -11,19 +11,28 @@ constexpr DXGI_FORMAT kStateFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
 constexpr DXGI_FORMAT kShareFormat = DXGI_FORMAT_R16_FLOAT;
 constexpr uint32_t kBlock = 16;   // hudstill::kBlock
 // Descriptor layouts. update: per parity { t0 current, t1 previous, u0 state }.
-// compose: per (slot, held parity) { t0 generated, t1 held real, t2 state, t3 share, u0 scratch }.
+// compose: per (slot, held parity) { t0 generated, t1 held real, t2 state, t3 share, u0 scratch },
+// and after all of those, for the still rule in place, per (slot, held parity)
+// { t0 held real (never read: the generated frame is the output there), t1 held real, t2 state, t3 share, u0 generated }.
 // surround: { t0 state, u0 blocks } then { t0 blocks, u0 share }.
 constexpr UINT kUpdateStride = 3, kComposeStride = 5, kSurroundStride = 2;
 }
 
 std::string PushHudLock::describe() const {
-    return std::format("HUD lock {}x{} mode={} generated={} lock={} still={}", width_, height_, outputMode_, generatedCount_, lock_, still_);
+    unsigned inPlace = 0;
+    for (unsigned i = 0; i < generatedCount_; ++i) inPlace += inPlace_[i] ? 1u : 0u;
+    return std::format("HUD lock {}x{} mode={} generated={} lock={} still={} inPlace={}", width_, height_, outputMode_, generatedCount_, lock_, still_, inPlace);
 }
 
 bool PushHudLock::initialize(ID3D12Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format, unsigned outputMode,
                              bool lock, bool still) {
     if (!device || !width || !height || format == DXGI_FORMAT_UNKNOWN || (!lock && !still)) return false;
     width_ = width; height_ = height; format_ = format; outputMode_ = outputMode; lock_ = lock; still_ = still;
+    {   // Read at every start, so a test can compare the two ways.
+        char value[8]{};
+        const DWORD length = GetEnvironmentVariableA("VEYRA_HUD_STILL_COPY", value, sizeof(value));
+        copyOnly_ = length > 0 && length < sizeof(value) && value[0] == '1';
+    }
     blocksWide_ = (width_ + kBlock - 1) / kBlock; blocksHigh_ = (height_ + kBlock - 1) / kBlock;
     state_ = makeTexture(device, width_, height_, kStateFormat, true);
     scratch_ = makeTexture(device, width_, height_, format_, true);
@@ -34,7 +43,7 @@ bool PushHudLock::initialize(ID3D12Device* device, uint32_t width, uint32_t heig
     std::vector<uint8_t> cs;
     if (!update_.loadShader("PushHudLockUpdate.dxil", cs) || !update_.create(device, cs, 2 * kUpdateStride, 2, 1, kConstants)) return false;
     if (!compose_.loadShader("PushHudLockCompose.dxil", cs) ||
-        !compose_.create(device, cs, kMaxGenerated * 2 * kComposeStride, 4, 1, kConstants)) return false;
+        !compose_.create(device, cs, 2 * kMaxGenerated * 2 * kComposeStride, 4, 1, kConstants)) return false;
     if (still_ && (!surround_.loadShader("PushHudStill.dxil", cs) || !surround_.create(device, cs, 2 * kSurroundStride, 1, 1, kConstants))) {
         veyra::log::warn("hud-lock", "the still rule could not be set up; it is left out");
         still_ = false;
@@ -64,6 +73,23 @@ void PushHudLock::createViews(ID3D12Device* device, DescriptorStager& stager, ID
             stager.stageSrv(share_.Get(), nullptr, compose_.heap.Get(), base + 3);
             makeUav(device, scratch_.Get(), format_, cpuHandleOf(compose_, base + 4));
         }
+    // The still rule alone, in place: the generated frame is the output, where its texture can be one.
+    for (unsigned slot = 0; slot < kMaxGenerated; ++slot) inPlace_[slot] = false;
+    if (still_ && !lock_ && !copyOnly_)
+        for (unsigned slot = 0; slot < generatedCount_; ++slot) {
+            if (!generated_[slot]) continue;
+            const auto desc = generated_[slot]->GetDesc();
+            if (!(desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS) || desc.Format != format_) continue;
+            for (unsigned held = 0; held < 2; ++held) {
+                const UINT base = (kMaxGenerated * 2 + slot * 2 + held) * kComposeStride;
+                stager.stageSrv(real_[held], nullptr, compose_.heap.Get(), base);
+                stager.stageSrv(real_[held], nullptr, compose_.heap.Get(), base + 1);
+                stager.stageSrv(state_.Get(), nullptr, compose_.heap.Get(), base + 2);
+                stager.stageSrv(share_.Get(), nullptr, compose_.heap.Get(), base + 3);
+                makeUav(device, generated_[slot], format_, cpuHandleOf(compose_, base + 4));
+            }
+            inPlace_[slot] = true;
+        }
     if (still_) {
         stager.stageSrv(state_.Get(), nullptr, surround_.heap.Get(), 0);
         makeUav(device, blocks_.Get(), kShareFormat, cpuHandleOf(surround_, 1));
@@ -77,6 +103,7 @@ bool PushHudLock::update(ID3D12GraphicsCommandList* list, StateTracker& tracker,
     float c[kConstants]{};
     c[0] = std::bit_cast<float>(width_); c[1] = std::bit_cast<float>(height_);
     c[2] = std::bit_cast<float>(uint32_t(reset ? 1 : 0)); c[3] = std::bit_cast<float>(uint32_t(outputMode_));
+    c[4] = std::bit_cast<float>(uint32_t(lock_ ? 1 : 0));
     tracker.transition(list, real_[parity], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
     tracker.transition(list, real_[1 - parity], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
     tracker.transition(list, state_.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -116,6 +143,23 @@ bool PushHudLock::compose(ID3D12GraphicsCommandList* list, StateTracker& tracker
     float c[kConstants]{};
     c[0] = std::bit_cast<float>(width_); c[1] = std::bit_cast<float>(height_);
     c[2] = std::bit_cast<float>(uint32_t(outputMode_));
+    if (inPlace_[slot]) {
+        // The still rule alone: its pixels go straight into the generated frame; nothing else is touched.
+        c[3] = std::bit_cast<float>(uint32_t(2u | 4u));
+        tracker.transition(list, real_[heldParity], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        tracker.transition(list, state_.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        tracker.transition(list, share_.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        tracker.transition(list, generated, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        const UINT place = (kMaxGenerated * 2 + slot * 2 + heldParity) * kComposeStride;
+        compose_.bind(list, c, gpuHandleOf(compose_, place).ptr, gpuHandleOf(compose_, place + 4).ptr);
+        list->Dispatch((width_ + 15) / 16, (height_ + 15) / 16, 1);
+        tracker.uavBarrier(list, generated);
+        tracker.transition(list, generated, D3D12_RESOURCE_STATE_COMMON);
+        tracker.transition(list, share_.Get(), D3D12_RESOURCE_STATE_COMMON);
+        tracker.transition(list, state_.Get(), D3D12_RESOURCE_STATE_COMMON);
+        tracker.transition(list, real_[heldParity], D3D12_RESOURCE_STATE_COMMON);
+        return true;
+    }
     c[3] = std::bit_cast<float>(uint32_t((lock_ ? 1u : 0u) | (still_ ? 2u : 0u)));
     tracker.transition(list, generated, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
     tracker.transition(list, real_[heldParity], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);

@@ -12,7 +12,10 @@ Texture2D<float4> stateTex : register(t2);
 Texture2D<float4> shareTex : register(t3);
 RWTexture2D<float4> outputTex : register(u0);
 cbuffer Constants : register(b0) {
-    uint width, height, outputMode, flags;   // flags: 1 Live HUD Lock, 2 the still rule
+    // flags: 1 Live HUD Lock, 2 the still rule, 4 in place: outputTex is the generated frame itself,
+    // only the pixels the still rule keeps are written and generatedTex is never read (the still rule
+    // alone: one read of the state per pixel instead of a whole frame read, written and copied back).
+    uint width, height, outputMode, flags;
     uint pad1, pad2, pad3, pad4;
 };
 float stillOf(float2 s) { return smoothstep(0.80, 0.95, s.x); }
@@ -52,7 +55,9 @@ void main(uint3 id : SV_DispatchThreadID) {
             }
         keep = beside >= 3 && around >= 5;
     }
+    // A kept pixel is the real frame's, whole (its own alpha with its own colour).
+    if ((flags & 4) != 0) { if (keep) outputTex[id.xy] = heldTex[id.xy]; return; }
     const float4 g = generatedTex[id.xy];
-    if (keep) outputTex[id.xy] = float4(heldTex[id.xy].rgb, g.a);
+    if (keep) outputTex[id.xy] = heldTex[id.xy];
     else outputTex[id.xy] = w > 0 ? float4(lerp(g.rgb, heldTex[id.xy].rgb, w), g.a) : g;
 }
