@@ -159,15 +159,18 @@ and edits would conflict on every merge.
   macros, includes the new headers and is compiled with `g++ -std=c++20 -fsyntax-only -Iinclude`. Headers
   that need `d3d12.h` build locally against a stub folder with empty Windows headers.
 
-- After any QML change, `tests/qml/quick` runs in CI (`tst_push_*.qml` strictly, the Veyra suite as a
-  report) and the install test opens every main page and fails on `[ERROR] [qml]`. Two things a dialog's
+- After any QML change, `tests/qml/quick` runs in CI (`tst_push_*.qml` in their own step, then the whole suite: a failure in either
+  fails the build; the fixture all of them share is one QML object in `tests/qml/QuickSmokeTests.cpp`, and a
+  property declared twice there stops every test at start) and the install test opens every main page and fails on `[ERROR] [qml]`. Two things a dialog's
   test must wait for (`tryVerify(function() { … }, 3000)`), both met on 20 November 2026: a dialog fades
   in, so a row's `visible` is false for a moment after it opens; and a layout gives an item its new size
   at the next pass, not when the binding changes. A row's control is not the row's direct child: read the
   row by its id, never through `parent`. The `screenshots` workflow
   (`-f branch=<branch>`) photographs the real app and writes `qml-report.txt`; `-f only=<regex>` takes a subset
   (pushed to the `screenshots-preview` branch; the `screenshots` branch is left alone), and entries with `sender` play the Frame Input
-  test pattern, the only way here to see a playing picture (WARP).
+  test pattern, the only way here to see a playing picture (WARP). `-f run_id=<build-windows run>` takes that
+  run's package whatever its result (a run keeps its package once it was made), and `-f qml_from=<ref>` lays
+  that commit's `qml/` over it: the interface in four minutes, with the installed build's texts and C++.
 - `.github/workflows/build-windows.yml` is the build recipe (pinned, login-free dependencies). It builds
   `PushFPS.exe`, runs the GPU-free unit tests, checks the exe's Qt/FFmpeg imports against Veyra's runtime
   package, packages `packaging/make-release.ps1`, then installs with `packaging/Install-PushFPS.ps1` and
@@ -182,7 +185,12 @@ and edits would conflict on every merge.
   The workflow token may only create the tag when the built commit's workflow files match `main` at release
   time: don't push workflow changes while a release build runs. If the release step still fails (or saves a
   draft), publish the same files without rebuilding: dispatch `release-from-run.yml` with the run's ID
-  (`scripts/release/publish.sh` writes the notes for both). What's new goes in `packaging/release-notes/vX.Y.Z.md`. Builds without a tag are versioned `2.1.5-pushfps.<run>`. The PushFPS version is `VEYRA_DISPLAY_VERSION` (CI passes it); `project(VERSION)` stays Veyra's release (`VEYRA_UPSTREAM_VERSION`, shown in About as "Built on Veyra X"). Never let CMake realign the display version to the project version: that made 3.1.3/3.1.4 report 2.1.9.
+  (`scripts/release/publish.sh` writes the notes for both). **A build for the owner to test before a release**:
+  `release-from-run.yml -f run_id=<run> -f private_draft=true` (dispatched on the work branch) puts the run's
+  package into a draft: no tag, not published, unseen by the updater, and only people with write access can
+  open or download it. A run's own artifact is not private: on a public repository any signed-in GitHub user
+  can download it from the Actions page, so it is deleted once the draft exists
+  (`gh api -X DELETE repos/DosukaSOL/PushFPS/actions/artifacts/<id>`). This sandbox cannot download artifacts. What's new goes in `packaging/release-notes/vX.Y.Z.md`. Builds without a tag are versioned `2.1.5-pushfps.<run>`. The PushFPS version is `VEYRA_DISPLAY_VERSION` (CI passes it); `project(VERSION)` stays Veyra's release (`VEYRA_UPSTREAM_VERSION`, shown in About as "Built on Veyra X"). Never let CMake realign the display version to the project version: that made 3.1.3/3.1.4 report 2.1.9.
 - The upstream runtime package version is `UPSTREAM_TAG` in the workflow; its SHA-256 values are pinned into
   the installer at build time from Veyra's own `SHA256SUMS.txt`. Moving to a newer Veyra release means
   merging upstream and changing `UPSTREAM_TAG` together.

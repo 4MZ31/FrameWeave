@@ -1,6 +1,11 @@
 # Publishes a release from the files of an earlier build-windows run, without building again
 # (for example when the release step of that run failed). The files are the run's own artifacts,
 # so they are exactly what that run built and tested.
+#
+# With private_draft it publishes nothing: it puts the run's package into a DRAFT release. A draft has
+# no tag, is not a release, is not seen by the in-app updater or by the releases page of anyone but
+# people with write access to the repository, and its file can only be downloaded signed in as one of
+# them. That is how the owner gets a build to test before he calls a release.
 name: release-from-run
 
 on:
@@ -10,12 +15,17 @@ on:
         description: 'ID of the successful build-windows run whose files to publish'
         required: true
       release_tag:
-        description: 'Release tag (vX.Y.Z)'
-        required: true
+        description: 'Release tag (vX.Y.Z); leave empty for a private draft'
+        required: false
+        default: ''
       full_release:
         description: 'Publish as a full (latest) release (the default, as the owner asked)'
         type: boolean
         default: true
+      private_draft:
+        description: 'Private draft only: no tag, no release, no update signature; only people with write access can see or download it'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -23,6 +33,7 @@ permissions:
 
 jobs:
   release:
+    if: ${{ !inputs.private_draft }}
     runs-on: ubuntu-24.04
     env:
       GH_TOKEN: ${{ github.token }}
@@ -48,3 +59,51 @@ jobs:
           github-token: ${{ github.token }}
       - name: Create the release
         run: bash scripts/release/publish.sh
+
+  private:
+    if: ${{ inputs.private_draft }}
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RUN_ID: ${{ inputs.run_id }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: PushFPS-[0-9]*
+          merge-multiple: true
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+      - name: A draft only the owner can open
+        run: |
+          set -euo pipefail
+          ls -la dist
+          zip=$(ls dist/PushFPS-*.zip | grep -v -e streaming-source | head -1)
+          test -n "$zip"
+          name=$(basename "$zip" .zip)
+          # The build wrote the hash file on Windows (CRLF).
+          (cd dist && tr -d '\r' < "$(basename "$zip").sha256" | sha256sum -c -)
+          sha=$(sha256sum "$zip" | cut -d' ' -f1)
+          run=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq '"\(.head_branch) at \(.head_sha[0:8]), build-windows run \(.id), result \(.conclusion)"')
+          {
+            echo "Private test build. Not a release: no tag, not published, the in-app updater does not know it."
+            echo
+            echo "Built from $run."
+            echo
+            echo "Install: unpack the zip and double-click Install-PushFPS.cmd. It installs over the PushFPS you have and keeps your settings."
+            echo "Back to the public version: install the latest release again."
+            echo
+            echo "Leave this as a draft: do not press Publish."
+            echo
+            echo "SHA-256 of $name.zip: $sha"
+          } > notes.md
+          # An older private draft of the same run is replaced, never a published release.
+          old=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.draft and .name==\"Private test build $name\") | .id" | head -1)
+          if [ -n "$old" ]; then gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$old"; fi
+          # Marked a pre-release as well: should the draft ever be published by mistake, it is not "the latest release".
+          gh release create "private-test-$RUN_ID" --repo "$GITHUB_REPOSITORY" --draft --prerelease --target "$GITHUB_SHA" \
+            --title "Private test build $name" --notes-file notes.md "$zip"
+          gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.name==\"Private test build $name\") | \"draft=\(.draft) prerelease=\(.prerelease) tag=\(.tag_name) assets=\([.assets[].name] | join(\",\")) url=\(.html_url)\""
+          # Nothing may have been tagged or published by this job.
+          if git ls-remote --tags "https://github.com/$GITHUB_REPOSITORY" "private-test-$RUN_ID" | grep -q .; then echo "::error::a tag was created"; exit 1; fi
+
