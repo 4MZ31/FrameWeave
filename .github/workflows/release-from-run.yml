@@ -97,9 +97,11 @@ jobs:
             echo
             echo "SHA-256 of $name.zip: $sha"
           } > notes.md
-          # An older private draft of the same run is replaced, never a published release.
-          old=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.draft and .name==\"Private test build $name\") | .id" | head -1)
-          if [ -n "$old" ]; then gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$old"; fi
+          # One private draft at a time: older ones are removed, so the owner never picks up a stale build.
+          # Drafts only, and only those this job made (by their title): a published release is never touched.
+          for old in $(gh api "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | select(.draft and (.name // "" | startswith("Private test build "))) | .id'); do
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$old"
+          done
           # Marked a pre-release as well: should the draft ever be published by mistake, it is not "the latest release".
           gh release create "private-test-$RUN_ID" --repo "$GITHUB_REPOSITORY" --draft --prerelease --target "$GITHUB_SHA" \
             --title "Private test build $name" --notes-file notes.md "$zip"
