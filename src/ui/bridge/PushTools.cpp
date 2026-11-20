@@ -33,7 +33,7 @@ namespace crashnote = veyra::engine::crashnote;
 
 namespace {
 // Beside the log and the crash handler's own note (lastFailurePath).
-QString sessionNotePath() { return QFileInfo(lastFailurePath()).absolutePath() + QStringLiteral("/veyra-last-session.txt"); }
+QString sessionNotePath() { return QFileInfo(lastFailurePath()).absolutePath() + QStringLiteral("/pushfps-last-session.txt"); }
 }
 
 // --- crash notice ----------------------------------------------------------------
@@ -76,7 +76,7 @@ void QmlPlayerBridge::pushNoteSession() {
     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) file.write(note.toUtf8());
 }
 
-// markerText: veyra-last-failure.txt as the crash handler left it (read by the bridge at start).
+// markerText: pushfps-last-failure.txt as the crash handler left it (read by the bridge at start).
 void QmlPlayerBridge::pushLoadCrashReport(const QString& markerText) {
     impl_->pushCrashReport.clear();
     const auto marker = crashnote::parseMarker(markerText.toStdString());

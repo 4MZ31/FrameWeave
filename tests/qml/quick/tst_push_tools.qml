@@ -40,13 +40,13 @@ Item {
         // --- crash notice -----------------------------------------------------
         function test_crash_notice_shows_the_summary_and_copies_it() {
             const summary = "PushFPS crash summary\nVersion: 3.2.2\nCrashed in: onnxruntime.dll +0x11B640 (code 0xC0000005)\nPlaying: xbox 1920x1080\n"
-            veyra.crashReport = ({present: true, module: "onnxruntime.dll", dump: "veyra-crash-20261118-211405-1234.dmp", optimising: true, summary: summary})
+            veyra.crashReport = ({present: true, module: "onnxruntime.dll", dump: "pushfps-crash-20261118-211405-1234.dmp", optimising: true, summary: summary})
             host.dialog = "crash"
             verify(crash.shown && crash.present)
             compare(control(crash, "pushfps-crash-summary").text, summary)
             // The dialog fades in, and a row inside it only reads visible once the dialog does.
             tryVerify(function() { return control(crash, "pushfps-crash-file-row").visible })
-            verify(control(crash, "pushfps-crash-file-row").hint.indexOf("veyra-crash-20261118-211405-1234.dmp") >= 0, "the crash file is named")
+            verify(control(crash, "pushfps-crash-file-row").hint.indexOf("pushfps-crash-20261118-211405-1234.dmp") >= 0, "the crash file is named")
             compare(crash.actions.length, 3)
             crash.actionTriggered(labels(crash)[2])
             compare(veyra.lastCopiedText, summary, "the primary button copies the summary")

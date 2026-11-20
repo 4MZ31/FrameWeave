@@ -14,12 +14,12 @@ static bool has(const std::string& text, const char* part) { return text.find(pa
 int main() {
     // The note as 3.2.2 writes it.
     const Marker m = parseMarker("crash onnxruntime.dll\nRTSSHooks64.dll,gameoverlayrenderer64.dll\n"
-                                 "code=0xC0000005 offset=0x11B640 dump=veyra-crash-20261118-211405-1234.dmp time=2026-11-18 21:14\n");
+                                 "code=0xC0000005 offset=0x11B640 dump=pushfps-crash-20261118-211405-1234.dmp time=2026-11-18 21:14\n");
     check(m.present && m.crash, "a crash note is a crash");
     check(m.module == "onnxruntime.dll", "the module's file name");
     check(m.injected == "RTSSHooks64.dll, gameoverlayrenderer64.dll", "injected components listed");
     check(m.code == "0xC0000005" && m.offset == "0x11B640", "exception code and offset");
-    check(m.dump == "veyra-crash-20261118-211405-1234.dmp", "the crash file's name");
+    check(m.dump == "pushfps-crash-20261118-211405-1234.dmp", "the crash file's name");
     check(m.time == "2026-11-18 21:14", "when");
     // The note of 3.2.0 and earlier: two lines.
     const Marker old = parseMarker("crash nvngx_dlssg.dll\r\n\r\n");
@@ -65,7 +65,7 @@ int main() {
     check(has(text, "Playing: xbox 1920x1080\n") && has(text, "Frame generation: pushflow 3X fast\n"), "summary: what was playing");
     check(has(text, "AI picture enhancement: on\n") && has(text, "Upscaling: off\n"), "summary: enhancement and upscaling");
     check(has(text, "Optimise for my PC: was running, testing pushflow\n"), "summary: the optimiser's step");
-    check(has(text, "Injected: RTSSHooks64.dll, gameoverlayrenderer64.dll\n") && has(text, "Crash file: veyra-crash-20261118-211405-1234.dmp\n"), "summary: injected and crash file");
+    check(has(text, "Injected: RTSSHooks64.dll, gameoverlayrenderer64.dll\n") && has(text, "Crash file: pushfps-crash-20261118-211405-1234.dmp\n"), "summary: injected and crash file");
     // Hostile facts and a hostile note cannot put a path, a user name or an address into it.
     Facts bad;
     bad.version = "3.2.2 C:\\Users\\Jan Jansen"; bad.windows = "\\\\PC-JAN\\share"; bad.gpu = "GPU of C:\\Users\\Jan Jansen";

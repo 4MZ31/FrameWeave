@@ -196,11 +196,11 @@ jobs:
               Start-Sleep -Seconds 3
             }
             if ($s.crash) {
-              # veyra-last-failure.txt as apps/veyra-qml/main.cpp writes it (UTF-16), and the session note beside it.
+              # pushfps-last-failure.txt as apps/veyra-qml/main.cpp writes it (UTF-16), and the session note beside it.
               New-Item -ItemType Directory -Force D:\pf\logs | Out-Null
-              $note = "crash onnxruntime.dll`n`ncode=0xC0000005 offset=0x11B640 dump=veyra-crash-20261118-211405-1234.dmp time=2026-11-18 21:14`n"
-              [System.IO.File]::WriteAllBytes('D:\pf\logs\veyra-last-failure.txt', [System.Text.Encoding]::Unicode.GetBytes($note))
-              [System.IO.File]::WriteAllText('D:\pf\logs\veyra-last-session.txt', 'source=xbox size=1920x1080 fg=pushflow_3X_fast nr=1 sr=0 hdr=0')
+              $note = "crash onnxruntime.dll`n`ncode=0xC0000005 offset=0x11B640 dump=pushfps-crash-20261118-211405-1234.dmp time=2026-11-18 21:14`n"
+              [System.IO.File]::WriteAllBytes('D:\pf\logs\pushfps-last-failure.txt', [System.Text.Encoding]::Unicode.GetBytes($note))
+              [System.IO.File]::WriteAllText('D:\pf\logs\pushfps-last-session.txt', 'source=xbox size=1920x1080 fg=pushflow_3X_fast nr=1 sr=0 hdr=0')
             }
             $p = Start-Process D:\pf\PushFPS.exe -ArgumentList $a -PassThru
             Start-Sleep -Seconds $(if ($s.sender) { 20 } else { 14 })
@@ -210,7 +210,7 @@ jobs:
               Write-Host "::warning::$($s.name): no window"
               # Why: whether the program is gone, the failure note its crash handler leaves, and what its log last said.
               Write-Host "exited=$($p.HasExited) code=$(if ($p.HasExited) { '0x{0:X8}' -f $p.ExitCode } else { 'still running' })"
-              if (Test-Path D:\pf\logs\veyra-last-failure.txt) { Get-Content D:\pf\logs\veyra-last-failure.txt -Encoding Unicode | Out-Host }
+              if (Test-Path D:\pf\logs\pushfps-last-failure.txt) { Get-Content D:\pf\logs\pushfps-last-failure.txt -Encoding Unicode | Out-Host }
               Get-ChildItem D:\pf\logs -Filter *.log -ErrorAction SilentlyContinue | Sort-Object LastWriteTime | Select-Object -Last 1 | Get-Content -Tail 45 | Out-Host
               if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }
               if ($sender -and -not $sender.HasExited) { Stop-Process -Id $sender.Id -Force }

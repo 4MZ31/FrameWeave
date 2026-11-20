@@ -5,7 +5,7 @@
 // PushFPS crash notice: what PushFPS tells the user at the next start after it stopped unexpectedly,
 // and the summary they can copy to whoever helps them.
 //
-// The crash handler (apps/veyra-qml/main.cpp) leaves veyra-last-failure.txt beside the log:
+// The crash handler (apps/veyra-qml/main.cpp) leaves pushfps-last-failure.txt beside the log:
 //   line 1  "crash <module file name>"        (or "device" for a lost graphics device)
 //   line 2  known-risky injected components, comma separated
 //   line 3  "code=0x... offset=0x... dump=<file name> time=<YYYY-MM-DD HH:MM>"   (since 3.2.2)
@@ -14,7 +14,7 @@
 // above, from facts about the PC that carry no personal data (PushFPS version, Windows build,
 // graphics card) and from the session note below.
 //
-// The session note is one line the bridge rewrites while PushFPS runs (veyra-last-session.txt): what
+// The session note is one line the bridge rewrites while PushFPS runs (pushfps-last-session.txt): what
 // kind of source was playing and which methods were on. It holds choices and numbers only: never a
 // device name, a host, an address or a file name.
 //
@@ -134,7 +134,7 @@ inline Marker parseMarker(std::string_view text) {
         };
         m.code = safeHex(take("code=", false));
         m.offset = safeHex(take("offset=", false));
-        // A file name the handler made itself: "veyra-crash-<date>-<time>-<pid>.dmp". Anything with a
+        // A file name the handler made itself: "pushfps-crash-<date>-<time>-<pid>.dmp". Anything with a
         // folder in it, or that is not a .dmp, is not that.
         const std::string_view dump = take("dump=", false);
         if (dump.find_first_of("/\\:") == std::string_view::npos && dump.size() > 4 && dump.substr(dump.size() - 4) == ".dmp")

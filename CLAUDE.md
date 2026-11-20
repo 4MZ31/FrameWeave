@@ -13,7 +13,11 @@ and edits would conflict on every merge.
 
 1. **Keep upstream mergeable.** Internal identifiers keep Veyra's names: namespaces (`veyra::`), CMake
    targets, the `qml/Veyra` QML module, window classes, data folders, env vars (`VEYRA_*`). Only what a
-   user sees says PushFPS. Product name and links live in `include/veyra/Brand.h`; use it instead of
+   user sees says PushFPS. That includes the files in the log folder (the owner's decision, 20 November
+   2026): since 4.0 they are `pushfps-qml.log` (`.old.log`), `pushfps-last-failure.txt`,
+   `pushfps-last-session.txt`, `pushfps-crash-*.dmp` and `pushfps-hang-*.dmp`; `apps/veyra-qml/main.cpp`
+   takes the `veyra-*` files of an older version over once at start. Name any new file a user can find
+   after PushFPS, never after Veyra. Product name and links live in `include/veyra/Brand.h`; use it instead of
    writing the name or URLs again.
 2. **Translations are keyed by the Simplified Chinese source string.** Every user-visible string is
    written in Chinese in `qsTr(...)` / `tr(...)` and translated in `i18n/catalog.json` (zh-TW, en, ja by hand). For nl, de, es, fr, it, pt-BR, tr, ar,

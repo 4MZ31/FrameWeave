@@ -31,7 +31,7 @@ public:
     std::atomic<const char*>* stage();
     // A reported stall is still in progress.
     bool hung() const;
-    // Where veyra-hang-*.dmp goes (the log directory); empty means no dump.
+    // Where pushfps-hang-*.dmp goes (the log directory); empty means no dump.
     static void setDumpDirectory(const std::wstring& directory);
 private:
     struct State;

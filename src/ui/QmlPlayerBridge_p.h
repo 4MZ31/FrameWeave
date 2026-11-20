@@ -147,7 +147,7 @@ inline QString utf8Of(const std::wstring& w) { return QString::fromWCharArray(w.
 // Where crash and device-loss hints go: next to the log, where the crash handler in
 // apps/veyra-qml/main.cpp writes them too.
 inline QString lastFailurePath() {
-    return QFileInfo(qApp->property("veyraLogFile").toString()).absolutePath() + QStringLiteral("/veyra-last-failure.txt");
+    return QFileInfo(qApp->property("veyraLogFile").toString()).absolutePath() + QStringLiteral("/pushfps-last-failure.txt");
 }
 
 // What the user can switch off, for the injected components named in `modules`

@@ -820,7 +820,7 @@ jobs:
           ./obs-plugin/ci/obs-load-test.ps1 -PackageDir D:\obs-pkg -Seconds 150 -StopWhen 'found the PushFPS window' `
             -Expect '\[pushfps-obs\] source created', '\[pushfps-obs\] auto start: started', '\[pushfps-obs\] found the PushFPS window'
           $pf = Get-Process PushFPS -ErrorAction SilentlyContinue
-          $plog = Get-Content "$env:LOCALAPPDATA\Programs\PushFPS\logs\veyra-qml.log" -Raw -ErrorAction SilentlyContinue
+          $plog = Get-Content "$env:LOCALAPPDATA\Programs\PushFPS\logs\pushfps-qml.log" -Raw -ErrorAction SilentlyContinue
           ($plog -split "`n") | Where-Object { $_ -match 'obs|OBS|renderer|session started' } | Select-Object -First 30 | Out-Host
           if ($pf) { $pf | Stop-Process -Force }
           if ($plog -notmatch 'PushFPS QML session started') { throw 'PushFPS (started by OBS) did not reach its QML session' }

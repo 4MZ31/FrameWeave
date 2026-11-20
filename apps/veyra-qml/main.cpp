@@ -434,7 +434,7 @@ LONG WINAPI crashFilter(EXCEPTION_POINTERS* info) {
     SYSTEMTIME st{};
     GetLocalTime(&st);
     wchar_t name[96]{};
-    swprintf_s(name, L"veyra-crash-%04u%02u%02u-%02u%02u%02u-%lu.dmp", unsigned(st.wYear), unsigned(st.wMonth),
+    swprintf_s(name, L"pushfps-crash-%04u%02u%02u-%02u%02u%02u-%lu.dmp", unsigned(st.wYear), unsigned(st.wMonth),
                unsigned(st.wDay), unsigned(st.wHour), unsigned(st.wMinute), unsigned(st.wSecond), GetCurrentProcessId());
     const std::wstring path = (std::filesystem::path(g_crashDumpDirectory) / name).wstring();
     HANDLE file = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -458,7 +458,7 @@ LONG WINAPI crashFilter(EXCEPTION_POINTERS* info) {
                unsigned(st.wYear), unsigned(st.wMonth), unsigned(st.wDay), unsigned(st.wHour), unsigned(st.wMinute));
     const std::wstring note = L"crash " + std::filesystem::path(moduleName).filename().wstring() + L"\n" +
                               veyra::gfx::riskyInjections() + L"\n" + detail + L"\n";
-    HANDLE marker = CreateFileW((std::filesystem::path(g_crashDumpDirectory) / L"veyra-last-failure.txt").c_str(),
+    HANDLE marker = CreateFileW((std::filesystem::path(g_crashDumpDirectory) / L"pushfps-last-failure.txt").c_str(),
                                 GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (marker != INVALID_HANDLE_VALUE) {
         DWORD written = 0;
@@ -491,8 +491,24 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
     const auto overrideLength = GetEnvironmentVariableW(L"VEYRA_LOG_FILE", logOverride, 32768);
     auto logPath = overrideLength > 0 && overrideLength < 32768
                        ? std::filesystem::path(logOverride)
-                       : veyra::runtime::logsDirectory() / L"veyra-qml.log";
-    // Bounded: earlier sessions move to veyra-qml.old.log once this file passes
+                       : veyra::runtime::logsDirectory() / L"pushfps-qml.log";
+    // PushFPS 4.0: what stands in the log folder carries the program's own name (the owner's decision,
+    // 20 November 2026): pushfps-qml.log, pushfps-last-failure.txt, pushfps-last-session.txt,
+    // pushfps-crash-*.dmp, pushfps-hang-*.dmp. Until then they were named veyra-*. What the last version
+    // left behind is taken over once, before anything is written, so the log goes on in one file and a
+    // crash in that version's last session is still reported. A file that cannot be moved (another copy
+    // of the program has it open) stays where it is; nothing depends on it.
+    if (!(overrideLength > 0 && overrideLength < 32768)) {
+        const auto folder = logPath.parent_path();
+        for (const auto& [before, now] : {std::pair{L"veyra-qml.log", L"pushfps-qml.log"}, std::pair{L"veyra-qml.old.log", L"pushfps-qml.old.log"},
+                                          std::pair{L"veyra-last-failure.txt", L"pushfps-last-failure.txt"},
+                                          std::pair{L"veyra-last-session.txt", L"pushfps-last-session.txt"}}) {
+            std::error_code ignored;
+            if (std::filesystem::exists(folder / before, ignored) && !std::filesystem::exists(folder / now, ignored))
+                std::filesystem::rename(folder / before, folder / now, ignored);
+        }
+    }
+    // Bounded: earlier sessions move to pushfps-qml.old.log once this file passes
     // 16 MB at start, and a session that alone reaches 64 MB (about five hours of
     // capture) continues in a fresh file (audit 2026-10-15 B3).
     uint64_t rotateAtStart = 16ull << 20, rotateWhileRunning = 64ull << 20;
@@ -504,7 +520,7 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
         veyra::log::warn("log", "asynchronous output unavailable; using synchronous logging");
     veyra::Logger::instance().setRotation(rotateAtStart, rotateWhileRunning);
     if (!veyra::Logger::instance().openFile(logPath.wstring(), true)) {
-        logPath = logPath.parent_path() / (L"veyra-qml-" + std::to_wstring(GetCurrentProcessId()) + L".log");
+        logPath = logPath.parent_path() / (L"pushfps-qml-" + std::to_wstring(GetCurrentProcessId()) + L".log");
         (void)veyra::Logger::instance().openFile(logPath.wstring(), true);
     }
     g_crashDumpDirectory = logPath.parent_path().wstring();
