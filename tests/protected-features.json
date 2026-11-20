@@ -903,6 +903,217 @@
     }
    ],
    "needs_hardware": "A real card: the figure beside Task Manager's while PushFPS plays."
+  },
+  {
+   "id": "F37",
+   "what": "The picture path a capture card user's NVIDIA VFG runs on is what 3.2.10 had: the 60 -> 30 selection hands on every due sample, and the still rule (Keep the HUD sharp) is off unless switched on; a saved 'on' left behind by 4.0 is switched off once after updating (the owner and users saw artifacts around heads and objects on 4.0 and not on 3.2.10)",
+   "guards": [
+    {
+     "file": "tests/unit/PushHalfRateTests.cpp",
+     "ci": "veyra_push_half_rate_tests",
+     "contains": "decided exactly as in 3.2.10"
+    },
+    {
+     "file": "tests/unit/PushHudStillTests.cpp",
+     "ci": "veyra_push_hud_still_tests",
+     "contains": "off unless switched on"
+    },
+    {
+     "file": "include/veyra/pipeline/PushHudStill.h",
+     "contains": "static std::atomic<bool> value{false}"
+    },
+    {
+     "file": "src/ui/QmlPlayerBridge.cpp",
+     "contains": "pushHudStillReset"
+    },
+    {
+     "file": "include/veyra/engine/CaptureHalfRate.h",
+     "contains": "never pass a due sample over on the strength of a picture number again"
+    }
+   ],
+   "needs_hardware": "A real card and a real game: that the artifacts around the character and small objects are gone, on 60 -> 30 and on automatic removal."
+  },
+  {
+   "id": "F38",
+   "what": "Check my setup reads the running picture and lists what costs quality with the one change for each; it changes nothing until a button is pressed and every change can be taken back from the same row. Its rules never speak without their numbers.",
+   "guards": [
+    {
+     "file": "tests/js/push_diagnose_test.js",
+     "ci": "tests/js/*_test.js",
+     "contains": "a state with no numbers is never a finding"
+    },
+    {
+     "file": "tests/js/push_diagnose_test.js",
+     "ci": "tests/js/*_test.js",
+     "contains": "a session with nothing wrong has no findings"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_diagnose.qml",
+     "ci": "tst_push_diagnose",
+     "contains": "test_nothing_changes_until_a_button_is_pressed_and_every_change_is_taken_back"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_diagnose.qml",
+     "ci": "tst_push_diagnose",
+     "contains": "test_nothing_is_judged_while_nothing_plays"
+    },
+    {
+     "file": "qml/Veyra/PushQuickSetup.qml",
+     "contains": "pushfps-diagnose"
+    }
+   ],
+   "needs_hardware": "A playing console picture: that the findings match what is seen (enhancement size on a 4K picture, the card that is behind)."
+  },
+  {
+   "id": "F39",
+   "what": "NVIDIA VFG's quality (Low, Medium, High) is chosen in quick setup, not only in Professional mode; a mixed tier chosen there shows as none chosen and is left alone",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_diagnose.qml",
+     "ci": "tst_push_diagnose",
+     "contains": "test_vfg_quality_is_chosen_in_quick_setup"
+    },
+    {
+     "file": "qml/Veyra/PushQuickSetup.qml",
+     "contains": "pushfps-vfg-quality-row"
+    }
+   ],
+   "needs_hardware": "An NVIDIA card: what High costs and what it does to the edges of moving things."
+  },
+  {
+   "id": "F40",
+   "what": "The picture is resized to the window with the fine path for every source, and switching 'sharp scaling' off gives exactly what every version before 4.1 drew (the fine path only for PS5 Remote Play with reconstructed chroma)",
+   "guards": [
+    {
+     "file": "tests/unit/PushPresentScalingTests.cpp",
+     "ci": "veyra_push_present_scaling_tests",
+     "contains": "the plain sample again"
+    },
+    {
+     "file": "src/engine/VideoPresenter.cpp",
+     "contains": "pushFinePresentation(graph.highQualityPresentation(),graph.finePresentationBefore41())"
+    },
+    {
+     "file": "src/engine/EngineController.cpp",
+     "contains": "gd.finePresentationBefore41=isRemote&&activeSource->info().color.reconstructChroma;"
+    }
+   ],
+   "needs_hardware": "A screen larger or smaller than the picture: the two settings side by side."
+  },
+  {
+   "id": "F41",
+   "what": "A high-contrast look in which every level of text and every outline is far above what the other looks ask for, and the on-screen readout in two larger sizes with white words on its dark chip in every theme",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_appearance.qml",
+     "ci": "tst_push_appearance",
+     "contains": "test_high_contrast"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_presets.qml",
+     "ci": "tst_push_presets",
+     "contains": "test_latency_badge_in_a_larger_size"
+    }
+   ]
+  },
+  {
+   "id": "F42",
+   "what": "A moment marked while recording is kept in '<recording>-markers.txt' beside the file, with the time in the file being written (each part of a recording from its own zero); a label can never add a line, and the file's name can never leave the recording's folder",
+   "guards": [
+    {
+     "file": "tests/unit/PushClipMarkersTests.cpp",
+     "ci": "veyra_push_clip_markers_tests",
+     "contains": "A file name can never add a line to the file"
+    },
+    {
+     "file": "tests/unit/PushClipMarkersTests.cpp",
+     "ci": "veyra_push_clip_markers_tests",
+     "contains": "rounded once: never 0:00:60.0"
+    },
+    {
+     "file": "tests/unit/PushClipMarkersTests.cpp",
+     "ci": "veyra_push_clip_markers_tests",
+     "contains": "sidecarName(\"..\\\\..\\\\clip.mp4\") == \"clip-markers.txt\""
+    },
+    {
+     "file": "tests/qml/quick/tst_push_studio.qml",
+     "ci": "tst_push_studio",
+     "contains": "test_a_moment_is_marked_while_recording"
+    },
+    {
+     "file": "src/engine/LiveRecorder.cpp",
+     "contains": "out.fileSeconds=first?"
+    }
+   ],
+   "needs_hardware": "A real recording: that a marker's time is the moment in the file when it is played."
+  },
+  {
+   "id": "F43",
+   "what": "Local control is off unless switched on, listens on 127.0.0.1 only, needs its token for every request, refuses every request from a web page and every Host that is not this PC's loopback address, takes no body, does a fixed list of things, and answers with no path, name or key",
+   "guards": [
+    {
+     "file": "tests/unit/PushControlTests.cpp",
+     "ci": "veyra_push_control_tests",
+     "contains": "a link or an image tag can never start a recording"
+    },
+    {
+     "file": "tests/unit/PushControlTests.cpp",
+     "ci": "veyra_push_control_tests",
+     "contains": "a made-up name that points at this PC (DNS rebinding)"
+    },
+    {
+     "file": "tests/unit/PushControlTests.cpp",
+     "ci": "veyra_push_control_tests",
+     "contains": "no token set: nothing is allowed, not everything"
+    },
+    {
+     "file": "tests/unit/PushControlTests.cpp",
+     "ci": "veyra_push_control_tests",
+     "contains": "A page is refused before the token is looked at"
+    },
+    {
+     "file": "tests/unit/PushControlTests.cpp",
+     "ci": "veyra_push_control_tests",
+     "contains": "text.find(\"Access-Control\") == std::string::npos"
+    },
+    {
+     "file": "src/ui/bridge/PushControl.cpp",
+     "contains": "server_.listen(QHostAddress::LocalHost, port)"
+    },
+    {
+     "file": "src/ui/bridge/Preferences.cpp",
+     "contains": "visible.remove(QStringLiteral(\"pushControlToken\"));"
+    },
+    {
+     "file": "src/ui/bridge/PushControl.cpp",
+     "contains": "impl_->prefBool(\"pushControl\", false)"
+    }
+   ],
+   "needs_hardware": "A PC: a request from PowerShell and from a Stream Deck, and a web page that tries."
+  },
+  {
+   "id": "F44",
+   "what": "A vertical copy (1080 x 1920) is recorded beside a wide recording only when switched on, in its own file with its own encoder; it never changes the recording, ends with it, and is never made beside a recording that is already tall",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_record.qml",
+     "ci": "tst_push_record",
+     "contains": "test_a_vertical_copy_beside_a_wide_recording"
+    },
+    {
+     "file": "src/ui/bridge/Recording.cpp",
+     "contains": "impl_->prefBool(\"pushRecordVerticalCopy\", false)"
+    },
+    {
+     "file": "src/ui/QmlPlayerBridge.cpp",
+     "contains": "if(copy.active&&!live.active)impl_->engine.stopSecondRecording();"
+    },
+    {
+     "file": "include/veyra/engine/EngineController.h",
+     "contains": "PresentCaptureFanout recorders_{*recorder_,*secondRecorder_};"
+    }
+   ],
+   "needs_hardware": "A real card: two encodes at once, both files, and what it costs. No test encodes a recording."
   }
  ]
 }
