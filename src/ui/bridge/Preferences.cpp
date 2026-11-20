@@ -835,7 +835,7 @@ namespace {
 const QVariantMap& shortcutDefaults() {
     // Screenshot was Ctrl+S before 2026-10-27; saved custom keys are kept.
     static const QVariantMap d{{"playPause", "Space"}, {"fullscreen", "F"}, {"lock", "Ctrl+L"},
-                               {"hold", "V"}, {"screenshot", "F7"}, {"record", "F8"}, {"replay", "F9"}, {"toggleMode", "Tab"},
+                               {"hold", "V"}, {"screenshot", "F7"}, {"record", "F8"}, {"replay", "F9"}, {"marker", "F6"}, {"toggleMode", "Tab"},
                                {"gamePanel", "Home"}, {"gameExit", "Ctrl+Alt+Home"}};
     return d;
 }

@@ -152,6 +152,24 @@ Item {
             compare(veyra.screenshots, before + 1)
             veyra.recording = false
         }
+        // Clip markers: a button while a recording runs, never for a comparison clip, counted on the button.
+        function test_a_moment_is_marked_while_recording() {
+            const state = veyra.recordingState, added = veyra.markersAdded
+            const mark = control(studio, "studio-marker")
+            veyra.recording = false
+            verify(!mark.visible, "nothing to mark without a recording")
+            veyra.recording = true
+            veyra.recordingState = ({saved: 0, active: true, path: "C:/Videos/PushFPS/rec.mp4"})
+            tryVerify(function() { return mark.visible }, 3000)
+            compare(mark.count, 0)
+            mark.clicked(); mark.clicked()
+            compare(veyra.markersAdded, added + 2)
+            compare(mark.count, 2, "the button says how many this recording has")
+            verify(mark.text.indexOf("2") >= 0)
+            veyra.recordingState = ({saved: 0, active: true, path: "C:/Videos/PushFPS/clip.mp4", compare: true})
+            verify(!mark.visible, "a comparison clip takes no markers")
+            veyra.recording = false; veyra.recordingState = state
+        }
         function test_meters_follow_the_levels() {
             veyra.studioLevels = ({gamePeakDb: -3, gameRmsDb: -12, micPeakDb: -100, micRmsDb: -100, micOpen: false})
             studio.lastTick = 0

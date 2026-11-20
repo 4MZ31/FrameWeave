@@ -40,10 +40,13 @@ Rectangle {
         target: veyra
         function onPushShareFinished(ok, message) { card.sending = false; card.shareText = message; if (card.on) hideTimer.restart() }
     }
+    // PushFPS clip markers: how many the finished recording has (its "-markers.txt" lies beside it).
+    property int markers: 0
     function show(p, isReplay) {
         card.shareText = ""
         card.path = p
         card.replay = isReplay
+        card.markers = isReplay ? 0 : Math.max(0, Number((veyra.recordingState || {}).markers || 0))
         card.on = true
         hideTimer.restart()
     }
@@ -95,6 +98,14 @@ Rectangle {
                 tip: qsTr("关闭")
                 onClicked: card.on = false
             }
+        }
+        Text {
+            objectName: "pushfps-recording-saved-markers"
+            Layout.fillWidth: true
+            visible: card.markers > 0
+            text: qsTr("%1 个标记，记在录像旁边的同名文本文件里（-markers.txt）").arg(card.markers)
+            color: Theme.t2; font.family: Theme.fontUi; font.pixelSize: Theme.fsHint
+            wrapMode: Text.WordWrap
         }
         RowLayout {
             spacing: 6

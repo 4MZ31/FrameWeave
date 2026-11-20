@@ -99,6 +99,7 @@ struct RecordingStatus {
     uint64_t frames=0;           // frames encoded since start
     uint64_t dropped=0;          // presented frames skipped because the encoder or disk was busy
     double seconds=0;            // time since the first recorded frame
+    double fileSeconds=0;        // PushFPS clip markers: the time now in the file being written (each part of a recording starts at 0)
     uint32_t files=0;            // files this recording wrote (more than one after a size change)
     bool compare=false;          // a comparison clip
     uint64_t generatedFrames=0;  // comparison clip: generated frames recorded so far (0: both halves match)

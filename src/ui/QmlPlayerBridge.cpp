@@ -561,6 +561,8 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
             state["audio"]=live.audio;
             // PushFPS: counts finished files, so the interface can offer to edit the newest one.
             state["saved"]=QVariant::fromValue(qulonglong(live.saved));
+            // PushFPS clip markers: how many this file has (the file being written, or the one just finished).
+            state["markers"]=int(impl_->markerBook.count(QString::fromStdWString(live.path).toStdString()));
             state["microphone"]=live.microphone;
             // PushFPS comparison clip: generated frames in it (0: both halves show the same).
             state["compare"]=live.compare;

@@ -297,6 +297,14 @@ QtObject {
     property int replaySeconds: 60
     property int replaySaves: 0
     function saveReplay(source) { replaySaves++ }
+    // PushFPS clip markers (tst_push_studio.qml, tst_push_watch.qml).
+    property int markersAdded: 0
+    function pushAddMarker(source) {
+        if (!recording) return false
+        markersAdded++
+        const copy = Object.assign({}, recordingState); copy.markers = Number(copy.markers || 0) + 1; recordingState = copy
+        return true
+    }
     property int screenshots: 0
     function takeScreenshot() { screenshots++ }
     property string sourceTitle: ""

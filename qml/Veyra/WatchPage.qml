@@ -281,6 +281,20 @@ VPage {
                             onClicked: !veyra.recording && Record.asks(veyra.preferences) ? veyra.navigate("record") : veyra.toggleRecording("watch")
                         }
                     }
+                    // PushFPS clip markers: only while a recording (not a comparison clip) runs.
+                    VRow {
+                        objectName: "watch-marker-row"
+                        visible: veyra.recording === true && !watch.compareRecording
+                        label: qsTr("标记")
+                        readonly property int count: Number(veyra.recordingState.markers || 0)
+                        hint: count > 0 ? qsTr("这个录像已有 %1 个标记，记在它旁边的文本文件里").arg(count) : qsTr("把这一刻记下来，剪辑时好找")
+                        VButton {
+                            objectName: "watch-marker"
+                            iconName: "plus"
+                            text: qsTr("标记这一刻")
+                            onClicked: veyra.pushAddMarker("watch")
+                        }
+                    }
                     VRow {
                         objectName: "watch-compare-row"
                         label: qsTr("对比片段")

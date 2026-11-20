@@ -138,6 +138,37 @@ void QmlPlayerBridge::stopRecording(const QString& source) {
     emit recordingChanged();
 }
 void QmlPlayerBridge::toggleRecording(const QString& source) { if (recording()) stopRecording(source); else startRecording(source); }
+// --- clip markers (engine/PushClipMarkers.h) ----------------------------------------------------
+// A moment of the recording in progress, noted in "<recording>-markers.txt" beside the file. The time
+// is the time in the file being written, from the recorder's own clock. The markers file is written
+// again at every marker, so a recording that ends badly still has its markers. Nothing is added to
+// the recording itself.
+bool QmlPlayerBridge::pushAddMarker(const QString& source) {
+    const auto live = impl_->engine.recordingSnapshot();
+    if (!live.active) { emit notice(tr("没有在录制：标记是加在录像里的"), true); return false; }
+    if (live.compare) { emit notice(tr("对比片段不能加标记"), true); return false; }
+    if (live.path.empty() || !(live.fileSeconds > 0)) { emit notice(tr("录制还没有写入画面，请稍后再标记"), true); return false; }
+    const QString path = QString::fromStdWString(live.path);
+    const QFileInfo file(path);
+    const std::string key = path.toStdString();
+    auto& book = impl_->markerBook;
+    const QString label = tr("标记 %1").arg(int(book.count(key)) + 1);
+    const std::size_t number = book.add(key, live.fileSeconds, label.toStdString());
+    if (!number) { emit notice(tr("这个录像的标记已经满了（%1 个）").arg(int(engine::clipmarks::kMaxMarkers)), true); return false; }
+    const QString sidecar = file.dir().filePath(QString::fromStdString(engine::clipmarks::sidecarName(file.fileName().toStdString())));
+    const std::string text = engine::clipmarks::fileText(file.fileName().toStdString(), book.markers());
+    QSaveFile out(sidecar);
+    const bool written = out.open(QIODevice::WriteOnly) && out.write(text.data(), qint64(text.size())) == qint64(text.size()) && out.commit();
+    const std::string at = engine::clipmarks::timeText(live.fileSeconds);
+    // The log names neither the file nor its folder (a folder can hold the Windows user name).
+    veyra::log::info("push-markers", std::format("marker {} at {} source={} written={}", number, at,
+                                                 source.isEmpty() ? std::string("unnamed") : source.toStdString(), written));
+    if (!written) { emit notice(tr("标记没有保存：无法写入录像所在的文件夹"), true); return false; }
+    impl_->recordingState["markers"] = int(number);
+    emit recordingChanged();
+    emit notice(tr("已标记 %1").arg(QString::fromStdString(at)), false);
+    return true;
+}
 // --- instant replay (#103) -----------------------------------------------------
 // The buffer follows 设置 → 即时回放 and the recording settings; armed from
 // startup, it takes frames only while something is presented.

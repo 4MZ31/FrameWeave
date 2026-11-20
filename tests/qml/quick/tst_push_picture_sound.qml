@@ -150,8 +150,16 @@ Item {
             compare(veyra.lastExportFiles[0], "C:/Videos/PushFPS/rec-2.mp4")
             compare(root.pages[root.pages.length - 1], "exp")
             save(3, "C:/Videos/PushFPS/rec-3.mp4", false)
+            compare(card.markers, 0, "a recording without markers says nothing of them")
             click("pushfps-recording-folder")
             verify(veyra.recordingFolderOpened)
+            // Clip markers: a recording that has some says how many, and where they are.
+            veyra.recordingState = ({saved: 4, active: false, path: "C:/Videos/PushFPS/rec-4.mp4", markers: 3})
+            veyra.recordingChanged()
+            verify(card.on); compare(card.markers, 3)
+            const line = findChild(card, "pushfps-recording-saved-markers")
+            verify(line !== null && line.text.indexOf("3") >= 0 && line.text.indexOf("-markers.txt") >= 0)
+            card.on = false
         }
         function test_card_after_a_saved_replay() {
             card.on = false

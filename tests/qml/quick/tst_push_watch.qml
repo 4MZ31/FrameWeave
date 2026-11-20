@@ -89,10 +89,17 @@ Item {
             record.clicked()
             compare(veyra.recordingToggles, toggles + 1)
             verify(veyra.recording)
+            // Clip markers: the row is there only while a recording runs.
+            const markerRow = control("watch-marker-row"), added = veyra.markersAdded
+            tryVerify(function() { return markerRow.visible }, 3000)
+            control("watch-marker").clicked()
+            compare(veyra.markersAdded, added + 1)
+            compare(markerRow.count, 1)
             // And it always stops at once, asking or not.
             veyra.setPreference("pushRecordAsk", true)
             record.clicked()
             compare(veyra.recordingToggles, toggles + 2); verify(!veyra.recording)
+            verify(!markerRow.visible, "no recording, nothing to mark")
             veyra.setPreference("pushRecordAsk", false)
             record.clicked(); verify(veyra.recording)
             verify(!control("watch-compare").enabled, "no comparison clip while recording")

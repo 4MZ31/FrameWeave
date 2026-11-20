@@ -863,6 +863,8 @@ Window {
     Shortcut { sequence: veyra.shortcuts.screenshot; onActivated: veyra.takeScreenshot() }
     Shortcut { sequence: veyra.shortcuts.record; autoRepeat: false; onActivated: veyra.toggleRecording("shortcut") } // a held key must not toggle at the repeat rate
     Shortcut { sequence: veyra.shortcuts.replay; autoRepeat: false; onActivated: veyra.saveReplay("shortcut") }
+    // PushFPS clip markers: only while a recording runs, so the key does nothing (and says nothing) otherwise.
+    Shortcut { sequence: veyra.shortcuts.marker || ""; autoRepeat: false; enabled: veyra.recording === true; onActivated: veyra.pushAddMarker("shortcut") }
     Shortcut {
         sequence: veyra.shortcuts.toggleMode
         enabled: dialogs.dialog === ""

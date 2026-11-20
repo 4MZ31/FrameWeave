@@ -861,6 +861,17 @@ VPage {
                     // PushFPS 4.0: the choices first (PushRecordDialog), unless that was switched off.
                     onClicked: !studio.recordingNow && Record.asks(veyra.preferences) ? veyra.navigate("record") : veyra.toggleRecording("studio")
                 }
+                // PushFPS clip markers: this moment, noted in a text file beside the recording (also the
+                // shortcut, F6 unless changed). Only while a recording runs; never in a comparison clip.
+                VButton {
+                    objectName: "studio-marker"
+                    Layout.fillWidth: true
+                    visible: studio.recordingNow && veyra.recordingState.compare !== true
+                    iconName: "plus"
+                    readonly property int count: Number(veyra.recordingState.markers || 0)
+                    text: count > 0 ? qsTr("标记这一刻（已有 %1 个）").arg(count) : qsTr("标记这一刻")
+                    onClicked: veyra.pushAddMarker("studio")
+                }
                 VButton {
                     objectName: "studio-replay"
                     Layout.fillWidth: true

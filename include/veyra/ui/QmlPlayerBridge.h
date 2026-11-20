@@ -1441,6 +1441,9 @@ public:
     Q_INVOKABLE void openRecordingDirectory();
     // Writes what the replay buffer holds now (source as for recording).
     Q_INVOKABLE void saveReplay(const QString& source = QString());
+    // PushFPS clip markers (engine/PushClipMarkers.h): notes this moment of the recording in progress in a
+    // text file beside it ("<recording>-markers.txt"). False, with a notice, when nothing is being recorded.
+    Q_INVOKABLE bool pushAddMarker(const QString& source = QString());
     // Lists the recording endpoints for the microphone choice.
     Q_INVOKABLE void refreshMicrophones();
     bool recording() const;

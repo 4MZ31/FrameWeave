@@ -21,6 +21,7 @@
 #include "veyra/ui/EffectAvailability.h"
 #include "veyra/engine/FrameGenerationSelection.h"
 #include "veyra/engine/PushFgHealth.h"
+#include "veyra/engine/PushClipMarkers.h"
 #include "veyra/ui/QmlExportQueueModel.h"
 #include "veyra/ui/PlaylistModel.h"
 #include "veyra/ui/UpdateChecker.h"
@@ -407,6 +408,7 @@ struct QmlPlayerBridge::Impl {
     QVariantMap recordingState;
     QVariantMap virtualCameraState;
     uint64_t recordingSaved = 0;   // LiveRecorder's finished-file counter already announced
+    engine::clipmarks::Book markerBook;   // PushFPS clip markers of the file being written (Recording.cpp)
     int compareGeneration = 0;     // PushFPS comparison clip whose timer may stop the recording
     uint64_t hudPreviewRevision = 0; // PushFPS HUD detection: picture written for this run
     QString hudPreviewPath;

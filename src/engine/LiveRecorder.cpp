@@ -1407,6 +1407,12 @@ RecordingStatus LiveRecorder::status() const{
         if(!mic.open)out.microphoneError=mic.error;
         out.microphoneName=mic.device;
     }
+    // PushFPS clip markers (engine/PushClipMarkers.h): where the file being written is now, by the clock
+    // its frames are stamped with (a frame's time in the file is that clock minus the file's first frame).
+    if(s.current&&!s.replayMode&&!s.streamMode){
+        const int64_t first=s.current->t0Us.load();
+        out.fileSeconds=first?std::max(0.0,double(sink::recordingClockUs()-first)/1e6):0.0;
+    }
     if(s.streamMode){
         out.streams=s.current&&s.current->outputs?s.current->outputs->status():s.lastStreams;
         out.path.clear();
