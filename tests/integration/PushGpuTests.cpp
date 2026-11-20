@@ -1764,8 +1764,13 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
     // PushFlow 2's Guard (opt-in; shaders/PushGuard.hlsl, docs/PUSHFLOW2.md): where an object was left out
     // of the generated frame, the nearer real frame; everywhere else, and always when nothing is wrong,
     // the generated frame exactly as it is without Guard.
-    for (uint32_t tier : {2u, 0u}) {
-        const std::string tag = "pushflow guard, tier " + std::to_string(tier);
+    // Three runs: the Quality model, the Fast tier at its own motion size (half this small picture: 8 x 5
+    // tiles, where the edge band leaves almost nothing to judge), and the Fast tier's model at the whole
+    // picture's size, so that both models are seen acting.
+    struct GuardRun { uint32_t tier; int motion; };
+    for (const GuardRun guardRun : {GuardRun{2u, 0}, GuardRun{0u, 0}, GuardRun{0u, 540}}) {
+        const uint32_t tier = guardRun.tier;
+        const std::string tag = "pushflow guard, tier " + std::to_string(tier) + (guardRun.motion ? " at a chosen motion size" : "");
         const auto still = flowFrame(W, H, 90), near16 = flowFrame(W, H, 106), far120 = flowFrame(W, H, 210), other = detailFrame(W, H, 0);
         const auto apart = [](const std::vector<uint8_t>& x, const std::vector<uint8_t>& y) {
             if (x.empty() || x.size() != y.size()) return 255;
@@ -1786,7 +1791,7 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
         std::vector<uint8_t> plainStill, plainNear, plainFar;
         {
             pushflow::PushFlowBackend plain;
-            if (plain.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, tier)) {
+            if (plain.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, tier, guardRun.motion)) {
                 plainStill = run(still, still, 0.5f, plain, nullptr);
                 plainNear = run(still, near16, 0.5f, plain, nullptr);
                 plainFar = run(still, far120, 0.5f, plain, nullptr);
@@ -1795,7 +1800,7 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
         }
         checkOr(!plainStill.empty() && !plainNear.empty() && !plainFar.empty(), tag + ": PushFlow's own pictures to compare with");
         pushflow::PushFlowBackend guarded;
-        const bool ready = guarded.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, tier, 0, false, true);
+        const bool ready = guarded.initialize(device, gpu.queue.Get(), dir, W, H, fmt, pushflow::Encoding::Encoded, tier, guardRun.motion, false, true);
         checkOr(ready, tag + ": PushFlow starts with Guard asked for");
         if (!ready) continue;
         std::printf("INFO %s: state '%s', network %ux%u\n", tag.c_str(), guarded.status().guardState.c_str(), guarded.status().modelW, guarded.status().modelH);

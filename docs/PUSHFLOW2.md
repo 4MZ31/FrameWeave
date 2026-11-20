@@ -296,6 +296,24 @@ models, that a still picture and a followed object come out exactly as without G
 moves a place further from the real frame (`testPushFlow`); through the real graph at 3X, that every
 generated frame is the plain run's and nothing is mended or held (`veyra_push_flow_graph_tests`).
 
+The rule as built differs from the one first measured in two small ways (the edge band comes from the
+largest motion a tile has on average, and risky tiles take changed neighbours), so it was measured again as
+built (`guard_as_built`, run 44643980334, 512 x 320 pictures):
+
+| | Fast model | Quality model |
+|---|---|---|
+| Right pictures (30 dB or better) it touches | none | none |
+| A square left out (128 to 256 px): tiles replaced | 1.4 to 2.8 % | 1.4 to 2.8 % |
+| A fine texture the model had already lost, sliding 4 to 64 px: tiles replaced | 19 to 38 % | 1 to 50 % |
+| The same, 128 px, and two unrelated pictures: tiles replaced (above 35 % the frame is held whole) | 68 to 69 % | 83 to 84 % |
+
+Two things in it must be said plainly. A held object scores **worse** by the usual error measure than a
+missing one (29 dB down to 26 dB for the left-out square): the measure prefers an empty background at the
+right time to the object at the wrong time, and only eyes can say which looks better. And on a fine texture
+the model has lost, Guard holds a fifth to a half of the picture in pieces while the rest is the model's
+blur (20.6 dB down to 17.8 dB, where a held frame is 13.9 dB): that is where it can look blocky, and it is
+the first thing to look at in a real game.
+
 What is not known: how it looks in a real game, what it costs on a real card (four small dispatches and one
 full-size one per generated frame), and whether its thresholds, found on drawn pictures, are right for game
 pictures. Those need:
