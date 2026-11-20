@@ -552,6 +552,52 @@
     }
    ],
    "needs_hardware": "A playing source for the real cut-out in the video window (screenshot entries 86-87 photograph it on the software renderer once the screenshots workflow runs)."
+  },
+  {
+   "id": "F20",
+   "what": "PS5 Remote Play: a fresh frame is never taken for an expired one, every recovery is counted by its cause, and controller input keeps its order and is never answered with a release while fresh input waits",
+   "guards": [
+    {
+     "file": "tests/remoteplay/CoreTests.cpp",
+     "ci": "veyra_remoteplay_core_tests",
+     "contains": "queue_frame_stamped_after_the_readers_clock_is_new"
+    },
+    {
+     "file": "tests/remoteplay/CoreTests.cpp",
+     "ci": "veyra_remoteplay_core_tests",
+     "contains": "controller_an_old_state_is_dropped_alone_and_what_is_fresh_still_arrives_in_order"
+    }
+   ],
+   "needs_hardware": "A PS5: the freeze and the input stutter were reproduced as logic, never on a console."
+  },
+  {
+   "id": "F21",
+   "what": "60 to 30 for a game below 30 FPS: no picture handed on twice, every picture once at its first copy, a still kept on the grid; 60 FPS, steady 30 FPS and streams without picture numbers decided as in 3.2.10",
+   "guards": [
+    {
+     "file": "tests/unit/PushHalfRateTests.cpp",
+     "ci": "veyra_push_half_rate_tests",
+     "contains": "decided exactly as in 3.2.10"
+    }
+   ],
+   "needs_hardware": "A capture card and a game that dips below 30 FPS, for how it looks."
+  },
+  {
+   "id": "F22",
+   "what": "File playback and HDR: a display peak that is the signal's ceiling does not scale the tone curve, and Dolby Vision profile 8.4 described as PQ plays as HLG while every other route stays",
+   "guards": [
+    {
+     "file": "tests/unit/PushDisplayPeakTests.cpp",
+     "ci": "veyra_push_display_peak_tests",
+     "contains": "a peak set by hand always wins"
+    },
+    {
+     "file": "tests/unit/PushDolbyVisionTests.cpp",
+     "ci": "veyra_push_dolby_vision_tests",
+     "contains": "profile 8.1 (HDR10 base layer) stays PQ"
+    }
+   ],
+   "needs_hardware": "An HDR display that reports a ceiling, AV1 and 10-bit SDR files on a card with hardware AV1 decoding, a profile 8.4 file tagged PQ."
   }
  ]
 }
