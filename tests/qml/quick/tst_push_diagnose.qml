@@ -10,7 +10,7 @@ import "../qml/Veyra/PushDiagnose.js" as Diagnose
 Item {
     id: root
     width: 900; height: 1400
-    Item { id: host; anchors.fill: parent; property string dialog: ""; function close() { dialog = "" } }
+    Item { id: host; anchors.fill: parent; property string dialog: ""; property real motionScale: 1; function close() { dialog = "" } }
     PushDiagnoseDialog { id: diag; dialogHost: host; sampleCount: 1; sampleInterval: 10 }
     PushQuickSetup { id: quick; width: 520 }
     property string navigated: ""

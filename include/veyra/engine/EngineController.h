@@ -328,6 +328,10 @@ public:
     bool requestRecording(const RecordingSettings& options,std::wstring& error);
     void stopRecording();
     RecordingStatus recordingSnapshot()const;
+    // PushFPS: the second recording (the vertical copy). It never changes the first one.
+    bool requestSecondRecording(const RecordingSettings& options,std::wstring& error);
+    void stopSecondRecording();
+    RecordingStatus secondRecordingSnapshot()const;
     bool setVirtualCamera(bool enabled,uint32_t fps,std::wstring& error);
     bool uninstallVirtualCamera(std::wstring& error);
     bool installVirtualCamera(std::wstring& error);
@@ -393,6 +397,10 @@ private:
     // Live recorder: every session's presenter records into it; it owns its
     // encoder and writer threads. Created before the engine thread starts.
     std::unique_ptr<LiveRecorder> recorder_=std::make_unique<LiveRecorder>();
+    // PushFPS: a second recording beside the first, with its own size and shape (the vertical copy
+    // for TikTok, Shorts and Reels: one session, two files). It takes the same presented frames,
+    // has its own encoder, writer and file, and is idle unless a copy was asked for.
+    std::unique_ptr<LiveRecorder> secondRecorder_=std::make_unique<LiveRecorder>();
     // The instant replay buffer, a second recorder; both take the presented
     // frame through captures_.
     std::unique_ptr<LiveRecorder> replay_=std::make_unique<LiveRecorder>(true);
@@ -400,7 +408,8 @@ private:
     std::unique_ptr<PushHudSampler> hud_=std::make_unique<PushHudSampler>();
     // PushFPS going live: a third recorder in stream mode.
     std::unique_ptr<LiveRecorder> stream_=std::make_unique<LiveRecorder>(LiveRecorder::Mode::Stream);
-    PresentCaptureFanout recordings_{*recorder_,*replay_};
+    PresentCaptureFanout recorders_{*recorder_,*secondRecorder_};
+    PresentCaptureFanout recordings_{recorders_,*replay_};
     PresentCaptureFanout liveOutputs_{recordings_,*stream_};
     std::unique_ptr<PushQualityProbe> quality_=std::make_unique<PushQualityProbe>();
     std::unique_ptr<PushInputLatencyProbe> inputLatency_=std::make_unique<PushInputLatencyProbe>();

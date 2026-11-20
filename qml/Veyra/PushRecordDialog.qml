@@ -31,6 +31,9 @@ DialogLayer {
     readonly property int sizeId: Record.size(veyra.preferences)
     readonly property string qualityId: Record.quality(veyra.preferences)
     readonly property bool asks: Record.asks(veyra.preferences)
+    // The vertical copy (4.1): a second file, 1080 x 1920, recorded beside a wide recording.
+    readonly property bool copy: veyra.preferences.pushRecordVerticalCopy === true
+    readonly property bool copyFills: veyra.preferences.pushRecordVerticalFit === undefined || Number(veyra.preferences.pushRecordVerticalFit) !== 0
     // What is playing, read when the dialog opens: the recording measures it again when it starts.
     readonly property var stats: rec.shown ? (veyra.pushLiveStats() || {}) : ({})
     readonly property var picture: ({ width: Number(rec.stats.outputWidth || 0), height: Number(rec.stats.outputHeight || 0),
@@ -153,6 +156,30 @@ DialogLayer {
             }
         }
         VRow {
+            objectName: "pushfps-record-vertical-row"
+            visible: !rec.tall
+            label: qsTr("同时录一份竖屏副本")
+            help: qsTr("一次录制得到两个文件：横屏的照常录，另有一份 1080 × 1920 的竖屏副本（文件名以 -vertical 结尾），适合 TikTok、Shorts 和 Reels。两个编码同时进行，更吃显卡；竖屏副本最高 60 FPS。")
+            hint: !rec.copy ? qsTr("关闭：只录一个文件")
+                : rec.copyFills ? qsTr("副本里画面填满竖屏，左右两边被裁掉") : qsTr("副本里整个画面都在，上下留黑边")
+            hintBelow: true
+            RowLayout {
+                spacing: 8
+                VSeg {
+                    objectName: "pushfps-record-vertical-fit"
+                    visible: rec.copy
+                    options: [{ id: "fill", label: qsTr("填满") }, { id: "fit", label: qsTr("完整显示") }]
+                    current: rec.copyFills ? "fill" : "fit"
+                    onPicked: id => veyra.setPreference("pushRecordVerticalFit", String(id) === "fill" ? 1 : 0)
+                }
+                VSwitch {
+                    objectName: "pushfps-record-vertical"
+                    checked: rec.copy
+                    onToggled: v => veyra.setPreference("pushRecordVerticalCopy", v)
+                }
+            }
+        }
+        VRow {
             label: qsTr("每次录制前都询问")
             hint: qsTr("关闭后，点录制按钮会直接开始，用的是这里最后选的。录制快捷键总是直接开始")
             hintBelow: true
@@ -168,7 +195,8 @@ DialogLayer {
         objectName: "pushfps-record-summary"
         Layout.fillWidth: true
         Layout.topMargin: 10
-        text: !veyra.hasSource ? qsTr("需要正在播放的画面") : rec.summary
+        text: !veyra.hasSource ? qsTr("需要正在播放的画面")
+            : rec.summary + (rec.copy && !rec.tall ? "\n" + qsTr("另存一份竖屏副本：1080 × 1920，最高 60 FPS") : "")
         color: veyra.hasSource ? Theme.t2 : Theme.warn
         font.family: Theme.fontUi
         font.pixelSize: 12

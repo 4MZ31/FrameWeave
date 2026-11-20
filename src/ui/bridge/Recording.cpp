@@ -124,6 +124,24 @@ void QmlPlayerBridge::startRecording(const QString& source) {
     const auto options = recordingOptions();
     if (!impl_->engine.requestRecording(options, error)) { emit notice(uiText(error), true); return; }
     pushRecordingNotices(options.audio, options.microphone, false);   // a card scene or a muted mixer: said now (PushStudio.cpp)
+    // The vertical copy (4.1, preference pushRecordVerticalCopy, off unless switched on): a second file
+    // beside the recording, 1080 x 1920, from the same frames, for TikTok, Shorts and Reels. It has its own
+    // encoder and the standard encode at the automatic rate for its size, at 60 frames a second at most
+    // (what those sites take). When it cannot start, the recording itself goes on, and it is said.
+    // Never beside a recording that is already tall: that would be the same file twice.
+    if (impl_->prefBool("pushRecordVerticalCopy", false) && !(options.outputHeight > options.outputWidth && options.outputWidth > 0)) {
+        auto copy = options;
+        copy.nameSuffix = L"-vertical";
+        copy.outputWidth = 1080; copy.outputHeight = 1920;
+        copy.canvas = pushCanvas(impl_->prefInt("pushRecordVerticalFit", 1) == 0 ? 0 : 1);   // 1: the picture fills it (sides cut)
+        copy.bitrateMbps = 0; copy.bitrateKbps = 0;
+        copy.fpsLimit = options.fpsLimit ? std::min<uint32_t>(options.fpsLimit, 60u) : 60u;
+        copy.hevc = false; copy.matroska = false; copy.splitMinutes = 0; copy.splitBytes = 0;
+        copy.rateControl = 1; copy.quality = 22; copy.preset = 4; copy.keyframeSeconds = 2; copy.multipass = 0; copy.psychoAq = false;
+        std::wstring why;
+        if (!impl_->engine.requestSecondRecording(copy, why)) emit notice(tr("竖屏副本没有开始：%1").arg(uiText(why)), true);
+        veyra::log::info("ui-record", std::format("vertical copy requested fit={} fpsLimit={} started={}", int(copy.canvas.fit), copy.fpsLimit, why.empty()));
+    }
     // Shown at once; the poll fills in the file and the counters.
     impl_->recordingState["active"] = true;
     impl_->recordingState["failed"] = false;
@@ -134,6 +152,7 @@ void QmlPlayerBridge::stopRecording(const QString& source) {
     if (!recording()) { logRecordingRequest("stop", source, binding, impl_->lastShortcutKey, "refused=not-recording"); return; }
     logRecordingRequest("stop", source, binding, impl_->lastShortcutKey, "requested");
     impl_->engine.stopRecording();
+    impl_->engine.stopSecondRecording();   // the vertical copy ends with its recording (nothing happens when there is none)
     impl_->recordingState["active"] = false;
     emit recordingChanged();
 }

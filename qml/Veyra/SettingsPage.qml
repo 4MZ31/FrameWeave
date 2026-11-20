@@ -885,6 +885,19 @@ VPage {
                                 onToggled: v => veyra.setPreference("pushRecordAsk", v)
                             }
                         }
+                        // PushFPS 4.1: a second file, 1080 x 1920, beside every wide recording (Recording.cpp).
+                        VRow {
+                            objectName: "set-rec-vertical-row"
+                            label: qsTr("同时录一份竖屏副本")
+                            hint: veyra.preferences.pushRecordVerticalCopy === true
+                                  ? qsTr("每次录制另存一份 1080 × 1920 的副本（文件名以 -vertical 结尾）。两个编码同时进行，更吃显卡")
+                                  : qsTr("关闭：只录一个文件。适合同时发 TikTok、Shorts 和 Reels 的人")
+                            VSwitch {
+                                objectName: "set-rec-vertical"
+                                checked: veyra.preferences.pushRecordVerticalCopy === true
+                                onToggled: v => veyra.setPreference("pushRecordVerticalCopy", v)
+                            }
+                        }
                         VRow {
                             label: qsTr("自动分段")
                             hint: qsTr("长时间录制时每隔一段时间开始一个新文件，不中断录制；单个文件更小，出问题时损失更少")
@@ -1410,7 +1423,7 @@ VPage {
                         VRow {
                             objectName: "set-control-row"
                             label: qsTr("允许按钮盒和脚本控制")
-                            help: qsTr("开启后，Stream Deck、脚本或直播软件可以开始和停止录制、保存即时回放、标记这一刻、截图、切换场景，并读取是否正在播放和录制。只在这台电脑上监听（127.0.0.1），每个请求都要带令牌；网页发来的请求一律拒绝。它不能读取文件、改设置，也接触不到串流密钥。用法见 docs/LOCAL-CONTROL.md。")
+                            help: qsTr("开启后，Stream Deck、脚本或直播软件可以开始和停止录制、保存即时回放、标记这一刻、截图、切换场景，并读取是否正在播放和录制。只在这台电脑上监听（127.0.0.1），每个请求都要带令牌；网页发来的请求一律拒绝。它不能读取文件、改设置，也接触不到串流密钥。")
                             hint: controlGroup.info.enabled !== true ? qsTr("已关闭：没有打开任何端口")
                                 : controlGroup.info.listening === true ? qsTr("正在监听 127.0.0.1:%1（仅本机）").arg(controlGroup.info.port)
                                 : qsTr("端口 %1 无法使用，可能被别的程序占用").arg(controlGroup.info.port)
@@ -1454,6 +1467,12 @@ VPage {
                                 current: String(controlGroup.info.port || 18766)
                                 onPicked: id => { veyra.setPreference("pushControlPort", Number(id)); controlGroup.refresh() }
                             }
+                        }
+                        VRow {
+                            objectName: "set-control-docs-row"
+                            label: qsTr("怎么用")
+                            hint: qsTr("每个请求的写法，以及 PowerShell、curl 和 Stream Deck 的例子")
+                            VButton { objectName: "set-control-docs"; ghost: true; text: qsTr("打开说明"); trailingIcon: "external"; onClicked: veyra.pushOpenLink("controlDocs") }
                         }
                     }
                 }

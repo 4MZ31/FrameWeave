@@ -144,5 +144,28 @@ Item {
             action(qsTr("取消"))
             compare(host.dialog, "")
         }
+        // The vertical copy: a second file beside a wide recording, off unless switched on.
+        function test_a_vertical_copy_beside_a_wide_recording() {
+            const row = control("pushfps-record-vertical-row"), toggle = control("pushfps-record-vertical"), fit = control("pushfps-record-vertical-fit")
+            const summary = control("pushfps-record-summary"), line = qsTr("另存一份竖屏副本：1080 × 1920，最高 60 FPS")
+            tryVerify(function() { return row.visible }, 3000)
+            verify(!rec.copy && !fit.visible, "off unless switched on")
+            verify(summary.text.indexOf(line) < 0)
+            toggle.toggled(true)
+            compare(veyra.preferences.pushRecordVerticalCopy, true)
+            verify(rec.copy && rec.copyFills, "the copy fills the tall frame unless chosen otherwise")
+            tryVerify(function() { return fit.visible }, 3000)
+            verify(summary.text.indexOf(line) >= 0, "what will be recorded says so")
+            fit.picked("fit")
+            compare(veyra.preferences.pushRecordVerticalFit, 0); verify(!rec.copyFills)
+            fit.picked("fill")
+            compare(veyra.preferences.pushRecordVerticalFit, 1); verify(rec.copyFills)
+            // A tall recording is the vertical one already: no copy of it is offered.
+            control("pushfps-record-shape").picked("tall")
+            verify(rec.tall)
+            tryVerify(function() { return !row.visible }, 3000)
+            verify(summary.text.indexOf(line) < 0)
+            compare(veyra.preferences.pushRecordVerticalCopy, true, "the choice is kept for the next wide recording")
+        }
     }
 }

@@ -454,6 +454,7 @@ QString QmlPlayerBridge::pushLinkUrl(const QString& key) const {
     if (key == QLatin1String("creator")) return QString::fromLatin1(brand::kCreatorUrl);
     if (key == QLatin1String("discord")) return QString::fromLatin1(brand::kDiscordUrl);
     if (key == QLatin1String("frameInputDocs")) return QString::fromLatin1(brand::kRepositoryUrl) + QStringLiteral("/blob/main/docs/FRAME-INPUT-API.md");
+    if (key == QLatin1String("controlDocs")) return QString::fromLatin1(brand::kRepositoryUrl) + QStringLiteral("/blob/main/docs/LOCAL-CONTROL.md");
     return {};
 }
 

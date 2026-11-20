@@ -320,6 +320,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"pushLatencySize", {0, 2}},
         // PushFPS local control: the loopback port it listens on.
         {"pushControlPort", {1024, 65535}},
+        // PushFPS vertical copy: 0 the whole picture with bars, 1 the picture fills it (sides cut).
+        {"pushRecordVerticalFit", {0, 1}},
         {"canvasBackground", {0, 0xFFFFFF}}};
     static const QStringList flags{"canvasStretch", "recordHevc", "recordAdvanced", "recordAudio", "recordMic", "recordMicTrack", "replayEnabled", "subtitleEnabled", "subtitleBackground", "subtitleFit",
                                    "subtitleSecondLanguage", "audioForceStereo", "captureAudioMonitor", "holdCompare",
@@ -336,6 +338,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    "pushSharpScaling",
                                    // PushFPS local control (ui/PushControl.h): off unless switched on.
                                    "pushControl",
+                                   // PushFPS: a vertical copy (1080 x 1920) recorded beside every recording.
+                                   "pushRecordVerticalCopy",
                                    // PushFPS crop and resize: the switch, and whether recordings and streams follow.
                                    "pushCropOn", "pushCropOutputs",
                                    // PushFPS quick setup: the fine-tuning sliders of AI picture enhancement are unfolded.

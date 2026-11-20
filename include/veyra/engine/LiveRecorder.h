@@ -37,6 +37,9 @@ namespace veyra::engine {
 
 struct RecordingSettings {
     std::wstring directory;      // output folder (created when missing)
+    // PushFPS: put behind the time in the file's name. The vertical copy, which starts in the same
+    // second as the recording it accompanies, is "-vertical"; without it both would take one name.
+    std::wstring nameSuffix;
     uint32_t bitrateMbps=0;      // 0: automatic from the picture size and frame rate
     uint32_t bitrateKbps=0;      // PushFPS output presets: the same in kbps (wins when set)
     // PushFPS record dialog: the share of the automatic rate, in percent (PushRecordQuality.h; 100 is

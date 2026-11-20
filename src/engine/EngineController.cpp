@@ -393,6 +393,9 @@ void EngineController::saveFrame(const std::wstring& path){std::lock_guard lock(
 bool EngineController::requestRecording(const RecordingSettings& options,std::wstring& error){return recorder_->start(options,error);}
 void EngineController::stopRecording(){recorder_->stop();}
 RecordingStatus EngineController::recordingSnapshot()const{return recorder_->status();}
+bool EngineController::requestSecondRecording(const RecordingSettings& options,std::wstring& error){return secondRecorder_->start(options,error);}
+void EngineController::stopSecondRecording(){secondRecorder_->stop();}
+RecordingStatus EngineController::secondRecordingSnapshot()const{return secondRecorder_->status();}
 bool EngineController::setVirtualCamera(bool enabled,uint32_t fps,std::wstring& error){
     if(!enabled){virtualCamera_->stop();return true;}return virtualCamera_->start(fps,error);
 }
@@ -507,6 +510,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
     status(L"正在初始化GPU与本地运行时…");
     // A recording belongs to the session (and device) it started in.
     if(recorder_->active())recorder_->sessionEnded(L"已切换播放内容，录制已保存");
+    if(secondRecorder_->active())secondRecorder_->sessionEnded({});
     replay_->sessionEnded({});
     stream_->sessionEnded({});
     virtualCamera_->sessionEnded();
@@ -1366,6 +1370,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
             OnExit resetExit{[&]{finishReset(stop_?diagnostics::ResetOutcome::Cancelled:diagnostics::ResetOutcome::Failed);
                 // The recording ends with the session; its file is finished in the background.
                 recorder_->sessionEnded(stop_?L"播放已停止，录制已保存":L"播放已结束，录制已保存");
+                secondRecorder_->sessionEnded({});
                 replay_->sessionEnded({});stream_->sessionEnded({});virtualCamera_->sessionEnded();}};
             auto collectTimings=[&]{
                 auto record=[&](const diagnostics::GpuFrameTiming& sample){
@@ -3544,6 +3549,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                 loopTrace.mark("flowUpdate");
                 measured.flow=frameFlow->snapshot(host100ns());
                 recorder_->setPresentRateHint(measured.flow.presentSubmitFps);
+                secondRecorder_->setPresentRateHint(measured.flow.presentSubmitFps);
                 replay_->setPresentRateHint(measured.flow.presentSubmitFps);
                 stream_->setPresentRateHint(measured.flow.presentSubmitFps);
                 loopTrace.mark("flowSnapshot");

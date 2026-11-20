@@ -568,6 +568,21 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
             // PushFPS comparison clip: generated frames in it (0: both halves show the same).
             state["compare"]=live.compare;
             state["generatedFrames"]=QVariant::fromValue(qulonglong(live.generatedFrames));
+            // PushFPS vertical copy (Recording.cpp): a second file beside the recording. It never outlives
+            // the recording (a recording that ended by itself takes its copy with it), and its end or its
+            // failure is said once, by its file's name only.
+            {
+                const auto copy=impl_->engine.secondRecordingSnapshot();
+                if(copy.active&&!live.active)impl_->engine.stopSecondRecording();
+                state["vertical"]=copy.active&&live.active;
+                if(copy.saved!=impl_->verticalSaved){
+                    impl_->verticalSaved=copy.saved;
+                    emit notice(tr("竖屏副本已保存：%1").arg(QFileInfo(QString::fromStdWString(copy.path)).fileName()),false);
+                }
+                const std::wstring problem=copy.failed?copy.error:std::wstring();
+                if(!problem.empty()&&problem!=impl_->verticalError)emit notice(tr("竖屏副本：%1").arg(uiText(problem)),true);
+                impl_->verticalError=problem;
+            }
             if(state!=impl_->recordingState){
                 const auto previous=impl_->recordingState;
                 impl_->recordingState=state;
