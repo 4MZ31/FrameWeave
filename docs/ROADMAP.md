@@ -37,6 +37,8 @@ next step for each (rule 2).
 - 60 → 30 duplicate removal keeps its rhythm when a game dips under 30.
 - Lip sync by hand, on top of automatic sync.
 - A line between the two sides of the live comparison. The latency readout can be dragged.
+- The record button asks first: horizontal or vertical, fill or fit, the size and the quality, with the
+  bitrate shown before it starts.
 - A new capture card starts with its own sound input chosen where that is beyond doubt.
 - PS5 Remote Play: a frame arriving while the queue is read is no longer taken for too old; quick presses
   are not lost; recoveries are logged with their cause.

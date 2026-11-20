@@ -1085,7 +1085,8 @@ Most of it waits for measurements on real graphics cards: [how to take one](docs
 - [x] Reveal comparison clips (a line sweeps between the console and PushFPS), clip quality up to 4K
 - [x] A warning when frame generation shows no frames, a performance report to copy, tested graphics cards
 - [x] 4.0: the HUD kept sharp with every method, a steadier 60 → 30 rhythm, lip sync by hand, a line in the
-      live comparison, a capture card's own sound input chosen for a new card
+      live comparison, a capture card's own sound input chosen for a new card, recording choices before
+      a recording starts
 - [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)
