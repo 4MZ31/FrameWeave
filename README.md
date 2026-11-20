@@ -1225,7 +1225,9 @@ PushFPS is made by **DosukaSOL** ([@DosukaSOL on X](https://x.com/DosukaSOL)).
 
 PushFPS is built on **[Veyra](https://github.com/Likely7/Veyra-NRVideo)** by
 **[Likely7](https://github.com/Likely7)** (GPL-3.0). It started from Veyra on 2026-11-12 and is now its own
-project; Veyra's engine, capture support and streaming sources are still at its core. Likely7 is on
+project; Veyra's engine, capture support and streaming sources are still at its core. PushFPS 4.1 is built on
+Veyra 2.2.0, which brought the virtual camera, Dolby Vision, live translated subtitles, streams over RTP and
+UDP with timeshift, and the finer scaling to the window. Likely7 is on
 [X](https://x.com/likely2002) and [YouTube](https://www.youtube.com/@Likely7Ai).
 
 ANR frame generation is **[Apex Neural Rendering](https://github.com/apex-compute/ANR)** by
