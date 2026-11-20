@@ -48,6 +48,12 @@ Window {
     // Test switches from the command line (main.cpp, G0.3); empty in normal use.
     readonly property var test: typeof vyTest !== "undefined" ? vyTest : ({})
     readonly property real testAspect: test.aspect !== undefined ? test.aspect : 0
+    // PushFPS (screenshots only, --compare <0..1>): the live split comparison at that place once something plays.
+    Timer {
+        interval: 400; repeat: true
+        running: root.test.compare !== undefined
+        onTriggered: if (veyra.hasSource && veyra.compareMode !== 2) { veyra.compareMode = 2; veyra.setCompareSplitAt(Number(root.test.compare)) }
+    }
     readonly property bool cinema: page === "min"
     // Maximized behaves like fullscreen for geometry: the screen owns the size,
     // so the cinema aspect rule must not fight the window manager.

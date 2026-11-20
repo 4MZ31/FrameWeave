@@ -179,6 +179,9 @@ jobs:
             # (the bottom right). The picture must show all round it: the video window is cut out under it wherever it sits.
             @{ name = '86-latency-corner-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--lang', 'en', '--pref', 'pushLatencyOverlay=true', '--pref', 'pushSunset=false') },
             @{ name = '87-latency-moved-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--lang', 'en', '--pref', 'pushLatencyOverlay=true', '--pref', 'pushLatencyX=1000', '--pref', 'pushLatencyY=1000', '--pref', 'pushSunset=false') },
+            # 88: the live split comparison over a playing picture. A white line between two dark edges must stand where
+            # the two sides meet, from the picture's top to its bottom.
+            @{ name = '88-compare-line-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--lang', 'en', '--compare', '0.4', '--pref', 'pushSunset=false') },
             @{ name = '83-crop-editor'; args = @('--page', 'home', '--dialog', 'crop', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') },
             @{ name = '84-crop-quick-setup'; args = @('--page', 'home', '--scroll-to', 'pushfps-crop-row', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') }
           )

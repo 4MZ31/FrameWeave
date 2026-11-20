@@ -852,6 +852,9 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
             testOptions.insert(QStringLiteral("menu"), args.at(++i));
         } else if (a == QLatin1String("--aspect") && hasValue) {
             testOptions.insert(QStringLiteral("aspect"), args.at(++i).toDouble());
+        } else if (a == QLatin1String("--compare") && hasValue) {
+            // PushFPS (screenshots): the live split comparison, with the split at this share of the window's width.
+            testOptions.insert(QStringLiteral("compare"), qBound(0.0, args.at(++i).toDouble(), 1.0));
         } else if (a == QLatin1String("--tip") && hasValue) {
             testOptions.insert(QStringLiteral("tip"), args.at(++i));
         } else if (a == QLatin1String("--export-out") && hasValue) {

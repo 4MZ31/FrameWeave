@@ -1,4 +1,5 @@
 #include "veyra/engine/VideoPresenter.h"
+#include "veyra/engine/PushCompareLine.h"
 #include "veyra/engine/PresentationGeometry.h"
 #include "veyra/engine/PushAmbient.h"
 #include "veyra/pipeline/EnhanceGraph.h"
@@ -413,6 +414,31 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
         // a crop rect.left is 0 and rect.right the buffer's width, and the two bounds change nothing.)
         if(comparison==2)rect.right=std::max(rect.left,std::min(rect.right,LONG(std::clamp((rc.right*.5f+(std::clamp(split,0.0f,1.0f)-view.centerX)*renderW)*sink_.bufferWidth()/rc.right,0.0f,float(sink_.bufferWidth())))));list->RSSetScissorRects(1,&rect);list->DrawInstanced(3,1,0,0);
         std::swap(b.Transition.StateBefore,b.Transition.StateAfter);list->ResourceBarrier(1,&b);
+        // PushFPS 4.0: a line where the two sides meet. Until now nothing marked it, and on a picture
+        // the enhancement changes little the split could hardly be found. A white core between two
+        // dark edges, so it shows on bright and on dark pictures alike; as high as the picture, not
+        // through the bars; its thickness follows the buffer (1080 high: 3 + 2 pixels). It is drawn by
+        // clearing three rectangles of the target: no shader, no state, nothing sampled. White is the
+        // output's own reference white (203 nits on an HDR output), never its peak.
+        if(comparison==2&&rc.right>0&&rc.bottom>0){
+            const LONG x=rect.right;
+            const LONG bufferH=LONG(sink_.bufferHeight());
+            const auto shown=view.keptRect(float(rc.right),float(rc.bottom),renderW,renderH);
+            const float scaleX=float(sink_.bufferWidth())/float(rc.right),scaleY=float(bufferH)/float(rc.bottom);
+            const LONG top=std::clamp(LONG(std::floor(shown.top*scaleY)),pictureRect.top,pictureRect.bottom);
+            const LONG bottom=std::clamp(LONG(std::ceil(shown.bottom*scaleY)),top,pictureRect.bottom);
+            // The picture's own left and right edge (it may have bars beside it, or be zoomed past the window).
+            const LONG left=std::clamp(LONG(std::lround(shown.left*scaleX)),pictureRect.left,pictureRect.right);
+            const LONG right=std::clamp(LONG(std::lround(shown.right*scaleX)),left,pictureRect.right);
+            const PushCompareLine line=pushCompareLine(x,left,right,bufferH);
+            if(line.visible&&bottom>top){
+                const float white=graph.hdr10Output()?kPushCompareWhitePq:graph.hdrOutput()?kPushCompareWhiteScRgb:1.0f;
+                const float dark[4]={0,0,0,1},bright[4]={white,white,white,1};
+                const D3D12_RECT outer{line.outerLeft,top,line.outerRight,bottom},inner{line.coreLeft,top,line.coreRight,bottom};
+                list->ClearRenderTargetView(rtv,dark,1,&outer);
+                list->ClearRenderTargetView(rtv,bright,1,&inner);
+            }
+        }
         if(veyra::log::verboseFrameLogs())veyra::log::info("comparison",std::format("real-frame source={} epoch={} revision={} reference={} mode={} split={} (same leased frame)",identity.sourceFrameId,identity.epoch,identity.settingsRevision,baseReference?"base":"input",comparison,split));
     }
     // PushFPS crop: whatever is drawn after the picture (subtitles, provider work) gets the whole buffer again.
