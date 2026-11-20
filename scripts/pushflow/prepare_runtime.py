@@ -780,7 +780,7 @@ def predict_report(path: Path, channels: int, align: int) -> list[dict]:
     # motions must be opposite (`opposite`: an occlusion or a lost object is where they are not), the
     # place it reads must be inside the picture, and (optionally) it must not move further than `cap` of
     # the picture's width a frame. An untrusted pixel shows the newest real frame (a hold).
-    def built(f0, f1, ahead, settle=(0.5, 1.5), opposite=(1.0, 3.0), cap=None):
+    def built(f0, f1, ahead, settle=(0.5, 1.5), opposite=(1.0, 3.0), cap=None, agree=None, still=(0.25, 0.5)):
         _, h0, h1, _ = session.run(None, {name: tensor(f0, f1, 0.5, channels)})[:4]
         ph, pw = rife_graph.to_hw2(h0).shape[:2]
         grids = [np.moveaxis(rife_graph.to_hw2(g), -1, 0) for g in (h0, h1)]
@@ -807,16 +807,23 @@ def predict_report(path: Path, channels: int, align: int) -> list[dict]:
         trust = trust * ((px >= -0.5) & (px <= w - 0.5) & (py >= -0.5) & (py <= h - 0.5))
         if cap is not None:
             trust = trust * fade(2.0 * np.hypot(ddx, ddy) / w, cap * 0.8, cap * 1.2)
-        moved = np.hypot(px - xo, py - yo) >= 0.02
+        if agree is not None:
+            # The motion is only believed where the two real frames show the same thing at the two
+            # places it joins (the half-way pixel's two samples): a cut, an uncovered background and
+            # a lost object are where they do not.
+            first = np.clip(bilinear_at(f0, sy + ay, sx + ax), 0, 1)
+            second = np.clip(bilinear_at(f1, sy + ddy, sx + ddx), 0, 1)
+            trust = trust * fade(np.abs(first - second).max(axis=0), *agree)
+        # Less than a quarter of a pixel is not moved at all: a still picture (and a HUD) stays exact.
+        trust = trust * (1.0 - fade(np.hypot(px - xo, py - yo), *still))
         shown = np.clip(bilinear_at(f1, py, px), 0, 1)
-        shown = np.where(moved[None], shown, f1)
         return f1 + (shown - f1) * trust[None], float((trust < 0.5).mean())
     table = []
     def as_built(label, f0, f1, truth_at):
         for ahead in (0.25, 0.5, 0.75):
             truth = truth_at(ahead)
             line = [label, ahead, round(psnr(f1, truth), 1)]
-            for rule in ({}, {"cap": 0.05}, {"opposite": (0.5, 1.5)}, {"settle": (0.25, 0.75), "opposite": (0.5, 1.5)}):
+            for rule in ({}, {"agree": (0.08, 0.16)}, {"agree": (0.04, 0.12)}, {"opposite": (0.5, 1.5), "agree": (0.08, 0.16)}):
                 picture, held = built(f0, f1, ahead, **rule)
                 line += [round(psnr(picture, truth), 1), round(100.0 * held, 1)]
             table.append(line)
@@ -826,8 +833,9 @@ def predict_report(path: Path, channels: int, align: int) -> list[dict]:
         as_built(f"texture pan {pan} px", detail_frame(w, h, 0), detail_frame(w, h, pan), lambda a, pan=pan: detail_frame(w, h, int(round((1.0 + a) * pan))))
     as_built("still", frame(w, h, 100), frame(w, h, 100), lambda a: frame(w, h, 100))
     as_built("unrelated", frame(w, h, 100), detail_frame(w, h, 0), lambda a: detail_frame(w, h, 0))
-    # [pair, ahead, hold dB, then for each rule: forecast dB, % of the picture held]. Rules: as built;
-    # with a speed cap of 5 % of the width a frame; a stricter 'opposite'; stricter 'settle' and 'opposite'.
+    # [pair, ahead, hold dB, then for each rule: forecast dB, % of the picture held (a still part counts
+    # as held)]. Rules: geometry only; with 'agree' 0.08..0.16; with 'agree' 0.04..0.12; a stricter
+    # 'opposite' with 'agree' 0.08..0.16. A speed cap was measured and dropped: it only took gains away.
     rows.append({"predict_as_built": table,
                  "worst_against_hold_db": [round(min(line[3 + 2 * r] - line[2] for line in table), 1) for r in range(4)],
                  "mean_gain_db": [round(sum(line[3 + 2 * r] - line[2] for line in table if line[0] not in ("still", "unrelated")) / max(1, sum(1 for line in table if line[0] not in ("still", "unrelated"))), 1) for r in range(4)]})
