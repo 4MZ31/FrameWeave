@@ -241,7 +241,7 @@ bool QmlPlayerBridge::pushOpenDiscord() {
 bool QmlPlayerBridge::pushShareToDiscord(const QString& path) {
     const QString webhook = impl_->prefString("pushDiscordWebhook").trimmed();
     const QFileInfo info(path);
-    if (webhook.isEmpty()) { emit pushShareFinished(false, tr("请先在 设置 → 播放 中填写 Discord Webhook 地址")); return false; }
+    if (webhook.isEmpty()) { emit pushShareFinished(false, tr("请先在 设置 → 录制 中填写 Discord Webhook 地址")); return false; }
     if (!info.isFile()) { emit pushShareFinished(false, tr("文件不存在：%1").arg(path)); return false; }
     if (info.size() > kDiscordUploadLimit) {
         emit pushShareFinished(false, tr("片段有 %1 MB，Discord 默认只接收 10 MB 以内的文件。已复制到剪贴板，可在 Discord 中粘贴（会提示压缩或使用 Nitro）")
@@ -452,6 +452,7 @@ QString QmlPlayerBridge::pushLinkUrl(const QString& key) const {
     if (key == QLatin1String("anrReleases")) return QString::fromLatin1(brand::kAnrReleasesUrl);
     if (key == QLatin1String("apex")) return QString::fromLatin1(brand::kApexUrl);
     if (key == QLatin1String("creator")) return QString::fromLatin1(brand::kCreatorUrl);
+    if (key == QLatin1String("discord")) return QString::fromLatin1(brand::kDiscordUrl);
     if (key == QLatin1String("frameInputDocs")) return QString::fromLatin1(brand::kRepositoryUrl) + QStringLiteral("/blob/main/docs/FRAME-INPUT-API.md");
     return {};
 }

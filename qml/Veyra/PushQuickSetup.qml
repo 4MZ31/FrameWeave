@@ -903,9 +903,14 @@ VGroup {
             id: cardRow
             objectName: "pushfps-card-row"
             readonly property var card: Cards.find(veyra.captureDeviceLabel)
-            visible: String(veyra.captureDeviceLabel || "").length > 0
+            // Without a card chosen the label is the bridge's "no device selected", and for a chosen card that is
+            // unplugged "device not connected": neither is a card to call tested or not, or to report.
+            readonly property bool noCard: veyra.captureDeviceLabel === qsTr("未选择设备")
+            readonly property bool named: !noCard && veyra.captureDeviceLabel !== qsTr("设备未连接")
+            visible: String(veyra.captureDeviceLabel || "").length > 0 && !noCard
             label: qsTr("采集卡")
-            hint: card && card.status === "tested" ? qsTr("PushFPS 已实测")
+            hint: !named ? ""
+                : card && card.status === "tested" ? qsTr("PushFPS 已实测")
                 : card && card.status === "veyra" ? qsTr("Veyra 作者已实测")
                 : card && card.status === "reported" ? qsTr("有 PushFPS 用户报告可用")
                 : qsTr("还没有人报告这张卡的结果，欢迎在 GitHub 上分享")
@@ -919,11 +924,12 @@ VGroup {
                 }
                 VTag {
                     objectName: "pushfps-card-status"
+                    visible: cardRow.named
                     kind: cardRow.card && cardRow.card.status !== "untested" ? "ok" : ""
                     text: cardRow.card && cardRow.card.status !== "untested" ? qsTr("已测试") : qsTr("未测试")
                 }
                 VButton {
-                    visible: !(cardRow.card && cardRow.card.status === "tested")
+                    visible: cardRow.named && !(cardRow.card && cardRow.card.status === "tested")
                     ghost: true
                     text: qsTr("报告")
                     onClicked: Qt.openUrlExternally(Cards.reportUrl)
@@ -1020,7 +1026,7 @@ VGroup {
     PushSection {
         id: secFg
         sectionId: "fg"
-        title: qsTr("补帧")
+        title: qsTr("补帧", "section")
         summary: quick.sectionSummary("fg")
         open: quick.sectionOpen("fg")
         onToggled: open => quick.setSectionOpen("fg", open)

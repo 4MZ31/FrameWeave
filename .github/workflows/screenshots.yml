@@ -231,7 +231,7 @@ jobs:
             @{ name = '102-midnight-home'; args = @('--page', 'home', '--lang', 'en', '--theme', 'midnight', '--pref', 'pushSunset=false', '--dock-pinned') },
             @{ name = '103-plum-pro'; args = @('--page', 'pro', '--tab', 'fg', '--lang', 'en', '--theme', 'plum') },
             @{ name = '104-forest-settings'; args = @('--page', 'set', '--lang', 'en', '--theme', 'forest') },
-            @{ name = '105-midnight-ice'; args = @('--page', 'home', '--lang', 'en', '--theme', 'midnight', '--pref', 'accent=ice', '--pref', 'pushSunset=false', '--scroll-to', 'pushfps-tools-row') },
+            @{ name = '105-midnight-ice'; args = @('--page', 'home', '--lang', 'en', '--theme', 'midnight', '--pref', 'accent=ice', '--pref', 'pushSunset=false', '--dock-pinned') },
             @{ name = '106-light-rose-settings'; args = @('--page', 'set', '--lang', 'en', '--theme', 'light', '--pref', 'accent=rose') },
             @{ name = '107-capture-help'; args = @('--page', 'home', '--dialog', 'capture', '--lang', 'en') },
             @{ name = '108-settings-recording-page'; args = @('--page', 'set', '--tab', 'rec', '--lang', 'en') },

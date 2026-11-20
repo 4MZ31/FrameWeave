@@ -206,18 +206,29 @@ VPage {
                             label: qsTr("主题")
                             hint: qsTr("界面的底色。纯黑适合 OLED 屏幕，浅色在明亮环境中更易读")
                             hintBelow: true
+                            RowLayout {
+                                id: themePicker
+                                spacing: 12
+                                readonly property var themes: [{ id: "default", tip: qsTr("石墨") }, { id: "black", tip: qsTr("纯黑") }, { id: "midnight", tip: qsTr("午夜蓝") },
+                                                               { id: "plum", tip: qsTr("深紫") }, { id: "forest", tip: qsTr("墨绿") }, { id: "light", tip: qsTr("浅色") }]
+                                // The theme on screen (an unknown name shows the dark grey).
+                                readonly property string shown: Theme.surfaces[Theme.mode] ? Theme.mode : "default"
+                                Text {
+                                    objectName: "set-theme-name"
+                                    text: (themePicker.themes.find(t => t.id === themePicker.shown) || themePicker.themes[0]).tip
+                                    color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 12
+                                }
                             Row {
                                 objectName: "set-theme"
                                 spacing: 8
                                 Repeater {
-                                    model: [{ id: "default", tip: qsTr("石墨") }, { id: "black", tip: qsTr("纯黑") }, { id: "midnight", tip: qsTr("午夜蓝") },
-                                            { id: "plum", tip: qsTr("深紫") }, { id: "forest", tip: qsTr("墨绿") }, { id: "light", tip: qsTr("浅色") }]
+                                    model: themePicker.themes
                                     delegate: Rectangle {
                                         id: themeTile
                                         required property var modelData
                                         readonly property var look: Theme.surfaces[modelData.id]
                                         readonly property bool lightLook: modelData.id === "light"
-                                        readonly property bool on: (veyra.preferences.pushTheme || "default") === modelData.id
+                                        readonly property bool on: themePicker.shown === modelData.id
                                         objectName: "set-theme-" + modelData.id
                                         width: 66; height: 44; radius: 9
                                         color: look.bgMid
@@ -247,22 +258,33 @@ VPage {
                                     }
                                 }
                             }
+                            }
                         }
                         VRow {
                             label: qsTr("强调色")
                             hint: qsTr("开关、进度、选中状态")
                             // .swatch: one dot per accent, in the form it takes on this background; the chosen one ringed.
+                            RowLayout {
+                                id: accentPicker
+                                spacing: 12
+                                readonly property var accentList: [{ id: "orange", tip: qsTr("PushFPS 绿") }, { id: "white", tip: qsTr("白色光晕") }, { id: "ice", tip: qsTr("冰蓝") },
+                                                                   { id: "blue", tip: qsTr("蓝色") }, { id: "violet", tip: qsTr("紫色") }, { id: "rose", tip: qsTr("玫红") },
+                                                                   { id: "amber", tip: qsTr("琥珀") }]
+                                readonly property string shown: Theme.accents[Theme.accentName] ? Theme.accentName : "orange"
+                                Text {
+                                    objectName: "set-accent-name"
+                                    text: (accentPicker.accentList.find(a => a.id === accentPicker.shown) || accentPicker.accentList[0]).tip
+                                    color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 12
+                                }
                             Row {
                                 objectName: "set-accent"
                                 spacing: 10
                                 Repeater {
-                                    model: [{ id: "orange", tip: qsTr("PushFPS 绿") }, { id: "white", tip: qsTr("白色光晕") }, { id: "ice", tip: qsTr("冰蓝") },
-                                            { id: "blue", tip: qsTr("蓝色") }, { id: "violet", tip: qsTr("紫色") }, { id: "rose", tip: qsTr("玫红") },
-                                            { id: "amber", tip: qsTr("琥珀") }]
+                                    model: accentPicker.accentList
                                     delegate: Rectangle {
                                         id: swatch
                                         required property var modelData
-                                        readonly property bool on: (veyra.preferences.accent || "orange") === modelData.id
+                                        readonly property bool on: accentPicker.shown === modelData.id
                                         objectName: "set-accent-" + modelData.id
                                         width: 24; height: 24; radius: 12
                                         color: Theme.light ? Theme.accents[modelData.id].light : Theme.accents[modelData.id].dark
@@ -288,6 +310,7 @@ VPage {
                                         Accessible.checked: on
                                     }
                                 }
+                            }
                             }
                         }
                         // 日落 (the default) or the original black-grey 经典 palette.
@@ -1683,7 +1706,7 @@ VPage {
                                 { id: "hold", a: qsTr("按住查看原画") },
                                 { id: "screenshot", a: qsTr("截图"), note: qsTr("游戏模式下在游戏里也能用") },
                                 { id: "record", a: qsTr("开始 / 停止录制"), note: qsTr("游戏模式下在游戏里也能用") },
-                                { id: "replay", a: qsTr("保存即时回放"), note: qsTr("需先在 设置 → 播放 开启即时回放；游戏模式下在游戏里也能用") },
+                                { id: "replay", a: qsTr("保存即时回放"), note: qsTr("需先在 设置 → 录制 开启即时回放；游戏模式下在游戏里也能用") },
                                 { id: "toggleMode", a: qsTr("切换极简 / 专业") },
                                 { id: "gamePanel", a: qsTr("游戏模式：调整画面"), note: qsTr("仅在游戏模式中接管按键；支持 Ctrl、Alt、Shift 组合") },
                                 { id: "gameExit", a: qsTr("游戏模式：退出鼠标穿透"), note: qsTr("退出全屏，恢复普通窗口操作") }
@@ -2003,10 +2026,12 @@ VPage {
                             hint: qsTr("打开 GitHub Issues，诊断信息已自动复制")
                             VButton { text: qsTr("打开"); onClicked: veyra.openFeedbackPage() }
                         }
+                        // PushFPS: its own community. (The row used to point at group QR codes in a README that has none.)
                         VRow {
-                            label: qsTr("交流群")
-                            hint: qsTr("群二维码在项目主页 README 里")
-                            VButton { text: qsTr("查看"); onClicked: veyra.openProjectPage() }
+                            objectName: "about-discord-row"
+                            label: qsTr("社区")
+                            hint: qsTr("PushFPS 的 Discord：提问、分享设置和片段")
+                            VButton { objectName: "about-open-discord"; iconName: "external"; text: qsTr("加入 Discord"); onClicked: veyra.pushOpenLink("discord") }
                         }
                         VRow {
                             label: qsTr("诊断信息")

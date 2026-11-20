@@ -59,4 +59,6 @@ inline constexpr const char* kApexUrl = "https://apexcompute.com";
 // PushFPS is made by DosukaSOL; credited in About with a link to X.
 inline constexpr const char* kCreatorName = "DosukaSOL";
 inline constexpr const char* kCreatorUrl = "https://x.com/DosukaSOL";
+// The PushFPS community (the same invitation the README and the website show); About row about-open-discord.
+inline constexpr const char* kDiscordUrl = "https://discord.gg/N88znNpSgC";
 }

@@ -153,7 +153,7 @@ void QmlPlayerBridge::saveReplay(const QString& source) {
     const QString binding = source.startsWith(QStringLiteral("shortcut")) ? shortcuts().value("replay").toString() : QString();
     if (!replayEnabled()) {
         logRecordingRequest("replay-save", source, binding, impl_->lastShortcutKey, "refused=off");
-        emit notice(tr("即时回放未开启：设置 → 播放 → 即时回放"), true);
+        emit notice(tr("即时回放未开启：设置 → 录制 → 即时回放"), true);
         return;
     }
     std::wstring error;

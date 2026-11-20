@@ -32,7 +32,7 @@ QtObject {
         "black":    { card: "#08080A", card2: "#0D0D10", card3: "#17171B", popover: "#101013", dialog: "#0A0A0C", bgOuter: "#000000", bgMid: "#010102", bgInner: "#050506" },
         "light":    { card: "#FFFFFF", card2: "#F3F5F0", card3: "#E4E7E0", popover: "#FFFFFF", dialog: "#FFFFFF", bgOuter: "#DFE3DA", bgMid: "#E9ECE5", bgInner: "#F4F6F1" },
         "midnight": { card: "#0F1522", card2: "#141B2B", card3: "#1F2942", popover: "#161E30", dialog: "#101726", bgOuter: "#05080F", bgMid: "#090E19", bgInner: "#121A2B" },
-        "plum":     { card: "#17121C", card2: "#1E1724", card3: "#2B2233", popover: "#201929", dialog: "#18131E", bgOuter: "#08060B", bgMid: "#0E0A13", bgInner: "#1B1522" },
+        "plum":     { card: "#1B1224", card2: "#22172D", card3: "#322341", popover: "#241930", dialog: "#1C1326", bgOuter: "#09050D", bgMid: "#110A18", bgInner: "#1F152A" },
         "forest":   { card: "#0F1613", card2: "#141D19", card3: "#1F2B25", popover: "#16201B", dialog: "#101814", bgOuter: "#050907", bgMid: "#090F0C", bgInner: "#131C17" }
     })
     readonly property var surface: surfaces[mode] || surfaces["default"]

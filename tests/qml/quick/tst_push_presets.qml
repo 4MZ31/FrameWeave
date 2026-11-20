@@ -303,6 +303,22 @@ Item {
             veyra.captureDeviceLabel = "USB Video"
             compare(findChild(quick, "pushfps-card-status").text, qsTr("未测试"))
         }
+        // Without a card chosen there is nothing to call tested or to report, so there is no row; a chosen card
+        // that is unplugged is named as that and nothing more.
+        function test_capture_card_row_without_a_card() {
+            const row = findChild(quick, "pushfps-card-row")
+            const status = findChild(quick, "pushfps-card-status")
+            veyra.captureDeviceLabel = qsTr("未选择设备")
+            verify(!row.visible, "no row while no device is selected")
+            veyra.captureDeviceLabel = qsTr("设备未连接")
+            verify(row.visible)
+            verify(!status.visible, "an unplugged card is not called untested")
+            compare(row.hint, "")
+            veyra.captureDeviceLabel = "USB Video"
+            verify(row.visible && status.visible)
+            compare(row.hint, qsTr("还没有人报告这张卡的结果，欢迎在 GitHub 上分享"))
+            veyra.captureDeviceLabel = ""
+        }
         // Capture card reports from users: said as a user's report, not as PushFPS's own test, and
         // a card whose name contains another's (HD60 S+ and HD60 S, Ultra and Ultra 2.1) keeps its own.
         function test_capture_cards_reported_by_users() {
