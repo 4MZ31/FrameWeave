@@ -133,13 +133,13 @@ jobs:
             @{ name = '29-settings-anr';   args = @('--page', 'set', '--tab', 'comp') },
             @{ name = '30-settings-about'; args = @('--page', 'set', '--tab', 'about') },
             @{ name = '31-light-about';    args = @('--page', 'set', '--tab', 'about', '--theme', 'light') },
-            @{ name = '32-settings-recording'; args = @('--page', 'set', '--tab', 'play', '--scroll-to', 'set-recbitrate') },
-            @{ name = '33-recording-advanced'; args = @('--page', 'set', '--tab', 'play', '--scroll-to', 'set-recadvanced', '--pref', 'recordAdvanced=true', '--pref', 'recordRateControl=2') },
-            @{ name = '34-recording-advanced-light'; args = @('--page', 'set', '--tab', 'play', '--scroll-to', 'set-recadvanced', '--theme', 'light', '--pref', 'recordAdvanced=true') },
+            @{ name = '32-settings-recording'; args = @('--page', 'set', '--tab', 'rec', '--scroll-to', 'set-recbitrate') },
+            @{ name = '33-recording-advanced'; args = @('--page', 'set', '--tab', 'rec', '--scroll-to', 'set-recadvanced', '--pref', 'recordAdvanced=true', '--pref', 'recordRateControl=2') },
+            @{ name = '34-recording-advanced-light'; args = @('--page', 'set', '--tab', 'rec', '--scroll-to', 'set-recadvanced', '--theme', 'light', '--pref', 'recordAdvanced=true') },
             @{ name = '35-hud-protection'; args = @('--page', 'home', '--dialog', 'hud') },
             @{ name = '36-hud-protection-light'; args = @('--page', 'home', '--dialog', 'hud', '--theme', 'light') },
             @{ name = '37-hud-protection-de'; args = @('--page', 'home', '--dialog', 'hud', '--lang', 'de') },
-            @{ name = '38-recording-help'; args = @('--page', 'set', '--tab', 'play', '--scroll-to', 'set-recadvanced', '--pref', 'recordAdvanced=true', '--pref', 'recordRateControl=2', '--lang', 'en') },
+            @{ name = '38-recording-help'; args = @('--page', 'set', '--tab', 'rec', '--scroll-to', 'set-recadvanced', '--pref', 'recordAdvanced=true', '--pref', 'recordRateControl=2', '--lang', 'en') },
             @{ name = '39-ps5-streaming'; args = @('--page', 'home', '--dialog', 'ps5') },
             @{ name = '40-pc-streaming';  args = @('--page', 'home', '--dialog', 'moonlight') },
             @{ name = '41-xbox-streaming'; args = @('--page', 'home', '--dialog', 'xbox') },
@@ -227,7 +227,9 @@ jobs:
             @{ name = '104-forest-settings'; args = @('--page', 'set', '--lang', 'en', '--theme', 'forest') },
             @{ name = '105-midnight-ice'; args = @('--page', 'home', '--lang', 'en', '--theme', 'midnight', '--pref', 'accent=ice', '--pref', 'pushSunset=false', '--scroll-to', 'pushfps-tools-row') },
             @{ name = '106-light-rose-settings'; args = @('--page', 'set', '--lang', 'en', '--theme', 'light', '--pref', 'accent=rose') },
-            @{ name = '107-capture-help'; args = @('--page', 'home', '--dialog', 'capture', '--lang', 'en') }
+            @{ name = '107-capture-help'; args = @('--page', 'home', '--dialog', 'capture', '--lang', 'en') },
+            @{ name = '108-settings-recording-page'; args = @('--page', 'set', '--tab', 'rec', '--lang', 'en') },
+            @{ name = '109-settings-playback-page'; args = @('--page', 'set', '--tab', 'play', '--lang', 'en') }
           )
           if ($env:ONLY) { $list = @($list | Where-Object { $_.name -match $env:ONLY }); Write-Host "Only: $($list.name -join ', ')" }
           foreach ($s in $list) {

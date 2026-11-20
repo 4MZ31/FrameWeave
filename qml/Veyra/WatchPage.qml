@@ -368,7 +368,7 @@ VPage {
                         Layout.fillWidth: true; ghost: true; iconName: "settings"
                         text: qsTr("录制设置")
                         tip: qsTr("保存位置、尺寸、码率、帧率、编码和高级选项，与专业模式相同")
-                        onClicked: watch.requestSettings("play", "set-recording")
+                        onClicked: watch.requestSettings("rec", "set-recording")
                     }
                     VButton {
                         objectName: "watch-record-folder"

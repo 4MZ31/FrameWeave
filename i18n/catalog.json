@@ -18209,6 +18209,23 @@
    "ru": "Мгновенный повтор"
   },
   {
+   "zh": "即时回放与分享",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "即時重播與分享",
+   "en": "Instant replay and sharing",
+   "ja": "インスタントリプレイと共有",
+   "nl": "Instant replay and sharing",
+   "de": "Instant replay and sharing",
+   "es": "Instant replay and sharing",
+   "fr": "Instant replay and sharing",
+   "it": "Instant replay and sharing",
+   "pt-BR": "Instant replay and sharing",
+   "tr": "Instant replay and sharing",
+   "ar": "Instant replay and sharing",
+   "pl": "Instant replay and sharing",
+   "ru": "Instant replay and sharing"
+  },
+  {
    "zh": "即时回放写入失败",
    "src": "src/engine/LiveRecorder.cpp",
    "zh-TW": "即時回放寫入失敗",
@@ -24208,6 +24225,23 @@
    "ar": "ترجمة %1",
    "pl": "Napisy: %1",
    "ru": "Субтитры %1"
+  },
+  {
+   "zh": "字幕与截图",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "字幕與截圖",
+   "en": "Subtitles and screenshots",
+   "ja": "字幕とスクリーンショット",
+   "nl": "Subtitles and screenshots",
+   "de": "Subtitles and screenshots",
+   "es": "Subtitles and screenshots",
+   "fr": "Subtitles and screenshots",
+   "it": "Subtitles and screenshots",
+   "pt-BR": "Subtitles and screenshots",
+   "tr": "Subtitles and screenshots",
+   "ar": "Subtitles and screenshots",
+   "pl": "Subtitles and screenshots",
+   "ru": "Subtitles and screenshots"
   },
   {
    "zh": "字幕原字体",
@@ -32353,6 +32387,24 @@
    "ru": "Запись"
   },
   {
+   "zh": "录制",
+   "ctx": "section",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "錄製",
+   "en": "Recording",
+   "ja": "録画",
+   "nl": "Recording",
+   "de": "Recording",
+   "es": "Recording",
+   "fr": "Recording",
+   "it": "Recording",
+   "pt-BR": "Recording",
+   "tr": "Recording",
+   "ar": "Recording",
+   "pl": "Recording",
+   "ru": "Recording"
+  },
+  {
    "zh": "录制 %1",
    "src": "qml/StudioPage.qml",
    "zh-TW": "錄製 %1",
@@ -32419,6 +32471,23 @@
    "ar": "التسجيل متوقف",
    "pl": "NAGR wył.",
    "ru": "ЗАП выкл."
+  },
+  {
+   "zh": "录制、对比片段、即时回放和虚拟摄像机的设置。",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "錄製、對比片段、即時重播和虛擬攝影機的設定。",
+   "en": "Settings for recordings, comparison clips, instant replay and the virtual camera.",
+   "ja": "録画、比較クリップ、インスタントリプレイ、仮想カメラの設定です。",
+   "nl": "Settings for recordings, comparison clips, instant replay and the virtual camera.",
+   "de": "Settings for recordings, comparison clips, instant replay and the virtual camera.",
+   "es": "Settings for recordings, comparison clips, instant replay and the virtual camera.",
+   "fr": "Settings for recordings, comparison clips, instant replay and the virtual camera.",
+   "it": "Settings for recordings, comparison clips, instant replay and the virtual camera.",
+   "pt-BR": "Settings for recordings, comparison clips, instant replay and the virtual camera.",
+   "tr": "Settings for recordings, comparison clips, instant replay and the virtual camera.",
+   "ar": "Settings for recordings, comparison clips, instant replay and the virtual camera.",
+   "pl": "Settings for recordings, comparison clips, instant replay and the virtual camera.",
+   "ru": "Settings for recordings, comparison clips, instant replay and the virtual camera."
   },
   {
    "zh": "录制一段前后对比视频：一边是主机原本的帧率，一边是 PushFPS",
@@ -37639,6 +37708,24 @@
    "ar": "ملف",
    "pl": "Plik",
    "ru": "Файл"
+  },
+  {
+   "zh": "文件",
+   "ctx": "heading",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "檔案",
+   "en": "Files",
+   "ja": "ファイル",
+   "nl": "Files",
+   "de": "Files",
+   "es": "Files",
+   "fr": "Files",
+   "it": "Files",
+   "pt-BR": "Files",
+   "tr": "Files",
+   "ar": "Files",
+   "pl": "Files",
+   "ru": "Files"
   },
   {
    "zh": "文件不存在",
@@ -54233,6 +54320,23 @@
    "ru": "Сеть отключена, повторное подключение (попытка) {}"
   },
   {
+   "zh": "网络串流",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "網路串流",
+   "en": "Network streams",
+   "ja": "ネットワークストリーム",
+   "nl": "Network streams",
+   "de": "Network streams",
+   "es": "Network streams",
+   "fr": "Network streams",
+   "it": "Network streams",
+   "pt-BR": "Network streams",
+   "tr": "Network streams",
+   "ar": "Network streams",
+   "pl": "Network streams",
+   "ru": "Network streams"
+  },
+  {
    "zh": "网络地址、直播与服务器视频先攒一段再播放；服务器速度低于视频码率时暂停缓冲并说明原因，不会报错黑屏。下次打开网络视频生效",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "網路位址、直播與伺服器影片會先累積一段再播放；伺服器速度低於影片位元率時會暫停緩衝並說明原因，不會報錯黑屏。下次開啟網路影片生效",
@@ -58838,6 +58942,24 @@
    "ar": "فك الترميز",
    "pl": "Dekodowanie",
    "ru": "Декодирование"
+  },
+  {
+   "zh": "解码",
+   "ctx": "heading",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "解碼",
+   "en": "Decoding",
+   "ja": "デコード",
+   "nl": "Decoding",
+   "de": "Decoding",
+   "es": "Decoding",
+   "fr": "Decoding",
+   "it": "Decoding",
+   "pt-BR": "Decoding",
+   "tr": "Decoding",
+   "ar": "Decoding",
+   "pl": "Decoding",
+   "ru": "Decoding"
   },
   {
    "zh": "解码字幕",

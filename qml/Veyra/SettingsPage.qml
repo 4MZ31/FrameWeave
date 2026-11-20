@@ -44,7 +44,7 @@ VPage {
         // render(true): 480 ms, i*40 ms, y 12).
         Qt.callLater(() => stagger(sectionColumns[section] || null))
     }
-    readonly property var sectionColumns: ({ look: secLook, window: secWindow, play: secPlay, audio: secAudio, perf: secPerf, compat: secCompat, ps5: secPs5, keys: secKeys, comp: secComp, about: secAbout })
+    readonly property var sectionColumns: ({ look: secLook, window: secWindow, play: secPlay, rec: secRec, audio: secAudio, perf: secPerf, compat: secCompat, ps5: secPs5, keys: secKeys, comp: secComp, about: secAbout })
     Component { id: staggerComp; VRise.Stagger {} }
     function stagger(col) {
         if (Theme.reduced || !col) return
@@ -62,6 +62,7 @@ VPage {
         { id: "look",   label: qsTr("外观"), icon: "palette" },
         { id: "window", label: qsTr("启动与窗口"), icon: "appwin" },
         { id: "play",   label: qsTr("播放", "section"), icon: "play" },
+        { id: "rec",    label: qsTr("录制", "section"), icon: "video" },
         { id: "audio",  label: qsTr("音频"), icon: "vol" },
         { id: "perf",   label: qsTr("性能"), icon: "gauge" },
         { id: "compat", label: qsTr("兼容"), icon: "monitor" },
@@ -520,6 +521,7 @@ VPage {
                         Layout.fillWidth: true
                         wrapMode: Text.WordWrap
                     }
+                    VH3 { text: qsTr("解码", "heading"); Layout.topMargin: 6 }
                     VGroup {
                         VRow {
                             label: qsTr("解码")
@@ -534,61 +536,17 @@ VPage {
                             }
                         }
                         VRow {
-                            label: qsTr("HDR 输出格式")
-                            hint: qsTr("HDR10 默认；补帧固定 HDR10，需要 Windows HDR 开启")
-                            VSeg { options: [{id:"0",label:"HDR10"},{id:"1",label:qsTr("scRGB 浮点")}]; current: String(veyra.hdrOutputMode); onPicked: id => veyra.hdrOutputMode = Number(id) }
-                        }
-                        VRow {
                             label: qsTr("自动去隔行")
                             hint: veyra.deinterlaceAvailable ? qsTr("只处理标记为隔行的视频，优先使用 GPU；软解使用兼容算法。下次打开视频生效。") : qsTr("当前软件包未包含去隔行组件")
                             VSwitch { enabled: veyra.deinterlaceAvailable; checked: veyra.preferences.deinterlace !== false; onToggled: checked => veyra.setPreference("deinterlace",checked) }
                         }
-                        // Network / server playback (#48). Read when a source opens.
+                    }
+                    VH3 { text: qsTr("HDR"); Layout.topMargin: 6 }
+                    VGroup {
                         VRow {
-                            label: qsTr("网络缓冲")
-                            hint: qsTr("网络地址、直播与服务器视频先攒一段再播放；服务器速度低于视频码率时暂停缓冲并说明原因，不会报错黑屏。下次打开网络视频生效")
-                            VSeg {
-                                objectName: "set-network-buffer"
-                                options: [{ id: "auto", label: qsTr("自动") }, { id: "off", label: qsTr("关闭", "off") },
-                                          { id: "small", label: qsTr("小") }, { id: "medium", label: qsTr("中") }, { id: "large", label: qsTr("大") }]
-                                current: veyra.preferences.networkBuffer || "auto"
-                                onPicked: id => veyra.setPreference("networkBuffer", id)
-                            }
-                        }
-                        VRow {
-                            label: qsTr("起播预缓冲")
-                            hint: qsTr("开始播放前先攒够的秒数；“跟随缓冲档”按上面的缓冲档位决定。下次打开网络视频生效")
-                            VSelect {
-                                objectName: "set-network-prebuffer"
-                                implicitWidth: 170
-                                options: [{ id: "-1", label: qsTr("跟随缓冲档") }, { id: "0", label: qsTr("不等待") },
-                                          { id: "3", label: qsTr("%1 秒").arg(3) }, { id: "5", label: qsTr("%1 秒").arg(5) },
-                                          { id: "10", label: qsTr("%1 秒").arg(10) }, { id: "20", label: qsTr("%1 秒").arg(20) },
-                                          { id: "30", label: qsTr("%1 秒").arg(30) }]
-                                value: (options.find(o => o.id === (veyra.preferences.networkPrebuffer === undefined ? "-1" : String(veyra.preferences.networkPrebuffer))) || options[0]).label
-                                onPicked: id => veyra.setPreference("networkPrebuffer", Number(id))
-                            }
-                        }
-                        VRow {
-                            label: qsTr("断线自动重连")
-                            hint: qsTr("网络中断后自动重连：点播从断点继续，直播重新连接；关闭后断线即停止。下次打开网络视频生效")
-                            VSwitch {
-                                objectName: "set-network-reconnect"
-                                checked: veyra.preferences.networkAutoReconnect !== false
-                                onToggled: checked => veyra.setPreference("networkAutoReconnect", checked)
-                            }
-                        }
-                        VRow {
-                            label: qsTr("损坏画面处理")
-                            hint: (veyra.preferences.networkCorrupt || "conceal") === "keyframe"
-                                  ? qsTr("等待关键帧 = 丢弃损坏的画面，停在上一帧直到下一个完好的关键帧；只对网络视频与 MPEG-TS 生效")
-                                  : qsTr("保持画面 = 显示解码器修补后的画面，动作不中断；只对网络视频与 MPEG-TS 生效")
-                            VSeg {
-                                objectName: "set-network-corrupt"
-                                options: [{ id: "conceal", label: qsTr("保持画面") }, { id: "keyframe", label: qsTr("等待关键帧") }]
-                                current: veyra.preferences.networkCorrupt || "conceal"
-                                onPicked: id => veyra.setPreference("networkCorrupt", id)
-                            }
+                            label: qsTr("HDR 输出格式")
+                            hint: qsTr("HDR10 默认；补帧固定 HDR10，需要 Windows HDR 开启")
+                            VSeg { options: [{id:"0",label:"HDR10"},{id:"1",label:qsTr("scRGB 浮点")}]; current: String(veyra.hdrOutputMode); onPicked: id => veyra.hdrOutputMode = Number(id) }
                         }
                         VRow {
                             label: qsTr("HDR 亮度曲线") + " / " + qsTr("HDR 元数据")
@@ -727,6 +685,59 @@ VPage {
                             }
 
                         }
+                    }
+                    VH3 { text: qsTr("网络串流"); Layout.topMargin: 6 }
+                    VGroup {
+                        // Network / server playback (#48). Read when a source opens.
+                        VRow {
+                            label: qsTr("网络缓冲")
+                            hint: qsTr("网络地址、直播与服务器视频先攒一段再播放；服务器速度低于视频码率时暂停缓冲并说明原因，不会报错黑屏。下次打开网络视频生效")
+                            VSeg {
+                                objectName: "set-network-buffer"
+                                options: [{ id: "auto", label: qsTr("自动") }, { id: "off", label: qsTr("关闭", "off") },
+                                          { id: "small", label: qsTr("小") }, { id: "medium", label: qsTr("中") }, { id: "large", label: qsTr("大") }]
+                                current: veyra.preferences.networkBuffer || "auto"
+                                onPicked: id => veyra.setPreference("networkBuffer", id)
+                            }
+                        }
+                        VRow {
+                            label: qsTr("起播预缓冲")
+                            hint: qsTr("开始播放前先攒够的秒数；“跟随缓冲档”按上面的缓冲档位决定。下次打开网络视频生效")
+                            VSelect {
+                                objectName: "set-network-prebuffer"
+                                implicitWidth: 170
+                                options: [{ id: "-1", label: qsTr("跟随缓冲档") }, { id: "0", label: qsTr("不等待") },
+                                          { id: "3", label: qsTr("%1 秒").arg(3) }, { id: "5", label: qsTr("%1 秒").arg(5) },
+                                          { id: "10", label: qsTr("%1 秒").arg(10) }, { id: "20", label: qsTr("%1 秒").arg(20) },
+                                          { id: "30", label: qsTr("%1 秒").arg(30) }]
+                                value: (options.find(o => o.id === (veyra.preferences.networkPrebuffer === undefined ? "-1" : String(veyra.preferences.networkPrebuffer))) || options[0]).label
+                                onPicked: id => veyra.setPreference("networkPrebuffer", Number(id))
+                            }
+                        }
+                        VRow {
+                            label: qsTr("断线自动重连")
+                            hint: qsTr("网络中断后自动重连：点播从断点继续，直播重新连接；关闭后断线即停止。下次打开网络视频生效")
+                            VSwitch {
+                                objectName: "set-network-reconnect"
+                                checked: veyra.preferences.networkAutoReconnect !== false
+                                onToggled: checked => veyra.setPreference("networkAutoReconnect", checked)
+                            }
+                        }
+                        VRow {
+                            label: qsTr("损坏画面处理")
+                            hint: (veyra.preferences.networkCorrupt || "conceal") === "keyframe"
+                                  ? qsTr("等待关键帧 = 丢弃损坏的画面，停在上一帧直到下一个完好的关键帧；只对网络视频与 MPEG-TS 生效")
+                                  : qsTr("保持画面 = 显示解码器修补后的画面，动作不中断；只对网络视频与 MPEG-TS 生效")
+                            VSeg {
+                                objectName: "set-network-corrupt"
+                                options: [{ id: "conceal", label: qsTr("保持画面") }, { id: "keyframe", label: qsTr("等待关键帧") }]
+                                current: veyra.preferences.networkCorrupt || "conceal"
+                                onPicked: id => veyra.setPreference("networkCorrupt", id)
+                            }
+                        }
+                    }
+                    VH3 { text: qsTr("字幕与截图"); Layout.topMargin: 6 }
+                    VGroup {
                         VRow {
                             label: qsTr("字幕默认字号")
                             hint: qsTr("双行不自动缩小；更多样式在字幕设置里")
@@ -756,6 +767,52 @@ VPage {
                                 VButton { objectName: "set-shotdir"; text: qsTr("更改…"); onClicked: veyra.chooseScreenshotDirectory() }
                             }
                         }
+                    }
+                    VH3 { text: "NVIDIA Smooth Motion"; Layout.topMargin: 6 }
+                    VGroup {
+                        objectName: "set-smooth-motion"
+                        VRow {
+                            label: qsTr("Smooth Motion 开启方法")
+                            hint: qsTr("NVIDIA 驱动级 AI 插帧，与软件内补帧二选一")
+                            VButton {
+                                text: smoothHelp.visible ? qsTr("收起") : qsTr("查看")
+                                ghost: true
+                                onClicked: smoothHelp.visible = !smoothHelp.visible
+                            }
+                        }
+                        Text {
+                            id: smoothHelp
+                            visible: false
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 12; Layout.rightMargin: 12; Layout.bottomMargin: 10
+                            text: qsTr("只用驱动补帧时：在专业模式的补帧页关闭补帧，再到 NVIDIA App 打开 Smooth Motion（AI 插帧）。") + "\n"
+                                  + qsTr("只用 DLSS / XeSS 补帧时：到 NVIDIA App 关闭 Smooth Motion。") + "\n"
+                                  + qsTr("软件不检测、不拦截两者叠加，也不修改驱动配置；AMD FSR 补帧暂不提供。")
+                            color: Theme.t2
+                            font.family: Theme.fontUi
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
+                            lineHeight: 1.3
+                        }
+                    }
+                }
+                // --- 录制 --- PushFPS: recordings, comparison clips, instant replay and the virtual camera have their own
+                // page. They stood inside the playback page, in one card of sixty rows (cards inside a card).
+                ColumnLayout {
+                    id: secRec
+                    Layout.fillWidth: true
+                    spacing: 12
+                    visible: root.section === "rec"
+                    VH1 { text: qsTr("录制", "section") }
+                    Text {
+                        text: qsTr("录制、对比片段、即时回放和虚拟摄像机的设置。")
+                        color: Theme.t2
+                        font.family: Theme.fontUi
+                        font.pixelSize: Theme.fsBody
+                        Layout.fillWidth: true
+                        wrapMode: Text.WordWrap
+                    }
+                    VH3 { text: qsTr("文件", "heading"); Layout.topMargin: 6 }
                     VGroup {
                         objectName: "set-recording"
                         VRow {
@@ -767,6 +824,44 @@ VPage {
                                 VButton { objectName: "set-recdir"; text: qsTr("更改…"); onClicked: veyra.chooseRecordingDirectory() }
                             }
                         }
+                        // PushFPS 4.0: the record buttons show the choices first (PushRecordDialog.qml).
+                        VRow {
+                            label: qsTr("每次录制前都询问")
+                            hint: qsTr("点录制按钮时先选形状、大小和画质再开始。录制快捷键总是直接开始")
+                            VSwitch {
+                                objectName: "set-record-ask"
+                                checked: veyra.preferences.pushRecordAsk !== false
+                                onToggled: v => veyra.setPreference("pushRecordAsk", v)
+                            }
+                        }
+                        VRow {
+                            label: qsTr("自动分段")
+                            hint: qsTr("长时间录制时每隔一段时间开始一个新文件，不中断录制；单个文件更小，出问题时损失更少")
+                            VSeg {
+                                objectName: "set-recsplit"
+                                options: [{ id: "0", label: qsTr("关") }, { id: "30", label: qsTr("%1 分钟").arg(30) }, { id: "60", label: qsTr("%1 分钟").arg(60) }, { id: "120", label: qsTr("%1 分钟").arg(120) }]
+                                current: String([0, 30, 60, 120].indexOf(Number(veyra.preferences.recordSplitMinutes || 0)) >= 0 ? Number(veyra.preferences.recordSplitMinutes || 0) : 0)
+                                onPicked: id => veyra.setPreference("recordSplitMinutes", Number(id))
+                            }
+                        }
+                        // 2.2.0's split by size. Splitting by time is the row 自动分段 above (recordSplitMinutes).
+                        VRow {
+                            label: qsTr("按大小分段")
+                            hint: qsTr("文件达到这个大小后，在下一个关键帧开始新文件，不中断录制。0 表示关闭，下次录制时生效")
+                            RowLayout {
+                                DialogHost.VTextField {
+                                    objectName: "record-split-mib"
+                                    implicitWidth: 88
+                                    text: String(veyra.preferences.recordSplitMiB || 0)
+                                    validator: IntValidator { bottom: 0; top: 1048576 }
+                                    onEdited: veyra.setPreference("recordSplitMiB", Number(text))
+                                }
+                                Text { text: "MiB"; color: Theme.t3; font.pixelSize: Theme.fsSmall }
+                            }
+                        }
+                    }
+                    VH3 { text: qsTr("画质"); Layout.topMargin: 6 }
+                    VGroup {
                         // PushFPS upload presets (PushOutputPresets.js): YouTube, Shorts, TikTok, Reels, X and
                         // editing, per resolution and frame rate. Every value below stays editable.
                         VRow {
@@ -848,26 +943,6 @@ VPage {
                                 }
                             }
                         }
-                        // PushFPS 4.0: the record buttons show the choices first (PushRecordDialog.qml).
-                        VRow {
-                            label: qsTr("每次录制前都询问")
-                            hint: qsTr("点录制按钮时先选形状、大小和画质再开始。录制快捷键总是直接开始")
-                            VSwitch {
-                                objectName: "set-record-ask"
-                                checked: veyra.preferences.pushRecordAsk !== false
-                                onToggled: v => veyra.setPreference("pushRecordAsk", v)
-                            }
-                        }
-                        VRow {
-                            label: qsTr("自动分段")
-                            hint: qsTr("长时间录制时每隔一段时间开始一个新文件，不中断录制；单个文件更小，出问题时损失更少")
-                            VSeg {
-                                objectName: "set-recsplit"
-                                options: [{ id: "0", label: qsTr("关") }, { id: "30", label: qsTr("%1 分钟").arg(30) }, { id: "60", label: qsTr("%1 分钟").arg(60) }, { id: "120", label: qsTr("%1 分钟").arg(120) }]
-                                current: String([0, 30, 60, 120].indexOf(Number(veyra.preferences.recordSplitMinutes || 0)) >= 0 ? Number(veyra.preferences.recordSplitMinutes || 0) : 0)
-                                onPicked: id => veyra.setPreference("recordSplitMinutes", Number(id))
-                            }
-                        }
                         VRow {
                             label: qsTr("录制帧率")
                             hint: qsTr("跟随显示可录到补帧后的画面；限速则按该帧率抽帧")
@@ -876,89 +951,6 @@ VPage {
                                 options: [{ id: "0", label: qsTr("跟随") }, { id: "30", label: "30" }, { id: "60", label: "60" }, { id: "120", label: "120" }]
                                 current: String(veyra.recordingFpsLimit)
                                 onPicked: id => veyra.setPreference("recordFps", Number(id))
-                            }
-                        }
-                        // PushFPS comparison clip: the same choices as its dialog (PushCompareDialog.qml).
-                        VRow {
-                            label: qsTr("对比片段")
-                            hint: {
-                                const n = CompareClip.layout(veyra.preferences)
-                                return n === 3 ? qsTr("整个画面：先是原帧率，一条线从左扫到右露出 PushFPS，停一会儿再扫回去，如此反复")
-                                     : n === 2 ? qsTr("竖屏 9:16，适合 TikTok、Shorts 和 Reels：上面是原帧率，下面是 PushFPS，各占半屏（取画面中间部分）")
-                                     : n === 1 ? qsTr("完整画面并排两份：左边是原帧率，右边是 PushFPS")
-                                     : qsTr("同一个画面从中间分开：左半边是原帧率，右半边是 PushFPS")
-                            }
-                            RowLayout {
-                                spacing: 8
-                                VSeg {
-                                    objectName: "set-compare-layout"
-                                    options: [{ id: "0", label: qsTr("分屏") }, { id: "1", label: qsTr("并排") }, { id: "2", label: qsTr("竖屏") }, { id: "3", label: qsTr("滑动揭示") }]
-                                    current: String(CompareClip.layout(veyra.preferences))
-                                    onPicked: id => veyra.setPreference("pushCompareLayout", Number(id))
-                                }
-                                VSeg {
-                                    objectName: "set-compare-length"
-                                    options: CompareClip.lengths.map(n => ({ id: String(n), label: qsTr("%1 秒").arg(n) }))
-                                    current: String(CompareClip.seconds(veyra.preferences))
-                                    enabled: !CompareClip.untilStop(veyra.preferences)
-                                    opacity: enabled ? 1 : 0.4
-                                    onPicked: id => veyra.setPreference("pushCompareSeconds", Number(id))
-                                }
-                            }
-                        }
-                        VRow {
-                            label: qsTr("录到我停止为止")
-                            hint: qsTr("对比片段不设时长：再点一次“对比片段”或按录制快捷键停止")
-                            VSwitch {
-                                objectName: "set-compare-until-stop"
-                                checked: CompareClip.untilStop(veyra.preferences)
-                                onToggled: v => veyra.setPreference("pushCompareUntilStop", v)
-                            }
-                        }
-                        // Split and Reveal clips fill the frame: the height they are recorded at.
-                        VRow {
-                            objectName: "set-compare-quality-row"
-                            visible: CompareClip.takesQuality(CompareClip.layout(veyra.preferences))
-                            label: qsTr("片段画质")
-                            hint: {
-                                const q = CompareClip.quality(veyra.preferences)
-                                return q === 2160 ? qsTr("最高按 4K 录制，每一帧都录：需要较强的显卡。若有帧没录下，录完会提示，请选低一档")
-                                     : q > 0 ? qsTr("最高按所选的高度录制（画面本身更小时保持原样，不放大），并用更高的码率")
-                                     : qsTr("按画面原本的大小录制，最高 1440p")
-                            }
-                            VSeg {
-                                objectName: "set-compare-quality"
-                                options: CompareClip.qualities.map(n => ({ id: String(n), label: n > 0 ? CompareClip.qualityName(n) : qsTr("自动") }))
-                                current: String(CompareClip.quality(veyra.preferences))
-                                onPicked: id => veyra.setPreference("pushCompareQuality", Number(id))
-                            }
-                        }
-                        // Reveal: how often the line sweeps.
-                        VRow {
-                            objectName: "set-compare-reveal-row"
-                            visible: CompareClip.layout(veyra.preferences) === 3
-                            label: qsTr("扫过间隔")
-                            hint: qsTr("线条每隔这么久扫过一次，在原帧率和 PushFPS 之间切换")
-                            VSeg {
-                                objectName: "set-compare-reveal"
-                                options: CompareClip.revealIntervals.map(n => ({ id: String(n), label: qsTr("%1 秒").arg(n) }))
-                                current: String(CompareClip.revealEvery(veyra.preferences))
-                                onPicked: id => veyra.setPreference("pushCompareRevealSeconds", Number(id))
-                            }
-                        }
-                        // 2.2.0's split by size. Splitting by time is the row 自动分段 above (recordSplitMinutes).
-                        VRow {
-                            label: qsTr("按大小分段")
-                            hint: qsTr("文件达到这个大小后，在下一个关键帧开始新文件，不中断录制。0 表示关闭，下次录制时生效")
-                            RowLayout {
-                                DialogHost.VTextField {
-                                    objectName: "record-split-mib"
-                                    implicitWidth: 88
-                                    text: String(veyra.preferences.recordSplitMiB || 0)
-                                    validator: IntValidator { bottom: 0; top: 1048576 }
-                                    onEdited: veyra.setPreference("recordSplitMiB", Number(text))
-                                }
-                                Text { text: "MiB"; color: Theme.t3; font.pixelSize: Theme.fsSmall }
                             }
                         }
                         VRow {
@@ -1095,6 +1087,9 @@ VPage {
                                 }
                             }
                         }
+                    }
+                    VH3 { text: qsTr("声音"); Layout.topMargin: 6 }
+                    VGroup {
                         VRow {
                             label: qsTr("录制声音")
                             hint: qsTr("录入所选音频输入，不受音量、静音和本机音频监听开关影响；采集卡需选择音频输入")
@@ -1154,6 +1149,129 @@ VPage {
                             }
                         }
                     }
+                    VH3 { text: qsTr("对比片段"); Layout.topMargin: 6 }
+                    VGroup {
+                        // PushFPS comparison clip: the same choices as its dialog (PushCompareDialog.qml).
+                        VRow {
+                            label: qsTr("对比片段")
+                            hint: {
+                                const n = CompareClip.layout(veyra.preferences)
+                                return n === 3 ? qsTr("整个画面：先是原帧率，一条线从左扫到右露出 PushFPS，停一会儿再扫回去，如此反复")
+                                     : n === 2 ? qsTr("竖屏 9:16，适合 TikTok、Shorts 和 Reels：上面是原帧率，下面是 PushFPS，各占半屏（取画面中间部分）")
+                                     : n === 1 ? qsTr("完整画面并排两份：左边是原帧率，右边是 PushFPS")
+                                     : qsTr("同一个画面从中间分开：左半边是原帧率，右半边是 PushFPS")
+                            }
+                            RowLayout {
+                                spacing: 8
+                                VSeg {
+                                    objectName: "set-compare-layout"
+                                    options: [{ id: "0", label: qsTr("分屏") }, { id: "1", label: qsTr("并排") }, { id: "2", label: qsTr("竖屏") }, { id: "3", label: qsTr("滑动揭示") }]
+                                    current: String(CompareClip.layout(veyra.preferences))
+                                    onPicked: id => veyra.setPreference("pushCompareLayout", Number(id))
+                                }
+                                VSeg {
+                                    objectName: "set-compare-length"
+                                    options: CompareClip.lengths.map(n => ({ id: String(n), label: qsTr("%1 秒").arg(n) }))
+                                    current: String(CompareClip.seconds(veyra.preferences))
+                                    enabled: !CompareClip.untilStop(veyra.preferences)
+                                    opacity: enabled ? 1 : 0.4
+                                    onPicked: id => veyra.setPreference("pushCompareSeconds", Number(id))
+                                }
+                            }
+                        }
+                        VRow {
+                            label: qsTr("录到我停止为止")
+                            hint: qsTr("对比片段不设时长：再点一次“对比片段”或按录制快捷键停止")
+                            VSwitch {
+                                objectName: "set-compare-until-stop"
+                                checked: CompareClip.untilStop(veyra.preferences)
+                                onToggled: v => veyra.setPreference("pushCompareUntilStop", v)
+                            }
+                        }
+                        // Split and Reveal clips fill the frame: the height they are recorded at.
+                        VRow {
+                            objectName: "set-compare-quality-row"
+                            visible: CompareClip.takesQuality(CompareClip.layout(veyra.preferences))
+                            label: qsTr("片段画质")
+                            hint: {
+                                const q = CompareClip.quality(veyra.preferences)
+                                return q === 2160 ? qsTr("最高按 4K 录制，每一帧都录：需要较强的显卡。若有帧没录下，录完会提示，请选低一档")
+                                     : q > 0 ? qsTr("最高按所选的高度录制（画面本身更小时保持原样，不放大），并用更高的码率")
+                                     : qsTr("按画面原本的大小录制，最高 1440p")
+                            }
+                            VSeg {
+                                objectName: "set-compare-quality"
+                                options: CompareClip.qualities.map(n => ({ id: String(n), label: n > 0 ? CompareClip.qualityName(n) : qsTr("自动") }))
+                                current: String(CompareClip.quality(veyra.preferences))
+                                onPicked: id => veyra.setPreference("pushCompareQuality", Number(id))
+                            }
+                        }
+                        // Reveal: how often the line sweeps.
+                        VRow {
+                            objectName: "set-compare-reveal-row"
+                            visible: CompareClip.layout(veyra.preferences) === 3
+                            label: qsTr("扫过间隔")
+                            hint: qsTr("线条每隔这么久扫过一次，在原帧率和 PushFPS 之间切换")
+                            VSeg {
+                                objectName: "set-compare-reveal"
+                                options: CompareClip.revealIntervals.map(n => ({ id: String(n), label: qsTr("%1 秒").arg(n) }))
+                                current: String(CompareClip.revealEvery(veyra.preferences))
+                                onPicked: id => veyra.setPreference("pushCompareRevealSeconds", Number(id))
+                            }
+                        }
+                    }
+                    VH3 { text: qsTr("即时回放与分享"); Layout.topMargin: 6 }
+                    // Instant replay (#103): the last few seconds or minutes in memory.
+                    VGroup {
+                        objectName: "set-replay-group"
+                        VRow {
+                            label: qsTr("即时回放")
+                            hint: qsTr("在内存中保留最近一段画面和声音，按 %1 保存到录制保存位置；会多占用一路硬件编码").arg(veyra.shortcuts.replay || qsTr("快捷键"))
+                            VSwitch {
+                                objectName: "set-replay"
+                                checked: veyra.replayEnabled
+                                onToggled: v => veyra.setPreference("replayEnabled", v)
+                            }
+                        }
+                        VRow {
+                            visible: veyra.replayEnabled
+                            label: qsTr("回放长度")
+                            hint: {
+                                const s = veyra.replayState || {}
+                                // Live: what the buffer holds now and what the chosen length takes when full.
+                                if (!s.active || !(s.seconds > 0))
+                                    return s.fullMegabytes > 0 ? qsTr("存满后约占用 %1 MB 内存（上限 %2 MB），保存的片段在磁盘上大小相近；播放时开始缓存").arg(s.fullMegabytes).arg(s.capMegabytes)
+                                                               : qsTr("播放时开始缓存；录制码率越高，占用内存越多")
+                                if (s.memoryLimited) return qsTr("内存上限只够保留 %1 秒（约 %2 MB），可降低录制码率").arg(s.seconds).arg(s.megabytes)
+                                return s.fullMegabytes > 0 ? qsTr("已缓存 %1 秒，占用内存约 %2 MB；存满后约 %3 MB，保存的片段在磁盘上大小相近").arg(s.seconds).arg(s.megabytes).arg(s.fullMegabytes)
+                                                           : qsTr("已缓存 %1 秒，占用内存约 %2 MB").arg(s.seconds).arg(s.megabytes)
+                            }
+                            VSeg {
+                                objectName: "set-replay-seconds"
+                                options: [{ id: "15", label: qsTr("15 秒") }, { id: "30", label: qsTr("30 秒") }, { id: "60", label: qsTr("1 分钟") },
+                                          { id: "120", label: qsTr("2 分钟") }, { id: "300", label: qsTr("5 分钟") }, { id: "600", label: qsTr("10 分钟") }]
+                                current: String(veyra.replaySeconds)
+                                onPicked: id => veyra.setPreference("replaySeconds", Number(id))
+                            }
+                        }
+                        // PushFPS: where "Send to Discord" on a saved clip goes.
+                        VRow {
+                            objectName: "set-discord-webhook-row"
+                            label: qsTr("Discord Webhook")
+                            hint: String(veyra.preferences.pushDiscordWebhook || "").length > 0
+                                  ? qsTr("已设置：保存的片段可一键发送到这个频道（10 MB 以内）")
+                                  : qsTr("可选。在 Discord 频道 → 编辑频道 → 整合 → Webhook 中复制地址；不填时“分享到 Discord”会复制文件并打开 Discord")
+                            hintBelow: true
+                            DialogTextField {
+                                objectName: "set-discord-webhook"
+                                implicitWidth: 240
+                                placeholder: "https://discord.com/api/webhooks/…"
+                                text: String(veyra.preferences.pushDiscordWebhook || "")
+                                onEdited: t => veyra.setPreference("pushDiscordWebhook", t)
+                            }
+                        }
+                    }
+                    VH3 { text: qsTr("虚拟摄像机"); Layout.topMargin: 6 }
                     VGroup {
                         objectName: "set-virtual-camera-group"
                         VRow {
@@ -1220,83 +1338,6 @@ VPage {
                             hintColor: Theme.warn
                             hint: qsTr("画面 %1 帧/秒不是直播软件 %2 帧/秒的整数倍，直播画面会一快一慢交替。请换成整数倍的补帧倍数，例如 30 帧游戏直播 60 帧时用 2X 或 4X")
                                   .arg(cam.presentedFps).arg(cam.consumerFps)
-                        }
-                    }
-                    // Instant replay (#103): the last few seconds or minutes in memory.
-                    VGroup {
-                        objectName: "set-replay-group"
-                        VRow {
-                            label: qsTr("即时回放")
-                            hint: qsTr("在内存中保留最近一段画面和声音，按 %1 保存到录制保存位置；会多占用一路硬件编码").arg(veyra.shortcuts.replay || qsTr("快捷键"))
-                            VSwitch {
-                                objectName: "set-replay"
-                                checked: veyra.replayEnabled
-                                onToggled: v => veyra.setPreference("replayEnabled", v)
-                            }
-                        }
-                        VRow {
-                            visible: veyra.replayEnabled
-                            label: qsTr("回放长度")
-                            hint: {
-                                const s = veyra.replayState || {}
-                                // Live: what the buffer holds now and what the chosen length takes when full.
-                                if (!s.active || !(s.seconds > 0))
-                                    return s.fullMegabytes > 0 ? qsTr("存满后约占用 %1 MB 内存（上限 %2 MB），保存的片段在磁盘上大小相近；播放时开始缓存").arg(s.fullMegabytes).arg(s.capMegabytes)
-                                                               : qsTr("播放时开始缓存；录制码率越高，占用内存越多")
-                                if (s.memoryLimited) return qsTr("内存上限只够保留 %1 秒（约 %2 MB），可降低录制码率").arg(s.seconds).arg(s.megabytes)
-                                return s.fullMegabytes > 0 ? qsTr("已缓存 %1 秒，占用内存约 %2 MB；存满后约 %3 MB，保存的片段在磁盘上大小相近").arg(s.seconds).arg(s.megabytes).arg(s.fullMegabytes)
-                                                           : qsTr("已缓存 %1 秒，占用内存约 %2 MB").arg(s.seconds).arg(s.megabytes)
-                            }
-                            VSeg {
-                                objectName: "set-replay-seconds"
-                                options: [{ id: "15", label: qsTr("15 秒") }, { id: "30", label: qsTr("30 秒") }, { id: "60", label: qsTr("1 分钟") },
-                                          { id: "120", label: qsTr("2 分钟") }, { id: "300", label: qsTr("5 分钟") }, { id: "600", label: qsTr("10 分钟") }]
-                                current: String(veyra.replaySeconds)
-                                onPicked: id => veyra.setPreference("replaySeconds", Number(id))
-                            }
-                        }
-                        // PushFPS: where "Send to Discord" on a saved clip goes.
-                        VRow {
-                            objectName: "set-discord-webhook-row"
-                            label: qsTr("Discord Webhook")
-                            hint: String(veyra.preferences.pushDiscordWebhook || "").length > 0
-                                  ? qsTr("已设置：保存的片段可一键发送到这个频道（10 MB 以内）")
-                                  : qsTr("可选。在 Discord 频道 → 编辑频道 → 整合 → Webhook 中复制地址；不填时“分享到 Discord”会复制文件并打开 Discord")
-                            hintBelow: true
-                            DialogTextField {
-                                objectName: "set-discord-webhook"
-                                implicitWidth: 240
-                                placeholder: "https://discord.com/api/webhooks/…"
-                                text: String(veyra.preferences.pushDiscordWebhook || "")
-                                onEdited: t => veyra.setPreference("pushDiscordWebhook", t)
-                            }
-                        }
-                    }
-                    }
-                    VGroup {
-                        objectName: "set-smooth-motion"
-                        VRow {
-                            label: qsTr("Smooth Motion 开启方法")
-                            hint: qsTr("NVIDIA 驱动级 AI 插帧，与软件内补帧二选一")
-                            VButton {
-                                text: smoothHelp.visible ? qsTr("收起") : qsTr("查看")
-                                ghost: true
-                                onClicked: smoothHelp.visible = !smoothHelp.visible
-                            }
-                        }
-                        Text {
-                            id: smoothHelp
-                            visible: false
-                            Layout.fillWidth: true
-                            Layout.leftMargin: 12; Layout.rightMargin: 12; Layout.bottomMargin: 10
-                            text: qsTr("只用驱动补帧时：在专业模式的补帧页关闭补帧，再到 NVIDIA App 打开 Smooth Motion（AI 插帧）。") + "\n"
-                                  + qsTr("只用 DLSS / XeSS 补帧时：到 NVIDIA App 关闭 Smooth Motion。") + "\n"
-                                  + qsTr("软件不检测、不拦截两者叠加，也不修改驱动配置；AMD FSR 补帧暂不提供。")
-                            color: Theme.t2
-                            font.family: Theme.fontUi
-                            font.pixelSize: 12
-                            wrapMode: Text.WordWrap
-                            lineHeight: 1.3
                         }
                     }
                 }
