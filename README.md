@@ -262,10 +262,13 @@ the extras.
 | GeForce RTX 4090 | NVIDIA | Tested |
 | GeForce RTX 4080 | NVIDIA | Tested |
 | GeForce RTX 4070 | NVIDIA | Tested |
+| GeForce RTX 3060 | NVIDIA | Tested |
 | Radeon RX 9070 XT | AMD | Tested |
 
 *Tested* means PushFPS has been run on that card with real games. It is a compatibility list, not a speed
-ranking, and other DirectX 12 cards should work too. To get your card on it: play for a while, copy the
+ranking, and other DirectX 12 cards should work too. The RTX 3060 is the smallest NVIDIA card it has been
+run on: frame generation and AI picture enhancement both work there, so the RTX cards between it and the
+ones listed are expected to work the same. To get your card on it: play for a while, copy the
 **performance report** (*Settings → Performance report*) and open a
 [hardware report](https://github.com/DosukaSOL/PushFPS/issues/new?template=hardware-report.yml).
 [How to measure, and what the numbers mean](docs/BENCHMARKING.md).

@@ -1622,6 +1622,10 @@ public:
     // personal), and the same copied to the clipboard with a notice.
     Q_INVOKABLE QString pushPerformanceReport() const;
     Q_INVOKABLE bool pushCopyPerformanceReport();
+    // PushFPS: Windows' camera permission for desktop programs (a capture card counts as a camera): "" allowed,
+    // "denied-pc" / "denied-user" / "denied-desktop" by which switch; and its settings page.
+    Q_INVOKABLE QString pushCameraAccess() const;
+    Q_INVOKABLE bool pushOpenCameraPrivacy();
     Q_INVOKABLE bool pushFlowHalfTesting() const;
     // PushFPS 窗口置顶: keeps a top-level window above others (SetWindowPos, no window recreation).
     Q_INVOKABLE bool pushSetAlwaysOnTop(QObject* window, bool onTop);

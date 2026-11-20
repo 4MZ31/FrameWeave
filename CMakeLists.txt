@@ -1184,6 +1184,10 @@ target_include_directories(veyra_push_display_cap_tests PRIVATE ${CMAKE_CURRENT_
 add_executable(veyra_push_remote_sync_tests tests/unit/PushRemoteSyncTests.cpp)
 target_compile_features(veyra_push_remote_sync_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_remote_sync_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: which video device is the capture card (source/PushCaptureDevicePick.h, pure; also builds with g++).
+add_executable(veyra_push_capture_device_pick_tests tests/unit/PushCaptureDevicePickTests.cpp)
+target_compile_features(veyra_push_capture_device_pick_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_capture_device_pick_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_push_fg_health_tests tests/unit/PushFgHealthTests.cpp)
 target_compile_features(veyra_push_fg_health_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_fg_health_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -797,6 +797,35 @@
     }
    ],
    "needs_hardware": "A PS5 on Remote Play: the fault was reported by users and its mechanism found by reading; nobody has heard the fix."
+  },
+  {
+   "id": "F33",
+   "what": "The capture dialog starts with the capture card chosen, not the first camera Windows lists (a laptop's webcam, a program's virtual camera): people with lesser-known cards reported that PushFPS could not find their card. A program's camera is never chosen by itself; a remembered card and the user's own choice are untouched",
+   "guards": [
+    {
+     "file": "tests/unit/PushCaptureDevicePickTests.cpp",
+     "ci": "veyra_push_capture_device_pick_tests",
+     "contains": "the report: the webcam was chosen"
+    },
+    {
+     "file": "tests/unit/PushCaptureDevicePickTests.cpp",
+     "ci": "veyra_push_capture_device_pick_tests",
+     "contains": "programs' cameras only: nothing"
+    }
+   ],
+   "needs_hardware": "A PC with a webcam and a capture card that was never used with PushFPS: the dialog's first choice. No capture card exists in CI."
+  },
+  {
+   "id": "F34",
+   "what": "90 FPS is offered as a target on a screen whose refresh rate is a whole number of 90s (180, 270, 360 Hz), beside 120, and never for a 60 FPS game",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_90_fps_target_on_a_screen_that_is_a_multiple_of_90"
+    }
+   ],
+   "needs_hardware": "A 360 Hz screen: how 30 FPS at 3X looks there."
   }
  ]
 }

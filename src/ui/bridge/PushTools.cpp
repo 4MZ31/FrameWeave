@@ -14,6 +14,7 @@
 #include "veyra/engine/PushPerfReport.h"
 #include "veyra/gfx/D3D12DeviceContext.h"
 #include <QCoreApplication>
+#include <QDesktopServices>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -22,9 +23,11 @@
 #include <QJsonObject>
 #include <QProcess>
 #include <QProcessEnvironment>
+#include <QSettings>
 #include <QStandardPaths>
 #include <QSysInfo>
 #include <QTimer>
+#include <QUrl>
 #include <format>
 
 namespace veyra::ui {
@@ -270,4 +273,21 @@ QVariantMap QmlPlayerBridge::pushCardTestStatus() const {
     return status;
 }
 
+// Why a capture card may be missing or dark: Windows counts it among the cameras, and with camera access
+// switched off for desktop programs no program gets its picture. Read from the three places Windows keeps
+// that switch (this PC, this user, desktop programs); nothing is changed here.
+QString QmlPlayerBridge::pushCameraAccess() const {
+    const auto denied = [](const QString& key) {
+        return QSettings(key, QSettings::NativeFormat).value(QStringLiteral("Value")).toString().compare(QLatin1String("Deny"), Qt::CaseInsensitive) == 0;
+    };
+    const QString store = QStringLiteral("\\Software\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\webcam");
+    if (denied(QStringLiteral("HKEY_LOCAL_MACHINE") + store)) return QStringLiteral("denied-pc");
+    if (denied(QStringLiteral("HKEY_CURRENT_USER") + store)) return QStringLiteral("denied-user");
+    if (denied(QStringLiteral("HKEY_CURRENT_USER") + store + QStringLiteral("\\NonPackaged"))) return QStringLiteral("denied-desktop");
+    return {};
+}
+bool QmlPlayerBridge::pushOpenCameraPrivacy() {
+    veyra::log::info("capture-ui", "opening Windows camera privacy settings");
+    return QDesktopServices::openUrl(QUrl(QStringLiteral("ms-settings:privacy-webcam")));
+}
 }  // namespace veyra::ui

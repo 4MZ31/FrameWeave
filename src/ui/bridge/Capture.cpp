@@ -1,5 +1,6 @@
 // QML bridge: Capture responsibilities.
 #include "veyra/source/PushCaptureAudioSuggest.h"
+#include "veyra/source/PushCaptureDevicePick.h"
 #include "../QmlPlayerBridge_p.h"
 #include "veyra/source/VirtualDesktop.h"
 #include "veyra/source/WasapiAudioInput.h"
@@ -440,9 +441,21 @@ void QmlPlayerBridge::tickCapture() {
         const auto remembered=wideOf(i.prefs.value(native?"blackmagicNativeLastDevice":"blackmagicDirectShowLastDevice").toString());
         if(pick.empty()&&allowed(remembered))pick=remembered;
         if(pick.empty()&&native){std::vector<std::wstring> candidates;for(const auto& d:i.captureVideo)if(source::decklink::isPath(d.path))candidates.push_back(d.path);if(candidates.size()==1)pick=candidates.front();}
-        if (pick.empty() && !choices.empty() && i.capturePrefs.videoPath.empty()&&!native) pick=wideOf(choices.front().toMap().value("id").toString());
+        // PushFPS: on a PC where no card was used yet, the capture card and not whatever Windows lists first
+        // (the laptop's webcam, a program's virtual camera): source/PushCaptureDevicePick.h.
+        const bool neverSetUp=i.capturePrefs.videoPath.empty()&&!native;
+        if (pick.empty() && !choices.empty() && neverSetUp) {
+            std::vector<std::wstring> names;
+            for (const auto& value : choices) names.push_back(wideOf(value.toMap().value("label").toString()));
+            const int best = source::pushPickCaptureDevice(names);
+            if (best >= 0) pick = wideOf(choices[best].toMap().value("id").toString());
+            veyra::log::info("capture-ui", std::format("first choice: device {} of {} (kind {}; 3 card, 2 unnamed, 1 camera, -1 programs' cameras only)",
+                best, names.size(), best >= 0 ? int(source::pushDeviceKind(names[size_t(best)])) : -1));
+        }
         i.captureStatus = i.captureVideo.empty() ? tr("未找到采集设备。连接后点击刷新。")
-                        : pick.empty() ? tr("上次采集设备未连接。插回后刷新，或手动选择其他设备。") : QString();
+                        : !pick.empty() ? QString()
+                        : neverSetUp ? tr("没有找到采集卡：列表里只有其他程序的虚拟摄像头。接上采集卡后点刷新。")
+                        : tr("上次采集设备未连接。插回后刷新，或手动选择其他设备。");
         if (!pick.empty()) {
             i.captureDevice.clear();
             setCaptureDeviceId(utf8Of(pick));

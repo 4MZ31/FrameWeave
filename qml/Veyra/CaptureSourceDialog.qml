@@ -30,6 +30,7 @@ DialogLayer {
         target: dialogHost
         function onDialogChanged() {
             if (dialogHost.dialog !== "capture" || captureDialog.onboardingActive) return
+            cardHelp.read()
             veyra.refreshCaptureDevices()
             // The PS5 手柄控制 host list is the PS5 dialog's saved pairings.
             if (veyra.ps5Control.available === true) veyra.ps5Load()
@@ -166,10 +167,32 @@ DialogLayer {
                         anchors.fill: parent
                         visible: !veyra.captureQueryBusy
                         icon: true; ghost: true; iconName: "refresh"; tip: qsTr("刷新设备")
-                        onClicked: veyra.refreshCaptureDevices()
+                        onClicked: { cardHelp.read(); veyra.refreshCaptureDevices() }
                     }
                     VSpinner { anchors.centerIn: parent; visible: veyra.captureQueryBusy }
                 }
+            }
+        }
+        // PushFPS: when no card is listed, or Windows keeps desktop programs away from cameras (a capture card
+        // counts as one), the dialog says what to check and opens the setting. Read when the dialog opens and
+        // at every refresh; nothing is changed from here.
+        VRow {
+            id: cardHelp
+            objectName: "pushfps-capture-help-row"
+            property string access: ""
+            function read() { access = typeof veyra.pushCameraAccess === "function" ? String(veyra.pushCameraAccess() || "") : "" }
+            Component.onCompleted: read()
+            readonly property bool denied: access.length > 0
+            readonly property bool none: !veyra.captureQueryBusy && veyra.captureDevices.length === 0
+            visible: denied || none
+            hintBelow: true
+            label: denied ? qsTr("Windows 不让程序使用摄像头") : qsTr("找不到采集卡？")
+            hint: denied ? qsTr("Windows 把采集卡算作摄像头。请在 Windows 的「隐私和安全性 → 摄像头」里打开「摄像头访问」和「允许桌面应用访问摄像头」，然后点刷新")
+                         : qsTr("依次检查：采集卡插在 USB 3 接口上（通常是蓝色），换一个接口或一根线试试；厂商提供驱动的卡要先装驱动；关掉其他正在使用它的程序（OBS、厂商自己的软件）；在 Windows 的「隐私和安全性 → 摄像头」里允许桌面应用访问摄像头。然后点刷新")
+            VButton {
+                objectName: "pushfps-capture-help-privacy"
+                text: qsTr("打开摄像头权限设置")
+                onClicked: if (typeof veyra.pushOpenCameraPrivacy === "function") veyra.pushOpenCameraPrivacy()
             }
         }
         VRow {

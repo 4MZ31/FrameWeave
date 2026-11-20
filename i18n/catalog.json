@@ -8450,6 +8450,40 @@
    "ru": "Windows не позволяет PushFPS использовать микрофон; разрешить настольные приложения в настройках → Конфиденциальность и безопасность → Микрофон"
   },
   {
+   "zh": "Windows 不让程序使用摄像头",
+   "src": "qml/CaptureSourceDialog.qml",
+   "zh-TW": "Windows 不讓程式使用攝影機",
+   "en": "Windows is blocking camera access",
+   "ja": "Windows がカメラへのアクセスを止めています",
+   "nl": "Windows is blocking camera access",
+   "de": "Windows is blocking camera access",
+   "es": "Windows is blocking camera access",
+   "fr": "Windows is blocking camera access",
+   "it": "Windows is blocking camera access",
+   "pt-BR": "Windows is blocking camera access",
+   "tr": "Windows is blocking camera access",
+   "ar": "Windows is blocking camera access",
+   "pl": "Windows is blocking camera access",
+   "ru": "Windows is blocking camera access"
+  },
+  {
+   "zh": "Windows 把采集卡算作摄像头。请在 Windows 的「隐私和安全性 → 摄像头」里打开「摄像头访问」和「允许桌面应用访问摄像头」，然后点刷新",
+   "src": "qml/CaptureSourceDialog.qml",
+   "zh-TW": "Windows 把擷取卡算作攝影機。請在 Windows 的「隱私權與安全性 → 相機」裡開啟「相機存取」和「讓傳統型應用程式存取您的相機」，然後按重新整理",
+   "en": "Windows counts a capture card as a camera. In Windows, open Privacy & security → Camera and turn on \"Camera access\" and \"Let desktop apps access your camera\", then press refresh",
+   "ja": "Windows はキャプチャーカードをカメラとして扱います。Windows の「プライバシーとセキュリティ → カメラ」で「カメラへのアクセス」と「デスクトップ アプリがカメラにアクセスできるようにする」をオンにして、更新を押してください",
+   "nl": "Windows counts a capture card as a camera. In Windows, open Privacy & security → Camera and turn on \"Camera access\" and \"Let desktop apps access your camera\", then press refresh",
+   "de": "Windows counts a capture card as a camera. In Windows, open Privacy & security → Camera and turn on \"Camera access\" and \"Let desktop apps access your camera\", then press refresh",
+   "es": "Windows counts a capture card as a camera. In Windows, open Privacy & security → Camera and turn on \"Camera access\" and \"Let desktop apps access your camera\", then press refresh",
+   "fr": "Windows counts a capture card as a camera. In Windows, open Privacy & security → Camera and turn on \"Camera access\" and \"Let desktop apps access your camera\", then press refresh",
+   "it": "Windows counts a capture card as a camera. In Windows, open Privacy & security → Camera and turn on \"Camera access\" and \"Let desktop apps access your camera\", then press refresh",
+   "pt-BR": "Windows counts a capture card as a camera. In Windows, open Privacy & security → Camera and turn on \"Camera access\" and \"Let desktop apps access your camera\", then press refresh",
+   "tr": "Windows counts a capture card as a camera. In Windows, open Privacy & security → Camera and turn on \"Camera access\" and \"Let desktop apps access your camera\", then press refresh",
+   "ar": "Windows counts a capture card as a camera. In Windows, open Privacy & security → Camera and turn on \"Camera access\" and \"Let desktop apps access your camera\", then press refresh",
+   "pl": "Windows counts a capture card as a camera. In Windows, open Privacy & security → Camera and turn on \"Camera access\" and \"Let desktop apps access your camera\", then press refresh",
+   "ru": "Windows counts a capture card as a camera. In Windows, open Privacy & security → Camera and turn on \"Camera access\" and \"Let desktop apps access your camera\", then press refresh"
+  },
+  {
    "zh": "X 为上限",
    "src": "qml/NodePage.qml",
    "zh-TW": "X 為上限",
@@ -13327,6 +13361,23 @@
    "ar": "مثلًا: لعب ليلي",
    "pl": "np. Granie wieczorem",
    "ru": "напр. Вечерняя игра"
+  },
+  {
+   "zh": "依次检查：采集卡插在 USB 3 接口上（通常是蓝色），换一个接口或一根线试试；厂商提供驱动的卡要先装驱动；关掉其他正在使用它的程序（OBS、厂商自己的软件）；在 Windows 的「隐私和安全性 → 摄像头」里允许桌面应用访问摄像头。然后点刷新",
+   "src": "qml/CaptureSourceDialog.qml",
+   "zh-TW": "依序檢查：擷取卡插在 USB 3 連接埠上（通常是藍色），換一個連接埠或一條線試試；廠商提供驅動程式的卡要先安裝驅動程式；關掉其他正在使用它的程式（OBS、廠商自己的軟體）；在 Windows 的「隱私權與安全性 → 相機」裡允許傳統型應用程式存取相機。然後按重新整理",
+   "en": "Check these in turn: the card is in a USB 3 port (usually blue), and try another port or cable; if its maker offers a driver, install it; close other programs that are using the card (OBS, the maker's own app); in Windows, Privacy & security → Camera must allow desktop apps. Then press refresh",
+   "ja": "順に確認してください：カードを USB 3 ポート（通常は青）に挿す、別のポートやケーブルを試す。メーカーのドライバーがあれば入れる。カードを使っている他のアプリ（OBS、メーカーのアプリ）を閉じる。Windows の「プライバシーとセキュリティ → カメラ」でデスクトップ アプリを許可する。その後、更新を押してください",
+   "nl": "Check these in turn: the card is in a USB 3 port (usually blue), and try another port or cable; if its maker offers a driver, install it; close other programs that are using the card (OBS, the maker's own app); in Windows, Privacy & security → Camera must allow desktop apps. Then press refresh",
+   "de": "Check these in turn: the card is in a USB 3 port (usually blue), and try another port or cable; if its maker offers a driver, install it; close other programs that are using the card (OBS, the maker's own app); in Windows, Privacy & security → Camera must allow desktop apps. Then press refresh",
+   "es": "Check these in turn: the card is in a USB 3 port (usually blue), and try another port or cable; if its maker offers a driver, install it; close other programs that are using the card (OBS, the maker's own app); in Windows, Privacy & security → Camera must allow desktop apps. Then press refresh",
+   "fr": "Check these in turn: the card is in a USB 3 port (usually blue), and try another port or cable; if its maker offers a driver, install it; close other programs that are using the card (OBS, the maker's own app); in Windows, Privacy & security → Camera must allow desktop apps. Then press refresh",
+   "it": "Check these in turn: the card is in a USB 3 port (usually blue), and try another port or cable; if its maker offers a driver, install it; close other programs that are using the card (OBS, the maker's own app); in Windows, Privacy & security → Camera must allow desktop apps. Then press refresh",
+   "pt-BR": "Check these in turn: the card is in a USB 3 port (usually blue), and try another port or cable; if its maker offers a driver, install it; close other programs that are using the card (OBS, the maker's own app); in Windows, Privacy & security → Camera must allow desktop apps. Then press refresh",
+   "tr": "Check these in turn: the card is in a USB 3 port (usually blue), and try another port or cable; if its maker offers a driver, install it; close other programs that are using the card (OBS, the maker's own app); in Windows, Privacy & security → Camera must allow desktop apps. Then press refresh",
+   "ar": "Check these in turn: the card is in a USB 3 port (usually blue), and try another port or cable; if its maker offers a driver, install it; close other programs that are using the card (OBS, the maker's own app); in Windows, Privacy & security → Camera must allow desktop apps. Then press refresh",
+   "pl": "Check these in turn: the card is in a USB 3 port (usually blue), and try another port or cable; if its maker offers a driver, install it; close other programs that are using the card (OBS, the maker's own app); in Windows, Privacy & security → Camera must allow desktop apps. Then press refresh",
+   "ru": "Check these in turn: the card is in a USB 3 port (usually blue), and try another port or cable; if its maker offers a driver, install it; close other programs that are using the card (OBS, the maker's own app); in Windows, Privacy & security → Camera must allow desktop apps. Then press refresh"
   },
   {
    "zh": "便携模式",
@@ -34427,6 +34478,23 @@
    "ru": "Открыть описание API"
   },
   {
+   "zh": "打开摄像头权限设置",
+   "src": "qml/CaptureSourceDialog.qml",
+   "zh-TW": "開啟相機權限設定",
+   "en": "Open camera privacy settings",
+   "ja": "カメラのプライバシー設定を開く",
+   "nl": "Open camera privacy settings",
+   "de": "Open camera privacy settings",
+   "es": "Open camera privacy settings",
+   "fr": "Open camera privacy settings",
+   "it": "Open camera privacy settings",
+   "pt-BR": "Open camera privacy settings",
+   "tr": "Open camera privacy settings",
+   "ar": "Open camera privacy settings",
+   "pl": "Open camera privacy settings",
+   "ru": "Open camera privacy settings"
+  },
+  {
    "zh": "打开支持 PushFPS 画面输入的应用后，它会自动出现在这里",
    "src": "qml/PushFrameInputDialog.qml",
    "zh-TW": "開啟支援 PushFPS 畫面輸入的應用後，它會自動出現在這裡",
@@ -35003,6 +35071,23 @@
    "ar": "This console cannot be found; it may have been removed from the account. Refresh the console list.",
    "pl": "Konsola ta może zostać usunięta z konta. Odśwież listę konsoli.",
    "ru": "Эта консоль не может быть найдена; она может быть удалена из учетной записи. Обновите список консолей."
+  },
+  {
+   "zh": "找不到采集卡？",
+   "src": "qml/CaptureSourceDialog.qml",
+   "zh-TW": "找不到擷取卡？",
+   "en": "Capture card not showing?",
+   "ja": "キャプチャーカードが出てきませんか？",
+   "nl": "Capture card not showing?",
+   "de": "Capture card not showing?",
+   "es": "Capture card not showing?",
+   "fr": "Capture card not showing?",
+   "it": "Capture card not showing?",
+   "pt-BR": "Capture card not showing?",
+   "tr": "Capture card not showing?",
+   "ar": "Capture card not showing?",
+   "pl": "Capture card not showing?",
+   "ru": "Capture card not showing?"
   },
   {
    "zh": "找到 %1 个 HUD 区域。请检查绿色方框，必要时拖动修正，然后点「应用」",
@@ -46734,6 +46819,23 @@
    "ar": "لا يوجد تطبيق يرسل صورة الآن",
    "pl": "Żadna aplikacja nie wysyła teraz obrazu",
    "ru": "Сейчас ни одно приложение не передаёт картинку"
+  },
+  {
+   "zh": "没有找到采集卡：列表里只有其他程序的虚拟摄像头。接上采集卡后点刷新。",
+   "src": "src/ui/bridge/Capture.cpp",
+   "zh-TW": "沒有找到擷取卡：清單裡只有其他程式的虛擬攝影機。接上擷取卡後按重新整理。",
+   "en": "No capture card found: the list only has other programs' virtual cameras. Plug the card in, then press refresh.",
+   "ja": "キャプチャーカードが見つかりません。一覧には他のアプリの仮想カメラしかありません。カードを接続して更新を押してください。",
+   "nl": "No capture card found: the list only has other programs' virtual cameras. Plug the card in, then press refresh.",
+   "de": "No capture card found: the list only has other programs' virtual cameras. Plug the card in, then press refresh.",
+   "es": "No capture card found: the list only has other programs' virtual cameras. Plug the card in, then press refresh.",
+   "fr": "No capture card found: the list only has other programs' virtual cameras. Plug the card in, then press refresh.",
+   "it": "No capture card found: the list only has other programs' virtual cameras. Plug the card in, then press refresh.",
+   "pt-BR": "No capture card found: the list only has other programs' virtual cameras. Plug the card in, then press refresh.",
+   "tr": "No capture card found: the list only has other programs' virtual cameras. Plug the card in, then press refresh.",
+   "ar": "No capture card found: the list only has other programs' virtual cameras. Plug the card in, then press refresh.",
+   "pl": "No capture card found: the list only has other programs' virtual cameras. Plug the card in, then press refresh.",
+   "ru": "No capture card found: the list only has other programs' virtual cameras. Plug the card in, then press refresh."
   },
   {
    "zh": "没有收到画面。请确认画面正在播放，并且 PushFPS 窗口没有最小化",

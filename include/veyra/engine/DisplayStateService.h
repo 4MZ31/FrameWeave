@@ -21,7 +21,6 @@ struct DisplayColorState {
     gfx::DisplayPeakTrust peakTrust=gfx::DisplayPeakTrust::Unknown;
     unsigned peakNits=0,fullFrameNits=0;
     double minNits=0;
-    bool peakPlausible=false;
 };
 // Refresh rate, NVIDIA variable-refresh and HDR state of one monitor.
 struct DisplayState {
