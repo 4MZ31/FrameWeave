@@ -235,7 +235,20 @@ jobs:
             @{ name = '106-light-rose-settings'; args = @('--page', 'set', '--lang', 'en', '--theme', 'light', '--pref', 'accent=rose') },
             @{ name = '107-capture-help'; args = @('--page', 'home', '--dialog', 'capture', '--lang', 'en') },
             @{ name = '108-settings-recording-page'; args = @('--page', 'set', '--tab', 'rec', '--lang', 'en') },
-            @{ name = '109-settings-playback-page'; args = @('--page', 'set', '--tab', 'play', '--lang', 'en') }
+,
+            # 4.1's later parts: Check my setup (with nothing playing, and over the playing test pattern), the six
+            # tool tiles, the high-contrast look, the record dialog with the vertical copy, local control's group,
+            # and the readout in its largest size over a playing picture.
+            @{ name = '110-check-my-setup-idle'; args = @('--page', 'home', '--dialog', 'diagnose', '--lang', 'en', '--pref', 'pushSunset=false') },
+            @{ name = '111-check-my-setup-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--dialog', 'diagnose', '--lang', 'en', '--pref', 'pushSunset=false') },
+            @{ name = '112-home-tools'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushSunset=false', '--scroll-to', 'pushfps-tools-row') },
+            @{ name = '113-contrast-home'; args = @('--page', 'home', '--lang', 'en', '--theme', 'contrast', '--pref', 'pushSunset=false', '--dock-pinned') },
+            @{ name = '114-contrast-settings'; args = @('--page', 'set', '--lang', 'en', '--theme', 'contrast') },
+            @{ name = '115-contrast-pro'; args = @('--page', 'pro', '--tab', 'fg', '--lang', 'en', '--theme', 'contrast') },
+            @{ name = '116-record-vertical-copy'; args = @('--page', 'home', '--dialog', 'record', '--lang', 'en', '--pref', 'pushRecordVerticalCopy=true') },
+            @{ name = '117-settings-local-control'; args = @('--page', 'set', '--tab', 'rec', '--lang', 'en', '--scroll-to', 'set-control-group') },
+            @{ name = '118-readout-largest-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--lang', 'en', '--pref', 'pushLatencyOverlay=true', '--pref', 'pushLatencySize=2', '--pref', 'pushSunset=false') },
+            @{ name = '119-settings-playback-scaling'; args = @('--page', 'set', '--tab', 'play', '--lang', 'en', '--scroll-to', 'set-sharp-scaling-row') }
           )
           if ($env:ONLY) { $list = @($list | Where-Object { $_.name -match $env:ONLY }); Write-Host "Only: $($list.name -join ', ')" }
           foreach ($s in $list) {

@@ -865,7 +865,7 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
     //   --aspect <ratio>        cinema aspect, overriding the source's own
     //   --menu <source|preset>  professional-page popover menu open
     //   --dock-pinned           dock open and held open
-    //   --theme <default|black|light|midnight|plum|forest>  PushFPS appearance for this run (not saved)
+    //   --theme <default|black|light|midnight|plum|forest|contrast>  PushFPS appearance for this run (not saved)
     //   --lang <code>           interface language, written to that run's preferences (use with --data-dir)
     //   --pref <key=value>      a preference for that run (repeatable; true/false/numbers/text, use with --data-dir)
     //   --tip <page>            the dock button's tooltip for that page shown (review)
