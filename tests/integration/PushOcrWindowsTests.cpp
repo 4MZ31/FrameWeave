@@ -52,7 +52,8 @@ static bool draw(int width, int height, std::vector<unsigned char>& pixels) {
     const HGDIOBJ oldBitmap = SelectObject(dc, bitmap);
     RECT all{0, 0, width, height};
     FillRect(dc, &all, static_cast<HBRUSH>(GetStockObject(WHITE_BRUSH)));
-    const HFONT font = CreateFontW(height * 110 / 480, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+    // A tenth of the picture's height: 48 pixels in the bitmap (read at twice that), 80 in the HDR frame.
+    const HFONT font = CreateFontW(height / 10, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                                    ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial");
     const HGDIOBJ oldFont = SelectObject(dc, font);
     SetBkMode(dc, TRANSPARENT);
@@ -137,7 +138,7 @@ int main() {
             size_t darkPixels = 0; bool opaque = true;
             for (size_t i = 0; i < picture.bgra.size(); i += 4) { if (picture.bgra[i + 1] < 64) ++darkPixels; opaque = opaque && picture.bgra[i + 3] == 255; }
             std::printf("bitmap: %ux%u read at %ux%u, dark pixels %zu\n", picture.fileWidth, picture.fileHeight, picture.width, picture.height, darkPixels);
-            CHECK(opaque && darkPixels > 20000 && darkPixels < picture.bgra.size() / 4 / 3);   // text, and mostly paper
+            CHECK(opaque && darkPixels > 6000 && darkPixels < picture.bgra.size() / 4 / 3);   // text, and mostly paper
         }
         // The lower third, cut out and doubled: 160 rows of 480.
         CHECK(loadPicture(path, regionFor(2), 10000, picture, error) && picture.width == 3200 && picture.height == 320);

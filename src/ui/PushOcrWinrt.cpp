@@ -25,6 +25,7 @@
 #include <climits>
 
 #pragma comment(lib, "windowscodecs.lib")
+#pragma comment(lib, "windowsapp.lib")   // the Windows Runtime's own functions (activation, strings)
 
 namespace veyra::ui::ocr {
 namespace {
