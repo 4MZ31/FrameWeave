@@ -1952,16 +1952,16 @@ VPage {
                                     onToggled: checked => veyra.hudLock = checked
                                 }
                             }
-                            // PushFPS still rule (preference pushHudStill, on unless switched off): here beside Live HUD
+                            // PushFPS still rule (preference pushHudStill, off unless switched on): here beside Live HUD
                             // Lock, since the quick setup above leaves both to this list in Professional mode.
                             VRow {
                                 objectName: "list-fg-hudstill-row"
                                 label: qsTr("保持 HUD 清晰")
                                 visible: !veyra.presentationOwned
-                                hint: veyra.preferences.pushHudStill !== false ? qsTr("静止的 HUD 在补出来的帧里使用真实像素（默认开启）") : qsTr("已关闭：HUD 交给补帧处理")
+                                hint: veyra.preferences.pushHudStill === true ? qsTr("已开启：镜头移动时画面可能变糊，物体边缘可能破碎；出现这种情况请关闭") : qsTr("已关闭：HUD 交给补帧处理")
                                 VSwitch {
                                     objectName: "list-fg-hudstill"
-                                    checked: veyra.preferences.pushHudStill !== false
+                                    checked: veyra.preferences.pushHudStill === true
                                     onToggled: checked => veyra.setPreference("pushHudStill", checked)
                                 }
                             }

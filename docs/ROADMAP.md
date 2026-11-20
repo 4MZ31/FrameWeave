@@ -33,9 +33,10 @@ Written and tested on the software renderer; **none of it has been measured on a
 next step for each (rule 2).
 
 - What stands still in front of a moving picture keeps its real pixels in generated frames (the HUD), with
-  every method PushFPS runs itself. On by default, its own switch. Since 4.1 only small still things in a
-  moving picture are kept (4.0 also took the border of larger still regions, which showed as artifacts
-  around moving things on a real card); 4.1's rule has not been seen on a real card yet.
+  every method PushFPS runs itself. An option, off unless switched on since 4.0.1: on for everyone in 4.0 it
+  made camera pans soft and broke the edges of moving things up, because many moving pixels match by chance
+  between two frames (measured on natural pictures: `scripts/studies/still_rule`). It stays a choice until
+  it has been shown clean on natural pictures and on a real card.
 - 60 → 30 duplicate removal keeps its rhythm when a game dips under 30.
 - Lip sync by hand, on top of automatic sync.
 - A line between the two sides of the live comparison. The latency readout can be dragged.
