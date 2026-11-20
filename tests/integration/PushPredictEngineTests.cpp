@@ -56,14 +56,15 @@ struct Played {
     bool started = false, failed = false;
     uint64_t real = 0, generated = 0, forecasts = 0, superseded = 0;
     double latencyMs = -1, realFps = 0, generatedFps = 0;
-    std::string predict;
+    std::string predict, dual;
+    uint64_t dualReal = 0, dualBetween = 0;
     std::wstring status;
 };
 
-Played play(bool predict, const std::filesystem::path& out, int seconds) {
+Played play(bool predict, bool dual, const std::filesystem::path& out, int seconds) {
     Played r;
-    pushflow2::setRequested(pushflow2::Flags{}.with(pushflow2::Experiment::Predict, predict));
-    const std::wstring channel = predict ? L"pushfps-predict-test-on" : L"pushfps-predict-test-off";
+    pushflow2::setRequested(pushflow2::Flags{}.with(pushflow2::Experiment::Predict, predict).with(pushflow2::Experiment::Dual, dual));
+    const std::wstring channel = dual ? L"pushfps-predict-test-dual" : predict ? L"pushfps-predict-test-on" : L"pushfps-predict-test-off";
     pushfps::FrameInputSender sender;
     if (!sender.open(channel.c_str(), W, H, kRateNum, kRateDen, "PushFPS engine test")) { std::cout << "INFO the frame input channel could not be opened" << std::endl; return r; }
     std::atomic<bool> stop{false};
@@ -103,6 +104,7 @@ Played play(bool predict, const std::filesystem::path& out, int seconds) {
             r.realFps = flow.realPresentFps; r.generatedFps = flow.generatedPresentFps;
             if (r.real != lastReal) { lastReal = r.real; if (flow.softwareLatencyMs && r.real > 6) latencies.push_back(*flow.softwareLatencyMs); }
             r.predict = s.pushFlowPredict; r.forecasts = s.pushFlowPredictFrames; r.superseded = s.pushFlowPredictSuperseded;
+            r.dual = s.pushFlowDual; r.dualReal = s.pushFlowDualReal; r.dualBetween = s.pushFlowDualBetween;
             if (s.failed) break;
             if (r.real >= 34 && r.generated >= 6 && latencies.size() >= 6) break;
             std::this_thread::sleep_for(20ms);
@@ -140,7 +142,7 @@ int wmain(int argc, wchar_t** argv) {
                   << p.superseded << (p.failed ? ", FAILED: " + narrow(p.status) : std::string()) << std::endl;
     };
 
-    const Played plain = play(false, out, 75);
+    const Played plain = play(false, false, out, 75);
     say("in-between frames", plain);
     check(plain.started && !plain.failed, "the engine plays the live source with PushFlow and comes to rest");
     check(plain.real >= 34, "its real frames reach the screen (" + std::to_string(plain.real) + ")");
@@ -150,7 +152,7 @@ int wmain(int argc, wchar_t** argv) {
     const bool generates = plain.generated >= 6;
     std::cout << "PREDICT_ENGINE INFO in-between frames reached the screen: " << (generates ? "yes" : "no") << std::endl;
 
-    const Played ahead = play(true, out, 150);
+    const Played ahead = play(true, false, out, 150);
     say("Predict", ahead);
     check(ahead.started && !ahead.failed, "with Predict on the engine plays the live source and comes to rest");
     check(ahead.real >= 34, "its real frames reach the screen (" + std::to_string(ahead.real) + ")");
@@ -165,6 +167,19 @@ int wmain(int argc, wchar_t** argv) {
                                                                      " ms after it arrives (in-between frames would hold it " + std::to_string(interval / 2.0) + " ms or more)");
     if (generates && plain.latencyMs >= 0 && ahead.latencyMs >= 0)
         check(ahead.latencyMs + interval / 10.0 < plain.latencyMs, "and sooner than with in-between frames (" + std::to_string(ahead.latencyMs) + " ms against " + std::to_string(plain.latencyMs) + " ms)");
+    check(ahead.dual.empty() && ahead.dualReal == 0 && ahead.dualBetween == 0, "Dual is not asked for and hands nothing to recordings ('" + ahead.dual + "')");
+
+    // PushFlow 2's Dual on top: the engine hands the recorder's two frames to the presenter at the presents
+    // of the real frame and of its forecast. (That the recorder then takes them is not seen from here.)
+    const Played both = play(true, true, out, 150);
+    say("Predict and Dual", both);
+    std::cout << "PREDICT_ENGINE Predict and Dual: Dual '" << both.dual << "', handed to recordings " << both.dualReal << " real frames and " << both.dualBetween << " in-between frames" << std::endl;
+    check(both.started && !both.failed && both.real >= 34, "with Dual on the engine plays the live source and comes to rest (" + std::to_string(both.real) + " real frames)");
+    check(both.predict == "on" && both.dual == "on", "Predict and Dual are in use ('" + both.predict + "', '" + both.dual + "')");
+    check(both.generated >= 6 && both.latencyMs >= 0 && both.latencyMs < interval / 4.0, "the screen is as with Predict alone: forecasts shown (" + std::to_string(both.generated) +
+                                                                                       "), a real frame " + std::to_string(both.latencyMs) + " ms after it arrives");
+    check(both.dualReal >= 20 && both.dualBetween >= 6 && both.dualBetween <= both.generated + 2,
+          "recordings are handed the real frame before each real frame shown and an in-between frame for each forecast shown (" + std::to_string(both.dualReal) + ", " + std::to_string(both.dualBetween) + ")");
     std::cout << "PREDICT_ENGINE " << failures << " failure(s)" << std::endl;
     Logger::instance().closeFile();
     {
