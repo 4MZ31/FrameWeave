@@ -1,6 +1,7 @@
 // QML bridge: Capture responsibilities.
 #include "veyra/source/PushCaptureAudioSuggest.h"
 #include "veyra/source/PushCaptureDevicePick.h"
+#include "veyra/source/PushCaptureSharper.h"
 #include "../QmlPlayerBridge_p.h"
 #include "veyra/source/VirtualDesktop.h"
 #include "veyra/source/WasapiAudioInput.h"
@@ -206,6 +207,26 @@ void QmlPlayerBridge::setCapturePixelId(const QString& id) {
         emit notice(impl_->captureStatus,true);emit captureChanged();return;
     }
     setCaptureFormatKey(id);
+}
+// PushFPS: everything offered at the chosen frame rate is compressed (MJPEG), and another rate of this
+// resolution has an uncompressed format: the dialog says so and offers it (source/PushCaptureSharper.h).
+// Nothing is switched by itself.
+static_assert(int(source::CaptureFormatTier::Decoded) == source::kPushCompressedTier, "PushCaptureSharper.h names the tier of a format that needs a decoder");
+QVariantList QmlPlayerBridge::captureSharperFormat() const {
+    return impl_->captureList(impl_->captureSharperCache, impl_->captureResolutionChoice, impl_->captureRateChoice, [this] {
+        QVariantList out;
+        if (const auto* f = source::pushSharperCaptureFormat(impl_->captureFormatList, impl_->captureResolutionChoice, impl_->captureRateChoice))
+            out << QVariantMap{{"fps", int(std::lround(f->fps))}, {"pixel", uiText(f->pixel)}};
+        return out;
+    });
+}
+bool QmlPlayerBridge::pushUseSharperCaptureFormat() {
+    const auto* f = source::pushSharperCaptureFormat(impl_->captureFormatList, impl_->captureResolutionChoice, impl_->captureRateChoice);
+    if (!f) return false;
+    const QString key = utf8Of(f->key);   // a copy: choosing it replaces the choices the format was found by
+    veyra::log::info("capture-ui", std::format("sharper format taken: {:.2f} fps, tier {}", f->fps, f->tier));
+    setCaptureFormatKey(key);
+    return true;
 }
 QVariantList QmlPlayerBridge::captureAudioInputs() const {
     // Only what the user picks explicitly is ever opened (1.4.4 rule).

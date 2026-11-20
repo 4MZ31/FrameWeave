@@ -155,6 +155,9 @@ class QmlPlayerBridge : public QObject {
     Q_PROPERTY(QString captureFrameRateId READ captureFrameRateId WRITE setCaptureFrameRateId NOTIFY captureChanged)
     Q_PROPERTY(QVariantList capturePixelOptions READ capturePixelOptions NOTIFY captureChanged)
     Q_PROPERTY(QString capturePixelId READ capturePixelId WRITE setCapturePixelId NOTIFY captureChanged)
+    // PushFPS: an uncompressed format at another frame rate of the chosen resolution, when the chosen rate
+    // only has compressed ones (source/PushCaptureSharper.h). Empty, or one entry {fps, pixel}.
+    Q_PROPERTY(QVariantList captureSharperFormat READ captureSharperFormat NOTIFY captureChanged)
     Q_PROPERTY(QVariantList captureAudioInputs READ captureAudioInputs NOTIFY captureChanged)
     Q_PROPERTY(int captureAudioChoice READ captureAudioChoice WRITE setCaptureAudioChoice NOTIFY captureChanged)
     // PushFPS: the card's own sound input where that is beyond doubt (an id as in captureAudioInputs; -1 none).
@@ -780,6 +783,8 @@ public:
     QVariantList capturePixelOptions() const;
     QString capturePixelId() const;
     void setCapturePixelId(const QString& id);
+    QVariantList captureSharperFormat() const;
+    Q_INVOKABLE bool pushUseSharperCaptureFormat();
     QVariantList captureAudioInputs() const;
     int captureAudioChoice() const;
     int captureAudioSuggestion() const;

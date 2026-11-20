@@ -852,6 +852,31 @@
     }
    ],
    "needs_hardware": "A 360 Hz screen: how 30 FPS at 3X looks there."
+  },
+  {
+   "id": "F35",
+   "what": "When the chosen capture frame rate only has compressed formats (MJPEG) and the same resolution has an uncompressed one (YUY2, NV12) at another usable rate, the capture dialog says so and offers it in one click; nothing is switched by itself (a user saw only MJPEG at 60 and concluded PushFPS could not use YUY2, which his card offers at 30).",
+   "guards": [
+    {
+     "file": "tests/unit/PushCaptureSharperTests.cpp",
+     "ci": "veyra_push_capture_sharper_tests",
+     "contains": "the report: only MJPEG was seen"
+    },
+    {
+     "file": "tests/unit/PushCaptureSharperTests.cpp",
+     "ci": "veyra_push_capture_sharper_tests",
+     "contains": "five frames a second is not offered"
+    },
+    {
+     "file": "qml/Veyra/CaptureSourceDialog.qml",
+     "contains": "pushfps-capture-sharper-row"
+    },
+    {
+     "file": "src/ui/bridge/Capture.cpp",
+     "contains": "QmlPlayerBridge::pushUseSharperCaptureFormat"
+    }
+   ],
+   "needs_hardware": "A capture card that offers YUY2 at 1080p30 and MJPEG at 60: the row and its button in the capture dialog. No capture card exists in CI."
   }
  ]
 }

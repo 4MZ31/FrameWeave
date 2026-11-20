@@ -476,7 +476,7 @@ struct QmlPlayerBridge::Impl {
     uint32_t netReconnectsReported = 0;
     std::chrono::steady_clock::time_point netLossNoticeAt{};
     struct CaptureListCache { bool valid = false; uint64_t generation = 0; QString language; std::wstring a, b; QVariantList list; };
-    CaptureListCache captureFormatsCache, captureResolutionCache, captureRateCache, capturePixelCache;
+    CaptureListCache captureFormatsCache, captureResolutionCache, captureRateCache, capturePixelCache, captureSharperCache;
     // Settings → 组件与许可. Read once and on refreshComponentList(): the property used to
     // notify with every engine snapshot, so each 60 Hz tick re-read the manifest and
     // rebuilt the page's 49 rows (audit 2026-10-15 B5).

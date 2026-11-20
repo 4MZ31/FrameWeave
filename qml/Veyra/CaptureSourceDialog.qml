@@ -274,6 +274,22 @@ DialogLayer {
                 onPicked: id => veyra.capturePixelId = id
             }
         }
+        // PushFPS: everything at the chosen frame rate is compressed, and another rate of this resolution has
+        // an uncompressed format (source/PushCaptureSharper.h). Offered in one click, never switched by itself.
+        VRow {
+            id: sharperRow
+            objectName: "pushfps-capture-sharper-row"
+            readonly property var offer: veyra.captureSharperFormat && veyra.captureSharperFormat.length > 0 ? veyra.captureSharperFormat[0] : null
+            visible: offer !== null && !veyra.captureQueryBusy
+            label: qsTr("有更清晰的格式")
+            hint: offer ? qsTr("这个帧率下这张卡只提供压缩格式（MJPEG），画面会发糊并带压缩痕迹。%1 fps 下可以用不压缩的 %2：30 FPS 的游戏不会少任何画面，60 FPS 的游戏会少一半").arg(offer.fps).arg(offer.pixel) : ""
+            hintBelow: true
+            VButton {
+                objectName: "pushfps-capture-sharper-use"
+                text: sharperRow.offer ? qsTr("改用 %1 fps · %2").arg(sharperRow.offer.fps).arg(sharperRow.offer.pixel) : ""
+                onClicked: veyra.pushUseSharperCaptureFormat()
+            }
+        }
         VRow {
             objectName: "capture-driver-settings-row"
             visible: veyra.captureDeviceId.length > 0

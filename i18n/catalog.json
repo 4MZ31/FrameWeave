@@ -37353,6 +37353,23 @@
    "ru": "Название не может быть пустым, длиннее 48 символов или таким же, как другой предустановленный"
   },
   {
+   "zh": "改用 %1 fps · %2",
+   "src": "qml/CaptureSourceDialog.qml",
+   "zh-TW": "改用 %1 fps · %2",
+   "en": "Use %1 fps · %2",
+   "ja": "%1 fps · %2 を使う",
+   "nl": "%1 fps · %2 gebruiken",
+   "de": "%1 fps · %2 verwenden",
+   "es": "Usar %1 fps · %2",
+   "fr": "Utiliser %1 fps · %2",
+   "it": "Usa %1 fps · %2",
+   "pt-BR": "Usar %1 fps · %2",
+   "tr": "%1 fps · %2 kullan",
+   "ar": "استخدم %1 fps · %2",
+   "pl": "Użyj %1 fps · %2",
+   "ru": "Использовать %1 fps · %2"
+  },
+  {
    "zh": "放大到屏幕分辨率",
    "src": "qml/WatchPage.qml",
    "zh-TW": "放大到螢幕解析度",
@@ -41925,6 +41942,23 @@
    "ar": "الهدف الفعال %1 fps",
    "pl": "Skuteczny cel %1 fps",
    "ru": "Эффективная цель %1 fps"
+  },
+  {
+   "zh": "有更清晰的格式",
+   "src": "qml/CaptureSourceDialog.qml",
+   "zh-TW": "有更清晰的格式",
+   "en": "A sharper format is available",
+   "ja": "より鮮明な形式があります",
+   "nl": "Er is een scherper formaat beschikbaar",
+   "de": "Ein schärferes Format ist verfügbar",
+   "es": "Hay un formato más nítido disponible",
+   "fr": "Un format plus net est disponible",
+   "it": "È disponibile un formato più nitido",
+   "pt-BR": "Há um formato mais nítido disponível",
+   "tr": "Daha net bir biçim mevcut",
+   "ar": "يتوفر تنسيق أوضح",
+   "pl": "Dostępny jest ostrzejszy format",
+   "ru": "Доступен более чёткий формат"
   },
   {
    "zh": "有配对存档无法读取或解密，详情见日志。请使用原 Windows 账户；不要删除原件。",
@@ -63687,6 +63721,23 @@
    "ar": "يوجد إعداد مدمج بهذا الاسم بالفعل",
    "pl": "Wbudowany preset już używa tej nazwy",
    "ru": "Встроенный пресет уже использует это имя"
+  },
+  {
+   "zh": "这个帧率下这张卡只提供压缩格式（MJPEG），画面会发糊并带压缩痕迹。%1 fps 下可以用不压缩的 %2：30 FPS 的游戏不会少任何画面，60 FPS 的游戏会少一半",
+   "src": "qml/CaptureSourceDialog.qml",
+   "zh-TW": "這個幀率下這張卡只提供壓縮格式（MJPEG），畫面會發糊並帶壓縮痕跡。%1 fps 下可以用不壓縮的 %2：30 FPS 的遊戲不會少任何畫面，60 FPS 的遊戲會少一半",
+   "en": "At this frame rate the card only offers a compressed format (MJPEG), so the picture is softer and shows compression artifacts. At %1 fps it offers uncompressed %2: a 30 FPS game loses nothing, a 60 FPS game loses half its frames",
+   "ja": "このフレームレートでは、このカードは圧縮形式（MJPEG）しか出せないため、映像がぼやけて圧縮ノイズが出ます。%1 fps なら非圧縮の %2 が使えます。30 FPS のゲームでは何も失われず、60 FPS のゲームではフレームが半分になります",
+   "nl": "Bij deze framesnelheid biedt de kaart alleen een gecomprimeerd formaat (MJPEG), waardoor het beeld zachter is en compressieartefacten toont. Bij %1 fps biedt hij ongecomprimeerd %2: een game op 30 FPS verliest niets, een game op 60 FPS verliest de helft van de frames",
+   "de": "Bei dieser Bildrate bietet die Karte nur ein komprimiertes Format (MJPEG), das Bild ist dadurch weicher und zeigt Kompressionsartefakte. Bei %1 fps bietet sie unkomprimiertes %2: Ein Spiel mit 30 FPS verliert nichts, ein Spiel mit 60 FPS verliert die Hälfte seiner Bilder",
+   "es": "A esta velocidad de fotogramas la tarjeta solo ofrece un formato comprimido (MJPEG), por lo que la imagen es más blanda y muestra artefactos de compresión. A %1 fps ofrece %2 sin comprimir: un juego a 30 FPS no pierde nada, un juego a 60 FPS pierde la mitad de sus fotogramas",
+   "fr": "À cette fréquence d'images, la carte ne propose qu'un format compressé (MJPEG) : l'image est plus douce et montre des artefacts de compression. À %1 fps, elle propose %2 non compressé : un jeu à 30 FPS ne perd rien, un jeu à 60 FPS perd la moitié de ses images",
+   "it": "A questa frequenza la scheda offre solo un formato compresso (MJPEG), quindi l'immagine è più morbida e mostra artefatti di compressione. A %1 fps offre %2 non compresso: un gioco a 30 FPS non perde nulla, un gioco a 60 FPS perde metà dei fotogrammi",
+   "pt-BR": "Nesta taxa de quadros a placa só oferece um formato comprimido (MJPEG), então a imagem fica mais suave e mostra artefatos de compressão. A %1 fps ela oferece %2 sem compressão: um jogo a 30 FPS não perde nada, um jogo a 60 FPS perde metade dos quadros",
+   "tr": "Bu kare hızında kart yalnızca sıkıştırılmış bir biçim (MJPEG) sunuyor; bu yüzden görüntü daha yumuşak olur ve sıkıştırma bozulmaları görülür. %1 fps hızında sıkıştırılmamış %2 sunuyor: 30 FPS bir oyun hiçbir şey kaybetmez, 60 FPS bir oyun karelerinin yarısını kaybeder",
+   "ar": "عند معدل الإطارات هذا لا تقدّم البطاقة سوى تنسيق مضغوط (MJPEG)، لذا تكون الصورة أقل وضوحًا وتظهر فيها آثار الضغط. عند %1 fps تقدّم %2 غير مضغوط: لعبة بمعدل 30 FPS لا تخسر شيئًا، ولعبة بمعدل 60 FPS تخسر نصف إطاراتها",
+   "pl": "Przy tej liczbie klatek karta oferuje tylko format skompresowany (MJPEG), więc obraz jest bardziej miękki i widać artefakty kompresji. Przy %1 fps oferuje nieskompresowany %2: gra w 30 FPS nic nie traci, gra w 60 FPS traci połowę klatek",
+   "ru": "На этой частоте кадров карта предлагает только сжатый формат (MJPEG), поэтому изображение мягче и видны артефакты сжатия. На %1 fps она предлагает несжатый %2: игра с 30 FPS ничего не теряет, игра с 60 FPS теряет половину кадров"
   },
   {
    "zh": "这个微软账号还没有 Xbox 档案。请先在 xbox.com 用它登录一次，创建档案后再试。",
