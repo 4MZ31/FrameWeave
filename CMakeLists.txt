@@ -14,19 +14,42 @@ if(NOT VEYRA_DISPLAY_VERSION)
   set(VEYRA_DISPLAY_VERSION "${PROJECT_VERSION}" CACHE STRING "PushFPS version shown in the app and the EXE resource" FORCE)
 endif()
 
-# Match the compiler's actual bytes, including on localized Windows installs.
-# CMake's cached, decoded prefix can leave Ninja with zero header dependencies.
-if(MSVC AND CMAKE_GENERATOR MATCHES "Ninja")
+# Header dependencies with MSVC and Ninja. Ninja learns which headers a source file uses from the
+# compiler's /showIncludes lines, and finds those lines by their prefix. A localized compiler prints
+# a translated prefix; when the prefix CMake recorded while it enabled the language is not the one
+# the compiler really prints, Ninja finds no header at all: a changed header rebuilds nothing, and
+# nothing says so.
+# That cannot be put right from here. The prefix is read during project(); assigning it afterwards,
+# as this file did until PushFPS 4.0, changes nothing for that build and keeps the Ninja generator
+# from writing its rules on exactly the machines where the two differ ("unknown build rule").
+# So the compiler is asked once, the answer is written down, and a difference is said out loud
+# together with the one thing that does put it right: the prefix given when configuring.
+# -DVEYRA_ENABLE_INCLUDE_PROBE=OFF skips the question.
+option(VEYRA_ENABLE_INCLUDE_PROBE "Ask MSVC for its /showIncludes prefix and report a mismatch (Ninja)" ON)
+if(MSVC AND CMAKE_GENERATOR MATCHES "Ninja" AND VEYRA_ENABLE_INCLUDE_PROBE)
   set(VEYRA_INCLUDE_PROBE "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/veyra-include-probe")
   file(WRITE "${VEYRA_INCLUDE_PROBE}.h" "// Dependency parser probe\n")
   file(WRITE "${VEYRA_INCLUDE_PROBE}.cpp" "#include \"veyra-include-probe.h\"\n")
+  # The compiler's own bytes (ENCODING NONE): that is what Ninja compares.
   execute_process(COMMAND "${CMAKE_CXX_COMPILER}" /nologo /utf-8 /showIncludes /c /TP "${VEYRA_INCLUDE_PROBE}.cpp" "/Fo${VEYRA_INCLUDE_PROBE}.obj"
     OUTPUT_VARIABLE VEYRA_INCLUDE_OUTPUT ERROR_VARIABLE VEYRA_INCLUDE_OUTPUT
     RESULT_VARIABLE VEYRA_INCLUDE_RESULT ENCODING NONE)
+  file(REMOVE "${VEYRA_INCLUDE_PROBE}.obj")
   if(NOT VEYRA_INCLUDE_RESULT EQUAL 0 OR NOT VEYRA_INCLUDE_OUTPUT MATCHES "(^|[\r\n])([^\r\n]*: )[ ]*[A-Za-z]:[^\r\n]*veyra-include-probe.h")
-    message(FATAL_ERROR "Unable to verify MSVC/Ninja header dependency prefix")
+    message(WARNING "The MSVC /showIncludes prefix could not be read, so header dependencies are unverified: "
+      "check one with `ninja -t deps <an object file>` after the first build.")
+  else()
+    set(VEYRA_INCLUDE_PREFIX "${CMAKE_MATCH_2}")
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cl-showincludes-prefix.txt" "${VEYRA_INCLUDE_PREFIX}\n")
+    if("${CMAKE_CL_SHOWINCLUDES_PREFIX}" STREQUAL "${VEYRA_INCLUDE_PREFIX}")
+      message(STATUS "MSVC /showIncludes prefix matches the one Ninja was given: header dependencies are tracked")
+    else()
+      message(WARNING "The compiler prints the /showIncludes prefix [${VEYRA_INCLUDE_PREFIX}] and Ninja was given "
+        "[${CMAKE_CL_SHOWINCLUDES_PREFIX}]. With different prefixes a changed header rebuilds nothing. "
+        "Configure again in an empty build folder with -DCMAKE_CL_SHOWINCLUDES_PREFIX=<the first prefix> "
+        "(it is also in cl-showincludes-prefix.txt in the build folder), then check with `ninja -t deps <an object file>`.")
+    endif()
   endif()
-  set(CMAKE_CL_SHOWINCLUDES_PREFIX "${CMAKE_MATCH_2}")
 endif()
 
 # ---------------------------------------------------------------------------
@@ -1034,6 +1057,14 @@ target_include_directories(veyra_push_compare_plan_tests PRIVATE ${CMAKE_CURRENT
 add_executable(veyra_push_half_rate_tests tests/unit/PushHalfRateTests.cpp)
 target_compile_features(veyra_push_half_rate_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_half_rate_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS Dolby Vision profile 8.4 described as PQ (source/DolbyVision.h, pure).
+add_executable(veyra_push_dolby_vision_tests tests/unit/PushDolbyVisionTests.cpp)
+target_compile_features(veyra_push_dolby_vision_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_dolby_vision_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: may a display's reported peak scale the HDR tone curve (gfx/PushDisplayPeak.h, pure; also builds with g++).
+add_executable(veyra_push_display_peak_tests tests/unit/PushDisplayPeakTests.cpp)
+target_compile_features(veyra_push_display_peak_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_display_peak_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_push_fg_health_tests tests/unit/PushFgHealthTests.cpp)
 target_compile_features(veyra_push_fg_health_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_fg_health_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -1,5 +1,6 @@
 #pragma once
 #include "veyra/gfx/NvidiaVrr.h"
+#include "veyra/gfx/PushDisplayPeak.h"
 #include <windows.h>
 #include <chrono>
 #include <cstdint>
@@ -15,6 +16,9 @@ namespace veyra::engine {
 struct DisplayColorState {
     std::optional<bool> hdr;    // none: the output description could not be read
     bool peakValid=false;
+    // PushFPS: may the report scale the tone curve, and if not, why (gfx/PushDisplayPeak.h).
+    bool peakPlausible=false;
+    gfx::DisplayPeakTrust peakTrust=gfx::DisplayPeakTrust::Unknown;
     unsigned peakNits=0,fullFrameNits=0;
     double minNits=0;
 };

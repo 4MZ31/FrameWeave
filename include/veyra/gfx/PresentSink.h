@@ -7,6 +7,7 @@
 // and presents. Resize recreates the buffers; vsync can be disabled for
 // tearing-capable contexts.
 
+#include "veyra/gfx/PushDisplayPeak.h"
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <wrl/client.h>
@@ -35,6 +36,10 @@ public:
         unsigned fullFrameNits = 0;   // sustained full-screen
         double minNits = 0.0;         // black level
         bool valid = false;
+        // PushFPS 4.0: whether the report may scale the tone curve (gfx/PushDisplayPeak.h). A report
+        // can be valid, a number in range, and still be the signal's ceiling and no measurement.
+        bool plausible = false;
+        DisplayPeakTrust trust = DisplayPeakTrust::Unknown;
     };
     static bool hdrDisplayActive(HWND);
     // The factory is cached process-wide; DXGI factories detect display

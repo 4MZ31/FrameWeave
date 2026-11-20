@@ -173,7 +173,13 @@ private:
     int frameTimeBaseDen_ = 0;
     DecoderStats stats_{};
     bool hwAccelActive_ = false;
-    bool preferNativeAv1_ = false;
+    // PushFPS 4.0: on by default. Only the two hardware opens read it; the software open still takes
+    // libdav1d. With it off an AV1 file was "opened in hardware" with libdav1d, which has no hardware
+    // path: the first picture came back as a software frame, that counted as a decoder error, and the
+    // file was reopened in software, so AV1 was always decoded on the processor. A card or driver
+    // that cannot decode AV1 takes the same road as before: the first picture fails and the software
+    // decoder takes over.
+    bool preferNativeAv1_ = true;
     HardwareDecodeKind hwAccelKind_ = HardwareDecodeKind::None;
     int lastFrameFormat_ = -1;
     uint64_t gpuQueueWaitCount_ = 0;

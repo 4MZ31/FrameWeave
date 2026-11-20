@@ -36,6 +36,9 @@ PresentSink::DisplayPeakInfo peakOf(const DXGI_OUTPUT_DESC1& desc){
         ?unsigned(std::lround(std::min(desc.MaxFullFrameLuminance,10000.0f))):0;
     info.minNits=std::isfinite(desc.MinLuminance)&&desc.MinLuminance>=0?desc.MinLuminance:0;
     info.valid=info.peakNits>0;
+    // PushFPS: judged from the numbers as the driver gave them, before any rounding.
+    info.trust=info.valid?judgeDisplayPeak(desc.MaxLuminance,desc.MaxFullFrameLuminance,desc.MinLuminance):DisplayPeakTrust::Unknown;
+    info.plausible=info.trust==DisplayPeakTrust::Trusted;
     return info;
 }
 }

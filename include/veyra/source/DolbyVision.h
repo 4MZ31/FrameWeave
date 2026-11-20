@@ -7,6 +7,7 @@ namespace veyra::source {
 enum class DolbyBaseLayer : uint8_t { None, Unsupported, Hdr10, Sdr, Hlg };
 struct DolbyVisionInfo {
     bool present=false, baseLayer=false, enhancementLayer=false, rpuDeclared=false, rpuObserved=false;
+    bool hlgCorrected=false;   // PushFPS: correctHlgBase() acted on this file (said once in the log)
     uint8_t profile=0, level=0, compatibility=0;
     DolbyBaseLayer route() const {
         if(!present)return DolbyBaseLayer::None;
@@ -19,6 +20,24 @@ struct DolbyVisionInfo {
         case 4:return DolbyBaseLayer::Hlg;
         default:return DolbyBaseLayer::Unsupported;
         }
+    }
+    // PushFPS 4.0. Profile 8.4 says its base layer is HLG, and some encoders write PQ into the HEVC
+    // colour description all the same. Read as PQ the highlights are crushed, and until 4.0 the file
+    // was refused outright (matches() below). This corrects that one contradiction and nothing else:
+    //  - only profile 8 with a base layer and compatibility 4 (never every profile 8, never profile 10,
+    //    never a stream without the Dolby Vision configuration);
+    //  - only a transfer that says PQ, or says nothing; a stream that says anything else is not the
+    //    stream the configuration describes and stays refused;
+    //  - only when matrix and primaries already are the HLG base layer's (BT.2020).
+    // True when it changed the transfer. It is still compatibility playback of the base layer: the
+    // RPU is not applied and nothing is output as Dolby Vision.
+    bool correctHlgBase(pipeline::ColorDescription& c) const {
+        using namespace pipeline;
+        if(!present||!baseLayer||profile!=8||compatibility!=4)return false;
+        if(c.transfer==TransferFunction::HLG)return false;
+        if(c.transfer!=TransferFunction::PQ&&c.transfer!=TransferFunction::Unknown)return false;
+        if(c.matrix!=YuvMatrix::BT2020NCL||c.primaries!=ColorPrimaries::BT2020)return false;
+        c.transfer=TransferFunction::HLG;c.transferAssumed=true;return true;
     }
     std::wstring description() const {
         if(!present)return {};

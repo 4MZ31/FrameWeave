@@ -239,10 +239,17 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
         const auto monitor=MonitorFromWindow(window_,MONITOR_DEFAULTTONEAREST);
         gfx::PresentSink::DisplayPeakInfo peak{};
         if(displayStates_)if(const auto known=displayStates_->state(monitor))
-            peak={known->color.peakNits,known->color.fullFrameNits,known->color.minNits,known->color.peakValid};
-        if(peak.valid!=hdrPeakInfo_.valid||peak.peakNits!=hdrPeakInfo_.peakNits)retainedFrame_.reset();
+            peak={known->color.peakNits,known->color.fullFrameNits,known->color.minNits,known->color.peakValid,
+                  known->color.peakPlausible,known->color.peakTrust};
+        // PushFPS 4.0: only a report that can be trusted scales the curve; one that is the signal's
+        // ceiling leaves the curve at its reference (gfx/PushDisplayPeak.h). The kept frame is drawn
+        // again when the peak the curve really works with changes, not whenever the report does.
+        hdrBaseline.displayPeakNits=gfx::displayPeakForCurve(0,peak.peakNits,peak.plausible);
+        if(hdrBaseline.displayPeakNits!=gfx::displayPeakForCurve(0,hdrPeakInfo_.peakNits,hdrPeakInfo_.plausible))retainedFrame_.reset();
+        if(peak.valid!=hdrPeakInfo_.valid||peak.peakNits!=hdrPeakInfo_.peakNits||peak.trust!=hdrPeakInfo_.trust)
+            veyra::log::info("hdr-peak",std::format("display report valid={} trust={} peak={} fullFrame={} black={:.4f} curvePeak={} (0 = the curve's reference; a peak set by hand always wins)",
+                peak.valid?1:0,gfx::displayPeakTrustName(peak.trust),peak.peakNits,peak.fullFrameNits,peak.minNits,hdrBaseline.displayPeakNits));
         hdrPeakInfo_=peak;
-        if(hdrPeakInfo_.valid)hdrBaseline.displayPeakNits=std::clamp(hdrPeakInfo_.peakNits,100u,10000u);
     }
     HdrCurveSettings hdrCurve;HdrMetadataSettings hdrMetadata;
     resolveHdrTuning(hdrBaseline,graph.hdrMetadata(),hdrCurve,hdrMetadata);

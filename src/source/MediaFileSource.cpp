@@ -14,6 +14,7 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 #include <libavutil/dovi_meta.h>
 #include <libavutil/mastering_display_metadata.h>
+#include <libavutil/hwcontext.h>
 #include <libavutil/hwcontext_d3d12va.h>
 }
 
@@ -292,6 +293,8 @@ bool MediaFileSource::open(const SourceOpenDesc& desc)
         dv.rpuDeclared=config.rpu_present_flag!=0;dv.compatibility=config.dv_bl_signal_compatibility_id;
         log::info("source-dovi",std::format("profile={} level={} compatibility={} bl={} el={} rpuDeclared={} route={} nativeOutput=0 rpuApplied=0",dv.profile,dv.level,dv.compatibility,dv.baseLayer,dv.enhancementLayer,dv.rpuDeclared,int(dv.route())));
         if(dv.route()==DolbyBaseLayer::Unsupported){errorMessage_=dv.description();return false;}
+        // PushFPS: a profile 8.4 file whose colour description says PQ (DolbyVision.h).
+        if(dv.correctHlgBase(info_.color)){dv.hlgCorrected=true;log::info("source-dovi","code=p84-pq-as-hlg where=stream (profile 8.4 base layer described as PQ or not at all: read as HLG; base layer compatibility only)");}
     }
 
     sequence_ = 0;
@@ -537,21 +540,42 @@ readAgain:   // a damaged picture was dropped (corrupt policy WaitKeyframe): fet
         return SourceReadStatus::Error;
     }
     if(hasRpu&&!dv.rpuObserved){dv.rpuObserved=true;log::info("source-dovi","decoded RPU observed; compatibility playback does not apply dynamic metadata");}
+    // PushFPS: the picture's own colour description wins over the stream's, so the same correction
+    // is made here (the same answer for every picture: it never switches back and forth).
+    if(dv.correctHlgBase(out.colorInfo)&&!dv.hlgCorrected){dv.hlgCorrected=true;log::info("source-dovi","code=p84-pq-as-hlg where=picture (profile 8.4 base layer described as PQ or not at all: read as HLG; base layer compatibility only)");}
     if(!dv.matches(out.colorInfo)){
         errorMessage_=L"Dolby Vision 基础层颜色与兼容声明不匹配，已停止以避免错误颜色";
         return SourceReadStatus::Error;
     }
     // D3D12VA frames expose the underlying surface through AV_PIX_FMT_D3D12,
-    // so resolveFrameColor cannot infer NV12/P010 from frame->format. HDR
-    // hardware surfaces are P010 by contract; SDR surfaces are NV12. Software
+    // so resolveFrameColor cannot infer NV12/P010 from frame->format. Software
     // AV1/ProRes paths retain the exact planar format mapping above.
-    if (frame->format == AV_PIX_FMT_D3D12 && out.colorInfo.pixelFormat == pipeline::SourcePixelFormat::Unknown) {
-        out.colorInfo.pixelFormat = out.colorInfo.isHdrPath()
-            ? pipeline::SourcePixelFormat::P010 : pipeline::SourcePixelFormat::NV12;
+    // PushFPS 4.0: the surface says what it is. Until then an HDR picture was
+    // taken for P010 and everything else for NV12, but a 10-bit SDR picture (AV1
+    // and HEVC both have them) is decoded into a P010 surface too, and read as
+    // NV12 it comes out wrong. Whether a picture is HDR is a matter of its
+    // transfer and never of how many bits its surface has.
+    if (frame->format == AV_PIX_FMT_D3D12) {
+        DXGI_FORMAT actual = DXGI_FORMAT_UNKNOWN;
+        if (const auto* surface = reinterpret_cast<const AVD3D12VAFrame*>(frame->data[0]); surface && surface->texture)
+            actual = surface->texture->GetDesc().Format;
+        if (actual == DXGI_FORMAT_UNKNOWN && frame->hw_frames_ctx) {
+            // No texture to ask (it never happened in testing): what the decoder said it would allocate.
+            const auto* frames = reinterpret_cast<const AVHWFramesContext*>(frame->hw_frames_ctx->data);
+            actual = frames->sw_format == AV_PIX_FMT_NV12 ? DXGI_FORMAT_NV12 : frames->sw_format == AV_PIX_FMT_P010 ? DXGI_FORMAT_P010
+                   : frames->sw_format == AV_PIX_FMT_P016 ? DXGI_FORMAT_P016 : DXGI_FORMAT_UNKNOWN;
+        }
+        if (actual == DXGI_FORMAT_NV12) out.colorInfo.pixelFormat = pipeline::SourcePixelFormat::NV12;
+        else if (actual == DXGI_FORMAT_P010) out.colorInfo.pixelFormat = pipeline::SourcePixelFormat::P010;
+        else if (actual == DXGI_FORMAT_P016) out.colorInfo.pixelFormat = pipeline::SourcePixelFormat::P016;
+        else if (out.colorInfo.pixelFormat == pipeline::SourcePixelFormat::Unknown)
+            out.colorInfo.pixelFormat = out.colorInfo.isHdrPath()
+                ? pipeline::SourcePixelFormat::P010 : pipeline::SourcePixelFormat::NV12;   // as before 4.0
     }
     info_.color = out.colorInfo;
     if (frame->format == AV_PIX_FMT_D3D12) {
-        info_.videoPixelFormatName = out.colorInfo.pixelFormat == pipeline::SourcePixelFormat::P010 ? "p010(d3d12)" : "nv12(d3d12)";
+        info_.videoPixelFormatName = out.colorInfo.pixelFormat == pipeline::SourcePixelFormat::P010 ? "p010(d3d12)"
+            : out.colorInfo.pixelFormat == pipeline::SourcePixelFormat::P016 ? "p016(d3d12)" : "nv12(d3d12)";
     } else if (const auto* name = av_get_pix_fmt_name(static_cast<AVPixelFormat>(frame->format))) {
         info_.videoPixelFormatName = name;
     }
