@@ -7,6 +7,12 @@
 // the frames handed to the display (frame rate and its 1% low). It is the PC's
 // share of the delay; the capture card, the display and the game add their own,
 // which software cannot see - the quick setup hint says so.
+//
+// Since 4.0 it can be dragged anywhere over the picture. Where it sits is kept as two shares of the room
+// it has there (preferences pushLatencyX / pushLatencyY, thousandths; none = the top left corner, where
+// it always was), so it keeps its place when the window changes size or goes full screen, and can never
+// end up outside the picture. A double click sends it back to the corner. The page gives it the
+// picture's rectangle (areaX ... areaHeight); without one it stays where its x and y put it.
 import QtQuick
 import QtQuick.Layouts
 
@@ -25,6 +31,67 @@ Rectangle {
     color: Qt.rgba(0.04, 0.05, 0.04, 0.82)
     border.width: 1
     border.color: Qt.rgba(1, 1, 1, 0.10)
+
+    // --- where it sits ------------------------------------------------------------------------------
+    property real areaX: 0
+    property real areaY: 0
+    property real areaWidth: 0
+    property real areaHeight: 0
+    readonly property real edge: 12                       // kept clear of the picture's edge
+    readonly property real roomX: Math.max(0, areaWidth - width - 2 * edge)
+    readonly property real roomY: Math.max(0, areaHeight - height - 2 * edge)
+    function share(key) {
+        const value = veyra.preferences[key]
+        const number = Number(value)
+        return value === undefined || value === null || !isFinite(number) ? 0 : Math.max(0, Math.min(1, number / 1000))
+    }
+    readonly property real shareX: share("pushLatencyX")
+    readonly property real shareY: share("pushLatencyY")
+    // Never while mouse input goes to the game: a click there is the game's.
+    readonly property bool movable: areaWidth > 0 && areaHeight > 0 && veyra.gameInputActive !== true
+    property bool dragging: false
+    property real dragX: 0
+    property real dragY: 0
+    function clampX(value) { return Math.max(areaX + edge, Math.min(areaX + edge + roomX, value)) }
+    function clampY(value) { return Math.max(areaY + edge, Math.min(areaY + edge + roomY, value)) }
+    x: dragging ? dragX : areaX + edge + shareX * roomX
+    y: dragging ? dragY : areaY + edge + shareY * roomY
+    function moveTo(left, top) { dragX = clampX(left); dragY = clampY(top); dragging = true }
+    // The place is written before the drag ends, so the badge never jumps back for a frame.
+    function drop() {
+        if (!dragging) return
+        veyra.setPreference("pushLatencyX", roomX > 0 ? Math.round(1000 * (dragX - areaX - edge) / roomX) : 0)
+        veyra.setPreference("pushLatencyY", roomY > 0 ? Math.round(1000 * (dragY - areaY - edge) / roomY) : 0)
+        dragging = false
+    }
+    function toCorner() {
+        dragging = false
+        veyra.setPreference("pushLatencyX", 0)
+        veyra.setPreference("pushLatencyY", 0)
+    }
+    MouseArea {
+        id: grip
+        objectName: "pushfps-latency-drag"
+        anchors.fill: parent
+        enabled: badge.movable
+        hoverEnabled: enabled
+        preventStealing: true
+        cursorShape: badge.dragging ? Qt.ClosedHandCursor : Qt.OpenHandCursor
+        property real holdX: 0      // where on the badge it was taken hold of
+        property real holdY: 0
+        onPressed: mouse => { holdX = mouse.x; holdY = mouse.y }
+        onPositionChanged: mouse => {
+            if (!pressed) return
+            const p = mapToItem(badge.parent, mouse.x, mouse.y)
+            const left = p.x - holdX, top = p.y - holdY
+            // A few pixels of slack, so a click or a double click is not taken for a drag.
+            if (!badge.dragging && Math.abs(left - badge.x) + Math.abs(top - badge.y) < 4) return
+            badge.moveTo(left, top)
+        }
+        onReleased: badge.drop()
+        onCanceled: badge.dragging = false
+        onDoubleClicked: badge.toCorner()
+    }
 
     function refresh() { badge.stats = veyra.pushLiveStats() || {} }
     Timer { interval: 500; repeat: true; running: badge.wanted; triggeredOnStart: true; onTriggered: badge.refresh() }

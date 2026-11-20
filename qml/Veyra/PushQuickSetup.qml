@@ -1118,7 +1118,9 @@ VGroup {
     VRow {
         objectName: "pushfps-latency-overlay-row"
         label: qsTr("在画面上显示延迟")
-        hint: qsTr("实测电脑处理延迟（采集卡画面到达到交给显示器）和帧率；采集卡、显示器和游戏的延迟另计")
+        // Two sentences on two lines: the first keeps the translations it has in every language.
+        hint: qsTr("实测电脑处理延迟（采集卡画面到达到交给显示器）和帧率；采集卡、显示器和游戏的延迟另计") + "\n"
+              + qsTr("可以用鼠标把它拖到画面上的任何位置；双击它，它就回到左上角")
         RowLayout {
             spacing: 8
             VButton {

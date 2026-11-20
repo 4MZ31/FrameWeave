@@ -12,6 +12,8 @@ Item {
     Item { id: host; anchors.fill: parent; property string dialog: "games"; function close() { dialog = "" } }
     PushGamePresetsDialog { id: games; dialogHost: host }
     PushLatencyBadge { id: badge; x: 10; y: 10 }
+    // The same readout the way the main window places it: over a picture's rectangle, where it can be dragged.
+    PushLatencyBadge { id: placed; areaX: 100; areaY: 300; areaWidth: 700; areaHeight: 400 }
     PushQuickSetup { id: quick; width: 560; y: 400 }
     PushRecordingSaved { id: card; x: 10; y: 900 }
 
@@ -220,6 +222,60 @@ Item {
         }
 
         // --- latency readout -------------------------------------------------
+        function test_latency_badge_is_dragged_anywhere_over_the_picture_and_stays_there() {
+            veyra.preferences = ({ pushLatencyOverlay: true })
+            veyra.liveStats = ({ running: true, latencyMs: 14.4, latencyP95Ms: 19.6, submitFps: 119.7 })
+            placed.refresh()
+            verify(placed.visible && placed.movable)
+            const grip = findChild(placed, "pushfps-latency-drag")
+            verify(grip !== null && grip.enabled)
+            // Until it is moved it sits where it always did: the picture's top left corner, 12 in.
+            compare(placed.x, 112); compare(placed.y, 312)
+            const left = 112, top = 312, right = 100 + 700 - placed.width - 12, bottom = 300 + 400 - placed.height - 12
+            // Drag it by its middle 200 right and 150 down, in two moves. A position is given from the
+            // grip's own corner, and the grip moves with the readout: each move is 100 and 75 further.
+            mousePress(grip, placed.width / 2, placed.height / 2)
+            mouseMove(grip, placed.width / 2 + 100, placed.height / 2 + 75, -1, Qt.LeftButton)
+            verify(placed.dragging, "it follows the mouse while the button is held")
+            fuzzyCompare(placed.x, left + 100, 0.5); fuzzyCompare(placed.y, top + 75, 0.5)
+            mouseMove(grip, placed.width / 2 + 100, placed.height / 2 + 75, -1, Qt.LeftButton)
+            mouseRelease(grip, placed.width / 2, placed.height / 2)
+            verify(!placed.dragging)
+            fuzzyCompare(placed.x, left + 200, 1.5); fuzzyCompare(placed.y, top + 150, 1.5)
+            // Kept as shares of the room it has, not as pixels.
+            fuzzyCompare(veyra.preferences.pushLatencyX, 1000 * 200 / (right - left), 2)
+            fuzzyCompare(veyra.preferences.pushLatencyY, 1000 * 150 / (bottom - top), 2)
+            // Dragged far past the picture's corner it stops at the edge, inside the picture.
+            mousePress(grip, 5, 5)
+            mouseMove(grip, 880 - placed.x, 980 - placed.y, -1, Qt.LeftButton)   // the window's far corner, past the picture's
+            verify(placed.dragging)
+            mouseRelease(grip, 5, 5)
+            fuzzyCompare(placed.x, right, 0.5); fuzzyCompare(placed.y, bottom, 0.5)
+            compare(veyra.preferences.pushLatencyX, 1000); compare(veyra.preferences.pushLatencyY, 1000)
+            // The picture changes size (the window is resized, full screen): it keeps its corner and stays inside.
+            placed.areaWidth = 400; placed.areaHeight = 250
+            fuzzyCompare(placed.x, 100 + 400 - placed.width - 12, 0.5); fuzzyCompare(placed.y, 300 + 250 - placed.height - 12, 0.5)
+            placed.areaWidth = 700; placed.areaHeight = 400
+            // A picture narrower than the readout leaves it no room: it stays at the picture's edge.
+            placed.areaWidth = 60
+            compare(placed.x, 112)
+            placed.areaWidth = 700
+            // A click is not a drag, and a double click sends it back to the corner.
+            mouseClick(grip, 5, 5)
+            compare(veyra.preferences.pushLatencyX, 1000)
+            mouseDoubleClickSequence(grip, 5, 5)
+            compare(veyra.preferences.pushLatencyX, 0); compare(veyra.preferences.pushLatencyY, 0)
+            compare(placed.x, left); compare(placed.y, top)
+            // A value that is no place (a damaged file) is the corner; one out of range is kept inside.
+            veyra.preferences = ({ pushLatencyOverlay: true, pushLatencyX: "abc", pushLatencyY: 5000 })
+            compare(placed.x, left); fuzzyCompare(placed.y, bottom, 0.5)
+            veyra.preferences = ({ pushLatencyOverlay: true, pushLatencyX: 500, pushLatencyY: 500 })
+            fuzzyCompare(placed.x, (left + right) / 2, 0.5); fuzzyCompare(placed.y, (top + bottom) / 2, 0.5)
+            // The readout without a picture's rectangle (as before 4.0) cannot be dragged and stays put.
+            verify(!badge.movable && !findChild(badge, "pushfps-latency-drag").enabled)
+            compare(badge.x, 10); compare(badge.y, 10)
+            veyra.preferences = ({})
+        }
         function test_latency_badge() {
             verify(!badge.visible, "off by default")
             veyra.preferences = ({ pushLatencyOverlay: true })

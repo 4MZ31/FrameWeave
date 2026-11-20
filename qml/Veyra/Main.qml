@@ -901,11 +901,14 @@ Window {
         anchors.margins: 24
         goPage: p => root.goPage(p)
     }
-    // PushFPS: measured latency and frame rate over the picture (quick setup switch).
+    // PushFPS: measured latency and frame rate over the picture (quick setup switch). It sits where the
+    // user dragged it, inside the picture's rectangle (the top left corner until then).
     PushLatencyBadge {
         z: 31
-        x: videoHost.x + 12
-        y: videoHost.y + 12
+        areaX: videoHost.x
+        areaY: videoHost.y
+        areaWidth: videoHost.width
+        areaHeight: videoHost.height
         visible: wanted && stats.running === true && videoHost.width > 200 && root.page !== "home" && root.page !== "set"
     }
 

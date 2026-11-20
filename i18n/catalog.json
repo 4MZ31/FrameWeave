@@ -18702,6 +18702,23 @@
    "ru": "Отсканируйте в WeChat или Alipay"
   },
   {
+   "zh": "可以用鼠标把它拖到画面上的任何位置；双击它，它就回到左上角",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "可以用滑鼠把它拖到畫面上的任何位置；按兩下它，它就回到左上角",
+   "en": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner",
+   "ja": "マウスでドラッグすると、映像上の好きな位置に置けます。ダブルクリックすると左上に戻ります",
+   "nl": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner",
+   "de": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner",
+   "es": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner",
+   "fr": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner",
+   "it": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner",
+   "pt-BR": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner",
+   "tr": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner",
+   "ar": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner",
+   "pl": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner",
+   "ru": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner"
+  },
+  {
    "zh": "可变刷新",
    "src": "qml/NodePage.qml",
    "zh-TW": "可變更新",
