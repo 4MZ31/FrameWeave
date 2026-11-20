@@ -110,6 +110,16 @@ and edits would conflict on every merge.
 
 ## Building and releasing
 
+- **4.0 is being collected: no build and no release until the owner says so** (his instruction, 20 November
+  2026, repeated the same day after a test build was started on a branch). The next release is 4.0. Until he
+  says it is time: do not dispatch `build-windows`, `build-portable` or `screenshots`, on `main` or on any
+  branch, and push no tag. `build-windows` also starts by itself on every push to `main` that touches code,
+  so until then the last commit of every push to `main` has `[skip ci]` in its message (GitHub then starts
+  no workflow for that push). A change is put in the code, checked by reading and by what runs without a
+  build (`extract.py --check`, `protected_features.py`, the unit tests that build with g++), listed in
+  `packaging/release-notes/v4.0.0.md`, and is "unverified on Windows" until the 4.0 build, which runs every
+  test. Say that plainly when reporting a change.
+
 - After any QML change, `tests/qml/quick` runs in CI (`tst_push_*.qml` strictly, the Veyra suite as a
   report) and the install test opens every main page and fails on `[ERROR] [qml]`. The `screenshots` workflow
   (`-f branch=<branch>`) photographs the real app and writes `qml-report.txt`; `-f only=<regex>` takes a subset

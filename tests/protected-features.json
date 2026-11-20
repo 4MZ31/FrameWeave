@@ -551,7 +551,7 @@
      "contains": "test_latency_badge_is_dragged_anywhere_over_the_picture_and_stays_there"
     }
    ],
-   "needs_hardware": "A playing source for the real cut-out in the video window (screenshots 86-87 show it on the software renderer)."
+   "needs_hardware": "A playing source for the real cut-out in the video window (screenshot entries 86-87 photograph it on the software renderer once the screenshots workflow runs)."
   }
  ]
 }
