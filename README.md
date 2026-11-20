@@ -110,7 +110,9 @@ that, PushFPS adds what console players need:
 | **Go live** | Stream the boosted picture straight to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or any RTMP server, to several platforms at once from one encode, at its own resolution (vertical for TikTok LIVE). Stream keys are stored encrypted |
 | **Output presets** | Platform settings per resolution and frame rate for going live (Twitch, YouTube, Kick, Facebook, TikTok LIVE, Trovo) and for uploads (YouTube SDR and HDR, Shorts, TikTok, Instagram Reels, X, editing). Every value stays editable |
 | **Frame Pacing Repair** | Evens out the uneven frame timing many 30 FPS console games have before frames are generated |
+| **Keep the HUD sharp** | On by default: what stands still in front of a moving picture keeps its real pixels in generated frames, with every method PushFPS runs itself |
 | **Live HUD Lock** | Finds still text, crosshairs and bars on every frame and keeps them sharp in generated frames, no boxes needed |
+| **Lip sync by hand** | Move the sound earlier or later in steps of 10 ms on top of automatic sync, for the delay your capture card, screen or headphones add |
 | **Adaptive multiplier** | Follows the game when its frame rate drops, so the output stays even |
 | **Game presets** | GTA VI and other layouts in one click, with the minimap and HUD kept sharp. Save your own and share them as a code |
 | **Automatic HUD detection** | Watches your game for a few seconds and finds the minimap, health and ammo, so they are never interpolated. Correct the boxes by dragging them |
@@ -505,6 +507,19 @@ about a second and has an edge (text, a crosshair, a bar) is taken from the real
 and released the moment it moves. A still pixel looks the same in the real frame, so locking one that isn't HUD
 (a still wall) changes nothing visible. Works with DLSS, ANR, NVIDIA VFG, FSR and AMD FRC frame generation; XeSS
 generates inside its own presenter, so it can't be combined.
+
+## Keep the HUD sharp
+
+On by default since 4.0, and it needs no setup. Frame generation works out one motion for every place of the
+picture, so a HUD that stands still in front of a moving world gets the world's motion too. With **Keep the HUD
+sharp**, a pixel that is the same in both real frames, and stands in a surrounding that mostly moves, keeps its
+real value in the generated frames between them. It works with every method PushFPS runs itself (NVIDIA's,
+FSR, PushFlow), not with XeSS. With a still camera or in a menu it touches nothing. It judges every pair of
+frames by itself, where Live HUD Lock remembers: the two can be on together.
+
+It does not remove ghosting in the moving world right beside a character, and a source with visible noise gives
+it less to find. It is tested on the software renderer and measured on PushFlow's models with drawn pictures,
+not yet on real games.
 
 ## Automatic HUD detection
 
@@ -961,6 +976,17 @@ Ways to lower it:
 To see the whole delay, not just PushFPS's part, use **Measure total delay** next to the latency switch: film
 the capture card's passthrough screen and PushFPS side by side in slow motion and count the frames between them.
 
+The readout can be dragged anywhere over the picture (a double click sends it back to the corner). The
+performance report (*Settings → Performance report*) also says how long your screen took after the hand-over
+to show each frame, when Windows reports it.
+
+### Lip sync
+
+Automatic sync delays the sound by the time the picture spends inside PushFPS. It cannot see how much later
+than its sound your capture card hands over the picture, or what your screen, soundbar or wireless headphones
+add. If voices and mouths don't match, use **Lip sync** in the quick setup: *Earlier 10* / *Later 10* move
+the sound in steps of 10 ms on top of automatic sync.
+
 ## FAQ
 
 **Does it work with games that already run at 60 FPS?**
@@ -1054,6 +1080,9 @@ Most of it waits for measurements on real graphics cards: [how to take one](docs
 - [x] Comparison clips up to 2 minutes or until stopped; cameras at up to 4K with a live picture
 - [x] Reveal comparison clips (a line sweeps between the console and PushFPS), clip quality up to 4K
 - [x] A warning when frame generation shows no frames, a performance report to copy, tested graphics cards
+- [x] 4.0: the HUD kept sharp with every method, a steadier 60 → 30 rhythm, lip sync by hand, a line in the
+      live comparison, a capture card's own sound input chosen for a new card
+- [ ] 4.0's changes looked at on real cards and capture cards (they passed the automatic tests only)
 - [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)

@@ -27,6 +27,26 @@ measured on real hardware, not when the code is written. [How things are measure
 - Reveal comparison clips, and split and reveal clips at up to 4K.
 - The first [tested graphics cards](../README.md#tested-graphics-cards).
 
+## Done in 4.0
+
+Written and tested on the software renderer; **none of it has been measured on a real card yet**, which is the
+next step for each (rule 2).
+
+- What stands still in front of a moving picture keeps its real pixels in generated frames (the HUD), with
+  every method PushFPS runs itself. On by default, its own switch.
+- 60 → 30 duplicate removal keeps its rhythm when a game dips under 30.
+- Lip sync by hand, on top of automatic sync.
+- A line between the two sides of the live comparison. The latency readout can be dragged.
+- A new capture card starts with its own sound input chosen where that is beyond doubt.
+- PS5 Remote Play: a frame arriving while the queue is read is no longer taken for too old; quick presses
+  are not lost; recoveries are logged with their cause.
+- AV1 files on the card's own decoder, Dolby Vision 8.4 base layers shown as HLG, a display that reports the
+  format's limit as its peak no longer believed.
+- The performance report says how the picture reaches the screen and how long the screen took after the
+  hand-over.
+
+Still open after 4.0: ghosting in the moving world beside a character (nothing measured so far improves it).
+
 ## Next: can be built now, ships after it is measured
 
 These need card test results and performance reports from real cards before they are switched on by default.
