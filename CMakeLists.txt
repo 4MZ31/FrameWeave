@@ -1079,6 +1079,10 @@ target_include_directories(veyra_push_audio_trim_tests PRIVATE ${CMAKE_CURRENT_S
 add_executable(veyra_push_hud_still_tests tests/unit/PushHudStillTests.cpp)
 target_compile_features(veyra_push_hud_still_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_hud_still_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: which sound input belongs to a capture card (source/PushCaptureAudioSuggest.h, pure; also builds with g++).
+add_executable(veyra_push_capture_audio_suggest_tests tests/unit/PushCaptureAudioSuggestTests.cpp)
+target_compile_features(veyra_push_capture_audio_suggest_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_capture_audio_suggest_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_push_fg_health_tests tests/unit/PushFgHealthTests.cpp)
 target_compile_features(veyra_push_fg_health_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_fg_health_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -147,6 +147,8 @@ class QmlPlayerBridge : public QObject {
     Q_PROPERTY(QString capturePixelId READ capturePixelId WRITE setCapturePixelId NOTIFY captureChanged)
     Q_PROPERTY(QVariantList captureAudioInputs READ captureAudioInputs NOTIFY captureChanged)
     Q_PROPERTY(int captureAudioChoice READ captureAudioChoice WRITE setCaptureAudioChoice NOTIFY captureChanged)
+    // PushFPS: the card's own sound input where that is beyond doubt (an id as in captureAudioInputs; -1 none).
+    Q_PROPERTY(int captureAudioSuggestion READ captureAudioSuggestion NOTIFY captureChanged)
     Q_PROPERTY(bool captureVirtualAudioInstalled READ captureVirtualAudioInstalled NOTIFY captureChanged)
     Q_PROPERTY(bool captureVirtualAudioRemovalBlocked READ captureVirtualAudioRemovalBlocked NOTIFY snapshotChanged)
     Q_PROPERTY(bool captureVirtualAudioBusy READ captureVirtualAudioBusy NOTIFY captureChanged)
@@ -761,6 +763,7 @@ public:
     void setCapturePixelId(const QString& id);
     QVariantList captureAudioInputs() const;
     int captureAudioChoice() const;
+    int captureAudioSuggestion() const;
     void setCaptureAudioChoice(int choice);
     int captureColorSpace() const;
     void setCaptureColorSpace(int value);

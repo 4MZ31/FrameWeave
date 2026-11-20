@@ -1,4 +1,5 @@
 // QML bridge: Capture responsibilities.
+#include "veyra/source/PushCaptureAudioSuggest.h"
 #include "../QmlPlayerBridge_p.h"
 #include "veyra/source/VirtualDesktop.h"
 #include "veyra/source/WasapiAudioInput.h"
@@ -48,7 +49,18 @@ void QmlPlayerBridge::setCaptureDeviceId(const QString& value) {
     // is the remembered device.
     impl_->captureColor = impl_->capturePrefs.colorForDevice(impl_->captureDevice);
     if(impl_->captureDevice==impl_->capturePrefs.videoPath)impl_->restoreCaptureForm();
-    else {impl_->captureAudioChoice=source::kCaptureAudioDisabled;impl_->captureAudioMissing=false;}
+    else {
+        // A card that was never set up starts with its own sound input chosen, where that is beyond
+        // doubt (PushFPS 4.0; until then it started without sound and people reported "no sound").
+        // It is shown in the dialog before anything is connected. The remembered card keeps what was
+        // set for it, "none" included.
+        impl_->captureAudioChoice=source::kCaptureAudioDisabled;impl_->captureAudioMissing=false;
+        const int suggestion=captureAudioSuggestion();
+        if(suggestion!=source::kSuggestNone){
+            impl_->captureAudioChoice=suggestion;
+            veyra::log::info("capture-ui",std::format("sound input preselected for a new card: {}",suggestion==source::kSuggestVideoDevice?"the video device's own":"the input that carries the card's name"));
+        }
+    }
     if(!impl_->persistCaptureSelection())emit notice(tr("采集设置保存失败，请检查配置目录是否可写"),true);
     if (!impl_->captureDevice.empty()) queryCapture(1, impl_->captureDevice);
     emit captureChanged();
@@ -207,6 +219,20 @@ QVariantList QmlPlayerBridge::captureAudioInputs() const {
         out << QVariantMap{{"id", int(i)}, {"label", label}};
     }
     return out;
+}
+// PushFPS 4.0: the card's own sound input, where it is beyond doubt which one that is
+// (source/PushCaptureAudioSuggest.h): an index into the inputs, the video device itself, or -1 for none.
+int QmlPlayerBridge::captureAudioSuggestion() const {
+    const auto& i = *impl_;
+    if (i.captureDevice.empty()) return source::kSuggestNone;
+    for (const auto& d : i.captureVideo) {
+        if (d.path != i.captureDevice) continue;
+        std::vector<source::SuggestInput> inputs;
+        inputs.reserve(i.captureAudio.size());
+        for (const auto& a : i.captureAudio) inputs.push_back({a.name, a.wasapi, a.virtualSpeaker});
+        return source::suggestCaptureAudio(d.name, d.hasEmbeddedAudio, inputs);
+    }
+    return source::kSuggestNone;
 }
 int QmlPlayerBridge::captureAudioChoice() const { return impl_->captureAudioMissing?-4:impl_->captureAudioChoice; }
 void QmlPlayerBridge::setCaptureAudioChoice(int choice) {
@@ -487,6 +513,12 @@ bool QmlPlayerBridge::startCaptureSession() {
     if(!format->supported){emit notice(tr("设备提供此格式，但当前播放器不支持其尺寸或像素布局，请选择其他格式"),true);return false;}
     if(i.captureAudioMissing){emit notice(tr("上次的音频输入未连接，请插回设备或重新选择音频输入"),true);return false;}
     const int audio = i.captureAudioChoice;
+    // PushFPS: connecting without sound while the card's own input is there is said once a run, so a
+    // card set up before 4.0 (which started with "none") does not stay silent without a word.
+    if (audio == source::kCaptureAudioDisabled && !i.captureSilentNoted && captureAudioSuggestion() != source::kSuggestNone) {
+        i.captureSilentNoted = true;
+        emit notice(tr("这张采集卡没有选择声音输入，所以没有声音。它自己的声音输入已经找到：打开采集设置，在“音频输入”里选它"), false);
+    }
     const source::CaptureDevice* audioDevice = audio >= 0 && size_t(audio) < i.captureAudio.size() ? &i.captureAudio[size_t(audio)] : nullptr;
     if (audioDevice && audioDevice->virtualSpeaker) {
         if (captureVirtualAudioBusy()) {

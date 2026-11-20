@@ -491,6 +491,7 @@ struct QmlPlayerBridge::Impl {
     bool captureVirtualAudioInstalled = false;
     VirtualCaptureAudioSetup* captureVirtualAudioSetup = nullptr;
     bool captureAudioMissing = false;
+    bool captureSilentNoted = false;   // PushFPS: "connected without sound" was said in this run
     unsigned captureColor = 0;
     double captureFps = 0;
     QString captureStatus;

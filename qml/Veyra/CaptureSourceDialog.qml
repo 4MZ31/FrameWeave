@@ -306,6 +306,21 @@ DialogLayer {
                 onPicked: id => veyra.captureAudioChoice = Number(id)
             }
         }
+        // PushFPS: no sound input is chosen, and the card's own was found (it is beyond doubt which one):
+        // say so and offer it. A card set up before 4.0 started with "none" and stayed silent unseen.
+        VRow {
+            id: audioSuggest
+            objectName: "pushfps-capture-audio-suggest-row"
+            readonly property int suggestion: veyra.captureAudioSuggestion === undefined ? -1 : Number(veyra.captureAudioSuggestion)
+            visible: veyra.captureAudioChoice === -1 && suggestion !== -1
+            label: qsTr("没有声音输入")
+            hint: qsTr("现在连接不会有声音。这张采集卡自己的声音输入已经找到：%1").arg(captureDialog.labelOf(veyra.captureAudioInputs, suggestion, ""))
+            VButton {
+                objectName: "pushfps-capture-audio-suggest"
+                text: qsTr("使用它")
+                onClicked: veyra.captureAudioChoice = audioSuggest.suggestion
+            }
+        }
         VRow {
             label: qsTr("本机音频监听")
             hint: qsTr("关闭后仍可录制和保存回放；本机不播放采集声音")

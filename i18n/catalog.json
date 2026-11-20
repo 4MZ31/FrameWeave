@@ -12462,6 +12462,23 @@
    "ru": "Используется: %1"
   },
   {
+   "zh": "使用它",
+   "src": "qml/CaptureSourceDialog.qml",
+   "zh-TW": "使用它",
+   "en": "Use it",
+   "ja": "これを使う",
+   "nl": "Use it",
+   "de": "Use it",
+   "es": "Use it",
+   "fr": "Use it",
+   "it": "Use it",
+   "pt-BR": "Use it",
+   "tr": "Use it",
+   "ar": "Use it",
+   "pl": "Use it",
+   "ru": "Use it"
+  },
+  {
    "zh": "使用说明",
    "src": "qml/CaptureSourceDialog.qml",
    "zh-TW": "使用說明",
@@ -43319,6 +43336,23 @@
    "ru": "no right stick passes through PushFPS (only PS5 Remote Play for now; a controller plugged into the console is not seen)"
   },
   {
+   "zh": "没有声音输入",
+   "src": "qml/CaptureSourceDialog.qml",
+   "zh-TW": "沒有聲音輸入",
+   "en": "No sound input",
+   "ja": "音声入力なし",
+   "nl": "No sound input",
+   "de": "No sound input",
+   "es": "No sound input",
+   "fr": "No sound input",
+   "it": "No sound input",
+   "pt-BR": "No sound input",
+   "tr": "No sound input",
+   "ar": "No sound input",
+   "pl": "No sound input",
+   "ru": "No sound input"
+  },
+  {
    "zh": "没有应用在这个通道发送画面",
    "src": "src/ui/bridge/PushFrameInput.cpp",
    "zh-TW": "沒有應用在這個通道傳送畫面",
@@ -45986,6 +46020,23 @@
    "ar": "زمن معالجة الحاسوب الآن %1 ms.",
    "pl": "Opóźnienie przetwarzania PC teraz: %1 ms.",
    "ru": "Сейчас задержка обработки ПК %1 мс."
+  },
+  {
+   "zh": "现在连接不会有声音。这张采集卡自己的声音输入已经找到：%1",
+   "src": "qml/CaptureSourceDialog.qml",
+   "zh-TW": "現在連接不會有聲音。這張擷取卡自己的聲音輸入已經找到：%1",
+   "en": "Connecting now gives no sound. This capture card's own sound input was found: %1",
+   "ja": "このまま接続すると音が出ません。このキャプチャーカード自身の音声入力が見つかりました：%1",
+   "nl": "Connecting now gives no sound. This capture card's own sound input was found: %1",
+   "de": "Connecting now gives no sound. This capture card's own sound input was found: %1",
+   "es": "Connecting now gives no sound. This capture card's own sound input was found: %1",
+   "fr": "Connecting now gives no sound. This capture card's own sound input was found: %1",
+   "it": "Connecting now gives no sound. This capture card's own sound input was found: %1",
+   "pt-BR": "Connecting now gives no sound. This capture card's own sound input was found: %1",
+   "tr": "Connecting now gives no sound. This capture card's own sound input was found: %1",
+   "ar": "Connecting now gives no sound. This capture card's own sound input was found: %1",
+   "pl": "Connecting now gives no sound. This capture card's own sound input was found: %1",
+   "ru": "Connecting now gives no sound. This capture card's own sound input was found: %1"
   },
   {
    "zh": "生成帧准确度",
@@ -59127,6 +59178,23 @@
    "ar": "This BMD card does not currently expose the selected connector. Refresh and select an available input.",
    "pl": "Niniejsza karta BMD nie ujawnia aktualnie wybranego złącza. Odśwież i wybierz dostępne wejście.",
    "ru": "Эта карта BMD в настоящее время не раскрывает выбранный разъем. Обновите и выберите доступный вход."
+  },
+  {
+   "zh": "这张采集卡没有选择声音输入，所以没有声音。它自己的声音输入已经找到：打开采集设置，在“音频输入”里选它",
+   "src": "src/ui/bridge/Capture.cpp",
+   "zh-TW": "這張擷取卡沒有選擇聲音輸入，所以沒有聲音。它自己的聲音輸入已經找到：開啟擷取設定，在「音訊輸入」裡選它",
+   "en": "No sound input is chosen for this capture card, so there is no sound. Its own sound input was found: open the capture settings and choose it under Audio input",
+   "ja": "このキャプチャーカードには音声入力が選ばれていないため、音が出ません。カード自身の音声入力が見つかっています。キャプチャー設定を開き、「オーディオ入力」で選んでください",
+   "nl": "No sound input is chosen for this capture card, so there is no sound. Its own sound input was found: open the capture settings and choose it under Audio input",
+   "de": "No sound input is chosen for this capture card, so there is no sound. Its own sound input was found: open the capture settings and choose it under Audio input",
+   "es": "No sound input is chosen for this capture card, so there is no sound. Its own sound input was found: open the capture settings and choose it under Audio input",
+   "fr": "No sound input is chosen for this capture card, so there is no sound. Its own sound input was found: open the capture settings and choose it under Audio input",
+   "it": "No sound input is chosen for this capture card, so there is no sound. Its own sound input was found: open the capture settings and choose it under Audio input",
+   "pt-BR": "No sound input is chosen for this capture card, so there is no sound. Its own sound input was found: open the capture settings and choose it under Audio input",
+   "tr": "No sound input is chosen for this capture card, so there is no sound. Its own sound input was found: open the capture settings and choose it under Audio input",
+   "ar": "No sound input is chosen for this capture card, so there is no sound. Its own sound input was found: open the capture settings and choose it under Audio input",
+   "pl": "No sound input is chosen for this capture card, so there is no sound. Its own sound input was found: open the capture settings and choose it under Audio input",
+   "ru": "No sound input is chosen for this capture card, so there is no sound. Its own sound input was found: open the capture settings and choose it under Audio input"
   },
   {
    "zh": "这是儿童账号，需要家长在家庭组里允许后才能使用。",
