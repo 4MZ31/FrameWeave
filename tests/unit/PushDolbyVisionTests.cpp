@@ -56,7 +56,8 @@ int main() {
     }
     {   // The routes themselves are what they were.
         check(stream(8, 4).route() == DolbyBaseLayer::Hlg && stream(8, 1).route() == DolbyBaseLayer::Hdr10 && stream(8, 2).route() == DolbyBaseLayer::Sdr, "profile 8 routes");
-        check(stream(7, 6).route() == DolbyBaseLayer::Hdr10 && stream(5, 0).route() == DolbyBaseLayer::Unsupported && stream(8, 4, false).route() == DolbyBaseLayer::Unsupported, "profiles 7 and 5, and no base layer");
+        // Profile 5 is converted from its RPU since the 2.2.0 merge (it was refused before): its route is the PQ container.
+        check(stream(7, 6).route() == DolbyBaseLayer::Hdr10 && stream(5, 0).route() == DolbyBaseLayer::Hdr10 && stream(8, 4, false).route() == DolbyBaseLayer::Unsupported, "profiles 7 and 5, and no base layer");
         check(DolbyVisionInfo{}.route() == DolbyBaseLayer::None, "no Dolby Vision");
     }
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "ALL PASSED", failures);

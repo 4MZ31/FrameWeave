@@ -337,13 +337,18 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build PushFPS.exe
+        id: buildexe
         run: |
           # -k 0: every compile error of a run in one log, not the first one only.
           cmake --build $env:BUILD --target veyra_qml_ui --parallel -- -k 0
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Get-Item "$env:BUILD\PushFPS.exe" | Format-List Name, Length, VersionInfo
 
+      # Every check from here to the install test runs whenever the program was built, also after an earlier one
+      # failed: one run then shows everything that is wrong, instead of one fault an hour. The job still fails,
+      # and nothing is published from a failed job (the release steps keep their default condition).
       - name: Unit tests that need no GPU
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
           cmake --build $env:BUILD --target veyra_update_checker_tests veyra_update_verify_tests veyra_ui_i18n_tests --parallel
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -369,6 +374,7 @@ jobs:
           if ($failed) { exit 1 }
 
       - name: NVIDIA Image Scaling on D3D12 (WARP when there is no GPU)
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
           cmake --build $env:BUILD --target veyra_nis_gpu_tests --parallel
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -387,6 +393,7 @@ jobs:
           if ($code -ne 0) { exit 1 }
 
       - name: PushFPS comparison clips and HUD sampling on D3D12 (WARP when there is no GPU)
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
           cmake --build $env:BUILD --target veyra_push_gpu_tests --parallel
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -438,6 +445,7 @@ jobs:
       # PushFlow and come back with its generated frames, at 2X and 3X. (The step above drives PushFlow on its
       # own; 3.2.0 shipped with the graph never asking it for a frame, and only a test like this one sees that.)
       - name: PushFlow through the enhancement graph, as the program runs it
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
           cmake --build $env:BUILD --target veyra_push_flow_graph_tests --parallel
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -458,6 +466,7 @@ jobs:
       # is linked in for this step only and taken away again. Software renderer: it says the engine keeps
       # playing and shows real frames sooner, nothing about a real graphics card.
       - name: PushFlow 2 Predict through the engine, with a live source
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
           cmake --build $env:BUILD --target veyra_push_predict_engine_tests --parallel
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -486,6 +495,7 @@ jobs:
       # Going live: two outputs at once (RTMP + RTMPS through Schannel) to a local MediaMTX, read back,
       # server restart, a closed port, key redaction. Proves the FFmpeg build has rtmp/rtmps.
       - name: Going-live tests (local RTMP/RTMPS server)
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         shell: bash
         run: |
           set -e
@@ -498,6 +508,7 @@ jobs:
 
       # Finished recordings are rewritten as standard MP4 (Vegas Pro and other editors refuse fragmented files).
       - name: Recording MP4 finishing test
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
           cmake --build $env:BUILD --target veyra_mp4_finalize_tests --parallel
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -512,6 +523,7 @@ jobs:
       # Capture cards without the hardware: media types, strides and colour of what a card delivers, the
       # Blackmagic and Elgato controls (HDR detection, the 4K X included) against stand-in devices.
       - name: Capture card format and colour tests
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
           cmake --build $env:BUILD --target veyra_capture_color_tests --parallel
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -524,6 +536,7 @@ jobs:
           if ($code -ne 0) { exit 1 }
 
       - name: QML component tests (PushFPS quick setup)
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
           cmake --build $env:BUILD --target veyra_qml_quick_tests veyra_qml_easing_tests --parallel
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -555,6 +568,7 @@ jobs:
           if ($failed) { exit 1 }
 
       - name: QML component tests (whole Veyra suite)
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
           $stage = Join-Path $env:RUNNER_TEMP 'qml-tests-stage'
           $env:PATH = "$env:QT_ROOT_DIR\bin;$env:PATH"
@@ -581,6 +595,7 @@ jobs:
           if ($failed) { exit 1 }
 
       - name: Imports must match the upstream runtime package
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
           python -m pip install --quiet pefile
           @'
@@ -601,11 +616,13 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Pin the upstream package hashes
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
           gh release download $env:UPSTREAM_TAG -R $env:UPSTREAM_REPO -p SHA256SUMS.txt -O upstream-sha256.txt
           Get-Content upstream-sha256.txt
 
       - name: Package the PushFPS release zip
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
           # The licences of the SDK code built into PushFPS.exe travel with it (licenses\sdk in the zip).
           $sdk = 'licenses\sdk'
@@ -624,6 +641,7 @@ jobs:
           Get-ChildItem dist | Format-Table Name, Length
 
       - name: Install test (download Veyra runtime, add PushFPS, start it)
+        if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         timeout-minutes: 30
         run: |
           $zip = (Get-ChildItem dist/PushFPS-*.zip)[0].FullName
