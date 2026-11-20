@@ -210,7 +210,8 @@ VPage {
                                 id: themePicker
                                 spacing: 12
                                 readonly property var themes: [{ id: "default", tip: qsTr("石墨") }, { id: "black", tip: qsTr("纯黑") }, { id: "midnight", tip: qsTr("午夜蓝") },
-                                                               { id: "plum", tip: qsTr("深紫") }, { id: "forest", tip: qsTr("墨绿") }, { id: "light", tip: qsTr("浅色") }]
+                                                               { id: "plum", tip: qsTr("深紫") }, { id: "forest", tip: qsTr("墨绿") }, { id: "light", tip: qsTr("浅色") },
+                                                               { id: "contrast", tip: qsTr("高对比度") }]
                                 // The theme on screen (an unknown name shows the dark grey).
                                 readonly property string shown: Theme.surfaces[Theme.mode] ? Theme.mode : "default"
                                 Text {
@@ -238,6 +239,9 @@ VPage {
                                         Rectangle {
                                             x: 8; y: 8; width: parent.width - 16; height: parent.height - 16; radius: 5
                                             color: themeTile.look.card2
+                                            // High contrast: a card is told from the background by its outline.
+                                            border.width: themeTile.modelData.id === "contrast" ? 1 : 0
+                                            border.color: "#FFFFFF"
                                             Rectangle { x: 6; y: 7; width: 20; height: 3; radius: 1.5; color: themeTile.lightLook ? "#15171A" : "#F3F3F5"; opacity: 0.85 }
                                             Rectangle { x: 6; y: 15; width: 13; height: 3; radius: 1.5; color: themeTile.lightLook ? "#15171A" : "#F3F3F5"; opacity: 0.4 }
                                             Rectangle {
@@ -406,6 +410,18 @@ VPage {
                                 onToggled: checked => veyra.reducedMotion = checked
                             }
                         }
+                        // PushFPS: the on-screen readout (latency and frame rate over the picture) in a larger size.
+                        VRow {
+                            objectName: "set-readout-size-row"
+                            label: qsTr("画面读数大小")
+                            hint: qsTr("画面上的延迟和帧率读数。坐得远或用手柄玩时，大一些更容易看清")
+                            VSeg {
+                                objectName: "set-readout-size"
+                                options: [{ id: "0", label: qsTr("标准") }, { id: "1", label: qsTr("大") }, { id: "2", label: qsTr("特大") }]
+                                current: String(Math.max(0, Math.min(2, Number(veyra.preferences.pushLatencySize || 0))))
+                                onPicked: id => veyra.setPreference("pushLatencySize", Number(id))
+                            }
+                        }
                         VRow {
                             label: qsTr("滑块键盘微调")
                             hint: qsTr("点一下滑块后用 ← → 调整，每次的幅度；Esc 或单击画面交还方向键给快进快退")
@@ -562,6 +578,18 @@ VPage {
                             label: qsTr("自动去隔行")
                             hint: veyra.deinterlaceAvailable ? qsTr("只处理标记为隔行的视频，优先使用 GPU；软解使用兼容算法。下次打开视频生效。") : qsTr("当前软件包未包含去隔行组件")
                             VSwitch { enabled: veyra.deinterlaceAvailable; checked: veyra.preferences.deinterlace !== false; onToggled: checked => veyra.setPreference("deinterlace",checked) }
+                        }
+                        VRow {
+                            objectName: "set-sharp-scaling-row"
+                            label: qsTr("锐利缩放")
+                            hint: veyra.preferences.pushSharpScaling !== false
+                                  ? qsTr("画面与窗口大小不同时更清晰：放大不发软，缩小不闪烁。大小相同时逐像素一致")
+                                  : qsTr("已关闭：按 4.1 之前的方式缩放")
+                            VSwitch {
+                                objectName: "set-sharp-scaling"
+                                checked: veyra.preferences.pushSharpScaling !== false
+                                onToggled: checked => veyra.setPreference("pushSharpScaling", checked)
+                            }
                         }
                     }
                     VH3 { text: qsTr("HDR"); Layout.topMargin: 6 }
@@ -2044,6 +2072,13 @@ VPage {
                             label: qsTr("性能报告")
                             hint: qsTr("复制这次播放的实际数据：显卡和驱动、设置、游戏帧率、补出的帧率和软件延迟。里面没有任何个人信息，可以附在反馈或硬件报告里")
                             VButton { objectName: "set-perfreport-copy"; text: qsTr("复制"); onClicked: veyra.pushCopyPerformanceReport() }
+                        }
+                        // PushFPS: Check my setup (PushDiagnoseDialog.qml).
+                        VRow {
+                            objectName: "set-diagnose"
+                            label: qsTr("检查我的设置")
+                            hint: qsTr("看看正在运行的画面里，是什么在影响清晰度、流畅度和声音，每一项都有一键更改")
+                            VButton { objectName: "set-diagnose-open"; text: qsTr("检查"); onClicked: veyra.navigate("diagnose") }
                         }
                         // PushFPS: PushFlow's benchmark on this PC's graphics card (PushCardTestDialog.qml).
                         VRow {

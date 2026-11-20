@@ -24,13 +24,19 @@ Rectangle {
     readonly property bool hasNumbers: stats.running === true && stats.latencyMs !== undefined && stats.latencyMs !== null
     visible: wanted && stats.running === true
     readonly property bool videoCover: visible
-    readonly property real coverRadius: 9
-    implicitWidth: row.implicitWidth + 20
-    implicitHeight: 30
-    radius: 9
-    color: Qt.rgba(0.04, 0.05, 0.04, 0.82)
+    // The size (4.1, preference pushLatencySize: 0 standard, 1 large, 2 largest): everything in it grows
+    // by one factor, so the readout can be read from a sofa. Standard is the size it always had.
+    readonly property int sizeStep: Math.max(0, Math.min(2, Math.round(Number(veyra.preferences.pushLatencySize || 0))))
+    readonly property real k: sizeStep === 2 ? 1.8 : sizeStep === 1 ? 1.4 : 1
+    readonly property real coverRadius: 9 * k
+    implicitWidth: row.implicitWidth + 20 * k
+    implicitHeight: 30 * k
+    radius: 9 * k
+    // A dark chip in every theme, so what is written on it is white in every theme. High contrast:
+    // solid black with a clear outline.
+    color: Theme.contrast ? "#000000" : Qt.rgba(0.04, 0.05, 0.04, 0.82)
     border.width: 1
-    border.color: Qt.rgba(1, 1, 1, 0.10)
+    border.color: Theme.contrast ? "#FFFFFF" : Qt.rgba(1, 1, 1, 0.10)
 
     // --- where it sits ------------------------------------------------------------------------------
     property real areaX: 0
@@ -105,28 +111,28 @@ Rectangle {
     Timer { interval: 500; repeat: true; running: badge.wanted; triggeredOnStart: true; onTriggered: badge.refresh() }
 
     // Green under 30 ms of PC latency, amber to 60, red above.
-    readonly property color level: !hasNumbers ? Theme.t3 : stats.latencyMs < 30 ? Theme.accent : stats.latencyMs < 60 ? Theme.warn : "#FF6B5B"
+    readonly property color level: !hasNumbers ? Qt.rgba(1, 1, 1, 0.5) : stats.latencyMs < 30 ? Theme.accentPair.dark : stats.latencyMs < 60 ? "#F5C84B" : "#FF6B5B"
 
     RowLayout {
         id: row
         anchors.centerIn: parent
-        spacing: 10
-        Rectangle { implicitWidth: 7; implicitHeight: 7; radius: 3.5; color: badge.level }
+        spacing: 10 * badge.k
+        Rectangle { implicitWidth: 7 * badge.k; implicitHeight: 7 * badge.k; radius: 3.5 * badge.k; color: badge.level }
         Text {
             objectName: "pushfps-latency-ms"
             text: badge.hasNumbers ? qsTr("延迟 %1 ms").arg(Number(badge.stats.latencyMs).toFixed(0)) : qsTr("延迟 测量中")
-            color: Theme.t1; font.family: Theme.fontMono; font.pixelSize: 12; font.weight: Font.DemiBold
+            color: Theme.onVideo; font.family: Theme.fontMono; font.pixelSize: 12 * badge.k; font.weight: Font.DemiBold
         }
         Text {
             visible: badge.hasNumbers && badge.stats.latencyP95Ms !== undefined && badge.stats.latencyP95Ms !== null
             text: qsTr("p95 %1").arg(Number(badge.stats.latencyP95Ms).toFixed(0))
-            color: Theme.t3; font.family: Theme.fontMono; font.pixelSize: 11
+            color: Theme.contrast ? Theme.onVideo : Qt.rgba(1, 1, 1, 0.6); font.family: Theme.fontMono; font.pixelSize: 11 * badge.k
         }
         Text {
             visible: badge.stats.submitFps !== undefined && badge.stats.submitFps !== null
             text: qsTr("%1 FPS").arg(Number(badge.stats.submitFps).toFixed(0))
                   + (badge.stats.submitLowFps !== undefined && badge.stats.submitLowFps !== null ? qsTr(" · 1% %1").arg(Number(badge.stats.submitLowFps).toFixed(0)) : "")
-            color: Theme.t2; font.family: Theme.fontMono; font.pixelSize: 11
+            color: Theme.contrast ? Theme.onVideo : Qt.rgba(1, 1, 1, 0.8); font.family: Theme.fontMono; font.pixelSize: 11 * badge.k
         }
     }
 }

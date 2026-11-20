@@ -27,16 +27,20 @@ QtObject {
     // the same depths as the dark grey, tinted navy, aubergine or deep green. With the accents below that is
     // six backgrounds by seven accents. Every pair is checked for contrast (tst_push_appearance.qml).
     readonly property bool tinted: mode === "midnight" || mode === "plum" || mode === "forest"
+    // High contrast (4.1, for people who need it): black surfaces, white text at every level, and
+    // outlines strong enough to show where a card or a control ends without relying on a shade of grey.
+    readonly property bool contrast: mode === "contrast"
     readonly property var surfaces: ({
         "default":  { card: "#131317", card2: "#19191E", card3: "#24242A", popover: "#1B1B20", dialog: "#141418", bgOuter: "#070709", bgMid: "#0C0C10", bgInner: "#17171C" },
         "black":    { card: "#08080A", card2: "#0D0D10", card3: "#17171B", popover: "#101013", dialog: "#0A0A0C", bgOuter: "#000000", bgMid: "#010102", bgInner: "#050506" },
         "light":    { card: "#FFFFFF", card2: "#F3F5F0", card3: "#E4E7E0", popover: "#FFFFFF", dialog: "#FFFFFF", bgOuter: "#DFE3DA", bgMid: "#E9ECE5", bgInner: "#F4F6F1" },
         "midnight": { card: "#0F1522", card2: "#141B2B", card3: "#1F2942", popover: "#161E30", dialog: "#101726", bgOuter: "#05080F", bgMid: "#090E19", bgInner: "#121A2B" },
         "plum":     { card: "#1B1224", card2: "#22172D", card3: "#322341", popover: "#241930", dialog: "#1C1326", bgOuter: "#09050D", bgMid: "#110A18", bgInner: "#1F152A" },
-        "forest":   { card: "#0F1613", card2: "#141D19", card3: "#1F2B25", popover: "#16201B", dialog: "#101814", bgOuter: "#050907", bgMid: "#090F0C", bgInner: "#131C17" }
+        "forest":   { card: "#0F1613", card2: "#141D19", card3: "#1F2B25", popover: "#16201B", dialog: "#101814", bgOuter: "#050907", bgMid: "#090F0C", bgInner: "#131C17" },
+        "contrast": { card: "#000000", card2: "#000000", card3: "#1C1C1C", popover: "#000000", dialog: "#000000", bgOuter: "#000000", bgMid: "#000000", bgInner: "#000000" }
     })
     readonly property var surface: surfaces[mode] || surfaces["default"]
-    function ink(a) { return light ? Qt.rgba(0.07, 0.08, 0.06, Math.min(1, a * 1.15)) : Qt.rgba(1, 1, 1, a) }
+    function ink(a) { return light ? Qt.rgba(0.07, 0.08, 0.06, Math.min(1, a * 1.15)) : contrast ? Qt.rgba(1, 1, 1, Math.min(1, a * 1.8)) : Qt.rgba(1, 1, 1, a) }
     // Text and icons drawn over the video picture or a dark chip stay white in every mode.
     readonly property color onVideo: "#FFFFFF"
 
@@ -46,8 +50,8 @@ QtObject {
     readonly property color card3: surface.card3
     readonly property color popover: surface.popover
     readonly property color dialog: surface.dialog
-    readonly property color stroke: light ? Qt.rgba(0, 0, 0, 0.10) : Qt.rgba(1, 1, 1, black ? 0.08 : 0.07)
-    readonly property color stroke2: light ? Qt.rgba(0, 0, 0, 0.18) : Qt.rgba(1, 1, 1, black ? 0.14 : 0.13)
+    readonly property color stroke: light ? Qt.rgba(0, 0, 0, 0.10) : contrast ? Qt.rgba(1, 1, 1, 0.55) : Qt.rgba(1, 1, 1, black ? 0.08 : 0.07)
+    readonly property color stroke2: light ? Qt.rgba(0, 0, 0, 0.18) : contrast ? Qt.rgba(1, 1, 1, 0.85) : Qt.rgba(1, 1, 1, black ? 0.14 : 0.13)
     // The app background: a radial gradient in the prototype, approximated here
     // with the three stops it interpolates between.
     readonly property color bgOuter: surface.bgOuter
@@ -69,13 +73,13 @@ QtObject {
     }
 
     // --- text -------------------------------------------------------------
-    readonly property color t1: light ? "#15171A" : "#F3F3F5"
-    readonly property color t2: light ? Qt.rgba(0.08, 0.09, 0.10, 0.74) : Qt.rgba(0.953, 0.953, 0.961, 0.62)
+    readonly property color t1: light ? "#15171A" : contrast ? "#FFFFFF" : "#F3F3F5"
+    readonly property color t2: light ? Qt.rgba(0.08, 0.09, 0.10, 0.74) : contrast ? Qt.rgba(1, 1, 1, 0.92) : Qt.rgba(0.953, 0.953, 0.961, 0.62)
     // PushFPS: secondary text a little brighter than the design's .38, so hints
     // stay readable on the dark cards (contrast about 4.5:1 on card2).
-    readonly property color t3: light ? Qt.rgba(0.08, 0.09, 0.10, 0.62) : Qt.rgba(0.953, 0.953, 0.961, 0.48)
+    readonly property color t3: light ? Qt.rgba(0.08, 0.09, 0.10, 0.62) : contrast ? Qt.rgba(1, 1, 1, 0.82) : Qt.rgba(0.953, 0.953, 0.961, 0.48)
     // Row labels: between t1 and t2, so a label reads before its hint.
-    readonly property color tLabel: light ? Qt.rgba(0.08, 0.09, 0.10, 0.90) : Qt.rgba(0.953, 0.953, 0.961, 0.88)
+    readonly property color tLabel: light ? Qt.rgba(0.08, 0.09, 0.10, 0.90) : contrast ? "#FFFFFF" : Qt.rgba(0.953, 0.953, 0.961, 0.88)
     readonly property real fsHint: 11.5
 
     // --- accent and state -------------------------------------------------

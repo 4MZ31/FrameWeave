@@ -101,6 +101,7 @@ PushToolTile 1.0 PushToolTile.qml
 PushLatencyGuideDialog 1.0 PushLatencyGuideDialog.qml
 PushCrashDialog 1.0 PushCrashDialog.qml
 PushCardTestDialog 1.0 PushCardTestDialog.qml
+PushDiagnoseDialog 1.0 PushDiagnoseDialog.qml
 PushStreamDialog 1.0 PushStreamDialog.qml
 PushCompareDialog 1.0 PushCompareDialog.qml
 PushIntro 1.0 PushIntro.qml

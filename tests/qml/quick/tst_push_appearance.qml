@@ -12,7 +12,7 @@ Item {
 
     TestCase {
         name: "PushAppearance"
-        readonly property var modes: ["default", "black", "light", "midnight", "plum", "forest"]
+        readonly property var modes: ["default", "black", "light", "midnight", "plum", "forest", "contrast"]
         readonly property var accents: ["orange", "white", "ice", "blue", "violet", "rose", "amber"]
         readonly property var surfaces: ["card", "card2", "card3", "popover", "dialog", "bgInner"]
         function cleanup() { Theme.mode = "default"; Theme.accentName = "orange" }
@@ -64,6 +64,25 @@ Item {
             verify(Theme.light && !Theme.black)
             verify(Theme.card.r > 0.95, "light surfaces")
             compare(String(Theme.onVideo), "#ffffff", "text over the picture stays white")
+        }
+        // High contrast: every level of text far above what the other looks ask for, and an outline that
+        // shows where a card ends on a background of the same black.
+        function test_high_contrast() {
+            Theme.mode = "contrast"
+            verify(Theme.contrast && !Theme.light && !Theme.black && !Theme.tinted)
+            for (const s of surfaces) {
+                const bg = Theme[s]
+                verify(contrast(Theme.t1, bg) >= 15, "t1 on " + s)
+                verify(contrast(Theme.t2, bg) >= 12, "t2 on " + s + ": " + contrast(Theme.t2, bg).toFixed(2))
+                verify(contrast(Theme.t3, bg) >= 10, "t3 on " + s + ": " + contrast(Theme.t3, bg).toFixed(2))
+            }
+            verify(contrast(Theme.stroke, Theme.card) >= 4.5, "a card's outline: " + contrast(Theme.stroke, Theme.card).toFixed(2))
+            verify(contrast(Theme.stroke2, Theme.card) >= 7, "a control's outline")
+            verify(Theme.ink(0.1).a > 0.17, "overlays (tracks, hover) are stronger")
+            Theme.mode = "default"
+            verify(!Theme.contrast)
+            compare(String(Theme.t1), "#f3f3f5", "and the other looks are what they were")
+            verify(Math.abs(Theme.stroke.a - 0.07) < 0.005)
         }
         // The tinted backgrounds are dark ones: white overlays, their own surfaces, and the dark grey's values untouched.
         function test_tinted_backgrounds_and_more_accents() {

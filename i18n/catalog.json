@@ -2500,6 +2500,23 @@
    "ru": "How far the AI may turn hues. 0% keeps the original's hues"
   },
   {
+   "zh": "AI 画质增强按 1080p 计算，画面是 %1p",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "AI 画面增强",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "AI 畫面增強",
@@ -5713,6 +5730,23 @@
    "ru": "NVIDIA VFG не может начаться (требуется Ada / Blackwell GPU, VFG время выполнения и поддерживаемый выходной формат). Поколение кадров отключено; смотрите журнал."
   },
   {
+   "zh": "NVIDIA VFG 用的是「%1」质量",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "NVIDIA VFG 👑（顶级补帧质量） · RTX 30（实验）/ 40 / 50",
    "src": "src/ui/bridge/FrameGeneration.cpp",
    "zh-TW": "NVIDIA VFG 👑（頂級補幀品質） · RTX 30（實驗）/ 40 / 50",
@@ -5745,6 +5779,23 @@
    "ar": "طبقة NVIDIA داخل اللعبة",
    "pl": "Nakładka NVIDIA w grze",
    "ru": "Внутриигровой оверлей NVIDIA"
+  },
+  {
+   "zh": "NVIDIA 帧生成有三个模型。「高」在物体边缘、头发和细小物体上最稳，每帧也最吃显卡；显卡跟不上时目标帧率会掉，换回「中」即可。",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "NVIDIA 新增的性能模式（测试版）：补帧更省 GPU，高倍率更稳，画质可能略降；导出仍用标准模式",
@@ -7411,6 +7462,23 @@
    "ar": "PushFlow motion size",
    "pl": "PushFlow motion size",
    "ru": "PushFlow motion size"
+  },
+  {
+   "zh": "PushFlow 还有余量：只用了每帧时间的 %1%",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "PushFlowBench.exe 无法启动",
@@ -9368,6 +9436,40 @@
    "ru": "Аппаратное декодирование, возможно, не смогло выделить память, особенно для 4K. Перезагрузите проигрыватель; если он повторяется, выберите Программное декодирование в настройках → Воспроизведение"
   },
   {
+   "zh": "「保持 HUD 清晰」已关闭：镜头移动时它可能让物体边缘破碎。需要时可在快速设置里重新开启",
+   "src": "src/ui/QmlPlayerBridge.cpp",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
+   "zh": "「保持 HUD 清晰」开着",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "「像素格式」会列出当前分辨率和帧率下可以用的选项。这几种常见格式的区别如下。",
    "src": "qml/OnboardingGuide.qml",
    "zh-TW": "「像素格式」會列出目前解析度和幀率下可用的選項。以下是幾種常見格式的差異。",
@@ -9383,6 +9485,23 @@
    "ar": "Pixel format lists the options available at the selected resolution and frame rate. Here is what the common formats carry.",
    "pl": "Pixel format lists the options available at the selected resolution and frame rate. Here is what the common formats carry.",
    "ru": "Под пунктом «Формат пикселей» показаны варианты, доступные для выбранного разрешения и частоты кадров. У распространённых форматов есть следующие различия."
+  },
+  {
+   "zh": "「高」在物体边缘、头部和细小物体上更稳，每帧也更吃显卡。帧率掉了就换回来",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "一直保留最近的画面和声音，按下保存时写成视频文件",
@@ -11032,6 +11151,23 @@
    "ar": "سطوع الدرجات المتوسطة؛ الأسود والأبيض لا يتغيران",
    "pl": "Jasność półtonów; czerń i biel się nie zmieniają",
    "ru": "Яркость средних тонов; чёрный и белый не меняются"
+  },
+  {
+   "zh": "中：标准。物体边缘破碎时可以试试「高」",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "串流中断，正在重新连接（{}/3）…",
@@ -13244,6 +13380,23 @@
    "ru": "Фильтр гула"
   },
   {
+   "zh": "低：最省显卡，物体边缘更容易破碎",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "余量 ",
    "src": "qml/NodePage.qml",
    "zh-TW": "餘量 ",
@@ -14585,6 +14738,23 @@
    "ar": "Test this graphics card first; it can be turned on once the test passes. Test while nothing is playing",
    "pl": "Test this graphics card first; it can be turned on once the test passes. Test while nothing is playing",
    "ru": "Test this graphics card first; it can be turned on once the test passes. Test while nothing is playing"
+  },
+  {
+   "zh": "先让画面播放起来（连接主机），再回来检查：这里看的是正在运行的画面",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "先连接画面",
@@ -18515,6 +18685,23 @@
    "ru": "Сжатый захват использует цветовую информацию потока; для ручного цвета и диапазона выберите нативный формат захвата."
   },
   {
+   "zh": "原因可以在性能报告里看到（设置 → 性能报告）",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "原图色彩保留",
    "src": "qml/NrLayerEditor.qml",
    "zh-TW": "原圖色彩保留",
@@ -19244,6 +19431,23 @@
    "ar": "الإبلاغ عن مشكلة",
    "pl": "Zgłoś problem",
    "ru": "Сообщить о проблеме"
+  },
+  {
+   "zh": "发现 %1 处可以改进",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "发现 {} 台 PS5。",
@@ -20043,6 +20247,40 @@
    "ar": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner",
    "pl": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner",
    "ru": "Drag it with the mouse to anywhere on the picture; double-click it to send it back to the top left corner"
+  },
+  {
+   "zh": "可以试试",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
+   "zh": "可以试试「%1」档：运动在更大的画面上估算，物体边缘更干净。显卡跟不上时 PushFPS 会自己降回来",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "可变刷新",
@@ -21609,6 +21847,23 @@
    "ru": "Скруглённый"
   },
   {
+   "zh": "在 %1 FPS 下它有不压缩的格式（%2），更清晰；代价是采集帧率变成 %1。60 FPS 的游戏会少一半画面，30 FPS 的游戏没有损失",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "在 CPU 上运行，字幕文本留在本机。",
    "src": "qml/LiveTranslationDialog.qml",
    "zh-TW": "在 CPU 上執行，字幕文字留在本機。",
@@ -22814,6 +23069,23 @@
    "ar": "Enhancement size",
    "pl": "Enhancement size",
    "ru": "Enhancement size"
+  },
+  {
+   "zh": "增强的结果被放大后贴回画面，所以会发糊、有颗粒。按画面的完整大小计算更清晰，也更吃显卡；帧率掉了就换回来",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "增强管线初始化失败，请查看诊断",
@@ -24891,7 +25163,7 @@
   },
   {
    "zh": "完整大小",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/PushDiagnoseDialog.qml",
    "zh-TW": "完整大小",
    "en": "Full size",
    "ja": "フルサイズ",
@@ -27032,6 +27304,23 @@
    "ru": "Your screen can do variable refresh, but the driver hasn't confirmed it for PushFPS, so live play can be less smooth than a recording. Click Set up to allow G-SYNC for PushFPS in a window and in full screen, then restart PushFPS"
   },
   {
+   "zh": "屏幕显示不了更多，PushFPS 会按 %1 FPS 输出。可以在 Windows 显示设置里把刷新率调高，或换一个目标",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "屏幕正处于可变刷新（驱动已开启）",
    "src": "src/ui/bridge/FrameGeneration.cpp",
    "zh-TW": "螢幕正處於可變更新（驅動程式已開啟）",
@@ -27729,6 +28018,23 @@
    "ru": "Off: the HUD is left to frame generation"
   },
   {
+   "zh": "已关闭：按 4.1 之前的方式缩放",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "已关闭；每次启动软件后需手动启用",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "已關閉；每次啟動軟體後需手動啟用",
@@ -28254,6 +28560,23 @@
    "ar": "Set to another size in Professional mode; picking one here replaces it",
    "pl": "Set to another size in Professional mode; picking one here replaces it",
    "ru": "Set to another size in Professional mode; picking one here replaces it"
+  },
+  {
+   "zh": "已在专业模式里设为混合档；在这里选一项就会改用它",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "已复制。可以贴到 GitHub 的反馈里，或发给帮你的人",
@@ -28934,6 +29257,23 @@
    "ar": "Paused: the picture holds on the current frame and no new frames are processed; press play to continue",
    "pl": "Paused: obraz trzyma się bieżącej ramki i nie są przetwarzane nowe ramki; naciśnij play, aby kontynuować",
    "ru": "Приостановлено: картинка держится на текущем кадре и никакие новые кадры не обрабатываются; нажмите воспроизведение, чтобы продолжить"
+  },
+  {
+   "zh": "已更改",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "已有一个自动对齐在进行",
@@ -30464,6 +30804,23 @@
    "ar": "The latency test needs PS5 Remote Play to be running",
    "pl": "The latency test needs PS5 Remote Play to be running",
    "ru": "The latency test needs PS5 Remote Play to be running"
+  },
+  {
+   "zh": "建议更改",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "开",
@@ -35108,6 +35465,23 @@
    "ru": "Время открытия истекло"
   },
   {
+   "zh": "打开采集设置",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "执行失败",
    "src": "src/engine/EngineController.cpp",
    "zh-TW": "執行失敗",
@@ -35276,6 +35650,23 @@
    "ar": "Capture card not showing?",
    "pl": "Capture card not showing?",
    "ru": "Capture card not showing?"
+  },
+  {
+   "zh": "找出影响画质的设置",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "找到 %1 个 HUD 区域。请检查绿色方框，必要时拖动修正，然后点「应用」",
@@ -36485,6 +36876,23 @@
    "ru": "Earlier"
   },
   {
+   "zh": "提示",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "提示音设置保存失败",
    "src": "src/ui/bridge/Preferences.cpp",
    "zh-TW": "提示音設定儲存失敗",
@@ -37368,6 +37776,23 @@
    "ar": "استخدم %1 fps · %2",
    "pl": "Użyj %1 fps · %2",
    "ru": "Использовать %1 fps · %2"
+  },
+  {
+   "zh": "改用「高」",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "放大到屏幕分辨率",
@@ -40259,6 +40684,23 @@
    "ar": "GPU scheduling, prewarming and resource monitoring. The defaults suit most PCs.",
    "pl": "GPU Harmonogram, wstępne ocieplenie i monitorowanie zasobów. Domyślne odpowiada większości komputerów.",
    "ru": "GPU планирование, предварительное потепление и мониторинг ресурсов. Дефолты подходят большинству ПК."
+  },
+  {
+   "zh": "显卡跟不上：每秒显示 %1 帧，目标是 %2 帧",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "显卡重置前后两段的编码参数不一致，无法无损拼接",
@@ -43695,6 +44137,23 @@
    "ru": "Проверка…"
   },
   {
+   "zh": "检查了：补帧是否真的在出帧、显卡是否跟得上、AI 画质增强的大小、补帧质量、目标帧率与屏幕、采集格式和声音",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "检查并选择",
    "src": "qml/CaptureSourceDialog.qml",
    "zh-TW": "檢查並選擇",
@@ -43710,6 +44169,23 @@
    "ar": "فحص واختيار",
    "pl": "Sprawdź i wybierz",
    "ru": "Проверить и выбрать"
+  },
+  {
+   "zh": "检查我的设置",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "检查更新",
@@ -45718,6 +46194,23 @@
    "ru": "Читать субтитры"
   },
   {
+   "zh": "正在读取数据…",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "正在读取游戏列表…",
    "src": "src/ui/MoonlightModel.cpp",
    "zh-TW": "正在讀取遊戲列表…",
@@ -46500,6 +46993,23 @@
    "ru": "Мелкие элементы во всех углах"
   },
   {
+   "zh": "每帧在屏幕上停留的时间不一样长，看起来有顿挫。选一个能整除刷新率的目标，或开启可变刷新率（G-SYNC / FreeSync）",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "每帧识别 · 320 像素，最省；远处的小脸可能识别不到",
    "src": "qml/BeautyEditor.qml",
    "zh-TW": "每幀識別 · 320 像素，最省；遠處的小臉可能識別不到",
@@ -46719,6 +47229,23 @@
    "ar": "لا توجد تنسيقات مطابقة",
    "pl": "Brak pasujących formatów",
    "ru": "Нет подходящих форматов"
+  },
+  {
+   "zh": "没有发现需要改的地方",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "没有可保存的画面",
@@ -47384,6 +47911,23 @@
    "ru": "не выбранный цвет"
   },
   {
+   "zh": "没有选声音输入",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "没有采集卡也能看看补帧效果",
    "src": "portable/app/qml/HomePage.qml",
    "zh-TW": "沒有擷取卡也能看看補幀效果",
@@ -47416,6 +47960,23 @@
    "ar": "لا توجد أجزاء للإنضمام",
    "pl": "Brak części do połączenia",
    "ru": "Нет частей, чтобы присоединиться"
+  },
+  {
+   "zh": "没有需要改的地方，有 %1 条提示",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "没有预设 HUD 区域：需要时用「调整 HUD 区域」自动识别。",
@@ -49577,6 +50138,23 @@
    "ru": "When an object moves too far between two real frames, PushFlow cannot follow it and the object is missing from the generated frame, which looks like flicker. Guard finds those places and shows the real frame that is nearer in time there: the object no longer disappears, it moves at the game's own frame rate. It never invents a picture. When more than a third of a frame is affected, the whole frame is the real frame, and it is counted as that. The rule has only been checked on test pictures; whether it looks better in a real game is not known yet, which is for you to judge"
   },
   {
+   "zh": "特大",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "状态: %1",
    "src": "src/ui/bridge/Export.cpp",
    "zh-TW": "狀態: %1",
@@ -49696,6 +50274,23 @@
    "ru": "Сейчас задержка обработки ПК %1 мс."
   },
   {
+   "zh": "现在看到的是主机原本的帧率。在快速设置里选一个目标帧率就会开启",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "现在连接不会有声音。这张采集卡自己的声音输入已经找到：%1",
    "src": "qml/CaptureSourceDialog.qml",
    "zh-TW": "現在連接不會有聲音。這張擷取卡自己的聲音輸入已經找到：%1",
@@ -49745,6 +50340,23 @@
    "ar": "Generated frame accuracy",
    "pl": "Generated frame accuracy",
    "ru": "Generated frame accuracy"
+  },
+  {
+   "zh": "生成的画面来不及做完就被跳过，看起来不流畅。可以降低目标帧率、把 AI 画质增强的大小调低，或把补帧质量调低一档",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "生效中",
@@ -50223,6 +50835,23 @@
    "ru": "A label at the top says which side is showing and its frame rate. The video is saved in the recordings folder and opens straight in video editors"
   },
   {
+   "zh": "画面上的延迟和帧率读数。坐得远或用手柄玩时，大一些更容易看清",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "画面与声音",
    "src": "qml/HomePage.qml",
    "zh-TW": "畫面與聲音",
@@ -50238,6 +50867,23 @@
    "ar": "الصورة والصوت",
    "pl": "Obraz i dźwięk",
    "ru": "Изображение и звук"
+  },
+  {
+   "zh": "画面与窗口大小不同时更清晰：放大不发软，缩小不闪烁。大小相同时逐像素一致",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "画面中断，正在请求关键帧恢复…",
@@ -50646,6 +51292,23 @@
    "ar": "The picture is scaled to this size and then recorded",
    "pl": "The picture is scaled to this size and then recorded",
    "ru": "The picture is scaled to this size and then recorded"
+  },
+  {
+   "zh": "画面读数大小",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "画面调控",
@@ -51294,6 +51957,23 @@
    "ru": "Цель"
   },
   {
+   "zh": "目标 %1 FPS 除不尽屏幕的 %2 Hz",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "目标尺寸",
    "src": "qml/SrStageEditor.qml",
    "zh-TW": "目標尺寸",
@@ -51377,6 +52057,23 @@
    "ar": "الملف المستهدف موجود بالفعل؛ اختيار اسم ملف آخر",
    "pl": "Plik docelowy już istnieje; wybierz inną nazwę pliku",
    "ru": "Целевой файл уже существует; выберите другое имя файла"
+  },
+  {
+   "zh": "目标是 %1 FPS，这块屏幕是 %2 Hz",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "目标码率 1–300 Mbps；VBR 的实际平均码率随画面复杂度变化。",
@@ -51938,6 +52635,40 @@
    "ar": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card",
    "pl": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card",
    "ru": "Seeing ghosting or trails? Try PushFlow: PushFPS's own frame generation, which runs on every graphics card. \"Optimise for my PC\" measures every method on your card"
+  },
+  {
+   "zh": "看看正在运行的画面里，是什么在影响清晰度、流畅度和声音。只有按下按钮才会改动设置",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
+   "zh": "看看正在运行的画面里，是什么在影响清晰度、流畅度和声音，每一项都有一键更改",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "着色器没能载入",
@@ -58078,6 +58809,23 @@
    "ru": "Frame generation is on, but no generated frames are being shown: the picture is still at the game's own frame rate. Pick another method; if it stays like this, copy the performance report in Settings and send it to us"
   },
   {
+   "zh": "补帧开着，但没有生成的画面显示出来",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "补帧方式",
    "src": "qml/NodePage.qml",
    "zh-TW": "補幀方式",
@@ -58144,6 +58892,23 @@
    "ar": "No generated frames",
    "pl": "No generated frames",
    "ru": "No generated frames"
+  },
+  {
+   "zh": "补帧没有开",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "补帧画质测试",
@@ -59692,6 +60457,23 @@
    "ar": "التشخيصات تم نسخها",
    "pl": "Skopiowana diagnostyka; wklej je prosto do raportu",
    "ru": "Диагностика скопирована; вставьте их прямо в свой отчет"
+  },
+  {
+   "zh": "试试「%1」",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "该地址没有视频流",
@@ -64182,6 +64964,23 @@
    "ru": "No sound input is chosen for this capture card, so there is no sound. Its own sound input was found: open the capture settings and choose it under Audio input"
   },
   {
+   "zh": "这张采集卡自己的声音输入已经找到，现在连接却没有声音。在采集设置里可以一键选用",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "这是儿童账号，需要家长在家庭组里允许后才能使用。",
    "src": "src/xbox/Account.cpp",
    "zh-TW": "這是兒童帳號，需要家長在家庭組裡允許後才能使用。",
@@ -66018,6 +66817,23 @@
    "ru": "Подключается к PS5 после подключения карты захвата"
   },
   {
+   "zh": "采集卡送来的是压缩画面",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "采集帧率优先选 60 FPS",
    "src": "qml/OnboardingGuide.qml",
    "zh-TW": "擷取幀率優先選 60 FPS",
@@ -66545,6 +67361,23 @@
    "ru": "Продолжить с последней позиции, когда тот же файл снова открыт"
   },
   {
+   "zh": "重新检查",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "重新测试",
    "src": "qml/PushCardTestDialog.qml",
    "zh-TW": "重新測試",
@@ -66851,6 +67684,23 @@
    "ru": "Закрепить панель управления в полноэкранном режиме"
   },
   {
+   "zh": "锐利缩放",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "锐度",
    "src": "qml/PushPicture.qml",
    "zh-TW": "銳利度",
@@ -66953,6 +67803,23 @@
    "ru": "Отразить"
   },
   {
+   "zh": "镜头移动时，它会把上一帧的像素盖在生成的画面上：物体边缘会破碎，画面会发糊。要保护 HUD，请用游戏预设或 HUD 保护",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "长句自动缩小",
    "src": "qml/SubtitleSettingsDialog.qml",
    "zh-TW": "長句自動縮小",
@@ -67002,6 +67869,23 @@
    "ar": "لا صورة كاملة لفترة طويلة الشبكة غير مستقرة جداً، أو أن المرارة عالية جداً.",
    "pl": "Brak kompletnego obrazu przez długi czas. Sieć jest bardzo niestabilna, albo bitrate jest ustawione zbyt wysoko.",
    "ru": "Долгое время не было полной картины. Сеть очень нестабильна, или битрейт установлен слишком высоко."
+  },
+  {
+   "zh": "问题",
+   "src": "qml/PushDiagnoseDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "阅读 Reddit 原帖",
@@ -70506,6 +71390,23 @@
    "ru": "Подсказки по светам"
   },
   {
+   "zh": "高对比度",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "高延迟·需 CPU 拆包",
    "src": "include/veyra/source/CaptureFormatRank.h",
    "zh-TW": "高延遲·需 CPU 拆包",
@@ -70623,6 +71524,23 @@
    "ar": "الجودة العالية تستغرق وقتاً أطول الإطار المختلط: يستخدم الإطار الأوسط لكل زوج مصدر النموذج الأول، والآخر الثاني.",
    "pl": "Wyższa jakość trwa dłużej. Mieszane poziomy: środkowa rama każdej pary źródeł używa pierwszego modelu, pozostałe drugiego.",
    "ru": "Более высокое качество занимает больше времени. Смешанные ярусы: средний кадр каждой пары источников использует первую модель, остальные — вторую."
+  },
+  {
+   "zh": "高：物体边缘最稳，最吃显卡",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "鲜艳",

@@ -165,6 +165,10 @@ Item {
         id: crashDialog
         dialogHost: host
     }
+    PushDiagnoseDialog {
+        id: diagnoseDialog
+        dialogHost: host
+    }
     PushCardTestDialog {
         id: cardTestDialog
         dialogHost: host

@@ -292,6 +292,29 @@ Item {
             badge.refresh()
             compare(findChild(badge, "pushfps-latency-ms").text, qsTr("延迟 测量中"))
         }
+        function test_latency_badge_in_a_larger_size() {
+            veyra.preferences = ({ pushLatencyOverlay: true })
+            veyra.liveStats = ({ running: true, latencyMs: 14.4, latencyP95Ms: 19.6, submitFps: 119.7 })
+            badge.refresh()
+            const text = findChild(badge, "pushfps-latency-ms")
+            compare(badge.k, 1); compare(badge.implicitHeight, 30); compare(text.font.pixelSize, 12)
+            const standard = badge.implicitWidth
+            veyra.preferences = ({ pushLatencyOverlay: true, pushLatencySize: 1 })
+            compare(badge.k, 1.4); compare(badge.implicitHeight, 42)
+            verify(badge.implicitWidth > standard, "everything in it grows")
+            veyra.preferences = ({ pushLatencyOverlay: true, pushLatencySize: 2 })
+            compare(badge.k, 1.8); compare(badge.implicitHeight, 54)
+            // A value from somewhere else is the nearest size, never a broken one.
+            veyra.preferences = ({ pushLatencyOverlay: true, pushLatencySize: 9 })
+            compare(badge.k, 1.8)
+            veyra.preferences = ({ pushLatencyOverlay: true, pushLatencySize: "x" })
+            compare(badge.k, 1)
+            // The chip is dark in every theme, so its words are white in every theme.
+            Theme.mode = "light"
+            compare(String(text.color), "#ffffff")
+            Theme.mode = "default"
+            veyra.preferences = ({})
+        }
 
         // --- capture card list -------------------------------------------------
         function test_capture_card_status() {

@@ -128,6 +128,9 @@ struct EnhanceGraphDesc {
     bool hdrWorking() const {return hdrInput&&hdrOutput;}
     bool convertVideoHdr() const {return videoHdr.enabled&&hdrOutput&&!hdrInput;}
     bool highQualityPresentation = false; // high-quality screen resampling (the app sets it for every source)
+    // PushFPS (engine/PushPresentScaling.h): the one case that was drawn with the fine path before 4.1,
+    // so that switching "sharp scaling" off gives exactly the picture every earlier version drew.
+    bool finePresentationBefore41 = false;
     bool rgbInput = false;       // allocate direct RGBA ingestion before NGX creation
     bool yuy2Input = false;      // packed Y0 U Y1 V -> linear FP16; never subsample to NV12
     // N1: packed capture ingress (1 BGR24, 2 RGB555, 3 RGB565, 4 UYVY, 5 YVYU).
@@ -788,6 +791,7 @@ public:
     bool hdr10Output() const { return desc_.hdrOutput && (desc_.enableFg||desc_.hdrOutputMode==engine::HdrOutputMode::Hdr10); }
     DXGI_FORMAT outputFormat() const { return hdr10Output()?DXGI_FORMAT_R10G10B10A2_UNORM:desc_.hdrOutput?DXGI_FORMAT_R16G16B16A16_FLOAT:DXGI_FORMAT_R8G8B8A8_UNORM; }
     bool highQualityPresentation() const { return desc_.highQualityPresentation; }
+    bool finePresentationBefore41() const { return desc_.finePresentationBefore41; }
     // Live HUD Lock: 0 off, 1 running, 2 asked for but its passes could not be created,
     // 3 asked for with a frame generation that presents on its own (XeSS) or none.
     bool xessEnabled() const { return desc_.enableFg && !desc_.noFeatures && !desc_.stillImage && desc_.frameGenerationBackend==engine::FrameGenerationBackend::XeSS; }

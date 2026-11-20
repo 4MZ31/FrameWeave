@@ -708,6 +708,15 @@ VGroup {
             tip: qsTr("在实际画面上测试每种组合，自动选出最好的一种")
             onClicked: quick.openOnPicture("optimize")
         }
+        // Check my setup (PushDiagnoseDialog.qml): what in the running picture costs quality, with the change for each.
+        PushToolTile {
+            objectName: "pushfps-diagnose"
+            iconName: "activity"
+            text: qsTr("检查我的设置")
+            sub: qsTr("找出影响画质的设置")
+            tip: qsTr("看看正在运行的画面里，是什么在影响清晰度、流畅度和声音，每一项都有一键更改")
+            onClicked: veyra.navigate("diagnose")
+        }
         PushToolTile {
             objectName: "pushfps-game-presets"
             iconName: "gamepad"
@@ -751,8 +760,7 @@ VGroup {
         PushToolTile {
             objectName: "pushfps-stream"
             visible: !quick.streamingPage   // streaming mode has its own Go live button
-            // Fifth tile: the whole row, so the grid stays even.
-            Layout.columnSpan: toolsGrid.columns
+            // Six tiles since 4.1 (Check my setup): two even columns, so this one no longer takes a whole row.
             Layout.fillWidth: true
             iconName: "cast"
             readonly property var streamState: quick.liveStream
@@ -1089,6 +1097,27 @@ VGroup {
                 objectName: "pushfps-pushflow-tier"
                 options: [{ id: "0", label: qsTr("快速") }, { id: "1", label: qsTr("均衡") }, { id: "2", label: qsTr("高质量") }]
                 current: String(Math.min(veyra.vfgQuality, 2))
+                onPicked: id => veyra.vfgQuality = Number(id)
+            }
+        }
+        // NVIDIA VFG's own quality (4.1). Until now it was only in Professional mode's list, so a card with
+        // room to spare ran the standard model without anyone having chosen that. The three plain tiers
+        // are offered here; the mixed ones stay in Professional mode and show as none chosen.
+        VRow {
+            objectName: "pushfps-vfg-quality-row"
+            visible: quick.fgPossible && !quick.proPage && veyra.fgBackendName === "vfg"
+            label: qsTr("VFG 质量")
+            help: qsTr("NVIDIA 帧生成有三个模型。「高」在物体边缘、头发和细小物体上最稳，每帧也最吃显卡；显卡跟不上时目标帧率会掉，换回「中」即可。")
+            readonly property int tier: Number(veyra.vfgQuality || 0)
+            hint: tier > 2 ? qsTr("已在专业模式里设为混合档；在这里选一项就会改用它")
+                : tier === 2 ? qsTr("高：物体边缘最稳，最吃显卡")
+                : tier === 0 ? qsTr("低：最省显卡，物体边缘更容易破碎")
+                : qsTr("中：标准。物体边缘破碎时可以试试「高」")
+            hintBelow: true
+            VSeg {
+                objectName: "pushfps-vfg-quality"
+                options: [{ id: "0", label: qsTr("低") }, { id: "1", label: qsTr("中") }, { id: "2", label: qsTr("高") }]
+                current: Number(veyra.vfgQuality || 0) <= 2 ? String(Number(veyra.vfgQuality || 0)) : ""
                 onPicked: id => veyra.vfgQuality = Number(id)
             }
         }

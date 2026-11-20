@@ -3,6 +3,7 @@
 #include "veyra/engine/PushStreamOverlay.h"
 #include "veyra/engine/PushAudioMix.h"
 #include "veyra/engine/PushAmbient.h"
+#include "veyra/engine/PushPresentScaling.h"
 #include "veyra/Brand.h"
 
 #include <QJsonDocument>
@@ -313,6 +314,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"pushCaptureSilentNotices", {0, 3}},
         // Where the on-screen latency readout was dragged to: shares of its room over the picture, thousandths.
         {"pushLatencyX", {0, 1000}}, {"pushLatencyY", {0, 1000}},
+        // PushFPS: the size of the on-screen readout (PushLatencyBadge.qml): 0 standard, 1 large, 2 largest.
+        {"pushLatencySize", {0, 2}},
         {"canvasBackground", {0, 0xFFFFFF}}};
     static const QStringList flags{"canvasStretch", "recordHevc", "recordAdvanced", "recordAudio", "recordMic", "recordMicTrack", "replayEnabled", "subtitleEnabled", "subtitleBackground", "subtitleFit",
                                    "subtitleSecondLanguage", "audioForceStereo", "captureAudioMonitor", "holdCompare",
@@ -325,6 +328,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    "pushLatencyOverlay", "pushHudStill", "pushRecordAsk", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset",
                                    // PushFPS ambient fill (engine/PushAmbient.h): the bars beside the picture.
                                    "pushAmbientFill",
+                                   // PushFPS: the picture resized to the window with the fine path (engine/PushPresentScaling.h).
+                                   "pushSharpScaling",
                                    // PushFPS crop and resize: the switch, and whether recordings and streams follow.
                                    "pushCropOn", "pushCropOutputs",
                                    // PushFPS quick setup: the fine-tuning sliders of AI picture enhancement are unfolded.
@@ -507,7 +512,7 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
     } else if (key == QLatin1String("pushTheme")) {
         // PushFPS appearance (Theme.qml mode).
         const QString v = value.toString();
-        static const QStringList themes{"default", "black", "light", "midnight", "plum", "forest"};
+        static const QStringList themes{"default", "black", "light", "midnight", "plum", "forest", "contrast"};
         if (!themes.contains(v)) return false;
         stored = v;
     } else if (key == QLatin1String("pushDiscordWebhook")) {
@@ -670,6 +675,8 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
     }
     else if (key == QLatin1String("pushAmbientFill"))
         engine::setPushAmbientFill(impl_->prefBool("pushAmbientFill", false));   // read by the presenter at every frame
+    else if (key == QLatin1String("pushSharpScaling"))
+        engine::setPushSharpScaling(impl_->prefBool("pushSharpScaling", true));   // on unless switched off; read at every frame
     else if (key == QLatin1String("pushHudStill")) {
         // The still rule (pipeline/PushHudStill.h): off unless switched on (since 4.0.1), and off for a run
         // started with --safe-mode. Read when the graph is described; while frame generation plays, the engine is asked

@@ -301,6 +301,10 @@ QtObject {
     function takeScreenshot() { screenshots++ }
     property string sourceTitle: ""
     property string sourceKind: ""
+    // PushFPS Check my setup (PushDiagnoseDialog.qml): what the capture dialog knows of the card.
+    property var captureSharperFormat: []
+    property int captureAudioChoice: -2
+    property int captureAudioSuggestion: -1
     // PushFPS streaming mode scenes and video playback mode (tst_push_studio.qml, tst_push_watch.qml).
     property var lastScene: null
     property int sceneCalls: 0

@@ -818,6 +818,9 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
             // VEYRA_TEST_PRESENT_BILINEAR=1 restores the old sampling for comparison.
             static const bool bilinearPresent=GetEnvironmentVariableW(L"VEYRA_TEST_PRESENT_BILINEAR",nullptr,0)>0;
             gd.highQualityPresentation=!bilinearPresent;
+            // PushFPS: what used the fine path before 4.1; the presenter falls back to it when sharp
+            // scaling is switched off (engine/PushPresentScaling.h).
+            gd.finePresentationBefore41=isRemote&&activeSource->info().color.reconstructChroma;
             gd.rgbInput=isImage||isScreen||(isCapture&&activeSource->info().color.pixelFormat==pipeline::SourcePixelFormat::Bgra8);
             auto ingressBitDepth=[](pipeline::SourcePixelFormat format){return format==pipeline::SourcePixelFormat::P010||format==pipeline::SourcePixelFormat::V210||format==pipeline::SourcePixelFormat::Rgb10xLE?10u:format==pipeline::SourcePixelFormat::P016?16u:8u;};
             gd.captureBitDepth=ingressBitDepth(activeSource->info().color.pixelFormat);

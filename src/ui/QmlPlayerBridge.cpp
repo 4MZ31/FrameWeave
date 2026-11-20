@@ -185,6 +185,21 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     applyPreference(QStringLiteral("audioForceStereo"));
     applyPreference(QStringLiteral("soundPreset"));
     applyPreference(QStringLiteral("pushAudioTrimMs"));
+    // 4.1, once: 4.0 had the still rule on for everyone, and its switch read "on" with nothing saved. A
+    // saved "on" is therefore what trying the switch in 4.0 left behind, never a choice made knowing
+    // what the rule does: it put the older frame's pixels over parts of every generated frame while the
+    // camera moved (pipeline/PushHudStill.h). After this update it is off for everyone, said once where
+    // it was on, and from here on it is whatever is chosen.
+    if (!impl_->prefs.contains(QStringLiteral("pushHudStillReset"))) {
+        const bool was = impl_->prefBool("pushHudStill", false);
+        if (was) impl_->prefs[QStringLiteral("pushHudStill")] = false;
+        impl_->prefs[QStringLiteral("pushHudStillReset")] = was;
+        if (!impl_->savePrefs()) veyra::log::warn("ui-prefs", "still rule reset not saved");
+        veyra::log::info("push-hud", std::format("still rule, once after updating: {}", was ? "was on, now off" : "was off"));
+        if (was) QTimer::singleShot(6000, this, [this] {
+            emit notice(tr("「保持 HUD 清晰」已关闭：镜头移动时它可能让物体边缘破碎。需要时可在快速设置里重新开启"), false);
+        });
+    }
     applyPreference(QStringLiteral("pushHudStill"));
     // 3.2.3, once: until then a card scene muted the game by writing the mixer's own mute, and closing
     // PushFPS on a card left it on. Every later recording, comparison clip, replay and stream was then
@@ -209,6 +224,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     engine::setPushLiveCanvas(pushCanvas(0));   // PushFPS layout (Recording.cpp)
     applyPreference(QStringLiteral("nisSharpness"));
     applyPreference(QStringLiteral("pushAmbientFill"));
+    applyPreference(QStringLiteral("pushSharpScaling"));
     applyPreference(QStringLiteral("pushShapeShadows"));   // all six fine-tune values (Preferences.cpp)
     pushValidateHalfApproval();   // PushFlow half precision holds for one card, driver and version (PushFps.cpp)
     applyPreference(QStringLiteral("pushFlowHalf"));

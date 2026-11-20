@@ -1,5 +1,6 @@
 #include "veyra/engine/VideoPresenter.h"
 #include "veyra/engine/PushDisplayCap.h"
+#include "veyra/engine/PushPresentScaling.h"
 #include "veyra/engine/PushCompareLine.h"
 #include "veyra/engine/DoviCurveAdapter.h" // custom: Dolby Vision level 1 -> curve
 #include "veyra/engine/PresentationGeometry.h"
@@ -404,7 +405,9 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
         ambient_.render(list,slot+(generated?2:0),source);
     ID3D12DescriptorHeap* heaps[]={pass_.heap.Get()};list->SetDescriptorHeaps(1,heaps);list->SetGraphicsRootSignature(pass_.rootSig.Get());list->SetPipelineState(pass_.pso.Get());
     const float rotationFlags=float(view.quarterTurns()<<6);
-    const float samplingFlags=(graph.highQualityPresentation()?2.0f:0.0f)+rotationFlags;
+    // PushFPS (PushPresentScaling.h): the fine path for every source, or only where it always was.
+    const bool finePresentation=pushFinePresentation(graph.highQualityPresentation(),graph.finePresentationBefore41());
+    const float samplingFlags=(finePresentation?2.0f:0.0f)+rotationFlags;
     // PresentBlit uses a contain mapping. Cancel its fit so these dimensions
     // express the exact shared display transform, including stretch/SAR/fill.
     const float inverseFit=1.0f/std::min(float(rc.right)/renderW,float(rc.bottom)/renderH);
@@ -574,7 +577,7 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
         captured.pts100ns=sourcePts100ns>0?sourcePts100ns:0;
         captured.creator=creator;captured.creatorGenerated=creatorGenerated;
         // 2.2.0 (virtual camera, high-quality scaling of outputs): the source's own size and the scaling choice.
-        captured.nativeWidth=graph.sourceWidth();captured.nativeHeight=graph.sourceHeight();captured.highQuality=graph.highQualityPresentation();
+        captured.nativeWidth=graph.sourceWidth();captured.nativeHeight=graph.sourceHeight();captured.highQuality=finePresentation;
         // PushFPS comparison clips: the raw console picture of this real frame, when kept.
         if(!generated&&referencesValid){captured.raw=graph.sourceReference(slot);captured.rawSdrInHdr=graph.videoHdrActive();}
         captureRecorded=capture_->record(list,captured);

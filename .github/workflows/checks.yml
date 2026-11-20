@@ -40,6 +40,13 @@ jobs:
       - name: Protected features still have their guards
         run: python3 -B scripts/checks/protected_features.py
 
+      # The interface's pure JavaScript rules (qml/Veyra/*.js with no Qt in them), run with Node:
+      # the only place they run on every push without a Windows build.
+      - name: Interface rules (Node)
+        run: |
+          set -e
+          for t in tests/js/*_test.js; do node "$t"; done
+
       - name: PowerShell scripts parse
         shell: pwsh
         run: |
