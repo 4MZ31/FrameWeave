@@ -57,10 +57,11 @@ Item {
             compare(veyra.preferences.recordFit, 1, "a tall recording starts filled, as the phone apps show it")
             verify(rec.tall && rec.fills && control("pushfps-record-fill-row").visible)
             const picture = control("pushfps-record-preview-picture"), frame = control("pushfps-record-preview")
-            verify(picture.width > frame.width, "filled: the picture's sides are cut")
+            // (The frame takes its new shape at the next layout pass, so these wait for it.)
+            tryVerify(function() { return frame.height > frame.width && picture.width > frame.width }, 2000, "filled: the picture's sides are cut")
             control("pushfps-record-fill").picked("fit")
             compare(veyra.preferences.recordFit, 0); verify(!rec.fills)
-            verify(picture.width <= frame.width + 0.5 && picture.height < frame.height, "fitted: the whole picture, bars above and below")
+            tryVerify(function() { return picture.width <= frame.width + 0.5 && picture.height < frame.height }, 2000, "fitted: the whole picture, bars above and below")
             // The size of a tall recording, kept when the shape is picked again.
             control("pushfps-record-size").picked("1440")
             compare(veyra.preferences.recordWidth, 1440); compare(veyra.preferences.recordHeight, 2560)
