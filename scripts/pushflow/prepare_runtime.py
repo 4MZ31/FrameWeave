@@ -842,6 +842,198 @@ def predict_report(path: Path, channels: int, align: int) -> list[dict]:
     return rows
 
 
+def ghost_scene(w, h, pan, bob=0, hud=True, character=True):
+    """A third-person picture, drawn: a fine texture (the world) panning sideways behind a character who
+    stays where he is on screen (head and shoulders, with his own texture; `bob` moves him a little), and
+    a HUD that never moves (thin strokes, a ring, a bar, a block). Returns the picture and the masks of
+    the character and of the HUD."""
+    import numpy as np
+    img = detail_frame(w, h, pan).copy()
+    y, x = np.mgrid[0:h, 0:w].astype(np.float64)
+    who = np.zeros((h, w), bool)
+    if character:
+        cx, cy = w * 0.5 + bob, h * 0.42
+        head = ((x - cx) / (h * 0.085)) ** 2 + ((y - cy) / (h * 0.11)) ** 2 <= 1
+        body = (np.abs(x - cx) <= h * 0.17) & (y >= cy + h * 0.10) & (y <= h * 0.95)
+        neck = (np.abs(x - cx) <= h * 0.035) & (y >= cy) & (y <= cy + h * 0.12)
+        who = head | body | neck
+        stripes = 0.5 + 0.25 * np.sin((x - cx) * 0.35) * np.cos((y - cy) * 0.22)
+        skin = np.stack([0.75 * stripes + 0.15, 0.55 * stripes + 0.12, 0.45 * stripes + 0.10])
+        cloth = np.stack([0.15 + 0.2 * stripes, 0.2 + 0.25 * stripes, 0.45 + 0.3 * stripes])
+        for c in range(3):
+            img[c][body | neck] = cloth[c][body | neck]
+            img[c][head] = skin[c][head]
+    sign = np.zeros((h, w), bool)
+    if hud:
+        xi, yi = x.astype(int), y.astype(int)
+        for k in range(6):                                   # "text": one-pixel strokes
+            x0 = 40 + k * 14
+            sign |= ((xi == x0) & (yi >= 30) & (yi < 46)) | ((yi == 30 + (k % 3) * 7) & (xi >= x0) & (xi < x0 + 9))
+        ring = np.hypot(x - (w - 90), y - 80)
+        sign |= (ring >= 44) & (ring <= 46)                  # a minimap's rim
+        sign |= ((yi == h - 40) | (yi == h - 31)) & (xi >= 40) & (xi < 240)   # a bar's outline
+        sign |= (yi > h - 40) & (yi < h - 31) & (xi >= 40) & (xi < 150)       # and its fill
+        sign |= (np.abs(x - w * 0.5) <= 1) & (np.abs(y - h * 0.5) <= 6) | (np.abs(y - h * 0.5) <= 1) & (np.abs(x - w * 0.5) <= 6)   # a crosshair
+        for c, v in enumerate((0.97, 0.95, 0.90)):
+            img[c][sign] = v
+        fill = (yi > h - 40) & (yi < h - 31) & (xi >= 40) & (xi < 150)
+        img[0][fill], img[1][fill], img[2][fill] = 0.85, 0.2, 0.15
+    return np.clip(img, 0, 1).astype(np.float32), who, sign
+
+
+def grow(mask, r):
+    """Every pixel within r of the mask (a square reach is close enough for a band)."""
+    import numpy as np
+    out = mask.copy()
+    for d in range(1, r + 1):
+        out[:, d:] |= mask[:, :-d]; out[:, :-d] |= mask[:, d:]
+    wide = out.copy()
+    for d in range(1, r + 1):
+        out[d:, :] |= wide[:-d, :]; out[:-d, :] |= wide[d:, :]
+    return out
+
+
+def box_sum(a, r):
+    """Sum over the (2r + 1) square around each pixel."""
+    import numpy as np
+    pad = np.pad(a.astype(np.float64), r, mode="edge")
+    c = np.cumsum(np.cumsum(pad, axis=0), axis=1)
+    c = np.pad(c, ((1, 0), (1, 0)))
+    n = 2 * r + 1
+    return c[n:, n:] - c[:-n, n:] - c[n:, :-n] + c[:-n, :-n]
+
+
+def rebuild_select(img0, img1, grid0, grid1, mask, align, mask_for_first, model_hw, spread=1.0):
+    """The rebuild with a choice. Where the four motion cells around a pixel read from places more than
+    `spread` picture pixels apart (the edge of something that moves differently from what is behind it),
+    blending their motions gives a motion that belongs to neither side. There the one cell is taken whose
+    two samples agree best; everywhere else the result is rebuild_scaled's, to the bit."""
+    import numpy as np
+    import rife_graph
+    _, H, W = img0.shape
+    mh, mw = model_hw
+    ph, pw = rife_graph.to_hw2(grid0).shape[:2]
+    yo, xo = np.mgrid[0:H, 0:W].astype(np.float64)
+    qy = np.clip((yo + 0.5) * mh / H - 0.5, 0, mh - 1); qx = np.clip((xo + 0.5) * mw / W - 0.5, 0, mw - 1)
+    y0 = np.floor(qy).astype(np.int64); x0 = np.floor(qx).astype(np.int64)
+    y1 = np.minimum(y0 + 1, mh - 1); x1 = np.minimum(x0 + 1, mw - 1)
+    cy, cx = np.mgrid[0:ph, 0:pw].astype(np.float64)
+    moves = []
+    for grid in (grid0, grid1):
+        g = rife_graph.to_hw2(grid)
+        if align:
+            xm = (g[..., 0] + 1) * 0.5 * (pw - 1); ym = (g[..., 1] + 1) * 0.5 * (ph - 1)
+        else:
+            xm = ((g[..., 0] + 1) * pw - 1) * 0.5; ym = ((g[..., 1] + 1) * ph - 1) * 0.5
+        moves.append(((xm - cx) * W / mw, (ym - cy) * H / mh))     # in picture pixels
+    m = np.asarray(mask)[0][0]
+    base = rebuild_scaled(img0, img1, grid0, grid1, mask, align, mask_for_first, model_hw)
+    best = None; cost = None; lo = [None] * 4; hi = [None] * 4
+    for (yy, xx) in ((y0, x0), (y0, x1), (y1, x0), (y1, x1)):
+        d = [moves[0][0][yy, xx], moves[0][1][yy, xx], moves[1][0][yy, xx], moves[1][1][yy, xx]]
+        for i in range(4):
+            lo[i] = d[i] if lo[i] is None else np.minimum(lo[i], d[i]); hi[i] = d[i] if hi[i] is None else np.maximum(hi[i], d[i])
+        a = bilinear_at(img0, yo + d[1], xo + d[0]); b = bilinear_at(img1, yo + d[3], xo + d[2])
+        w0 = m[yy, xx] if mask_for_first else 1 - m[yy, xx]
+        c = np.abs(a - b).max(axis=0)
+        pic = a * w0 + b * (1 - w0)
+        if best is None:
+            best, cost = pic, c
+        else:
+            take = c < cost
+            best = np.where(take, pic, best); cost = np.minimum(cost, c)
+    apart = np.maximum.reduce([hi[i] - lo[i] for i in range(4)])
+    edge = apart > spread
+    return np.where(edge, best, base), float(edge.mean())
+
+
+def keep_still(picture, img0, img1, still=2.0 / 255, near=3, around=5, surround=16, moving=0.5):
+    """A HUD in front of a moving world. A pixel that is the same in both real frames, with still pixels
+    beside it (`near` of the 9 around it, `around` of the 25), inside a surrounding that mostly moves
+    (under `moving` of the square of `surround` reach is still): it is given its real value. Where most
+    of the surrounding stands still nothing is touched, so a small thing crossing a still world stays
+    the network's."""
+    import numpy as np
+    same = np.abs(img0 - img1).max(axis=0) <= still
+    island = same & (box_sum(same, 1) >= near) & (box_sum(same, 2) >= around) & (box_sum(same, surround) < moving * (2 * surround + 1) ** 2)
+    return np.where(island, (img0 + img1) / 2, picture), island
+
+
+def ghost_report(path: Path, channels: int, align: int, mask_for_first: bool) -> list[dict]:
+    """Ghosting where a third-person game shows it: round a character the world moves behind, and in a HUD
+    that stands still in front of it (CPU, drawn pictures, a report in the log).
+
+    For each picture, at the middle time, the mean error (of 255) in the band round the character's
+    outline, on the HUD's own pixels, in the band round the HUD and everywhere else, for
+      whole          the network at the picture's size (Quality at 1080p),
+      half           the network at half the size, the picture rebuilt at full size (as shipped),
+      half_select    the same with the rebuild's choice between motion cells (rebuild_select),
+      *_still        each of them with the HUD's still pixels kept (keep_still).
+    The last pictures are for what the two rules must not harm: a plain pan, and a small ball crossing a
+    still world. Nothing is decided here: a rule is built only after its numbers are read."""
+    import numpy as np
+    import onnxruntime as ort
+    session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
+    name = session.get_inputs()[0].name
+    W, H = 1024, 640
+    rows = []
+
+    def err(picture, truth, where):
+        return round(255.0 * float(np.abs(picture - truth).mean(axis=0)[where].mean()), 2) if where.any() else None
+
+    def study(label, f0, f1, truth, who, sign, reach, extra=None):
+        band = grow(who, reach) & ~who if who.any() else who            # where the world appears or vanishes beside him
+        inner = who & grow(~who, 3) if who.any() else who                # his own outline, 3 pixels in
+        round_hud = grow(sign, 3) & ~sign if sign.any() else sign
+        rest = ~(grow(who, reach) | grow(sign, 3))
+        row = {"picture": label}
+        pictures = {}
+        _, g0, g1, m = session.run(None, {name: tensor(f0, f1, 0.5, channels)})[:4]
+        pictures["whole"] = np.clip(rebuild_scaled(f0, f1, g0, g1, m, align, mask_for_first, (H, W)), 0, 1)
+        try:
+            s0, s1 = resize_box(f0, 2), resize_box(f1, 2)
+            _, h0, h1, hm = session.run(None, {name: tensor(s0, s1, 0.5, channels)})[:4]
+            pictures["half"] = np.clip(rebuild_scaled(f0, f1, h0, h1, hm, align, mask_for_first, (H // 2, W // 2)), 0, 1)
+            chosen, share = rebuild_select(f0, f1, h0, h1, hm, align, mask_for_first, (H // 2, W // 2))
+            pictures["half_select"] = np.clip(chosen, 0, 1); row["select_acts_percent"] = round(100.0 * share, 2)
+        except Exception as error:  # a size the model does not take
+            row["half"] = f"not run: {type(error).__name__}"
+        for key in list(pictures):
+            kept, island = keep_still(pictures[key], f0, f1)
+            pictures[key + "_still"] = kept
+            row["still_acts_percent"] = round(100.0 * float(island.mean()), 3)
+            row["still_on_hud_percent"] = round(100.0 * float(island[sign].mean()), 1) if sign.any() else None
+        for key, picture in pictures.items():
+            row[key] = {"db": round(psnr(picture, truth), 2), "outline_band": err(picture, truth, band), "outline_inside": err(picture, truth, inner),
+                        "hud": err(picture, truth, sign), "round_hud": err(picture, truth, round_hud), "rest": err(picture, truth, rest)}
+            if extra is not None:
+                row[key]["thing"] = err(picture, truth, extra)
+        rows.append(row)
+
+    for pan in (16, 32, 64):
+        f0, who, sign = ghost_scene(W, H, 0); f1, _, _ = ghost_scene(W, H, pan); truth, _, _ = ghost_scene(W, H, pan // 2)
+        study(f"world panned {pan} px behind a still character, with a HUD", f0, f1, truth, who, sign, pan // 2 + 4)
+    f0, who, sign = ghost_scene(W, H, 0, bob=0); f1, _, _ = ghost_scene(W, H, 32, bob=4); truth, who_mid, _ = ghost_scene(W, H, 16, bob=2)
+    study("world panned 32 px, the character moved 4 px", f0, f1, truth, who_mid, sign, 20)
+    f0, who, sign = ghost_scene(W, H, 0, character=False); f1, _, _ = ghost_scene(W, H, 24, character=False); truth, _, _ = ghost_scene(W, H, 12, character=False)
+    study("world panned 24 px behind a HUD, no character", f0, f1, truth, who, sign, 4)
+    f0, who, sign = ghost_scene(W, H, 0, hud=False, character=False); f1, _, _ = ghost_scene(W, H, 24, hud=False, character=False); truth, _, _ = ghost_scene(W, H, 12, hud=False, character=False)
+    study("a plain pan of 24 px (nothing to protect)", f0, f1, truth, who, sign, 4)
+    # A ball crossing a still world: where it is at the middle time, both real frames show the world.
+    def ball(x):
+        img = detail_frame(W, H, 0).copy()
+        yy, xx = np.mgrid[0:H, 0:W]
+        inside = (xx - x) ** 2 + (yy - H * 0.5) ** 2 <= 10 ** 2
+        img[0][inside], img[1][inside], img[2][inside] = 0.95, 0.85, 0.1
+        return img.astype(np.float32), inside
+    (b0, _), (b1, _), (bt, at) = ball(300), ball(380), ball(340)
+    none = np.zeros((H, W), bool)
+    study("a ball moved 80 px over a still world", b0, b1, bt, none, none, 4, extra=at)
+    (b0, _), (b1, _), (bt, at) = ball(300), ball(316), ball(308)
+    study("a ball moved 16 px over a still world", b0, b1, bt, none, none, 4, extra=at)
+    return rows
+
+
 def pad_multiple(session, name, channels) -> int:
     """The block size the model pads to inside (its grids have the padded size): PushFlow pads to it itself."""
     import numpy as np
@@ -1069,7 +1261,8 @@ def main() -> None:
         # --study (the pushflow-models workflow): the measurements docs/PUSHFLOW2.md is written from.
         if args.study:
             for label, make in (("fusion", lambda: [fusion_report(c["path"], c["channels"])]), ("predict", lambda: predict_report(target, c["channels"], info["align_corners"])),
-                                ("guard", lambda: guard_report(target, c["channels"], info["align_corners"], verdict["mask_for_first"]))):
+                                ("guard", lambda: guard_report(target, c["channels"], info["align_corners"], verdict["mask_for_first"])),
+                                ("ghost", lambda: ghost_report(target, c["channels"], info["align_corners"], verdict["mask_for_first"]))):
                 try:
                     for row in make():
                         print(f"{label} {role}: {json.dumps(row)}")
