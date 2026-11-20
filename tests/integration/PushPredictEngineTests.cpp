@@ -8,8 +8,10 @@
 // What it can say on the software renderer: the engine keeps playing with Predict on, real frames and
 // forecasts reach the screen, nothing fails, and a real frame is shown sooner after it arrives than it is
 // with in-between frames. What it cannot say: anything about a real graphics card or a real capture card.
-// The source is slow on purpose (2 frames a second, small): the software renderer needs tens of
-// milliseconds for one run of the network, and a forecast must be ready half an interval after its frame.
+// The source is slow on purpose (1.1 frames a second, small): the software renderer needs about a third of
+// a second for one run of the network (measured 19 November 2026: at 2 frames a second no generated frame
+// of either kind was ready in time), and a forecast must be ready half an interval after its frame. An
+// interval may not pass one second, beyond which the engine sees a break and generates nothing.
 //
 // Usage: veyra_push_predict_engine_tests <output folder>   (PushFlow's runtime is found as the program finds it)
 #ifndef NOMINMAX
@@ -23,6 +25,7 @@
 #include <atomic>
 #include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -33,7 +36,7 @@ using namespace std::chrono_literals;
 
 namespace {
 constexpr uint32_t W = 256, H = 144;
-constexpr int kFramesPerSecond = 2;
+constexpr int kRateNum = 11, kRateDen = 10;   // frames a second, as a fraction
 
 // A grey gradient with a bright square that moves 4 pixels a frame.
 std::vector<uint8_t> picture(unsigned index) {
@@ -62,7 +65,7 @@ Played play(bool predict, const std::filesystem::path& out, int seconds) {
     pushflow2::setRequested(pushflow2::Flags{}.with(pushflow2::Experiment::Predict, predict));
     const std::wstring channel = predict ? L"pushfps-predict-test-on" : L"pushfps-predict-test-off";
     pushfps::FrameInputSender sender;
-    if (!sender.open(channel.c_str(), W, H, kFramesPerSecond, 1, "PushFPS engine test")) { std::cout << "INFO the frame input channel could not be opened" << std::endl; return r; }
+    if (!sender.open(channel.c_str(), W, H, kRateNum, kRateDen, "PushFPS engine test")) { std::cout << "INFO the frame input channel could not be opened" << std::endl; return r; }
     std::atomic<bool> stop{false};
     std::thread feed([&] {
         unsigned index = 0;
@@ -70,7 +73,7 @@ Played play(bool predict, const std::filesystem::path& out, int seconds) {
         while (!stop.load()) {
             const auto p = picture(index++);
             sender.send(p.data(), W, H, W * 4, PUSHFPS_FORMAT_BGRA8);
-            next += std::chrono::milliseconds(1000 / kFramesPerSecond);
+            next += std::chrono::microseconds(1000000ll * kRateDen / kRateNum);
             std::this_thread::sleep_until(next);
         }
     });
@@ -154,13 +157,27 @@ int wmain(int argc, wchar_t** argv) {
     if (generates) {
         check(ahead.generated >= 6, "forecasts reach the screen (" + std::to_string(ahead.generated) + ")");
         // A real frame is shown sooner after it arrives: in-between frames hold it back about one interval
-        // (500 ms here), Predict only for its own processing. A fifth of the interval is asked for.
+        // (909 ms here), Predict only for its own processing. A tenth of the interval is asked for.
         if (plain.latencyMs >= 0 && ahead.latencyMs >= 0)
             check(ahead.latencyMs + 100.0 < plain.latencyMs, "a real frame is shown sooner after it arrives (" + std::to_string(ahead.latencyMs) + " ms against " + std::to_string(plain.latencyMs) + " ms)");
         else std::cout << "PREDICT_ENGINE INFO no latency samples to compare (" << plain.latencyMs << ", " << ahead.latencyMs << ")" << std::endl;
     }
     std::cout << "PREDICT_ENGINE " << failures << " failure(s)" << std::endl;
     Logger::instance().closeFile();
+    {
+        // What the engine itself said about frames it dropped and pairs it refused: the last lines of each kind.
+        std::ifstream log(out / "engine.log");
+        std::vector<std::string> drops, holds, admits; std::string line;
+        while (std::getline(log, line)) {
+            if (line.find("[fg-drops]") != std::string::npos) drops.push_back(line);
+            else if (line.find("[live-fg-hold]") != std::string::npos) holds.push_back(line);
+            else if (line.find("admission") != std::string::npos) admits.push_back(line);
+        }
+        const auto tail = [](const char* name, const std::vector<std::string>& lines) {
+            for (size_t i = lines.size() > 2 ? lines.size() - 2 : 0; i < lines.size(); ++i) std::cout << "PREDICT_ENGINE LOG " << name << ": " << lines[i].substr(0, 300) << std::endl;
+        };
+        tail("drops", drops); tail("hold", holds); tail("admission", admits);
+    }
     CoUninitialize();
     return failures ? 1 : 0;
 }
