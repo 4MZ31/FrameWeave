@@ -1952,6 +1952,19 @@ VPage {
                                     onToggled: checked => veyra.hudLock = checked
                                 }
                             }
+                            // PushFPS still rule (preference pushHudStill, on unless switched off): here beside Live HUD
+                            // Lock, since the quick setup above leaves both to this list in Professional mode.
+                            VRow {
+                                objectName: "list-fg-hudstill-row"
+                                label: qsTr("保持 HUD 清晰")
+                                visible: !veyra.presentationOwned
+                                hint: veyra.preferences.pushHudStill !== false ? qsTr("静止的 HUD 在补出来的帧里使用真实像素（默认开启）") : qsTr("已关闭：HUD 交给补帧处理")
+                                VSwitch {
+                                    objectName: "list-fg-hudstill"
+                                    checked: veyra.preferences.pushHudStill !== false
+                                    onToggled: checked => veyra.setPreference("pushHudStill", checked)
+                                }
+                            }
                             VRow {
                                 label: qsTr("DLSS 性能模式")
                                 visible: veyra.fgBackendName === "dlss"

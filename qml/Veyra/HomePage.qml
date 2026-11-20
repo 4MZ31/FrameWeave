@@ -29,6 +29,7 @@ VPage {
     }
     // The screenshot run's `--scroll-to <objectName>` on this page (as SettingsPage.scrollToObject).
     function scrollToObject(name) {
+        quickSetup.reveal(name)   // the row may stand in a folded section
         const find = (item) => {
             if (!item) return null
             if (item.objectName === name) return item

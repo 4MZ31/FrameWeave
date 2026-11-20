@@ -197,7 +197,98 @@ VPage {
                         Layout.fillWidth: true
                         wrapMode: Text.WordWrap
                     }
+                    VH3 { text: qsTr("颜色"); Layout.topMargin: 6 }
                     VGroup {
+                        // PushFPS appearance: six backgrounds, each drawn as it looks with the chosen accent, and
+                        // seven accents. Every pair is checked for contrast (tst_push_appearance.qml).
+                        VRow {
+                            label: qsTr("主题")
+                            hint: qsTr("界面的底色。纯黑适合 OLED 屏幕，浅色在明亮环境中更易读")
+                            hintBelow: true
+                            Row {
+                                objectName: "set-theme"
+                                spacing: 8
+                                Repeater {
+                                    model: [{ id: "default", tip: qsTr("石墨") }, { id: "black", tip: qsTr("纯黑") }, { id: "midnight", tip: qsTr("午夜蓝") },
+                                            { id: "plum", tip: qsTr("深紫") }, { id: "forest", tip: qsTr("墨绿") }, { id: "light", tip: qsTr("浅色") }]
+                                    delegate: Rectangle {
+                                        id: themeTile
+                                        required property var modelData
+                                        readonly property var look: Theme.surfaces[modelData.id]
+                                        readonly property bool lightLook: modelData.id === "light"
+                                        readonly property bool on: (veyra.preferences.pushTheme || "default") === modelData.id
+                                        objectName: "set-theme-" + modelData.id
+                                        width: 66; height: 44; radius: 9
+                                        color: look.bgMid
+                                        border.width: on ? 2 : 1
+                                        border.color: on ? Theme.accent : Theme.stroke2
+                                        // A card of that theme: two lines of text and a switch in the accent.
+                                        Rectangle {
+                                            x: 8; y: 8; width: parent.width - 16; height: parent.height - 16; radius: 5
+                                            color: themeTile.look.card2
+                                            Rectangle { x: 6; y: 7; width: 20; height: 3; radius: 1.5; color: themeTile.lightLook ? "#15171A" : "#F3F3F5"; opacity: 0.85 }
+                                            Rectangle { x: 6; y: 15; width: 13; height: 3; radius: 1.5; color: themeTile.lightLook ? "#15171A" : "#F3F3F5"; opacity: 0.4 }
+                                            Rectangle {
+                                                anchors.right: parent.right; anchors.rightMargin: 6; anchors.verticalCenter: parent.verticalCenter
+                                                width: 13; height: 8; radius: 4
+                                                color: themeTile.lightLook ? Theme.accentPair.light : Theme.accentPair.dark
+                                            }
+                                        }
+                                        scale: tileHover.hovered && !on ? 1.04 : 1
+                                        Behavior on scale { NumberAnimation { duration: Theme.d(180); easing.type: Easing.OutCubic } }
+                                        HoverHandler { id: tileHover; cursorShape: Qt.PointingHandCursor }
+                                        TapHandler { onTapped: veyra.setPreference("pushTheme", themeTile.modelData.id) }
+                                        ToolTip.visible: tileHover.hovered
+                                        ToolTip.text: modelData.tip
+                                        Accessible.role: Accessible.RadioButton
+                                        Accessible.name: modelData.tip
+                                        Accessible.checked: on
+                                    }
+                                }
+                            }
+                        }
+                        VRow {
+                            label: qsTr("强调色")
+                            hint: qsTr("开关、进度、选中状态")
+                            // .swatch: one dot per accent, in the form it takes on this background; the chosen one ringed.
+                            Row {
+                                objectName: "set-accent"
+                                spacing: 10
+                                Repeater {
+                                    model: [{ id: "orange", tip: qsTr("PushFPS 绿") }, { id: "white", tip: qsTr("白色光晕") }, { id: "ice", tip: qsTr("冰蓝") },
+                                            { id: "blue", tip: qsTr("蓝色") }, { id: "violet", tip: qsTr("紫色") }, { id: "rose", tip: qsTr("玫红") },
+                                            { id: "amber", tip: qsTr("琥珀") }]
+                                    delegate: Rectangle {
+                                        id: swatch
+                                        required property var modelData
+                                        readonly property bool on: (veyra.preferences.accent || "orange") === modelData.id
+                                        objectName: "set-accent-" + modelData.id
+                                        width: 24; height: 24; radius: 12
+                                        color: Theme.light ? Theme.accents[modelData.id].light : Theme.accents[modelData.id].dark
+                                        border.width: 2
+                                        border.color: on ? Theme.t1 : "transparent"
+                                        // A gap between the dot and its ring, so the ring reads on every colour.
+                                        Rectangle {
+                                            visible: swatch.on
+                                            anchors.fill: parent; anchors.margins: 2
+                                            radius: width / 2
+                                            color: "transparent"
+                                            border.width: 2
+                                            border.color: Theme.card2
+                                        }
+                                        scale: on ? 1.12 : 1
+                                        Behavior on scale { NumberAnimation { duration: Theme.d(400); easing.bezierCurve: Theme.spring } }
+                                        HoverHandler { id: swHover; cursorShape: Qt.PointingHandCursor }
+                                        TapHandler { onTapped: veyra.setPreference("accent", swatch.modelData.id) }
+                                        ToolTip.visible: swHover.hovered
+                                        ToolTip.text: modelData.tip
+                                        Accessible.role: Accessible.RadioButton
+                                        Accessible.name: modelData.tip
+                                        Accessible.checked: on
+                                    }
+                                }
+                            }
+                        }
                         // 日落 (the default) or the original black-grey 经典 palette.
                         // PushFPS: its own 主题 row below replaces Veyra's palette choice.
                         VRow {
@@ -211,6 +302,19 @@ VPage {
                                 onPicked: id => veyra.setPreference("palette", id)
                             }
                         }
+                        VRow {
+                            label: qsTr("背景渐变强度")
+                            hint: Theme.dusk ? qsTr("日落天空的渐变强度，带抖动防色带") : qsTr("深黑底上的极轻渐变与抖动（防色带）")
+                            VSeg {
+                                objectName: "set-backdrop"
+                                options: [{ id: "0", label: qsTr("无") }, { id: "1", label: qsTr("轻") }, { id: "2", label: qsTr("中") }]
+                                current: String(veyra.preferences.backdrop !== undefined ? veyra.preferences.backdrop : 1)
+                                onPicked: id => veyra.setPreference("backdrop", Number(id))
+                            }
+                        }
+                    }
+                    VH3 { text: qsTr("首页与启动"); Layout.topMargin: 6 }
+                    VGroup {
                         // PushFPS Sunset City: the logo on the home page, the intro (PushIntro.qml) and the music.
                         VRow {
                             label: qsTr("日落之城标志")
@@ -247,6 +351,9 @@ VPage {
                                 }
                             }
                         }
+                    }
+                    VH3 { text: qsTr("窗口与操作"); Layout.topMargin: 6 }
+                    VGroup {
                         VRow {
                             label: qsTr("页面切换栏")
                             hint: qsTr("平时隐藏；鼠标碰到窗口顶部时弹下来")
@@ -258,41 +365,13 @@ VPage {
                             }
                         }
                         VRow {
-                            label: qsTr("强调色")
-                            hint: qsTr("开关、进度、选中状态")
-                            // .swatch: two colour dots, the chosen one ringed and 1.12x.
-                            Row {
-                                objectName: "set-accent"
-                                spacing: 10
-                                Repeater {
-                                    model: [{ id: "orange", c: "#89F52A", tip: qsTr("PushFPS 绿"), duskTip: qsTr("PushFPS 绿") },
-                                            { id: "white", c: "#F3F3F5", tip: qsTr("白色光晕"), duskTip: qsTr("白色光晕") }]
-                                    delegate: Rectangle {
-                                        id: swatch
-                                        required property var modelData
-                                        readonly property bool on: (veyra.preferences.accent || "orange") === modelData.id
-                                        objectName: "set-accent-" + modelData.id
-                                        width: 24; height: 24; radius: 12
-                                        // The dusk palette shows what each choice paints: the sunset
-                                        // gradient, or the neon white (the ring stays on top).
-                                        color: Theme.dusk ? "#FFF6FB" : modelData.c
-                                        gradient: Theme.dusk && modelData.id === "orange" ? sunset : undefined
-                                        Gradient {
-                                            id: sunset
-                                            orientation: Gradient.Horizontal
-                                            GradientStop { position: 0.0; color: Theme.accentFrom }
-                                            GradientStop { position: 1.0; color: Theme.accentTo }
-                                        }
-                                        border.width: 2
-                                        border.color: on ? "#FFFFFF" : "transparent"
-                                        scale: on ? 1.12 : 1
-                                        Behavior on scale { NumberAnimation { duration: Theme.d(400); easing.bezierCurve: Theme.spring } }
-                                        HoverHandler { id: swHover; cursorShape: Qt.PointingHandCursor }
-                                        TapHandler { onTapped: veyra.setPreference("accent", modelData.id) }
-                                        ToolTip.visible: swHover.hovered
-                                        ToolTip.text: Theme.dusk ? modelData.duskTip : modelData.tip
-                                    }
-                                }
+                            label: qsTr("界面缩放")
+                            hint: (veyra.preferences.uiScale || 0) !== veyra.uiScaleActive ? qsTr("重启后生效") : qsTr("自动 = 跟随 Windows 显示缩放")
+                            VSeg {
+                                objectName: "set-scale"
+                                options: [{ id: "0", label: qsTr("自动") }, { id: "100", label: "100%" }, { id: "125", label: "125%" }, { id: "150", label: "150%" }]
+                                current: String(veyra.preferences.uiScale || 0)
+                                onPicked: id => veyra.setPreference("uiScale", Number(id))
                             }
                         }
                         VRow {
@@ -313,37 +392,9 @@ VPage {
                                 onPicked: id => veyra.setPreference("sliderKeyStep", Number(id))
                             }
                         }
-                        VRow {
-                            label: qsTr("背景渐变强度")
-                            hint: Theme.dusk ? qsTr("日落天空的渐变强度，带抖动防色带") : qsTr("深黑底上的极轻渐变与抖动（防色带）")
-                            VSeg {
-                                objectName: "set-backdrop"
-                                options: [{ id: "0", label: qsTr("无") }, { id: "1", label: qsTr("轻") }, { id: "2", label: qsTr("中") }]
-                                current: String(veyra.preferences.backdrop !== undefined ? veyra.preferences.backdrop : 1)
-                                onPicked: id => veyra.setPreference("backdrop", Number(id))
-                            }
-                        }
-                        VRow {
-                            label: qsTr("界面缩放")
-                            hint: (veyra.preferences.uiScale || 0) !== veyra.uiScaleActive ? qsTr("重启后生效") : qsTr("自动 = 跟随 Windows 显示缩放")
-                            VSeg {
-                                objectName: "set-scale"
-                                options: [{ id: "0", label: qsTr("自动") }, { id: "100", label: "100%" }, { id: "125", label: "125%" }, { id: "150", label: "150%" }]
-                                current: String(veyra.preferences.uiScale || 0)
-                                onPicked: id => veyra.setPreference("uiScale", Number(id))
-                            }
-                        }
-                        // PushFPS appearance: the design's dark grey, near-black, or light.
-                        VRow {
-                            label: qsTr("主题")
-                            hint: qsTr("默认为深灰；纯黑适合 OLED 屏幕；浅色在明亮环境中更易读")
-                            VSeg {
-                                objectName: "set-theme"
-                                options: [{ id: "default", label: qsTr("默认") }, { id: "black", label: qsTr("纯黑") }, { id: "light", label: qsTr("浅色") }]
-                                current: veyra.preferences.pushTheme || "default"
-                                onPicked: id => veyra.setPreference("pushTheme", id)
-                            }
-                        }
+                    }
+                    VH3 { text: qsTr("语言"); Layout.topMargin: 6 }
+                    VGroup {
                         VRow {
                             label: qsTr("界面语言")
                             hint: qsTr("立即生效；日志保持中文，方便反馈问题")

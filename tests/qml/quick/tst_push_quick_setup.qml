@@ -169,6 +169,63 @@ Item {
             veyra.displayRefreshHz = 359.9; verify(quick.screenFits90)
             for (const hz of [60, 90, 120, 144, 165, 175, 240, 280, 0]) { veyra.displayRefreshHz = hz; verify(!quick.screenFits90, String(hz)) }
         }
+        // The rows stand in titled sections. A fold changes the section's height and nothing a row says of itself.
+        function test_rows_stand_in_sections_that_fold_and_are_remembered() {
+            const ids = ["setup", "fg", "picture", "hud", "latency", "start"]
+            for (const id of ids) { control("pushfps-section-" + id); verify(quick.sectionOpen(id), id + " is open until folded") }
+            // Each row is in the section it belongs to.
+            const where = { "pushfps-console-row": "setup", "pushfps-game-fps-row": "setup", "pushfps-target-row": "fg", "pushfps-smooth-row": "fg",
+                            "pushfps-enhance-row": "picture", "pushfps-crop-row": "picture", "pushfps-hudlock-row": "hud", "pushfps-hudstill-row": "hud",
+                            "pushfps-lowest-latency-row": "latency", "pushfps-lipsync-row": "latency", "pushfps-auto-connect-row": "start" }
+            for (const row in where) {
+                const section = quick.sectionItems.find(s => s.sectionId === where[row])
+                verify(section && section.holds(row), row + " in " + where[row])
+                for (const other of quick.sectionItems) if (other !== section) verify(!other.holds(row), row + " only once")
+            }
+            const target = control("pushfps-target-row"), enhance = control("pushfps-enhance-row")
+            verify(target.visible && enhance.visible)
+            quick.setSectionOpen("picture", false)
+            compare(veyra.preferences.pushQuickFolded, "picture", "the fold is a preference")
+            verify(!quick.sectionOpen("picture") && quick.sectionOpen("fg"))
+            verify(enhance.visible, "a folded row still says of itself that it is there")
+            quick.setSectionOpen("hud", false)
+            compare(veyra.preferences.pushQuickFolded, "picture,hud")
+            // A jump to a row opens the section it stands in, and only that one.
+            quick.reveal("pushfps-crop-row")
+            verify(quick.sectionOpen("picture") && !quick.sectionOpen("hud"))
+            quick.setSectionOpen("hud", true)
+            compare(veyra.preferences.pushQuickFolded, "")
+            // The title says what is chosen: the console and the game's rate, and the target.
+            verify(quick.sectionSummary("setup").indexOf("PlayStation 5") >= 0 && quick.sectionSummary("setup").indexOf("30 FPS") >= 0, quick.sectionSummary("setup"))
+            quick.applyTarget("120")
+            compare(quick.sectionSummary("fg"), "120 FPS")
+            quick.applyTarget("off")
+            verify(quick.sectionSummary("fg").length > 0 && quick.sectionSummary("fg") !== "120 FPS")
+        }
+        // Each page shows a setting once: what the page beside the quick setup has itself is left to that page.
+        function test_each_page_shows_a_setting_once() {
+            const proOwned = ["pushfps-adaptive-row", "pushfps-pacing-row", "pushfps-hudstill-row", "pushfps-hudlock-row"]
+            for (const row of proOwned) verify(control(row).visible, row + " on its own")
+            verify(control("pushfps-compare-clip").visible && control("pushfps-stream").visible)
+            // Professional mode: its own list under the quick setup has these switches and the method.
+            quick.compactPro = true
+            verify(quick.proPage && !quick.streamingPage)
+            for (const row of proOwned) verify(!control(row).visible, row + " is left to Professional mode's list")
+            verify(!control("pushfps-fg-backend-row").visible)
+            verify(control("pushfps-target-row").visible && control("pushfps-enhance-row").visible && control("pushfps-lowest-latency-row").visible, "the rest stays")
+            verify(control("pushfps-compare-clip").visible && control("pushfps-stream").visible)
+            // Streaming mode: its own Go live and comparison clip buttons stand beside the quick setup.
+            quick.compact = true
+            verify(quick.streamingPage && !quick.proPage)
+            verify(!control("pushfps-compare-clip").visible && !control("pushfps-stream").visible)
+            for (const row of proOwned) verify(control(row).visible, row + " in streaming mode, which has no list of its own")
+            verify(control("pushfps-optimize").visible && control("pushfps-game-presets").visible && control("pushfps-hud").visible)
+            // The home page: everything.
+            quick.compactPro = false
+            verify(control("pushfps-compare-clip").visible && control("pushfps-stream").visible)
+            for (const row of proOwned) verify(control(row).visible)
+            quick.compact = false
+        }
         function test_90_fps_target_in_profiles_and_adaptive() {
             veyra.displayRefreshHz = 90
             quick.applyTarget("90")

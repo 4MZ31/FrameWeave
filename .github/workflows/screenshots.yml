@@ -18,6 +18,10 @@ on:
         description: Take only the screenshots whose name matches this regular expression (empty = all)
         default: ''
         required: false
+      qml_from:
+        description: Put the interface files (qml/) of this branch or commit over the installed build's (design work without a rebuild; the program itself stays that build's)
+        default: ''
+        required: false
 
 # contents: write only to push the images to the `screenshots` branch (replaced on every run).
 permissions:
@@ -36,6 +40,7 @@ jobs:
       RELEASE_TAG: ${{ inputs.release_tag }}
       BUILD_BRANCH: ${{ inputs.branch || 'main' }}
       ONLY: ${{ inputs.only }}
+      QML_FROM: ${{ inputs.qml_from }}
     steps:
       # Only for the test-pattern sender (tools/frame-input): the screenshots that show a playing picture.
       - uses: actions/checkout@v4
@@ -63,6 +68,20 @@ jobs:
           Expand-Archive pf.zip -DestinationPath pf
           & .\pf\Install-PushFPS.ps1 -Gpu NVIDIA -InstallDir D:\pf -NoShortcuts -NoLaunch
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      # The interface is loaded from disk next to the program, so another commit's qml/ can be laid over it.
+      # Only what the installed program already offers works behind it (a new preference needs a new build).
+      - name: Interface files of another commit (optional)
+        if: ${{ inputs.qml_from != '' }}
+        run: |
+          git init -q qmlsrc
+          git -C qmlsrc remote add origin "https://x-access-token:$($env:GH_TOKEN)@github.com/$($env:GITHUB_REPOSITORY).git"
+          git -C qmlsrc sparse-checkout set qml
+          git -C qmlsrc fetch -q --depth 1 origin $env:QML_FROM
+          if ($LASTEXITCODE -ne 0) { throw "could not fetch $env:QML_FROM" }
+          git -C qmlsrc checkout -q FETCH_HEAD
+          Copy-Item qmlsrc\qml\Veyra\* D:\pf\qml\Veyra -Recurse -Force
+          Write-Host "Interface files from $env:QML_FROM ($(git -C qmlsrc rev-parse --short HEAD)) laid over the installed build"
 
       - name: Take screenshots
         run: |
@@ -196,7 +215,19 @@ jobs:
             @{ name = '95-compare-console-name'; args = @('--page', 'home', '--dialog', 'compare', '--lang', 'en', '--pref', 'pushConsole=ps5pro', '--pref', 'pushSunset=false') },
             @{ name = '96-quick-smooth-screen'; args = @('--page', 'home', '--scroll-to', 'pushfps-smooth-row', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '83-crop-editor'; args = @('--page', 'home', '--dialog', 'crop', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') },
-            @{ name = '84-crop-quick-setup'; args = @('--page', 'home', '--scroll-to', 'pushfps-crop-row', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') }
+            @{ name = '84-crop-quick-setup'; args = @('--page', 'home', '--scroll-to', 'pushfps-crop-row', '--lang', 'en', '--pref', 'pushCropOn=true', '--pref', 'pushCropT=119', '--pref', 'pushCropB=119', '--pref', 'pushSunset=false') },
+            # The interface in sections, the three pages the quick setup stands in, and the colours (after 4.1).
+            @{ name = '97-home-sections'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushSunset=false', '--scroll-to', 'pushfps-tools-row') },
+            @{ name = '98-home-sections-picture'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushSunset=false', '--scroll-to', 'pushfps-enhance-row') },
+            @{ name = '99-pro-sections'; args = @('--page', 'pro', '--tab', 'fg', '--lang', 'en') },
+            @{ name = '100-streaming-sections'; args = @('--page', 'live', '--lang', 'en') },
+            @{ name = '101-appearance'; args = @('--page', 'set', '--lang', 'en') },
+            @{ name = '102-midnight-home'; args = @('--page', 'home', '--lang', 'en', '--theme', 'midnight', '--pref', 'pushSunset=false', '--dock-pinned') },
+            @{ name = '103-plum-pro'; args = @('--page', 'pro', '--tab', 'fg', '--lang', 'en', '--theme', 'plum') },
+            @{ name = '104-forest-settings'; args = @('--page', 'set', '--lang', 'en', '--theme', 'forest') },
+            @{ name = '105-midnight-ice'; args = @('--page', 'home', '--lang', 'en', '--theme', 'midnight', '--pref', 'accent=ice', '--pref', 'pushSunset=false', '--scroll-to', 'pushfps-tools-row') },
+            @{ name = '106-light-rose-settings'; args = @('--page', 'set', '--lang', 'en', '--theme', 'light', '--pref', 'accent=rose') },
+            @{ name = '107-capture-help'; args = @('--page', 'home', '--dialog', 'capture', '--lang', 'en') }
           )
           if ($env:ONLY) { $list = @($list | Where-Object { $_.name -match $env:ONLY }); Write-Host "Only: $($list.name -join ', ')" }
           foreach ($s in $list) {

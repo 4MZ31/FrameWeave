@@ -23,23 +23,36 @@ QtObject {
     property string mode: "default"
     readonly property bool light: mode === "light"
     readonly property bool black: mode === "black"
+    // Three more dark backgrounds (after 4.1; "give people more options for what the interface looks like"):
+    // the same depths as the dark grey, tinted navy, aubergine or deep green. With the accents below that is
+    // six backgrounds by seven accents. Every pair is checked for contrast (tst_push_appearance.qml).
+    readonly property bool tinted: mode === "midnight" || mode === "plum" || mode === "forest"
+    readonly property var surfaces: ({
+        "default":  { card: "#131317", card2: "#19191E", card3: "#24242A", popover: "#1B1B20", dialog: "#141418", bgOuter: "#070709", bgMid: "#0C0C10", bgInner: "#17171C" },
+        "black":    { card: "#08080A", card2: "#0D0D10", card3: "#17171B", popover: "#101013", dialog: "#0A0A0C", bgOuter: "#000000", bgMid: "#010102", bgInner: "#050506" },
+        "light":    { card: "#FFFFFF", card2: "#F3F5F0", card3: "#E4E7E0", popover: "#FFFFFF", dialog: "#FFFFFF", bgOuter: "#DFE3DA", bgMid: "#E9ECE5", bgInner: "#F4F6F1" },
+        "midnight": { card: "#0F1522", card2: "#141B2B", card3: "#1F2942", popover: "#161E30", dialog: "#101726", bgOuter: "#05080F", bgMid: "#090E19", bgInner: "#121A2B" },
+        "plum":     { card: "#17121C", card2: "#1E1724", card3: "#2B2233", popover: "#201929", dialog: "#18131E", bgOuter: "#08060B", bgMid: "#0E0A13", bgInner: "#1B1522" },
+        "forest":   { card: "#0F1613", card2: "#141D19", card3: "#1F2B25", popover: "#16201B", dialog: "#101814", bgOuter: "#050907", bgMid: "#090F0C", bgInner: "#131C17" }
+    })
+    readonly property var surface: surfaces[mode] || surfaces["default"]
     function ink(a) { return light ? Qt.rgba(0.07, 0.08, 0.06, Math.min(1, a * 1.15)) : Qt.rgba(1, 1, 1, a) }
     // Text and icons drawn over the video picture or a dark chip stay white in every mode.
     readonly property color onVideo: "#FFFFFF"
 
     // --- surfaces (app.css .vy) -------------------------------------------
-    readonly property color card: light ? "#FFFFFF" : black ? "#08080A" : "#131317"
-    readonly property color card2: light ? "#F3F5F0" : black ? "#0D0D10" : "#19191E"
-    readonly property color card3: light ? "#E4E7E0" : black ? "#17171B" : "#24242A"
-    readonly property color popover: light ? "#FFFFFF" : black ? "#101013" : "#1B1B20"
-    readonly property color dialog: light ? "#FFFFFF" : black ? "#0A0A0C" : "#141418"
+    readonly property color card: surface.card
+    readonly property color card2: surface.card2
+    readonly property color card3: surface.card3
+    readonly property color popover: surface.popover
+    readonly property color dialog: surface.dialog
     readonly property color stroke: light ? Qt.rgba(0, 0, 0, 0.10) : Qt.rgba(1, 1, 1, black ? 0.08 : 0.07)
     readonly property color stroke2: light ? Qt.rgba(0, 0, 0, 0.18) : Qt.rgba(1, 1, 1, black ? 0.14 : 0.13)
     // The app background: a radial gradient in the prototype, approximated here
     // with the three stops it interpolates between.
-    readonly property color bgOuter: light ? "#DFE3DA" : black ? "#000000" : "#070709"
-    readonly property color bgMid: light ? "#E9ECE5" : black ? "#010102" : "#0C0C10"
-    readonly property color bgInner: light ? "#F4F6F1" : black ? "#050506" : "#17171C"
+    readonly property color bgOuter: surface.bgOuter
+    readonly property color bgMid: surface.bgMid
+    readonly property color bgInner: surface.bgInner
     // Veyra 2.1.9 palette API, kept so upstream components work unchanged. PushFPS has
     // its own appearance modes (above) instead of Veyra's dusk palette, so it is always
     // "classic" here: shade() returns the colour as written, no accent gradient.
@@ -73,12 +86,24 @@ QtObject {
     readonly property bool accentWhite: accentName === "white"
     // Light mode: a deeper green (and near-black for the white variant), since the
     // brand green is too light for text and icons on white.
-    readonly property color accent: accentWhite ? (light ? "#15171A" : "#F3F3F5") : (light ? "#2F7A06" : "#89F52A")
+    // Five more accents (after 4.1). Each has a bright form for dark backgrounds, a deeper one for the light
+    // background, and the colour of text drawn on it.
+    readonly property var accents: ({
+        "orange": { dark: "#89F52A", light: "#2F7A06", inkDark: "#0D1A04", inkLight: "#FFFFFF" },
+        "white":  { dark: "#F3F3F5", light: "#15171A", inkDark: "#0B0B0E", inkLight: "#FFFFFF" },
+        "ice":    { dark: "#5CE1E6", light: "#0B6F7B", inkDark: "#04191B", inkLight: "#FFFFFF" },
+        "blue":   { dark: "#6EA8FF", light: "#1E5FD6", inkDark: "#071631", inkLight: "#FFFFFF" },
+        "violet": { dark: "#B79BFF", light: "#5B3FC4", inkDark: "#150B33", inkLight: "#FFFFFF" },
+        "rose":   { dark: "#FF86B8", light: "#B4246B", inkDark: "#33081B", inkLight: "#FFFFFF" },
+        "amber":  { dark: "#FFC857", light: "#8A5A00", inkDark: "#2A1B00", inkLight: "#FFFFFF" }
+    })
+    readonly property var accentPair: accents[accentName] || accents["orange"]
+    readonly property color accent: light ? accentPair.light : accentPair.dark
     // The logo's green, also with the white accent (the PushFPS wordmark's "FPS").
     readonly property color brandGreen: light ? "#2F7A06" : "#89F52A"
-    readonly property color accentInk: accentWhite ? (light ? "#FFFFFF" : "#0B0B0E") : (light ? "#FFFFFF" : "#0D1A04")
-    readonly property color accentSoft: accentWhite ? ink(0.1) : (light ? Qt.rgba(0.184, 0.478, 0.024, 0.12) : Qt.rgba(0.537, 0.961, 0.165, 0.14))
-    readonly property color accentGlow: accentWhite ? ink(0.35) : (light ? Qt.rgba(0.184, 0.478, 0.024, 0.30) : Qt.rgba(0.537, 0.961, 0.165, 0.35))
+    readonly property color accentInk: light ? accentPair.inkLight : accentPair.inkDark
+    readonly property color accentSoft: accentWhite ? ink(0.1) : Qt.rgba(accent.r, accent.g, accent.b, light ? 0.12 : 0.14)
+    readonly property color accentGlow: accentWhite ? ink(0.35) : Qt.rgba(accent.r, accent.g, accent.b, light ? 0.30 : 0.35)
     // 设置 → 背景渐变强度: 0 none, 1 light (the design default), 2 medium.
     property int backdropLevel: 1
     readonly property color ok: light ? "#17824A" : "#3DDC84"

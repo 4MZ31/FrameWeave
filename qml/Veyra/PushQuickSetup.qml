@@ -102,6 +102,41 @@ VGroup {
     property bool showSetupTip: false
     // Set where the picture is already visible next to the quick setup (Professional mode).
     property bool compactPro: false
+    // The three places the quick setup stands in, by name. Each shows a setting once: what the page beside
+    // it already has (Professional mode's own list under it, streaming mode's buttons) is left to that page.
+    readonly property bool proPage: quick.compactPro && !quick.compact
+    readonly property bool streamingPage: quick.compactPro && quick.compact
+
+    // --- sections (PushSection.qml) ----------------------------------------------
+    // Which sections are folded is remembered (preference pushQuickFolded: their ids, with commas); every
+    // section is open until its title is clicked.
+    readonly property var foldedSections: String(veyra.preferences.pushQuickFolded || "").split(",").filter(s => s.length > 0)
+    function sectionOpen(id) { return quick.foldedSections.indexOf(id) < 0 }
+    function setSectionOpen(id, open) {
+        const list = quick.foldedSections.filter(s => s !== id)
+        if (!open) list.push(id)
+        veyra.setPreference("pushQuickFolded", list.join(","))
+    }
+    // Opens the section a row stands in (a jump to that row, as the screenshot run's --scroll-to makes).
+    function reveal(rowName) {
+        for (let i = 0; i < quick.sectionItems.length; ++i) {
+            const s = quick.sectionItems[i]
+            if (s && !s.open && s.holds(rowName)) quick.setSectionOpen(s.sectionId, true)
+        }
+    }
+    readonly property var sectionItems: [secSetup, secFg, secPicture, secHud, secLatency, secStart]
+    // What a section's title says beside it: the choice that matters most there, in words that exist already.
+    function sectionSummary(id) {
+        if (id === "setup") {
+            const c = quick.consoles.find(o => o.id === quick.consoleId)
+            return (c ? c.label + " · " : "") + quick.baseFps + " FPS"
+        }
+        if (id === "fg") {
+            const t = quick.currentTarget
+            return t === "off" ? qsTr("关闭", "off") : t === "monitor" ? qsTr("匹配显示器") : quick.isTarget(t) ? t + " FPS" : ""
+        }
+        return ""
+    }
     // Console games send their frames inside a 60 Hz signal: 30 FPS for most games
     // (GTA VI), 40 in some 120 Hz modes, 60 in performance modes. The player picks it
     // (设置 key pushGameFps); the multiplier is chosen from it, and the output cap holds
@@ -691,6 +726,7 @@ VGroup {
         }
         PushToolTile {
             objectName: "pushfps-compare-clip"
+            visible: !quick.streamingPage   // streaming mode has its own button for it
             iconName: "split"
             readonly property int clipSeconds: CompareClip.seconds(veyra.preferences)
             readonly property bool clipUntilStop: CompareClip.untilStop(veyra.preferences)
@@ -714,6 +750,7 @@ VGroup {
         }
         PushToolTile {
             objectName: "pushfps-stream"
+            visible: !quick.streamingPage   // streaming mode has its own Go live button
             // Fifth tile: the whole row, so the grid stays even.
             Layout.columnSpan: toolsGrid.columns
             Layout.fillWidth: true
@@ -724,115 +761,6 @@ VGroup {
                              : qsTr("Twitch、YouTube、Kick、TikTok，可同时推")
             tip: qsTr("把 PushFPS 的画面直接推到直播平台，可以同时推多个平台")
             onClicked: veyra.navigate("stream")
-        }
-    }
-
-    // The capture card in use, and whether it is on PushFPS's tested list.
-    VRow {
-        id: cardRow
-        objectName: "pushfps-card-row"
-        readonly property var card: Cards.find(veyra.captureDeviceLabel)
-        visible: String(veyra.captureDeviceLabel || "").length > 0
-        label: qsTr("采集卡")
-        hint: card && card.status === "tested" ? qsTr("PushFPS 已实测")
-            : card && card.status === "veyra" ? qsTr("Veyra 作者已实测")
-            : card && card.status === "reported" ? qsTr("有 PushFPS 用户报告可用")
-            : qsTr("还没有人报告这张卡的结果，欢迎在 GitHub 上分享")
-        hintBelow: true
-        RowLayout {
-            spacing: 6
-            Text {
-                text: veyra.captureDeviceLabel || ""
-                color: Theme.t1; font.family: Theme.fontUi; font.pixelSize: 12
-                elide: Text.ElideRight; Layout.maximumWidth: 180
-            }
-            VTag {
-                objectName: "pushfps-card-status"
-                kind: cardRow.card && cardRow.card.status !== "untested" ? "ok" : ""
-                text: cardRow.card && cardRow.card.status !== "untested" ? qsTr("已测试") : qsTr("未测试")
-            }
-            VButton {
-                visible: !(cardRow.card && cardRow.card.status === "tested")
-                ghost: true
-                text: qsTr("报告")
-                onClicked: Qt.openUrlExternally(Cards.reportUrl)
-            }
-        }
-    }
-
-    VRow {
-        objectName: "pushfps-console-row"
-        label: qsTr("游戏主机")
-        VSelect {
-            objectName: "pushfps-console"
-            implicitWidth: 190
-            options: quick.consoles
-            value: (quick.consoles.find(c => c.id === quick.consoleId) || quick.consoles[0]).label
-            onPicked: id => quick.switchConsole(id)
-        }
-    }
-
-    VRow {
-        id: gameRow
-        objectName: "pushfps-game-row"
-        label: qsTr("游戏配置")
-        hint: quick.activeGame.length > 0 ? "" : qsTr("把当前设置存为某个游戏的配置，之后一键切换")
-        property bool naming: false
-        RowLayout {
-            spacing: 4
-            VSelect {
-                objectName: "pushfps-game"
-                visible: !gameRow.naming
-                implicitWidth: 150
-                options: [{ id: "", label: qsTr("无") }].concat(quick.games.map(g => ({ id: g.name, label: g.name })))
-                value: quick.activeGame.length > 0 ? quick.activeGame : qsTr("无")
-                onPicked: id => quick.applyGame(id)
-            }
-            DialogTextField {
-                id: gameName
-                objectName: "pushfps-game-name"
-                visible: gameRow.naming
-                implicitWidth: 150
-                placeholder: qsTr("游戏名称")
-            }
-            VButton {
-                objectName: "pushfps-game-save"
-                icon: true
-                iconName: gameRow.naming ? "check" : "plus"
-                tip: gameRow.naming ? qsTr("保存") : (quick.activeGame.length > 0 ? qsTr("更新或另存为游戏配置") : qsTr("存为游戏配置"))
-                enabled: gameRow.naming ? gameName.text.trim().length > 0 : quick.games.length < quick.maxGames || quick.activeGame.length > 0
-                onClicked: {
-                    if (gameRow.naming) { if (quick.saveGame(gameName.text)) gameRow.naming = false; return }
-                    gameName.text = quick.activeGame
-                    gameRow.naming = true
-                }
-            }
-            VButton {
-                objectName: "pushfps-game-delete"
-                icon: true
-                iconName: gameRow.naming ? "x" : "trash"
-                tip: gameRow.naming ? qsTr("取消") : qsTr("删除此游戏配置")
-                visible: gameRow.naming || quick.activeGame.length > 0
-                onClicked: {
-                    if (gameRow.naming) { gameRow.naming = false; return }
-                    quick.deleteGame(quick.activeGame)
-                }
-            }
-        }
-    }
-
-    VRow {
-        objectName: "pushfps-game-fps-row"
-        label: qsTr("游戏帧率")
-        help: qsTr("游戏自己每秒画出多少张新画面。主机输出固定的 60 Hz 或 120 Hz 信号，30 FPS 的游戏在 60 Hz 下每张画面重复一次。PushFPS 去掉重复的画面，再根据游戏帧率决定要生成几帧")
-        hint: qsTr("大多数主机游戏为 30 FPS；120 Hz 模式的游戏常为 40；性能模式选 60")
-        VSeg {
-            objectName: "pushfps-game-fps"
-            enabled: quick.fgPossible
-            opacity: enabled ? 1 : 0.4
-            options: [{ id: "30", label: "30" }, { id: "40", label: "40" }, { id: "60", label: "60" }]
-            current: String(quick.baseFps)
-            onPicked: id => quick.setGameFps(id)
         }
     }
 
@@ -864,52 +792,6 @@ VGroup {
         onTriggered: quick.readFgHealth()
         onRunningChanged: if (!running) { quick.fgIdle = 0; quick.fgIdleText = "" }
     }
-    VRow {
-        objectName: "pushfps-fg-idle-row"
-        visible: quick.fgIdle >= 2
-        label: qsTr("补帧没有出画面")
-        hint: quick.fgIdleText
-        hintColor: Theme.warn
-        hintBelow: true
-        // What the session really does, to send along (bridge/PushTools.cpp).
-        VButton {
-            objectName: "pushfps-fg-idle-report"
-            text: qsTr("复制性能报告")
-            ghost: true
-            onClicked: { veyra.pushCopyPerformanceReport(); veyra.logUi("push-quick", "performance report copied from the frame generation health row") }
-        }
-    }
-    VRow {
-        objectName: "pushfps-cadence-row"
-        visible: quick.cadenceMismatch
-        label: qsTr("检测到 60 FPS")
-        hint: qsTr("游戏帧率设为 30，但每一帧采集画面都被当作新画面（%1 FPS）。采集卡可能给重复画面加了噪点。改用固定的「60→30」去重，按 30 FPS 补帧").arg(Math.round(Number(quick.liveStats.contentFps || 0)))
-        hintColor: Theme.warn
-        hintBelow: true
-        VButton {
-            objectName: "pushfps-cadence-fix"
-            text: qsTr("改为 60→30")
-            onClicked: { veyra.contentRate = 5; veyra.logUi("push-quick", "content rate 60->30 from the cadence hint") }
-        }
-    }
-
-    VRow {
-        objectName: "pushfps-target-row"
-        label: qsTr("目标帧率")
-        help: qsTr("补帧后每秒显示的画面数。生成的帧插在两张真实画面之间，让运动更顺滑；手柄的反应速度不会因此变快")
-        hint: quick.targetHint
-        hintBelow: true
-        hintColor: quick.fgPossible ? Theme.t3 : Theme.warn
-        VSeg {
-            objectName: "pushfps-target"
-            enabled: quick.fgPossible
-            opacity: enabled ? 1 : 0.4
-            options: quick.targetOptions
-            current: quick.currentTarget
-            onPicked: id => quick.applyTarget(id)
-        }
-    }
-
     // The frame generation method (PushFlow, DLSS, FSR, ...) and PushFlow's tier. Streaming mode has no
     // Professional page beside it, so they were chosen here there; since 4.1 the home page has them
     // too, wherever the card offers more than one method: an AMD card starts on FSR, and until now the
@@ -927,390 +809,6 @@ VGroup {
     // the two against each other on an AMD card).
     readonly property bool amdMethodTip: veyra.amdNrGpu === true && quick.pushFlowOffered
                                          && (veyra.fgBackendName === "fsr3" || veyra.fgBackendName === "fsr4" || veyra.fgBackendName === "amdfrc")
-    VRow {
-        objectName: "pushfps-fg-backend-row"
-        visible: quick.methodShown
-        label: qsTr("补帧方式")
-        hint: quick.amdMethodTip ? qsTr("看到重影或拖影？试试 PushFlow：PushFPS 自己的补帧，任何显卡都能用。「为我的电脑优化」会在你的显卡上实测每一种方式")
-                                 : veyra.fgProviderText
-        hintBelow: true
-        VSelect {
-            objectName: "pushfps-fg-backend"
-            options: veyra.fgBackendChoices
-            value: (options.find(o => o.id === veyra.fgBackendName) || options[0]).label
-            onPicked: id => veyra.fgBackendName = id
-        }
-    }
-
-    VRow {
-        objectName: "pushfps-pushflow-tier-row"
-        visible: quick.methodShown && veyra.fgBackendName === "pushflow"
-        label: qsTr("PushFlow 档位")
-        // While it runs: the precision this graphics card passed with and the network's time per frame.
-        hint: quick.liveStats.pushFlowP50Ms > 0
-              ? qsTr("正在运行：%1 · 每帧 %2 ms（95%：%3 ms）").arg(quick.liveStats.pushFlowPrecision === "fp16" ? qsTr("半精度") : qsTr("全精度"))
-                    .arg(Number(quick.liveStats.pushFlowP50Ms).toFixed(1)).arg(Number(quick.liveStats.pushFlowP95Ms).toFixed(1))
-              : ""
-        hintBelow: true
-        VSeg {
-            objectName: "pushfps-pushflow-tier"
-            options: [{ id: "0", label: qsTr("快速") }, { id: "1", label: qsTr("均衡") }, { id: "2", label: qsTr("高质量") }]
-            current: String(Math.min(veyra.vfgQuality, 2))
-            onPicked: id => veyra.vfgQuality = Number(id)
-        }
-    }
-
-    VRow {
-        objectName: "pushfps-adaptive-row"
-        label: qsTr("自适应倍率")
-        help: qsTr("很多主机游戏的帧率并不固定：30 FPS 的游戏会掉到 25，40 FPS 模式会在 35 到 45 之间波动。开启后 PushFPS 实时测量游戏帧率，每一对画面都选择最接近目标帧率的补帧倍率，类似 NVIDIA DLSS 4.5 的动态多帧生成")
-        hint: !quick.fgPossible ? (Support.status(veyra, "frame-generation").reason || "")
-            : !quick.adaptivePossible ? qsTr("当前补帧方式只有 2×，无需自适应")
-            : quick.adaptive && quick.liveStats.fgMultiplierNow > 1 && quick.liveStats.contentFps > 0
-              ? qsTr("现在 %1×：游戏 %2 FPS → 约 %3 FPS").arg(quick.liveStats.fgMultiplierNow)
-                    .arg(Math.round(quick.liveStats.contentFps)).arg(Math.round(quick.liveStats.contentFps * quick.liveStats.fgMultiplierNow))
-              : qsTr("游戏帧率波动时自动调整倍率，输出尽量贴近目标")
-        VSwitch {
-            objectName: "pushfps-adaptive"
-            enabled: quick.adaptivePossible && veyra.fgEnabled
-            opacity: enabled ? 1 : 0.4
-            checked: quick.adaptive
-            onToggled: checked => quick.setAdaptive(checked)
-        }
-    }
-
-    VRow {
-        objectName: "pushfps-pacing-row"
-        label: qsTr("帧节奏修复")
-        help: qsTr("很多锁 30 FPS 的主机游戏出帧并不均匀：有的画面停留 17 毫秒，有的停留 50 毫秒，即使帧率没错，画面也会顿挫。PushFPS 把每一帧放回均匀的位置再补帧，主机自己做不到这一点。每帧最多晚一次刷新显示")
-        hint: !quick.ownTechPossible ? (quick.fgPossible ? qsTr("XeSS 自己控制节奏，不能同时使用") : (Support.status(veyra, "frame-generation").reason || ""))
-            : quick.pacingOn && quick.pacingShare >= 0
-              ? (quick.pacingShare > 0.05 ? qsTr("正在修复：%1% 的画面重新对齐").arg(Math.round(quick.pacingShare * 100))
-                                          : qsTr("这款游戏的节奏已经均匀，无需修复"))
-              : qsTr("修复忽快忽慢的出帧（如 17/50 毫秒交替），让 30 FPS 游戏动起来更顺")
-        VSwitch {
-            objectName: "pushfps-pacing"
-            enabled: quick.ownTechPossible && veyra.fgEnabled
-            opacity: enabled ? 1 : 0.4
-            checked: quick.pacingOn
-            onToggled: checked => quick.setPacingRepair(checked)
-        }
-    }
-
-    // The still rule (pipeline/PushHudStill.h): on unless switched off. What stands still in front of a
-    // moving picture keeps its real pixels in generated frames, with every method the graph runs.
-    VRow {
-        id: hudStill
-        objectName: "pushfps-hudstill-row"
-        label: qsTr("保持 HUD 清晰")
-        help: qsTr("补帧会给画面的每个位置算一个运动。HUD 静止而背后的画面在动时，HUD 的像素会被当成背景一起拉动，文字、血条和准星就会发糊、重影或消失。开启后，在两张真实画面里完全相同、并且周围大部分在动的像素，会在补出来的帧里直接使用真实画面的像素。它不需要预热，每一对画面单独判断；画面整体静止时（菜单、镜头不动）不会改动任何像素。对带噪点的信号（模拟连接、压缩很重的串流）它找不到完全相同的像素，补帧就和原来一样。")
-        readonly property int stillState: Number(quick.liveStats.hudStillState || 0)
-        readonly property bool on: veyra.preferences.pushHudStill !== false
-        hint: !quick.ownTechPossible ? (quick.fgPossible ? qsTr("XeSS 自己生成画面，不能同时使用") : (Support.status(veyra, "frame-generation").reason || ""))
-            : on && stillState === 2 ? qsTr("没能在这台电脑上启动，补帧照常运行（原因见日志）")
-            : on && stillState === 1 ? qsTr("正在运行：静止的 HUD 在补出来的帧里使用真实像素")
-            : on ? qsTr("静止的 HUD 在补出来的帧里使用真实像素（默认开启）")
-            : qsTr("已关闭：HUD 交给补帧处理")
-        VSwitch {
-            objectName: "pushfps-hudstill"
-            enabled: quick.ownTechPossible && veyra.fgEnabled
-            opacity: enabled ? 1 : 0.4
-            checked: quick.ownTechPossible && hudStill.on   // by id: a row's control is not the row's direct child
-            onToggled: checked => veyra.setPreference("pushHudStill", checked)
-        }
-    }
-
-    VRow {
-        objectName: "pushfps-hudlock-row"
-        label: qsTr("实时 HUD 锁定")
-        help: qsTr("补出来的帧会把画面上静止的文字、准星和血条跟着背景一起拉动，看起来发糊或抖动。开启后 PushFPS 每一帧都会找出静止的 HUD 像素，补帧时直接用主机原来的像素，不需要画框")
-        // What actually runs (EnhanceGraph::hudLockState): a pass that could not start says so.
-        readonly property int hudState: Number(quick.liveStats.hudLockState || 0)
-        hint: !quick.ownTechPossible ? (quick.fgPossible ? qsTr("XeSS 自己生成画面，不能同时使用") : (Support.status(veyra, "frame-generation").reason || ""))
-            : veyra.hudLock === true && hudState === 2 ? qsTr("实时 HUD 锁定没能在这台电脑上启动，补帧照常运行（原因见日志）")
-            : veyra.hudLock === true && hudState === 1 ? qsTr("正在运行：文字和准星在补出来的帧里保持清晰")
-            : qsTr("每一帧自动找出 HUD，文字和准星在补出来的帧里保持清晰")
-        VSwitch {
-            objectName: "pushfps-hudlock"
-            enabled: quick.ownTechPossible && veyra.fgEnabled
-            opacity: enabled ? 1 : 0.4
-            checked: quick.ownTechPossible && veyra.hudLock === true
-            onToggled: checked => veyra.hudLock = checked
-        }
-    }
-
-    VRow {
-        objectName: "pushfps-enhance-row"
-        label: qsTr("AI 画面增强")
-        help: qsTr("用 AI 去掉采集卡压缩造成的色块和噪点，让细节更清楚。和补帧无关，可以单独开关")
-        // Not possible: the reason, and when the card could run it but its files were left out at
-        // installation (they are the installer's optional extras), how to get them.
-        readonly property var support: Support.status(veyra, "nr")
-        hint: quick.nrPossible ? qsTr("关闭时只做补帧。开启后每帧都经过 NVIDIA 神经渲染（DLSS 5 NR）增强，画面更清晰，但更耗 GPU")
-                               : (support.reason || "") + (support.missingFiles === true
-                                   ? " " + qsTr("它属于安装时可选的实验性附加组件：重新运行 Install-PushFPS.cmd，询问时回答 y 即可，设置会保留") : "")
-        hintBelow: !quick.nrPossible && support.missingFiles === true
-        VSwitch {
-            objectName: "pushfps-enhance"
-            enabled: quick.nrPossible
-            opacity: enabled ? 1 : 0.4
-            checked: veyra.nrAnyEnabled
-            onToggled: checked => quick.setEnhancement(checked)
-        }
-    }
-
-    // The enhancement's look (shown while AI picture enhancement is on).
-    VRow {
-        objectName: "pushfps-look-row"
-        visible: quick.lookShown
-        label: qsTr("增强风格")
-        help: qsTr("AI 画面增强改动画面的力度。「强烈」是完整效果，也是一直以来的默认值；觉得画面不像原作、过于锐利或人脸不自然时，选「均衡」或「柔和」。也可以用下面两个滑块自己调")
-        hint: quick.lookId === "" ? qsTr("自定义：已用滑块调整") : quick.lookId === "strong" ? qsTr("完整效果（默认）") : qsTr("比默认更接近原画")
-        RowLayout {
-            spacing: 8
-            VSeg {
-                objectName: "pushfps-look"
-                options: quick.looks.map(l => ({ id: l.id, label: l.label }))
-                current: quick.lookId
-                onPicked: id => quick.applyLook(id)
-            }
-            VButton {
-                objectName: "pushfps-look-reset"
-                text: qsTr("重置")
-                enabled: quick.lookId !== "strong"
-                opacity: enabled ? 1 : 0.4
-                onClicked: quick.resetLook()
-            }
-        }
-    }
-    // The size the enhancement works at (shown with the look; the AMD runtime stays at 1080p).
-    VRow {
-        objectName: "pushfps-enhance-size-row"
-        visible: quick.lookShown
-        label: qsTr("增强的处理大小")
-        help: qsTr("AI 画面增强在多大的画面上计算。标准是 1080p：画面是 4K 时，增强的改动按四分之一的像素算出来，再加到 4K 画面上，细节会软一些。选「完整大小」就在每个像素上计算，更清晰，4K 时工作量约为四倍，需要较强的显卡。补帧开始跳帧时请改回 1080p。")
-        hint: !quick.enhanceSizeKnown ? qsTr("已在专业模式里设为其他大小；在这里选一项就会改用它")
-            : quick.enhanceSize === 1 ? qsTr("在画面的每个像素上计算：最清晰，最吃显卡")
-            : quick.enhanceSize === 5 ? qsTr("最高按 1440p 计算：比标准清晰，比完整大小省")
-            : qsTr("最高按 1080p 计算（默认）：最省显卡")
-        VSeg {
-            objectName: "pushfps-enhance-size"
-            options: quick.enhanceSizes.map(s => ({ id: String(s.id), label: s.label }))
-            current: quick.enhanceSizeKnown ? String(quick.enhanceSize) : ""
-            onPicked: id => quick.setEnhanceSize(Number(id))
-        }
-    }
-    VRow {
-        objectName: "pushfps-look-tone-row"
-        visible: quick.lookShown
-        label: qsTr("光影")
-        hint: qsTr("AI 重新处理明暗和色彩的程度。0% 保持原画的光影和颜色")
-        value: Math.round(quick.lookTone * 100) + "%"
-        VSlider {
-            objectName: "pushfps-look-tone"
-            valueFromModel: true
-            implicitWidth: 150
-            from: 0; to: 1; stepSize: 0.01
-            inputScale: 100
-            value: quick.lookTone
-            resettable: true; defaultValue: 1
-            onMoved: v => { if (quick.lookShown) quick.setLook(v, undefined) }
-        }
-    }
-    VRow {
-        objectName: "pushfps-look-detail-row"
-        visible: quick.lookShown
-        label: qsTr("细节")
-        hint: qsTr("AI 补充细小纹理、接触阴影和反光的程度。0% 不添加细节")
-        value: Math.round(quick.lookStructure * 100) + "%"
-        VSlider {
-            objectName: "pushfps-look-detail"
-            valueFromModel: true
-            implicitWidth: 150
-            from: 0; to: 1; stepSize: 0.01
-            inputScale: 100
-            value: quick.lookStructure
-            resettable: true; defaultValue: 1
-            onMoved: v => { if (quick.lookShown) quick.setLook(undefined, v) }
-        }
-    }
-    VRow {
-        objectName: "pushfps-look-compare-row"
-        visible: quick.lookShown
-        label: qsTr("与原画对比")
-        help: qsTr("把画面分成两半：左边是没有 AI 画面增强的原画，右边是增强后的画面，方便边调边看。在专业模式的画面上可以拖动分割线")
-        hint: quick.lookSplit ? qsTr("对比时补帧暂停；关闭对比后自动恢复。两分钟后自动关闭")
-                              : veyra.hasSource === true ? qsTr("左边原画，右边增强后") : qsTr("先连接画面")
-        VSwitch {
-            objectName: "pushfps-look-compare"
-            enabled: veyra.hasSource === true || quick.lookSplit
-            opacity: enabled ? 1 : 0.4
-            checked: quick.lookSplit
-            onToggled: checked => quick.setLookCompare(checked)
-        }
-    }
-    // Fine-tuning (ten sliders): folded away until asked for.
-    VRow {
-        objectName: "pushfps-fine-row"
-        visible: quick.fineShown
-        label: qsTr("精细调整")
-        help: qsTr("调整的是 AI 画面增强对画面的改动，而不是画面本身：可以只保留提亮或压暗，只让它作用于暗部、中间调或高光，限制每个像素最多变化多少，或者保持原画的色彩和色相。全部为默认值时不做任何额外处理。对所有增强层同时生效，并随每个主机和游戏的配置保存")
-        hint: quick.fineNeutral ? qsTr("默认：AI 的改动保持原样") : qsTr("已调整 AI 的改动")
-        RowLayout {
-            spacing: 8
-            VButton {
-                objectName: "pushfps-fine-reset"
-                text: qsTr("重置")
-                visible: !quick.fineNeutral
-                onClicked: quick.resetFine()
-            }
-            VButton {
-                objectName: "pushfps-fine-toggle"
-                ghost: true
-                text: quick.fineOpen ? qsTr("收起") : qsTr("展开")
-                onClicked: veyra.setPreference("pushFineTuneOpen", !quick.fineOpen)
-            }
-        }
-    }
-    Repeater {
-        model: quick.fineShown && quick.fineOpen ? quick.fineSpecs : []
-        delegate: VRow {
-            required property var modelData
-            objectName: "pushfps-fine-row-" + modelData.id
-            label: modelData.label
-            hint: modelData.hint
-            value: quick.fineText(modelData.id)
-            VSlider {
-                objectName: "pushfps-fine-" + modelData.id
-                valueFromModel: true
-                implicitWidth: 150
-                from: 0; to: modelData.to; stepSize: 0.01
-                inputScale: 100
-                value: quick.fineValue(modelData.id)
-                resettable: true; defaultValue: modelData.neutral
-                onMoved: v => { if (quick.fineShown) quick.setFine(modelData.id, v) }
-            }
-        }
-    }
-
-    VRow {
-        objectName: "pushfps-lowest-latency-row"
-        label: qsTr("最低延迟")
-        help: qsTr("一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置")
-        hint: quick.lowestLatencyHint
-        VSwitch {
-            objectName: "pushfps-lowest-latency"
-            checked: quick.lowestLatency
-            onToggled: checked => quick.setLowestLatency(checked)
-        }
-    }
-
-    VRow {
-        objectName: "pushfps-latency-overlay-row"
-        label: qsTr("在画面上显示延迟")
-        // Two sentences on two lines: the first keeps the translations it has in every language.
-        hint: qsTr("实测电脑处理延迟（采集卡画面到达到交给显示器）和帧率；采集卡、显示器和游戏的延迟另计") + "\n"
-              + qsTr("可以用鼠标把它拖到画面上的任何位置；双击它，它就回到左上角")
-        RowLayout {
-            spacing: 8
-            VButton {
-                objectName: "pushfps-latency-guide-open"
-                ghost: true
-                text: qsTr("测量总延迟")
-                iconName: "gauge"
-                onClicked: veyra.navigate("latencyguide")
-            }
-            VSwitch {
-                objectName: "pushfps-latency-overlay"
-                checked: veyra.preferences.pushLatencyOverlay === true
-                onToggled: checked => veyra.setPreference("pushLatencyOverlay", checked)
-            }
-        }
-    }
-
-    // Lip sync by hand (sink/PushAudioTrim.h): milliseconds on top of the automatic sound delay.
-    // Automatic sync cannot see how much later than its sound a capture card hands over its picture,
-    // nor what the screen and the sound device add afterwards, so the last step is the user's.
-    VRow {
-        id: lipSync
-        objectName: "pushfps-lipsync-row"
-        readonly property int trim: {
-            const value = Number(veyra.preferences.pushAudioTrimMs)
-            return isFinite(value) ? Math.max(-250, Math.min(250, Math.round(value))) : 0
-        }
-        // Automatic sync is what the trim adds to; in manual mode and with sync off it does nothing.
-        readonly property bool automatic: veyra.audioSyncMode === undefined || veyra.audioSyncMode === 0
-        // The delay the sound really has now (0 when nothing live plays).
-        readonly property real applied: veyra.audioSyncLive === true ? Number(veyra.audioCompensationMs) || 0 : -1
-        // Sound cannot be played before it arrives: a trim further back than the delay there is has no more effect.
-        readonly property bool atLimit: automatic && trim < 0 && applied >= 0 && applied < 0.5
-        function set(value) { veyra.setPreference("pushAudioTrimMs", Math.max(-250, Math.min(250, Math.round(value)))) }
-        label: qsTr("声音对口型")
-        help: qsTr("声音和嘴型对不上时在这里微调。自动同步会让声音延后画面在 PushFPS 里所花的时间，但它看不到采集卡交出画面比声音晚多少，也看不到显示器、电视音箱、回音壁或无线耳机之后再加的延迟。声音先到就往“晚”调，声音晚到就往“早”调；声音不能早于它到达的时间，所以“早”有上限。")
-        hint: !automatic ? qsTr("声音同步设为手动或关闭时微调不起作用（音频设置里改回自动估算）")
-            : atLimit ? qsTr("已经最早：声音一到就播放，再往早调没有效果")
-            : trim === 0 ? (applied >= 0 ? qsTr("自动：声音延后 %1 毫秒，与画面对齐").arg(Math.round(applied)) : qsTr("自动：声音跟随画面的延迟"))
-            : trim > 0 ? qsTr("声音比自动再晚 %1 毫秒").arg(trim)
-            : qsTr("声音比自动早 %1 毫秒").arg(-trim)
-        RowLayout {
-            spacing: 6
-            VButton {
-                objectName: "pushfps-lipsync-earlier"
-                ghost: true
-                enabled: lipSync.automatic && lipSync.trim > -250 && !lipSync.atLimit
-                text: qsTr("早 10")
-                onClicked: lipSync.set(lipSync.trim - 10)
-            }
-            Text {
-                objectName: "pushfps-lipsync-value"
-                text: (lipSync.trim > 0 ? "+" : "") + lipSync.trim + " ms"
-                color: lipSync.trim === 0 ? Theme.t2 : Theme.t1
-                font.family: Theme.fontMono; font.pixelSize: 12
-                horizontalAlignment: Text.AlignHCenter
-                Layout.preferredWidth: 62
-            }
-            VButton {
-                objectName: "pushfps-lipsync-later"
-                ghost: true
-                enabled: lipSync.automatic && lipSync.trim < 250
-                text: qsTr("晚 10")
-                onClicked: lipSync.set(lipSync.trim + 10)
-            }
-            VButton {
-                objectName: "pushfps-lipsync-reset"
-                ghost: true
-                visible: lipSync.trim !== 0
-                text: qsTr("归零")
-                onClicked: lipSync.set(0)
-            }
-        }
-    }
-
-    // Plug and play: Veyra's 启动后自动继续上次内容 (autoResume: the last capture card with its
-    // settings, or the last stream) and PushFPS's fullscreen-on-connect (Main.qml).
-    VRow {
-        objectName: "pushfps-auto-connect-row"
-        visible: !quick.compact
-        label: qsTr("启动时自动连接")
-        hint: qsTr("打开 PushFPS 时直接连接上次的采集卡（沿用上次的设置）或串流")
-        VSwitch {
-            objectName: "pushfps-auto-connect"
-            checked: !!veyra.preferences.autoResume
-            onToggled: v => veyra.setPreference("autoResume", v)
-        }
-    }
-    VRow {
-        objectName: "pushfps-auto-fullscreen-row"
-        visible: !quick.compact
-        label: qsTr("连接后自动全屏")
-        hint: qsTr("采集卡或串流画面出现时进入全屏；按 F11 或 Esc 退出")
-        VSwitch {
-            objectName: "pushfps-auto-fullscreen"
-            checked: veyra.preferences.pushAutoFullscreen === true
-            onToggled: v => veyra.setPreference("pushAutoFullscreen", v)
-        }
-    }
-
     // --- a screen wider than the picture (ultrawide) -----------------------------
     // A console sends a 16:9 picture whatever screen it is shown on, so a 21:9 or 32:9 screen has room
     // left over at the sides. What to do with it is Veyra's aspect choice (Professional mode, Display):
@@ -1357,70 +855,6 @@ VGroup {
             : qsTr("铺满窗口，画面比例会改变")
         return qsTr("已在专业模式中手动设置")
     }
-    VRow {
-        objectName: "pushfps-fill-row"
-        visible: quick.fillShown && !(quick.compact && quick.compactPro)
-        label: qsTr("宽屏填充")
-        help: qsTr("主机只输出 16:9 画面，带鱼屏两侧会空出来。这里选择怎么处理：留黑边、用画面本身的柔和延伸填满（氛围填充）、裁掉上下铺满，或者拉伸铺满。游戏本身不会显示更宽的视野。录像和直播不受影响")
-        hint: quick.fillHint
-        hintBelow: true
-        VSeg {
-            objectName: "pushfps-fill"
-            options: quick.fillOptions
-            current: quick.fillId
-            onPicked: id => quick.setFill(id)
-        }
-    }
-
-    // Crop and resize of the console picture: the button opens the editor on the live picture, the
-    // switch shows the whole picture again without losing the values.
-    VRow {
-        objectName: "pushfps-crop-row"
-        visible: !(quick.compact && quick.compactPro)
-        label: qsTr("裁剪和缩放")
-        help: qsTr("裁掉画面的任意一边，例如游戏自带的黑边或采集卡多出来的边框，并调整画面在屏幕上的大小和位置。只改变屏幕上的显示；录制和直播默认保留完整画面，可以在里面改")
-        hint: quick.cropHint
-        hintBelow: true
-        RowLayout {
-            spacing: 8
-            VButton {
-                objectName: "pushfps-crop-edit"
-                ghost: true
-                text: qsTr("调整…")
-                onClicked: quick.openOnPicture("crop")
-            }
-            VSwitch {
-                objectName: "pushfps-crop"
-                enabled: !Crop.neutral(quick.cropState)
-                opacity: enabled ? 1 : 0.4
-                checked: quick.cropState.on
-                onToggled: checked => veyra.setPreference("pushCropOn", checked)
-            }
-        }
-    }
-
-    // Smooth frame pacing: every frame waits for a refresh (V-Sync; variable refresh where the monitor
-    // has it) and the output is capped at the refresh rate, so each generated frame is shown once.
-    // Off: Veyra's Automatic, Present(0,0): the newest frame replaces one not shown yet (lowest
-    // latency, but frame generation output can skip a frame and repeat the next).
-    VRow {
-        objectName: "pushfps-smooth-row"
-        visible: !quick.compact
-        label: qsTr("流畅帧同步")
-        help: qsTr("等屏幕刷新再显示每一帧，并把输出限制在屏幕刷新率：补出来的每一帧都完整显示，玩起来和录像一样流畅。屏幕支持 G-SYNC/FreeSync 时会请求可变刷新，几乎不增加延迟")
-        hint: quick.screenLimitedTarget
-              ? qsTr("这块屏幕是 %2 Hz：现在按 %2 FPS 输出。换到更快的屏幕会回到 %1 FPS").arg(Math.round(veyra.outputCustomFps)).arg(Math.round(veyra.displayRefreshHz))
-              : quick.smoothPacing && quick.unevenTarget
-              ? qsTr("%1 FPS 不能整除 %2 Hz：每帧显示时间不均匀。请选「匹配显示器」，或把屏幕设为 %1 的整数倍").arg(Math.round(veyra.outputCustomFps)).arg(Math.round(veyra.displayRefreshHz))
-              : quick.smoothPacing ? qsTr("每一帧都完整显示；没有可变刷新时最多多等一次屏幕刷新")
-                                   : qsTr("延迟最低，但补帧画面可能偶尔跳帧，直播画面比录像卡顿")
-        VSwitch {
-            objectName: "pushfps-smooth"
-            checked: quick.smoothPacing
-            onToggled: checked => quick.setSmoothPacing(checked)
-        }
-    }
-
     // G-SYNC set-up. The screen can do variable refresh and PushFPS asks for it, but the NVIDIA driver
     // has not confirmed it for this program: usually the driver only allows G-SYNC in full screen, or
     // not for PushFPS at all, and frames then stay on screen for uneven times (a 60 FPS output on a
@@ -1448,42 +882,679 @@ VGroup {
             if (quick.gsyncChecked && !quick.gsyncTools.canRepair) veyra.setPreference("pushGsyncChecked", true)
         }
     }
-    VRow {
-        objectName: "pushfps-gsync-row"
-        // Once checked with nothing left to set, the row goes: the driver's report is then all there is.
-        visible: !quick.compact && quick.gsyncUnconfirmed && veyra.preferences.pushGsyncChecked !== true
-                 && (!quick.gsyncChecked || quick.gsyncWanted || quick.gsyncTools.busy || quick.gsyncTools.canRepair)
-        label: "G-SYNC"
-        help: qsTr("屏幕支持可变刷新时，画面一准备好屏幕就刷新：不撕裂，每一帧显示的时间都一样长。NVIDIA 驱动要为每个程序单独允许窗口和全屏 G-SYNC")
-        hint: quick.gsyncWanted || (quick.gsyncTools && quick.gsyncTools.busy) ? qsTr("正在检查驱动配置…")
-            : qsTr("屏幕支持可变刷新，但驱动还没有确认对 PushFPS 生效，画面可能不如录像流畅。点「一键设置」为 PushFPS 允许窗口和全屏 G-SYNC，然后重启 PushFPS")
-        hintBelow: true
-        VButton {
-            objectName: "pushfps-gsync-fix"
-            text: qsTr("一键设置")
-            enabled: quick.gsyncTools !== null && !quick.gsyncTools.busy && !quick.gsyncWanted
-            onClicked: { quick.gsyncWanted = true; quick.gsyncTools.check() }
-        }
-    }
-
     // Until 4.1 this row was NVIDIA's only: on an AMD or Intel card it stood there greyed out saying
     // "needs an NVIDIA card", although the engine's own low queue (one frame waiting for the screen
     // instead of three) works on every card and was only reachable through "Lowest latency" above or
     // Professional mode. Now the row is that queue there. On NVIDIA nothing changes.
     readonly property bool nvidiaLatency: veyra.nvidiaLowLatencyAvailable === true
-    VRow {
-        objectName: "pushfps-low-latency-row"
-        visible: !quick.compact
-        label: quick.nvidiaLatency ? qsTr("英伟达低延迟") : qsTr("低延迟队列")
-        help: quick.nvidiaLatency ? qsTr("减少在显卡里排队等待的画面，从按下按键到画面反应更快。只在 NVIDIA 显卡上可用")
-                                  : qsTr("只让一帧画面排队等待屏幕，而不是三帧：从按下按键到画面反应更快。任何显卡都能用")
-        hint: quick.nvidiaLatency ? qsTr("减少处理排队，降低输入延迟") : qsTr("减少排队等待屏幕的画面，降低输入延迟")
-        VSwitch {
-            objectName: "pushfps-low-latency"
-            checked: quick.nvidiaLatency ? (veyra.nvidiaLowLatency ?? 0) > 0 : veyra.fgLowQueue === true
-            onToggled: checked => {
-                if (quick.nvidiaLatency) veyra.nvidiaLowLatency = checked ? 1 : 0
-                else veyra.fgLowQueue = checked
+
+    // --- the rows, in sections --------------------------------------------------------
+    // Each section is a title and its rows (PushSection.qml). A section whose rows are all hidden takes no
+    // room, and folding one only changes its height: a row's own `visible` never depends on the fold.
+    PushSection {
+        id: secSetup
+        sectionId: "setup"
+        title: qsTr("主机与游戏")
+        summary: quick.sectionSummary("setup")
+        open: quick.sectionOpen("setup")
+        onToggled: open => quick.setSectionOpen("setup", open)
+        // The capture card in use, and whether it is on PushFPS's tested list.
+        VRow {
+            id: cardRow
+            objectName: "pushfps-card-row"
+            readonly property var card: Cards.find(veyra.captureDeviceLabel)
+            visible: String(veyra.captureDeviceLabel || "").length > 0
+            label: qsTr("采集卡")
+            hint: card && card.status === "tested" ? qsTr("PushFPS 已实测")
+                : card && card.status === "veyra" ? qsTr("Veyra 作者已实测")
+                : card && card.status === "reported" ? qsTr("有 PushFPS 用户报告可用")
+                : qsTr("还没有人报告这张卡的结果，欢迎在 GitHub 上分享")
+            hintBelow: true
+            RowLayout {
+                spacing: 6
+                Text {
+                    text: veyra.captureDeviceLabel || ""
+                    color: Theme.t1; font.family: Theme.fontUi; font.pixelSize: 12
+                    elide: Text.ElideRight; Layout.maximumWidth: 180
+                }
+                VTag {
+                    objectName: "pushfps-card-status"
+                    kind: cardRow.card && cardRow.card.status !== "untested" ? "ok" : ""
+                    text: cardRow.card && cardRow.card.status !== "untested" ? qsTr("已测试") : qsTr("未测试")
+                }
+                VButton {
+                    visible: !(cardRow.card && cardRow.card.status === "tested")
+                    ghost: true
+                    text: qsTr("报告")
+                    onClicked: Qt.openUrlExternally(Cards.reportUrl)
+                }
+            }
+        }
+        VRow {
+            objectName: "pushfps-console-row"
+            label: qsTr("游戏主机")
+            VSelect {
+                objectName: "pushfps-console"
+                implicitWidth: 190
+                options: quick.consoles
+                value: (quick.consoles.find(c => c.id === quick.consoleId) || quick.consoles[0]).label
+                onPicked: id => quick.switchConsole(id)
+            }
+        }
+        VRow {
+            id: gameRow
+            objectName: "pushfps-game-row"
+            label: qsTr("游戏配置")
+            hint: quick.activeGame.length > 0 ? "" : qsTr("把当前设置存为某个游戏的配置，之后一键切换")
+            property bool naming: false
+            RowLayout {
+                spacing: 4
+                VSelect {
+                    objectName: "pushfps-game"
+                    visible: !gameRow.naming
+                    implicitWidth: 150
+                    options: [{ id: "", label: qsTr("无") }].concat(quick.games.map(g => ({ id: g.name, label: g.name })))
+                    value: quick.activeGame.length > 0 ? quick.activeGame : qsTr("无")
+                    onPicked: id => quick.applyGame(id)
+                }
+                DialogTextField {
+                    id: gameName
+                    objectName: "pushfps-game-name"
+                    visible: gameRow.naming
+                    implicitWidth: 150
+                    placeholder: qsTr("游戏名称")
+                }
+                VButton {
+                    objectName: "pushfps-game-save"
+                    icon: true
+                    iconName: gameRow.naming ? "check" : "plus"
+                    tip: gameRow.naming ? qsTr("保存") : (quick.activeGame.length > 0 ? qsTr("更新或另存为游戏配置") : qsTr("存为游戏配置"))
+                    enabled: gameRow.naming ? gameName.text.trim().length > 0 : quick.games.length < quick.maxGames || quick.activeGame.length > 0
+                    onClicked: {
+                        if (gameRow.naming) { if (quick.saveGame(gameName.text)) gameRow.naming = false; return }
+                        gameName.text = quick.activeGame
+                        gameRow.naming = true
+                    }
+                }
+                VButton {
+                    objectName: "pushfps-game-delete"
+                    icon: true
+                    iconName: gameRow.naming ? "x" : "trash"
+                    tip: gameRow.naming ? qsTr("取消") : qsTr("删除此游戏配置")
+                    visible: gameRow.naming || quick.activeGame.length > 0
+                    onClicked: {
+                        if (gameRow.naming) { gameRow.naming = false; return }
+                        quick.deleteGame(quick.activeGame)
+                    }
+                }
+            }
+        }
+        VRow {
+            objectName: "pushfps-game-fps-row"
+            label: qsTr("游戏帧率")
+            help: qsTr("游戏自己每秒画出多少张新画面。主机输出固定的 60 Hz 或 120 Hz 信号，30 FPS 的游戏在 60 Hz 下每张画面重复一次。PushFPS 去掉重复的画面，再根据游戏帧率决定要生成几帧")
+            hint: qsTr("大多数主机游戏为 30 FPS；120 Hz 模式的游戏常为 40；性能模式选 60")
+            VSeg {
+                objectName: "pushfps-game-fps"
+                enabled: quick.fgPossible
+                opacity: enabled ? 1 : 0.4
+                options: [{ id: "30", label: "30" }, { id: "40", label: "40" }, { id: "60", label: "60" }]
+                current: String(quick.baseFps)
+                onPicked: id => quick.setGameFps(id)
+            }
+        }
+        VRow {
+            objectName: "pushfps-cadence-row"
+            visible: quick.cadenceMismatch
+            label: qsTr("检测到 60 FPS")
+            hint: qsTr("游戏帧率设为 30，但每一帧采集画面都被当作新画面（%1 FPS）。采集卡可能给重复画面加了噪点。改用固定的「60→30」去重，按 30 FPS 补帧").arg(Math.round(Number(quick.liveStats.contentFps || 0)))
+            hintColor: Theme.warn
+            hintBelow: true
+            VButton {
+                objectName: "pushfps-cadence-fix"
+                text: qsTr("改为 60→30")
+                onClicked: { veyra.contentRate = 5; veyra.logUi("push-quick", "content rate 60->30 from the cadence hint") }
+            }
+        }
+    }
+    PushSection {
+        id: secFg
+        sectionId: "fg"
+        title: qsTr("补帧")
+        summary: quick.sectionSummary("fg")
+        open: quick.sectionOpen("fg")
+        onToggled: open => quick.setSectionOpen("fg", open)
+        VRow {
+            objectName: "pushfps-target-row"
+            label: qsTr("目标帧率")
+            help: qsTr("补帧后每秒显示的画面数。生成的帧插在两张真实画面之间，让运动更顺滑；手柄的反应速度不会因此变快")
+            hint: quick.targetHint
+            hintBelow: true
+            hintColor: quick.fgPossible ? Theme.t3 : Theme.warn
+            VSeg {
+                objectName: "pushfps-target"
+                enabled: quick.fgPossible
+                opacity: enabled ? 1 : 0.4
+                options: quick.targetOptions
+                current: quick.currentTarget
+                onPicked: id => quick.applyTarget(id)
+            }
+        }
+        VRow {
+            objectName: "pushfps-fg-idle-row"
+            visible: quick.fgIdle >= 2
+            label: qsTr("补帧没有出画面")
+            hint: quick.fgIdleText
+            hintColor: Theme.warn
+            hintBelow: true
+            // What the session really does, to send along (bridge/PushTools.cpp).
+            VButton {
+                objectName: "pushfps-fg-idle-report"
+                text: qsTr("复制性能报告")
+                ghost: true
+                onClicked: { veyra.pushCopyPerformanceReport(); veyra.logUi("push-quick", "performance report copied from the frame generation health row") }
+            }
+        }
+        VRow {
+            objectName: "pushfps-fg-backend-row"
+            visible: quick.methodShown && !quick.proPage   // Professional mode's own list has the method
+            label: qsTr("补帧方式")
+            hint: quick.amdMethodTip ? qsTr("看到重影或拖影？试试 PushFlow：PushFPS 自己的补帧，任何显卡都能用。「为我的电脑优化」会在你的显卡上实测每一种方式")
+                                     : veyra.fgProviderText
+            hintBelow: true
+            VSelect {
+                objectName: "pushfps-fg-backend"
+                options: veyra.fgBackendChoices
+                value: (options.find(o => o.id === veyra.fgBackendName) || options[0]).label
+                onPicked: id => veyra.fgBackendName = id
+            }
+        }
+        VRow {
+            objectName: "pushfps-pushflow-tier-row"
+            visible: quick.methodShown && !quick.proPage && veyra.fgBackendName === "pushflow"
+            label: qsTr("PushFlow 档位")
+            // While it runs: the precision this graphics card passed with and the network's time per frame.
+            hint: quick.liveStats.pushFlowP50Ms > 0
+                  ? qsTr("正在运行：%1 · 每帧 %2 ms（95%：%3 ms）").arg(quick.liveStats.pushFlowPrecision === "fp16" ? qsTr("半精度") : qsTr("全精度"))
+                        .arg(Number(quick.liveStats.pushFlowP50Ms).toFixed(1)).arg(Number(quick.liveStats.pushFlowP95Ms).toFixed(1))
+                  : ""
+            hintBelow: true
+            VSeg {
+                objectName: "pushfps-pushflow-tier"
+                options: [{ id: "0", label: qsTr("快速") }, { id: "1", label: qsTr("均衡") }, { id: "2", label: qsTr("高质量") }]
+                current: String(Math.min(veyra.vfgQuality, 2))
+                onPicked: id => veyra.vfgQuality = Number(id)
+            }
+        }
+        VRow {
+            objectName: "pushfps-adaptive-row"
+            visible: !quick.proPage   // Professional mode's own list has this switch
+            label: qsTr("自适应倍率")
+            help: qsTr("很多主机游戏的帧率并不固定：30 FPS 的游戏会掉到 25，40 FPS 模式会在 35 到 45 之间波动。开启后 PushFPS 实时测量游戏帧率，每一对画面都选择最接近目标帧率的补帧倍率，类似 NVIDIA DLSS 4.5 的动态多帧生成")
+            hint: !quick.fgPossible ? (Support.status(veyra, "frame-generation").reason || "")
+                : !quick.adaptivePossible ? qsTr("当前补帧方式只有 2×，无需自适应")
+                : quick.adaptive && quick.liveStats.fgMultiplierNow > 1 && quick.liveStats.contentFps > 0
+                  ? qsTr("现在 %1×：游戏 %2 FPS → 约 %3 FPS").arg(quick.liveStats.fgMultiplierNow)
+                        .arg(Math.round(quick.liveStats.contentFps)).arg(Math.round(quick.liveStats.contentFps * quick.liveStats.fgMultiplierNow))
+                  : qsTr("游戏帧率波动时自动调整倍率，输出尽量贴近目标")
+            VSwitch {
+                objectName: "pushfps-adaptive"
+                enabled: quick.adaptivePossible && veyra.fgEnabled
+                opacity: enabled ? 1 : 0.4
+                checked: quick.adaptive
+                onToggled: checked => quick.setAdaptive(checked)
+            }
+        }
+        VRow {
+            objectName: "pushfps-pacing-row"
+            visible: !quick.proPage   // Professional mode's own list has this switch
+            label: qsTr("帧节奏修复")
+            help: qsTr("很多锁 30 FPS 的主机游戏出帧并不均匀：有的画面停留 17 毫秒，有的停留 50 毫秒，即使帧率没错，画面也会顿挫。PushFPS 把每一帧放回均匀的位置再补帧，主机自己做不到这一点。每帧最多晚一次刷新显示")
+            hint: !quick.ownTechPossible ? (quick.fgPossible ? qsTr("XeSS 自己控制节奏，不能同时使用") : (Support.status(veyra, "frame-generation").reason || ""))
+                : quick.pacingOn && quick.pacingShare >= 0
+                  ? (quick.pacingShare > 0.05 ? qsTr("正在修复：%1% 的画面重新对齐").arg(Math.round(quick.pacingShare * 100))
+                                              : qsTr("这款游戏的节奏已经均匀，无需修复"))
+                  : qsTr("修复忽快忽慢的出帧（如 17/50 毫秒交替），让 30 FPS 游戏动起来更顺")
+            VSwitch {
+                objectName: "pushfps-pacing"
+                enabled: quick.ownTechPossible && veyra.fgEnabled
+                opacity: enabled ? 1 : 0.4
+                checked: quick.pacingOn
+                onToggled: checked => quick.setPacingRepair(checked)
+            }
+        }
+        // Smooth frame pacing: every frame waits for a refresh (V-Sync; variable refresh where the monitor
+        // has it) and the output is capped at the refresh rate, so each generated frame is shown once.
+        // Off: Veyra's Automatic, Present(0,0): the newest frame replaces one not shown yet (lowest
+        // latency, but frame generation output can skip a frame and repeat the next).
+        VRow {
+            objectName: "pushfps-smooth-row"
+            visible: !quick.compact
+            label: qsTr("流畅帧同步")
+            help: qsTr("等屏幕刷新再显示每一帧，并把输出限制在屏幕刷新率：补出来的每一帧都完整显示，玩起来和录像一样流畅。屏幕支持 G-SYNC/FreeSync 时会请求可变刷新，几乎不增加延迟")
+            hint: quick.screenLimitedTarget
+                  ? qsTr("这块屏幕是 %2 Hz：现在按 %2 FPS 输出。换到更快的屏幕会回到 %1 FPS").arg(Math.round(veyra.outputCustomFps)).arg(Math.round(veyra.displayRefreshHz))
+                  : quick.smoothPacing && quick.unevenTarget
+                  ? qsTr("%1 FPS 不能整除 %2 Hz：每帧显示时间不均匀。请选「匹配显示器」，或把屏幕设为 %1 的整数倍").arg(Math.round(veyra.outputCustomFps)).arg(Math.round(veyra.displayRefreshHz))
+                  : quick.smoothPacing ? qsTr("每一帧都完整显示；没有可变刷新时最多多等一次屏幕刷新")
+                                       : qsTr("延迟最低，但补帧画面可能偶尔跳帧，直播画面比录像卡顿")
+            VSwitch {
+                objectName: "pushfps-smooth"
+                checked: quick.smoothPacing
+                onToggled: checked => quick.setSmoothPacing(checked)
+            }
+        }
+        VRow {
+            objectName: "pushfps-gsync-row"
+            // Once checked with nothing left to set, the row goes: the driver's report is then all there is.
+            visible: !quick.compact && quick.gsyncUnconfirmed && veyra.preferences.pushGsyncChecked !== true
+                     && (!quick.gsyncChecked || quick.gsyncWanted || quick.gsyncTools.busy || quick.gsyncTools.canRepair)
+            label: "G-SYNC"
+            help: qsTr("屏幕支持可变刷新时，画面一准备好屏幕就刷新：不撕裂，每一帧显示的时间都一样长。NVIDIA 驱动要为每个程序单独允许窗口和全屏 G-SYNC")
+            hint: quick.gsyncWanted || (quick.gsyncTools && quick.gsyncTools.busy) ? qsTr("正在检查驱动配置…")
+                : qsTr("屏幕支持可变刷新，但驱动还没有确认对 PushFPS 生效，画面可能不如录像流畅。点「一键设置」为 PushFPS 允许窗口和全屏 G-SYNC，然后重启 PushFPS")
+            hintBelow: true
+            VButton {
+                objectName: "pushfps-gsync-fix"
+                text: qsTr("一键设置")
+                enabled: quick.gsyncTools !== null && !quick.gsyncTools.busy && !quick.gsyncWanted
+                onClicked: { quick.gsyncWanted = true; quick.gsyncTools.check() }
+            }
+        }
+    }
+    PushSection {
+        id: secPicture
+        sectionId: "picture"
+        title: qsTr("画面")
+        summary: quick.sectionSummary("picture")
+        open: quick.sectionOpen("picture")
+        onToggled: open => quick.setSectionOpen("picture", open)
+        VRow {
+            objectName: "pushfps-enhance-row"
+            label: qsTr("AI 画面增强")
+            help: qsTr("用 AI 去掉采集卡压缩造成的色块和噪点，让细节更清楚。和补帧无关，可以单独开关")
+            // Not possible: the reason, and when the card could run it but its files were left out at
+            // installation (they are the installer's optional extras), how to get them.
+            readonly property var support: Support.status(veyra, "nr")
+            hint: quick.nrPossible ? qsTr("关闭时只做补帧。开启后每帧都经过 NVIDIA 神经渲染（DLSS 5 NR）增强，画面更清晰，但更耗 GPU")
+                                   : (support.reason || "") + (support.missingFiles === true
+                                       ? " " + qsTr("它属于安装时可选的实验性附加组件：重新运行 Install-PushFPS.cmd，询问时回答 y 即可，设置会保留") : "")
+            hintBelow: !quick.nrPossible && support.missingFiles === true
+            VSwitch {
+                objectName: "pushfps-enhance"
+                enabled: quick.nrPossible
+                opacity: enabled ? 1 : 0.4
+                checked: veyra.nrAnyEnabled
+                onToggled: checked => quick.setEnhancement(checked)
+            }
+        }
+        // The enhancement's look (shown while AI picture enhancement is on).
+        VRow {
+            objectName: "pushfps-look-row"
+            visible: quick.lookShown
+            label: qsTr("增强风格")
+            help: qsTr("AI 画面增强改动画面的力度。「强烈」是完整效果，也是一直以来的默认值；觉得画面不像原作、过于锐利或人脸不自然时，选「均衡」或「柔和」。也可以用下面两个滑块自己调")
+            hint: quick.lookId === "" ? qsTr("自定义：已用滑块调整") : quick.lookId === "strong" ? qsTr("完整效果（默认）") : qsTr("比默认更接近原画")
+            RowLayout {
+                spacing: 8
+                VSeg {
+                    objectName: "pushfps-look"
+                    options: quick.looks.map(l => ({ id: l.id, label: l.label }))
+                    current: quick.lookId
+                    onPicked: id => quick.applyLook(id)
+                }
+                VButton {
+                    objectName: "pushfps-look-reset"
+                    text: qsTr("重置")
+                    enabled: quick.lookId !== "strong"
+                    opacity: enabled ? 1 : 0.4
+                    onClicked: quick.resetLook()
+                }
+            }
+        }
+        // The size the enhancement works at (shown with the look; the AMD runtime stays at 1080p).
+        VRow {
+            objectName: "pushfps-enhance-size-row"
+            visible: quick.lookShown
+            label: qsTr("增强的处理大小")
+            help: qsTr("AI 画面增强在多大的画面上计算。标准是 1080p：画面是 4K 时，增强的改动按四分之一的像素算出来，再加到 4K 画面上，细节会软一些。选「完整大小」就在每个像素上计算，更清晰，4K 时工作量约为四倍，需要较强的显卡。补帧开始跳帧时请改回 1080p。")
+            hint: !quick.enhanceSizeKnown ? qsTr("已在专业模式里设为其他大小；在这里选一项就会改用它")
+                : quick.enhanceSize === 1 ? qsTr("在画面的每个像素上计算：最清晰，最吃显卡")
+                : quick.enhanceSize === 5 ? qsTr("最高按 1440p 计算：比标准清晰，比完整大小省")
+                : qsTr("最高按 1080p 计算（默认）：最省显卡")
+            VSeg {
+                objectName: "pushfps-enhance-size"
+                options: quick.enhanceSizes.map(s => ({ id: String(s.id), label: s.label }))
+                current: quick.enhanceSizeKnown ? String(quick.enhanceSize) : ""
+                onPicked: id => quick.setEnhanceSize(Number(id))
+            }
+        }
+        VRow {
+            objectName: "pushfps-look-tone-row"
+            visible: quick.lookShown
+            label: qsTr("光影")
+            hint: qsTr("AI 重新处理明暗和色彩的程度。0% 保持原画的光影和颜色")
+            value: Math.round(quick.lookTone * 100) + "%"
+            VSlider {
+                objectName: "pushfps-look-tone"
+                valueFromModel: true
+                implicitWidth: 150
+                from: 0; to: 1; stepSize: 0.01
+                inputScale: 100
+                value: quick.lookTone
+                resettable: true; defaultValue: 1
+                onMoved: v => { if (quick.lookShown) quick.setLook(v, undefined) }
+            }
+        }
+        VRow {
+            objectName: "pushfps-look-detail-row"
+            visible: quick.lookShown
+            label: qsTr("细节")
+            hint: qsTr("AI 补充细小纹理、接触阴影和反光的程度。0% 不添加细节")
+            value: Math.round(quick.lookStructure * 100) + "%"
+            VSlider {
+                objectName: "pushfps-look-detail"
+                valueFromModel: true
+                implicitWidth: 150
+                from: 0; to: 1; stepSize: 0.01
+                inputScale: 100
+                value: quick.lookStructure
+                resettable: true; defaultValue: 1
+                onMoved: v => { if (quick.lookShown) quick.setLook(undefined, v) }
+            }
+        }
+        VRow {
+            objectName: "pushfps-look-compare-row"
+            visible: quick.lookShown
+            label: qsTr("与原画对比")
+            help: qsTr("把画面分成两半：左边是没有 AI 画面增强的原画，右边是增强后的画面，方便边调边看。在专业模式的画面上可以拖动分割线")
+            hint: quick.lookSplit ? qsTr("对比时补帧暂停；关闭对比后自动恢复。两分钟后自动关闭")
+                                  : veyra.hasSource === true ? qsTr("左边原画，右边增强后") : qsTr("先连接画面")
+            VSwitch {
+                objectName: "pushfps-look-compare"
+                enabled: veyra.hasSource === true || quick.lookSplit
+                opacity: enabled ? 1 : 0.4
+                checked: quick.lookSplit
+                onToggled: checked => quick.setLookCompare(checked)
+            }
+        }
+        // Fine-tuning (ten sliders): folded away until asked for.
+        VRow {
+            objectName: "pushfps-fine-row"
+            visible: quick.fineShown
+            label: qsTr("精细调整")
+            help: qsTr("调整的是 AI 画面增强对画面的改动，而不是画面本身：可以只保留提亮或压暗，只让它作用于暗部、中间调或高光，限制每个像素最多变化多少，或者保持原画的色彩和色相。全部为默认值时不做任何额外处理。对所有增强层同时生效，并随每个主机和游戏的配置保存")
+            hint: quick.fineNeutral ? qsTr("默认：AI 的改动保持原样") : qsTr("已调整 AI 的改动")
+            RowLayout {
+                spacing: 8
+                VButton {
+                    objectName: "pushfps-fine-reset"
+                    text: qsTr("重置")
+                    visible: !quick.fineNeutral
+                    onClicked: quick.resetFine()
+                }
+                VButton {
+                    objectName: "pushfps-fine-toggle"
+                    ghost: true
+                    text: quick.fineOpen ? qsTr("收起") : qsTr("展开")
+                    onClicked: veyra.setPreference("pushFineTuneOpen", !quick.fineOpen)
+                }
+            }
+        }
+        Repeater {
+            model: quick.fineShown && quick.fineOpen ? quick.fineSpecs : []
+            delegate: VRow {
+                required property var modelData
+                objectName: "pushfps-fine-row-" + modelData.id
+                label: modelData.label
+                hint: modelData.hint
+                value: quick.fineText(modelData.id)
+                VSlider {
+                    objectName: "pushfps-fine-" + modelData.id
+                    valueFromModel: true
+                    implicitWidth: 150
+                    from: 0; to: modelData.to; stepSize: 0.01
+                    inputScale: 100
+                    value: quick.fineValue(modelData.id)
+                    resettable: true; defaultValue: modelData.neutral
+                    onMoved: v => { if (quick.fineShown) quick.setFine(modelData.id, v) }
+                }
+            }
+        }
+        VRow {
+            objectName: "pushfps-fill-row"
+            visible: quick.fillShown && !(quick.compact && quick.compactPro)
+            label: qsTr("宽屏填充")
+            help: qsTr("主机只输出 16:9 画面，带鱼屏两侧会空出来。这里选择怎么处理：留黑边、用画面本身的柔和延伸填满（氛围填充）、裁掉上下铺满，或者拉伸铺满。游戏本身不会显示更宽的视野。录像和直播不受影响")
+            hint: quick.fillHint
+            hintBelow: true
+            VSeg {
+                objectName: "pushfps-fill"
+                options: quick.fillOptions
+                current: quick.fillId
+                onPicked: id => quick.setFill(id)
+            }
+        }
+        // Crop and resize of the console picture: the button opens the editor on the live picture, the
+        // switch shows the whole picture again without losing the values.
+        VRow {
+            objectName: "pushfps-crop-row"
+            visible: !(quick.compact && quick.compactPro)
+            label: qsTr("裁剪和缩放")
+            help: qsTr("裁掉画面的任意一边，例如游戏自带的黑边或采集卡多出来的边框，并调整画面在屏幕上的大小和位置。只改变屏幕上的显示；录制和直播默认保留完整画面，可以在里面改")
+            hint: quick.cropHint
+            hintBelow: true
+            RowLayout {
+                spacing: 8
+                VButton {
+                    objectName: "pushfps-crop-edit"
+                    ghost: true
+                    text: qsTr("调整…")
+                    onClicked: quick.openOnPicture("crop")
+                }
+                VSwitch {
+                    objectName: "pushfps-crop"
+                    enabled: !Crop.neutral(quick.cropState)
+                    opacity: enabled ? 1 : 0.4
+                    checked: quick.cropState.on
+                    onToggled: checked => veyra.setPreference("pushCropOn", checked)
+                }
+            }
+        }
+    }
+    PushSection {
+        id: secHud
+        sectionId: "hud"
+        title: qsTr("HUD")
+        summary: quick.sectionSummary("hud")
+        open: quick.sectionOpen("hud")
+        onToggled: open => quick.setSectionOpen("hud", open)
+        // The still rule (pipeline/PushHudStill.h): on unless switched off. What stands still in front of a
+        // moving picture keeps its real pixels in generated frames, with every method the graph runs.
+        VRow {
+            id: hudStill
+            objectName: "pushfps-hudstill-row"
+            visible: !quick.proPage   // Professional mode's own list has this switch
+            label: qsTr("保持 HUD 清晰")
+            help: qsTr("补帧会给画面的每个位置算一个运动。HUD 静止而背后的画面在动时，HUD 的像素会被当成背景一起拉动，文字、血条和准星就会发糊、重影或消失。开启后，在两张真实画面里完全相同、并且周围大部分在动的像素，会在补出来的帧里直接使用真实画面的像素。它不需要预热，每一对画面单独判断；画面整体静止时（菜单、镜头不动）不会改动任何像素。对带噪点的信号（模拟连接、压缩很重的串流）它找不到完全相同的像素，补帧就和原来一样。")
+            readonly property int stillState: Number(quick.liveStats.hudStillState || 0)
+            readonly property bool on: veyra.preferences.pushHudStill !== false
+            hint: !quick.ownTechPossible ? (quick.fgPossible ? qsTr("XeSS 自己生成画面，不能同时使用") : (Support.status(veyra, "frame-generation").reason || ""))
+                : on && stillState === 2 ? qsTr("没能在这台电脑上启动，补帧照常运行（原因见日志）")
+                : on && stillState === 1 ? qsTr("正在运行：静止的 HUD 在补出来的帧里使用真实像素")
+                : on ? qsTr("静止的 HUD 在补出来的帧里使用真实像素（默认开启）")
+                : qsTr("已关闭：HUD 交给补帧处理")
+            VSwitch {
+                objectName: "pushfps-hudstill"
+                enabled: quick.ownTechPossible && veyra.fgEnabled
+                opacity: enabled ? 1 : 0.4
+                checked: quick.ownTechPossible && hudStill.on   // by id: a row's control is not the row's direct child
+                onToggled: checked => veyra.setPreference("pushHudStill", checked)
+            }
+        }
+        VRow {
+            objectName: "pushfps-hudlock-row"
+            visible: !quick.proPage   // Professional mode's own list has this switch
+            label: qsTr("实时 HUD 锁定")
+            help: qsTr("补出来的帧会把画面上静止的文字、准星和血条跟着背景一起拉动，看起来发糊或抖动。开启后 PushFPS 每一帧都会找出静止的 HUD 像素，补帧时直接用主机原来的像素，不需要画框")
+            // What actually runs (EnhanceGraph::hudLockState): a pass that could not start says so.
+            readonly property int hudState: Number(quick.liveStats.hudLockState || 0)
+            hint: !quick.ownTechPossible ? (quick.fgPossible ? qsTr("XeSS 自己生成画面，不能同时使用") : (Support.status(veyra, "frame-generation").reason || ""))
+                : veyra.hudLock === true && hudState === 2 ? qsTr("实时 HUD 锁定没能在这台电脑上启动，补帧照常运行（原因见日志）")
+                : veyra.hudLock === true && hudState === 1 ? qsTr("正在运行：文字和准星在补出来的帧里保持清晰")
+                : qsTr("每一帧自动找出 HUD，文字和准星在补出来的帧里保持清晰")
+            VSwitch {
+                objectName: "pushfps-hudlock"
+                enabled: quick.ownTechPossible && veyra.fgEnabled
+                opacity: enabled ? 1 : 0.4
+                checked: quick.ownTechPossible && veyra.hudLock === true
+                onToggled: checked => veyra.hudLock = checked
+            }
+        }
+    }
+    PushSection {
+        id: secLatency
+        sectionId: "latency"
+        title: qsTr("延迟与声音")
+        summary: quick.sectionSummary("latency")
+        open: quick.sectionOpen("latency")
+        onToggled: open => quick.setSectionOpen("latency", open)
+        VRow {
+            objectName: "pushfps-lowest-latency-row"
+            label: qsTr("最低延迟")
+            help: qsTr("一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置")
+            hint: quick.lowestLatencyHint
+            VSwitch {
+                objectName: "pushfps-lowest-latency"
+                checked: quick.lowestLatency
+                onToggled: checked => quick.setLowestLatency(checked)
+            }
+        }
+        VRow {
+            objectName: "pushfps-low-latency-row"
+            visible: !quick.compact
+            label: quick.nvidiaLatency ? qsTr("英伟达低延迟") : qsTr("低延迟队列")
+            help: quick.nvidiaLatency ? qsTr("减少在显卡里排队等待的画面，从按下按键到画面反应更快。只在 NVIDIA 显卡上可用")
+                                      : qsTr("只让一帧画面排队等待屏幕，而不是三帧：从按下按键到画面反应更快。任何显卡都能用")
+            hint: quick.nvidiaLatency ? qsTr("减少处理排队，降低输入延迟") : qsTr("减少排队等待屏幕的画面，降低输入延迟")
+            VSwitch {
+                objectName: "pushfps-low-latency"
+                checked: quick.nvidiaLatency ? (veyra.nvidiaLowLatency ?? 0) > 0 : veyra.fgLowQueue === true
+                onToggled: checked => {
+                    if (quick.nvidiaLatency) veyra.nvidiaLowLatency = checked ? 1 : 0
+                    else veyra.fgLowQueue = checked
+                }
+            }
+        }
+        VRow {
+            objectName: "pushfps-latency-overlay-row"
+            label: qsTr("在画面上显示延迟")
+            // Two sentences on two lines: the first keeps the translations it has in every language.
+            hint: qsTr("实测电脑处理延迟（采集卡画面到达到交给显示器）和帧率；采集卡、显示器和游戏的延迟另计") + "\n"
+                  + qsTr("可以用鼠标把它拖到画面上的任何位置；双击它，它就回到左上角")
+            RowLayout {
+                spacing: 8
+                VButton {
+                    objectName: "pushfps-latency-guide-open"
+                    ghost: true
+                    text: qsTr("测量总延迟")
+                    iconName: "gauge"
+                    onClicked: veyra.navigate("latencyguide")
+                }
+                VSwitch {
+                    objectName: "pushfps-latency-overlay"
+                    checked: veyra.preferences.pushLatencyOverlay === true
+                    onToggled: checked => veyra.setPreference("pushLatencyOverlay", checked)
+                }
+            }
+        }
+        // Lip sync by hand (sink/PushAudioTrim.h): milliseconds on top of the automatic sound delay.
+        // Automatic sync cannot see how much later than its sound a capture card hands over its picture,
+        // nor what the screen and the sound device add afterwards, so the last step is the user's.
+        VRow {
+            id: lipSync
+            objectName: "pushfps-lipsync-row"
+            readonly property int trim: {
+                const value = Number(veyra.preferences.pushAudioTrimMs)
+                return isFinite(value) ? Math.max(-250, Math.min(250, Math.round(value))) : 0
+            }
+            // Automatic sync is what the trim adds to; in manual mode and with sync off it does nothing.
+            readonly property bool automatic: veyra.audioSyncMode === undefined || veyra.audioSyncMode === 0
+            // The delay the sound really has now (0 when nothing live plays).
+            readonly property real applied: veyra.audioSyncLive === true ? Number(veyra.audioCompensationMs) || 0 : -1
+            // Sound cannot be played before it arrives: a trim further back than the delay there is has no more effect.
+            readonly property bool atLimit: automatic && trim < 0 && applied >= 0 && applied < 0.5
+            function set(value) { veyra.setPreference("pushAudioTrimMs", Math.max(-250, Math.min(250, Math.round(value)))) }
+            label: qsTr("声音对口型")
+            help: qsTr("声音和嘴型对不上时在这里微调。自动同步会让声音延后画面在 PushFPS 里所花的时间，但它看不到采集卡交出画面比声音晚多少，也看不到显示器、电视音箱、回音壁或无线耳机之后再加的延迟。声音先到就往“晚”调，声音晚到就往“早”调；声音不能早于它到达的时间，所以“早”有上限。")
+            hint: !automatic ? qsTr("声音同步设为手动或关闭时微调不起作用（音频设置里改回自动估算）")
+                : atLimit ? qsTr("已经最早：声音一到就播放，再往早调没有效果")
+                : trim === 0 ? (applied >= 0 ? qsTr("自动：声音延后 %1 毫秒，与画面对齐").arg(Math.round(applied)) : qsTr("自动：声音跟随画面的延迟"))
+                : trim > 0 ? qsTr("声音比自动再晚 %1 毫秒").arg(trim)
+                : qsTr("声音比自动早 %1 毫秒").arg(-trim)
+            RowLayout {
+                spacing: 6
+                VButton {
+                    objectName: "pushfps-lipsync-earlier"
+                    ghost: true
+                    enabled: lipSync.automatic && lipSync.trim > -250 && !lipSync.atLimit
+                    text: qsTr("早 10")
+                    onClicked: lipSync.set(lipSync.trim - 10)
+                }
+                Text {
+                    objectName: "pushfps-lipsync-value"
+                    text: (lipSync.trim > 0 ? "+" : "") + lipSync.trim + " ms"
+                    color: lipSync.trim === 0 ? Theme.t2 : Theme.t1
+                    font.family: Theme.fontMono; font.pixelSize: 12
+                    horizontalAlignment: Text.AlignHCenter
+                    Layout.preferredWidth: 62
+                }
+                VButton {
+                    objectName: "pushfps-lipsync-later"
+                    ghost: true
+                    enabled: lipSync.automatic && lipSync.trim < 250
+                    text: qsTr("晚 10")
+                    onClicked: lipSync.set(lipSync.trim + 10)
+                }
+                VButton {
+                    objectName: "pushfps-lipsync-reset"
+                    ghost: true
+                    visible: lipSync.trim !== 0
+                    text: qsTr("归零")
+                    onClicked: lipSync.set(0)
+                }
+            }
+        }
+    }
+    PushSection {
+        id: secStart
+        sectionId: "start"
+        title: qsTr("连接与启动")
+        summary: quick.sectionSummary("start")
+        open: quick.sectionOpen("start")
+        onToggled: open => quick.setSectionOpen("start", open)
+        // Plug and play: Veyra's 启动后自动继续上次内容 (autoResume: the last capture card with its
+        // settings, or the last stream) and PushFPS's fullscreen-on-connect (Main.qml).
+        VRow {
+            objectName: "pushfps-auto-connect-row"
+            visible: !quick.compact
+            label: qsTr("启动时自动连接")
+            hint: qsTr("打开 PushFPS 时直接连接上次的采集卡（沿用上次的设置）或串流")
+            VSwitch {
+                objectName: "pushfps-auto-connect"
+                checked: !!veyra.preferences.autoResume
+                onToggled: v => veyra.setPreference("autoResume", v)
+            }
+        }
+        VRow {
+            objectName: "pushfps-auto-fullscreen-row"
+            visible: !quick.compact
+            label: qsTr("连接后自动全屏")
+            hint: qsTr("采集卡或串流画面出现时进入全屏；按 F11 或 Esc 退出")
+            VSwitch {
+                objectName: "pushfps-auto-fullscreen"
+                checked: veyra.preferences.pushAutoFullscreen === true
+                onToggled: v => veyra.setPreference("pushAutoFullscreen", v)
             }
         }
     }

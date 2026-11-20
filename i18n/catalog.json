@@ -11595,6 +11595,23 @@
    "ru": "При этом хозяин не признает этого PC; пара снова."
   },
   {
+   "zh": "主机与游戏",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "主機與遊戲",
+   "en": "Console and game",
+   "ja": "ゲーム機とゲーム",
+   "nl": "Console and game",
+   "de": "Console and game",
+   "es": "Console and game",
+   "fr": "Console and game",
+   "it": "Console and game",
+   "pt-BR": "Console and game",
+   "tr": "Console and game",
+   "ar": "Console and game",
+   "pl": "Console and game",
+   "ru": "Console and game"
+  },
+  {
    "zh": "主机列表",
    "src": "qml/XboxSourceDialog.qml",
    "zh-TW": "主機列表",
@@ -13840,7 +13857,7 @@
   },
   {
    "zh": "保持 HUD 清晰",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/ProPage.qml",
    "zh-TW": "保持 HUD 清晰",
    "en": "Keep the HUD sharp",
    "ja": "HUD をくっきり保つ",
@@ -16237,6 +16254,23 @@
    "ru": "Написать дополнительный трек"
   },
   {
+   "zh": "冰蓝",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "冰藍",
+   "en": "Ice",
+   "ja": "アイス",
+   "nl": "Ice",
+   "de": "Ice",
+   "es": "Ice",
+   "fr": "Ice",
+   "it": "Ice",
+   "pt-BR": "Ice",
+   "tr": "Ice",
+   "ar": "Ice",
+   "pl": "Ice",
+   "ru": "Ice"
+  },
+  {
    "zh": "准备：",
    "src": "qml/PushOptimizeDialog.qml",
    "zh-TW": "準備：",
@@ -17833,6 +17867,23 @@
    "ar": "توسيع المنطقة",
    "pl": "Rozszerzenie obszaru",
    "ru": "Расширение области"
+  },
+  {
+   "zh": "午夜蓝",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "午夜藍",
+   "en": "Midnight",
+   "ja": "ミッドナイト",
+   "nl": "Midnight",
+   "de": "Midnight",
+   "es": "Midnight",
+   "fr": "Midnight",
+   "it": "Midnight",
+   "pt-BR": "Midnight",
+   "tr": "Midnight",
+   "ar": "Midnight",
+   "pl": "Midnight",
+   "ru": "Midnight"
   },
   {
    "zh": "半分辨率",
@@ -22816,6 +22867,23 @@
    "ru": "Enhancement look"
   },
   {
+   "zh": "墨绿",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "墨綠",
+   "en": "Forest",
+   "ja": "フォレスト",
+   "nl": "Forest",
+   "de": "Forest",
+   "es": "Forest",
+   "fr": "Forest",
+   "it": "Forest",
+   "pt-BR": "Forest",
+   "tr": "Forest",
+   "ar": "Forest",
+   "pl": "Forest",
+   "ru": "Forest"
+  },
+  {
    "zh": "声道",
    "src": "qml/PcSourceDialog.qml",
    "zh-TW": "聲道",
@@ -27594,7 +27662,7 @@
   },
   {
    "zh": "已关闭：HUD 交给补帧处理",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/ProPage.qml",
    "zh-TW": "已關閉：HUD 交給補幀處理",
    "en": "Off: the HUD is left to frame generation",
    "ja": "オフ：HUD はフレーム生成に任せます",
@@ -30243,6 +30311,23 @@
    "ar": "جارٍ قياس زمن الاستجابة",
    "pl": "Pomiar opóźnienia",
    "ru": "Измерение задержки"
+  },
+  {
+   "zh": "延迟与声音",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "延遲與聲音",
+   "en": "Latency and sound",
+   "ja": "遅延と音",
+   "nl": "Latency and sound",
+   "de": "Latency and sound",
+   "es": "Latency and sound",
+   "fr": "Latency and sound",
+   "it": "Latency and sound",
+   "pt-BR": "Latency and sound",
+   "tr": "Latency and sound",
+   "ar": "Latency and sound",
+   "pl": "Latency and sound",
+   "ru": "Latency and sound"
   },
   {
    "zh": "延迟增加太多（%1 ms）",
@@ -47756,6 +47841,23 @@
    "ru": "Затухание"
   },
   {
+   "zh": "深紫",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "深紫",
+   "en": "Plum",
+   "ja": "プラム",
+   "nl": "Plum",
+   "de": "Plum",
+   "es": "Plum",
+   "fr": "Plum",
+   "it": "Plum",
+   "pt-BR": "Plum",
+   "tr": "Plum",
+   "ar": "Plum",
+   "pl": "Plum",
+   "ru": "Plum"
+  },
+  {
    "zh": "深黑底上的极轻渐变与抖动（防色带）",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "深黑底上的極輕漸變與抖動（防色帶）",
@@ -49388,6 +49490,23 @@
    "ru": "Отдельная настройка захвата аудио не удалась; родное видео BMD продолжается."
   },
   {
+   "zh": "玫红",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "玫紅",
+   "en": "Rose",
+   "ja": "ローズ",
+   "nl": "Rose",
+   "de": "Rose",
+   "es": "Rose",
+   "fr": "Rose",
+   "it": "Rose",
+   "pt-BR": "Rose",
+   "tr": "Rose",
+   "ar": "Rose",
+   "pl": "Rose",
+   "ru": "Rose"
+  },
+  {
    "zh": "环境光补偿：屋里亮（开灯/白天）就补偿一点，屋里暗（关灯）就不补偿",
    "src": "qml/ProDisplayPanel.qml",
    "zh-TW": "環境光補償：屋裡亮（開燈/白天）就補償一點，屋裡暗（關燈）就不補償",
@@ -49454,6 +49573,23 @@
    "ar": "Connecting now gives no sound. This capture card's own sound input was found: %1",
    "pl": "Connecting now gives no sound. This capture card's own sound input was found: %1",
    "ru": "Connecting now gives no sound. This capture card's own sound input was found: %1"
+  },
+  {
+   "zh": "琥珀",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "琥珀",
+   "en": "Amber",
+   "ja": "アンバー",
+   "nl": "Amber",
+   "de": "Amber",
+   "es": "Amber",
+   "fr": "Amber",
+   "it": "Amber",
+   "pt-BR": "Amber",
+   "tr": "Amber",
+   "ar": "Amber",
+   "pl": "Amber",
+   "ru": "Amber"
   },
   {
    "zh": "生成帧准确度",
@@ -49882,7 +50018,7 @@
   },
   {
    "zh": "画面",
-   "src": "qml/ScreenSourceDialog.qml",
+   "src": "qml/PushQuickSetup.qml",
    "zh-TW": "畫面",
    "en": "Picture",
    "ja": "映像",
@@ -50644,6 +50780,23 @@
    "ar": "جلسة التقاط في حالة الوصلة البينية قد تضررت",
    "pl": "Sesja przechwytywania w stanie interfejsu jest uszkodzona",
    "ru": "Сеанс захвата в состоянии интерфейса поврежден"
+  },
+  {
+   "zh": "界面的底色。纯黑适合 OLED 屏幕，浅色在明亮环境中更易读",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "介面的底色。純黑適合 OLED 螢幕，淺色在明亮環境中更易讀",
+   "en": "The interface's background. Black suits OLED screens; Light is easier to read in a bright room",
+   "ja": "インターフェースの背景色です。ブラックは OLED 画面向き、ライトは明るい部屋で読みやすくなります",
+   "nl": "The interface's background. Black suits OLED screens; Light is easier to read in a bright room",
+   "de": "The interface's background. Black suits OLED screens; Light is easier to read in a bright room",
+   "es": "The interface's background. Black suits OLED screens; Light is easier to read in a bright room",
+   "fr": "The interface's background. Black suits OLED screens; Light is easier to read in a bright room",
+   "it": "The interface's background. Black suits OLED screens; Light is easier to read in a bright room",
+   "pt-BR": "The interface's background. Black suits OLED screens; Light is easier to read in a bright room",
+   "tr": "The interface's background. Black suits OLED screens; Light is easier to read in a bright room",
+   "ar": "The interface's background. Black suits OLED screens; Light is easier to read in a bright room",
+   "pl": "The interface's background. Black suits OLED screens; Light is easier to read in a bright room",
+   "ru": "The interface's background. Black suits OLED screens; Light is easier to read in a bright room"
   },
   {
    "zh": "界面绘制",
@@ -51700,6 +51853,23 @@
    "ru": "Прямоугольник "
   },
   {
+   "zh": "石墨",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "石墨",
+   "en": "Graphite",
+   "ja": "グラファイト",
+   "nl": "Graphite",
+   "de": "Graphite",
+   "es": "Graphite",
+   "fr": "Graphite",
+   "it": "Graphite",
+   "pt-BR": "Graphite",
+   "tr": "Graphite",
+   "ar": "Graphite",
+   "pl": "Graphite",
+   "ru": "Graphite"
+  },
+  {
    "zh": "码率",
    "src": "qml/PcSourceDialog.qml",
    "zh-TW": "位元率",
@@ -52225,6 +52395,23 @@
    "ar": "نافذة",
    "pl": "Okno",
    "ru": "Окно"
+  },
+  {
+   "zh": "窗口与操作",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "視窗與操作",
+   "en": "Window and controls",
+   "ja": "ウィンドウと操作",
+   "nl": "Window and controls",
+   "de": "Window and controls",
+   "es": "Window and controls",
+   "fr": "Window and controls",
+   "it": "Window and controls",
+   "pt-BR": "Window and controls",
+   "tr": "Window and controls",
+   "ar": "Window and controls",
+   "pl": "Window and controls",
+   "ru": "Window and controls"
   },
   {
    "zh": "窗口只能用 Windows Graphics Capture",
@@ -59435,6 +59622,23 @@
    "ru": "Этот тип узла достиг своего предела (включая отключенные и неподключенные узлы)."
   },
   {
+   "zh": "语言",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "語言",
+   "en": "Language",
+   "ja": "言語",
+   "nl": "Language",
+   "de": "Language",
+   "es": "Language",
+   "fr": "Language",
+   "it": "Language",
+   "pt-BR": "Language",
+   "tr": "Language",
+   "ar": "Language",
+   "pl": "Language",
+   "ru": "Language"
+  },
+  {
    "zh": "语音识别",
    "src": "qml/LiveTranslationDialog.qml",
    "zh-TW": "語音辨識",
@@ -64042,6 +64246,23 @@
    "ru": "Подключить"
   },
   {
+   "zh": "连接与启动",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "連線與啟動",
+   "en": "Connecting",
+   "ja": "接続と起動",
+   "nl": "Connecting",
+   "de": "Connecting",
+   "es": "Connecting",
+   "fr": "Connecting",
+   "it": "Connecting",
+   "pt-BR": "Connecting",
+   "tr": "Connecting",
+   "ar": "Connecting",
+   "pl": "Connecting",
+   "ru": "Connecting"
+  },
+  {
    "zh": "连接中",
    "src": "qml/CaptureSourceDialog.qml",
    "zh-TW": "連接中",
@@ -67392,7 +67613,7 @@
   },
   {
    "zh": "静止的 HUD 在补出来的帧里使用真实像素（默认开启）",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/ProPage.qml",
    "zh-TW": "靜止的 HUD 在補出來的幀裡使用真實像素（預設開啟）",
    "en": "A still HUD keeps its real pixels in generated frames (on unless switched off)",
    "ja": "静止した HUD は生成フレームでも実際の画素を使います（既定でオン）",
@@ -69652,6 +69873,23 @@
    "ru": "Home = страница для выбора источника (нажатие на логотип вверху также возвращается здесь)"
   },
   {
+   "zh": "首页与启动",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "首頁與啟動",
+   "en": "Home and start-up",
+   "ja": "ホームと起動",
+   "nl": "Home and start-up",
+   "de": "Home and start-up",
+   "es": "Home and start-up",
+   "fr": "Home and start-up",
+   "it": "Home and start-up",
+   "pt-BR": "Home and start-up",
+   "tr": "Home and start-up",
+   "ar": "Home and start-up",
+   "pl": "Home and start-up",
+   "ru": "Home and start-up"
+  },
+  {
    "zh": "首页的 PushFPS 标志里是霓虹日落下的城市；关闭后显示经典标志",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "首頁的 PushFPS 標誌裡是霓虹日落下的城市；關閉後顯示經典標誌",
@@ -70435,7 +70673,7 @@
   },
   {
    "zh": "默认",
-   "src": "qml/SettingsPage.qml",
+   "src": "src/ui/bridge/Chain.cpp",
    "zh-TW": "預設",
    "en": "Default",
    "ja": "既定",
@@ -70466,23 +70704,6 @@
    "ar": "قبو 150 ميغابس، جهاز تنصت يمكن أن يذهب إلى 300 إلى 500، خفضه إذا كان لاسلكي. عندما تكون الصورة المُضيفة بسيطة، تبقى القطعة الحقيقية تحت هذه القبعة",
    "pl": "Domyślnie 150 Mbps; gigabit przewodowy może przejść do 300- 500, obniżyć, jeśli bezprzewodowe jąka. Kiedy obraz hosta jest prosty, rzeczywisty bitrate pozostaje poniżej tego cap",
    "ru": "По умолчанию 150 Мбит/с; проводной гигабит может доходить до 300-500, опускать его, если заикается беспроводная связь. Когда картинка хоста проста, фактический битрейт остается ниже этого предела."
-  },
-  {
-   "zh": "默认为深灰；纯黑适合 OLED 屏幕；浅色在明亮环境中更易读",
-   "src": "qml/SettingsPage.qml",
-   "zh-TW": "預設為深灰；純黑適合 OLED 螢幕；淺色在明亮環境中更易讀",
-   "en": "Default is dark grey; Black suits OLED screens; Light is easier to read in bright rooms",
-   "ja": "既定はダークグレー。ブラックは OLED 画面向け、ライトは明るい部屋で読みやすくなります",
-   "nl": "Standaard is donkergrijs; zwart past OLED-schermen; licht is makkelijker te lezen in heldere kamers",
-   "de": "Standardmäßig ist dunkelgrau; Schwarz passt zu OLED-Bildschirmen; Licht ist in hellen Räumen leichter zu lesen",
-   "es": "Predeterminado es gris oscuro; trajes negros pantallas OLED; La luz es más fácil de leer en habitaciones brillantes",
-   "fr": "Par défaut est gris foncé; Noir convient aux écrans OLED; Lumière est plus facile à lire dans les chambres lumineuses",
-   "it": "Predefinito è grigio scuro; Tute nere OLED schermi; La luce è più facile da leggere in camere luminose",
-   "pt-BR": "O padrão é cinza escuro; ternos pretos telas OLED; Luz é mais fácil de ler em quartos luminosos",
-   "tr": "Temsil karanlık gridir; Siyah takım OLED ekranları; Işık parlak odalarda okumak daha kolaydır",
-   "ar": "التقصير هو رمادي مظلم؛ البذلات السوداء شاشات مأخوذة؛ الضوء أسهل للقراءة في غرف مشرقة",
-   "pl": "Domyślnie ciemnoszary; Czarne kombinezony ekrany OLED; Światło jest łatwiejsze do odczytania w jasnych pokojach",
-   "ru": "По умолчанию темно-серый; Черные костюмы OLED-экраны; Свет легче читать в светлых комнатах"
   },
   {
    "zh": "默认保持字号；开启后超过目标行数才缩小",

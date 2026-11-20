@@ -12,7 +12,8 @@ Item {
 
     TestCase {
         name: "PushAppearance"
-        readonly property var modes: ["default", "black", "light"]
+        readonly property var modes: ["default", "black", "light", "midnight", "plum", "forest"]
+        readonly property var accents: ["orange", "white", "ice", "blue", "violet", "rose", "amber"]
         readonly property var surfaces: ["card", "card2", "card3", "popover", "dialog", "bgInner"]
         function cleanup() { Theme.mode = "default"; Theme.accentName = "orange" }
 
@@ -41,7 +42,7 @@ Item {
         function test_accent_and_states_are_readable() {
             for (const m of modes) {
                 Theme.mode = m
-                for (const name of ["orange", "white"]) {
+                for (const name of accents) {
                     Theme.accentName = name
                     for (const s of ["card", "card2", "card3"]) {
                         verify(contrast(Theme.accent, Theme[s]) >= 3, m + "/" + name + " accent on " + s)
@@ -63,6 +64,29 @@ Item {
             verify(Theme.light && !Theme.black)
             verify(Theme.card.r > 0.95, "light surfaces")
             compare(String(Theme.onVideo), "#ffffff", "text over the picture stays white")
+        }
+        // The tinted backgrounds are dark ones: white overlays, their own surfaces, and the dark grey's values untouched.
+        function test_tinted_backgrounds_and_more_accents() {
+            Theme.mode = "default"
+            compare(String(Theme.card2), "#19191e"); compare(String(Theme.bgOuter), "#070709")
+            compare(String(Theme.accent), "#89f52a", "the default accent is the brand green")
+            const seen = {}
+            for (const m of ["midnight", "plum", "forest"]) {
+                Theme.mode = m
+                verify(Theme.tinted && !Theme.light && !Theme.black, m)
+                verify(Theme.ink(0.5).r > 0.99, m + ": white overlay on a dark surface")
+                verify(Theme.card2.r < 0.2 && Theme.card2.g < 0.2 && Theme.card2.b < 0.2, m + " is dark")
+                verify(!seen[String(Theme.card2)], m + " has its own surfaces"); seen[String(Theme.card2)] = true
+            }
+            // An unknown mode or accent is the default, never a broken colour.
+            Theme.mode = "nonsense"; compare(String(Theme.card2), "#19191e")
+            Theme.accentName = "nonsense"; compare(String(Theme.accent), "#89f52a")
+            // Every accent is its own colour, and the white one keeps its quiet soft fill.
+            Theme.mode = "default"
+            const colours = {}
+            for (const a of accents) { Theme.accentName = a; verify(!colours[String(Theme.accent)], a); colours[String(Theme.accent)] = true }
+            Theme.accentName = "ice"
+            verify(Math.abs(Theme.accentSoft.a - 0.14) < 0.01 && Math.abs(Theme.accentSoft.r - Theme.accent.r) < 0.01, "the soft fill is the accent, thinned")
         }
     }
 }

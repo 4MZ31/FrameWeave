@@ -398,7 +398,9 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         stored = v;
     } else if (key == QLatin1String("accent")) {
         const QString v = value.toString();
-        if (v != QLatin1String("orange") && v != QLatin1String("white")) return false;
+        // PushFPS: five more accents (Theme.qml `accents`); "orange" stays the name of the default, drawn in the brand green.
+        static const QStringList accents{"orange", "white", "ice", "blue", "violet", "rose", "amber"};
+        if (!accents.contains(v)) return false;
         stored = v;
     } else if (key == QLatin1String("backdrop")) {
         bool ok = false; const int n = value.toInt(&ok);
@@ -494,10 +496,19 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         const QJsonDocument doc = QJsonDocument::fromJson(v.toUtf8(), &error);
         if (error.error != QJsonParseError::NoError || !(doc.isObject() || doc.isArray())) return false;
         stored = v;
+    } else if (key == QLatin1String("pushQuickFolded")) {
+        // PushFPS quick setup: which sections are folded (PushSection.qml), their ids with commas. Anything
+        // that is not a section's id is dropped.
+        static const QStringList sections{"setup", "fg", "picture", "hud", "latency", "start"};
+        QStringList kept;
+        for (const auto& part : value.toString().split(QLatin1Char(','), Qt::SkipEmptyParts))
+            if (sections.contains(part) && !kept.contains(part)) kept << part;
+        stored = kept.join(QLatin1Char(','));
     } else if (key == QLatin1String("pushTheme")) {
         // PushFPS appearance (Theme.qml mode).
         const QString v = value.toString();
-        if (v != QLatin1String("default") && v != QLatin1String("black") && v != QLatin1String("light")) return false;
+        static const QStringList themes{"default", "black", "light", "midnight", "plum", "forest"};
+        if (!themes.contains(v)) return false;
         stored = v;
     } else if (key == QLatin1String("pushDiscordWebhook")) {
         // PushFPS: only a Discord webhook address is accepted, so a clip is never sent elsewhere.

@@ -113,6 +113,7 @@ PushLayoutDialog 1.0 PushLayoutDialog.qml
 PushCropDialog 1.0 PushCropDialog.qml
 PushRecordDialog 1.0 PushRecordDialog.qml
 PushMaximizeButton 1.0 PushMaximizeButton.qml
+PushSection 1.0 PushSection.qml
 PushFlowMotionRow 1.0 PushFlowMotionRow.qml
 PushFlow2Row 1.0 PushFlow2Row.qml
 PushFrameInputDialog 1.0 PushFrameInputDialog.qml

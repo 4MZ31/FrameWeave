@@ -607,7 +607,7 @@ VPage {
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: Theme.rCard
-            color: Theme.light ? "#E9ECE5" : Theme.black ? "#000000" : "#0A0A0D"
+            color: Theme.light ? "#E9ECE5" : Theme.black ? "#000000" : Theme.tinted ? Theme.bgMid : "#0A0A0D"
             border.width: 1
             border.color: Theme.stroke
             clip: true
@@ -1174,7 +1174,7 @@ VPage {
         onXChanged: wires.requestPaint()
         onYChanged: wires.requestPaint()
         radius: 10
-        color: Theme.light ? "#FFFFFF" : Theme.black ? "#121215" : "#1D1D22"
+        color: Theme.light ? "#FFFFFF" : Theme.black ? "#121215" : Theme.tinted ? Theme.popover : "#1D1D22"
         border.width: 1
         border.color: Theme.stroke2
         Item {
@@ -1229,7 +1229,7 @@ VPage {
         width: node.type === "color" ? 360 : ["nr", "protection", "exclusion"].indexOf(node.type)>=0 ? 320 : 272
         height: body.implicitHeight
         radius: 10
-        color: Theme.light ? "#FFFFFF" : Theme.black ? "#121215" : "#1D1D22"
+        color: Theme.light ? "#FFFFFF" : Theme.black ? "#121215" : Theme.tinted ? Theme.popover : "#1D1D22"
         opacity: (node.enabled ? 1 : 0.74) * lifeOpacity
         property real lifeScale: 1
         property real lifeOpacity: 1
