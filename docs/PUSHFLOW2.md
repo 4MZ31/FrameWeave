@@ -296,9 +296,14 @@ never use it.
 **What is checked**: the rule on its own (`veyra_push_flow_predict_tests`); on the software renderer with
 both models, the shader against the rule, a still picture exact, a slow square nearer to the truth, an
 in-between frame still exactly PushFlow's own (`testPushFlow`); through the real graph at 3X, the batch's
-order and times and that no forecast is worse than holding (`veyra_push_flow_graph_tests`). **What is not
-checked anywhere: the engine's timing with a real source.** No test here plays a capture card; the delay
-saved, the evenness of the frames and whether forecasts arrive in time on a real card are unknown.
+order and times and that no forecast is worse than holding (`veyra_push_flow_graph_tests`); and through
+the **whole engine with a live source** (`veyra_push_predict_engine_tests`: a Frame Input channel the test
+feeds, played by the engine as a capture card's picture is). There, on the software renderer, 24 forecasts
+reached the screen for 34 real frames, nothing failed or stalled, and a real frame was on screen 3.8 ms
+after it arrived, where in-between frames at 2X must hold it at least half an interval. The source runs at
+1.1 frames a second, because that renderer needs a third of a second for one run of the network. **What
+is not checked anywhere: a real graphics card and a real capture card.** The delay saved in milliseconds,
+the evenness of the frames and whether forecasts arrive in time at 60 FPS are unknown.
 
 ## Dual, the first step as designed
 

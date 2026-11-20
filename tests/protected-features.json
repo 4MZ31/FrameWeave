@@ -199,6 +199,11 @@
      "file": "tests/qml/quick/tst_push_flow2.qml",
      "ci": "tst_push_flow2",
      "contains": "test_predict_says_what_it_does_and_when_it_steps_aside"
+    },
+    {
+     "file": "tests/integration/PushPredictEngineTests.cpp",
+     "ci": "veyra_push_predict_engine_tests",
+     "contains": "while forecasts are shown, a real frame is on screen"
     }
    ],
    "needs_hardware": "Speed on any real card; picture quality on real games."
