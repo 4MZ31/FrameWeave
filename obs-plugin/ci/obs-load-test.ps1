@@ -14,9 +14,18 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-$rel = gh api repos/obsproject/obs-studio/releases/latest | ConvertFrom-Json
-$asset = $rel.assets | Where-Object { $_.name -match 'Windows.*\.zip$' -and $_.name -notmatch 'PDB|arm64' } | Select-Object -First 1
-if (-not $asset) { throw "no Windows zip in OBS $($rel.tag_name)" }
+# The newest OBS Studio release that has a Windows zip. Not simply "latest": on 20 November 2026 OBS 33.0.2
+# was the latest release for some hours without that file, and this test, which a PushFPS release waits
+# for, failed on a build that had nothing to do with OBS.
+$releases = gh api "repos/obsproject/obs-studio/releases?per_page=10" | ConvertFrom-Json
+$rel = $null; $asset = $null
+foreach ($candidate in $releases) {
+    if ($candidate.draft -or $candidate.prerelease) { continue }
+    $zip = $candidate.assets | Where-Object { $_.name -match 'Windows.*\.zip$' -and $_.name -notmatch 'PDB|arm64' } | Select-Object -First 1
+    if ($zip) { $rel = $candidate; $asset = $zip; break }
+    Write-Host "OBS Studio $($candidate.tag_name) has no Windows zip (yet); trying the release before it"
+}
+if (-not $asset) { throw "no Windows zip in the last 10 OBS Studio releases" }
 Write-Host "OBS Studio $($rel.tag_name): $($asset.name)"
 if (-not (Test-Path D:\obs)) {
     curl.exe -sSL --fail -o D:\obs.zip $asset.browser_download_url
