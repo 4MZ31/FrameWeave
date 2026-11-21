@@ -253,7 +253,20 @@ jobs:
             # depends on whether the runner has a recognition language).
             @{ name = '120-read-text-idle'; args = @('--page', 'home', '--dialog', 'readtext', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '121-read-text-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--dialog', 'readtext', '--lang', 'en', '--pref', 'pushSunset=false') },
-            @{ name = '122-settings-read-text'; args = @('--page', 'set', '--tab', 'play', '--lang', 'en', '--scroll-to', 'set-readtext') }
+            @{ name = '122-settings-read-text'; args = @('--page', 'set', '--tab', 'play', '--lang', 'en', '--scroll-to', 'set-readtext') },
+            # 4.2: the quick tour (a step held with --tour), a comparison clip's picture quality, recordings in
+            # parts, and the interface in Korean.
+            @{ name = '123-tour-welcome'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushSunset=false', '--tour', '0') },
+            @{ name = '124-tour-capture-button'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushSunset=false', '--tour', '1') },
+            @{ name = '125-tour-capture-format'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushSunset=false', '--tour', '5') },
+            @{ name = '126-tour-console'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushSunset=false', '--tour', '8') },
+            @{ name = '127-tour-target'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushSunset=false', '--tour', '9') },
+            @{ name = '128-compare-picture-quality'; args = @('--page', 'home', '--dialog', 'compare', '--lang', 'en', '--pref', 'pushCompareLayout=3', '--pref', 'pushCompareQuality=2160', '--pref', 'pushComparePicture=2', '--pref', 'pushSunset=false') },
+            @{ name = '129-settings-split-files'; args = @('--page', 'set', '--tab', 'rec', '--lang', 'en', '--scroll-to', 'set-recsplit') },
+            @{ name = '130-korean-home'; args = @('--page', 'home', '--lang', 'ko', '--pref', 'pushSunset=false', '--dock-pinned') },
+            @{ name = '131-korean-settings'; args = @('--page', 'set', '--lang', 'ko') },
+            @{ name = '132-korean-tour'; args = @('--page', 'home', '--lang', 'ko', '--pref', 'pushSunset=false', '--tour', '8') },
+            @{ name = '133-korean-pro'; args = @('--page', 'pro', '--tab', 'fg', '--lang', 'ko') }
           )
           if ($env:ONLY) { $list = @($list | Where-Object { $_.name -match $env:ONLY }); Write-Host "Only: $($list.name -join ', ')" }
           foreach ($s in $list) {
