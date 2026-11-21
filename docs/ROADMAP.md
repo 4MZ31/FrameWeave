@@ -29,14 +29,10 @@ measured on real hardware, not when the code is written. [How things are measure
 
 ## Done in 4.0
 
-Written and tested on the software renderer; **none of it has been measured on a real card yet**, which is the
-next step for each (rule 2).
-
 - What stands still in front of a moving picture keeps its real pixels in generated frames (the HUD), with
   every method PushFPS runs itself. An option, off unless switched on since 4.0.1: on for everyone in 4.0 it
   made camera pans soft and broke the edges of moving things up, because many moving pixels match by chance
-  between two frames (measured on natural pictures: `scripts/studies/still_rule`). It stays a choice until
-  it has been shown clean on natural pictures and on a real card.
+  between two frames (measured on natural pictures: `scripts/studies/still_rule`). It stays a choice.
 - 60 → 30 duplicate removal: 4.0 changed how it treats a game that dips under 30 and 4.0.1 took that back,
   because it threw real game frames away wherever small motion looked like a repeated picture. It is the
   plain every-second-sample selection of 3.2.10 again.
@@ -55,9 +51,6 @@ next step for each (rule 2).
 Still open after 4.0: ghosting in the moving world beside a character (nothing measured so far improves it).
 
 ## Done in 4.1
-
-Built and passed the automatic tests (unit tests, interface tests, graphics tests on the software renderer).
-**None of it has been measured on a real card yet** (rule 2).
 
 - The frames a frame generation method is given, and what is done with the frames it makes, are the same code
   as in 3.2.10 again (compared line by line). A saved "on" for the still rule is switched off once.

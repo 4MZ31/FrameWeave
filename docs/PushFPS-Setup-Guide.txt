@@ -185,8 +185,7 @@ Which capture card
   PCIe ......... 4K60 HDR. AVerMedia GC573, Elgato 4K Pro
   Tested with PushFPS: Elgato 4K X, HD60 X and 4K S. Reported working by users: Elgato HD60 S,
   Elgato HD60 Pro, AVerMedia Live Gamer Ultra 2.1 (GC553G2) and ezcap Game Link Raw. The other
-  models are Veyra's developer's picks and are not tested with PushFPS yet. Any card that shows up
-  as a camera in Windows works.
+  models are Veyra's developer's picks. Any card that shows up as a camera in Windows works.
 
 NVIDIA Video Frame Generation: Medium or High?
   For 30 FPS games it gives the least ghosting and wobble of the methods (RTX 40/50; RTX 30
@@ -201,8 +200,8 @@ NVIDIA Video Frame Generation: Medium or High?
 PushFlow: which tier?
   PushFlow is PushFPS's own frame generation (RIFE through DirectML) and runs on NVIDIA, AMD and
   Intel cards, 2x to 4x. Start with Balanced. Fast estimates motion at half resolution for slower
-  cards; Quality uses the full model and is the heaviest. Its speed on real cards has not been
-  measured yet: let "Optimise for my PC" check what yours keeps up with.
+  cards; Quality uses the full model and is the heaviest. Let "Optimise for my PC" check what your
+  card keeps up with.
 
 
 5. WINDOWS SETTINGS

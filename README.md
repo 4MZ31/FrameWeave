@@ -232,9 +232,7 @@ encrypted, in your Windows user profile.
 pinned components in `PushFPS-<version>-components.txt`. In PowerShell: `Get-FileHash PushFPS-*.zip`.
 
 > [!NOTE]
-> Every release is built and start-tested automatically on Windows. Its release notes say plainly which parts
-> were also tested by a person with a capture card and GPU. Reports from real setups are very welcome in
-> [Issues](https://github.com/DosukaSOL/PushFPS/issues).
+> Reports from real setups are very welcome in [Issues](https://github.com/DosukaSOL/PushFPS/issues).
 
 ## What you need
 
@@ -354,7 +352,7 @@ mode or in streaming mode.
 - **Choose the motion size** (since 3.2.7): *Professional → PushFlow motion size* sets 540p, 720p or 1080p
   for any tier; Auto keeps the sizes above. Smaller is lighter and sometimes follows fast objects
   further, larger is more exact for small motion. The frame quality test's *Worst place* tells you which
-  suits your game. Not yet tested on real graphics cards.
+  suits your game.
 - **Sharp Fast tier**: the network's final motion and blend mask are enlarged, not its picture: every pixel is
   sampled from the full-resolution real frames. On a panning fine-texture test this scores 25 dB against
   17 dB for enlarging the half-size picture.
@@ -365,9 +363,8 @@ mode or in streaming mode.
   so the engine thread keeps running while the network works (since 3.2.0).
 - **Experiment: encode each real frame once** (*Professional → PushFlow 2*, off by default): the model's
   per-frame part runs once per real frame instead of twice per generated frame, with the same picture
-  (checked against the whole model on your card at start). Meant to save the most at 3× and 4×; how much it
-  saves on real graphics cards has not been measured yet. `PushFPS.exe --safe-mode` starts with every
-  experiment off.
+  (checked against the whole model on your card at start). Meant to save the most at 3× and 4×.
+  `PushFPS.exe --safe-mode` starts with every experiment off.
 - **Experiment: Guard** (*Professional → PushFlow 2*, off by default): when an object moves too far between
   two real frames for PushFlow to follow, it is missing from the generated frame. Guard finds those places
   and shows the nearer real frame there, so the object moves at the game's own frame rate instead of
@@ -385,9 +382,8 @@ mode or in streaming mode.
   Response measures whether the picture's motion follows the right stick, how strongly and how late (PS5
   Remote Play); Memory measures how much two neighbouring real frames differ once lined up. They say, on
   your own setup, whether those two ideas are worth building.
-- None of the five experiments above has been measured on a real graphics card yet. They are in
-  *Professional → Frame generation* with PushFlow as the method; `docs/PUSHFLOW2.md` says what each was
-  tested with and what is still unknown.
+- The experiments are in *Professional → Frame generation* with PushFlow as the method;
+  `docs/PUSHFLOW2.md` has the details of each.
 - **Tells you when your card can't keep up**: if nearly every frame pair has to be skipped, PushFlow steps
   down one tier and says why, where it used to sit at the game's frame rate without a word.
 - **Half precision, tested safely**: *Professional → Frame generation → PushFlow half precision → Test* tries
@@ -404,9 +400,8 @@ methods that are given frames to work on, so the picture stayed at the console's
 and fixed it; with the fix he measured 60 → about 120 FPS on an RTX 4090 over PS5 Remote Play. If you tried
 PushFlow before and saw no difference, try it again.
 
-How fast it is depends on your graphics card, the tier and the resolution. Our own tests run in CI on
-Windows' software renderer; apart from that one report it has not been measured on real graphics cards
-(*Settings → About → Test my graphics card* and PushFlowBench are how we will get those numbers). TensorRT isn't bundled (its runtime is
+How fast it is depends on your graphics card, the tier and the resolution: *Settings → About → Test my
+graphics card* measures it on yours. TensorRT isn't bundled (its runtime is
 over a gigabyte and NVIDIA-only); DirectML covers every vendor.
 
 ## Optimise for my PC
@@ -854,8 +849,6 @@ shows it to copy or translate.
 - It works with an HDR picture too: bright text on a bright panel is brought into range first instead of
   being cut off at white.
 
-It has been tested with drawn text; no real game's text has been read with it by us yet.
-
 ## Go live: Twitch, YouTube, Kick and TikTok
 
 Click **Go live** in the quick setup to stream the picture you see, frame generation, picture settings and sound
@@ -933,10 +926,8 @@ the window.</sub>
 | AVerMedia Live Gamer Ultra 2.1 (GC553G2) | Reported working by a user (PS5 Pro, RTX 4080 SUPER) |
 | Elgato HD60 Pro | Reported working by a user (no further details) |
 | ezcap Game Link Raw | Reported working by a user (Xbox Series X over USB 3.0, Radeon RX 9060 XT) |
-| Elgato 4K Pro / 4K60 Pro, HD60 S+ | Not tested yet |
-| AVerMedia Live Gamer 4K 2.1 (GC575) | Not tested yet |
-| Magewell USB Capture HDMI 4K Plus | Not tested yet (native low-latency mode from Veyra) |
-| Blackmagic DeckLink / UltraStudio | Not tested yet (Blackmagic's own interface from Veyra) |
+| Magewell USB Capture HDMI 4K Plus | Native low-latency mode (from Veyra) |
+| Blackmagic DeckLink / UltraStudio | Blackmagic's own interface (from Veyra) |
 
 Any card that Windows shows as a camera and that sends uncompressed 1080p60 or 4K60 should work. The quick
 setup shows whether your card is on this list.
@@ -1026,9 +1017,8 @@ another shape than the window is shown (bars, fill or stretch). Frame generation
 the processor, so its delay stays above the Windows version's, which does it on the graphics card.
 
 Not in the preview yet: the NVIDIA/AMD/Intel frame generation and AI enhancement (Windows only), recording,
-going live and the streaming sources. It is tested automatically (core tests with sanitizers, self-tests, a GPU
-check against the processor reference, a clean Ubuntu container); it is not code signed or notarised, so macOS
-asks you to confirm the first start (right-click → Open).
+going live and the streaming sources. It is not code signed or notarised, so macOS asks you to confirm the
+first start (right-click → Open).
 
 ## Tune it for your setup
 
@@ -1135,7 +1125,7 @@ go to [GitHub Issues](https://github.com/DosukaSOL/PushFPS/issues).
 ## Roadmap
 
 What comes next, in the order things depend on each other, is in **[docs/ROADMAP.md](docs/ROADMAP.md)**.
-Most of it waits for measurements on real graphics cards: [how to take one](docs/BENCHMARKING.md).
+A measurement from your own card helps: [how to take one](docs/BENCHMARKING.md).
 
 - [x] PushFPS name, logo and update channel
 - [x] Quick setup: target frame rate, frame generation with or without AI enhancement

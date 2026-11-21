@@ -26,6 +26,10 @@ on:
         description: 'Private draft only: no tag, no release, no update signature; only people with write access can see or download it'
         type: boolean
         default: false
+      notes_only:
+        description: 'Only write the notes of an existing release again (from packaging/release-notes on this branch); no file is uploaded or signed'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -39,7 +43,9 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       TAG: ${{ inputs.release_tag }}
       FULL_RELEASE: ${{ inputs.full_release && 'true' || 'false' }}
-      UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+      NOTES_ONLY: ${{ inputs.notes_only && 'true' || 'false' }}
+      # Notes only: the signing key is not given to the job at all.
+      UPDATE_SIGNING_KEY: ${{ !inputs.notes_only && secrets.UPDATE_SIGNING_KEY || '' }}
     steps:
       - name: Check the tag
         run: echo "$TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'

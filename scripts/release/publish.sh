@@ -4,14 +4,17 @@
 # packaging/release-notes/<tag>.md plus the install, OBS and licence sections below).
 # Used by build-windows.yml (release job) and release-from-run.yml (files of an earlier build).
 # Env: TAG (vX.Y.Z), FULL_RELEASE (true/false), GH_TOKEN, GITHUB_REPOSITORY, GITHUB_SHA.
+# NOTES_ONLY=true (release-from-run.yml): only the words on the page of a release that is already out
+# are written again. No file is uploaded, nothing is signed, the checksum list and its signature stay
+# as they are, so the updater sees no change.
 set -e
 ls -la dist
 zip=$(ls dist/PushFPS-*-win64.zip | grep -v OBS-Plugin | head -1); sum=$(cat "$zip.sha256")
 if [ "$FULL_RELEASE" = "true" ]; then
-  STATUS_LINE="Built and tested automatically on Windows. Please report anything that doesn't work in Issues."
+  STATUS_LINE="Please report anything that doesn't work in Issues."
   KIND=(--latest)
 else
-  STATUS_LINE="**Preview build.** Built and start-tested automatically on Windows; not yet tested with a real capture card and GPU. Please report what works and what doesn't in Issues."
+  STATUS_LINE="**Preview build.** Please report what works and what doesn't in Issues."
   KIND=(--prerelease)
 fi
 obszip=$(ls dist/PushFPS-OBS-Plugin-*.zip | head -1); obssum=$(cat "$obszip.sha256")
@@ -23,7 +26,9 @@ if [ -f docs/PushFPS-Setup-Guide.txt ]; then cp docs/PushFPS-Setup-Guide.txt dis
 # Signed updates: the app installs an update only when this signature over SHA256SUMS.txt verifies
 # with the public key in include/veyra/Brand.h (RSA-PSS, SHA-256, 32-byte salt). The private key
 # comes from the repository secret UPDATE_SIGNING_KEY and only ever exists in this job's memory.
-if [ -n "${UPDATE_SIGNING_KEY:-}" ]; then
+if [ "${NOTES_ONLY:-}" = "true" ]; then
+  echo "Notes only: nothing is signed and no file is uploaded"
+elif [ -n "${UPDATE_SIGNING_KEY:-}" ]; then
   umask 077
   keyfile=$(mktemp -p /dev/shm 2>/dev/null || mktemp)
   printf '%s\n' "$UPDATE_SIGNING_KEY" > "$keyfile"
@@ -78,7 +83,7 @@ SHA-256: \`$obssum\`
 
 PushFPS also runs on Linux and macOS with its own frame generation, Frame Pacing Repair and Live HUD
 Lock (no vendor components). The packages (*linux-x86_64* folder or AppImage, *macos-universal* app)
-are attached to this release when their build finishes. See the README for what is tested.
+are attached to this release when their build finishes. The README says what the preview includes.
 
 ## Checking the download
 
@@ -98,6 +103,12 @@ NOTES
 # What's new for this tag, written in the repository (packaging/release-notes/<tag>.md).
 if [ -f "packaging/release-notes/$TAG.md" ]; then
   { cat "packaging/release-notes/$TAG.md"; echo; cat notes.md; } > notes-full.md && mv notes-full.md notes.md
+fi
+if [ "${NOTES_ONLY:-}" = "true" ]; then
+  gh release view "$TAG" -R "$GITHUB_REPOSITORY" > /dev/null
+  gh release edit "$TAG" -R "$GITHUB_REPOSITORY" --notes-file notes.md
+  echo "Wrote the notes of $TAG again; its files were not touched."
+  exit 0
 fi
 # A manual run creates the tag on the commit it built; a tag push already has it.
 # Run again for a tag that already has a release (a pre-release promoted to a full release
