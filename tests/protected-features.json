@@ -572,25 +572,34 @@
   },
   {
    "id": "F21",
-   "what": "60 to 30 hands on every second sample exactly as 3.2.10 did, and never passes a due sample over because its picture number repeats: 4.0 did, and threw real game frames away wherever small motion stayed inside the picture comparison's noise tolerance (a steady 30 FPS game handed on at 22 to 27 a second, with pairs two game frames apart; taken back in 4.0.1)",
+   "what": "60 to 30 hands on every second sample, and a due sample that shows the last kept picture again waits for the next new one, as the engine release PushFPS is built on does, decision for decision: a game that hitches (a picture held three samples, the next shown for one) or runs below 30 FPS loses no picture and hands on no pair that does not move. The plain every-second-sample grid of 3.2.10, 4.1.0 and 4.1.1 lost a picture, handed on a still pair and a pair two game pictures apart at every such hitch (artifacts round the head and moving objects, the owner, 21 November 2026). A picture the comparison saw as new and the game showed for two samples is never lost",
    "guards": [
     {
      "file": "tests/unit/PushHalfRateTests.cpp",
      "ci": "veyra_push_half_rate_tests",
-     "contains": "decided exactly as in 3.2.10"
+     "contains": "every stream is decided exactly as the engine release decides it"
     },
     {
      "file": "tests/unit/PushHalfRateTests.cpp",
      "ci": "veyra_push_half_rate_tests",
-     "contains": "a steady 30 FPS game is handed on whole when the comparison sees"
+     "contains": "no picture lost, no still pair, no double step"
     },
     {
      "file": "tests/unit/PushHalfRateTests.cpp",
      "ci": "veyra_push_half_rate_tests",
-     "contains": "a picture number that never changes still gives every second sample"
+     "contains": "a picture the comparison saw as new and the game showed for two samples is never lost"
+    },
+    {
+     "file": "tests/unit/PushHalfRateTests.cpp",
+     "ci": "veyra_push_half_rate_tests",
+     "contains": "are decided exactly as by the plain grid"
+    },
+    {
+     "file": "include/veyra/engine/CaptureHalfRate.h",
+     "contains": "Never go back to the plain grid on the strength of a simulation"
     }
    ],
-   "needs_hardware": "A capture card and a game that dips below 30 FPS, for how it looks."
+   "needs_hardware": "A capture card and a 30 FPS console game in a heavy scene: that the artifacts round the head and moving objects at hitches are gone, as in the engine release."
   },
   {
    "id": "F22",
@@ -906,12 +915,12 @@
   },
   {
    "id": "F37",
-   "what": "The picture path a capture card user's NVIDIA VFG runs on is what 3.2.10 had: the 60 -> 30 selection hands on every due sample, and the still rule (Keep the HUD sharp) is off unless switched on; a saved 'on' left behind by 4.0 is switched off once after updating (the owner and users saw artifacts around heads and objects on 4.0 and not on 3.2.10)",
+   "what": "The picture path a capture card user's frame generation runs on: the 60 -> 30 selection is the engine release's (a due repeat of the last kept picture waits for the next new one), and the still rule (Keep the HUD sharp) is off unless switched on; a saved 'on' left behind by 4.0 is switched off once after updating. 4.0's artifacts round heads and objects were the still rule's; 4.1.0 and 4.1.1 ran the plain grid and lost a picture at every hitch",
    "guards": [
     {
      "file": "tests/unit/PushHalfRateTests.cpp",
      "ci": "veyra_push_half_rate_tests",
-     "contains": "decided exactly as in 3.2.10"
+     "contains": "every stream is decided exactly as the engine release decides it"
     },
     {
      "file": "tests/unit/PushHudStillTests.cpp",
@@ -928,10 +937,10 @@
     },
     {
      "file": "include/veyra/engine/CaptureHalfRate.h",
-     "contains": "never pass a due sample over on the strength of a picture number again"
+     "contains": "Never go back to the plain grid on the strength of a simulation"
     }
    ],
-   "needs_hardware": "A real card and a real game: that the artifacts around the character and small objects are gone, on 60 -> 30 and on automatic removal."
+   "needs_hardware": "A real card and a real game: that the artifacts around the character and moving objects are gone on 60 -> 30, as in the engine release."
   },
   {
    "id": "F38",

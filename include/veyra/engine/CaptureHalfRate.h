@@ -15,23 +15,48 @@ namespace veyra::engine {
 // irregular content does not repeat on every kept sample, so both keep the
 // plain grid; without picture numbers nothing changes.
 //
-// PushFPS 4.0 tried more and 4.0.1 took it back: this is 3.2.10's selection again, decision for decision.
-// 4.0 passed a due sample over when its picture number repeated the last kept one and took the next new
-// picture in its place, so that a game below 30 would not be handed on as pairs that do not move. But a
-// picture number is not "the game drew a new picture": PictureCompare.h tolerates a capture card's noise
-// (a band of 3 levels and 63 components at 4K), so small motion (a slight turn of the camera, a small
-// thing that moves, an idle animation) stays a "repeat" until it has added up. Those samples are real
-// game frames, and 4.0 threw them away. Simulated with both classes on a steady 30 FPS game
-// (tests/unit/PushHalfRateTests.cpp): where the comparison sees 90 % of the new pictures, 4.0 handed on
-// 27 a second instead of 30 with 3 pairs a second two game frames apart; at 50 to 70 %, 22 to 24 a second
-// with 6 to 8 such pairs. Frame generation then interpolated twice the motion at exactly those places,
-// which showed as artifacts round the character and ghosting of small moving things, on an uneven rhythm
-// (the owner and a user, 20 November 2026; 3.2.10 was clean). The plain grid never drops a real frame:
-// never pass a due sample over on the strength of a picture number again.
+// Below 30 (2026-11-18, issue #152): a game that cannot hold 30 fps shows some
+// pictures three or four times. The plain grid then kept the same picture
+// twice (frame generation interpolated a still pair: a visible stall, 2-5 per
+// second at 26-29 fps), and the phase move above fired again and again, adding
+// adjacent samples (31-32 kept per second). A due sample that repeats the last
+// kept picture is therefore skipped while it is within kHitchSlots samples of
+// that keep; the next new picture is taken instead and the grid restarts on it.
+// Kept samples stay at least two slots apart with their original PTS, so a
+// 50 ms step is interpolated as 50 ms. Nothing is inserted to make up 30: the
+// kept rate is the game's own rate. Past the window the picture is still
+// (pause, menu) and is held on the grid as before, keeping NR/FG work steady.
+//
+// PushFPS: this is the selection of the engine release PushFPS is built on, decision for decision
+// (tests/unit/PushHalfRateTests.cpp holds a copy and compares). Its history here, so it is not undone
+// a second time:
+//  - 3.2.10 had the plain grid: every second sample, whatever it showed.
+//  - 4.0 took the hitch handling below and, in the same release, switched the still rule on for
+//    everyone (pipeline/PushHudStill.h). The owner and a user saw artifacts round the character and a
+//    soft picture; 4.0.1 took both back and blamed this file, on a simulation in which the picture
+//    comparison missed 10 to 50 % of a moving game's pictures. It does not: PictureCompare.h was
+//    measured on a real card, where a repeat has at most 47 components beyond the band, the smallest
+//    real new picture (a still screen) 156, and a moving game 100 000 and more. A picture the
+//    comparison calls a repeat IS the last picture to within a capture card's noise, so passing it
+//    over loses nothing that can be seen. 4.0's artifacts were the still rule's.
+//  - 4.1.0 and 4.1.1 therefore ran the plain grid again, and the owner still saw artifacts round the
+//    head and moving objects that the engine release itself did not show (21 November 2026). The
+//    plain grid is why. A 30 FPS game that misses a refresh holds one picture for three samples and
+//    shows the next for one, to catch up (3-1: the commonest hitch of a console game). The grid kept
+//    the held picture twice and never saw the short one: a pair that does not move, then a pair two
+//    game frames apart, which frame generation has to bridge in one step. Simulated at one hitch a
+//    second: 58 pictures lost and 58 double steps a minute; with the handling below, none. A game
+//    below 30 (24 to 27 FPS) gave 360 still pairs a minute on the grid and gives none here.
+// What is left, and is the same for both: two pictures of one sample each in a row (60 FPS moments
+// in a 30 FPS game) cannot both be kept at half the rate.
+// Never go back to the plain grid on the strength of a simulation that does not use the picture
+// comparison's measured numbers; change this file only together with its test.
 class CaptureHalfRate {
 public:
     static constexpr unsigned kSecondCopies=3;
-    void reset(){anchored_=false;havePicture_=false;previousNew_=false;shift_=false;secondCopies_=0;lastSequence_=nextSequence_=0;}
+    // Same hitch window as ContentDedup at a 30 fps cadence: 2.5 periods = 5 slots.
+    static constexpr unsigned kHitchSlots=5;
+    void reset(){anchored_=false;havePicture_=false;previousNew_=false;shift_=false;secondCopies_=0;lastSequence_=nextSequence_=0;keptValid_=holding_=waiting_=false;}
     static bool supported(double fps){return std::isfinite(fps)&&fps>=59&&fps<=61;}
     // picture: the sample's picture number, nullptr when unknown.
     bool accept(int64_t pts,int64_t transportInterval,bool boundary,const uint64_t* picture=nullptr,uint64_t sequence=0){
@@ -45,7 +70,8 @@ public:
         const bool sequenceRestart=sequence&&lastSequence_&&sequence<=lastSequence_;
         lastSequence_=sequence;
         if(boundary||!anchored_||sequenceRestart||pts<last_||pts-last_>transportInterval*6){
-            anchored_=true;next_=pts+transportInterval*2;nextSequence_=sequence?sequence+2:0;last_=pts;shift_=false;secondCopies_=0;return true;
+            anchored_=true;next_=pts+transportInterval*2;nextSequence_=sequence?sequence+2:0;last_=pts;shift_=false;secondCopies_=0;
+            holding_=waiting_=false;kept(pts,picture,sequence);return true;
         }
         last_=pts;
         if(sequence&&!nextSequence_)nextSequence_=sequence;
@@ -53,27 +79,53 @@ public:
         if(beforeDue){
             if(!shift_||!picture||repeat||!adjacent)return false;
             // The first copy of the next picture: move the grid onto it.
-            shift_=false;secondCopies_=0;next_=pts+transportInterval*2;nextSequence_=sequence?sequence+2:0;++shifts_;return true;
+            shift_=false;secondCopies_=0;next_=pts+transportInterval*2;nextSequence_=sequence?sequence+2:0;++shifts_;
+            holding_=false;kept(pts,picture,sequence);return true;
+        }
+        const bool repeatOfKept=picture&&keptValid_&&*picture==keptPicture_;
+        if(repeatOfKept&&!holding_){
+            const bool withinHitch=sequence&&keptSequence_?sequence-keptSequence_<kHitchSlots:
+                pts-keptPts_+transportInterval/4<transportInterval*int64_t(kHitchSlots);
+            // Due, but the game has not drawn a new picture yet: wait for it.
+            if(withinHitch){waiting_=true;++repeatsSkipped_;return false;}
+            holding_=true; // still picture: hold it on the grid
         }
         const auto period=transportInterval*2;
-        next_+=((pts+transportInterval/4-next_)/period+1)*period;
+        // After a skipped repeat the grid restarts on this sample; otherwise it
+        // keeps its phase.
+        if(waiting_)next_=pts+period;
+        else next_+=((pts+transportInterval/4-next_)/period+1)*period;
         // Driver PTS can run at the wrong speed. When available the transport
         // sequence selects one callback per pair, preserving the original PTS.
         // A late reader consumes the newest sample once, then starts a new pair
         // there; it must not immediately take an adjacent catch-up sample.
         if(sequence)nextSequence_=sequence+2;
-        secondCopies_=secondCopy?secondCopies_+1:0;
-        shift_=secondCopies_>=kSecondCopies;
-        ++grid_;secondKept_+=secondCopy;
+        // A sample taken after a skipped repeat is the first copy of a new
+        // picture (or a held still), so the phase is already where it belongs.
+        if(waiting_){shift_=false;secondCopies_=0;}
+        else{secondCopies_=secondCopy?secondCopies_+1:0;shift_=secondCopies_>=kSecondCopies;secondKept_+=secondCopy;}
+        if(!repeatOfKept)holding_=false;
+        held_+=repeatOfKept;
+        waiting_=false;
+        ++grid_;kept(pts,picture,sequence);
         return true;
     }
     uint64_t shifts()const{return shifts_;}
     // Samples the grid kept, and how many of them were second copies (diagnostics).
     uint64_t gridKept()const{return grid_;}
     uint64_t secondCopiesKept()const{return secondKept_;}
+    // Due samples skipped because they repeated the last kept picture, and
+    // repeats kept anyway because the picture stayed still past kHitchSlots.
+    uint64_t repeatsSkipped()const{return repeatsSkipped_;}
+    uint64_t repeatsHeld()const{return held_;}
 private:
+    void kept(int64_t pts,const uint64_t* picture,uint64_t sequence){
+        keptValid_=picture!=nullptr;if(picture)keptPicture_=*picture;keptPts_=pts;keptSequence_=sequence;
+    }
     bool anchored_=false,havePicture_=false,previousNew_=false,shift_=false;int64_t next_=0,last_=0;
     uint64_t lastSequence_=0,nextSequence_=0;
     uint64_t lastPicture_=0,shifts_=0,grid_=0,secondKept_=0;unsigned secondCopies_=0;
+    bool keptValid_=false,holding_=false,waiting_=false;
+    uint64_t keptPicture_=0,keptSequence_=0,repeatsSkipped_=0,held_=0;int64_t keptPts_=0;
 };
 }

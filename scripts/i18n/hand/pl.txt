@@ -1512,3 +1512,4 @@ zh:愿意的话请复制结果发给我们：真实显卡的数据都来自大�
 zh:欢迎在 GitHub 上分享这张卡的使用结果|Podziel się na GitHubie, jak ta karta działa u Ciebie
 zh:本机控制保存的令牌无法读取，已生成新的令牌：请在设置里重新复制|Nie udało się odczytać zapisanego tokenu sterowania lokalnego, więc utworzono nowy: skopiuj go ponownie w Ustawieniach
 zh:FSR 4 ML 需要支持的 RX 9000 和驱动，不可用时自动改用 FSR 3.1|FSR 4 ML potrzebuje obsługiwanego RX 9000 oraz sterownika i wyłączników do FSR 3.1, jeżeli jest niedostępny
+zh:60→30：每两帧保留一帧，游戏不足30帧时跳过重复画面。自动去除：检测并跳过重复画面。|60→30 zachowuje co drugą klatkę i pomija powtórzone obrazy, gdy gra spada poniżej 30 FPS. Automatyczne usuwanie wykrywa powtórzone obrazy i je pomija.

@@ -33,9 +33,9 @@ measured on real hardware, not when the code is written. [How things are measure
   every method PushFPS runs itself. An option, off unless switched on since 4.0.1: on for everyone in 4.0 it
   made camera pans soft and broke the edges of moving things up, because many moving pixels match by chance
   between two frames (measured on natural pictures: `scripts/studies/still_rule`). It stays a choice.
-- 60 → 30 duplicate removal: 4.0 changed how it treats a game that dips under 30 and 4.0.1 took that back,
-  because it threw real game frames away wherever small motion looked like a repeated picture. It is the
-  plain every-second-sample selection of 3.2.10 again.
+- 60 → 30 duplicate removal passes a repeated picture over when a game hitches or dips under 30 and takes
+  the next new one, so no picture of the game is lost and none is used twice. 4.0.1, 4.1.0 and 4.1.1 ran
+  without it; it is back since 4.1.2.
 - Lip sync by hand, on top of automatic sync.
 - A line between the two sides of the live comparison. The latency readout can be dragged.
 - The record button asks first: horizontal or vertical, fill or fit, the size and the quality, with the
