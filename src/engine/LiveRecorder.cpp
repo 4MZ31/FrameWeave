@@ -1,6 +1,7 @@
 #include "veyra/engine/LiveRecorder.h"
 #include "veyra/engine/PushRecordQuality.h"
 #include "veyra/engine/Mp4Finalize.h"
+#include "veyra/engine/PushPartWriter.h"
 #include "veyra/Brand.h"
 #include "veyra/engine/MicrophoneCapture.h"
 #include "veyra/engine/PushAudioMix.h"
@@ -226,9 +227,21 @@ struct AudioLane {
     int64_t outputPosition() const {return produced+(swr?swr_get_delay(swr,kAudioRate):0);}
     // Writer thread: the queued blocks into the fifo. final: up to the
     // picture's end (endTimeUs) and the resampler flushed.
-    bool process(bool final,int64_t endTimeUs,int64_t t0){
+    // limitToVideo (a recording in parts, PushRecordParts.h): only what lies before endTimeUs is
+    // taken, so sound is never written past the picture and a cut finds it where it belongs. The
+    // rest waits in the bounded queue. Without it, every call is what it always was.
+    bool process(bool final,int64_t endTimeUs,int64_t t0,bool limitToVideo=false){
         std::deque<AudioBlock> taken;
-        {std::lock_guard lock(mutex);taken.swap(blocks);queued=0;}
+        {
+            std::lock_guard lock(mutex);
+            if(limitToVideo&&!final&&t0){
+                while(!blocks.empty()&&blocks.front().atUs<t0+endTimeUs){
+                    queued-=std::min(queued,blocks.front().frames);
+                    taken.push_back(std::move(blocks.front()));
+                    blocks.pop_front();
+                }
+            }else{taken.swap(blocks);queued=0;}
+        }
         if(!t0)return true; // nothing recorded yet: earlier sound is not part of the file
         if(!swr&&!configureSwr(taken.empty()?sink::AudioFormat{}:taken.front().format))return false;
         for(auto& block:taken){
@@ -259,7 +272,9 @@ struct AudioLane {
             // No sound arrives (paused, muted source, no audio monitoring, a
             // silent or missing microphone): keep the track continuous,
             // 200 ms behind real time.
-            const int64_t target=(sink::recordingClockUs()-t0-200000)*kAudioRate/1000000;
+            int64_t targetUs=sink::recordingClockUs()-t0-200000;
+            if(limitToVideo)targetUs=std::min(targetUs,endTimeUs);
+            const int64_t target=targetUs*kAudioRate/1000000;
             if(target>outputPosition()&&!feedSilence(target-outputPosition()))return false;
         }
         return true;
@@ -276,7 +291,6 @@ struct AudioTrack {
     AVFrame* frame=nullptr;
     std::vector<float> extra[2];
     int64_t encodedSamples=0;
-    AVStream* stream=nullptr;         // a recording's stream
     std::shared_ptr<const AVCodecParameters> parameters;
 
     AudioTrack()=default;
@@ -326,15 +340,16 @@ struct AudioTrack {
         av_packet_free(&packet);
         return rc==AVERROR(EAGAIN)||rc==AVERROR_EOF;
     }
-    // What every lane of the track holds; the final pass encodes up to
-    // `limit` samples (the picture's end), discards the rest and flushes.
+    // What every lane of the track holds, up to `limit` samples (INT64_MAX: all of it; a
+    // recording in parts: the picture's time); the final pass encodes up to the picture's end,
+    // discards the rest and flushes.
     template<class Out> bool encode(bool final,int64_t limit,Out&& out){
         const int size=frameSize();
         for(;;){
             int64_t available=av_audio_fifo_size(lane->fifo);
             if(mix)available=std::min<int64_t>(available,av_audio_fifo_size(mix->fifo));
             if(mix2)available=std::min<int64_t>(available,av_audio_fifo_size(mix2->fifo));
-            if(final)available=std::min(available,limit-encodedSamples);
+            available=std::min(available,limit-encodedSamples);
             if(available<=0||(!final&&available<size))break;
             const int n=int(std::min<int64_t>(available,size));
             if(av_frame_make_writable(frame)<0)return false;
@@ -477,7 +492,17 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
     std::atomic<uint64_t> generated{0};         // comparison: generated frames recorded
     bool sound=false,microphone=false,microphoneTrack=false; // what the sound tracks take
     std::atomic<bool> audio{false};             // the file (or buffer) has sound tracks
-    std::wstring path;                          // a recording's file
+    std::wstring path;                          // a recording's file (its first, when it is cut into parts)
+    // PushFPS: a recording in parts without a gap (PushRecordParts.h). One encoder runs through
+    // all of them; the writer thread changes files at a keyframe. Fixed at creation: the limits
+    // and where the next part's name comes from (the recording's own counter, shared with the
+    // files a change of picture size starts, so no two files take one name).
+    recordparts::Limits partLimits;
+    std::wstring partDirectory,partBaseName;
+    std::shared_ptr<std::atomic<unsigned>> partNumbers;
+    std::atomic<uint32_t> extraFiles{0};        // parts after the first
+    std::atomic<uint32_t> savedFiles{0};        // files that are finished and ready to use
+    std::atomic<int64_t> partOriginUs{0};       // the recording's time of the first picture of the part being written
     std::shared_ptr<ReplayBuffer> replay;       // the instant replay buffer instead of a file
     std::vector<stream::Target> streamTargets;  // going live instead of a file
     std::shared_ptr<stream::Outputs> outputs;   // writer thread creates it; status() reads it
@@ -526,7 +551,6 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
     std::atomic<size_t> backlogBytes{0};
     std::atomic<int64_t> endUs{-1};
     std::atomic<uint64_t> videoWritten{0};
-    std::atomic<uint64_t> fileBytes{0};         // a recording: how far the file has been written (split by size)
     std::atomic<int64_t> writtenUs{0};
 
     // Sound: the played sound (tap) and the microphone, each on its own lane;
@@ -537,20 +561,29 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
     std::array<AudioTrack,2> tracks;
     unsigned trackCount=0;
 
-    // Writer-owned FFmpeg state of a recording.
-    AVFormatContext* mux=nullptr;
-    AVStream* videoStream=nullptr;
-    int64_t lastVideoDts=INT64_MIN;
-    bool headerWritten=false,originSet=false;
+    // Writer-owned: the recording's file or files (PushPartWriter.h) and what describes its picture.
+    PushPartWriter parts;
+    AVCodecParameters* videoParameters=nullptr;
+    bool originSet=false;
+    // Finished parts are made into standard MP4 files one after another on a thread of their own
+    // (Mp4Finalize.h copies the whole file): the writer goes on with the next part meanwhile.
+    struct FinishJob {std::wstring path;bool standardMp4=false;};
+    std::thread finisherThread;
+    std::mutex finisherMutex;
+    std::condition_variable finisherCv;
+    std::deque<FinishJob> finisherJobs;
+    bool finisherStop=false;
 
     // Shared state.
     std::atomic<bool> closing{false},failed{false},encoderFinished{false},writerFinished{false};
     mutable std::mutex textMutex;
     std::wstring error,encoderName,note;
+    std::wstring currentPath,savedPath;         // the file being written; the last one finished
 
     ~Segment() override {
         if(encoderThread.joinable())encoderThread.join();
         if(writerThread.joinable())writerThread.join();
+        stopFinisher();
         releaseMux();
     }
 
@@ -566,6 +599,9 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
     std::wstring errorText() const {std::lock_guard lock(textMutex);return error;}
     std::wstring encoderText() const {std::lock_guard lock(textMutex);return encoderName;}
     std::wstring noteText() const {std::lock_guard lock(textMutex);return note;}
+    // The file being written (the newest part), and the last file that is finished.
+    std::wstring currentPathText() const {std::lock_guard lock(textMutex);return currentPath.empty()?path:currentPath;}
+    std::wstring savedPathText() const {std::lock_guard lock(textMutex);return savedPath;}
     void setNote(std::wstring text){std::lock_guard lock(textMutex);note=std::move(text);}
     std::string name() const {return replay?std::string("replay buffer"):!streamTargets.empty()?std::string("live stream"):utf8(path);}
 
@@ -971,10 +1007,8 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
 
     // ---- writer thread ---------------------------------------------------------
     void releaseMux(){
-        if(mux){
-            if(mux->pb)avio_closep(&mux->pb);
-            avformat_free_context(mux);mux=nullptr;
-        }
+        parts.release();
+        if(videoParameters)avcodec_parameters_free(&videoParameters);
         for(auto& track:tracks)track.release();
         soundLane.release();micLane.release();auxLane.release();
     }
@@ -1008,36 +1042,94 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
             veyra::log::warn("live-recorder","AAC encoder unavailable; recording without sound");
         }
     }
-    bool openFile(std::vector<uint8_t> extradata){
-        if(avformat_alloc_output_context2(&mux,nullptr,matroska?"matroska":"mp4",nullptr)<0||!mux){fail(L"无法创建录制封装器");return false;}
-        videoStream=avformat_new_stream(mux,nullptr);
-        if(!videoStream){fail(L"无法创建录制视频流");return false;}
-        videoStream->time_base=AVRational{1,1000000};
-        videoStream->avg_frame_rate=AVRational{int(fps),1};
-        if(!setVideoParameters(videoStream->codecpar,width,height,hdrMode,hevc,extradata)){fail(L"无法写入录制文件头");return false;}
-        openSound();
-        for(unsigned i=0;i<trackCount;++i){
-            auto& track=tracks[i];
-            track.stream=avformat_new_stream(mux,nullptr);
-            if(!track.stream||avcodec_parameters_copy(track.stream->codecpar,track.parameters.get())<0){fail(L"无法创建录制音频流");return false;}
-            track.stream->time_base=AVRational{1,kAudioRate};
-            av_dict_set(&track.stream->metadata,"handler_name",track.name.c_str(),0);
+    // ---- a recording's files (writer thread) --------------------------------
+    // A finished part: made into a standard MP4 where that applies, then counted as saved.
+    void finishPartFile(const FinishJob& job){
+        if(job.standardMp4){
+            // PushFPS: rewrite the fragmented MP4 as a standard one that editors such as
+            // Vegas Pro open (Mp4Finalize.h); on any problem the fragmented file stays.
+            const auto started=std::chrono::steady_clock::now();
+            const auto finished=finalizeMp4(std::filesystem::path(job.path));
+            const double ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-started).count();
+            if(finished.ok)veyra::log::info("live-recorder",std::format("file finalized path={} videoPackets={} audioPackets={} ms={:.0f}",utf8(job.path),finished.videoPackets,finished.audioPackets,ms));
+            else{
+                veyra::log::warn("live-recorder",std::format("file kept fragmented path={} reason={} ms={:.0f}",utf8(job.path),finished.error,ms));
+                // A long recording on a nearly full disk: saved as it was written, which plays everywhere
+                // but which some editors refuse. Said, so nobody wonders why Vegas will not open it.
+                if(finished.noSpace&&noteText().empty())setNote(L"磁盘剩余空间不足，无法整理成标准 MP4：录制已按原样保存，可以正常播放，但部分剪辑软件打不开");
+            }
         }
-        int rc=avio_open(&mux->pb,utf8(path).c_str(),AVIO_FLAG_WRITE);
-        if(rc<0){fail(L"无法创建录制文件："+avError(rc));return false;}
-        // Fragmented MP4: every fragment is playable on its own, so an
-        // interrupted recording keeps what was written.
-        // MKV (PushFPS advanced recording) is readable up to the last cluster anyway.
-        AVDictionary* options=nullptr;
-        if(!matroska)av_dict_set(&options,"movflags","frag_keyframe+empty_moov+default_base_moof",0);
-        rc=avformat_write_header(mux,&options);
-        av_dict_free(&options);
-        if(rc<0){fail(L"无法写入录制文件头："+avError(rc));return false;}
-        headerWritten=true;
-        veyra::log::info("live-recorder",std::format("file open path={} extent={}x{} codec={} hdr={} fps={} bitrateMbps={} audio={} sound={} microphone={} tracks={} rc={} quality={} preset={} keyframeS={} audioKbps={} container={}",
+        {std::lock_guard lock(textMutex);savedPath=job.path;}
+        ++savedFiles;
+    }
+    void finisherMain(){
+        for(;;){
+            FinishJob job;
+            {
+                std::unique_lock lock(finisherMutex);
+                finisherCv.wait(lock,[&]{return finisherStop||!finisherJobs.empty();});
+                if(finisherJobs.empty())return;
+                job=std::move(finisherJobs.front());finisherJobs.pop_front();
+            }
+            finishPartFile(job);
+        }
+    }
+    void queueFinish(FinishJob job){
+        {
+            std::lock_guard lock(finisherMutex);
+            finisherJobs.push_back(std::move(job));
+            if(!finisherThread.joinable())finisherThread=std::thread([this]{finisherMain();});
+        }
+        finisherCv.notify_one();
+    }
+    // Lets the thread finish what is queued, then joins it.
+    void stopFinisher(){
+        {std::lock_guard lock(finisherMutex);finisherStop=true;}
+        finisherCv.notify_all();
+        if(finisherThread.joinable())finisherThread.join();
+    }
+    // Writer thread, from PushPartWriter: a part's file is closed.
+    void partClosed(const PushPartWriter::Closed& closed){
+        veyra::log::info("live-recorder",std::format("part closed number={} path={} originUs={} frames={} bytes={} ok={} removed={}",
+            closed.number,utf8(closed.path),closed.originUs,closed.frames,closed.bytes,closed.ok,closed.removed));
+        if(!closed.frames||closed.removed)return;
+        // After a failed write (a full disk) the file stays as it was written, as it always did.
+        queueFinish({closed.path,closed.ok&&!matroska&&!failed.load()});
+    }
+    std::wstring nextPartPath(){
+        // The recording's own counter names it (-2, -3, ...), as the files of one recording always were.
+        const unsigned number=partNumbers?partNumbers->fetch_add(1):extraFiles.load()+2;
+        return uniqueFile(partDirectory,partBaseName+(number>1?std::format(L"-{}",number):L""),matroska?L".mkv":L".mp4");
+    }
+    bool openFile(std::vector<uint8_t> extradata){
+        videoParameters=avcodec_parameters_alloc();
+        if(!videoParameters||!setVideoParameters(videoParameters,width,height,hdrMode,hevc,extradata)){fail(L"无法写入录制文件头");return false;}
+        openSound();
+        PushPartWriter::Config config;
+        config.video=videoParameters;config.fps=fps;config.audioRate=kAudioRate;config.matroska=matroska;
+        for(unsigned i=0;i<trackCount;++i)config.sound.push_back({tracks[i].parameters.get(),tracks[i].name});
+        config.limits=partLimits;
+        config.nextPath=[this](unsigned){return nextPartPath();};
+        config.closed=[this](const PushPartWriter::Closed& closed){partClosed(closed);};
+        if(!parts.open(std::move(config),path)){fail(parts.error().empty()?std::wstring(L"无法写入录制文件头"):parts.error());return false;}
+        {std::lock_guard lock(textMutex);currentPath=path;}
+        veyra::log::info("live-recorder",std::format("file open path={} extent={}x{} codec={} hdr={} fps={} bitrateMbps={} audio={} sound={} microphone={} tracks={} rc={} quality={} preset={} keyframeS={} audioKbps={} container={} partMinutes={} partMiB={}",
             utf8(path),width,height,hevc?"HEVC":"H264",hdrMode,fps,bitrateMbps,audio.load(),sound,microphone?(microphoneTrack?"track":"mixed"):"off",trackCount,
-            rateControl,quality,preset,keyframeSeconds,audioKbps,matroska?"mkv":"mp4"));
+            rateControl,quality,preset,keyframeSeconds,audioKbps,matroska?"mkv":"mp4",partLimits.afterUs/60000000,partLimits.afterBytes>>20));
         if(multipass||psychoAq)veyra::log::info("live-recorder",std::format("encoder tuning multipass={} psychoAq={} (NVENC only)",multipass,psychoAq));
+        return true;
+    }
+    // The picture that follows what was written: when the part ends before it, the sound up to
+    // it goes into the part first, then the file changes. Nothing is encoded again and nothing
+    // is left out: the next part starts with this very picture.
+    bool nextPartIfDue(const VideoPacket& next){
+        if(!parts.due(next.ptsUs,next.key))return true;
+        if(audio&&!processAudio(false,next.ptsUs))return false;
+        if(!parts.next(next.ptsUs)){fail(parts.error().empty()?std::wstring(L"写入录制文件失败（磁盘已满或没有写入权限？）"):parts.error());return false;}
+        ++extraFiles;
+        partOriginUs=parts.currentOriginUs();
+        {std::lock_guard lock(textMutex);currentPath=parts.currentPath();}
+        veyra::log::info("live-recorder",std::format("part {} starts at {:.2f} s path={} (same encoder: no gap)",parts.parts(),double(next.ptsUs)/1e6,utf8(parts.currentPath())));
         return true;
     }
     // The instant replay buffer takes what a file would: the encoder's
@@ -1069,28 +1161,31 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
         return true;
     }
     bool writeVideo(const VideoPacket& packet,int64_t durationUs){
-        AVPacket* out=av_packet_alloc();
-        if(!out||av_new_packet(out,int(packet.data.size()))<0){av_packet_free(&out);return false;}
-        std::memcpy(out->data,packet.data.data(),packet.data.size());
-        out->stream_index=videoStream->index;out->pts=out->dts=packet.ptsUs;out->duration=std::max<int64_t>(1,durationUs);
-        if(packet.key)out->flags|=AV_PKT_FLAG_KEY;
-        av_packet_rescale_ts(out,AVRational{1,1000000},videoStream->time_base);
-        if(out->dts<=lastVideoDts)out->pts=out->dts=lastVideoDts+1;
-        lastVideoDts=out->dts;
-        const int rc=av_interleaved_write_frame(mux,out);
-        av_packet_free(&out);
-        if(rc<0){veyra::log::error("live-recorder",std::format("video write failed rc={}",rc));return false;}
+        if(!parts.video(packet.data.data(),packet.data.size(),packet.ptsUs,durationUs,packet.key)){
+            veyra::log::error("live-recorder","video write failed");return false;
+        }
         ++videoWritten;writtenUs=packet.ptsUs;
-        if(mux&&mux->pb)fileBytes=uint64_t(std::max<int64_t>(0,avio_tell(mux->pb)));
         return true;
+    }
+    // A recording in parts: how far sound may be written, in the recording's time. Up to the
+    // picture; and while no picture is on its way (everything recorded has been written), up to a
+    // little behind now, so a picture that stands still does not hold the sound back.
+    int64_t partSoundLimitUs(int64_t videoUs,bool heldPicture) const {
+        const int64_t t0=t0Us.load();
+        const uint64_t received=videoWritten.load()+(heldPicture?1:0);
+        if(!t0||frames.load()>received)return videoUs;
+        return std::max(videoUs,sink::recordingClockUs()-t0-300000);
     }
     bool processAudio(bool final,int64_t endTimeUs){
         const int64_t t0=t0Us.load();
-        if(sound&&!soundLane.process(final,endTimeUs,t0))return false;
-        if(microphone&&!micLane.process(final,endTimeUs,t0))return false;
-        if(aux&&!auxLane.process(final,endTimeUs,t0))return false;
+        // A recording in parts keeps its sound behind the picture, so a cut finds every packet
+        // where it belongs. Replays, streams and a recording in one file are as they always were.
+        const bool limitToVideo=partLimits.any()&&!replay&&!outputs;
+        if(sound&&!soundLane.process(final,endTimeUs,t0,limitToVideo))return false;
+        if(microphone&&!micLane.process(final,endTimeUs,t0,limitToVideo))return false;
+        if(aux&&!auxLane.process(final,endTimeUs,t0,limitToVideo))return false;
         if(!t0)return true;
-        const int64_t limit=final?std::max<int64_t>(endTimeUs*kAudioRate/1000000,0):INT64_MAX;
+        const int64_t limit=(final||limitToVideo)?std::max<int64_t>(endTimeUs*kAudioRate/1000000,0):INT64_MAX;
         for(unsigned i=0;i<trackCount;++i){
             auto& track=tracks[i];
             const bool ok=track.encode(final,limit,[&](AVPacket* packet){
@@ -1103,9 +1198,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
                     replay->pushAudio(i,{std::make_shared<const std::vector<uint8_t>>(packet->data,packet->data+packet->size),packet->pts,packet->duration,false});
                     return true;
                 }
-                packet->stream_index=track.stream->index;
-                av_packet_rescale_ts(packet,AVRational{1,kAudioRate},track.stream->time_base);
-                return av_interleaved_write_frame(mux,packet)>=0;
+                return parts.sound(i,packet);
             });
             if(!ok)return false;
         }
@@ -1142,10 +1235,10 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
                     replay->pushVideo({std::make_shared<const std::vector<uint8_t>>(std::move(packet.data)),packet.ptsUs,0,packet.key});
                     continue;
                 }
-                if(ok&&held)ok=writeVideo(*held,packet.ptsUs-held->ptsUs);
+                if(ok&&held)ok=writeVideo(*held,packet.ptsUs-held->ptsUs)&&nextPartIfDue(packet);
                 held=std::move(packet);
             }
-            if(ok&&audio)ok=processAudio(false,0);
+            if(ok&&audio)ok=processAudio(false,partLimits.any()?partSoundLimitUs(held?held->ptsUs:0,held.has_value()):0);
             if(!ok){fail(replay?L"即时回放写入失败":outputs?L"直播的声音编码失败":L"写入录制文件失败（磁盘已满或没有写入权限？）");break;}
             if(ended)break;
         }
@@ -1164,41 +1257,29 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
             replay->finish(std::max<int64_t>(end,0));
             veyra::log::info("live-recorder",std::format("replay buffer closed videoFrames={} seconds={:.2f} audioGaps={} audioOverflow={} microphoneGaps={} microphoneOverflow={} dropped={} ok={}",
                 videoWritten.load(),double(std::max<int64_t>(end,0))/1e6,soundLane.gaps.load(),soundLane.overflow.load(),micLane.gaps.load(),micLane.overflow.load(),dropped.load(),ok));
-        }else if(headerWritten){
+        }else if(parts.opened()){
             int64_t end=endUs.load();
             if(held)end=std::max(end,held->ptsUs+frameUs);
             if(ok&&held)ok=writeVideo(*held,end-held->ptsUs);
             if(ok&&audio&&videoWritten.load())ok=processAudio(true,end);
-            const int rc=av_write_trailer(mux);
-            if(rc<0)ok=false;
+            const unsigned partCount=parts.parts();
+            const uint64_t lostSound=parts.lostSound();
+            // Every open file gets its end; each one is then finished and counted (partClosed).
+            if(!parts.finish())ok=false;
             if(!ok&&!failed.load())fail(L"录制文件收尾失败");
-            avio_closep(&mux->pb);
-            if(!videoWritten.load()){
-                std::error_code code;std::filesystem::remove(path,code);
-                setNote(L"没有录到画面，未保存文件");
-            }else if(ok&&!matroska){
-                // PushFPS: rewrite the fragmented MP4 as a standard one that editors such as
-                // Vegas Pro open (Mp4Finalize.h); on any problem the fragmented file stays.
-                const auto started=std::chrono::steady_clock::now();
-                const auto finished=finalizeMp4(std::filesystem::path(path));
-                const double ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-started).count();
-                if(finished.ok)veyra::log::info("live-recorder",std::format("file finalized path={} videoPackets={} audioPackets={} ms={:.0f}",utf8(path),finished.videoPackets,finished.audioPackets,ms));
-                else{
-                    veyra::log::warn("live-recorder",std::format("file kept fragmented path={} reason={} ms={:.0f}",utf8(path),finished.error,ms));
-                    // A long recording on a nearly full disk: saved as it was written, which plays everywhere
-                    // but which some editors refuse. Said, so nobody wonders why Vegas will not open it.
-                    if(finished.noSpace&&noteText().empty())setNote(L"磁盘剩余空间不足，无法整理成标准 MP4：录制已按原样保存，可以正常播放，但部分剪辑软件打不开");
-                }
-            }
+            if(!videoWritten.load())setNote(L"没有录到画面，未保存文件");
+            // The parts are made into standard MP4 files before this recording says it is done.
+            stopFinisher();
             // A clip at a chosen quality that lost frames: said, with what to do about it. (Automatic
             // quality keeps its silence: nothing about those clips changes.)
             if(compareQuality&&videoWritten.load()&&compareClipFellBehind(videoWritten.load(),dropped.load())&&noteText().empty())
                 setNote(L"这段对比片段有一部分帧没能录下：显卡跟不上所选的片段画质，请选低一档再录");
-            veyra::log::info("live-recorder",std::format("file closed path={} videoFrames={} seconds={:.2f} originUs={} audio={} audioGaps={} audioOverflow={} microphoneGaps={} microphoneOverflow={} soundBlocks={} mixerSilenced={} dropped={} ok={}{}",
+            veyra::log::info("live-recorder",std::format("file closed path={} videoFrames={} seconds={:.2f} originUs={} audio={} audioGaps={} audioOverflow={} microphoneGaps={} microphoneOverflow={} soundBlocks={} mixerSilenced={} dropped={} ok={} parts={} soundAfterItsPart={}{}",
                 utf8(path),videoWritten.load(),double(end)/1e6,t0Us.load(),audio.load(),soundLane.gaps.load(),soundLane.overflow.load(),micLane.gaps.load(),micLane.overflow.load(),
-                soundBlocks.load(),mixerSilenced.load(),dropped.load(),ok,
+                soundBlocks.load(),mixerSilenced.load(),dropped.load(),ok,partCount,lostSound,
                 compare?std::format(" compare real={} generated={} rawConsole={} droppedReal={}",compare->realFrames(),compare->generatedFrames(),compare->rawFrames(),droppedReal.load()):std::string{}));
         }
+        stopFinisher();
         releaseMux();
         writerFinished=true;
     }
@@ -1225,7 +1306,9 @@ struct LiveRecorder::State {
     std::shared_ptr<Segment> current,pendingCapture;
     std::vector<std::shared_ptr<Segment>> finishing;
     std::wstring baseName;
-    unsigned nextNumber=1;
+    // The number of the recording's next file (1: no suffix). Shared with the segments, whose
+    // writer threads name the parts of a recording that is cut (PushRecordParts.h).
+    std::shared_ptr<std::atomic<unsigned>> numbers=std::make_shared<std::atomic<unsigned>>(1);
     int64_t firstFrameUs=0,nextDueUs=0;
     double lastSeconds=0;
     std::atomic<double> presentFps{0};
@@ -1272,7 +1355,10 @@ struct LiveRecorder::State {
             auto& segment=*it;
             if(!segment->done()){++it;continue;}
             segment->join();
-            if(!replayMode&&!streamMode&&segment->videoWritten.load()){path=segment->path;++saved;}
+            if(!replayMode&&!streamMode){
+                files+=segment->extraFiles.load();
+                if(const auto count=segment->savedFiles.load()){path=segment->savedPathText();saved+=count;}
+            }
             if(segment->failed.load()&&error.empty()){failed=true;error=segment->errorText();}
             if(const auto text=segment->noteText();!text.empty())note=text;
             it=finishing.erase(it);
@@ -1359,7 +1445,7 @@ bool LiveRecorder::start(const RecordingSettings& settings,std::wstring& error){
     }
     s.settings=settings;s.armed=true;s.failed=false;s.error.clear();s.note.clear();s.encoder.clear();
     s.framesBase=s.droppedBase=0;s.files=0;s.firstFrameUs=0;s.nextDueUs=0;s.lastSeconds=0;s.audioTrack=false;
-    s.baseName=std::wstring(veyra::brand::kProductNameW)+(settings.compare?L"-compare-":L"-")+fileStamp()+settings.nameSuffix;s.nextNumber=1;++s.started;
+    s.baseName=std::wstring(veyra::brand::kProductNameW)+(settings.compare?L"-compare-":L"-")+fileStamp()+settings.nameSuffix;s.numbers=std::make_shared<std::atomic<unsigned>>(1);++s.started;
     s.generatedBase=0;
     veyra::log::info("live-recorder",std::format("armed directory={} bitrateMbps={} hevc={} fpsLimit={} audio={} microphone={}",
         utf8(settings.directory),settings.bitrateMbps,settings.hevc,settings.fpsLimit,settings.audio,
@@ -1392,9 +1478,18 @@ RecordingStatus LiveRecorder::status() const{
     out.active=s.armed;out.failed=s.failed;out.finishing=!s.finishing.empty();
     out.error=s.error;out.note=s.note;out.files=s.files;out.started=s.started;out.saved=s.saved;
     out.frames=s.framesBase;out.dropped=s.droppedBase;out.path=s.path;out.encoder=s.encoder;out.audio=s.audioTrack;
+    out.savedPath=s.path;
     out.compare=s.settings.compare&&!s.replayMode;out.generatedFrames=s.generatedBase;
+    // A recording's files that are finished while others are still being written or finished:
+    // the parts of a recording that is cut are counted as each one is ready.
+    const auto countParts=[&](const std::shared_ptr<Segment>& segment){
+        out.files+=segment->extraFiles.load();
+        if(const auto count=segment->savedFiles.load()){out.saved+=count;out.savedPath=segment->savedPathText();}
+    };
+    if(!s.replayMode&&!s.streamMode)for(const auto& segment:s.finishing){countParts(segment);if(segment->savedFiles.load())out.path=out.savedPath;}
     if(s.current){
-        if(!s.replayMode)out.path=s.current->path;
+        if(!s.replayMode)out.path=s.current->currentPathText();
+        if(!s.replayMode&&!s.streamMode)countParts(s.current);
         out.frames+=s.current->frames.load();out.dropped+=s.current->dropped.load();
         if(s.current->compare)out.generatedFrames+=s.current->generated.load();
         if(const auto name=s.current->encoderText();!name.empty())out.encoder=name;
@@ -1411,7 +1506,8 @@ RecordingStatus LiveRecorder::status() const{
     // its frames are stamped with (a frame's time in the file is that clock minus the file's first frame).
     if(s.current&&!s.replayMode&&!s.streamMode){
         const int64_t first=s.current->t0Us.load();
-        out.fileSeconds=first?std::max(0.0,double(sink::recordingClockUs()-first)/1e6):0.0;
+        // A recording in parts: the part being written starts at its own first picture.
+        out.fileSeconds=first?std::max(0.0,double(sink::recordingClockUs()-first-s.current->partOriginUs.load())/1e6):0.0;
     }
     if(s.streamMode){
         out.streams=s.current&&s.current->outputs?s.current->outputs->status():s.lastStreams;
@@ -1548,19 +1644,8 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
             s.current->frameWidth,s.current->frameHeight,s.current->hdrMode,frame.width,frame.height,frame.hdrMode,s.replayMode?"replay buffer":"file"));
         s.retire(s.current,(s.replayMode||s.streamMode)?std::wstring{}:L"画面尺寸或 HDR 模式变化，已接着写入新文件");s.current.reset();
     }
-    // PushFPS: long recordings in parts (new file every N minutes, -2, -3, ...).
-    // Also by size (splitBytes): the same hand-over, when the file has grown that far.
-    if(s.current&&!s.replayMode&&!s.streamMode&&(s.settings.splitMinutes||s.settings.splitBytes)&&!s.current->compareClip){
-        const int64_t started=s.current->t0Us.load();
-        const bool byTime=s.settings.splitMinutes&&started&&now-started>=int64_t(s.settings.splitMinutes)*60000000;
-        const bool bySize=s.settings.splitBytes&&s.current->fileBytes.load()>=s.settings.splitBytes;
-        if(byTime||bySize){
-            veyra::log::info("live-recorder",byTime?std::format("split after {} minutes; continuing in a new file",s.settings.splitMinutes)
-                :std::format("split at {} MiB; continuing in a new file",s.current->fileBytes.load()>>20));
-            s.reap();
-            s.retire(s.current,{});s.current.reset();
-        }
-    }
+    // (A recording in parts changes files on the writer thread, at a keyframe and with the same
+    // encoder: PushRecordParts.h. Nothing is retired here for it any more.)
     if(!s.current){
         // Rapid source/settings changes must not create an unbounded number
         // of encoder workers while the previous segments are draining.
@@ -1653,8 +1738,15 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
             const uint64_t cap=s.settings.replayMemoryBytes?s.settings.replayMemoryBytes:defaultReplayMemory();
             segment->replay=std::make_shared<ReplayBuffer>(int64_t(s.settings.replaySeconds)*1000000,size_t(cap));
         }else{
-            const auto base=s.baseName+(s.nextNumber>1?std::format(L"-{}",s.nextNumber):L"");
+            const unsigned number=s.numbers->fetch_add(1);
+            const auto base=s.baseName+(number>1?std::format(L"-{}",number):L"");
             segment->path=uniqueFile(s.settings.directory,base,segment->matroska?L".mkv":L".mp4");
+            // PushFPS: a new file every so many minutes or megabytes, without a gap (never a comparison clip).
+            segment->partDirectory=s.settings.directory;segment->partBaseName=s.baseName;segment->partNumbers=s.numbers;
+            if(!segment->compareClip){
+                segment->partLimits.afterUs=int64_t(s.settings.splitMinutes)*60000000;
+                segment->partLimits.afterBytes=s.settings.splitBytes;
+            }
         }
         if(segment->compareClip&&segment->compareLayout==CompareLayout::Vertical){
             // Vertical comparison clips are a 1080 x 1920 file of their own size: H.264 (what the
@@ -1665,7 +1757,7 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         }
         std::wstring reason;
         if(!segment->create(reason))return fail(reason);
-        s.current=segment;++s.files;++s.nextNumber;s.audioTrack=segment->audio;
+        s.current=segment;++s.files;s.audioTrack=segment->audio;
         if(segment->sound)sink::addRecordingAudioSink(segment);
         if(segment->microphone)attachMicrophone(segment,s.settings.microphoneId);
         if(segment->aux)attachPushAux(segment);

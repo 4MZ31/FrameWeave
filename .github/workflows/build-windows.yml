@@ -363,7 +363,7 @@ jobs:
             Write-Host "$t exit $code"
             if ($code -ne 0) { $failed++ }
           }
-          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_audio_mix_tests', 'veyra_push_studio_sources_tests', 'veyra_push_benchmark_tests', 'veyra_push_hud_tests', 'veyra_push_adaptive_fg_tests', 'veyra_push_pacing_repair_tests', 'veyra_push_archive_paths_tests', 'veyra_push_crash_note_tests', 'veyra_push_compare_plan_tests', 'veyra_push_fg_health_tests', 'veyra_push_half_rate_tests', 'veyra_push_capture_audio_suggest_tests', 'veyra_push_record_quality_tests', 'veyra_push_compare_name_tests', 'veyra_push_display_cap_tests', 'veyra_push_remote_sync_tests', 'veyra_push_capture_device_pick_tests', 'veyra_push_capture_sharper_tests', 'veyra_push_gpu_load_tests', 'veyra_push_ocr_tests', 'veyra_push_ocr_windows_tests', 'veyra_push_control_tests', 'veyra_push_clip_markers_tests', 'veyra_push_present_scaling_tests', 'veyra_push_hud_still_tests', 'veyra_push_audio_trim_tests', 'veyra_push_compare_line_tests', 'veyra_push_display_peak_tests', 'veyra_push_dolby_vision_tests', 'veyra_remoteplay_core_tests', 'veyra_push_perf_report_tests', 'veyra_push_half_approval_tests', 'veyra_push_view_crop_tests', 'veyra_push_flow_motion_tests', 'veyra_push_flow2_tests', 'veyra_push_flow_guard_tests', 'veyra_push_flow_predict_tests', 'veyra_push_response_tests', 'veyra_remoteplay_feedback_wire_tests', 'veyra_frame_input_tests', 'veyra_push_quality_tests', 'veyra_push_input_latency_tests', 'veyra_vrr_profile_tests') {
+          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_audio_mix_tests', 'veyra_push_studio_sources_tests', 'veyra_push_benchmark_tests', 'veyra_push_hud_tests', 'veyra_push_adaptive_fg_tests', 'veyra_push_pacing_repair_tests', 'veyra_push_archive_paths_tests', 'veyra_push_crash_note_tests', 'veyra_push_compare_plan_tests', 'veyra_push_fg_health_tests', 'veyra_push_half_rate_tests', 'veyra_push_record_parts_tests', 'veyra_push_capture_audio_suggest_tests', 'veyra_push_record_quality_tests', 'veyra_push_compare_name_tests', 'veyra_push_display_cap_tests', 'veyra_push_remote_sync_tests', 'veyra_push_capture_device_pick_tests', 'veyra_push_capture_sharper_tests', 'veyra_push_gpu_load_tests', 'veyra_push_ocr_tests', 'veyra_push_ocr_windows_tests', 'veyra_push_control_tests', 'veyra_push_clip_markers_tests', 'veyra_push_present_scaling_tests', 'veyra_push_hud_still_tests', 'veyra_push_audio_trim_tests', 'veyra_push_compare_line_tests', 'veyra_push_display_peak_tests', 'veyra_push_dolby_vision_tests', 'veyra_remoteplay_core_tests', 'veyra_push_perf_report_tests', 'veyra_push_half_approval_tests', 'veyra_push_view_crop_tests', 'veyra_push_flow_motion_tests', 'veyra_push_flow2_tests', 'veyra_push_flow_guard_tests', 'veyra_push_flow_predict_tests', 'veyra_push_response_tests', 'veyra_remoteplay_feedback_wire_tests', 'veyra_frame_input_tests', 'veyra_push_quality_tests', 'veyra_push_input_latency_tests', 'veyra_vrr_profile_tests') {
             cmake --build $env:BUILD --target $t --parallel
             if ($LASTEXITCODE -ne 0) { Write-Host "::error::$t did not build"; $failed++; continue }
             $exe = Get-ChildItem $env:BUILD -Recurse -Filter "$t.exe" | Select-Object -First 1
@@ -507,18 +507,23 @@ jobs:
           bash tests/data/stream/run-live-stream-tests.sh "$exe" windows_amd64.zip mediamtx.exe
 
       # Finished recordings are rewritten as standard MP4 (Vegas Pro and other editors refuse fragmented files).
+      # A recording in parts: the files a cut leaves, read back packet by packet (PushPartWriterTests.cpp).
       - name: Recording MP4 finishing test
         if: ${{ !cancelled() && steps.buildexe.outcome == 'success' }}
         run: |
-          cmake --build $env:BUILD --target veyra_mp4_finalize_tests --parallel
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $exe = Get-ChildItem $env:BUILD -Recurse -Filter 'veyra_mp4_finalize_tests.exe' | Select-Object -First 1
-          if (-not $exe) { Write-Host "::error::veyra_mp4_finalize_tests.exe not built"; exit 1 }
-          $env:PATH = "$env:DEPS\vcpkg\installed\x64-windows\bin;$env:PATH"
-          & $exe.FullName 2>&1 | Out-Host
-          $code = $LASTEXITCODE
-          Write-Host "veyra_mp4_finalize_tests exit $code"
-          if ($code -ne 0) { exit 1 }
+          $failed = 0
+          foreach ($t in 'veyra_mp4_finalize_tests', 'veyra_push_part_writer_tests') {
+            cmake --build $env:BUILD --target $t --parallel
+            if ($LASTEXITCODE -ne 0) { Write-Host "::error::$t did not build"; $failed++; continue }
+            $exe = Get-ChildItem $env:BUILD -Recurse -Filter "$t.exe" | Select-Object -First 1
+            if (-not $exe) { Write-Host "::error::$t.exe not built"; $failed++; continue }
+            $env:PATH = "$env:DEPS\vcpkg\installed\x64-windows\bin;$env:PATH"
+            & $exe.FullName 2>&1 | Out-Host
+            $code = $LASTEXITCODE
+            Write-Host "$t exit $code"
+            if ($code -ne 0) { $failed++ }
+          }
+          if ($failed) { exit 1 }
 
       # Capture cards without the hardware: media types, strides and colour of what a card delivers, the
       # Blackmagic and Elgato controls (HDR detection, the 4K X included) against stand-in devices.

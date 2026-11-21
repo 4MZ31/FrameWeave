@@ -562,6 +562,9 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
             state["audio"]=live.audio;
             // PushFPS: counts finished files, so the interface can offer to edit the newest one.
             state["saved"]=QVariant::fromValue(qulonglong(live.saved));
+            // PushFPS: the file that count is about. While a recording in parts goes on, "path" is the part
+            // being written and this is the part that was just finished.
+            state["savedPath"]=QString::fromStdWString(live.savedPath);
             // PushFPS clip markers: how many this file has (the file being written, or the one just finished).
             state["markers"]=int(impl_->markerBook.count(QString::fromStdWString(live.path).toStdString()));
             state["microphone"]=live.microphone;
@@ -594,8 +597,9 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
                     impl_->recordingSaved=live.saved;
                     if(live.compare&&live.generatedFrames==0)
                         emit notice(tr("对比片段里没有生成的帧，左右两边相同。请确认补帧正在运行"),true);
-                    emit notice(note.isEmpty()?tr("录制已保存：%1").arg(state.value("path").toString())
-                                              :tr("录制已保存：%1（%2）").arg(state.value("path").toString(),note),false);
+                    const QString savedFile=live.savedPath.empty()?state.value("path").toString():state.value("savedPath").toString();
+                    emit notice(note.isEmpty()?tr("录制已保存：%1").arg(savedFile)
+                                              :tr("录制已保存：%1（%2）").arg(savedFile,note),false);
                 }else if(live.active&&!note.isEmpty()&&note!=previous.value("note").toString())emit notice(note,false);
             }
         }

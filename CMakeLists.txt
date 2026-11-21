@@ -1172,6 +1172,10 @@ target_include_directories(veyra_push_capture_audio_suggest_tests PRIVATE ${CMAK
 add_executable(veyra_push_record_quality_tests tests/unit/PushRecordQualityTests.cpp)
 target_compile_features(veyra_push_record_quality_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_record_quality_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: where a recording in parts is cut, and which part a sound packet belongs to (engine/PushRecordParts.h, pure; also builds with g++).
+add_executable(veyra_push_record_parts_tests tests/unit/PushRecordPartsTests.cpp)
+target_compile_features(veyra_push_record_parts_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_record_parts_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS: what the original's side of a comparison clip is called (engine/PushCompareName.h, pure; also builds with g++).
 add_executable(veyra_push_compare_name_tests tests/unit/PushCompareNameTests.cpp)
 target_compile_features(veyra_push_compare_name_tests PRIVATE cxx_std_20)
@@ -1950,7 +1954,7 @@ add_executable(veyra_sr_reconstruction_tests tests/integration/SrReconstructionT
   target_link_libraries(veyra_repair_fg_tests PRIVATE veyra_pipeline veyra_sinks veyra_nvof)
 
   # Headless quality-core runner (Playbook R3.3): the phase5 gate's quality
-  add_library(veyra_engine STATIC src/engine/EngineController.cpp src/engine/EngineWatchdog.cpp src/engine/PreviewGpuSession.cpp src/engine/EngineControllerImage.cpp src/engine/PosterFrame.cpp src/engine/EffectChain.cpp src/engine/PresetLibrary.cpp src/ui/PlayerUiFacade.cpp src/engine/TiledImageProcessor.cpp src/engine/PresetStore.cpp src/engine/VideoPresenter.cpp src/engine/DisplayStateService.cpp src/engine/VideoExportJob.cpp src/engine/ExportStreams.cpp src/engine/ExportQueue.cpp src/engine/ExportJobManager.cpp src/engine/Subtitles.cpp src/engine/FgCompatibilityProbe.cpp src/engine/LiveRecorder.cpp src/engine/ReplayBuffer.cpp src/engine/MicrophoneCapture.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp src/engine/RecordingComparePlan.cpp src/engine/LiveStream.cpp src/engine/Mp4Finalize.cpp src/engine/PushAudioMix.cpp src/engine/PushStreamOverlay.cpp src/engine/PushLayerSources.cpp src/engine/PushLayerSourcesShape.cpp src/engine/PushAuxAudio.cpp src/engine/PushAuxFifo.cpp src/engine/PushQuality.cpp src/engine/PushQualityProbe.cpp src/engine/PushInputLatency.cpp src/engine/PushInputLatencyProbe.cpp)
+  add_library(veyra_engine STATIC src/engine/EngineController.cpp src/engine/EngineWatchdog.cpp src/engine/PreviewGpuSession.cpp src/engine/EngineControllerImage.cpp src/engine/PosterFrame.cpp src/engine/EffectChain.cpp src/engine/PresetLibrary.cpp src/ui/PlayerUiFacade.cpp src/engine/TiledImageProcessor.cpp src/engine/PresetStore.cpp src/engine/VideoPresenter.cpp src/engine/DisplayStateService.cpp src/engine/VideoExportJob.cpp src/engine/ExportStreams.cpp src/engine/ExportQueue.cpp src/engine/ExportJobManager.cpp src/engine/Subtitles.cpp src/engine/FgCompatibilityProbe.cpp src/engine/LiveRecorder.cpp src/engine/PushPartWriter.cpp src/engine/ReplayBuffer.cpp src/engine/MicrophoneCapture.cpp src/engine/PushHud.cpp src/engine/PushHudSampler.cpp src/engine/RecordingCompare.cpp src/engine/RecordingComparePlan.cpp src/engine/LiveStream.cpp src/engine/Mp4Finalize.cpp src/engine/PushAudioMix.cpp src/engine/PushStreamOverlay.cpp src/engine/PushLayerSources.cpp src/engine/PushLayerSourcesShape.cpp src/engine/PushAuxAudio.cpp src/engine/PushAuxFifo.cpp src/engine/PushQuality.cpp src/engine/PushQualityProbe.cpp src/engine/PushInputLatency.cpp src/engine/PushInputLatencyProbe.cpp)
   target_sources(veyra_pipeline PRIVATE src/guidance/AmdOpticalFlow.cpp
     src/guidance/GpuDisOpticalFlow.cpp third_party/gpu-dis/src/gpu/native_strict_dis_provider.cpp)
   target_include_directories(veyra_pipeline PRIVATE third_party/gpu-dis/src/gpu)
@@ -2001,6 +2005,12 @@ add_executable(veyra_sr_reconstruction_tests tests/integration/SrReconstructionT
   target_compile_options(veyra_mp4_finalize_tests PRIVATE /utf-8)
   target_include_directories(veyra_mp4_finalize_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${FFMPEG_INCLUDE_DIRS})
   target_link_libraries(veyra_mp4_finalize_tests PRIVATE ${FFMPEG_LIBRARIES})
+  # PushFPS: a recording in parts, cut without a gap: the files themselves (engine/PushPartWriter.h).
+  add_executable(veyra_push_part_writer_tests tests/unit/PushPartWriterTests.cpp src/engine/PushPartWriter.cpp src/engine/Mp4Finalize.cpp)
+  target_compile_features(veyra_push_part_writer_tests PRIVATE cxx_std_20)
+  target_compile_options(veyra_push_part_writer_tests PRIVATE /utf-8)
+  target_include_directories(veyra_push_part_writer_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${FFMPEG_INCLUDE_DIRS})
+  target_link_libraries(veyra_push_part_writer_tests PRIVATE ${FFMPEG_LIBRARIES})
   add_executable(veyra_vfg_export_probe tests/integration/VfgExportProbe.cpp)
   target_compile_features(veyra_vfg_export_probe PRIVATE cxx_std_20)
   target_compile_options(veyra_vfg_export_probe PRIVATE /utf-8)

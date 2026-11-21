@@ -49,7 +49,7 @@ struct RecordingSettings {
     // presented picture's), where the game picture sits on it, and new files every N minutes.
     uint32_t outputWidth=0,outputHeight=0;
     PushCanvas canvas;
-    uint32_t splitMinutes=0;     // recordings only; 0: one file
+    uint32_t splitMinutes=0;     // recordings only; 0: one file. A part ends at the first keyframe from this long on
     bool hevc=false;             // H.264 unless chosen; HDR always records HEVC 10-bit
     uint32_t fpsLimit=0;         // 0: every presented frame
     bool audio=true;             // record the sound the player plays
@@ -81,8 +81,10 @@ struct RecordingSettings {
     uint32_t compareMaxHeight=0;
     double compareRevealSeconds=3.0;  // Reveal: a sweep starts every so many seconds (compareRevealInterval)
     RecordingLabelRenderer compareLabels; // optional labels, called per file on the engine thread
-    // Recordings in parts by size too: 0 = no limit; a part can pass the size by about a second of video,
-    // and the next part starts as splitMinutes' parts do (a new file, -2, -3, ...).
+    // Recordings in parts by size too: 0 = no limit. A part ends at a keyframe before it would pass the
+    // size (PushRecordParts.h), and the next part starts as splitMinutes' parts do (a new file, -2, -3, ...).
+    // The parts follow each other without a gap: one encoder runs through all of them, the next part
+    // starts with the keyframe the part before it ended at, and no picture or sound is left out.
     uint64_t splitBytes=0;
     // Instant replay recorder only.
     uint32_t replaySeconds=60;   // how much the buffer keeps
@@ -96,6 +98,7 @@ struct RecordingStatus {
     bool failed=false;           // the last recording stopped on an error
     bool finishing=false;        // a file is still being finished in the background
     std::wstring path;           // the file being written, or the last one finished
+    std::wstring savedPath;      // PushFPS: the last file that is finished (a part of the recording in progress, or its last file)
     std::wstring error;          // why the last recording failed
     std::wstring encoder;        // e.g. "NVIDIA NVENC H.264"
     std::wstring note;           // stop reason or a new-file note, for the interface

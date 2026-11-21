@@ -1180,6 +1180,54 @@
     }
    ],
    "needs_hardware": "A real PC: a game's own text at 1080p and 4K, SDR and HDR, in the languages Windows has; the local model started for one text and let go again; what a reading costs while frame generation runs. CI reads drawn text only, and only where the runner has a recognition language."
+  },
+  {
+   "id": "F46",
+   "what": "A recording in parts is cut without a gap: one encoder runs through every part, a part ends at a keyframe and the next starts with that keyframe, every picture and every sound packet is in exactly one part, by size a part ends before the size is passed, and a recording that is not cut is byte for byte the file it always was",
+   "guards": [
+    {
+     "file": "tests/unit/PushRecordPartsTests.cpp",
+     "ci": "veyra_push_record_parts_tests",
+     "contains": "A microphone's sound reaches the writer after the picture of the same moment. The older part"
+    },
+    {
+     "file": "tests/unit/PushRecordPartsTests.cpp",
+     "ci": "veyra_push_record_parts_tests",
+     "contains": "by size: a part ends before the size, never after"
+    },
+    {
+     "file": "tests/unit/PushRecordPartsTests.cpp",
+     "ci": "veyra_push_record_parts_tests",
+     "contains": "For the first part, whose file is closed by now: counted, never written into the second."
+    },
+    {
+     "file": "tests/unit/PushPartWriterTests.cpp",
+     "ci": "veyra_push_part_writer_tests",
+     "contains": "CHECK(!a.empty() && a == b);"
+    },
+    {
+     "file": "tests/unit/PushPartWriterTests.cpp",
+     "ci": "veyra_push_part_writer_tests",
+     "contains": "Every picture and every sound packet of `m` is in exactly one part, in order and unchanged;"
+    },
+    {
+     "file": "tests/unit/PushPartWriterTests.cpp",
+     "ci": "veyra_push_part_writer_tests",
+     "contains": "if (tame) CHECK(under);"
+    },
+    {
+     "file": "src/engine/PushPartWriter.cpp",
+     "contains": "originUs ? \"frag_keyframe+delay_moov+default_base_moof\" : \"frag_keyframe+empty_moov+default_base_moof\""
+    },
+    {
+     "file": "src/engine/LiveRecorder.cpp",
+     "contains": "const bool limitToVideo=partLimits.any()&&!replay&&!outputs;"
+    },
+    {
+     "file": "include/veyra/engine/PushRecordParts.h",
+     "contains": "if (limits_.afterBytes > 0 && bytesNow() + reserveFor(largestGroup()) > limits_.afterBytes) return true;"
+    }
+   ]
   }
  ]
 }
