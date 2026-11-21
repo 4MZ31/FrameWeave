@@ -161,7 +161,7 @@ QString translatePieces(const CatalogTranslator& t, const QString& s, int depth)
 } // namespace
 
 QString resolve(const QString& preference) {
-    static const QStringList known{QStringLiteral("zh-CN"), QStringLiteral("zh-TW"), QStringLiteral("en"), QStringLiteral("ja"),
+    static const QStringList known{QStringLiteral("zh-CN"), QStringLiteral("zh-TW"), QStringLiteral("en"), QStringLiteral("ja"), QStringLiteral("ko"),
         // PushFPS: machine-translated languages; an entry they lack shows the English text.
         QStringLiteral("nl"), QStringLiteral("de"), QStringLiteral("es"), QStringLiteral("fr"), QStringLiteral("it"),
         QStringLiteral("pt-BR"), QStringLiteral("tr"), QStringLiteral("ar"), QStringLiteral("pl"), QStringLiteral("ru")};
@@ -174,6 +174,7 @@ QString resolve(const QString& preference) {
         return traditional ? QStringLiteral("zh-TW") : QStringLiteral("zh-CN");
     }
     if (system.language() == QLocale::Japanese) return QStringLiteral("ja");
+    if (system.language() == QLocale::Korean) return QStringLiteral("ko");
     switch (system.language()) {
     case QLocale::Dutch: return QStringLiteral("nl");
     case QLocale::German: return QStringLiteral("de");

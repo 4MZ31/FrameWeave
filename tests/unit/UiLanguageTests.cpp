@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     // PushFPS: these languages are machine-translated here (scripts/i18n), and upstream's own wording for them
     // is not ours. So the test asks that the word is translated in each language PushFPS offers, not which
     // word was chosen.
-    for (const char* codeText : {"es", "fr", "de", "pt-BR", "ru", "nl", "it", "tr", "pl", "ar"}) {
+    for (const char* codeText : {"es", "fr", "de", "pt-BR", "ru", "nl", "it", "tr", "pl", "ar", "ko"}) {
         const auto code = QString::fromLatin1(codeText);
         expect(i18n::resolve(code), code, "explicit language");
         if (!i18n::apply(code)) return 1;

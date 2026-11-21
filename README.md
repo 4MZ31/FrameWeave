@@ -131,7 +131,7 @@ that, PushFPS adds what console players need:
 | **Share clips** | Saved recordings and instant replays go to Discord in one click |
 | **OBS Studio plugin** | Your boosted picture as a source in OBS |
 | **Tested capture cards** | Which cards are known to work, shown in the app |
-| **14 languages** | English, 简体中文, 繁體中文, 日本語, Nederlands, Deutsch, Español, Français, Italiano, Português (Brasil), Türkçe, Polski, Русский, العربية |
+| **15 languages** | English, 简体中文, 繁體中文, 日本語, 한국어, Nederlands, Deutsch, Español, Français, Italiano, Português (Brasil), Türkçe, Polski, Русский, العربية |
 | **Your colours** | Six backgrounds (graphite, black for OLED screens, light, midnight, plum, forest), seven accent colours and a high contrast look |
 | **Plug and play** | Connects to your capture card when PushFPS opens and goes fullscreen when the picture appears (both optional) |
 | **Measure total delay** | A guided slow-motion phone test that shows the whole delay PushFPS adds over your capture card's passthrough |
@@ -950,8 +950,8 @@ RTX Video Super Resolution upscale it. Which card to buy (5 Gbps, 10 Gbps, PCIe)
 
 ## Languages and appearance
 
-**Settings → Language** has 14 languages: English, Simplified and Traditional Chinese, Japanese, Dutch,
-German, Spanish, French, Italian, Portuguese (Brazil), Turkish, Polish, Russian and Arabic. *Automatic*
+**Settings → Language** has 15 languages: English, Simplified and Traditional Chinese, Japanese, Korean,
+Dutch, German, Spanish, French, Italian, Portuguese (Brazil), Turkish, Polish, Russian and Arabic. *Automatic*
 follows your Windows language.
 
 In the ten newest (Dutch to Arabic) every button, menu and setting name and all PushFPS feature texts are

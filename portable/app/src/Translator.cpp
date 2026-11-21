@@ -12,7 +12,7 @@ namespace pushfps {
 
 QStringList CatalogTranslator::codes() {
     return {QStringLiteral("zh-CN"), QStringLiteral("zh-TW"), QStringLiteral("en"), QStringLiteral("ja"),
-            QStringLiteral("nl"), QStringLiteral("de"), QStringLiteral("es"), QStringLiteral("fr"),
+            QStringLiteral("ko"), QStringLiteral("nl"), QStringLiteral("de"), QStringLiteral("es"), QStringLiteral("fr"),
             QStringLiteral("it"), QStringLiteral("pt-BR"), QStringLiteral("tr"), QStringLiteral("ar"),
             QStringLiteral("pl"), QStringLiteral("ru")};
 }
@@ -28,6 +28,7 @@ QString CatalogTranslator::resolve(const QString& preference) {
     }
     switch (system.language()) {
     case QLocale::Japanese: return QStringLiteral("ja");
+    case QLocale::Korean: return QStringLiteral("ko");
     case QLocale::Dutch: return QStringLiteral("nl");
     case QLocale::German: return QStringLiteral("de");
     case QLocale::Spanish: return QStringLiteral("es");

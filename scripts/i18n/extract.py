@@ -20,7 +20,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CATALOG = ROOT / 'i18n/catalog.json'
-LANGS = ('zh-TW', 'en', 'ja', 'nl', 'de', 'es', 'fr', 'it', 'pt-BR', 'tr', 'ar', 'pl', 'ru')
+# zh-TW, en, ja and ko are written by hand in the catalog; the others have hand-written short labels
+# (scripts/i18n/hand) and machine-translated long texts.
+LANGS = ('zh-TW', 'en', 'ja', 'ko', 'nl', 'de', 'es', 'fr', 'it', 'pt-BR', 'tr', 'ar', 'pl', 'ru')
 HAN = re.compile('[一-鿿]')
 ESC = {'n': '\n', 't': '\t', '"': '"', "'": "'", '\\': '\\', '0': '\0'}
 

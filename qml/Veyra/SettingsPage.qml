@@ -448,6 +448,7 @@ VPage {
                                     { id: "zh-TW", label: qsTr("繁體中文") },
                                     { id: "en", label: "English" },
                                     { id: "ja", label: qsTr("日本語") },
+                                    { id: "ko", label: "한국어" },
                                     // PushFPS: machine-translated (scripts/i18n/machine_translate.py).
                                     { id: "nl", label: "Nederlands" },
                                     { id: "de", label: "Deutsch" },

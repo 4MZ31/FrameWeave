@@ -478,7 +478,7 @@ QStringList AppController::languageCodes() const {
 QStringList AppController::languageNames() const {
     // Each language in its own name; the first entry is translated.
     return {tr("跟随系统"), QStringLiteral("简体中文"), QStringLiteral("繁體中文"), QStringLiteral("English"),
-            QStringLiteral("日本語"), QStringLiteral("Nederlands"), QStringLiteral("Deutsch"), QStringLiteral("Español"),
+            QStringLiteral("日本語"), QStringLiteral("한국어"), QStringLiteral("Nederlands"), QStringLiteral("Deutsch"), QStringLiteral("Español"),
             QStringLiteral("Français"), QStringLiteral("Italiano"), QStringLiteral("Português (Brasil)"), QStringLiteral("Türkçe"),
             QStringLiteral("العربية"), QStringLiteral("Polski"), QStringLiteral("Русский")};
 }
