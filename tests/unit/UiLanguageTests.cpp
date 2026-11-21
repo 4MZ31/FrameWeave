@@ -55,9 +55,12 @@ int main(int argc, char** argv) {
     // Unknown text and paths come back unchanged.
     expect(i18n::text(QStringLiteral("D:/视频/我的片子.mkv")), QStringLiteral("D:/视频/我的片子.mkv"), "path untouched");
 
-    // Korean is upstream's; PushFPS does not offer it (its own texts have no Korean), so a saved "ko" is not
-    // kept as a language of its own.
-    if (i18n::resolve(QStringLiteral("ko")) == QStringLiteral("ko")) { ++failures; std::printf("FAIL Korean is not a PushFPS language\n"); }
+    // Korean is a PushFPS language since 4.2 (every text has its Korean): a saved "ko" is kept, and an
+    // entry reads in Korean through Qt's own translate().
+    expect(i18n::resolve(QStringLiteral("ko")), QStringLiteral("ko"), "Korean is offered");
+    if (!i18n::apply(QStringLiteral("ko"))) { std::printf("FAIL catalog did not load for Korean\n"); return 1; }
+    expect(QCoreApplication::translate("Any", "导出完成"), QStringLiteral("내보내기 완료"), "Korean via translator");
+    expect(i18n::text(QStringLiteral("帧生成")), QStringLiteral("프레임 생성"), "Korean text()");
     i18n::apply(QStringLiteral("en"));
     expect(QCoreApplication::translate("Any", "导出完成"), QStringLiteral("Export finished"), "English after the other languages");
 
