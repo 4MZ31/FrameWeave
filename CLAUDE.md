@@ -178,7 +178,11 @@ and edits would conflict on every merge.
 
 - After any QML change, `tests/qml/quick` runs in CI (`tst_push_*.qml` in their own step, then the whole suite: a failure in either
   fails the build; the fixture all of them share is one QML object in `tests/qml/QuickSmokeTests.cpp`, and a
-  property declared twice there stops every test at start) and the install test opens every main page and fails on `[ERROR] [qml]`. Two things a dialog's
+  property declared twice there stops every test at start, as does a `signal xChanged()` beside `property x`,
+  which already has that signal: `python3 -B scripts/checks/qml_fixture.py` finds both in a second and runs in
+  the checks workflow; the `qml-tests-fast` workflow runs the `tst_push_*.qml` tests on Linux in a few minutes
+  on every push to a work branch that touches `qml/` or `tests/qml/`, never on `main`: an early word, the
+  Windows build is the one that counts) and the install test opens every main page and fails on `[ERROR] [qml]`. Two things a dialog's
   test must wait for (`tryVerify(function() { … }, 3000)`), both met on 20 November 2026: a dialog fades
   in, so a row's `visible` is false for a moment after it opens; and a layout gives an item its new size
   at the next pass, not when the binding changes. A row's control is not the row's direct child: read the

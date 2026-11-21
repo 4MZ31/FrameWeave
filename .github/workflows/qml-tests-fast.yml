@@ -1,0 +1,91 @@
+name: qml-tests-fast
+
+# The PushFPS interface tests (tests/qml/quick) against the fixture bridge, on Linux, in a few minutes.
+#
+# The build that counts is build-windows: the same tests on Windows, about an hour in. This one says
+# early when the fixture does not load (one doubled name there stops every test at start: 21 November
+# 2026, found forty minutes into a build) or when a changed dialog's test fails. It runs on work
+# branches only, never on main: a difference between Linux and Windows must not look like a broken
+# release. A test that fails here and passes on Windows is a difference to note, not a fault.
+on:
+  push:
+    branches-ignore: [main, screenshots, screenshots-preview, screenshots-portable, i18n-mt]
+    paths:
+      - 'qml/**'
+      - 'tests/qml/**'
+      - '.github/workflows/qml-tests-fast.yml'
+  workflow_dispatch:
+    inputs:
+      only:
+        description: 'Which test files to run (a regular expression on the file name)'
+        required: false
+        default: '^tst_push_'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qml-tests-fast-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qml:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt 6.8.3
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          host: linux
+          target: desktop
+          arch: linux_gcc_64
+          cache: true
+
+      - name: Libraries Qt links and loads
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ninja-build libgl1-mesa-dev libxkbcommon-dev libegl1 libfontconfig1 libdbus-1-3
+
+      - name: Build the test program
+        run: |
+          cmake -S tests/qml/fast -B "$RUNNER_TEMP/qml-fast" -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qml-fast"
+
+      - name: Run the tests
+        env:
+          ONLY: ${{ github.event.inputs.only || '^tst_push_' }}
+          QT_QPA_PLATFORM: offscreen
+          QT_QUICK_BACKEND: software
+          QML_DISABLE_DISK_CACHE: '1'
+        run: |
+          stage="$RUNNER_TEMP/qml-stage"
+          mkdir -p "$stage"
+          cp "$RUNNER_TEMP/qml-fast/veyra_qml_quick_tests" "$stage/"
+          cp -r qml "$stage/qml"
+          cp -r tests/qml/quick "$stage/qml-tests"
+          cd "$stage"
+          failed=0
+          ran=0
+          for f in qml-tests/tst_*.qml; do
+            name=$(basename "$f" .qml)
+            if ! printf '%s' "$name" | grep -Eq -- "$ONLY"; then continue; fi
+            ran=$((ran+1))
+            code=0
+            timeout 600 ./veyra_qml_quick_tests -platform offscreen -input "$f" -o "$name.txt,txt" > "$name.log" 2>&1 || code=$?
+            totals=$(grep '^Totals:' "$name.txt" 2>/dev/null | tail -1 || true)
+            printf '%-34s exit %s  %s\n' "$name" "$code" "$totals"
+            if [ "$code" -ne 0 ] || ! printf '%s' "$totals" | grep -Eq 'Totals: [1-9][0-9]* passed, 0 failed'; then
+              failed=$((failed+1))
+              echo "::group::$name"
+              grep -A4 'FAIL!' "$name.txt" 2>/dev/null | head -60 || true
+              echo "--- what the program wrote"
+              tail -25 "$name.log" || true
+              echo "::endgroup::"
+            fi
+          done
+          echo "ran $ran, failed $failed"
+          if [ "$ran" -eq 0 ]; then echo "::error::no test file matched"; exit 1; fi
+          if [ "$failed" -ne 0 ]; then exit 1; fi

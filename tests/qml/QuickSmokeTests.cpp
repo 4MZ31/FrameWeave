@@ -331,7 +331,8 @@ QtObject {
     function pushNewControlToken() { controlTokensMade++; return true }
 )qml"
     R"qml(    // PushFPS reading the text on the picture (tst_push_read_text.qml). `readTextAnswer` is what a reading gives.
-    signal pushReadTextChanged()
+    // No `signal pushReadTextChanged()` here: the property brings its own change signal, and declaring it
+    // again is an error that stops every test at start.
     property var pushReadText: ({phase: "idle"})
     property var readTextAnswer: ({phase: "done", error: "", text: "New game\nOptions", count: 2, language: "en-US",
         lines: [{text: "New game", x: 0.1, y: 0.1, w: 0.2, h: 0.05}, {text: "Options", x: 0.1, y: 0.2, w: 0.2, h: 0.05}]})

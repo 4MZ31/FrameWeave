@@ -6,6 +6,7 @@
 #  4. Protected features (tests/protected-features.json): every test that guards a feature still exists
 #     and is still run by a workflow.
 #  5. Every workflow file is valid YAML.
+#  6. The interface tests' bridge object has no doubled name (scripts/checks/qml_fixture.py).
 name: checks
 
 on:
@@ -65,6 +66,11 @@ jobs:
           print('workflow files:', 'all parse' if not bad else f'{bad} broken')
           sys.exit(1 if bad else 0)
           PY
+
+      # The one QML object every interface test shares (tests/qml/QuickSmokeTests.cpp). When it does not
+      # load, no test runs, and the Windows build only says so forty minutes in.
+      - name: The interface tests' bridge loads
+        run: python3 -B scripts/checks/qml_fixture.py
 
       - name: PowerShell scripts parse
         shell: pwsh
