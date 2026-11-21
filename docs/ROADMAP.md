@@ -79,6 +79,18 @@ Not built in 4.1, on purpose: a new direct path for processed frames into a stre
 virtual camera and a custom RTMP output cover it today), and cutting a recording into parts without a gap
 between them (the recorder starts a new encoder between parts).
 
+## Done in 4.2
+
+- Comparison clips have a picture quality: standard, high (the default: a fixed quality instead of a fixed
+  bitrate) and near lossless, for every layout. With clip size 4K a split or reveal clip is a 4K clip that
+  is almost impossible to tell from the picture.
+- A recording in parts is cut without a gap: one encoder runs through the whole recording, a part ends at a
+  keyframe and the next starts with it, and a part by size ends before that size. Every part is a standard
+  MP4 by itself.
+- A quick tour for new users, from the capture card to the tools, offered once on a new install and always
+  there on the home page.
+- Korean, the fifteenth interface language.
+
 ## Next: can be built now, ships after it is measured
 
 These need card test results and performance reports from real cards before they are switched on by default.

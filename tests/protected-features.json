@@ -1228,6 +1228,91 @@
      "contains": "if (limits_.afterBytes > 0 && bytesNow() + reserveFor(largestGroup()) > limits_.afterBytes) return true;"
     }
    ]
+  },
+  {
+   "id": "F47",
+   "what": "A comparison clip's picture quality is a choice in every layout: High unless chosen, High and Near lossless are encoded at constant quality (levels 18 and 14), and Standard is the clip every earlier version made",
+   "guards": [
+    {
+     "file": "tests/unit/PushComparePlanTests.cpp",
+     "ci": "veyra_push_compare_plan_tests",
+     "contains": "check(compareClipQualityLevel(ComparePicture::Standard) == 0, \"standard is by bitrate, as every clip was\");"
+    },
+    {
+     "file": "tests/unit/PushComparePlanTests.cpp",
+     "ci": "veyra_push_compare_plan_tests",
+     "contains": "check(compareClipQualityLevel(ComparePicture::NearLossless) < compareClipQualityLevel(ComparePicture::High), \"a finer picture is a lower level\");"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_compare.qml",
+     "ci": "tst_push_compare",
+     "contains": "function test_picture_quality_is_a_choice_in_every_layout"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_compare.qml",
+     "ci": "tst_push_compare",
+     "contains": "// High unless chosen: a clip is made to be looked at closely."
+    },
+    {
+     "file": "src/engine/LiveRecorder.cpp",
+     "contains": "if(const uint32_t level=compareClipQualityLevel(segment->comparePicture)){"
+    },
+    {
+     "file": "src/ui/bridge/PushFps.cpp",
+     "contains": "options.comparePicture = uint32_t(std::clamp(impl_->prefInt(\"pushComparePicture\", 1), 0, 2));"
+    }
+   ]
+  },
+  {
+   "id": "F48",
+   "what": "The quick tour: PushFPS's own steps in the order a new user works, a step left out for what the PC does not offer, shown by itself only on a new install and never in a test run or to someone who already set PushFPS up, and it can always be left",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_tour.qml",
+     "ci": "tst_push_tour",
+     "contains": "function test_offered_by_itself_only_on_a_new_install"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_tour.qml",
+     "ci": "tst_push_tour",
+     "contains": "verify(!tour.offeredAtStart({ pushConsole: \"xbox\" }, {}), \"a console was chosen: not a new user\")"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_tour.qml",
+     "ci": "tst_push_tour",
+     "contains": "verify(!tour.offeredAtStart({}, { testRun: true }), \"never in a test or screenshot run\")"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_tour.qml",
+     "ci": "tst_push_tour",
+     "contains": "function test_leaving_early_with_escape_or_the_cross"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_tour.qml",
+     "ci": "tst_push_tour",
+     "contains": "function test_a_step_for_what_this_pc_does_not_offer_is_left_out"
+    }
+   ]
+  },
+  {
+   "id": "F49",
+   "what": "Korean is a whole interface language: every string has its Korean, and the check that counts missing translations counts it",
+   "guards": [
+    {
+     "file": "scripts/i18n/extract.py",
+     "ci": "extract.py --check",
+     "contains": "LANGS = ('zh-TW', 'en', 'ja', 'ko', 'nl', 'de', 'es', 'fr', 'it', 'pt-BR', 'tr', 'ar', 'pl', 'ru')"
+    },
+    {
+     "file": "tests/unit/UiLanguageTests.cpp",
+     "ci": "veyra_ui_i18n_tests",
+     "contains": "\"pl\", \"ar\", \"ko\"}"
+    },
+    {
+     "file": "src/ui/UiLanguage.cpp",
+     "contains": "if (system.language() == QLocale::Korean) return QStringLiteral(\"ko\");"
+    }
+   ]
   }
  ]
 }

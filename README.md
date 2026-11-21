@@ -121,7 +121,7 @@ that, PushFPS adds what console players need:
 | **Adaptive multiplier** | Follows the game when its frame rate drops, so the output stays even |
 | **Game presets** | GTA VI and other layouts in one click, with the minimap and HUD kept sharp. Save your own and share them as a code |
 | **Automatic HUD detection** | Watches your game for a few seconds and finds the minimap, health and ammo, so they are never interpolated. Correct the boxes by dragging them |
-| **Before/after comparison clips** | Records a clip of the console's own frame rate against PushFPS in four layouts: split screen, side by side, vertical 9:16 for TikTok, Shorts and Reels, or Reveal, where a line sweeps across the whole picture and uncovers PushFPS. From 10 seconds to 2 minutes or until you stop it, each side labelled with its frame rate; split and reveal clips at up to 4K |
+| **Before/after comparison clips** | Records a clip of the console's own frame rate against PushFPS in four layouts: split screen, side by side, vertical 9:16 for TikTok, Shorts and Reels, or Reveal, where a line sweeps across the whole picture and uncovers PushFPS. From 10 seconds to 2 minutes or until you stop it, each side labelled with its frame rate; picture quality up to near lossless, split and reveal clips at up to 4K |
 | **No capture card needed** | PS5 Remote Play, Moonlight (stream another PC through Sunshine) and Xbox streaming, with the same frame generation, from Veyra |
 | **Help on hard settings** | A small **?** beside settings that need explaining; hover it for a short summary |
 | **Quick setup** | Console, game frame rate and target frame rate instead of hundreds of settings, with console and game profiles |
@@ -645,7 +645,13 @@ or press the recording shortcut, in every layout), then **Start recording** (the
   3, 5 or 8 seconds. The dialog's preview plays it. Each badge is cut off at the line with its picture, so the
   label always says what you are looking at.
 
-**Clip quality** (split and reveal, the two layouts whose picture fills the frame): *Auto* records at the
+**Quality** (every layout, since 4.2): *Standard* is the standard bitrate, with smaller files for sharing
+straight away. *High*, the default, encodes at a fixed quality instead of a fixed bitrate, so detail stays clear
+and the picture clean however busy the scene gets. *Near lossless* is almost impossible to tell from the picture
+itself; its files are large (a 4K clip can take several GB a minute), so record to an SSD. For a 4K clip that
+looks lossless, choose *Clip size → 4K* and *Quality → Near lossless*.
+
+**Clip size** (split and reveal, the two layouts whose picture fills the frame): *Auto* records at the
 picture's own size, up to 1440p, as before. *1080p*, *1440p* and *4K* record at up to that height with a higher
 bitrate; a smaller picture is never enlarged. A comparison clip records every frame PushFPS shows, so 4K at a
 high frame rate needs a strong graphics card: if the card could not keep up, PushFPS says so when the clip ends
@@ -756,7 +762,9 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
 - **Output resolution**: recordings have their own size (the picture's, 4K, 1440p, 1080p, 720p, ultrawide
   3440 × 1440 or 2560 × 1080, vertical 1080 × 1920, 4:5 or square), separate from the stream. **Fit** keeps the whole picture with bars, **Fill**
   crops the edges, **Stretch** distorts.
-- **Split files** every 30, 60 or 120 minutes during long recordings, or by size, without stopping.
+- **Split files** every 30, 60 or 120 minutes during long recordings, or by size, without stopping. Since 4.2
+  the parts join without a gap: a part ends at a keyframe and the next starts with it, so no picture and no
+  sound is missing or doubled when you put them one after another. Each part is a standard MP4 by itself.
 - **PushFPS as a camera** (since 4.1): *Settings → Recording → Virtual camera* adds "PushFPS Virtual Camera" as
   a video device other programs can choose. It carries the whole processed picture, without full screen.
 - **Local control** (since 4.1): a button box or a script on the same PC can start and stop a recording, save
@@ -1169,6 +1177,8 @@ A measurement from your own card helps: [how to take one](docs/BENCHMARKING.md).
 - [x] 4.1: the picture with frame generation as in 3.2.10 again, Check my setup, reading and translating the
       text on the picture, clip markers, a vertical copy, local control, the virtual camera, help with capture
       cards, six backgrounds and seven accents, the interface in sections
+- [x] 4.2: picture quality for comparison clips up to near lossless, recordings in parts without a gap, a
+      quick tour for new users, Korean
 - [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)
@@ -1217,7 +1227,8 @@ PushFPS is built on **[Veyra](https://github.com/Likely7/Veyra-NRVideo)** by
 **[Likely7](https://github.com/Likely7)** (GPL-3.0). It started from Veyra on 2026-11-12 and is now its own
 project; Veyra's engine, capture support and streaming sources are still at its core. PushFPS 4.1 is built on
 Veyra 2.2.0, which brought the virtual camera, Dolby Vision, live translated subtitles, streams over RTP and
-UDP with timeshift, and the finer scaling to the window. Likely7 is on
+UDP with timeshift, and the finer scaling to the window; the quick tour's spotlight and the way a recording is
+cut into parts at a keyframe (4.2) come from it too. Likely7 is on
 [X](https://x.com/likely2002) and [YouTube](https://www.youtube.com/@Likely7Ai).
 
 ANR frame generation is **[Apex Neural Rendering](https://github.com/apex-compute/ANR)** by
