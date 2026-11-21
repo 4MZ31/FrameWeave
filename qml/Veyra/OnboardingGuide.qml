@@ -21,7 +21,9 @@ Popup {
     property int stepIndex: -1
     readonly property var step: steps[stepIndex]
     property rect spotlight: Qt.rect(0, 0, 0, 0)
-    readonly property var steps: [
+    // PushFPS: assignable. Main.qml gives the tour PushFPS's own steps (PushTour.qml); the list below
+    // is the engine release's and is what its own test walks through.
+    property var steps: [
         { target: "capture", title: qsTr("从采集卡开始"),
           detail: qsTr("在首页打开「采集卡」，进入 HDMI 画面的采集设置。") },
         { target: "device", title: qsTr("选择你接入的采集卡"),

@@ -957,6 +957,9 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
         } else if (a == QLatin1String("--intro-at") && hasValue) {
             // PushFPS screenshots: the startup intro held at this moment (milliseconds).
             testOptions.insert(QStringLiteral("introAt"), args.at(++i).toDouble());
+        } else if (a == QLatin1String("--tour") && hasValue) {
+            // PushFPS screenshots: the first-run tour open at this step (counted from 0).
+            testOptions.insert(QStringLiteral("tour"), args.at(++i).toInt());
         } else if (a == QLatin1String("--no-update-check")) {
             // PushFPS screenshots: no "new version" banner over the picture of a test build.
             testOptions.insert(QStringLiteral("noUpdateCheck"), true);

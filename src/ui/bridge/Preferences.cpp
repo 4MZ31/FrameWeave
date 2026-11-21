@@ -351,6 +351,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    "pushSmoothPacing", "pushSmoothPacing2",
                                    // PushFPS: the quick setup's G-SYNC row was used (driver profile checked, nothing left to set).
                                    "pushGsyncChecked",
+                                   // PushFPS: the first-run tour was shown (it offers itself once, on a new install).
+                                   "pushTourSeen",
                                    // PushFPS going live: sound and microphone in the stream.
                                    "streamAudio", "streamMic",
                                    // PushFPS streaming mode mixer: mutes and the microphone filters.

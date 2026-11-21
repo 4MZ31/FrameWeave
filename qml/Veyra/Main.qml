@@ -272,7 +272,7 @@ Window {
         visible: !root.fullscreen || root.page === "home" || root.page === "set" || root.quickPanelShown
         // Each page is shown while current or while sinking out; the sinking one
         // takes no input (.page.leave { pointer-events: none }).
-        HomePage { id: homePage; pageId: "home"; home: pages; topInset: dock.pinned && !homePage.sunset ? 40 : 0; onRequestPage: p => root.goPage(p) }
+        HomePage { id: homePage; pageId: "home"; home: pages; topInset: dock.pinned && !homePage.sunset ? 40 : 0; onRequestPage: p => root.goPage(p); onRequestOnboarding: root.startTour("home") }
         MinimalPage {
             id: minPage
             pageId: "min"
@@ -365,6 +365,40 @@ Window {
         }
     }
 
+    // PushFPS's first-run tour: its steps and when it is offered (PushTour.qml). The tour's own
+    // machinery (spotlight, card, keys) is the engine release's OnboardingGuide below.
+    PushTour { id: pushTour }
+    function startTour(source) {
+        if (onboarding.visible) return
+        dialogs.close()
+        root.goPage("home")
+        onboarding.steps = pushTour.steps({ enhance: homePage.tourOffers("enhance") })
+        veyra.logUi("push-tour", "start source=" + source + " steps=" + onboarding.steps.length)
+        // Offered by itself only once; from then on it starts when asked for.
+        if (veyra.preferences.pushTourSeen !== true) veyra.setPreference("pushTourSeen", true)
+        onboarding.start()
+    }
+    // A new install: once the home page is there and nothing else is in the way (no intro still
+    // playing, no dialog, nothing being opened), the tour starts by itself. Decided once a launch.
+    Timer {
+        id: tourOffer
+        interval: 700; repeat: true
+        running: Object.keys(root.test).length === 0
+        onTriggered: {
+            if (introLoader.active || root.page !== "home") return
+            stop()
+            if (dialogs.dialog !== "" || veyra.hasSource || veyra.openingSource) return
+            if (pushTour.offeredAtStart(veyra.preferences, { captureUsed: veyra.hasCaptureSession === true, testRun: false }))
+                root.startTour("first-run")
+        }
+    }
+    // --tour <step>: the tour open at one of its steps, for screenshots.
+    Timer {
+        interval: 1600
+        running: root.test.tour !== undefined
+        onTriggered: { root.startTour("test"); onboarding.goTo(Math.max(0, Math.min(onboarding.steps.length - 1, Number(root.test.tour)))) }
+    }
+
     OnboardingGuide {
         id: onboarding
         parent: root.contentItem
@@ -372,27 +406,25 @@ Window {
         property var savedProView
         property real savedCaptureScroll
         property real savedHomeScroll
+        property string savedFolded: ""
         targetFor: key => {
-            if (key === "capture") return { item: homePage.captureCard(), viewport: homePage.sourceViewport }
-            if (dialogs.dialog === "capture") return dialogs.captureSettings.onboardingTarget(key)
-            return proPage.onboardingTarget(key)
+            // PushFPS's steps: a place on the home page, or a row of the capture dialog.
+            if (pushTour.onHome(key)) return homePage.tourTarget(key)
+            if (pushTour.inDialog(key)) return dialogs.captureSettings.onboardingTarget(key)
+            return null
         }
         onAboutToShow: {
             savedProView = proPage.saveOnboardingView()
             savedCaptureScroll = dialogs.captureSettings.bodyViewport.contentY
             savedHomeScroll = homePage.sourceViewport.contentY
+            savedFolded = String(veyra.preferences.pushQuickFolded || "")
         }
         onStepRequested: step => {
             // Only the displayed page changes. The player, remembered page and
             // native video window stay in the same state as on the home page.
-            if (step.tab) {
-                dialogs.close()
-                proPage.showOnboardingStep(step)
-                root.shownPage = "pro"
-            } else {
-                root.shownPage = "home"
-                dialogs.dialog = step.target === "capture" ? "" : "capture"
-            }
+            root.shownPage = "home"
+            dialogs.dialog = pushTour.inDialog(step.target) ? "capture" : ""
+            if (pushTour.onHome(step.target)) homePage.showTourStep(step.target)
         }
         onAboutToHide: {
             dialogs.close()
@@ -400,6 +432,9 @@ Window {
             homePage.sourceViewport.contentY = savedHomeScroll
             root.shownPage = "home"
             proPage.restoreOnboardingView(savedProView)
+            // A section the tour opened to point at one of its rows is folded again.
+            if (String(veyra.preferences.pushQuickFolded || "") !== savedFolded) veyra.setPreference("pushQuickFolded", savedFolded)
+            veyra.logUi("push-tour", "closed at step " + (stepIndex + 1) + " of " + steps.length)
         }
         onClosed: if (root.page === "home" && dialogs.dialog === "") homePage.onboardingEntry.forceActiveFocus()
     }
@@ -1026,6 +1061,8 @@ Window {
         function onOverlayRestartSuggested(kind) { onboarding.close(); overlayRestart.kind = kind; overlayRestart.open() }
         function onNavigate(p) {
             onboarding.close()
+            // PushFPS: the first-run tour, asked for from anywhere.
+            if (p === "tour") { root.startTour("navigate"); return }
             // A dialog key opens the dialog; anything else is a page.
             if (p === "network" || p === "capture" || p === "ps5" || p === "moonlight" || p === "xbox" || p === "screen"
                 || p === "subtitle" || p === "translation" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud" || p === "latencyguide" || p === "crop" || p === "stream" || p === "compare" || p === "record" || p === "micfilters" || p === "layout" || p === "frameinput" || p === "qualitytest" || p === "latencytest" || p === "crash" || p === "cardtest" || p === "diagnose" || p === "readtext") {

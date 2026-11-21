@@ -11,12 +11,18 @@ import QtQuick.Effects
 VPage {
     id: root
     signal requestPage(string page)
-    // 2.2.0's guided tour (OnboardingGuide in Main.qml) asks the home page for these. PushFPS's home has its own
-    // layout and offers no tour yet: nothing emits the signal, and these keep the tour's calls harmless.
+    // The first-run tour (PushTour.qml; the tour itself is OnboardingGuide in Main.qml): asked for with the
+    // button under the cards, and what its steps on this page point at.
     signal requestOnboarding()
-    readonly property Item onboardingEntry: root
+    readonly property Item onboardingEntry: tourEntry
     readonly property alias sourceViewport: content
-    function captureCard() { return null }
+    // Whether this PC offers what a step is about (a step for something that is not there is left out).
+    function tourOffers(what) { return quickSetup.tourItem(what) !== null }
+    function tourTarget(key) {
+        const item = key === "capture" ? captureCard : quickSetup.tourItem(key)
+        return item ? { item: item, viewport: content } : null
+    }
+    function showTourStep(key) { quickSetup.showTourStep(key) }
     // Opens 画面与声音 and scrolls it into view (the screenshot run's `--tab tuning`).
     function showTuning() {
         tuning.open = true
@@ -452,6 +458,23 @@ VPage {
                     text: qsTr("播放地址…")
                     iconName: "cast"
                     onClicked: veyra.openNetworkDialog()
+                }
+                Rectangle { implicitWidth: 1; implicitHeight: 14; color: Theme.stroke2 }
+                // The first-run tour, whenever it is wanted again.
+                VButton {
+                    id: tourEntry
+                    objectName: "home-onboarding"
+                    ghost: true
+                    text: qsTr("查看新手引导")
+                    iconName: "info"
+                    activeFocusOnTab: true
+                    Accessible.role: Accessible.Button
+                    Accessible.name: text
+                    Accessible.onPressAction: clicked()
+                    Keys.onReturnPressed: clicked()
+                    Keys.onEnterPressed: clicked()
+                    Keys.onSpacePressed: clicked()
+                    onClicked: root.requestOnboarding()
                 }
             }
 

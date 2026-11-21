@@ -125,6 +125,21 @@ VGroup {
         }
     }
     readonly property var sectionItems: [secSetup, secFg, secPicture, secHud, secLatency, secStart]
+    // --- the first-run tour (PushTour.qml) ---------------------------------------
+    // What a step of the tour points at here, or null where this PC does not offer it (AI picture
+    // enhancement that cannot be switched on is not presented as a choice).
+    function tourItem(key) {
+        if (key === "console") return secSetup
+        if (key === "target") return targetRow
+        if (key === "enhance") return quick.nrPossible ? enhanceRow : null
+        if (key === "tools") return toolsGrid
+        return null
+    }
+    // Opens the section a step's row stands in: folded, the tour would point at nothing.
+    function showTourStep(key) {
+        const id = key === "console" ? "setup" : key === "target" ? "fg" : key === "enhance" ? "picture" : ""
+        if (id !== "" && !quick.sectionOpen(id)) quick.setSectionOpen(id, true)
+    }
     // What a section's title says beside it: the choice that matters most there, in words that exist already.
     function sectionSummary(id) {
         if (id === "setup") {
@@ -1042,6 +1057,7 @@ VGroup {
         open: quick.sectionOpen("fg")
         onToggled: open => quick.setSectionOpen("fg", open)
         VRow {
+            id: targetRow
             objectName: "pushfps-target-row"
             label: qsTr("目标帧率")
             help: qsTr("补帧后每秒显示的画面数。生成的帧插在两张真实画面之间，让运动更顺滑；手柄的反应速度不会因此变快")
@@ -1208,6 +1224,7 @@ VGroup {
         open: quick.sectionOpen("picture")
         onToggled: open => quick.setSectionOpen("picture", open)
         VRow {
+            id: enhanceRow
             objectName: "pushfps-enhance-row"
             label: qsTr("AI 画面增强")
             help: qsTr("用 AI 去掉采集卡压缩造成的色块和噪点，让细节更清楚。和补帧无关，可以单独开关")
