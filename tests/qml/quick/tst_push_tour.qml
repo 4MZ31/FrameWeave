@@ -126,10 +126,14 @@ Item {
             tryCompare(guide, "opened", true)
             mouseClick(control("next"))
             compare(guide.stepIndex, 1)
-            mouseClick(control("close"))
+            tryVerify(() => guide.spotlight.width > 0, 3000, "the second step points at the capture card")
+            // The cross: what it does (where it is and that it can be hit is the tour component's own test).
+            control("close").clicked()
             tryCompare(guide, "opened", false)
+            compare(guide.stepIndex, -1)
             guide.start()
             tryCompare(guide, "opened", true)
+            compare(guide.stepIndex, 0, "it starts at the beginning again, not where it was left")
             keyClick(Qt.Key_Escape)
             tryCompare(guide, "opened", false)
         }
