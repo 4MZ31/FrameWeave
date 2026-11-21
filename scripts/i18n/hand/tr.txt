@@ -1513,3 +1513,24 @@ zh:欢迎在 GitHub 上分享这张卡的使用结果|Bu kartın sizde nasıl ç
 zh:本机控制保存的令牌无法读取，已生成新的令牌：请在设置里重新复制|Kayıtlı yerel denetim belirteci okunamadı, bu yüzden yenisi oluşturuldu: Ayarlar'dan yeniden kopyalayın
 zh:FSR 4 ML 需要支持的 RX 9000 和驱动，不可用时自动改用 FSR 3.1|FSR 4 ML, desteklenen bir RX 9000 ve sürücü gerektirir; kullanılamadığında FSR 3.1'e geçer
 zh:60→30：每两帧保留一帧，游戏不足30帧时跳过重复画面。自动去除：检测并跳过重复画面。|60→30 her iki kareden birini tutar ve oyun 30 FPS'nin altına düştüğünde yinelenen görüntüleri atlar. Otomatik kaldırma yinelenen görüntüleri algılar ve atlar.
+zh:欢迎使用 PushFPS|PushFPS'e hoş geldiniz
+zh:用一分钟看一遍：接上采集卡，选好帧率，开始游戏。按 Esc 可以随时退出，以后在首页还能再看。|Nasıl işlediğini görmek için bir dakika: yakalama kartını bağlayın, kare hızını seçin ve oynayın. Esc ile turdan istediğiniz an çıkabilir, ana sayfadan yeniden açabilirsiniz.
+zh:主机的 HDMI 接到采集卡，采集卡接到这台电脑。点「采集卡」打开采集设置。|Konsolun HDMI'ı yakalama kartına, yakalama kartı da bu bilgisayara bağlanır. Ayarlarını açmak için Yakalama kartı'na tıklayın.
+zh:选好设备和格式后，在这里连接。画面出现后，剩下的都在首页的「快速设置」里。|Aygıt ve biçim seçildikten sonra buradan bağlanın. Görüntü geldiğinde geri kalan her şey ana sayfadaki Hızlı kurulum bölümündedir.
+zh:告诉 PushFPS 你玩的是什么|PushFPS'e ne oynadığınızı söyleyin
+zh:选你的主机和游戏本身的帧率。多数主机游戏是 30 FPS；选对了，重复的画面才会被去掉，补帧才干净。|Konsolunuzu ve oyunun kendi kare hızını seçin. Konsol oyunlarının çoğu 30 FPS'te çalışır. Doğru değerle yinelenen görüntüler kaldırılır ve kare üretimi temiz kalır.
+zh:选择目标帧率|Hedef kare hızını seçin
+zh:60、120，或者跟随显示器。PushFPS 在游戏的每两帧之间生成新的画面，补到这个帧率。|60, 120 ya da ekranınızın hızı. PushFPS bu kare hızına ulaşmak için oyunun her iki karesi arasında yeni kareler üretir.
+zh:想要更清晰、更有层次的画面，就打开它。风格和处理尺寸可以在下面调，不喜欢随时关掉。|Daha net ve daha derin bir görüntü için açın. Görünümü ve çalışma boyutu hemen altından ayarlanır, istediğiniz an kapatabilirsiniz.
+zh:常用工具都在这一排|Araçlar bu sırada
+zh:「为我的电脑优化」实测这台电脑并选出合适的设置；「检查我的设置」找出影响画质的地方；「游戏预设」让小地图和 HUD 保持清晰。这里还能录对比片段和开播。|Bilgisayarım için optimize et bu bilgisayarı ölçer ve ona uygun ayarları seçer. Ayarlarımı denetle görüntü kalitesini düşüren şeyleri bulur. Oyun hazır ayarları mini haritayı ve HUD’u net tutar. Karşılaştırma klipleri ve canlı yayın da buradan başlar.
+zh:可以开始了|Hazırsınız
+zh:更细的设置在专业模式里，录制和直播各有自己的页面。想再看一遍引导，点首页下方的「查看新手引导」。|Daha ince ayarlar Pro modundadır; kayıt ve yayının kendi sayfaları vardır. Bu turu yeniden görmek için ana sayfanın altındaki Hızlı turu aç’a tıklayın.
+zh:查看新手引导|Hızlı turu aç
+zh:片段尺寸|Klip boyutu
+zh:近无损|Neredeyse kayıpsız
+zh:标准码率：文件较小，适合直接分享|Standart bit hızı: daha küçük dosyalar, hemen paylaşmak için uygun
+zh:固定画质编码：细节清楚、画面干净，文件大小随画面内容变化|Sabit kalitede kodlanır: net ayrıntı ve temiz görüntü. Dosya boyutu ekrandakine göre değişir
+zh:几乎看不出和原画的差别。文件很大（4K 每分钟可达数 GB），建议录到固态硬盘|Ekrandakinden ayırt etmek zor. Dosyalar büyüktür (4K bir klip dakikada birkaç GB olabilir): bir SSD’ye kaydedin
+zh:长时间录制时每隔一段时间接着写入一个新文件；各段之间不丢画面也不丢声音，可以无缝接起来。单个文件更小，出问题时损失更少|Uzun bir kayıt belirli aralıklarla yeni bir dosyada devam eder. Parçalar arasında görüntü de ses de kaybolmaz, böylece kesintisiz birleşirler. Her dosya daha küçüktür ve bir sorun çıkarsa daha azı kaybedilir
+zh:文件快到这个大小时，在关键帧处接着写入新文件；各段之间不丢画面也不丢声音。0 表示关闭，下次录制时生效|Bir dosya bu boyuta yaklaştığında kayıt, bir anahtar karede yeni bir dosyada devam eder. Parçalar arasında görüntü de ses de kaybolmaz. 0 kapatır; bir sonraki kayıttan itibaren geçerlidir

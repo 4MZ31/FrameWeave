@@ -2347,6 +2347,23 @@
    "ru": "60→30 оставляет каждый второй кадр и пропускает повторяющиеся изображения, когда игра опускается ниже 30 FPS. Автоматическое удаление находит повторяющиеся изображения и пропускает их."
   },
   {
+   "zh": "60、120，或者跟随显示器。PushFPS 在游戏的每两帧之间生成新的画面，补到这个帧率。",
+   "src": "qml/PushTour.qml",
+   "zh-TW": "60、120，或跟隨顯示器。PushFPS 在遊戲的每兩幀之間生成新的畫面，補到這個幀率。",
+   "en": "60, 120, or whatever your display runs at. PushFPS makes new frames between every two frames of the game to reach it.",
+   "ja": "60、120、またはディスプレイに合わせます。PushFPS はゲームの 2 フレームごとの間に新しいフレームを作り、このフレームレートまで補います。",
+   "nl": "60, 120, of wat je beeldscherm aankan. PushFPS maakt nieuwe frames tussen elke twee frames van de game om die framerate te halen.",
+   "de": "60, 120 oder so viel, wie der Bildschirm schafft. PushFPS erzeugt zwischen je zwei Bildern des Spiels neue Bilder, um diese Bildrate zu erreichen.",
+   "es": "60, 120 o lo que dé tu pantalla. PushFPS crea fotogramas nuevos entre cada dos fotogramas del juego para alcanzarla.",
+   "fr": "60, 120, ou ce que votre écran affiche. PushFPS crée de nouvelles images entre deux images du jeu pour l'atteindre.",
+   "it": "60, 120 o quanto regge il tuo schermo. PushFPS crea nuovi fotogrammi tra ogni due fotogrammi del gioco per raggiungerla.",
+   "pt-BR": "60, 120 ou o que a sua tela exibir. O PushFPS cria quadros novos entre cada dois quadros do jogo para chegar a essa taxa.",
+   "tr": "60, 120 ya da ekranınızın hızı. PushFPS bu kare hızına ulaşmak için oyunun her iki karesi arasında yeni kareler üretir.",
+   "ar": "60 أو 120 أو ما تعمل به شاشتك. يولّد PushFPS إطارات جديدة بين كل إطارين من اللعبة للوصول إلى هذا المعدل.",
+   "pl": "60, 120 albo tyle, ile wyświetla ekran. PushFPS tworzy nowe klatki między każdymi dwiema klatkami gry, aby osiągnąć tę wartość.",
+   "ru": "60, 120 или столько, сколько показывает ваш экран. PushFPS создаёт новые кадры между каждыми двумя кадрами игры, чтобы достичь этой частоты."
+  },
+  {
    "zh": "8 位 4:2:0 · SDR，所需带宽较低。",
    "src": "qml/OnboardingGuide.qml",
    "zh-TW": "8 位元 4:2:0 · SDR，所需頻寬較低。",
@@ -9487,6 +9504,23 @@
    "ru": ". Аппаратное декодирование может не выделять память, особенно для 4K. Перезагрузите плеер; если он повторяется, выберите декодирование программного обеспечения в настройках"
   },
   {
+   "zh": "「为我的电脑优化」实测这台电脑并选出合适的设置；「检查我的设置」找出影响画质的地方；「游戏预设」让小地图和 HUD 保持清晰。这里还能录对比片段和开播。",
+   "src": "qml/PushTour.qml",
+   "zh-TW": "「為我的電腦最佳化」實測這台電腦並選出合適的設定；「檢查我的設定」找出影響畫質的地方；「遊戲預設」讓小地圖和 HUD 保持清晰。這裡還能錄對比片段和開播。",
+   "en": "Optimise for my PC measures this PC and picks settings that suit it. Check my setup finds what is costing picture quality. Game presets keep the minimap and HUD sharp. Comparison clips and going live start here too.",
+   "ja": "「この PC に最適化」はこの PC を実際に測定して合う設定を選びます。「設定をチェック」は画質を下げている箇所を見つけます。「ゲームプリセット」はミニマップと HUD をくっきり保ちます。比較クリップの録画と配信もここから始められます。",
+   "nl": "Optimaliseren voor mijn pc meet deze pc en kiest instellingen die erbij passen. Mijn instellingen controleren vindt wat beeldkwaliteit kost. Gamepresets houden de minimap en de HUD scherp. Vergelijkingsclips en live gaan beginnen hier ook.",
+   "de": "„Für meinen PC optimieren“ misst diesen PC und wählt passende Einstellungen. „Meine Einstellungen prüfen“ findet, was Bildqualität kostet. „Spiel-Presets“ halten Minikarte und HUD scharf. Auch Vergleichsclips und das Streamen beginnen hier.",
+   "es": "Optimizar para mi PC mide este PC y elige los ajustes que le convienen. Comprobar mi configuración encuentra lo que resta calidad de imagen. Preajustes de juegos mantiene nítidos el minimapa y el HUD. Los clips comparativos y la emisión en directo también empiezan aquí.",
+   "fr": "« Optimiser pour mon PC » mesure ce PC et choisit les réglages qui lui conviennent. « Vérifier mes réglages » trouve ce qui coûte en qualité d'image. « Préréglages de jeux » garde la mini-carte et le HUD nets. Les clips comparatifs et la diffusion en direct se lancent aussi ici.",
+   "it": "Ottimizza per il mio PC misura questo PC e sceglie le impostazioni adatte. Controlla le mie impostazioni trova ciò che riduce la qualità dell'immagine. Preset di gioco mantiene nitidi la minimappa e l'HUD. Anche le clip di confronto e la diretta partono da qui.",
+   "pt-BR": "Otimizar para o meu PC mede este PC e escolhe as configurações adequadas. Verificar minha configuração encontra o que está custando qualidade de imagem. Predefinições de jogos mantêm o minimapa e o HUD nítidos. Os clipes comparativos e a transmissão ao vivo também começam aqui.",
+   "tr": "Bilgisayarım için optimize et bu bilgisayarı ölçer ve ona uygun ayarları seçer. Ayarlarımı denetle görüntü kalitesini düşüren şeyleri bulur. Oyun hazır ayarları mini haritayı ve HUD’u net tutar. Karşılaştırma klipleri ve canlı yayın da buradan başlar.",
+   "ar": "«تحسين لجهازي» يقيس هذا الحاسوب ويختار الإعدادات المناسبة له. «فحص إعداداتي» يجد ما ينقص من جودة الصورة. «إعدادات الألعاب المسبقة» تُبقي الخريطة المصغّرة وواجهة اللعب واضحة. ومن هنا أيضًا تبدأ مقاطع المقارنة والبث المباشر.",
+   "pl": "„Optymalizuj pod mój PC” mierzy ten komputer i dobiera pasujące ustawienia. „Sprawdź moje ustawienia” znajduje to, co obniża jakość obrazu. „Presety gier” utrzymują ostrość minimapy i HUD-u. Stąd uruchomisz też klipy porównawcze i transmisję na żywo.",
+   "ru": "«Оптимизировать под мой ПК» измеряет этот ПК и подбирает подходящие настройки. «Проверить мои настройки» находит то, что снижает качество изображения. «Пресеты игр» сохраняют чёткость мини-карты и HUD. Отсюда же запускаются сравнительные клипы и трансляция."
+  },
+  {
    "zh": "「保持 HUD 清晰」已关闭：镜头移动时它可能让物体边缘破碎。需要时可在快速设置里重新开启",
    "src": "src/ui/QmlPlayerBridge.cpp",
    "zh-TW": "「保持 HUD 清晰」已關閉：鏡頭移動時它可能讓物體邊緣破碎。需要時可在快速設定裡重新開啟",
@@ -12222,6 +12256,23 @@
    "ar": "جهاز ألعابك عبر بطاقة التقاط، يرفعه كمبيوترك إلى 60 أو 120 FPS",
    "pl": "Twoja konsola przez kartę przechwytującą, podbita przez PC do 60 lub 120 FPS",
    "ru": "Ваша консоль через карту захвата, разогнанная вашим ПК до 60 или 120 FPS"
+  },
+  {
+   "zh": "主机的 HDMI 接到采集卡，采集卡接到这台电脑。点「采集卡」打开采集设置。",
+   "src": "qml/PushTour.qml",
+   "zh-TW": "主機的 HDMI 接到擷取卡，擷取卡接到這台電腦。點「擷取卡」開啟擷取設定。",
+   "en": "The console's HDMI goes into the capture card, and the capture card into this PC. Click Capture card to open its settings.",
+   "ja": "ゲーム機の HDMI をキャプチャーカードに、キャプチャーカードをこの PC につなぎます。「キャプチャーカード」をクリックするとキャプチャー設定が開きます。",
+   "nl": "De HDMI van de console gaat naar de capturekaart, en de capturekaart naar deze pc. Klik op Capturekaart om de instellingen te openen.",
+   "de": "Das HDMI-Kabel der Konsole kommt an die Capture-Karte, die Capture-Karte an diesen PC. Ein Klick auf „Capture-Karte“ öffnet ihre Einstellungen.",
+   "es": "El HDMI de la consola va a la capturadora, y la capturadora a este PC. Haz clic en Capturadora para abrir sus ajustes.",
+   "fr": "Le HDMI de la console va dans la carte d'acquisition, et la carte d'acquisition dans ce PC. Cliquez sur « Carte d'acquisition » pour ouvrir ses réglages.",
+   "it": "L'HDMI della console va alla scheda di acquisizione, e la scheda di acquisizione a questo PC. Fai clic su Scheda di acquisizione per aprirne le impostazioni.",
+   "pt-BR": "O HDMI do console vai para a placa de captura, e a placa de captura para este PC. Clique em Placa de captura para abrir as configurações.",
+   "tr": "Konsolun HDMI'ı yakalama kartına, yakalama kartı da bu bilgisayara bağlanır. Ayarlarını açmak için Yakalama kartı'na tıklayın.",
+   "ar": "يوصَّل HDMI الخاص بالجهاز ببطاقة الالتقاط، وبطاقة الالتقاط بهذا الحاسوب. انقر على «بطاقة الالتقاط» لفتح إعداداتها.",
+   "pl": "HDMI konsoli podłącz do karty przechwytującej, a kartę do tego komputera. Kliknij „Karta przechwytująca”, aby otworzyć jej ustawienia.",
+   "ru": "HDMI консоли подключается к карте захвата, а карта захвата к этому ПК. Нажмите «Карта захвата», чтобы открыть её настройки."
   },
   {
    "zh": "主机的回应无法识别（不是 Sunshine / GameStream 主机？）。",
@@ -16815,6 +16866,23 @@
    "ru": "Уменьшите дальнейшее затемнение тени, сохраняя более яркие детали"
   },
   {
+   "zh": "几乎看不出和原画的差别。文件很大（4K 每分钟可达数 GB），建议录到固态硬盘",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "幾乎看不出和原畫的差別。檔案很大（4K 每分鐘可達數 GB），建議錄到固態硬碟",
+   "en": "Hard to tell from what was on screen. The files are large (a 4K clip can be several GB a minute): record to an SSD",
+   "ja": "画面に映っていたものとほとんど見分けがつきません。ファイルは大きくなります（4K では 1 分あたり数 GB になることがあります）。SSD への録画をおすすめします",
+   "nl": "Nauwelijks te onderscheiden van wat er op het scherm stond. De bestanden zijn groot (een 4K-clip kan enkele GB per minuut zijn): neem op naar een SSD",
+   "de": "Kaum von dem zu unterscheiden, was auf dem Bildschirm war. Die Dateien sind groß (ein 4K-Clip kann mehrere GB pro Minute haben): auf eine SSD aufnehmen",
+   "es": "Difícil de distinguir de lo que había en pantalla. Los archivos son grandes (un clip 4K puede ocupar varios GB por minuto): graba en un SSD",
+   "fr": "Difficile à distinguer de ce qui était à l'écran. Les fichiers sont volumineux (un clip 4K peut faire plusieurs Go par minute) : enregistrez sur un SSD",
+   "it": "Difficile da distinguere da ciò che era sullo schermo. I file sono grandi (una clip 4K può occupare diversi GB al minuto): registra su un SSD",
+   "pt-BR": "Difícil de distinguir do que estava na tela. Os arquivos são grandes (um clipe 4K pode ter vários GB por minuto): grave em um SSD",
+   "tr": "Ekrandakinden ayırt etmek zor. Dosyalar büyüktür (4K bir klip dakikada birkaç GB olabilir): bir SSD’ye kaydedin",
+   "ar": "يصعب تمييزه عمّا كان على الشاشة. الملفات كبيرة (قد يبلغ مقطع 4K عدة غيغابايت في الدقيقة): سجّل على قرص SSD",
+   "pl": "Trudna do odróżnienia od tego, co było na ekranie. Pliki są duże (klip 4K może zajmować kilka GB na minutę): nagrywaj na dysk SSD",
+   "ru": "Трудно отличить от того, что было на экране. Файлы большие (клип 4K может занимать несколько ГБ в минуту): записывайте на SSD"
+  },
+  {
    "zh": "出点 O",
    "src": "qml/ExportPage.qml",
    "zh-TW": "出點 O",
@@ -20572,6 +20640,23 @@
    "ru": "Можно сохранить"
   },
   {
+   "zh": "可以开始了",
+   "src": "qml/PushTour.qml",
+   "zh-TW": "可以開始了",
+   "en": "You're ready",
+   "ja": "準備完了です",
+   "nl": "Je bent klaar",
+   "de": "Es kann losgehen",
+   "es": "Todo listo",
+   "fr": "C'est prêt",
+   "it": "Tutto pronto",
+   "pt-BR": "Tudo pronto",
+   "tr": "Hazırsınız",
+   "ar": "كل شيء جاهز",
+   "pl": "Gotowe",
+   "ru": "Всё готово"
+  },
+  {
    "zh": "可以用微信或支付宝扫码",
    "src": "qml/SponsorPanel.qml",
    "zh-TW": "可以用微信或支付寶掃碼",
@@ -21524,6 +21609,23 @@
    "ru": "Присутствует CPU P95: %1ms"
   },
   {
+   "zh": "告诉 PushFPS 你玩的是什么",
+   "src": "qml/PushTour.qml",
+   "zh-TW": "告訴 PushFPS 你玩的是什麼",
+   "en": "Tell PushFPS what you play",
+   "ja": "何で遊ぶかを PushFPS に伝える",
+   "nl": "Vertel PushFPS wat je speelt",
+   "de": "PushFPS sagen, was gespielt wird",
+   "es": "Dile a PushFPS a qué juegas",
+   "fr": "Dites à PushFPS à quoi vous jouez",
+   "it": "Di’ a PushFPS a cosa giochi",
+   "pt-BR": "Diga ao PushFPS o que você joga",
+   "tr": "PushFPS'e ne oynadığınızı söyleyin",
+   "ar": "أخبر PushFPS بما تلعبه",
+   "pl": "Powiedz PushFPS, w co grasz",
+   "ru": "Скажите PushFPS, во что вы играете"
+  },
+  {
    "zh": "命令槽等待",
    "src": "src/ui/bridge/Status.cpp",
    "zh-TW": "命令槽等待",
@@ -21760,6 +21862,23 @@
    "ar": "الخطوة الأخيرة دائمًا",
    "pl": "Zawsze ostatni krok",
    "ru": "Всегда последний шаг"
+  },
+  {
+   "zh": "固定画质编码：细节清楚、画面干净，文件大小随画面内容变化",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "固定畫質編碼：細節清楚、畫面乾淨，檔案大小隨畫面內容變化",
+   "en": "Encoded at a fixed quality: clear detail and a clean picture. The file's size follows what is on screen",
+   "ja": "固定品質でエンコード：細部がはっきりして映像がきれいです。ファイルサイズは映像の内容によって変わります",
+   "nl": "Gecodeerd op vaste kwaliteit: duidelijke details en een schoon beeld. De bestandsgrootte volgt wat er op het scherm staat",
+   "de": "Mit fester Qualität kodiert: klare Details und ein sauberes Bild. Die Dateigröße folgt dem Bildinhalt",
+   "es": "Codificado a calidad fija: detalle claro e imagen limpia. El tamaño del archivo depende de lo que haya en pantalla",
+   "fr": "Encodé à qualité fixe : détails nets et image propre. La taille du fichier suit ce qui est à l'écran",
+   "it": "Codificato a qualità fissa: dettagli chiari e immagine pulita. La dimensione del file segue ciò che è sullo schermo",
+   "pt-BR": "Codificado com qualidade fixa: detalhes claros e imagem limpa. O tamanho do arquivo acompanha o que está na tela",
+   "tr": "Sabit kalitede kodlanır: net ayrıntı ve temiz görüntü. Dosya boyutu ekrandakine göre değişir",
+   "ar": "ترميز بجودة ثابتة: تفاصيل واضحة وصورة نظيفة. حجم الملف يتبع ما يُعرض على الشاشة",
+   "pl": "Kodowanie ze stałą jakością: wyraźne szczegóły i czysty obraz. Rozmiar pliku zależy od tego, co jest na ekranie",
+   "ru": "Кодирование с постоянным качеством: чёткие детали и чистое изображение. Размер файла зависит от того, что на экране"
   },
   {
    "zh": "固定节点不能复制",
@@ -30823,6 +30942,23 @@
    "ru": "Справка"
   },
   {
+   "zh": "常用工具都在这一排",
+   "src": "qml/PushTour.qml",
+   "zh-TW": "常用工具都在這一排",
+   "en": "The tools are in this row",
+   "ja": "よく使うツールはこの列に",
+   "nl": "De hulpmiddelen staan in deze rij",
+   "de": "Die Werkzeuge stehen in dieser Reihe",
+   "es": "Las herramientas están en esta fila",
+   "fr": "Les outils sont sur cette ligne",
+   "it": "Gli strumenti sono in questa riga",
+   "pt-BR": "As ferramentas ficam nesta fileira",
+   "tr": "Araçlar bu sırada",
+   "ar": "الأدوات في هذا الصف",
+   "pl": "Narzędzia są w tym rzędzie",
+   "ru": "Инструменты находятся в этом ряду"
+  },
+  {
    "zh": "常见的是 RGB24，带宽更高。确实需要 RGB 或设备在该档只有 RGB 时再选。若自动去重一直报 60 帧，可以用 NV12 对照一下。",
    "src": "qml/CaptureGuideDialog.qml",
    "zh-TW": "常見的是 RGB24，頻寬需求較高。確實需要 RGB 或裝置在該模式只提供 RGB 時再選。若自動去除一直回報 60 幀，可以用 NV12 對照。",
@@ -34630,6 +34766,23 @@
    "ar": "For 4K60 HDR, I'd look at these cards",
    "pl": "For 4K60 HDR, I'd look at these cards",
    "ru": "Для 4K60 HDR Я бы посмотрел на эти карты"
+  },
+  {
+   "zh": "想要更清晰、更有层次的画面，就打开它。风格和处理尺寸可以在下面调，不喜欢随时关掉。",
+   "src": "qml/PushTour.qml",
+   "zh-TW": "想要更清晰、更有層次的畫面，就開啟它。風格和處理尺寸可以在下面調整，不喜歡隨時關掉。",
+   "en": "Switch it on for a clearer picture with more depth. Its look and working size are set just below, and it can be switched off at any time.",
+   "ja": "より鮮明で奥行きのある映像にしたいときはオンにします。仕上がりと処理サイズはすぐ下で調整でき、いつでもオフにできます。",
+   "nl": "Zet het aan voor een scherper beeld met meer diepte. De stijl en de werkgrootte stel je er net onder in, en je zet het uit wanneer je wilt.",
+   "de": "Einschalten für ein klareres Bild mit mehr Tiefe. Stil und Arbeitsgröße werden direkt darunter eingestellt, und es lässt sich jederzeit wieder ausschalten.",
+   "es": "Actívala para una imagen más nítida y con más profundidad. Su estilo y su tamaño de trabajo se ajustan justo debajo, y puedes desactivarla cuando quieras.",
+   "fr": "Activez-la pour une image plus nette avec plus de relief. Son rendu et sa taille de travail se règlent juste en dessous, et elle se désactive à tout moment.",
+   "it": "Attivalo per un'immagine più nitida e con più profondità. Lo stile e la dimensione di lavoro si regolano subito sotto, e puoi disattivarlo quando vuoi.",
+   "pt-BR": "Ative para uma imagem mais nítida e com mais profundidade. O estilo e o tamanho de trabalho são ajustados logo abaixo, e dá para desativar a qualquer momento.",
+   "tr": "Daha net ve daha derin bir görüntü için açın. Görünümü ve çalışma boyutu hemen altından ayarlanır, istediğiniz an kapatabilirsiniz.",
+   "ar": "شغّله للحصول على صورة أوضح وأكثر عمقًا. يُضبط مظهره وحجم المعالجة أسفله مباشرة، ويمكنك إيقافه في أي وقت.",
+   "pl": "Włącz, aby uzyskać wyraźniejszy obraz z większą głębią. Wygląd i rozmiar roboczy ustawisz tuż poniżej, a wyłączyć można je w każdej chwili.",
+   "ru": "Включите для более чёткого и объёмного изображения. Вид и рабочий размер настраиваются чуть ниже, а выключить можно в любой момент."
   },
   {
    "zh": "感谢观看",
@@ -39020,6 +39173,23 @@
    "ru": "Файла больше нет"
   },
   {
+   "zh": "文件快到这个大小时，在关键帧处接着写入新文件；各段之间不丢画面也不丢声音。0 表示关闭，下次录制时生效",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "檔案快到這個大小時，在關鍵幀處接著寫入新檔案；各段之間不丟畫面也不丟聲音。0 表示關閉，下次錄製時生效",
+   "en": "When a file gets close to this size, the recording continues in a new file at a keyframe. No picture and no sound is lost between the parts. 0 turns it off; applies from the next recording",
+   "ja": "ファイルがこのサイズに近づくと、キーフレームの位置で新しいファイルに続けて書き込みます。パートの間で映像も音も失われません。0 でオフ。次の録画から有効になります",
+   "nl": "Nadert een bestand deze grootte, dan gaat de opname bij een keyframe verder in een nieuw bestand. Tussen de delen gaat geen beeld en geen geluid verloren. 0 schakelt het uit; geldt vanaf de volgende opname",
+   "de": "Nähert sich eine Datei dieser Größe, wird die Aufnahme an einem Keyframe in einer neuen Datei fortgesetzt. Zwischen den Teilen geht weder Bild noch Ton verloren. 0 schaltet es aus; gilt ab der nächsten Aufnahme",
+   "es": "Cuando un archivo se acerca a este tamaño, la grabación continúa en un archivo nuevo en un fotograma clave. Entre las partes no se pierde imagen ni sonido. 0 lo desactiva; se aplica a partir de la próxima grabación",
+   "fr": "Quand un fichier approche de cette taille, l'enregistrement se poursuit dans un nouveau fichier sur une image clé. Aucune image ni aucun son n'est perdu entre les parties. 0 le désactive ; s'applique à partir du prochain enregistrement",
+   "it": "Quando un file si avvicina a questa dimensione, la registrazione prosegue in un nuovo file su un fotogramma chiave. Tra le parti non si perde né immagine né audio. 0 lo disattiva; vale dalla prossima registrazione",
+   "pt-BR": "Quando um arquivo chega perto deste tamanho, a gravação continua em um novo arquivo em um quadro-chave. Nenhuma imagem e nenhum som se perde entre as partes. 0 desativa; vale a partir da próxima gravação",
+   "tr": "Bir dosya bu boyuta yaklaştığında kayıt, bir anahtar karede yeni bir dosyada devam eder. Parçalar arasında görüntü de ses de kaybolmaz. 0 kapatır; bir sonraki kayıttan itibaren geçerlidir",
+   "ar": "عندما يقترب الملف من هذا الحجم يستمر التسجيل في ملف جديد عند إطار مفتاحي. لا تُفقد صورة ولا صوت بين الأجزاء. القيمة 0 توقفه؛ يسري من التسجيل التالي",
+   "pl": "Gdy plik zbliża się do tego rozmiaru, nagranie jest kontynuowane w nowym pliku od klatki kluczowej. Między częściami nie ginie ani obraz, ani dźwięk. 0 wyłącza; obowiązuje od następnego nagrania",
+   "ru": "Когда файл приближается к этому размеру, запись продолжается в новом файле с ключевого кадра. Между частями не теряются ни изображение, ни звук. 0 отключает; действует со следующей записи"
+  },
+  {
    "zh": "文件播放、字幕与截图的默认行为。",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "檔案播放、字幕與截圖的預設行為。",
@@ -39052,23 +39222,6 @@
    "ar": "شكل غير مدعم، بيانات متضررة، أو لا يوجد محتوى تحت العنوان الفرعي",
    "pl": "Nieobsługiwany format, uszkodzone dane lub brak zawartości podtytułu",
    "ru": "Неподдерживаемый формат, поврежденные данные или отсутствие субтитров"
-  },
-  {
-   "zh": "文件达到这个大小后，在下一个关键帧开始新文件，不中断录制。0 表示关闭，下次录制时生效",
-   "src": "qml/SettingsPage.qml",
-   "zh-TW": "檔案達到這個大小後，在下一個關鍵影格開始新檔案，不中斷錄製。0 表示關閉，下次錄製時生效",
-   "en": "When a file reaches this size, a new file starts at the next keyframe and recording carries on. 0 turns it off. Takes effect with the next recording",
-   "ja": "ファイルがこのサイズに達すると、次のキーフレームから新しいファイルに続けて録画します。0 でオフ。次の録画から有効です",
-   "nl": "Wanneer een bestand deze grootte bereikt, begint een nieuw bestand bij het volgende keyframe en de opname gaat door. 0 zet het uit. Neemt effect op bij de volgende opname",
-   "de": "Wenn eine Datei diese Größe erreicht, beginnt eine neue Datei beim nächsten Keyframe und die Aufzeichnung wird fortgesetzt. 0 schaltet es aus. Wirksam mit der nächsten Aufnahme",
-   "es": "Cuando un archivo alcanza este tamaño, un nuevo archivo comienza en el siguiente marco clave y la grabación continúa. 0 apagado. Efectúa con la próxima grabación",
-   "fr": "Quand un fichier atteint cette taille, un nouveau fichier commence à l'image clé suivante et l'enregistrement se poursuit. 0 l'éteint. prend effet avec le prochain enregistrement",
-   "it": "Quando un file raggiunge questa dimensione, un nuovo file inizia al prossimo keyframe e la registrazione continua. 0 lo spegne. Prende effetto con la successiva registrazione",
-   "pt-BR": "Quando um arquivo atinge este tamanho, um novo arquivo começa no próximo keyframe e a gravação continua. 0 desliga. Faz efeito com a próxima gravação",
-   "tr": "Bir dosya bu boyutuna ulaştığında, yeni bir dosya bir sonraki anahtar çerçevede başlar ve kayıt devam eder. 0 dışarı çıkıyor. Bir sonraki kayıt ile etkileniyor",
-   "ar": "وعندما يصل الملف إلى هذا الحجم، يبدأ ملف جديد في الحاسوب الرئيسي المقبل ويستمر التسجيل. لا أطفئه يبدأ نفاذه بالتسجيل التالي",
-   "pl": "Kiedy plik osiąga ten rozmiar, nowy plik rozpoczyna się przy następnej ramce klawiszowej i trwa nagrywanie. 0 wyłącza. Działa z następnym nagraniem",
-   "ru": "Когда файл достигает этого размера, новый файл начинается на следующем кейфрейме и запись продолжается. 0 выключает его. Вступает в силу со следующей записью"
   },
   {
    "zh": "文字太长，只翻译了开头的一部分",
@@ -39548,7 +39701,7 @@
   },
   {
    "zh": "无法写入录制文件头：",
-   "src": "src/engine/LiveRecorder.cpp",
+   "src": "src/engine/PushPartWriter.cpp",
    "zh-TW": "無法寫入錄製檔案標頭：",
    "en": "Could not write the recording header: ",
    "ja": "録画ヘッダーを書き込めません：",
@@ -39735,7 +39888,7 @@
   },
   {
    "zh": "无法创建录制封装器",
-   "src": "src/engine/LiveRecorder.cpp",
+   "src": "src/engine/PushPartWriter.cpp",
    "zh-TW": "無法建立錄製封裝器",
    "en": "Cannot create the recording muxer",
    "ja": "録画の封装器を作成できません",
@@ -39752,7 +39905,7 @@
   },
   {
    "zh": "无法创建录制文件：",
-   "src": "src/engine/LiveRecorder.cpp",
+   "src": "src/engine/PushPartWriter.cpp",
    "zh-TW": "無法建立錄製檔案：",
    "en": "Could not create the recording file: ",
    "ja": "録画ファイルを作成できません：",
@@ -39786,7 +39939,7 @@
   },
   {
    "zh": "无法创建录制视频流",
-   "src": "src/engine/LiveRecorder.cpp",
+   "src": "src/engine/PushPartWriter.cpp",
    "zh-TW": "無法建立錄製影片串流",
    "en": "Cannot create the recording video stream",
    "ja": "録画の映像ストリームを作成できません",
@@ -39803,7 +39956,7 @@
   },
   {
    "zh": "无法创建录制音频流",
-   "src": "src/engine/LiveRecorder.cpp",
+   "src": "src/engine/PushPartWriter.cpp",
    "zh-TW": "無法建立錄製音訊串流",
    "en": "Could not create the recording audio stream",
    "ja": "録画の音声ストリームを作成できません",
@@ -42641,6 +42794,23 @@
    "ru": "Шарпер"
   },
   {
+   "zh": "更细的设置在专业模式里，录制和直播各有自己的页面。想再看一遍引导，点首页下方的「查看新手引导」。",
+   "src": "qml/PushTour.qml",
+   "zh-TW": "更細的設定在專業模式裡，錄製和直播各有自己的頁面。想再看一遍導覽，點首頁下方的「查看新手導覽」。",
+   "en": "Finer settings are in Pro mode, and recording and streaming have pages of their own. To see this tour again, click Open the quick tour at the bottom of the home page.",
+   "ja": "より細かい設定はプロモードにあり、録画と配信にはそれぞれ専用のページがあります。このガイドをもう一度見るには、ホーム下部の「クイックガイドを見る」をクリックします。",
+   "nl": "Fijnere instellingen staan in de Pro-modus, en opnemen en streamen hebben hun eigen pagina's. Wil je deze rondleiding nog eens zien, klik dan op Korte rondleiding openen onderaan de startpagina.",
+   "de": "Feinere Einstellungen stehen im Pro-Modus, Aufnahme und Streaming haben eigene Seiten. Um diese Anleitung noch einmal zu sehen, unten auf der Startseite auf „Kurzanleitung öffnen“ klicken.",
+   "es": "Los ajustes más finos están en el Modo Pro, y la grabación y la emisión tienen sus propias páginas. Para volver a ver esta guía, haz clic en Ver la guía rápida, en la parte inferior de la página de inicio.",
+   "fr": "Les réglages plus fins sont dans le Mode Pro, et l'enregistrement et la diffusion ont leurs propres pages. Pour revoir ce guide, cliquez sur « Ouvrir le guide rapide » en bas de la page d'accueil.",
+   "it": "Le impostazioni più fini sono nella Modalità Pro, e registrazione e diretta hanno pagine proprie. Per rivedere questa guida, fai clic su Apri la guida rapida in fondo alla pagina Home.",
+   "pt-BR": "Os ajustes mais finos ficam no Modo Pro, e a gravação e a transmissão têm páginas próprias. Para ver este guia de novo, clique em Abrir o guia rápido na parte de baixo da página inicial.",
+   "tr": "Daha ince ayarlar Pro modundadır; kayıt ve yayının kendi sayfaları vardır. Bu turu yeniden görmek için ana sayfanın altındaki Hızlı turu aç’a tıklayın.",
+   "ar": "الإعدادات الأدق موجودة في وضع Pro، وللتسجيل والبث صفحتان خاصتان. لمشاهدة هذه الجولة مرة أخرى انقر على «فتح الجولة السريعة» أسفل الصفحة الرئيسية.",
+   "pl": "Dokładniejsze ustawienia są w trybie Pro, a nagrywanie i transmisja mają własne strony. Aby zobaczyć ten przewodnik ponownie, kliknij „Otwórz krótki przewodnik” u dołu strony startowej.",
+   "ru": "Более тонкие настройки находятся в режиме Pro, а у записи и трансляции свои страницы. Чтобы снова увидеть это руководство, нажмите «Открыть краткое руководство» внизу главной страницы."
+  },
+  {
    "zh": "更饱满的低频，适合动作场面",
    "src": "qml/PushSoundProfile.qml",
    "zh-TW": "更飽滿的低頻，適合動作場面",
@@ -44647,6 +44817,23 @@
    "ru": "Вид"
   },
   {
+   "zh": "查看新手引导",
+   "src": "qml/HomePage.qml",
+   "zh-TW": "查看新手導覽",
+   "en": "Open the quick tour",
+   "ja": "クイックガイドを見る",
+   "nl": "Korte rondleiding openen",
+   "de": "Kurzanleitung öffnen",
+   "es": "Ver la guía rápida",
+   "fr": "Ouvrir le guide rapide",
+   "it": "Apri la guida rapida",
+   "pt-BR": "Abrir o guia rápido",
+   "tr": "Hızlı turu aç",
+   "ar": "فتح الجولة السريعة",
+   "pl": "Otwórz krótki przewodnik",
+   "ru": "Открыть краткое руководство"
+  },
+  {
    "zh": "查看更新",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "查看更新",
@@ -44730,6 +44917,23 @@
    "ar": "المعيار المعض: حاد في الحركة السريعة أيضا، جيد للحفظ والتحرير",
    "pl": "Standardowe bitrate: ostre w szybkim ruchu zbyt, dobre do przechowywania i edycji",
    "ru": "Стандартный битрейт: острый в быстром движении, подходит для хранения и редактирования"
+  },
+  {
+   "zh": "标准码率：文件较小，适合直接分享",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "標準位元率：檔案較小，適合直接分享",
+   "en": "Standard bitrate: smaller files, good for sharing straight away",
+   "ja": "標準のビットレート：ファイルが小さく、そのまま共有するのに向いています",
+   "nl": "Standaardbitrate: kleinere bestanden, handig om meteen te delen",
+   "de": "Standard-Bitrate: kleinere Dateien, gut zum direkten Teilen",
+   "es": "Tasa de bits estándar: archivos más pequeños, ideales para compartir al momento",
+   "fr": "Débit standard : fichiers plus petits, parfaits pour partager tout de suite",
+   "it": "Bitrate standard: file più piccoli, adatti a essere condivisi subito",
+   "pt-BR": "Taxa de bits padrão: arquivos menores, bons para compartilhar na hora",
+   "tr": "Standart bit hızı: daha küçük dosyalar, hemen paylaşmak için uygun",
+   "ar": "معدل البت القياسي: ملفات أصغر، مناسبة للمشاركة مباشرة",
+   "pl": "Standardowa przepływność: mniejsze pliki, dobre do udostępnienia od razu",
+   "ru": "Стандартный битрейт: файлы меньше, удобно сразу делиться"
   },
   {
    "zh": "标记",
@@ -45648,6 +45852,23 @@
    "ar": "Tries",
    "pl": "Tries",
    "ru": "Пробовать"
+  },
+  {
+   "zh": "欢迎使用 PushFPS",
+   "src": "qml/PushTour.qml",
+   "zh-TW": "歡迎使用 PushFPS",
+   "en": "Welcome to PushFPS",
+   "ja": "PushFPS へようこそ",
+   "nl": "Welkom bij PushFPS",
+   "de": "Willkommen bei PushFPS",
+   "es": "Te damos la bienvenida a PushFPS",
+   "fr": "Bienvenue dans PushFPS",
+   "it": "Ti diamo il benvenuto in PushFPS",
+   "pt-BR": "Boas-vindas ao PushFPS",
+   "tr": "PushFPS'e hoş geldiniz",
+   "ar": "مرحبًا بك في PushFPS",
+   "pl": "Witamy w PushFPS",
+   "ru": "Добро пожаловать в PushFPS"
   },
   {
    "zh": "欢迎在 GitHub 上分享这张卡的使用结果",
@@ -51022,6 +51243,23 @@
    "ru": "Кривая по точкам"
   },
   {
+   "zh": "片段尺寸",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "片段尺寸",
+   "en": "Clip size",
+   "ja": "クリップのサイズ",
+   "nl": "Clipgrootte",
+   "de": "Clipgröße",
+   "es": "Tamaño del clip",
+   "fr": "Taille du clip",
+   "it": "Dimensione della clip",
+   "pt-BR": "Tamanho do clipe",
+   "tr": "Klip boyutu",
+   "ar": "حجم المقطع",
+   "pl": "Rozmiar klipu",
+   "ru": "Размер клипа"
+  },
+  {
    "zh": "片段有 %1 MB，Discord 默认只接收 10 MB 以内的文件。已复制到剪贴板，可在 Discord 中粘贴（会提示压缩或使用 Nitro）",
    "src": "src/ui/bridge/PushFps.cpp",
    "zh-TW": "片段有 %1 MB，Discord 預設只接受 10 MB 以內的檔案。已複製到剪貼簿，可在 Discord 中貼上（會提示壓縮或使用 Nitro）",
@@ -51037,23 +51275,6 @@
    "ar": "The clip is %1 MB and Discord takes 10 MB by default. It is on your clipboard: paste it in Discord (it will offer to compress it or use Nitro)",
    "pl": "Klip %1 MB i Discord bierze domyślnie 10 MB. Jest na Twojej schowku: wklej go w Discord (zaoferuje kompresję lub użycie Nitro)",
    "ru": "%1 MB и Discord занимает 10 MB по умолчанию. Он находится на вашем буфере обмена: вставьте его в Discord (он предложит сжать его или использовать Nitro)."
-  },
-  {
-   "zh": "片段画质",
-   "src": "qml/PushCompareDialog.qml",
-   "zh-TW": "片段畫質",
-   "en": "Clip quality",
-   "ja": "クリップ画質",
-   "nl": "Klemkwaliteit",
-   "de": "Clipqualität",
-   "es": "Calidad del clip",
-   "fr": "Qualité du clip",
-   "it": "Qualità clip",
-   "pt-BR": "Qualidade do clipe",
-   "tr": "Clip kaliteli",
-   "ar": "جودة الشرائط",
-   "pl": "Jakość klipów",
-   "ru": "качество клипа"
   },
   {
    "zh": "片源",
@@ -51547,6 +51768,23 @@
    "ar": "يزيل الذكاء الاصطناعي التكتلات والتشويش الناتجة عن ضغط بطاقة الالتقاط، فتبدو التفاصيل أوضح. مستقل عن توليد الإطارات ويمكن تشغيله وحده",
    "pl": "AI usuwa bloki i szum pozostawione przez kompresję karty przechwytującej, więc szczegóły są wyraźniejsze. Niezależne od generowania klatek, można je włączać osobno",
    "ru": "ИИ убирает блоки и шум от сжатия карты захвата, чтобы детали выглядели чётче. Не зависит от генерации кадров и включается отдельно"
+  },
+  {
+   "zh": "用一分钟看一遍：接上采集卡，选好帧率，开始游戏。按 Esc 可以随时退出，以后在首页还能再看。",
+   "src": "qml/PushTour.qml",
+   "zh-TW": "花一分鐘看一遍：接上擷取卡，選好幀率，開始遊戲。按 Esc 可以隨時退出，之後在首頁還能再看。",
+   "en": "One minute to see how it goes: connect the capture card, choose the frame rate, play. Esc leaves the tour at any time, and it can be opened again from the home page.",
+   "ja": "1 分で流れを確認しましょう。キャプチャーカードを接続し、フレームレートを選んで、プレイするだけです。Esc でいつでも終了でき、ホームからもう一度開けます。",
+   "nl": "Eén minuut om te zien hoe het gaat: sluit de capturekaart aan, kies de framerate en speel. Met Esc verlaat je de rondleiding wanneer je wilt, en je opent hem later opnieuw vanaf de startpagina.",
+   "de": "Eine Minute, um den Ablauf zu sehen: Capture-Karte anschließen, Bildrate wählen, spielen. Mit Esc lässt sich die Anleitung jederzeit verlassen, und auf der Startseite kann sie wieder geöffnet werden.",
+   "es": "Un minuto para ver cómo va: conecta la capturadora, elige la tasa de fotogramas y juega. Con Esc sales de la guía cuando quieras, y puedes volver a abrirla desde la página de inicio.",
+   "fr": "Une minute pour voir comment ça marche : branchez la carte d'acquisition, choisissez la fréquence d'images et jouez. Échap quitte le guide à tout moment, et il se rouvre depuis la page d'accueil.",
+   "it": "Un minuto per vedere come funziona: collega la scheda di acquisizione, scegli la frequenza dei fotogrammi e gioca. Con Esc esci dalla guida quando vuoi, e puoi riaprirla dalla pagina Home.",
+   "pt-BR": "Um minuto para ver como funciona: conecte a placa de captura, escolha a taxa de quadros e jogue. Esc sai do guia a qualquer momento, e ele pode ser aberto de novo na página inicial.",
+   "tr": "Nasıl işlediğini görmek için bir dakika: yakalama kartını bağlayın, kare hızını seçin ve oynayın. Esc ile turdan istediğiniz an çıkabilir, ana sayfadan yeniden açabilirsiniz.",
+   "ar": "دقيقة واحدة لترى كيف يعمل: وصّل بطاقة الالتقاط، اختر معدل الإطارات، والعب. يمكنك الخروج من الجولة في أي وقت بالضغط على Esc، وفتحها مجددًا من الصفحة الرئيسية.",
+   "pl": "Minuta, żeby zobaczyć, jak to działa: podłącz kartę przechwytującą, wybierz liczbę klatek i graj. Esc zamyka przewodnik w dowolnej chwili, a na stronie startowej można otworzyć go ponownie.",
+   "ru": "Минута, чтобы увидеть, как всё устроено: подключите карту захвата, выберите частоту кадров и играйте. Esc закрывает руководство в любой момент, а открыть его снова можно с главной страницы."
   },
   {
    "zh": "用你的 Xbox（微软）账号在微软的页面登录，软件看不到密码",
@@ -65610,6 +65848,23 @@
    "ru": "Запуск Node Order отсутствует в настройках экземпляра"
   },
   {
+   "zh": "近无损",
+   "src": "qml/PushCompareDialog.qml",
+   "zh-TW": "近無損",
+   "en": "Near lossless",
+   "ja": "ほぼロスレス",
+   "nl": "Bijna verliesvrij",
+   "de": "Nahezu verlustfrei",
+   "es": "Casi sin pérdida",
+   "fr": "Quasi sans perte",
+   "it": "Quasi senza perdita",
+   "pt-BR": "Quase sem perdas",
+   "tr": "Neredeyse kayıpsız",
+   "ar": "شبه عديم الفقد",
+   "pl": "Prawie bezstratna",
+   "ru": "Почти без потерь"
+  },
+  {
    "zh": "返回列表",
    "src": "qml/NodePage.qml",
    "zh-TW": "返回列表",
@@ -67055,6 +67310,23 @@
    "ru": "Выберите регион для его перемещения. Контуры исключены из записей и экспорта."
   },
   {
+   "zh": "选你的主机和游戏本身的帧率。多数主机游戏是 30 FPS；选对了，重复的画面才会被去掉，补帧才干净。",
+   "src": "qml/PushTour.qml",
+   "zh-TW": "選擇你的主機和遊戲本身的幀率。多數主機遊戲是 30 FPS；選對了，重複的畫面才會被去掉，補幀才乾淨。",
+   "en": "Choose your console and the frame rate the game itself runs at. Most console games run at 30 FPS. With the right one, repeated pictures are removed and frame generation stays clean.",
+   "ja": "ゲーム機と、ゲーム自体のフレームレートを選びます。家庭用ゲームの多くは 30 FPS です。正しく選ぶと、繰り返しの映像が取り除かれ、フレーム生成がきれいになります。",
+   "nl": "Kies je console en de framerate waarop de game zelf draait. De meeste consolegames draaien op 30 FPS. Met de juiste keuze worden herhaalde beelden verwijderd en blijft framegeneratie schoon.",
+   "de": "Die Konsole und die Bildrate wählen, mit der das Spiel selbst läuft. Die meisten Konsolenspiele laufen mit 30 FPS. Mit der richtigen Angabe werden wiederholte Bilder entfernt und die Frame-Generierung bleibt sauber.",
+   "es": "Elige tu consola y la tasa de fotogramas a la que funciona el propio juego. La mayoría de los juegos de consola van a 30 FPS. Con el valor correcto se eliminan las imágenes repetidas y la generación de fotogramas queda limpia.",
+   "fr": "Choisissez votre console et la fréquence d'images du jeu lui-même. La plupart des jeux console tournent à 30 FPS. Avec la bonne valeur, les images répétées sont retirées et la génération d'images reste propre.",
+   "it": "Scegli la console e la frequenza dei fotogrammi a cui gira il gioco stesso. La maggior parte dei giochi per console gira a 30 FPS. Con il valore giusto le immagini ripetute vengono rimosse e la generazione dei fotogrammi resta pulita.",
+   "pt-BR": "Escolha o console e a taxa de quadros em que o próprio jogo roda. A maioria dos jogos de console roda a 30 FPS. Com o valor certo, as imagens repetidas são removidas e a geração de quadros fica limpa.",
+   "tr": "Konsolunuzu ve oyunun kendi kare hızını seçin. Konsol oyunlarının çoğu 30 FPS'te çalışır. Doğru değerle yinelenen görüntüler kaldırılır ve kare üretimi temiz kalır.",
+   "ar": "اختر جهازك ومعدل الإطارات الذي تعمل به اللعبة نفسها. معظم ألعاب الأجهزة المنزلية تعمل بمعدل 30 إطارًا في الثانية. بالاختيار الصحيح تُزال الصور المكررة ويبقى توليد الإطارات نظيفًا.",
+   "pl": "Wybierz konsolę i liczbę klatek, z jaką działa sama gra. Większość gier konsolowych działa w 30 FPS. Przy właściwym ustawieniu powtórzone obrazy są usuwane, a generowanie klatek pozostaje czyste.",
+   "ru": "Выберите консоль и частоту кадров, с которой идёт сама игра. Большинство консольных игр идут в 30 FPS. При правильном значении повторяющиеся кадры убираются, и генерация кадров остаётся чистой."
+  },
+  {
    "zh": "选好设备和格式后，在这里连接。先确认预览有画面、采集帧率符合预期，再看专业模式里的增强选项。",
    "src": "qml/OnboardingGuide.qml",
    "zh-TW": "選好裝置和格式後，在這裡連線。先確認預覽有畫面、擷取幀率符合預期，再看專業模式的增強選項。",
@@ -67070,6 +67342,23 @@
    "ar": "بعد أن تختار جهازا وشكلا، الاتصال هنا. تحقق من أن العرض التمهيدي له صورة ومعدل القبض يبدو صحيحاً ثم تستكشف التحسينات في طريقة برو",
    "pl": "Po wybraniu urządzenia i formatu, podłącz tutaj. Sprawdź, czy podgląd ma obraz i wskaźnik wychwytywania wygląda dobrze, a następnie odkryj ulepszenia w trybie Pro.",
    "ru": "После выбора устройства и формата подключитесь здесь. Проверьте, что предварительный просмотр имеет картинку, и скорость захвата выглядит правильно, а затем изучите улучшения в режиме Pro."
+  },
+  {
+   "zh": "选好设备和格式后，在这里连接。画面出现后，剩下的都在首页的「快速设置」里。",
+   "src": "qml/PushTour.qml",
+   "zh-TW": "選好裝置和格式後，在這裡連線。畫面出現後，其餘的都在首頁的「快速設定」裡。",
+   "en": "With the device and format chosen, connect here. Once the picture is there, everything else is in Quick setup on the home page.",
+   "ja": "デバイスと形式を選んだら、ここで接続します。映像が出たら、あとはホームの「クイック設定」にすべてあります。",
+   "nl": "Heb je het apparaat en het formaat gekozen, maak dan hier verbinding. Zodra het beeld er is, staat al het andere in Snelle instelling op de startpagina.",
+   "de": "Sind Gerät und Format gewählt, hier verbinden. Sobald das Bild da ist, steht alles Weitere in der Schnelleinrichtung auf der Startseite.",
+   "es": "Con el dispositivo y el formato elegidos, conecta aquí. Cuando aparezca la imagen, todo lo demás está en Configuración rápida, en la página de inicio.",
+   "fr": "Une fois le périphérique et le format choisis, connectez-vous ici. Dès que l'image est là, tout le reste se trouve dans Réglage rapide, sur la page d'accueil.",
+   "it": "Scelti il dispositivo e il formato, collegati qui. Quando compare l'immagine, tutto il resto è in Configurazione rapida, nella pagina Home.",
+   "pt-BR": "Com o dispositivo e o formato escolhidos, conecte aqui. Quando a imagem aparecer, todo o resto está em Configuração rápida, na página inicial.",
+   "tr": "Aygıt ve biçim seçildikten sonra buradan bağlanın. Görüntü geldiğinde geri kalan her şey ana sayfadaki Hızlı kurulum bölümündedir.",
+   "ar": "بعد اختيار الجهاز والتنسيق، اتصل من هنا. وعندما تظهر الصورة تجد كل ما تبقّى في «الإعداد السريع» بالصفحة الرئيسية.",
+   "pl": "Po wybraniu urządzenia i formatu połącz się tutaj. Gdy pojawi się obraz, cała reszta jest w sekcji Szybka konfiguracja na stronie startowej.",
+   "ru": "Выбрав устройство и формат, подключитесь здесь. Когда появится изображение, всё остальное находится в разделе «Быстрая настройка» на главной странице."
   },
   {
    "zh": "选择…",
@@ -67257,6 +67546,23 @@
    "ar": "ملف الاختيار",
    "pl": "Wybierz plik",
    "ru": "Выберите файл"
+  },
+  {
+   "zh": "选择目标帧率",
+   "src": "qml/PushTour.qml",
+   "zh-TW": "選擇目標幀率",
+   "en": "Choose the target frame rate",
+   "ja": "目標フレームレートを選ぶ",
+   "nl": "Kies de doelframerate",
+   "de": "Die Zielbildrate wählen",
+   "es": "Elige la tasa de fotogramas objetivo",
+   "fr": "Choisissez la fréquence d'images cible",
+   "it": "Scegli la frequenza dei fotogrammi di destinazione",
+   "pt-BR": "Escolha a taxa de quadros alvo",
+   "tr": "Hedef kare hızını seçin",
+   "ar": "اختر معدل الإطارات المستهدف",
+   "pl": "Wybierz docelową liczbę klatek",
+   "ru": "Выберите целевую частоту кадров"
   },
   {
    "zh": "选择要处理的图片",
@@ -69214,21 +69520,21 @@
    "ru": "Автоматически уменьшать длинные строки"
   },
   {
-   "zh": "长时间录制时每隔一段时间开始一个新文件，不中断录制；单个文件更小，出问题时损失更少",
+   "zh": "长时间录制时每隔一段时间接着写入一个新文件；各段之间不丢画面也不丢声音，可以无缝接起来。单个文件更小，出问题时损失更少",
    "src": "qml/SettingsPage.qml",
-   "zh-TW": "長時間錄製時每隔一段時間開始一個新檔案，不中斷錄製；單個檔案更小，出問題時損失更少",
-   "en": "Long recordings start a new file every so often without stopping; each file is smaller and less is lost if something goes wrong",
-   "ja": "長時間の録画で一定時間ごとに新しいファイルを始めます（録画は止まりません）。ファイルが小さくなり、問題が起きても失う分が少なくなります",
-   "nl": "Lange opnames starten zo vaak een nieuw bestand zonder te stoppen; elk bestand is kleiner en minder gaat verloren als er iets mis gaat",
-   "de": "Lange Aufnahmen starten immer wieder eine neue Datei, ohne anzuhalten; jede Datei ist kleiner und weniger geht verloren, wenn etwas schief geht",
-   "es": "Las grabaciones largas comienzan un archivo nuevo cada vez sin parar; cada archivo es más pequeño y menos se pierde si algo sale mal",
-   "fr": "Les longs enregistrements démarrent un nouveau fichier si souvent sans s'arrêter; chaque fichier est plus petit et moins perdu si quelque chose tourne mal",
-   "it": "Le registrazioni lunghe iniziano un nuovo file ogni tanto senza fermarsi; ogni file è più piccolo e meno si perde se qualcosa va storto",
-   "pt-BR": "Gravações longas iniciam um novo arquivo de vez em quando sem parar; cada arquivo é menor e menos é perdido se algo der errado",
-   "tr": "Uzun kayıtlar her zaman duraklamadan yeni bir dosya başlatır; her dosya daha küçük ve daha az bir şey yanlış giderse kaybedilir",
-   "ar": "التسجيلات الطويلة تبدأ ملفاً جديداً في كل مرة دون توقف؛ وكل ملف أصغر وأقل ضياعاً إذا حدث خطأ ما",
-   "pl": "Długie nagrania uruchamiają nowy plik co tak często bez zatrzymywania; każdy plik jest mniejszy i mniej jest stracony, jeśli coś pójdzie nie tak",
-   "ru": "Длинные записи часто запускают новый файл без остановки; каждый файл меньше и меньше теряется, если что-то пойдет не так."
+   "zh-TW": "長時間錄製時每隔一段時間接著寫入一個新檔案；各段之間不丟畫面也不丟聲音，可以無縫接起來。單個檔案更小，出問題時損失更少",
+   "en": "A long recording continues in a new file every so often. No picture and no sound is lost between the parts, so they join seamlessly. Each file is smaller, and less is lost if something goes wrong",
+   "ja": "長時間の録画は一定時間ごとに新しいファイルに続けて書き込まれます。パートの間で映像も音も失われないので、継ぎ目なくつなげられます。1 つのファイルが小さくなり、問題が起きても失うものが少なくなります",
+   "nl": "Een lange opname gaat om de zoveel tijd verder in een nieuw bestand. Tussen de delen gaat geen beeld en geen geluid verloren, dus ze sluiten naadloos aan. Elk bestand is kleiner, en er gaat minder verloren als er iets misgaat",
+   "de": "Eine lange Aufnahme wird in Abständen in einer neuen Datei fortgesetzt. Zwischen den Teilen geht weder Bild noch Ton verloren, sie lassen sich also nahtlos aneinanderfügen. Jede Datei ist kleiner, und bei einem Problem geht weniger verloren",
+   "es": "Una grabación larga continúa en un archivo nuevo cada cierto tiempo. Entre las partes no se pierde imagen ni sonido, así que se unen sin cortes. Cada archivo es más pequeño, y se pierde menos si algo falla",
+   "fr": "Un long enregistrement se poursuit dans un nouveau fichier à intervalles réguliers. Aucune image ni aucun son n'est perdu entre les parties, qui se raccordent donc sans coupure. Chaque fichier est plus petit, et on perd moins en cas de problème",
+   "it": "Una registrazione lunga prosegue in un nuovo file a intervalli regolari. Tra le parti non si perde né immagine né audio, quindi si uniscono senza stacchi. Ogni file è più piccolo, e si perde meno se qualcosa va storto",
+   "pt-BR": "Uma gravação longa continua em um novo arquivo de tempos em tempos. Nenhuma imagem e nenhum som se perde entre as partes, então elas se juntam sem emendas. Cada arquivo fica menor, e perde-se menos se algo der errado",
+   "tr": "Uzun bir kayıt belirli aralıklarla yeni bir dosyada devam eder. Parçalar arasında görüntü de ses de kaybolmaz, böylece kesintisiz birleşirler. Her dosya daha küçüktür ve bir sorun çıkarsa daha azı kaybedilir",
+   "ar": "يستمر التسجيل الطويل في ملف جديد كل فترة. لا تُفقد صورة ولا صوت بين الأجزاء، فتتصل ببعضها دون انقطاع. كل ملف أصغر، وما يُفقد عند حدوث مشكلة أقل",
+   "pl": "Długie nagranie co pewien czas jest kontynuowane w nowym pliku. Między częściami nie ginie ani obraz, ani dźwięk, więc łączą się bez przerw. Każdy plik jest mniejszy, a w razie problemu traci się mniej",
+   "ru": "Длинная запись время от времени продолжается в новом файле. Между частями не теряются ни изображение, ни звук, поэтому они стыкуются без разрывов. Каждый файл меньше, и при сбое теряется меньше"
   },
   {
    "zh": "长时间收不到完整画面。网络很不稳定，或码率设得太高。",

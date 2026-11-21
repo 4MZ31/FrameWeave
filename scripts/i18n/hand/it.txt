@@ -1513,3 +1513,24 @@ zh:欢迎在 GitHub 上分享这张卡的使用结果|Condividi su GitHub come f
 zh:本机控制保存的令牌无法读取，已生成新的令牌：请在设置里重新复制|Il token salvato del controllo locale non è leggibile, quindi ne è stato creato uno nuovo: copialo di nuovo nelle impostazioni
 zh:FSR 4 ML 需要支持的 RX 9000 和驱动，不可用时自动改用 FSR 3.1|FSR 4 ML ha bisogno di un driver RX 9000 supportato e di un FSR 3.1 quando non disponibile
 zh:60→30：每两帧保留一帧，游戏不足30帧时跳过重复画面。自动去除：检测并跳过重复画面。|60→30 tiene un fotogramma ogni due e salta le immagini ripetute quando il gioco scende sotto i 30 FPS. La rimozione automatica rileva le immagini duplicate e le salta.
+zh:欢迎使用 PushFPS|Ti diamo il benvenuto in PushFPS
+zh:用一分钟看一遍：接上采集卡，选好帧率，开始游戏。按 Esc 可以随时退出，以后在首页还能再看。|Un minuto per vedere come funziona: collega la scheda di acquisizione, scegli la frequenza dei fotogrammi e gioca. Con Esc esci dalla guida quando vuoi, e puoi riaprirla dalla pagina Home.
+zh:主机的 HDMI 接到采集卡，采集卡接到这台电脑。点「采集卡」打开采集设置。|L'HDMI della console va alla scheda di acquisizione, e la scheda di acquisizione a questo PC. Fai clic su Scheda di acquisizione per aprirne le impostazioni.
+zh:选好设备和格式后，在这里连接。画面出现后，剩下的都在首页的「快速设置」里。|Scelti il dispositivo e il formato, collegati qui. Quando compare l'immagine, tutto il resto è in Configurazione rapida, nella pagina Home.
+zh:告诉 PushFPS 你玩的是什么|Di’ a PushFPS a cosa giochi
+zh:选你的主机和游戏本身的帧率。多数主机游戏是 30 FPS；选对了，重复的画面才会被去掉，补帧才干净。|Scegli la console e la frequenza dei fotogrammi a cui gira il gioco stesso. La maggior parte dei giochi per console gira a 30 FPS. Con il valore giusto le immagini ripetute vengono rimosse e la generazione dei fotogrammi resta pulita.
+zh:选择目标帧率|Scegli la frequenza dei fotogrammi di destinazione
+zh:60、120，或者跟随显示器。PushFPS 在游戏的每两帧之间生成新的画面，补到这个帧率。|60, 120 o quanto regge il tuo schermo. PushFPS crea nuovi fotogrammi tra ogni due fotogrammi del gioco per raggiungerla.
+zh:想要更清晰、更有层次的画面，就打开它。风格和处理尺寸可以在下面调，不喜欢随时关掉。|Attivalo per un'immagine più nitida e con più profondità. Lo stile e la dimensione di lavoro si regolano subito sotto, e puoi disattivarlo quando vuoi.
+zh:常用工具都在这一排|Gli strumenti sono in questa riga
+zh:「为我的电脑优化」实测这台电脑并选出合适的设置；「检查我的设置」找出影响画质的地方；「游戏预设」让小地图和 HUD 保持清晰。这里还能录对比片段和开播。|Ottimizza per il mio PC misura questo PC e sceglie le impostazioni adatte. Controlla le mie impostazioni trova ciò che riduce la qualità dell'immagine. Preset di gioco mantiene nitidi la minimappa e l'HUD. Anche le clip di confronto e la diretta partono da qui.
+zh:可以开始了|Tutto pronto
+zh:更细的设置在专业模式里，录制和直播各有自己的页面。想再看一遍引导，点首页下方的「查看新手引导」。|Le impostazioni più fini sono nella Modalità Pro, e registrazione e diretta hanno pagine proprie. Per rivedere questa guida, fai clic su Apri la guida rapida in fondo alla pagina Home.
+zh:查看新手引导|Apri la guida rapida
+zh:片段尺寸|Dimensione della clip
+zh:近无损|Quasi senza perdita
+zh:标准码率：文件较小，适合直接分享|Bitrate standard: file più piccoli, adatti a essere condivisi subito
+zh:固定画质编码：细节清楚、画面干净，文件大小随画面内容变化|Codificato a qualità fissa: dettagli chiari e immagine pulita. La dimensione del file segue ciò che è sullo schermo
+zh:几乎看不出和原画的差别。文件很大（4K 每分钟可达数 GB），建议录到固态硬盘|Difficile da distinguere da ciò che era sullo schermo. I file sono grandi (una clip 4K può occupare diversi GB al minuto): registra su un SSD
+zh:长时间录制时每隔一段时间接着写入一个新文件；各段之间不丢画面也不丢声音，可以无缝接起来。单个文件更小，出问题时损失更少|Una registrazione lunga prosegue in un nuovo file a intervalli regolari. Tra le parti non si perde né immagine né audio, quindi si uniscono senza stacchi. Ogni file è più piccolo, e si perde meno se qualcosa va storto
+zh:文件快到这个大小时，在关键帧处接着写入新文件；各段之间不丢画面也不丢声音。0 表示关闭，下次录制时生效|Quando un file si avvicina a questa dimensione, la registrazione prosegue in un nuovo file su un fotogramma chiave. Tra le parti non si perde né immagine né audio. 0 lo disattiva; vale dalla prossima registrazione

@@ -260,6 +260,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"pushCompareSeconds", {5, 120}},
         {"pushCompareLayout", {0, 3}},
         {"pushCompareQuality", {0, 2160}},
+        // PushFPS comparison clips: the picture quality (0 standard, 1 high, 2 near lossless; high unless set).
+        {"pushComparePicture", {0, 2}},
         // PushFPS: the size PushFlow works the motion out at, apart from its tier (pushflow/PushFlowMotion.h):
         // 0 the tier's own (the default), else 540, 720 or 1080 lines; only those are taken.
         {"pushFlowMotion", {0, 1080}},

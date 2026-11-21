@@ -3,8 +3,8 @@
 // Comparison clip dialog (PushCompareDialog) against the fixture bridge: the layout and the
 // length are kept in preferences, the start button records with them, the preview puts the
 // FPS labels where the clip does, and the quick setup tile shows the choice. The Reveal
-// layout's preview follows the clip's own timing, and the layouts that fill the frame
-// (split, reveal) have a recording quality.
+// layout's preview follows the clip's own timing, the layouts that fill the frame
+// (split, reveal) have a size to record at, and every layout has a picture quality.
 import QtQuick
 import QtTest
 import Veyra
@@ -31,6 +31,8 @@ Item {
             veyra.setPreference("pushCompareQuality", 0)
             veyra.setPreference("pushCompareRevealSeconds", 3)
             veyra.setPreference("pushGameFps", 30)
+            // The picture quality starts as on a new install: nothing chosen.
+            { const fresh = Object.assign({}, veyra.preferences); delete fresh.pushComparePicture; veyra.preferences = fresh }
             host.dialog = "compare"
             verify(cmp.shown)
         }
@@ -211,6 +213,46 @@ Item {
             layout.picked("0")
             verify(row.visible)
             compare(quality.current, "2160")
+        }
+        function test_picture_quality_is_a_choice_in_every_layout() {
+            const row = findChild(cmp, "pushfps-compare-picture-row")
+            const picture = findChild(cmp, "pushfps-compare-picture")
+            verify(row !== null && picture !== null)
+            compare(picture.options.map(o => o.id).join(","), "0,1,2")
+            compare(picture.options.map(o => o.label).join(","), [qsTr("标准"), qsTr("高"), qsTr("近无损")].join(","))
+            // (The dialog fades in: wait for it before reading what is visible.)
+            tryVerify(function() { return row.visible }, 3000, "the picture quality row is there")
+            // Every layout has it: the size is Split's and Reveal's, the picture quality is everyone's.
+            const layout = findChild(cmp, "pushfps-compare-layout")
+            const shown = []
+            for (const id of [0, 1, 2, 3]) { layout.picked(String(id)); shown.push(row.visible) }
+            compare(shown.join(","), "true,true,true,true")
+            layout.picked("0")
+            // High unless chosen: a clip is made to be looked at closely.
+            compare(veyra.preferences.pushComparePicture, undefined)
+            compare(cmp.picture, 1)
+            compare(picture.current, "1")
+            for (const level of [0, 2, 1]) {
+                picture.picked(String(level))
+                compare(veyra.preferences.pushComparePicture, level)
+                compare(cmp.picture, level)
+                compare(picture.current, String(level))
+            }
+            // Each says what it is: three different lines.
+            verify(cmp.pictureHint(0) !== cmp.pictureHint(1) && cmp.pictureHint(1) !== cmp.pictureHint(2) && cmp.pictureHint(0) !== cmp.pictureHint(2))
+            // Standard is a choice like the others and is kept: 0 is not "nothing chosen".
+            veyra.setPreference("pushComparePicture", 0)
+            compare(cmp.picture, 0)
+            // A value that is no choice counts as high.
+            veyra.setPreference("pushComparePicture", 7)
+            compare(cmp.picture, 1)
+            // It is its own choice: the size is not touched by it, nor the other way round.
+            veyra.setPreference("pushComparePicture", 2)
+            veyra.setPreference("pushCompareQuality", 2160)
+            compare(cmp.picture, 2)
+            compare(cmp.quality, 2160)
+            veyra.setPreference("pushCompareQuality", 0)
+            compare(cmp.picture, 2)
         }
         function test_a_running_clip_shows_its_time_and_stops_from_the_tile() {
             veyra.setPreference("pushCompareUntilStop", true)

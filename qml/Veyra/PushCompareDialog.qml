@@ -36,6 +36,8 @@ DialogLayer {
     // Split and Reveal: the height the clip is recorded at (0 automatic). Reveal: a sweep every so many seconds.
     readonly property bool takesQuality: Clip.takesQuality(cmp.layoutId)
     readonly property int quality: Clip.quality(veyra.preferences)
+    // Every layout: the picture quality (0 standard, 1 high, 2 near lossless).
+    readonly property int picture: Clip.picture(veyra.preferences)
     readonly property bool reveal: cmp.layoutId === 3
     readonly property int revealEvery: Clip.revealEvery(veyra.preferences)
     // The preview's clock, in seconds of a clip: runs while the Reveal preview is on screen. It
@@ -83,6 +85,12 @@ DialogLayer {
         return height === 2160 ? qsTr("最高按 4K 录制，每一帧都录：需要较强的显卡。若有帧没录下，录完会提示，请选低一档")
              : height > 0 ? qsTr("最高按所选的高度录制（画面本身更小时保持原样，不放大），并用更高的码率")
              : qsTr("按画面原本的大小录制，最高 1440p")
+    }
+    function pictureLabel(level) { return level === 2 ? qsTr("近无损") : level === 1 ? qsTr("高") : qsTr("标准") }
+    function pictureHint(level) {
+        return level === 2 ? qsTr("几乎看不出和原画的差别。文件很大（4K 每分钟可达数 GB），建议录到固态硬盘")
+             : level === 1 ? qsTr("固定画质编码：细节清楚、画面干净，文件大小随画面内容变化")
+             : qsTr("标准码率：文件较小，适合直接分享")
     }
     // Reveal preview: where the line is (x in the preview), as the clip moves it.
     function revealX(share, previewWidth) { return Math.max(0, Math.min(1, share)) * previewWidth }
@@ -339,7 +347,7 @@ DialogLayer {
         VRow {
             objectName: "pushfps-compare-quality-row"
             visible: cmp.takesQuality
-            label: qsTr("片段画质")
+            label: qsTr("片段尺寸")
             hint: cmp.qualityHint(cmp.quality)
             hintBelow: true
             VSeg {
@@ -347,6 +355,19 @@ DialogLayer {
                 options: Clip.qualities.map(n => ({ id: String(n), label: cmp.qualityLabel(n) }))
                 current: String(cmp.quality)
                 onPicked: id => veyra.setPreference("pushCompareQuality", Number(id))
+            }
+        }
+        // Every layout: how finely the clip is encoded.
+        VRow {
+            objectName: "pushfps-compare-picture-row"
+            label: qsTr("画质")
+            hint: cmp.pictureHint(cmp.picture)
+            hintBelow: true
+            VSeg {
+                objectName: "pushfps-compare-picture"
+                options: Clip.pictures.map(n => ({ id: String(n), label: cmp.pictureLabel(n) }))
+                current: String(cmp.picture)
+                onPicked: id => veyra.setPreference("pushComparePicture", Number(id))
             }
         }
         VRow {

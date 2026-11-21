@@ -1513,3 +1513,24 @@ zh:欢迎在 GitHub 上分享这张卡的使用结果|Deel op GitHub hoe deze ka
 zh:本机控制保存的令牌无法读取，已生成新的令牌：请在设置里重新复制|Het opgeslagen token voor lokale bediening kon niet worden gelezen, dus er is een nieuw gemaakt: kopieer het opnieuw in Instellingen
 zh:FSR 4 ML 需要支持的 RX 9000 和驱动，不可用时自动改用 FSR 3.1|FSR 4 ML heeft een ondersteunde RX 9000 en driver nodig en schakelt naar FSR 3.1 indien niet beschikbaar
 zh:60→30：每两帧保留一帧，游戏不足30帧时跳过重复画面。自动去除：检测并跳过重复画面。|60→30 bewaart één op de twee frames en slaat herhaalde beelden over wanneer de game onder 30 FPS zakt. Automatisch verwijderen herkent dubbele beelden en slaat ze over.
+zh:欢迎使用 PushFPS|Welkom bij PushFPS
+zh:用一分钟看一遍：接上采集卡，选好帧率，开始游戏。按 Esc 可以随时退出，以后在首页还能再看。|Eén minuut om te zien hoe het gaat: sluit de capturekaart aan, kies de framerate en speel. Met Esc verlaat je de rondleiding wanneer je wilt, en je opent hem later opnieuw vanaf de startpagina.
+zh:主机的 HDMI 接到采集卡，采集卡接到这台电脑。点「采集卡」打开采集设置。|De HDMI van de console gaat naar de capturekaart, en de capturekaart naar deze pc. Klik op Capturekaart om de instellingen te openen.
+zh:选好设备和格式后，在这里连接。画面出现后，剩下的都在首页的「快速设置」里。|Heb je het apparaat en het formaat gekozen, maak dan hier verbinding. Zodra het beeld er is, staat al het andere in Snelle instelling op de startpagina.
+zh:告诉 PushFPS 你玩的是什么|Vertel PushFPS wat je speelt
+zh:选你的主机和游戏本身的帧率。多数主机游戏是 30 FPS；选对了，重复的画面才会被去掉，补帧才干净。|Kies je console en de framerate waarop de game zelf draait. De meeste consolegames draaien op 30 FPS. Met de juiste keuze worden herhaalde beelden verwijderd en blijft framegeneratie schoon.
+zh:选择目标帧率|Kies de doelframerate
+zh:60、120，或者跟随显示器。PushFPS 在游戏的每两帧之间生成新的画面，补到这个帧率。|60, 120, of wat je beeldscherm aankan. PushFPS maakt nieuwe frames tussen elke twee frames van de game om die framerate te halen.
+zh:想要更清晰、更有层次的画面，就打开它。风格和处理尺寸可以在下面调，不喜欢随时关掉。|Zet het aan voor een scherper beeld met meer diepte. De stijl en de werkgrootte stel je er net onder in, en je zet het uit wanneer je wilt.
+zh:常用工具都在这一排|De hulpmiddelen staan in deze rij
+zh:「为我的电脑优化」实测这台电脑并选出合适的设置；「检查我的设置」找出影响画质的地方；「游戏预设」让小地图和 HUD 保持清晰。这里还能录对比片段和开播。|Optimaliseren voor mijn pc meet deze pc en kiest instellingen die erbij passen. Mijn instellingen controleren vindt wat beeldkwaliteit kost. Gamepresets houden de minimap en de HUD scherp. Vergelijkingsclips en live gaan beginnen hier ook.
+zh:可以开始了|Je bent klaar
+zh:更细的设置在专业模式里，录制和直播各有自己的页面。想再看一遍引导，点首页下方的「查看新手引导」。|Fijnere instellingen staan in de Pro-modus, en opnemen en streamen hebben hun eigen pagina's. Wil je deze rondleiding nog eens zien, klik dan op Korte rondleiding openen onderaan de startpagina.
+zh:查看新手引导|Korte rondleiding openen
+zh:片段尺寸|Clipgrootte
+zh:近无损|Bijna verliesvrij
+zh:标准码率：文件较小，适合直接分享|Standaardbitrate: kleinere bestanden, handig om meteen te delen
+zh:固定画质编码：细节清楚、画面干净，文件大小随画面内容变化|Gecodeerd op vaste kwaliteit: duidelijke details en een schoon beeld. De bestandsgrootte volgt wat er op het scherm staat
+zh:几乎看不出和原画的差别。文件很大（4K 每分钟可达数 GB），建议录到固态硬盘|Nauwelijks te onderscheiden van wat er op het scherm stond. De bestanden zijn groot (een 4K-clip kan enkele GB per minuut zijn): neem op naar een SSD
+zh:长时间录制时每隔一段时间接着写入一个新文件；各段之间不丢画面也不丢声音，可以无缝接起来。单个文件更小，出问题时损失更少|Een lange opname gaat om de zoveel tijd verder in een nieuw bestand. Tussen de delen gaat geen beeld en geen geluid verloren, dus ze sluiten naadloos aan. Elk bestand is kleiner, en er gaat minder verloren als er iets misgaat
+zh:文件快到这个大小时，在关键帧处接着写入新文件；各段之间不丢画面也不丢声音。0 表示关闭，下次录制时生效|Nadert een bestand deze grootte, dan gaat de opname bij een keyframe verder in een nieuw bestand. Tussen de delen gaat geen beeld en geen geluid verloren. 0 schakelt het uit; geldt vanaf de volgende opname

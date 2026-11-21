@@ -9,7 +9,8 @@
 // Preferences: pushCompareLayout (0 split, 1 side by side, 2 vertical, 3 reveal; anything else counts
 // as split), pushCompareSeconds (one of `lengths`; anything else counts as 15), pushCompareUntilStop
 // (no timer: the clip runs until it is stopped, in every layout), pushCompareQuality (one of
-// `qualities`: 0 automatic, or the height recorded; Split and Reveal only) and
+// `qualities`: 0 automatic, or the height recorded; Split and Reveal only), pushComparePicture
+// (one of `pictures`: the picture quality, every layout; high unless set) and
 // pushCompareRevealSeconds (one of `revealIntervals`; anything else counts as 3).
 .pragma library
 
@@ -37,6 +38,17 @@ function quality(prefs) {
     return qualities.indexOf(n) >= 0 ? n : 0
 }
 function qualityName(height) { return height === 2160 ? "4K" : height + "p" }
+
+// Picture quality, in every layout: 0 standard (by bitrate, as every clip was), 1 high and 2 near
+// lossless (a fixed quality level: engine/RecordingComparePlan.h compareClipQualityLevel). High
+// unless chosen: a clip is made to be looked at closely.
+var pictures = [0, 1, 2]
+function picture(prefs) {
+    var v = prefs ? prefs.pushComparePicture : undefined
+    if (v === undefined || v === null || v === "") return 1
+    var n = Number(v)
+    return pictures.indexOf(n) >= 0 ? n : 1
+}
 
 // Reveal: a sweep starts every so many seconds. The line's place over time is the recorder's own
 // rule (engine/RecordingComparePlan.h compareRevealPosition), repeated here for the preview.

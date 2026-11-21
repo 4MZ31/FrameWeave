@@ -2,7 +2,8 @@
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 //
 // Comparison clips, the part without graphics (engine/RecordingComparePlan.h): which layouts take a
-// chosen quality and what that does to the size, the bitrate and the encoder preset; when the Reveal
+// chosen quality and what that does to the size, the bitrate and the encoder preset; the picture
+// quality every layout takes and the fixed quality level it is encoded at; when the Reveal
 // layout's line is where, that it moves evenly, and what the line looks like.
 #include "veyra/engine/RecordingComparePlan.h"
 #include <cstdio>
@@ -45,6 +46,17 @@ int main() {
     check(compareClipPreset(4, 3840, 2160, 144) == 1 && compareClipPreset(4, 3840, 2160, 180) == 1 && compareClipPreset(4, 3840, 2160, 240) == 1, "4K above 126 FPS: the fastest");
     check(compareClipPreset(1, 3840, 2160, 60) == 1 && compareClipPreset(2, 3840, 2160, 120) == 2, "a faster configured preset stays");
     check(compareClipPreset(0, 3840, 2160, 60) == 1 && compareClipPreset(99, 1920, 1080, 60) == 7, "out-of-range presets are brought in range");
+    // ---- Picture quality: every layout --------------------------------------------------------
+    check(comparePictureOf(0) == ComparePicture::Standard && comparePictureOf(1) == ComparePicture::High && comparePictureOf(2) == ComparePicture::NearLossless, "the three picture qualities");
+    check(comparePictureOf(3) == ComparePicture::Standard && comparePictureOf(99) == ComparePicture::Standard, "anything else is standard");
+    check(compareClipQualityLevel(ComparePicture::Standard) == 0, "standard is by bitrate, as every clip was");
+    check(compareClipQualityLevel(ComparePicture::High) == 18, "high: the fixed quality level a recording's best uses");
+    check(compareClipQualityLevel(ComparePicture::NearLossless) == 14, "near lossless: a finer level still");
+    check(compareClipQualityLevel(ComparePicture::NearLossless) < compareClipQualityLevel(ComparePicture::High), "a finer picture is a lower level");
+    for (const auto picture : {ComparePicture::High, ComparePicture::NearLossless})
+        check(compareClipQualityLevel(picture) >= 1 && compareClipQualityLevel(picture) <= 51, "a level the encoders take, picture " + std::to_string(int(picture)));
+    // A fixed quality at 4K and many frames a second still gets the preset the card keeps up with.
+    check(compareClipPreset(4, 3840, 2160, 120) == 2 && compareClipPreset(4, 1080, 1920, 120) == 4, "the preset rule is the same whatever the picture quality");
     // When to say that frames were lost.
     check(!compareClipFellBehind(1800, 0) && !compareClipFellBehind(1800, 29), "a few lost frames are not worth a notice");
     check(!compareClipFellBehind(7200, 100), "nor is 1 in 72");

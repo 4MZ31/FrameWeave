@@ -79,6 +79,10 @@ struct RecordingSettings {
     // best-looking encode (compareClipBitrateMbps, compareClipPreset in RecordingComparePlan.h).
     // Side by side and Vertical ignore it.
     uint32_t compareMaxHeight=0;
+    // Every layout: the picture quality (ComparePicture in RecordingComparePlan.h). 0 standard: by
+    // bitrate, as every clip was. 1 high and 2 near lossless: a fixed quality level, whatever rate
+    // recordings are set to.
+    uint32_t comparePicture=0;
     double compareRevealSeconds=3.0;  // Reveal: a sweep starts every so many seconds (compareRevealInterval)
     RecordingLabelRenderer compareLabels; // optional labels, called per file on the engine thread
     // Recordings in parts by size too: 0 = no limit. A part ends at a keyframe before it would pass the

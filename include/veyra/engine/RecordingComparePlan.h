@@ -63,6 +63,21 @@ inline uint32_t compareClipPreset(uint32_t configured, uint32_t width, uint32_t 
                          : 1u;                                       // beyond
     return std::min(preset, limit);
 }
+// ---- Picture quality (RecordingSettings::comparePicture): every layout.
+// Standard is the encode every clip had: by bitrate, the recording's own or the automatic one. High and
+// near lossless are encoded at a fixed quality level instead, whatever bitrate recordings are set to, so
+// a low rate chosen for uploads never makes a clip soft; the size of the file then follows the picture.
+// The level is the encoder's quantizer (H.264 and HEVC: 1 finest to 51). 18 is what a recording's "best"
+// uses. At 14 a 4K clip is not told from what was on screen at normal size; it is also several times the
+// file (a 4K clip can be some gigabytes a minute), which is why it is a choice and not the standard.
+enum class ComparePicture : uint32_t { Standard = 0, High = 1, NearLossless = 2 };
+inline ComparePicture comparePictureOf(uint32_t chosen) {
+    return chosen == 1 ? ComparePicture::High : chosen == 2 ? ComparePicture::NearLossless : ComparePicture::Standard;
+}
+// The fixed quality level a clip of that picture quality is encoded at; 0: by bitrate, as before.
+inline uint32_t compareClipQualityLevel(ComparePicture picture) {
+    return picture == ComparePicture::High ? 18u : picture == ComparePicture::NearLossless ? 14u : 0u;
+}
 // Whether a clip lost enough frames to be worth saying: 30 or more, and over 2 in 100.
 inline bool compareClipFellBehind(uint64_t written, uint64_t dropped) { return dropped >= 30 && dropped * 50 > written + dropped; }
 

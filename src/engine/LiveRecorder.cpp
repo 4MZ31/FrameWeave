@@ -476,6 +476,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
     CompareLayout compareLayout=CompareLayout::Split;
     double compareRevealSeconds=3.0;            // Reveal: a sweep starts every so many seconds
     uint32_t compareQuality=0;                  // the height the user chose for the clip (0: automatic)
+    ComparePicture comparePicture=ComparePicture::Standard; // the clip's picture quality (every layout)
     std::unique_ptr<RecordingCompare> compare;
     // PushFPS streaming mode scenes (PushStreamOverlay.h): the scene picture blended onto every frame
     // (not on comparison clips). A replaced one stays alive until the frames that used it are done.
@@ -1272,7 +1273,7 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
             stopFinisher();
             // A clip at a chosen quality that lost frames: said, with what to do about it. (Automatic
             // quality keeps its silence: nothing about those clips changes.)
-            if(compareQuality&&videoWritten.load()&&compareClipFellBehind(videoWritten.load(),dropped.load())&&noteText().empty())
+            if((compareQuality||comparePicture!=ComparePicture::Standard)&&videoWritten.load()&&compareClipFellBehind(videoWritten.load(),dropped.load())&&noteText().empty())
                 setNote(L"这段对比片段有一部分帧没能录下：显卡跟不上所选的片段画质，请选低一档再录");
             veyra::log::info("live-recorder",std::format("file closed path={} videoFrames={} seconds={:.2f} originUs={} audio={} audioGaps={} audioOverflow={} microphoneGaps={} microphoneOverflow={} soundBlocks={} mixerSilenced={} dropped={} ok={} parts={} soundAfterItsPart={}{}",
                 utf8(path),videoWritten.load(),double(end)/1e6,t0Us.load(),audio.load(),soundLane.gaps.load(),soundLane.overflow.load(),micLane.gaps.load(),micLane.overflow.load(),
@@ -1724,6 +1725,14 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         segment->compareQuality=segment->compareClip&&compareClipHeightChosen(s.settings.compareLayout,s.settings.compareMaxHeight)?s.settings.compareMaxHeight:0;
         if(segment->compareQuality){
             if(!s.settings.bitrateMbps&&!s.settings.bitrateKbps)segment->bitrateMbps=compareClipBitrateMbps(segment->bitrateMbps);
+            segment->preset=compareClipPreset(segment->preset,segment->width,segment->height,segment->fps);
+        }
+        // A clip's own picture quality (every layout): high and near lossless are encoded at a fixed
+        // quality level, whatever bitrate, rate control or upload profile recordings are set to.
+        // Standard is by bitrate, exactly as every clip was encoded before.
+        segment->comparePicture=segment->compareClip?comparePictureOf(s.settings.comparePicture):ComparePicture::Standard;
+        if(const uint32_t level=compareClipQualityLevel(segment->comparePicture)){
+            segment->rateControl=2;segment->quality=level;
             segment->preset=compareClipPreset(segment->preset,segment->width,segment->height,segment->fps);
         }
         segment->audio=segment->sound||segment->microphone;

@@ -650,6 +650,10 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     const bool reveal = layout == 3;
     const int quality = impl_->prefInt("pushCompareQuality", 0);
     options.compareMaxHeight = (layout == 0 || reveal) && (quality == 1080 || quality == 1440 || quality == 2160) ? uint32_t(quality) : 0u;
+    // Every layout: the picture quality (pref pushComparePicture: 0 standard, 1 high, 2 near lossless;
+    // high unless set). High and near lossless are encoded at a fixed quality level, so a clip is as
+    // clean as it was on screen whatever bitrate recordings are set to.
+    options.comparePicture = uint32_t(std::clamp(impl_->prefInt("pushComparePicture", 1), 0, 2));
     // Reveal: a sweep starts every so many seconds (pref pushCompareRevealSeconds, 1 to 8; 3 unless set).
     const int revealEvery = std::clamp(impl_->prefInt("pushCompareRevealSeconds", 3), 1, 8);
     options.compareRevealSeconds = double(revealEvery);
@@ -692,10 +696,11 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     std::wstring error;
     if (!impl_->engine.requestRecording(options, error)) { emit notice(uiText(error), true); return false; }
     pushRecordingNotices(options.audio, options.microphone, true);   // the mixer's own mute still applies; a card does not (PushStudio.cpp)
-    veyra::log::info("push-compare", std::format("comparison clip seconds={} layout={} labels=\"{}\" / \"{}\" height={} quality={} revealEvery={}",
+    veyra::log::info("push-compare", std::format("comparison clip seconds={} layout={} labels=\"{}\" / \"{}\" height={} quality={} revealEvery={} picture={}",
                                                  untilStopped ? std::string("until-stopped") : std::to_string(seconds),
                                                  reveal ? "reveal" : layout == 2 ? "vertical" : layout == 1 ? "side-by-side" : "split", leftText.toStdString(), rightText.toStdString(),
-                                                 height, options.compareMaxHeight, revealEvery));
+                                                 height, options.compareMaxHeight, revealEvery,
+                                                 options.comparePicture == 2 ? "near-lossless" : options.comparePicture == 1 ? "high" : "standard"));
     impl_->recordingState["active"] = true;
     impl_->recordingState["failed"] = false;
     impl_->recordingState["compare"] = true;

@@ -907,7 +907,7 @@ VPage {
                         }
                         VRow {
                             label: qsTr("自动分段")
-                            hint: qsTr("长时间录制时每隔一段时间开始一个新文件，不中断录制；单个文件更小，出问题时损失更少")
+                            hint: qsTr("长时间录制时每隔一段时间接着写入一个新文件；各段之间不丢画面也不丢声音，可以无缝接起来。单个文件更小，出问题时损失更少")
                             VSeg {
                                 objectName: "set-recsplit"
                                 options: [{ id: "0", label: qsTr("关") }, { id: "30", label: qsTr("%1 分钟").arg(30) }, { id: "60", label: qsTr("%1 分钟").arg(60) }, { id: "120", label: qsTr("%1 分钟").arg(120) }]
@@ -915,10 +915,11 @@ VPage {
                                 onPicked: id => veyra.setPreference("recordSplitMinutes", Number(id))
                             }
                         }
-                        // 2.2.0's split by size. Splitting by time is the row 自动分段 above (recordSplitMinutes).
+                        // Split by size. Splitting by time is the row 自动分段 above (recordSplitMinutes). Both cut
+                        // without a gap: one encoder runs through every part (engine/PushRecordParts.h).
                         VRow {
                             label: qsTr("按大小分段")
-                            hint: qsTr("文件达到这个大小后，在下一个关键帧开始新文件，不中断录制。0 表示关闭，下次录制时生效")
+                            hint: qsTr("文件快到这个大小时，在关键帧处接着写入新文件；各段之间不丢画面也不丢声音。0 表示关闭，下次录制时生效")
                             RowLayout {
                                 DialogHost.VTextField {
                                     objectName: "record-split-mib"
@@ -1263,7 +1264,7 @@ VPage {
                         VRow {
                             objectName: "set-compare-quality-row"
                             visible: CompareClip.takesQuality(CompareClip.layout(veyra.preferences))
-                            label: qsTr("片段画质")
+                            label: qsTr("片段尺寸")
                             hint: {
                                 const q = CompareClip.quality(veyra.preferences)
                                 return q === 2160 ? qsTr("最高按 4K 录制，每一帧都录：需要较强的显卡。若有帧没录下，录完会提示，请选低一档")
@@ -1275,6 +1276,23 @@ VPage {
                                 options: CompareClip.qualities.map(n => ({ id: String(n), label: n > 0 ? CompareClip.qualityName(n) : qsTr("自动") }))
                                 current: String(CompareClip.quality(veyra.preferences))
                                 onPicked: id => veyra.setPreference("pushCompareQuality", Number(id))
+                            }
+                        }
+                        // Every layout: how finely a clip is encoded.
+                        VRow {
+                            objectName: "set-compare-picture-row"
+                            label: qsTr("画质")
+                            hint: {
+                                const p = CompareClip.picture(veyra.preferences)
+                                return p === 2 ? qsTr("几乎看不出和原画的差别。文件很大（4K 每分钟可达数 GB），建议录到固态硬盘")
+                                     : p === 1 ? qsTr("固定画质编码：细节清楚、画面干净，文件大小随画面内容变化")
+                                     : qsTr("标准码率：文件较小，适合直接分享")
+                            }
+                            VSeg {
+                                objectName: "set-compare-picture"
+                                options: CompareClip.pictures.map(n => ({ id: String(n), label: n === 2 ? qsTr("近无损") : n === 1 ? qsTr("高") : qsTr("标准") }))
+                                current: String(CompareClip.picture(veyra.preferences))
+                                onPicked: id => veyra.setPreference("pushComparePicture", Number(id))
                             }
                         }
                         // Reveal: how often the line sweeps.
