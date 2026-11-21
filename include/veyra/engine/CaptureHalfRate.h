@@ -38,10 +38,14 @@ namespace veyra::engine {
 //    measured on a real card, where a repeat has at most 47 components beyond the band, the smallest
 //    real new picture (a still screen) 156, and a moving game 100 000 and more. A picture the
 //    comparison calls a repeat IS the last picture to within a capture card's noise, so passing it
-//    over loses nothing that can be seen. 4.0's artifacts were the still rule's.
+//    over loses nothing that can be seen. That leaves the still rule for 4.0's artifacts, by
+//    exclusion and not by a test on a card.
 //  - 4.1.0 and 4.1.1 therefore ran the plain grid again, and the owner still saw artifacts round the
-//    head and moving objects that the engine release itself did not show (21 November 2026). The
-//    plain grid is why. A 30 FPS game that misses a refresh holds one picture for three samples and
+//    head and moving objects that the engine release itself did not show (21 November 2026). On a
+//    60 -> 30 capture path this file was the one difference between the two engines, and it makes
+//    this kind of fault; that it is what he saw is not shown (he found 3.2.10 clean on the same
+//    plain grid: "60>30 was the thing that fixed everything at first"), so his own look decides.
+//    A 30 FPS game that misses a refresh holds one picture for three samples and
 //    shows the next for one, to catch up (3-1: the commonest hitch of a console game). The grid kept
 //    the held picture twice and never saw the short one: a pair that does not move, then a pair two
 //    game frames apart, which frame generation has to bridge in one step. Simulated at one hitch a
