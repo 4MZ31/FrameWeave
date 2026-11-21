@@ -26,6 +26,7 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace veyra::engine::clipmarks {
@@ -109,16 +110,46 @@ inline std::string sidecarName(std::string_view recordingName) {
 
 // The markers of the file being written. A marker for another file starts that file's list: the
 // earlier file's markers are already on disk.
+//
+// The book holds what is on disk and nothing else, so a marker is taken in two steps: `stage` says
+// what the file's list would be with it and changes nothing, the caller writes that list to disk,
+// and `commit` takes it over only once it is there. A marker whose file could not be written is
+// then not in the book: it is not counted, the next one takes its number, and it does not turn up
+// in a later save after the user was told it was not saved (which is what a single `add` before the
+// write did until 4.1.0).
 class Book {
 public:
-    // Returns the marker's number in its file (from 1), or 0 when it is refused: no file, a time
-    // that is not a number or is before the file's start, or a file that already has kMaxMarkers.
+    struct Pending {
+        std::string file;
+        std::vector<Marker> markers;   // the whole list of `file` with the new marker at its end
+        std::size_t number = 0;        // the new marker's number in its file (from 1); 0 = refused
+        bool valid() const { return number > 0; }
+    };
+    // Refused (not valid) for: no file, a time that is not a number or is before the file's start,
+    // or a file that already has kMaxMarkers. The book is not changed either way.
+    Pending stage(std::string_view file, double seconds, std::string_view label) const {
+        Pending pending;
+        if (file.empty() || !std::isfinite(seconds) || seconds < 0) return pending;
+        if (file == file_) pending.markers = markers_;
+        if (pending.markers.size() >= kMaxMarkers) { pending.markers.clear(); return pending; }
+        pending.file.assign(file);
+        pending.markers.push_back({seconds, cleanLabel(label)});
+        pending.number = pending.markers.size();
+        return pending;
+    }
+    // Takes a staged list over. Call it only after the list was written.
+    void commit(Pending&& pending) {
+        if (!pending.valid()) return;
+        file_ = std::move(pending.file);
+        markers_ = std::move(pending.markers);
+    }
+    // Both steps at once, for a caller that writes nothing. Returns the marker's number in its file
+    // (from 1), or 0 when it is refused.
     std::size_t add(std::string_view file, double seconds, std::string_view label) {
-        if (file.empty() || !std::isfinite(seconds) || seconds < 0) return 0;
-        if (file != file_) { file_.assign(file); markers_.clear(); }
-        if (markers_.size() >= kMaxMarkers) return 0;
-        markers_.push_back({seconds, cleanLabel(label)});
-        return markers_.size();
+        auto pending = stage(file, seconds, label);
+        const std::size_t number = pending.number;
+        commit(std::move(pending));
+        return number;
     }
     // How many markers `file` has (0 for any file but the one being written).
     std::size_t count(std::string_view file) const { return file == file_ ? markers_.size() : 0; }

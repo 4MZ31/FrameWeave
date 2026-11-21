@@ -38,9 +38,11 @@ The port is `18766` unless you chose another one in Settings.
 
 Every request carries the header `Authorization: Bearer <token>` and no body.
 
-An action answers `{"ok":true}` when it was carried out and `{"ok":false,"error":"not possible right now"}`
-when PushFPS could not (nothing is playing, no recording runs, the replay is off). A request that is
-refused answers with its reason: `401` no or wrong token, `403` not from this PC or from a web page,
+An action answers `{"ok":true}` when PushFPS took it and `{"ok":false,"error":"not possible right now"}`
+when it could not (nothing is playing, no recording runs, the replay is off or has nothing to save yet,
+the scene does not exist, a marker could not be written). For a replay and a screenshot, `ok` means the
+request was accepted: the file is written a moment later, and PushFPS says on screen when it is saved.
+A request that is refused answers with its reason: `401` no or wrong token, `403` not from this PC or from a web page,
 `404` no such request, `405` wrong method, `429` too many or locked.
 
 Status:

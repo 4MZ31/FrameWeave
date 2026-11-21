@@ -1423,7 +1423,8 @@ public:
     // fullscreen bar window uses it so only its pill takes the pointer.
     Q_INVOKABLE void setWindowMask(QObject* window, const QRectF& rect);
     Q_INVOKABLE void stepFrame(int direction);
-    Q_INVOKABLE void takeScreenshot();
+    // True when the frame was asked for (the file is written a moment later); false when it was refused.
+    Q_INVOKABLE bool takeScreenshot();
     // Recording: the 3 second countdown lives in the interface, the engine
     // only opens the file when the request reaches it.
     // source names the trigger in the log ("shortcut", "pro-button", "game-hotkey").
@@ -1439,8 +1440,9 @@ public:
     Q_INVOKABLE void toggleRecording(const QString& source = QString());
     Q_INVOKABLE void chooseRecordingDirectory();
     Q_INVOKABLE void openRecordingDirectory();
-    // Writes what the replay buffer holds now (source as for recording).
-    Q_INVOKABLE void saveReplay(const QString& source = QString());
+    // Writes what the replay buffer holds now (source as for recording). True when the engine took the
+    // request (the file is written a moment later); false when it was refused, with its notice.
+    Q_INVOKABLE bool saveReplay(const QString& source = QString());
     // PushFPS clip markers (engine/PushClipMarkers.h): notes this moment of the recording in progress in a
     // text file beside it ("<recording>-markers.txt"). False, with a notice, when nothing is being recorded.
     Q_INVOKABLE bool pushAddMarker(const QString& source = QString());

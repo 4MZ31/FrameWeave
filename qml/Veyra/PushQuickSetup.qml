@@ -906,7 +906,9 @@ VGroup {
         summary: quick.sectionSummary("setup")
         open: quick.sectionOpen("setup")
         onToggled: open => quick.setSectionOpen("setup", open)
-        // The capture card in use, and whether it is on PushFPS's tested list.
+        // The capture card in use, and what is known of it. A card with nothing known gets no "not
+        // tested" mark (the owner's rule, 21 November 2026: say it where there is something to say):
+        // the tag is only for a card that was tested or reported working.
         VRow {
             id: cardRow
             objectName: "pushfps-card-row"
@@ -921,7 +923,7 @@ VGroup {
                 : card && card.status === "tested" ? qsTr("PushFPS 已实测")
                 : card && card.status === "veyra" ? qsTr("Veyra 作者已实测")
                 : card && card.status === "reported" ? qsTr("有 PushFPS 用户报告可用")
-                : qsTr("还没有人报告这张卡的结果，欢迎在 GitHub 上分享")
+                : qsTr("欢迎在 GitHub 上分享这张卡的使用结果")
             hintBelow: true
             RowLayout {
                 spacing: 6
@@ -932,9 +934,10 @@ VGroup {
                 }
                 VTag {
                     objectName: "pushfps-card-status"
-                    visible: cardRow.named
-                    kind: cardRow.card && cardRow.card.status !== "untested" ? "ok" : ""
-                    text: cardRow.card && cardRow.card.status !== "untested" ? qsTr("已测试") : qsTr("未测试")
+                    readonly property bool known: cardRow.card !== null && cardRow.card.status !== "untested"
+                    visible: cardRow.named && known
+                    kind: "ok"
+                    text: qsTr("已测试")
                 }
                 VButton {
                     visible: cardRow.named && !(cardRow.card && cardRow.card.status === "tested")

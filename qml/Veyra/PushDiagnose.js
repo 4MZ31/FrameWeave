@@ -29,7 +29,16 @@ var kRoomBalanced = 0.11
 // Generated frames shown against generated frames asked for: under this, the card is not keeping up.
 var kBehind = 0.8
 
-function num(v, fallback) { var n = Number(v); return isFinite(n) ? n : fallback }
+// A reading as a number, or the fallback when it is not there. Only a number, or a number written as
+// text, is a reading: JavaScript's Number() turns null, "", " ", false and [] into 0, and a missing
+// reading taken for a zero was a finding nobody should see (a null "generated frames" read as "the
+// card is falling behind", a null enhancement size as "worked out at 1080p").
+function num(v, fallback) {
+    if (typeof v === "string") { if (v.trim() === "") return fallback }
+    else if (typeof v !== "number") return fallback
+    var n = Number(v)
+    return isFinite(n) ? n : fallback
+}
 
 // The sources a console's picture comes through (PushCrop.js `kinds`).
 function consoleSource(kind) {

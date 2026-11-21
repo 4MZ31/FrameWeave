@@ -15,6 +15,9 @@
 #include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QHostAddress>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QRandomGenerator>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -174,13 +177,29 @@ static QByteArray controlToken(const QVariantMap& prefs) {
     return control::validToken(std::string_view(token.constData(), std::size_t(token.size()))) ? token : QByteArray();
 }
 
+// How many scenes streaming mode has: the rule of StudioPage.qml `scenes` (the saved list when it is a
+// list with a game scene in it, else the four it starts with). Change both together.
+static int sceneCount(const QVariantMap& prefs) {
+    const auto saved = QJsonDocument::fromJson(prefs.value(QStringLiteral("studioScenes")).toString().toUtf8());
+    if (saved.isArray()) {
+        const QJsonArray list = saved.array();
+        bool game = false;
+        for (const auto& item : list)
+            if (item.toObject().value(QStringLiteral("type")).toString() == QLatin1String("game")) { game = true; break; }
+        if (game) return int(list.size());
+    }
+    return 4;
+}
+
 QVariantMap QmlPlayerBridge::pushControlState() const {
     const auto* server = serverOf(impl_->controlServer);
     QVariantMap state;
     state["enabled"] = impl_->prefBool("pushControl", false);
     state["listening"] = server && server->listening();
     state["port"] = std::clamp(impl_->prefInt("pushControlPort", int(control::kDefaultPort)), 1024, 65535);
-    state["hasToken"] = impl_->prefs.contains(QStringLiteral("pushControlToken"));
+    // A token that is there and can be read by this Windows user: a saved one from another account, or
+    // a damaged one, is no token (it cannot be copied and nothing can sign in with it).
+    state["hasToken"] = !controlToken(impl_->prefs).isEmpty();
     state["error"] = server ? server->error() : QString();
     return state;
 }
@@ -196,6 +215,13 @@ void QmlPlayerBridge::pushApplyControl() {
     }
     QByteArray token = controlToken(impl_->prefs);
     if (token.isEmpty()) {
+        // Saved but not readable (the settings came from another Windows account, or the entry is
+        // damaged): a new one is made, and it is said, because what held the old one stops working.
+        const bool unreadable = !impl_->prefs.value(QStringLiteral("pushControlToken")).toString().isEmpty();
+        if (unreadable) {
+            veyra::log::warn("push-control", "the saved token could not be read; a new one is made");
+            emit notice(tr("本机控制保存的令牌无法读取，已生成新的令牌：请在设置里重新复制"), true);
+        }
         token = makeToken();
         const QByteArray blob = protectToken(token);
         if (blob.isEmpty()) {
@@ -279,17 +305,16 @@ QByteArray QmlPlayerBridge::pushControlHandle(int actionNumber, int scene) {
     case control::Action::RecordStop:
         if (recording()) stopRecording(QStringLiteral("control"));
         return result(!recording());
+    // "ok" only for what was taken (ui/PushControl.h): until 4.1.0 a replay the engine refused, a
+    // screenshot that was not asked for and a scene that does not exist all answered {"ok":true}.
     case control::Action::ReplaySave:
-        if (!replayEnabled()) return result(false);
-        saveReplay(QStringLiteral("control"));
-        return result(true);
+        return result(saveReplay(QStringLiteral("control")));
     case control::Action::Marker:
         return result(pushAddMarker(QStringLiteral("control")));
     case control::Action::Screenshot:
-        if (!hasSource()) return result(false);
-        takeScreenshot();
-        return result(true);
+        return result(takeScreenshot());
     case control::Action::Scene:
+        if (!control::sceneExists(scene, sceneCount(impl_->prefs))) return result(false);
         emit pushControlScene(scene);
         return result(true);
     default:

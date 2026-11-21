@@ -80,6 +80,40 @@ int main() {
         CHECK(book.add("long.mp4", 9999, "one too many") == 0);
         CHECK(book.count("long.mp4") == kMaxMarkers);
     }
+    // A marker is in the book only once its file was written: staged first, taken over after.
+    {
+        Book book;
+        CHECK(book.add("a.mp4", 10, "one") == 1);
+        // Staging changes nothing, whatever becomes of the write.
+        auto lost = book.stage("a.mp4", 20, "two");
+        CHECK(lost.valid() && lost.number == 2 && lost.file == "a.mp4" && lost.markers.size() == 2);
+        CHECK(lost.markers[0].label == "one" && lost.markers[1].label == "two" && lost.markers[1].seconds == 20);
+        CHECK(book.count("a.mp4") == 1 && book.markers().size() == 1);          // the write failed: nothing was taken
+        // The next marker takes the number the lost one had, and the lost one is not in its list.
+        auto kept = book.stage("a.mp4", 30, "two again");
+        CHECK(kept.valid() && kept.number == 2 && kept.markers.size() == 2 && kept.markers[1].seconds == 30);
+        book.commit(std::move(kept));
+        CHECK(book.count("a.mp4") == 2 && book.markers()[1].label == "two again" && book.markers()[1].seconds == 30);
+        // A new part whose first marker could not be written: the book still holds the earlier part, whole.
+        auto part = book.stage("a-2.mp4", 1, "first of part two");
+        CHECK(part.valid() && part.number == 1 && part.markers.size() == 1);
+        CHECK(book.file() == "a.mp4" && book.count("a.mp4") == 2 && book.count("a-2.mp4") == 0);
+        book.commit(std::move(part));
+        CHECK(book.file() == "a-2.mp4" && book.count("a-2.mp4") == 1 && book.count("a.mp4") == 0);
+        // Refused markers are not valid, and taking one over does nothing.
+        CHECK(!book.stage("", 3, "x").valid());
+        CHECK(!book.stage("a-2.mp4", std::numeric_limits<double>::quiet_NaN(), "x").valid());
+        CHECK(!book.stage("a-2.mp4", -1, "x").valid());
+        book.commit(book.stage("a-2.mp4", -1, "x"));
+        CHECK(book.file() == "a-2.mp4" && book.count("a-2.mp4") == 1);
+        // The limit holds for a staged marker too, and a full file's list is not handed out.
+        Book full;
+        for (std::size_t i = 0; i < kMaxMarkers; ++i) CHECK(full.add("long.mp4", double(i), "m") == i + 1);
+        const auto over = full.stage("long.mp4", 9999, "one too many");
+        CHECK(!over.valid() && over.markers.empty() && full.count("long.mp4") == kMaxMarkers);
+        // A label is cleaned when staged, as when added.
+        CHECK(Book().stage("u.mp4", 1, "two\nlines").markers[0].label == "two lines");
+    }
     if (failures) { std::printf("%d failed\n", failures); return 1; }
     std::printf("PushClipMarkersTests: all passed\n");
     return 0;

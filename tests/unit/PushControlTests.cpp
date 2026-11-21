@@ -149,6 +149,10 @@ int main() {
     CHECK(errorJson("wrong token") == "{\"ok\":false,\"error\":\"wrong token\"}");
     CHECK(errorJson("a\"b\\c\r\n") == "{\"ok\":false,\"error\":\"abc\"}");
     CHECK(resultJson(true) == "{\"ok\":true}" && resultJson(false).find("\"ok\":false") != std::string::npos);
+    // A scene has to be there: its number from 1, at most 9 (Ctrl+1..9), and no further than the list.
+    CHECK(sceneExists(1, 4) && sceneExists(4, 4) && !sceneExists(5, 4));
+    CHECK(!sceneExists(0, 4) && !sceneExists(-1, 4) && !sceneExists(1, 0));
+    CHECK(sceneExists(9, 12) && !sceneExists(10, 12));
 
     // The answer: never a header that lets a web page read it.
     {

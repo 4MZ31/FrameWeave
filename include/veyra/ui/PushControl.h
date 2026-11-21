@@ -248,7 +248,13 @@ inline std::string errorJson(std::string_view reason) {
     out += "\"}";
     return out;
 }
-// {"ok":true|false} for an action that was carried out or refused by PushFPS itself.
+// A scene is asked for by its number as Ctrl+1..9 gives it: from 1, at most 9, and there has to be one.
+constexpr bool sceneExists(int scene, int count) { return scene >= 1 && scene <= 9 && scene <= count; }
+
+// {"ok":true|false} for an action that PushFPS took or refused. "Took" is what the interface's own
+// button means: a recording started or stopped, a marker written, a scene there to switch to, and for
+// a replay or a screenshot the request accepted (their files are written a moment later). Never true
+// for something that was refused: a button box that says "saved" when nothing was is worse than none.
 inline std::string resultJson(bool done) { return done ? "{\"ok\":true}" : "{\"ok\":false,\"error\":\"not possible right now\"}"; }
 
 constexpr const char* reasonPhrase(int status) {

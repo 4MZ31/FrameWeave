@@ -322,9 +322,12 @@ Item {
             verify(!row.visible, "no card, no row")
             veyra.captureDeviceLabel = "Game Capture 4K X"
             verify(row.visible)
+            verify(findChild(quick, "pushfps-card-status").visible)
             compare(findChild(quick, "pushfps-card-status").text, qsTr("已测试"))
+            // A card nothing is known of carries no mark at all: it is never called "not tested".
             veyra.captureDeviceLabel = "USB Video"
-            compare(findChild(quick, "pushfps-card-status").text, qsTr("未测试"))
+            verify(row.visible)
+            verify(!findChild(quick, "pushfps-card-status").visible)
         }
         // Without a card chosen there is nothing to call tested or to report, so there is no row; a chosen card
         // that is unplugged is named as that and nothing more.
@@ -335,11 +338,11 @@ Item {
             verify(!row.visible, "no row while no device is selected")
             veyra.captureDeviceLabel = qsTr("设备未连接")
             verify(row.visible)
-            verify(!status.visible, "an unplugged card is not called untested")
+            verify(!status.visible, "an unplugged card carries no mark")
             compare(row.hint, "")
             veyra.captureDeviceLabel = "USB Video"
-            verify(row.visible && status.visible)
-            compare(row.hint, qsTr("还没有人报告这张卡的结果，欢迎在 GitHub 上分享"))
+            verify(row.visible && !status.visible, "a card nothing is known of: the row, and no mark")
+            compare(row.hint, qsTr("欢迎在 GitHub 上分享这张卡的使用结果"))
             veyra.captureDeviceLabel = ""
         }
         // Capture card reports from users: said as a user's report, not as PushFPS's own test, and
@@ -350,7 +353,7 @@ Item {
             compare(findChild(quick, "pushfps-card-status").text, qsTr("已测试"))
             compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
             veyra.captureDeviceLabel = "Game Capture HD60 S+"
-            compare(findChild(quick, "pushfps-card-status").text, qsTr("未测试"))
+            verify(!findChild(quick, "pushfps-card-status").visible, "its own entry, with nothing known: no mark")
             veyra.captureDeviceLabel = "Game Capture HD60 X"
             compare(row.hint, qsTr("PushFPS 已实测"))
             veyra.captureDeviceLabel = "AVerMedia Live Gamer Ultra 2.1"
@@ -362,7 +365,7 @@ Item {
             veyra.captureDeviceLabel = "ezcap Game Link RAW"
             compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
             veyra.captureDeviceLabel = "AVerMedia Live Gamer Ultra-Video"
-            compare(findChild(quick, "pushfps-card-status").text, qsTr("未测试"))
+            verify(!findChild(quick, "pushfps-card-status").visible)
             veyra.captureDeviceLabel = "USB Video"
         }
         function test_tools_open_their_dialogs() {

@@ -2013,7 +2013,7 @@ VPage {
                                         .arg(Math.round(Number(st.pushFlowFeaturesKept || 0))).arg(Math.round(Number(st.pushFlowFeaturesMade || 0)))
                                 }
                                 title: qsTr("PushFlow 2：每个真实帧只编码一次（实验）")
-                                explanation: qsTr("PushFlow 的模型每生成一帧，都要把前后两个真实帧各编码一遍。开启后，每个真实帧只编码一次，结果留给下一对画面和同一对里的其他时刻使用，所以 3× 和 4× 省得更多。画面应当和不开启时一样：启动时会在你的显卡上和完整模型对比，不一致就不使用。它是否真的更快，取决于显卡，目前还没有在真实显卡上测过")
+                                explanation: qsTr("PushFlow 的模型每生成一帧，都要把前后两个真实帧各编码一遍。开启后，每个真实帧只编码一次，结果留给下一对画面和同一对里的其他时刻使用，所以 3× 和 4× 省得更多。画面应当和不开启时一样：启动时会在你的显卡上和完整模型对比，不一致就不使用。能省多少取决于你的显卡")
                             }
                             PushFlow2Row {
                                 objectName: "list-pushflow2-guard-row"
@@ -2040,7 +2040,7 @@ VPage {
                                         .arg(Math.round(Number(st.pushFlowPredictSuperseded || 0)))
                                 }
                                 title: qsTr("PushFlow 2：Predict，不等下一帧（实验）")
-                                explanation: qsTr("普通补帧要等下一个真实帧到达，才能在两帧之间生成画面，所以真实画面会晚大约一帧才显示。Predict 不等：最新的真实帧处理完就显示，它之后的画面由已经到达的两帧预测出来。延迟更低，但预测可能出错：物体突然改变方向或新物体出现时，预测帧会和实际不同，直到下一个真实帧纠正。不可信的位置保持最新真实帧不动，不会凭空生成画面。只用于采集卡、串流等实时画面，不用于视频文件和导出。延迟实际降低多少、画面是否可以接受，还没有在真实硬件上测量过，需要你来判断")
+                                explanation: qsTr("普通补帧要等下一个真实帧到达，才能在两帧之间生成画面，所以真实画面会晚大约一帧才显示。Predict 不等：最新的真实帧处理完就显示，它之后的画面由已经到达的两帧预测出来。延迟更低，但预测可能出错：物体突然改变方向或新物体出现时，预测帧会和实际不同，直到下一个真实帧纠正。不可信的位置保持最新真实帧不动，不会凭空生成画面。只用于采集卡、串流等实时画面，不用于视频文件和导出。延迟降低多少、画面是否可以接受，取决于你的显卡和游戏，由你来判断")
                             }
                             PushFlow2Row {
                                 objectName: "list-pushflow2-dual-row"
@@ -2052,7 +2052,7 @@ VPage {
                                         .arg(Math.round(Number(st.pushFlowDualReal || 0))).arg(Math.round(Number(st.pushFlowDualBetween || 0)))
                                 }
                                 title: qsTr("PushFlow 2：Dual，录制和直播得到真实的帧（实验）")
-                                explanation: qsTr("开启 Predict 后，屏幕上显示的是预测帧。录制、即时回放和直播记录的是屏幕上的画面，所以也会包含这些预测帧。Dual 让它们改用真实的画面：真实帧本身，以及同一对真实帧之间真实的中间帧（Predict 已经算出了它，几乎不增加开销），时间上比屏幕晚一帧。你看到的画面和延迟都不变。只在 Predict 正在运行并且倍率是 2X 时起作用；对比短片仍然记录屏幕上的画面；录下的声音会比画面早一帧（30 FPS 时约 33 毫秒）。还没有在真实硬件上验证过")
+                                explanation: qsTr("开启 Predict 后，屏幕上显示的是预测帧。录制、即时回放和直播记录的是屏幕上的画面，所以也会包含这些预测帧。Dual 让它们改用真实的画面：真实帧本身，以及同一对真实帧之间真实的中间帧（Predict 已经算出了它，几乎不增加开销），时间上比屏幕晚一帧。你看到的画面和延迟都不变。只在 Predict 正在运行并且倍率是 2X 时起作用；对比短片仍然记录屏幕上的画面；录下的声音会比画面早一帧（30 FPS 时约 33 毫秒）")
                             }
                             PushFlow2Row {
                                 objectName: "list-pushflow2-response-row"
@@ -2071,7 +2071,7 @@ VPage {
                                         .arg((Number(st.pushFlowResponseExplained || 0) * 100).toFixed(0))
                                 }
                                 title: qsTr("PushFlow 2：Response，先测量（实验）")
-                                explanation: qsTr("Response 的设想是：在主机自己的画面到达之前，先根据右摇杆把画面转动一点。这能不能只靠视频信号做到，还没有人证明过，所以第一步只测量，不改动画面：画面自身的运动是否跟随右摇杆、有多强、晚多少。它只观察两样已经在 PushFPS 里的东西：PushFPS 自己发给主机的右摇杆（目前只有 PS5 Remote Play；接在主机上的手柄看不到），以及 Predict 运行时 PushFlow 算出的画面整体运动。不读取任何按键，不写入磁盘，不发送到任何地方；关闭开关或更换画面来源时全部清除。玩几分钟、多转动视角，这里就会显示结果，性能报告里也有")
+                                explanation: qsTr("Response 的设想是：在主机自己的画面到达之前，先根据右摇杆把画面转动一点。第一步只测量，不改动画面：画面自身的运动是否跟随右摇杆、有多强、晚多少。它只观察两样已经在 PushFPS 里的东西：PushFPS 自己发给主机的右摇杆（目前只有 PS5 Remote Play；接在主机上的手柄看不到），以及 Predict 运行时 PushFlow 算出的画面整体运动。不读取任何按键，不写入磁盘，不发送到任何地方；关闭开关或更换画面来源时全部清除。玩几分钟、多转动视角，这里就会显示结果，性能报告里也有")
                             }
                             PushFlow2Row {
                                 objectName: "list-pushflow2-memory-row"

@@ -69,7 +69,8 @@ DialogLayer {
             stillOn: veyra.preferences.pushHudStill === true,
             enhanceOn: veyra.nrAnyEnabled === true && layer !== null,
             enhanceSized: layer !== null && Number(layer.runtime) !== 4,
-            enhanceSize: layer !== null && layer.sizePolicy !== undefined ? Number(layer.sizePolicy) : 0,
+            // -1 = not known: a size nobody reported is never taken for "up to 1080p".
+            enhanceSize: layer !== null && layer.sizePolicy !== undefined ? Number(layer.sizePolicy) : -1,
             pictureHeight: Number(veyra.sourceHeight || 0),
             targetFixed: mode === 2,
             targetFps: custom,

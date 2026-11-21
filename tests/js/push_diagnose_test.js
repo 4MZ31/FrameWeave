@@ -93,6 +93,23 @@ t.same(many.map(f => f.id), ['fg-idle', 'still-on', 'enhance-small'], 'problems 
 t.same(D.count(many), { problem: 1, better: 2, 'try': 0, note: 0, act: 3 }, 'counted by what they ask')
 t.same(D.count([]).act, 0, 'nothing found, nothing to do')
 
+// A reading that is not there is not a zero (Number(null) and Number('') are 0 in JavaScript).
+for (const missing of [null, undefined, '', '   ', NaN, Infinity, -Infinity, 'x', true, false, [], {}]) {
+    const label = typeof missing === 'string' ? JSON.stringify(missing) : String(missing)
+    t.same(D.num(missing, -1), -1, 'not a reading: ' + label)
+    t.same(ids(good({ generatedFps: missing })), [], 'generated frames not known (' + label + '): never "falling behind"')
+}
+t.same(D.num(0, -1), 0, 'a real zero is a zero')
+t.same(D.num('0', -1), 0, 'and so is one written as text')
+t.same(D.num(' 42.5 ', -1), 42.5, 'a number written as text is read')
+t.same(D.num(-3, 9), -3, 'a negative reading is a reading')
+t.same(find(good({ generatedFps: 0 }), 'fg-behind').shown, 30, 'a measured zero is still said: no generated frame is shown')
+t.same(ids(good({ realFps: null, generatedFps: 10 })), [], 'real frames not known: nothing is judged from them')
+t.same(ids(good({ enhanceSize: null })), [], 'an enhancement size that is not known is not "1080p"')
+t.same(ids(good({ enhanceSize: '' })), [], 'nor is an empty one')
+t.same(ids(good({ pushFlowMotion: null, method: 'pushflow', pushFlowTier: null, pushFlowP95Ms: 2 })), [], 'a tier that is not known is not offered another')
+t.same(ids(good({ audioChoice: null, audioSuggestion: 3 })), [], 'a sound choice that is not known is not "no sound"')
+
 // The mean of sampled figures.
 t.same(D.mean([{ a: 10 }, { a: 20 }, { a: 'x' }, {}], 'a', -1), 15, 'values that are not numbers are left out')
 t.same(D.mean([], 'a', -1), -1, 'no samples: the fallback')

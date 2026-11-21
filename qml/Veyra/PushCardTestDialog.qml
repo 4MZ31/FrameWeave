@@ -107,7 +107,7 @@ DialogLayer {
         font.family: Theme.fontUi
         font.pixelSize: 12
         text: card.copied ? qsTr("已复制。贴到 GitHub 的反馈里，就能帮我们建立各型号显卡的实测表")
-                          : qsTr("愿意的话请复制结果发给我们：目前 PushFlow 的速度只在自动构建的软件渲染器上测过，真实显卡的数据都来自大家")
+                          : qsTr("愿意的话请复制结果发给我们：真实显卡的数据都来自大家")
     }
 
     foot: card.running ? qsTr("正在测试…") : ""

@@ -172,10 +172,13 @@ bool QmlPlayerBridge::pushAddMarker(const QString& source) {
     const std::string key = path.toStdString();
     auto& book = impl_->markerBook;
     const QString label = tr("标记 %1").arg(int(book.count(key)) + 1);
-    const std::size_t number = book.add(key, live.fileSeconds, label.toStdString());
+    // Staged, written, and only then taken into the book: a marker whose file could not be written
+    // is not counted and does not turn up in a later save (engine/PushClipMarkers.h).
+    auto pending = book.stage(key, live.fileSeconds, label.toStdString());
+    const std::size_t number = pending.number;
     if (!number) { emit notice(tr("这个录像的标记已经满了（%1 个）").arg(int(engine::clipmarks::kMaxMarkers)), true); return false; }
     const QString sidecar = file.dir().filePath(QString::fromStdString(engine::clipmarks::sidecarName(file.fileName().toStdString())));
-    const std::string text = engine::clipmarks::fileText(file.fileName().toStdString(), book.markers());
+    const std::string text = engine::clipmarks::fileText(file.fileName().toStdString(), pending.markers);
     QSaveFile out(sidecar);
     const bool written = out.open(QIODevice::WriteOnly) && out.write(text.data(), qint64(text.size())) == qint64(text.size()) && out.commit();
     const std::string at = engine::clipmarks::timeText(live.fileSeconds);
@@ -183,6 +186,7 @@ bool QmlPlayerBridge::pushAddMarker(const QString& source) {
     veyra::log::info("push-markers", std::format("marker {} at {} source={} written={}", number, at,
                                                  source.isEmpty() ? std::string("unnamed") : source.toStdString(), written));
     if (!written) { emit notice(tr("标记没有保存：无法写入录像所在的文件夹"), true); return false; }
+    book.commit(std::move(pending));
     impl_->recordingState["markers"] = int(number);
     emit recordingChanged();
     emit notice(tr("已标记 %1").arg(QString::fromStdString(at)), false);
@@ -199,21 +203,22 @@ void QmlPlayerBridge::syncReplay() {
                                               recordingMicrophone() ? (recordingMicrophoneTrack() ? "track" : "mixed") : "off"));
     pollReplay();
 }
-void QmlPlayerBridge::saveReplay(const QString& source) {
+bool QmlPlayerBridge::saveReplay(const QString& source) {
     const QString binding = source.startsWith(QStringLiteral("shortcut")) ? shortcuts().value("replay").toString() : QString();
     if (!replayEnabled()) {
         logRecordingRequest("replay-save", source, binding, impl_->lastShortcutKey, "refused=off");
         emit notice(tr("即时回放未开启：设置 → 录制 → 即时回放"), true);
-        return;
+        return false;
     }
     std::wstring error;
     if (!impl_->engine.saveReplay(wideOf(recordingDirectory()), error)) {
         logRecordingRequest("replay-save", source, binding, impl_->lastShortcutKey, "refused");
         emit notice(uiText(error), true);
-        return;
+        return false;
     }
     logRecordingRequest("replay-save", source, binding, impl_->lastShortcutKey, "requested");
     pollReplay();
+    return true;
 }
 // Whole seconds and 10 MB steps: the state changes about once a second, not
 // at the poll rate.
