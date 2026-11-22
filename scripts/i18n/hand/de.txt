@@ -1545,3 +1545,11 @@ zh:在画面上按住左键拖动分割线：左边增强、右边原画。|Halt
 zh:全屏时画面只是被拉大到屏幕大小，所以看起来发软。开启放大后由显卡把画面放大到屏幕分辨率，更清晰，也更吃显卡；帧率掉了就关掉|Im Vollbild wird das Bild nur auf die Größe des Bildschirms gestreckt, deshalb wirkt es weich. Mit Hochskalierung vergrößert die Grafikkarte es auf die Auflösung des Bildschirms: schärfer, aber mehr Arbeit für die Karte. Wieder ausschalten, wenn die Bildrate sinkt
 zh:采集的画面比屏幕小时，全屏只是把它拉大，看起来发软。开启后由显卡把画面放大到屏幕分辨率，边缘和文字更清晰，也更吃显卡。放大方式可以在专业模式的「画质」里更换|Ist das aufgenommene Bild kleiner als dein Bildschirm, wird es im Vollbild nur gestreckt und wirkt weich. Hiermit skaliert die Grafikkarte es auf die Auflösung des Bildschirms hoch: Kanten und Text werden schärfer, die Karte arbeitet mehr. Das Verfahren lässt sich im Profimodus unter „Qualität“ ändern
 zh:把画面分成两半：一边是没有 AI 画面增强的原画，另一边是增强后的画面，方便边调边看。在专业模式的画面上或全屏时，按住鼠标左键可以拖动分割线；两侧可以交换|Teilt das Bild in zwei Hälften: eine Seite zeigt das Original ohne KI-Bildverbesserung, die andere das verbesserte Bild, sodass du beim Ansehen einstellen kannst. Auf dem Bild des Profimodus oder im Vollbild ziehst du die Trennlinie mit gedrückter linker Maustaste; die Seiten lassen sich tauschen
+zh:开关、风格、微调和其他画面设置现在都在「画质」页|Schalter, Stil, Feinabstimmung und die übrigen Bildeinstellungen stehen jetzt im Tab „Qualität“
+zh:设计|Design
+zh:新版|Neu
+zh:旧版|Klassisch
+zh:新版把导航、预览和全部快速设置放在同一个窗口里；旧版是 4.2 及更早版本的界面。两种设计的功能完全相同|Neu zeigt Navigation, Vorschau und die gesamte Schnelleinrichtung in einem Fenster. Klassisch ist die Oberfläche von 4.2 und früher. Beide Designs haben genau dieselben Funktionen
+zh:更多外观设置|Weitere Darstellungseinstellungen
+zh:语言、启动方式和窗口选项在「设置」里|Sprache, Start und Fensteroptionen stehen in den Einstellungen
+zh:打开 PushFPS 时播放约 2 秒的开场动画，单击或按任意键可跳过|Spielt beim Öffnen von PushFPS ein 2-Sekunden-Intro ab; Klick oder beliebige Taste überspringt es

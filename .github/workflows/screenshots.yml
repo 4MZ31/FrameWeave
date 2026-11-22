@@ -271,7 +271,28 @@ jobs:
             # (the Picture section in the Quality tab, the rest in the Frame Gen tab).
             @{ name = '134-upscale-row'; args = @('--page', 'home', '--lang', 'en', '--scroll-to', 'pushfps-upscale-row') },
             @{ name = '135-pro-quality-picture'; args = @('--page', 'pro', '--tab', 'quality', '--lang', 'en') },
-            @{ name = '136-pro-frame-gen-rest'; args = @('--page', 'pro', '--tab', 'fg', '--lang', 'en') }
+            @{ name = '136-pro-frame-gen-rest'; args = @('--page', 'pro', '--tab', 'fg', '--lang', 'en') },
+            # The redesign (after 4.2.1): the new design is the default; Legacy is --pref pushDesign=legacy.
+            @{ name = '140-design-home'; size = '1600x900'; args = @('--page', 'home', '--lang', 'en') },
+            @{ name = '141-design-home-light'; size = '1600x900'; args = @('--page', 'home', '--lang', 'en', '--theme', 'light') },
+            @{ name = '142-design-home-playing'; sender = $true; size = '1600x900'; args = @('frameinput:default', '--page', 'home', '--tab', 'home-preview', '--lang', 'en') },
+            @{ name = '143-design-pro'; size = '1600x900'; args = @('--page', 'pro', '--lang', 'en') },
+            @{ name = '144-design-pro-playing'; sender = $true; size = '1600x900'; args = @('frameinput:default', '--page', 'pro', '--lang', 'en') },
+            @{ name = '145-design-studio'; size = '1600x900'; args = @('--page', 'live', '--lang', 'en') },
+            @{ name = '146-design-watch'; size = '1600x900'; args = @('--page', 'watch', '--lang', 'en') },
+            @{ name = '147-design-export'; size = '1600x900'; args = @('--page', 'exp', '--lang', 'en') },
+            @{ name = '148-design-settings'; size = '1600x900'; args = @('--page', 'set', '--tab', 'look', '--lang', 'en') },
+            @{ name = '149-design-appearance'; size = '1600x900'; args = @('--page', 'home', '--dialog', 'appearance', '--lang', 'en') },
+            @{ name = '150-design-home-1280'; size = '1280x720'; args = @('--page', 'home', '--lang', 'en') },
+            @{ name = '151-design-home-narrow'; size = '860x720'; args = @('--page', 'home', '--lang', 'en') },
+            @{ name = '152-design-intro'; size = '1600x900'; args = @('--page', 'home', '--intro-at', '1250') },
+            @{ name = '153-design-home-black'; size = '1600x900'; args = @('--page', 'home', '--lang', 'en', '--theme', 'black') },
+            @{ name = '154-design-legacy-home'; size = '1600x900'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushDesign=legacy') },
+            @{ name = '155-design-legacy-pro'; size = '1600x900'; args = @('--page', 'pro', '--lang', 'en', '--pref', 'pushDesign=legacy') },
+            @{ name = '156-design-home-de'; size = '1280x720'; args = @('--page', 'home', '--lang', 'de') },
+            @{ name = '157-design-home-ko'; size = '1600x900'; args = @('--page', 'home', '--lang', 'ko') },
+            @{ name = '158-design-pro-quality'; size = '1600x900'; args = @('--page', 'pro', '--tab', 'quality', '--lang', 'en') },
+            @{ name = '159-design-legacy-appearance'; size = '1600x900'; args = @('--page', 'home', '--dialog', 'appearance', '--lang', 'en', '--pref', 'pushDesign=legacy') }
           )
           if ($env:ONLY) { $list = @($list | Where-Object { $_.name -match $env:ONLY }); Write-Host "Only: $($list.name -join ', ')" }
           foreach ($s in $list) {
@@ -304,8 +325,11 @@ jobs:
               if ($sender -and -not $sender.HasExited) { Stop-Process -Id $sender.Id -Force }
               continue
             }
-            [W]::SetForegroundWindow($hwnd) | Out-Null; Start-Sleep -Milliseconds 800
             $r = New-Object W+RECT; [W]::GetWindowRect($hwnd, [ref]$r) | Out-Null
+            # The pointer rests in the window's bottom left corner, where nothing reacts to it: wherever the
+            # runner left it, a tooltip or a hover edge would be in the picture.
+            try { [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point(($r.L + 3), ($r.B - 4)) } catch { Write-Host "pointer: $_" }
+            [W]::SetForegroundWindow($hwnd) | Out-Null; Start-Sleep -Milliseconds 800
             $bw = $r.R - $r.L; $bh = $r.B - $r.T
             $bmp = New-Object System.Drawing.Bitmap $bw, $bh
             $g = [System.Drawing.Graphics]::FromImage($bmp)

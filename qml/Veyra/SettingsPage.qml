@@ -200,6 +200,20 @@ VPage {
                     }
                     VH3 { text: qsTr("颜色"); Layout.topMargin: 6 }
                     VGroup {
+                        // PushFPS redesign: the design itself. The palette button's panel has the same switch
+                        // (PushAppearanceDialog.qml); both write preference pushDesign.
+                        VRow {
+                            objectName: "set-design-row"
+                            label: qsTr("设计")
+                            hint: qsTr("新版把导航、预览和全部快速设置放在同一个窗口里；旧版是 4.2 及更早版本的界面。两种设计的功能完全相同")
+                            hintBelow: true
+                            VSeg {
+                                objectName: "set-design"
+                                options: [{ id: "new", label: qsTr("新版") }, { id: "legacy", label: qsTr("旧版") }]
+                                current: Theme.modern ? "new" : "legacy"
+                                onPicked: id => veyra.setPreference("pushDesign", id)
+                            }
+                        }
                         // PushFPS appearance: six backgrounds, each drawn as it looks with the chosen accent, and
                         // seven accents. Every pair is checked for contrast (tst_push_appearance.qml).
                         VRow {
@@ -227,7 +241,7 @@ VPage {
                                     delegate: Rectangle {
                                         id: themeTile
                                         required property var modelData
-                                        readonly property var look: Theme.surfaces[modelData.id]
+                                        readonly property var look: Theme.surfaceOf(modelData.id)   // (as this design draws it)
                                         readonly property bool lightLook: modelData.id === "light"
                                         readonly property bool on: themePicker.shown === modelData.id
                                         objectName: "set-theme-" + modelData.id
@@ -331,6 +345,7 @@ VPage {
                             }
                         }
                         VRow {
+                            visible: !Theme.modern   // (the new design's background is one flat colour)
                             label: qsTr("背景渐变强度")
                             hint: Theme.dusk ? qsTr("日落天空的渐变强度，带抖动防色带") : qsTr("深黑底上的极轻渐变与抖动（防色带）")
                             VSeg {
@@ -345,6 +360,7 @@ VPage {
                     VGroup {
                         // PushFPS Sunset City: the logo on the home page, the intro (PushIntro.qml) and the music.
                         VRow {
+                            visible: !Theme.modern   // (the logo of the legacy home page; the new design has the wordmark in its title bar)
                             label: qsTr("日落之城标志")
                             hint: qsTr("首页的 PushFPS 标志里是霓虹日落下的城市；关闭后显示经典标志")
                             VSwitch {
@@ -355,7 +371,8 @@ VPage {
                         }
                         VRow {
                             label: qsTr("启动动画")
-                            hint: qsTr("打开 PushFPS 时播放约 3 秒的日落之城开场，单击或按任意键可跳过")
+                            hint: Theme.modern ? qsTr("打开 PushFPS 时播放约 2 秒的开场动画，单击或按任意键可跳过")
+                                               : qsTr("打开 PushFPS 时播放约 3 秒的日落之城开场，单击或按任意键可跳过")
                             VSwitch {
                                 objectName: "set-intro"
                                 checked: veyra.preferences.introAnimation !== false
@@ -2142,6 +2159,9 @@ VPage {
                                   ? (veyra.updates.canInstall ? qsTr("发现新版本 %1，已签名，可以一键安装").arg(veyra.updates.latestVersion)
                                                               : qsTr("发现新版本 %1").arg(veyra.updates.latestVersion))
                                   : qsTr("启动时自动检查，有更新时提示")
+                            // (PushFPS 4.2.2) A row lays out one control: the three buttons stood on top of each other ("View update" over "Install update").
+                            RowLayout {
+                            spacing: 8
                             VButton {
                                 text: veyra.updates.checking ? qsTr("检查中…") : qsTr("检查")
                                 enabled: !veyra.updates.checking
@@ -2159,6 +2179,7 @@ VPage {
                                 visible: veyra.updates.latestVersion.length > 0
                                 text: qsTr("查看更新")
                                 onClicked: veyra.updates.openRelease()
+                            }
                             }
                         }
                         VRow {

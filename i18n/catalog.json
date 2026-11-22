@@ -2702,7 +2702,7 @@
   },
   {
    "zh": "AI 画面增强",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "AI 畫面增強",
    "en": "AI picture enhancement",
    "ja": "AI 画質強化",
@@ -7400,7 +7400,7 @@
   },
   {
    "zh": "PushFPS 绿",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "PushFPS 綠",
    "en": "PushFPS green",
    "ja": "PushFPS グリーン",
@@ -11576,7 +11576,7 @@
   },
   {
    "zh": "专业模式",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/Main.qml",
    "zh-TW": "專業模式",
    "en": "Pro mode",
    "ja": "プロモード",
@@ -12602,7 +12602,7 @@
   },
   {
    "zh": "主机与游戏",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "主機與遊戲",
    "en": "Console and game",
    "ja": "ゲーム機とゲーム",
@@ -13196,7 +13196,7 @@
   },
   {
    "zh": "主题",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "主題",
    "en": "Theme",
    "ja": "テーマ",
@@ -16184,7 +16184,7 @@
   },
   {
    "zh": "全屏",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "全螢幕",
    "en": "Fullscreen",
    "ja": "全画面",
@@ -16364,7 +16364,7 @@
   },
   {
    "zh": "全部",
-   "src": "qml/PushGamePresetsDialog.qml",
+   "src": "qml/ProPage.qml",
    "zh-TW": "全部",
    "en": "All",
    "ja": "すべて",
@@ -17715,7 +17715,7 @@
   },
   {
    "zh": "冰蓝",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "冰藍",
    "en": "Ice",
    "ja": "アイス",
@@ -19497,7 +19497,7 @@
   },
   {
    "zh": "午夜蓝",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "午夜藍",
    "en": "Midnight",
    "ja": "ミッドナイト",
@@ -22629,7 +22629,7 @@
   },
   {
    "zh": "启动动画",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "啟動動畫",
    "en": "Startup animation",
    "ja": "起動アニメーション",
@@ -22755,7 +22755,7 @@
   },
   {
    "zh": "启动音乐",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "啟動音樂",
    "en": "Startup music",
    "ja": "起動時の音楽",
@@ -25131,7 +25131,7 @@
   },
   {
    "zh": "墨绿",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "墨綠",
    "en": "Forest",
    "ja": "フォレスト",
@@ -25977,7 +25977,7 @@
   },
   {
    "zh": "外观",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "外觀",
    "en": "Appearance",
    "ja": "外観",
@@ -33267,7 +33267,7 @@
   },
   {
    "zh": "延迟与声音",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "延遲與聲音",
    "en": "Latency and sound",
    "ja": "遅延と音",
@@ -33408,6 +33408,24 @@
    "ar": "تحويلات، تقدم، ولاية مختارة",
    "pl": "Przełączniki, postęp, wybrany stan",
    "ru": "Переключатели, прогресс, выбранное состояние"
+  },
+  {
+   "zh": "开关、风格、微调和其他画面设置现在都在「画质」页",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "開關、風格、微調和其他畫面設定現在都在「畫質」頁",
+   "en": "The switch, the look, fine-tuning and the other picture settings are now in the Quality tab",
+   "ja": "オン/オフ、スタイル、微調整、その他の映像設定は「画質」タブにまとまりました",
+   "ko": "켜기/끄기, 스타일, 미세 조정과 다른 영상 설정은 이제 「화질」 탭에 있습니다",
+   "nl": "De schakelaar, de stijl, de fijnafstelling en de andere beeldinstellingen staan nu op het tabblad Kwaliteit",
+   "de": "Schalter, Stil, Feinabstimmung und die übrigen Bildeinstellungen stehen jetzt im Tab „Qualität“",
+   "es": "El interruptor, el estilo, el ajuste fino y los demás ajustes de imagen están ahora en la pestaña Calidad",
+   "fr": "L'interrupteur, le style, le réglage fin et les autres réglages d'image se trouvent maintenant dans l'onglet Qualité",
+   "it": "L'interruttore, lo stile, la regolazione fine e le altre impostazioni dell'immagine ora sono nella scheda Qualità",
+   "pt-BR": "A chave, o estilo, o ajuste fino e os outros ajustes de imagem agora ficam na aba Qualidade",
+   "tr": "Anahtar, stil, ince ayar ve diğer görüntü ayarları artık Kalite sekmesinde",
+   "ar": "المفتاح والنمط والضبط الدقيق وبقية إعدادات الصورة موجودة الآن في تبويب «الجودة»",
+   "pl": "Przełącznik, styl, dostrajanie i pozostałe ustawienia obrazu są teraz na karcie Jakość",
+   "ru": "Переключатель, стиль, тонкая настройка и остальные настройки картинки теперь на вкладке «Качество»"
   },
   {
    "zh": "开发和测试设备的开销一直由作者自己承担。如果 Veyra 对你有帮助，欢迎请作者喝杯咖啡，你的支持就是持续更新的动力。",
@@ -34473,7 +34491,7 @@
   },
   {
    "zh": "强调色",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "強調色",
    "en": "Accent color",
    "ja": "アクセントカラー",
@@ -36526,7 +36544,7 @@
   },
   {
    "zh": "快速设置",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "快速設定",
    "en": "Quick setup",
    "ja": "クイック設定",
@@ -37765,6 +37783,24 @@
    "ar": "Opens GitHub Issues; diagnostics have been copied for you",
    "pl": "Otwiera GitHub Issues; diagnostyka została skopiowana dla Ciebie",
    "ru": "Открытие GitHub Проблемы; диагностика была скопирована для вас"
+  },
+  {
+   "zh": "打开 PushFPS 时播放约 2 秒的开场动画，单击或按任意键可跳过",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "開啟 PushFPS 時播放約 2 秒的開場動畫，按一下或按任意鍵可略過",
+   "en": "Plays a 2-second intro when PushFPS opens; click or press any key to skip",
+   "ja": "PushFPS の起動時に約 2 秒のオープニングを再生します。クリックまたは任意のキーでスキップできます",
+   "ko": "PushFPS를 열 때 약 2초의 시작 애니메이션을 재생합니다. 클릭하거나 아무 키나 누르면 건너뜁니다",
+   "nl": "Speelt een intro van 2 seconden af wanneer PushFPS opent; klik of druk op een toets om over te slaan",
+   "de": "Spielt beim Öffnen von PushFPS ein 2-Sekunden-Intro ab; Klick oder beliebige Taste überspringt es",
+   "es": "Reproduce una introducción de 2 segundos al abrir PushFPS; haz clic o pulsa cualquier tecla para saltarla",
+   "fr": "Joue une intro de 2 secondes à l'ouverture de PushFPS ; cliquez ou appuyez sur une touche pour la passer",
+   "it": "Riproduce un'introduzione di 2 secondi all'apertura di PushFPS; fai clic o premi un tasto per saltarla",
+   "pt-BR": "Reproduz uma abertura de 2 segundos quando o PushFPS abre; clique ou pressione qualquer tecla para pular",
+   "tr": "PushFPS açılırken 2 saniyelik bir giriş oynatır; atlamak için tıklayın veya bir tuşa basın",
+   "ar": "يعرض مقدمة مدتها ثانيتان عند فتح PushFPS؛ انقر أو اضغط أي مفتاح للتخطي",
+   "pl": "Odtwarza 2-sekundowe intro przy otwieraniu PushFPS; kliknij lub naciśnij dowolny klawisz, aby pominąć",
+   "ru": "При запуске PushFPS показывает 2-секундную заставку; щелчок или любая клавиша пропускают её"
   },
   {
    "zh": "打开 PushFPS 时播放约 3 秒的日落之城开场，单击或按任意键可跳过",
@@ -41783,6 +41819,42 @@
    "ru": "Новая сцена"
   },
   {
+   "zh": "新版",
+   "src": "qml/PushAppearanceDialog.qml",
+   "zh-TW": "新版",
+   "en": "New",
+   "ja": "新デザイン",
+   "ko": "새 디자인",
+   "nl": "Nieuw",
+   "de": "Neu",
+   "es": "Nuevo",
+   "fr": "Nouveau",
+   "it": "Nuovo",
+   "pt-BR": "Novo",
+   "tr": "Yeni",
+   "ar": "الجديد",
+   "pl": "Nowy",
+   "ru": "Новый"
+  },
+  {
+   "zh": "新版把导航、预览和全部快速设置放在同一个窗口里；旧版是 4.2 及更早版本的界面。两种设计的功能完全相同",
+   "src": "qml/PushAppearanceDialog.qml",
+   "zh-TW": "新版把導覽、預覽和全部快速設定放在同一個視窗裡；舊版是 4.2 及更早版本的介面。兩種設計的功能完全相同",
+   "en": "New puts navigation, the preview and all of quick setup in one window. Legacy is the interface of 4.2 and earlier. Both designs have exactly the same features",
+   "ja": "新デザインはナビゲーション、プレビュー、クイック設定のすべてを 1 つのウィンドウにまとめます。レガシーは 4.2 以前の画面です。どちらのデザインでも機能はまったく同じです",
+   "ko": "새 디자인은 탐색, 미리보기와 빠른 설정 전체를 한 창에 모읍니다. 레거시는 4.2 및 이전 버전의 화면입니다. 두 디자인의 기능은 완전히 같습니다",
+   "nl": "Nieuw zet de navigatie, het voorbeeld en alle snelle instellingen in één venster. Legacy is de interface van 4.2 en eerder. Beide ontwerpen hebben precies dezelfde functies",
+   "de": "Neu zeigt Navigation, Vorschau und die gesamte Schnelleinrichtung in einem Fenster. Klassisch ist die Oberfläche von 4.2 und früher. Beide Designs haben genau dieselben Funktionen",
+   "es": "Nuevo reúne la navegación, la vista previa y toda la configuración rápida en una sola ventana. Clásico es la interfaz de la versión 4.2 y anteriores. Los dos diseños tienen exactamente las mismas funciones",
+   "fr": "Nouveau réunit la navigation, l'aperçu et toute la configuration rapide dans une seule fenêtre. Classique est l'interface de la version 4.2 et des précédentes. Les deux designs ont exactement les mêmes fonctions",
+   "it": "Nuovo riunisce la navigazione, l'anteprima e tutta la configurazione rapida in un'unica finestra. Classico è l'interfaccia della versione 4.2 e delle precedenti. I due design hanno esattamente le stesse funzioni",
+   "pt-BR": "Novo reúne a navegação, a prévia e toda a configuração rápida em uma só janela. Clássico é a interface da versão 4.2 e anteriores. Os dois designs têm exatamente os mesmos recursos",
+   "tr": "Yeni; gezinmeyi, önizlemeyi ve hızlı kurulumun tamamını tek pencerede toplar. Klasik, 4.2 ve önceki sürümlerin arayüzüdür. İki tasarımın özellikleri tamamen aynıdır",
+   "ar": "الجديد يجمع التنقل والمعاينة وكل الإعداد السريع في نافذة واحدة. الكلاسيكي هو واجهة الإصدار 4.2 وما قبله. التصميمان لهما الميزات نفسها تمامًا",
+   "pl": "Nowy łączy nawigację, podgląd i całą szybką konfigurację w jednym oknie. Klasyczny to interfejs wersji 4.2 i wcześniejszych. Oba wyglądy mają dokładnie te same funkcje",
+   "ru": "Новый собирает навигацию, предпросмотр и всю быструю настройку в одном окне. Классический — это интерфейс версии 4.2 и более ранних. В обоих дизайнах функции полностью одинаковы"
+  },
+  {
    "zh": "新预设名称",
    "src": "qml/ColourPanel.qml",
    "zh-TW": "新預設名稱",
@@ -43638,7 +43710,7 @@
   },
   {
    "zh": "日落之城标志",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "日落之城標誌",
    "en": "Sunset City logo",
    "ja": "サンセットシティのロゴ",
@@ -43689,6 +43761,24 @@
    "ar": "دوسك: بيولية عميقة ذات بلهجة متدرجة في الغروب؛ كلاسيكية: الأسود والرمادي الأصلي",
    "pl": "Zmierzch: głęboki indygofiolet z akcentem gradientu zachodu słońca; Classic: oryginalny czarny i szary",
    "ru": "Дуск: глубокий индиго-фиолетовый с градиентным акцентом заката; Классический: оригинальный черный и серый"
+  },
+  {
+   "zh": "旧版",
+   "src": "qml/PushAppearanceDialog.qml",
+   "zh-TW": "舊版",
+   "en": "Legacy",
+   "ja": "レガシー",
+   "ko": "레거시",
+   "nl": "Legacy",
+   "de": "Klassisch",
+   "es": "Clásico",
+   "fr": "Classique",
+   "it": "Classico",
+   "pt-BR": "Clássico",
+   "tr": "Klasik",
+   "ar": "الكلاسيكي",
+   "pl": "Klasyczny",
+   "ru": "Классический"
   },
   {
    "zh": "旧版格式列表",
@@ -45239,6 +45329,24 @@
    "ru": "На кривой нет жёсткого предела"
   },
   {
+   "zh": "更多外观设置",
+   "src": "qml/PushAppearanceDialog.qml",
+   "zh-TW": "更多外觀設定",
+   "en": "More appearance settings",
+   "ja": "その他の外観設定",
+   "ko": "더 많은 모양 설정",
+   "nl": "Meer weergave-instellingen",
+   "de": "Weitere Darstellungseinstellungen",
+   "es": "Más ajustes de apariencia",
+   "fr": "Plus de réglages d'apparence",
+   "it": "Altre impostazioni dell'aspetto",
+   "pt-BR": "Mais ajustes de aparência",
+   "tr": "Diğer görünüm ayarları",
+   "ar": "إعدادات مظهر إضافية",
+   "pl": "Więcej ustawień wyglądu",
+   "ru": "Другие настройки внешнего вида"
+  },
+  {
    "zh": "更多调色选项",
    "src": "qml/PushPicture.qml",
    "zh-TW": "更多調色選項",
@@ -45708,7 +45816,7 @@
   },
   {
    "zh": "最小化",
-   "src": "qml/TopDock.qml",
+   "src": "qml/PushTitleBar.qml",
    "zh-TW": "最小化",
    "en": "Minimize",
    "ja": "最小化",
@@ -46230,7 +46338,7 @@
   },
   {
    "zh": "未打开片源",
-   "src": "qml/NodePage.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "未開啟片源",
    "en": "No source open",
    "ja": "ソースが開かれていません",
@@ -47436,7 +47544,7 @@
   },
   {
    "zh": "极简",
-   "src": "qml/TopDock.qml",
+   "src": "qml/PushSidebar.qml",
    "zh-TW": "極簡",
    "en": "Minimal",
    "ja": "シンプル",
@@ -52494,7 +52602,7 @@
   },
   {
    "zh": "浅色",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "淺色",
    "en": "Light",
    "ja": "ライト",
@@ -52890,7 +52998,7 @@
   },
   {
    "zh": "深紫",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "深紫",
    "en": "Plum",
    "ja": "プラム",
@@ -54420,7 +54528,7 @@
   },
   {
    "zh": "片源",
-   "src": "qml/MinimalPage.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "片源",
    "en": "Source",
    "ja": "ソース",
@@ -54654,7 +54762,7 @@
   },
   {
    "zh": "玫红",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "玫紅",
    "en": "Rose",
    "ja": "ローズ",
@@ -54762,7 +54870,7 @@
   },
   {
    "zh": "琥珀",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "琥珀",
    "en": "Amber",
    "ja": "アンバー",
@@ -55284,7 +55392,7 @@
   },
   {
    "zh": "画面",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "畫面",
    "en": "Picture",
    "ja": "映像",
@@ -56472,7 +56580,7 @@
   },
   {
    "zh": "白色光晕",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "白色光暈",
    "en": "White glow",
    "ja": "白い光彩",
@@ -56994,7 +57102,7 @@
   },
   {
    "zh": "直播模式",
-   "src": "qml/StudioPage.qml",
+   "src": "qml/Main.qml",
    "zh-TW": "直播模式",
    "en": "Streaming mode",
    "ja": "配信モード",
@@ -57390,7 +57498,7 @@
   },
   {
    "zh": "石墨",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "石墨",
    "en": "Graphite",
    "ja": "グラファイト",
@@ -59424,7 +59532,7 @@
   },
   {
    "zh": "纯黑",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "純黑",
    "en": "Black",
    "ja": "ブラック",
@@ -62736,7 +62844,7 @@
   },
   {
    "zh": "节点模式",
-   "src": "qml/ProPage.qml",
+   "src": "qml/Main.qml",
    "zh-TW": "節點模式",
    "en": "Node mode",
    "ja": "ノードモード",
@@ -63637,7 +63745,7 @@
   {
    "zh": "补帧",
    "ctx": "section",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "補幀",
    "en": "Frame generation",
    "ja": "フレーム生成",
@@ -64699,7 +64807,7 @@
   },
   {
    "zh": "视频播放模式",
-   "src": "qml/TopDock.qml",
+   "src": "qml/Main.qml",
    "zh-TW": "影片播放模式",
    "en": "Video playback mode",
    "ja": "動画再生モード",
@@ -65635,6 +65743,24 @@
    "ru": "Настройки имеют другой размер, выбранный %1 × %2. Выберите один здесь, чтобы использовать его вместо этого."
   },
   {
+   "zh": "设计",
+   "src": "qml/PushAppearanceDialog.qml",
+   "zh-TW": "設計",
+   "en": "Design",
+   "ja": "デザイン",
+   "ko": "디자인",
+   "nl": "Ontwerp",
+   "de": "Design",
+   "es": "Diseño",
+   "fr": "Design",
+   "it": "Design",
+   "pt-BR": "Design",
+   "tr": "Tasarım",
+   "ar": "التصميم",
+   "pl": "Wygląd",
+   "ru": "Дизайн"
+  },
+  {
    "zh": "访问页面",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "造訪頁面",
@@ -65885,6 +66011,24 @@
    "ar": "اللغة",
    "pl": "Język",
    "ru": "Язык языка"
+  },
+  {
+   "zh": "语言、启动方式和窗口选项在「设置」里",
+   "src": "qml/PushAppearanceDialog.qml",
+   "zh-TW": "語言、啟動方式和視窗選項在「設定」裡",
+   "en": "Language, start-up and window options are in Settings",
+   "ja": "言語、起動、ウィンドウの設定は「設定」にあります",
+   "ko": "언어, 시작 방식, 창 옵션은 「설정」에 있습니다",
+   "nl": "Taal, opstarten en vensteropties staan in Instellingen",
+   "de": "Sprache, Start und Fensteroptionen stehen in den Einstellungen",
+   "es": "El idioma, el inicio y las opciones de ventana están en Ajustes",
+   "fr": "La langue, le démarrage et les options de fenêtre se trouvent dans Réglages",
+   "it": "La lingua, l'avvio e le opzioni della finestra sono in Impostazioni",
+   "pt-BR": "Idioma, inicialização e opções de janela ficam em Configurações",
+   "tr": "Dil, başlangıç ve pencere seçenekleri Ayarlar’da",
+   "ar": "اللغة وخيارات بدء التشغيل والنافذة موجودة في «الإعدادات»",
+   "pl": "Język, uruchamianie i opcje okna są w Ustawieniach",
+   "ru": "Язык, запуск и параметры окна находятся в «Настройках»"
   },
   {
    "zh": "语言设置",
@@ -70982,7 +71126,7 @@
   },
   {
    "zh": "连接与启动",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "連線與啟動",
    "en": "Connecting",
    "ja": "接続と起動",
@@ -72278,7 +72422,7 @@
   },
   {
    "zh": "采集",
-   "src": "qml/ScreenSourceDialog.qml",
+   "src": "qml/PushStatusStrip.qml",
    "zh-TW": "擷取",
    "en": "Capture",
    "ja": "キャプチャー",
@@ -77048,7 +77192,7 @@
   },
   {
    "zh": "首页",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/Main.qml",
    "zh-TW": "首頁",
    "en": "Home",
    "ja": "ホーム",
@@ -77552,7 +77696,7 @@
   },
   {
    "zh": "高对比度",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "高對比",
    "en": "High contrast",
    "ja": "ハイコントラスト",

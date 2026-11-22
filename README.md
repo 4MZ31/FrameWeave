@@ -975,9 +975,18 @@ a *High contrast* look with white text and strong outlines. Every pair keeps a r
 automated test); the picture itself is never changed. The latency readout over the picture comes in three
 sizes.
 
-Quick setup is in six sections that fold by their title, and each setting is on a page once.
+Quick setup is in six sections that fold by their title.
 
-**Sunset City.** PushFPS opens with a three-second intro: a neon road out of the dark, the logo landing on the
+**Two designs (4.3).** The new design, which PushFPS opens in, has the navigation by name on the left, a
+title bar that shows what is connected, a status strip with the capture format, frame rate, latency, load
+and output, and a home page with the sources, the picture and quick setup side by side. An index over quick
+setup brings any part of it to the top, and Professional mode has an *All* tab with the settings of every
+tab in one list. The **palette** at the bottom of the navigation opens *Appearance*: *Design → Legacy* is
+the interface of 4.2 as it was, and the same panel has the backgrounds and accent colours. In Legacy the
+palette is at the bottom left of the home page. Both designs have the same features, and changing the design
+changes no setting. The new design opens with a two-second animation of the PushFPS logo.
+
+**Sunset City (Legacy).** In the Legacy design PushFPS opens with a three-second intro: a neon road out of the dark, the logo landing on the
 beat, the sky turning to sunset over a palm-lined city, and the logo gliding into place on the home page, where
 it stays filled with the sunset city. The music is the startup track that comes with Veyra's runtime package.
 Click or press any key to skip; *Settings → Appearance* has separate switches for the Sunset City logo, the
@@ -1182,6 +1191,8 @@ A measurement from your own card helps: [how to take one](docs/BENCHMARKING.md).
       quick tour for new users, Korean
 - [x] 4.2.1: upscale to my screen, a before/after line that moves in full screen and swaps sides, colour
       above 100% that holds, a wider panel in full screen
+- [x] 4.3: a new design with the picture and quick setup on the home page, an *All* tab in Professional
+      mode and a new start-up animation; Legacy, the design of 4.2, one click away behind the palette
 - [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)

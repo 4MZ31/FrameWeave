@@ -1545,3 +1545,11 @@ zh:在画面上按住左键拖动分割线：左边增强、右边原画。|Gör
 zh:全屏时画面只是被拉大到屏幕大小，所以看起来发软。开启放大后由显卡把画面放大到屏幕分辨率，更清晰，也更吃显卡；帧率掉了就关掉|Tam ekranda görüntü yalnızca ekran boyutuna gerilir, bu yüzden yumuşak görünür. Yükseltme açıkken ekran kartı görüntüyü ekranın çözünürlüğüne büyütür: daha keskin olur, kart da daha çok çalışır. Kare hızı düşerse yeniden kapatın
 zh:采集的画面比屏幕小时，全屏只是把它拉大，看起来发软。开启后由显卡把画面放大到屏幕分辨率，边缘和文字更清晰，也更吃显卡。放大方式可以在专业模式的「画质」里更换|Yakalanan görüntü ekranınızdan küçükse tam ekran onu yalnızca gerer ve yumuşak görünür. Bu açıkken ekran kartı görüntüyü ekranın çözünürlüğüne yükseltir: kenarlar ve yazılar daha keskin olur, kart da daha çok çalışır. Yükseltme yöntemi profesyonel modda Kalite bölümünden değiştirilebilir
 zh:把画面分成两半：一边是没有 AI 画面增强的原画，另一边是增强后的画面，方便边调边看。在专业模式的画面上或全屏时，按住鼠标左键可以拖动分割线；两侧可以交换|Görüntüyü ikiye böler: bir taraf yapay zekâ görüntü iyileştirmesi olmayan orijinal, diğer taraf iyileştirilmiş görüntüdür; böylece bakarken ayar yapabilirsiniz. Profesyonel modun görüntüsünde veya tam ekranda, ayırma çizgisini sürüklemek için farenin sol düğmesini basılı tutun; taraflar değiştirilebilir
+zh:开关、风格、微调和其他画面设置现在都在「画质」页|Anahtar, stil, ince ayar ve diğer görüntü ayarları artık Kalite sekmesinde
+zh:设计|Tasarım
+zh:新版|Yeni
+zh:旧版|Klasik
+zh:新版把导航、预览和全部快速设置放在同一个窗口里；旧版是 4.2 及更早版本的界面。两种设计的功能完全相同|Yeni; gezinmeyi, önizlemeyi ve hızlı kurulumun tamamını tek pencerede toplar. Klasik, 4.2 ve önceki sürümlerin arayüzüdür. İki tasarımın özellikleri tamamen aynıdır
+zh:更多外观设置|Diğer görünüm ayarları
+zh:语言、启动方式和窗口选项在「设置」里|Dil, başlangıç ve pencere seçenekleri Ayarlar’da
+zh:打开 PushFPS 时播放约 2 秒的开场动画，单击或按任意键可跳过|PushFPS açılırken 2 saniyelik bir giriş oynatır; atlamak için tıklayın veya bir tuşa basın

@@ -9,6 +9,11 @@ Item {
     id: root
     width: 1280; height: 800
     PushIntro { id: intro; anchors.fill: parent; target: Qt.rect(450, 120, 380, 156) }
+    // The new design's startup animation (PushIntroModern.qml): the same interface, driven the same way.
+    PushIntroModern { id: fresh; anchors.fill: parent; visible: false }
+    property int freshFinished: 0
+    property int freshRevealed: 0
+    Connections { target: fresh; function onFinished() { root.freshFinished++ } function onRevealHome() { root.freshRevealed++ } }
     property int finishedCount: 0
     property int revealCount: 0
     Connections { target: intro; function onFinished() { root.finishedCount++ } function onRevealHome() { root.revealCount++ } }
@@ -19,6 +24,38 @@ Item {
         function init() {
             intro.running = false; intro.dismissing = false; intro.speed = 1; intro.opacity = 1
             intro.ms = 0; root.finishedCount = 0; root.revealCount = 0
+        }
+        // The new design's intro: every value on screen is a function of its clock alone, so a held clock
+        // is a held picture; it is about two seconds; a click or a key lets go at once.
+        function test_new_design_intro_follows_its_clock() {
+            fresh.visible = true; fresh.opacity = 1; fresh.running = false; fresh.dismissing = false
+            root.freshFinished = 0; root.freshRevealed = 0
+            verify(fresh.total >= 1800 && fresh.total <= 2600, "about two seconds: " + fresh.total)
+            fresh.ms = 0
+            compare(fresh.lineOn, 0); compare(fresh.markOn, 0); compare(fresh.wordOn, 0); compare(fresh.away, 0); compare(fresh.edge, 0)
+            fresh.ms = fresh.markAt + 310
+            verify(fresh.lineOn > 0.9, "the line is open before the mark has landed")
+            verify(fresh.markOn > 0.5 && fresh.markOn < 1 && fresh.wordOn === 0)
+            fresh.ms = 1250
+            verify(fresh.markOn > 0.99 && fresh.wordOn > 0.99, "mark and wordmark stand")
+            verify(fresh.sweep > 0 && fresh.sweep < 1 && fresh.edge > 0, "the bright frame runs and the edge is lit")
+            compare(fresh.away, 0)
+            const held = [fresh.lineOn, fresh.markOn, fresh.wordOn, fresh.sweep, fresh.edge].join()
+            wait(120)
+            compare([fresh.lineOn, fresh.markOn, fresh.wordOn, fresh.sweep, fresh.edge].join(), held, "a held clock is a held picture")
+            fresh.ms = fresh.total
+            compare(fresh.away, 1); compare(fresh.edge, 0)
+            // The same switches the main window drives the Sunset intro through.
+            for (const name of ["target", "skipText", "speed", "musicClock", "followMusic", "frames", "worstFrameMs"]) verify(fresh[name] !== undefined, name)
+            // Letting go: the home page is shown at once, then the intro is finished.
+            fresh.ms = 400
+            fresh.skip()
+            verify(fresh.dismissing)
+            compare(root.freshRevealed, 1)
+            tryCompare(root, "freshFinished", 1, 3000)
+            fresh.skip()
+            compare(root.freshRevealed, 1, "once")
+            fresh.visible = false
         }
         function test_parts_land_on_their_beats() {
             compare(intro.travel(intro.hit1, 360, intro.hit1), 0, "first chevron in place on 0.64 s")

@@ -50,7 +50,7 @@ VPage {
                         "hdr": hdrCard.headerItem, "dedup": dedupRow }
         return { item: items[key], viewport: inspFlick }
     }
-    readonly property bool hdrMeterObserved: visible && tab === "display" && displayCol.hdrMeterObserved
+    readonly property bool hdrMeterObserved: visible && (tab === "display" || tab === "all") && displayCol.hdrMeterObserved
     onHdrMeterObservedChanged: veyra.observeHdrCoverage(hdrMeterObserved)
     function overlayContains(x, y) {
         const hit = item => x >= item.x && x <= item.x + item.width && y >= item.y && y <= item.y + item.height
@@ -70,7 +70,7 @@ VPage {
     function armBars() { barsSettled = false; barsArmed = false; barsArmTimer.restart() }
     Timer { id: barsArmTimer; interval: 16; onTriggered: { root.barsArmed = true; barsSettleTimer.restart() } }
     Timer { id: barsSettleTimer; interval: 1600; onTriggered: root.barsSettled = true }
-    Component.onCompleted: armBars()
+    Component.onCompleted: { armBars(); followDesign() }   // (followDesign: the new design's "all" view, below)
 
     // M31: switching tabs redraws the tab's cards one after another
     // (pages-pro.js render(true): 460 ms, i*30 ms, y 10).
@@ -85,7 +85,7 @@ VPage {
             ++i
         }
     }
-    onTabChanged: Qt.callLater(() => stagger(tab === "quality" ? qualityCol : tab === "fg" ? fgCol
+    onTabChanged: Qt.callLater(() => stagger(tab === "quality" || tab === "all" ? qualityCol : tab === "fg" ? fgCol
                                            : tab === "color" ? colourPanel.sectionColumn
                                            : tab === "audio" ? audioCol : displayCol, 30, 460, 10))
 
@@ -99,6 +99,17 @@ VPage {
 
     // Design's st.tab: quality / fg / color / audio / display.
     property string tab: "quality"
+    // PushFPS redesign: "all" shows every tab's settings in one list, each under its name, so nothing
+    // has to be looked for from tab to tab (the owner's instruction). The five tabs stay beside it, and
+    // everything that sets `tab` to one of them still does. Only the new design offers it, and it is
+    // where that design starts; with Legacy chosen the list goes back to a tab.
+    readonly property bool allTabs: tab === "all"
+    property bool allTabsOffered: false
+    function followDesign() {
+        if (Theme.modern && !allTabsOffered) { allTabsOffered = true; if (tab === "quality") tab = "all" }
+        else if (!Theme.modern) { allTabsOffered = false; if (tab === "all") tab = "quality" }
+    }
+    Connections { target: Theme; function onModernChanged() { root.followDesign() } }
     property int selectedEffect: -1
     // 处理顺序 "点击定位": switch to the chip's tab, open its card and scroll
     // the inspector so the card sits at the top.
@@ -1369,22 +1380,27 @@ VPage {
                 Layout.margins: 8
                 spacing: 2
                 Repeater {
-                    model: [
+                    model: (Theme.modern ? [{ id: "all", label: qsTr("全部") }] : []).concat([
                         { id: "quality", label: qsTr("画质") },
                         { id: "fg", label: qsTr("补帧") },
                         { id: "color", label: qsTr("色彩") },
                         { id: "audio", label: qsTr("声音") },
                         { id: "display", label: qsTr("显示") }
-                    ]
+                    ])
                     delegate: Rectangle {
                         required property var modelData
                         Layout.fillWidth: true
                         implicitWidth: tabLabel.implicitWidth + 10
                         implicitHeight: Math.max(30, tabLabel.implicitHeight + 8)
                         radius: 9
+                        objectName: "pro-tab-" + modelData.id
                         color: root.tab === modelData.id ? Theme.card3
                              : tabHover.hovered ? Theme.ink(0.04) : "transparent"
                         Behavior on color { ColorAnimation { duration: Theme.d(200) } }
+                        // (The new design: the edge lights up in the accent under the pointer.)
+                        border.width: Theme.modern ? 1 : 0
+                        border.color: Theme.modern && tabHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.7) : "transparent"
+                        Behavior on border.color { ColorAnimation { duration: Theme.d(160) } }
                         Text {
                             id: tabLabel
                             width: Math.max(1, parent.width - 6)
@@ -1413,7 +1429,7 @@ VPage {
                 objectName: "pro-processing-order"
                 // The design draws the chain bar on the 画质 tab only.
                 // Leave the controls a usable scroll area in short windows.
-                visible: root.tab === "quality" && insp.height >= 240
+                visible: (root.tab === "quality" || root.allTabs) && insp.height >= 240
                 radius: 12
                 color: Theme.ink(0.03)
                 border.width: 1
@@ -1506,11 +1522,22 @@ VPage {
                     spacing: 6
 
                     // --- 画质 -------------------------------------------------
+                    VH3 { objectName: "pro-all-quality"; visible: root.allTabs; text: qsTr("画质") }
                     ColumnLayout {
                         id: qualityCol
                         Layout.fillWidth: true
                         spacing: 6
-                        visible: root.tab === "quality"
+                        visible: root.tab === "quality" || root.allTabs
+                        // (The new design: quick setup's Picture card, with AI picture enhancement, comes first.)
+                        Item {
+                            id: pictureFirst
+                            objectName: "list-pushfps-picture-first"
+                            visible: Theme.modern
+                            Layout.fillWidth: true
+                            implicitHeight: pictureCard.implicitHeight
+                            property real motionDy: 0
+                            transform: Translate { y: pictureFirst.motionDy }
+                        }
 
                         // The design builds the inspector from accordion cards, not
                         // flat rows: an icon, a title, a live summary line, a switch
@@ -1640,9 +1667,24 @@ VPage {
                         // its size and fine-tuning, the wide-screen fill, the crop) stands here, over the
                         // enhancement's own card, and no longer in the Frame Gen tab: a user asked for the
                         // enhancement's settings to be in one place.
-                        PushQuickSetup {
-                            objectName: "list-pushfps-picture"
+                        // (The redesign: in the new design this card is the first thing in the list, so AI
+                        // picture enhancement is where the eye lands; in Legacy it stands here, as in 4.2.1.
+                        // The card is one item drawn in one of two places: pictureFirst above, pictureHere.)
+                        Item {
+                            id: pictureHere
+                            visible: !Theme.modern
                             Layout.fillWidth: true
+                            implicitHeight: pictureCard.implicitHeight
+                            // (The tab's cards come in one after another, VRise.Stagger: the place takes
+                            // the card's part in that, as the card did when it stood here itself.)
+                            property real motionDy: 0
+                            transform: Translate { y: pictureHere.motionDy }
+                        }
+                        PushQuickSetup {
+                            id: pictureCard
+                            objectName: "list-pushfps-picture"
+                            parent: Theme.modern ? pictureFirst : pictureHere
+                            width: parent ? parent.width : 0
                             compactPro: true
                             scope: "picture"
                         }
@@ -1906,11 +1948,12 @@ VPage {
                     // 画质效果之后"), the optical-flow and presentation groups nested
                     // as sub-panels. Backend choices share the node editor's
                     // bridge contract; FSR 4 requests never silently become 3.1.
+                    VH3 { objectName: "pro-all-fg"; visible: root.allTabs; text: qsTr("补帧"); Layout.topMargin: 12 }
                     ColumnLayout {
                         id: fgCol
                         Layout.fillWidth: true
                         spacing: 6
-                        visible: root.tab === "fg"
+                        visible: root.tab === "fg" || root.allTabs
                         objectName: "list-fg-group"
 
                         // PushFPS: target frame rate, AI enhancement and low latency in
@@ -1920,6 +1963,7 @@ VPage {
                             Layout.fillWidth: true
                             compactPro: true
                             scope: "rest"
+                            onRequestTab: tab => root.tab = tab
                         }
 
                         VAccordion {
@@ -1963,6 +2007,9 @@ VPage {
                                 // 档位与作者原版一致（只有数字档）；自动选择由下方独立开关控制。
                                 hint: veyra.fgDisplayHint.length > 0 ? veyra.fgDisplayHint : veyra.fgMaxMultiplier + qsTr("X 为上限")
                                 hintColor: veyra.fgDisplayHint.length > 0 ? Theme.warn : Theme.t3
+                                // (PushFPS 4.2.2) One of the two is shown; in one layout they can never stand on top of each other.
+                                RowLayout {
+                                spacing: 0
                                 VSeg {
                                     visible: veyra.fgBackendName !== "vfg"
                                     options: veyra.fgMultiplierChoices
@@ -1975,6 +2022,7 @@ VPage {
                                     options: veyra.fgMultiplierChoices
                                     value: String(veyra.fgMultiplier) + "X"
                                     onPicked: id => veyra.fgMultiplier = Number(id)
+                                }
                                 }
                             }
                             // PushFPS adaptive multiplier (EnhancementSettings::fgAdaptive): the multiplier
@@ -2305,25 +2353,28 @@ VPage {
 
                     // --- 色彩 -------------------------------------------------
                     // The same real-instance editor is used by the node inspector.
+                    VH3 { objectName: "pro-all-color"; visible: root.allTabs; text: qsTr("色彩"); Layout.topMargin: 12 }
                     ColourPanel {
                         id: colourPanel
                         Layout.fillWidth: true
-                        visible: root.tab === "color"
+                        visible: root.tab === "color" || root.allTabs
                         api: veyra
                     }
 
                     // --- 声音 -------------------------------------------------
+                    VH3 { objectName: "pro-all-audio"; visible: root.allTabs; text: qsTr("声音"); Layout.topMargin: 12 }
                     ProAudioPanel {
                         id: audioCol
                         Layout.fillWidth: true
-                        visible: root.tab === "audio"
+                        visible: root.tab === "audio" || root.allTabs
                     }
 
                     // --- 显示 -------------------------------------------------
+                    VH3 { objectName: "pro-all-display"; visible: root.allTabs; text: qsTr("显示"); Layout.topMargin: 12 }
                     ProDisplayPanel {
                         id: displayCol
                         Layout.fillWidth: true
-                        visible: root.tab === "display"
+                        visible: root.tab === "display" || root.allTabs
                     }
 
                     Item { Layout.preferredHeight: 12 }

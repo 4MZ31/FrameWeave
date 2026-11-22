@@ -481,6 +481,26 @@ QtObject {
     property int performanceReportCopies: 0
     function pushPerformanceReport() { return "report: pushfps-performance" }
     function pushCopyPerformanceReport() { performanceReportCopies++; lastCopiedText = pushPerformanceReport(); return true }
+)qml"
+    // A fifth piece: the redesign.
+    R"qml(    // PushFPS redesign (tst_push_design.qml): what the home page reads beyond the above.
+    property bool captureRecovering: false
+    property string captureSessionSummary: ""
+    property var lastSource: ({})
+    property var moonlight: null
+    property var xbox: null
+    property var ps5Control: ({enabled: false})
+    property var recentFiles: []
+    property string remotePlayHost: ""
+    property int captureDialogs: 0
+    function openCaptureDialog() { captureDialogs++ }
+    function openMoonlightDialog() {}
+    function openNetworkDialog() {}
+    function openPs5Dialog() {}
+    function openScreenCaptureDialog() {}
+    function openXboxDialog() {}
+    function resumeLastSource() {}
+    function showPlaylist() {}
 })qml", QUrl());
         auto* model = snapshot.create(engine->rootContext());
         if (!model) qFatal("Cannot create explicit component snapshot: %s", qPrintable(snapshot.errorString()));
@@ -492,6 +512,9 @@ QtObject {
         // by Veyra/qmldir. Register it only here to test its real inline controls.
         qmlRegisterType(QUrl::fromLocalFile(QDir(QCoreApplication::applicationDirPath()).filePath(
             QStringLiteral("qml/Veyra/ProPage.qml"))), "VeyraTest", 1, 0, "ProPage");
+        // The home page, likewise (tst_push_design.qml: its three panes in the new design).
+        qmlRegisterType(QUrl::fromLocalFile(QDir(QCoreApplication::applicationDirPath()).filePath(
+            QStringLiteral("qml/Veyra/HomePage.qml"))), "VeyraTest", 1, 0, "HomePage");
         qmlRegisterType(QUrl::fromLocalFile(QDir(QCoreApplication::applicationDirPath()).filePath(
             QStringLiteral("qml/Veyra/Ps5SourceDialog.qml"))), "VeyraTest", 1, 0, "Ps5SourceDialog");
         qmlRegisterType(QUrl::fromLocalFile(QDir(QCoreApplication::applicationDirPath()).filePath(

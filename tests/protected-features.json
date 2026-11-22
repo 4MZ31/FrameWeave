@@ -1449,6 +1449,151 @@
      "contains": "compare(quick.scope, \"\", \"everything unless asked\")"
     }
    ]
+  },
+  {
+   "id": "F54",
+   "what": "AI picture enhancement can be switched on from every page that shows the Picture section, Professional mode's Quality tab included: its own switch stands there (it adds the first layer, which that page's own card cannot), and the Frame Gen tab points to it",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "verify(control(\"pushfps-enhance-row\").visible && control(\"pushfps-enhance\").enabled, \"the enhancement's own switch stands in the picture card\")"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "\"switched on with no layer yet: a layer is added\""
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "\"the enhancement's switch is in the Quality tab's picture card\""
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "control(rest, \"pushfps-picture-moved-open\").clicked()"
+    }
+   ]
+  },
+  {
+   "id": "F55",
+   "what": "Legacy is the interface as it was: the design is a choice (preference pushDesign, Theme.design), a component used without the main window is drawn as it always was, and in Legacy every colour, radius and page is what 4.2.1 had",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "compare(String(Theme.card2), \"#19191e\"); compare(String(Theme.bgOuter), \"#070709\"); compare(String(Theme.t1), \"#f3f3f5\")"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "\" is on the legacy home page\")"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "compare(veyra.preferences.pushDesign, \"legacy\")"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "\"Legacy: over the enhancement's own card, as in 4.2.1\""
+    }
+   ]
+  },
+  {
+   "id": "F56",
+   "what": "The new design loses nothing: every mode is in the navigation by name, everything the home page had is on the new home page (sources, quick setup with every section, the six tools, picture and sound, the tour), and the palette opens the Appearance panel from both designs",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "const ids = [\"home\", \"pro\", \"live\", \"watch\", \"exp\", \"min\", \"set\"]"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "\" is on the new home page\")"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "compare(tools.parent, place)"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "compare(homePalettes.count, 1)"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "compare(palettes.count, 1); compare(pages.count, ids.length, \"and is not a page\")"
+    }
+   ]
+  },
+  {
+   "id": "F57",
+   "what": "Nothing is hidden in the new design: AI picture enhancement and every section of quick setup are one press away at the top of the home page's list, and Professional mode shows every tab's settings in one list with AI picture enhancement's card first",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "\"the enhancement's switch is brought to the top of the list\""
+    },
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "for (const id of [\"setup\", \"fg\", \"enhance\", \"picture\", \"latency\", \"start\"])"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "\"AI picture enhancement's card is the first card\""
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "id + \" has its name in the list\""
+    }
+   ]
+  },
+  {
+   "id": "F58",
+   "what": "The new design shows no made-up figure and nothing over anything else: the status strip is a dash until the engine reports a number, the panes of the home page stand beside each other, the window buttons and the theme tiles stand side by side",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "compare(cell(name).value, \"—\", name + \" before the first reading\")"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "verify(picture.x + picture.width <= settings.x, \"quick setup right of it\")"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "\"side by side, not over each other\""
+    },
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "id + \" stands beside the one before it\""
+    },
+    {
+     "file": "tests/qml/quick/tst_push_appearance.qml",
+     "ci": "tst_push_appearance",
+     "contains": "function test_new_design_is_as_readable()"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_intro.qml",
+     "ci": "tst_push_intro",
+     "contains": "\"a held clock is a held picture\""
+    }
+   ]
   }
  ]
 }

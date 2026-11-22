@@ -112,6 +112,42 @@ VGroup {
     // that tab's own enhancement settings; a user asked for them to stand together) and "rest" (everything
     // else, in its Frame Gen tab). A hidden section is hidden as a whole; nothing in a row changes.
     property string scope: ""
+    // Asks the page this card stands in for one of its tabs (Professional mode: "quality", "fg", ...).
+    signal requestTab(string tab)
+    // PushFPS redesign (the new home page; both are what they always were unless a page sets them):
+    // the page shows the card's title itself, pinned over the list (showHeader false), and gives the
+    // six tools a place of its own under the picture (toolsHost: the item they are drawn in, as wide as
+    // that item; toolsHeight is how high they are there). The tools are the same items wherever they
+    // are drawn: nothing about what a tile does or shows changes.
+    property bool showHeader: true
+    property Item toolsHost: null
+    // The short form leaves five rows to Professional mode: smooth frame pacing, the G-SYNC set-up, low
+    // latency, connecting at start-up and full screen on connecting. It is what the home page and
+    // streaming mode always had (`compact`), and what they have in Legacy. The new design shows them
+    // there too (the owner: nothing lost, nothing hidden, no going from page to page for a setting).
+    property bool shortForm: compact
+    readonly property real toolsHeight: toolsGrid.implicitHeight
+    // The sections by name, for a page that lists them (the new home page's index over the list).
+    function sectionItem(id) {
+        for (let i = 0; i < quick.sectionItems.length; ++i)
+            if (quick.sectionItems[i] && quick.sectionItems[i].sectionId === id) return quick.sectionItems[i]
+        return null
+    }
+    // A row by its object name, for a page that scrolls to it (null when it is not shown).
+    function rowItem(name) {
+        const find = item => {
+            if (!item) return null
+            if (item.objectName === name) return item
+            const kids = item.children || []
+            for (let i = 0; i < kids.length; ++i) { const hit = find(kids[i]); if (hit) return hit }
+            return null
+        }
+        for (let i = 0; i < quick.sectionItems.length; ++i) {
+            const hit = find(quick.sectionItems[i])
+            if (hit) return hit.visible ? hit : null
+        }
+        return null
+    }
     readonly property bool scopeMain: quick.scope !== "picture"
     readonly property bool scopePicture: quick.scope !== "rest"
 
@@ -697,7 +733,7 @@ VGroup {
 
     // Header: what this card is, and the one-line explanation in the full form.
     ColumnLayout {
-        visible: quick.scopeMain
+        visible: quick.scopeMain && quick.showHeader
         Layout.fillWidth: true
         Layout.topMargin: 12
         Layout.bottomMargin: 2
@@ -761,15 +797,24 @@ VGroup {
         if (veyra.hasSource && !quick.compactPro) veyra.navigate("pro")
         veyra.navigate(dialog)
     }
-    GridLayout {
-        id: toolsGrid
-        objectName: "pushfps-tools-row"
-        visible: quick.scopeMain
+    // (The tools' place in this card. They are drawn in it unless the page gave them another: an item
+    // moved out of a layout and back would come back at its end, so it is this place that stays.)
+    Item {
+        id: toolsSlot
+        visible: quick.scopeMain && quick.toolsHost === null
         Layout.fillWidth: true
         Layout.topMargin: 8
         Layout.bottomMargin: 6
-        // Two equal columns; one in a very narrow panel.
-        columns: width >= 360 ? 2 : 1
+        implicitHeight: toolsGrid.implicitHeight
+    }
+    GridLayout {
+        id: toolsGrid
+        objectName: "pushfps-tools-row"
+        parent: quick.toolsHost !== null ? quick.toolsHost : toolsSlot
+        width: parent ? parent.width : 0
+        visible: quick.scopeMain
+        // Two equal columns; one in a very narrow panel. (Under the new home page's picture: three, or two.)
+        columns: quick.toolsHost !== null ? (width >= 600 ? 3 : 2) : width >= 360 ? 2 : 1
         columnSpacing: 8
         rowSpacing: 8
         PushToolTile {
@@ -1245,7 +1290,7 @@ VGroup {
         // latency, but frame generation output can skip a frame and repeat the next).
         VRow {
             objectName: "pushfps-smooth-row"
-            visible: !quick.compact
+            visible: !quick.shortForm
             label: qsTr("流畅帧同步")
             help: qsTr("等屏幕刷新再显示每一帧，并把输出限制在屏幕刷新率：补出来的每一帧都完整显示，玩起来和录像一样流畅。屏幕支持 G-SYNC/FreeSync 时会请求可变刷新，几乎不增加延迟")
             hint: quick.screenLimitedTarget
@@ -1263,7 +1308,7 @@ VGroup {
         VRow {
             objectName: "pushfps-gsync-row"
             // Once checked with nothing left to set, the row goes: the driver's report is then all there is.
-            visible: !quick.compact && quick.gsyncUnconfirmed && veyra.preferences.pushGsyncChecked !== true
+            visible: !quick.shortForm && quick.gsyncUnconfirmed && veyra.preferences.pushGsyncChecked !== true
                      && (!quick.gsyncChecked || quick.gsyncWanted || quick.gsyncTools.busy || quick.gsyncTools.canRepair)
             label: "G-SYNC"
             help: qsTr("屏幕支持可变刷新时，画面一准备好屏幕就刷新：不撕裂，每一帧显示的时间都一样长。NVIDIA 驱动要为每个程序单独允许窗口和全屏 G-SYNC")
@@ -1290,9 +1335,10 @@ VGroup {
         VRow {
             id: enhanceRow
             objectName: "pushfps-enhance-row"
-            // In Professional mode's Quality tab the page's own enhancement card stands right under this
-            // section and has the switch: a setting once per page.
-            visible: !(quick.proPage && quick.scope === "picture")
+            // (4.2.2) Shown on every page again. 4.2.1 left it out of Professional mode's picture card
+            // because that page's own enhancement card has a switch; but that switch cannot be used
+            // until a layer exists, and this one adds the first layer. With no layer the enhancement
+            // could not be switched on in Professional mode at all (a user: "the toggle and option is gone").
             label: qsTr("AI 画面增强")
             help: qsTr("用 AI 去掉采集卡压缩造成的色块和噪点，让细节更清楚。和补帧无关，可以单独开关")
             // Not possible: the reason, and when the card could run it but its files were left out at
@@ -1456,11 +1502,14 @@ VGroup {
                 }
             }
         }
-        // PushFPS 4.2.1: upscale to my screen. Not on Professional mode's page: the upscaler's own card
-        // stands in the same tab there.
+        // PushFPS 4.2.1: upscale to my screen. Until 4.2.2 it was left out on Professional mode's page,
+        // whose own upscaler card stands in the same tab. That card's switch answers for the upscaler
+        // chosen now: on a card without NVIDIA's upscalers it is greyed out until another one is picked in
+        // the list under it, which reads as "upscaling cannot be used here". This row takes an upscaler
+        // the card can run, so it stands on every page (the 4.2.2 lesson: a switch is never hidden as a
+        // duplicate while the other one cannot be used in every state).
         VRow {
             objectName: "pushfps-upscale-row"
-            visible: !quick.proPage
             label: qsTr("放大到屏幕")
             help: qsTr("采集的画面比屏幕小时，全屏只是把它拉大，看起来发软。开启后由显卡把画面放大到屏幕分辨率，边缘和文字更清晰，也更吃显卡。放大方式可以在专业模式的「画质」里更换")
             hint: quick.upscaleHint
@@ -1511,6 +1560,20 @@ VGroup {
                     onToggled: checked => veyra.setPreference("pushCropOn", checked)
                 }
             }
+        }
+    }
+    // (4.2.2) Professional mode's Frame Gen tab had AI picture enhancement until 4.2.1 moved the Picture
+    // section to the Quality tab. Someone who looks for it here is told where it is and taken there.
+    VRow {
+        objectName: "pushfps-picture-moved-row"
+        visible: quick.proPage && quick.scope === "rest"
+        label: qsTr("AI 画面增强")
+        hint: qsTr("开关、风格、微调和其他画面设置现在都在「画质」页")
+        VButton {
+            objectName: "pushfps-picture-moved-open"
+            ghost: true
+            text: qsTr("打开")
+            onClicked: quick.requestTab("quality")
         }
     }
     PushSection {
@@ -1584,7 +1647,7 @@ VGroup {
         }
         VRow {
             objectName: "pushfps-low-latency-row"
-            visible: !quick.compact
+            visible: !quick.shortForm
             label: quick.nvidiaLatency ? qsTr("英伟达低延迟") : qsTr("低延迟队列")
             help: quick.nvidiaLatency ? qsTr("减少在显卡里排队等待的画面，从按下按键到画面反应更快。只在 NVIDIA 显卡上可用")
                                       : qsTr("只让一帧画面排队等待屏幕，而不是三帧：从按下按键到画面反应更快。任何显卡都能用")
@@ -1690,7 +1753,7 @@ VGroup {
         // settings, or the last stream) and PushFPS's fullscreen-on-connect (Main.qml).
         VRow {
             objectName: "pushfps-auto-connect-row"
-            visible: !quick.compact
+            visible: !quick.shortForm
             label: qsTr("启动时自动连接")
             hint: qsTr("打开 PushFPS 时直接连接上次的采集卡（沿用上次的设置）或串流")
             VSwitch {
@@ -1701,7 +1764,7 @@ VGroup {
         }
         VRow {
             objectName: "pushfps-auto-fullscreen-row"
-            visible: !quick.compact
+            visible: !quick.shortForm
             label: qsTr("连接后自动全屏")
             hint: qsTr("采集卡或串流画面出现时进入全屏；按 F11 或 Esc 退出")
             VSwitch {

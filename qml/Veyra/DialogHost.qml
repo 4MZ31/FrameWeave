@@ -42,6 +42,8 @@ Item {
     signal startXbox()
     signal startScreen()
     signal startScreenCrop()
+    // PushFPS redesign: the Appearance panel asks for Settings -> Appearance.
+    signal requestAppearanceSettings()
 
     CaptureGuideDialog { id: captureGuide }
 
@@ -170,6 +172,12 @@ Item {
     PushDiagnoseDialog {
         id: diagnoseDialog
         dialogHost: host
+    }
+    // PushFPS redesign: the palette button's panel (key "appearance").
+    PushAppearanceDialog {
+        id: appearanceDialog
+        dialogHost: host
+        onRequestSettings: host.requestAppearanceSettings()
     }
     // PushFPS: read the text on the picture (key "readtext").
     PushReadTextDialog {

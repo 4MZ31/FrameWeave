@@ -33,8 +33,12 @@ Rectangle {
     color: primary ? Theme.accent
          : ghost ? (hover.hovered ? Theme.ink(0.07) : "transparent")
          : (hover.hovered ? Theme.card3 : Theme.card2)
-    border.width: (primary || ghost) ? 0 : 1
-    border.color: hover.hovered ? Theme.ink(0.2) : Theme.stroke2
+    // PushFPS redesign: in the new design a button's edge lights up in the accent under the pointer
+    // (a ghost button's too; a primary button is the accent already). Legacy: exactly as it was.
+    border.width: primary ? 0 : ghost ? (Theme.modern ? 1 : 0) : 1
+    border.color: Theme.modern ? (hover.hovered && enabled ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.75) : ghost ? "transparent" : Theme.stroke2)
+                               : hover.hovered ? Theme.ink(0.2) : Theme.stroke2
+    Behavior on border.color { enabled: Theme.modern; ColorAnimation { duration: Theme.d(160) } }
     Behavior on color { ColorAnimation { duration: Theme.d(Theme.durFast) } }
     // .btn:active { transform: scale(.95) }
     // A disabled button reads as such (undo with nothing to undo).
