@@ -32,7 +32,9 @@ VPage {
     property int kind: Number(veyra.screenOptions.kind || 0) === 1 ? 1 : 0
     readonly property var o: veyra.screenOptions
     readonly property bool fgOk: Support.available(veyra, "frame-generation")
-    readonly property bool srOk: Support.available(veyra, "sr")
+    // (PushFPS 4.2.1: or any upscaler this card can run; "sr" alone answers for the one chosen now, and the
+    // switch takes one the card can run when it is switched on.)
+    readonly property bool srOk: Support.available(veyra, "sr") || Upscale.offered(veyra.srBackendChoices).length > 0
     readonly property bool nrOk: Support.available(veyra, "nr")
     readonly property bool hdrOk: Support.available(veyra, "video-hdr")
     readonly property var multipliers: (veyra.fgMultiplierChoices || []).map(c => parseInt(c.id)).filter(m => m >= 2 && m <= 4)

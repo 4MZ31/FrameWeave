@@ -46,5 +46,9 @@ for (const big of [3, 4, 5, 6]) t.same(U.targetIndex(1440, big), 0, 'a larger ta
 t.same([U.targetIndex(0, 2), U.targetIndex(undefined, 2), U.targetIndex(NaN, 2), U.targetIndex(1440, 0), U.targetIndex(1440, undefined)], [0, 0, 0, 0, 0], 'a screen or target not known: nothing is changed')
 
 t.same([U.label(amd, '5'), U.label(amd, 'nope'), U.label(null, '5')], ['FSR 3.1 / 4', '', ''], 'a choice is named by its label')
+{
+    const why = none.map(o => Object.assign({}, o, { note: o.id === '6' ? 'needs a hardware card' : 'needs NVIDIA' }))
+    t.same([U.note(why, '6'), U.note(why, 'rtx'), U.note(amd, '5'), U.note(why, 'nope'), U.note(null, '6')], ['needs a hardware card', 'needs NVIDIA', '', '', ''], 'why a choice cannot run is the bridge\'s own note, and nothing for one that can')
+}
 
 t.done('push_upscale_test')

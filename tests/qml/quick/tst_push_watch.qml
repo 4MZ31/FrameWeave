@@ -80,6 +80,11 @@ Item {
             verify(!veyra.srEnabled)
             veyra.srBackendChoices = [{id: "0", label: "DLSS SR", disabled: true}, {id: "rtx", label: "RTX", disabled: true},
                                       {id: "5", label: "FSR 3.1 / 4"}, {id: "6", label: "NVIDIA Image Scaling (NIS)"}]
+            // The bridge answers "sr" for the upscaler chosen now, which this card cannot run.
+            const wasCaps = veyra.effectCapabilities
+            veyra.effectCapabilities = Object.assign({}, wasCaps, {sr: {available: false, reason: "needs NVIDIA"}})
+            verify(watch.srOk && control("watch-sharp").enabled, "the switch is usable when any upscaler can run")
+            veyra.effectCapabilities = wasCaps
             control("watch-sharp").toggled(true)
             verify(veyra.srEnabled)
             compare(veyra.videoSrQuality, 5, "a card without the NVIDIA upscalers gets FSR")

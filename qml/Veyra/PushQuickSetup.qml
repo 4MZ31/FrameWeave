@@ -395,14 +395,17 @@ VGroup {
     readonly property real screenHigh: quick.screenHighOverride > 0 ? quick.screenHighOverride
                                        : Math.round(Screen.height * Math.max(1, Screen.devicePixelRatio))
     readonly property var upscaleChoices: Upscale.offered(veyra.srBackendChoices)
-    readonly property bool upscalePossible: Support.available(veyra, "sr") && quick.upscaleChoices.length > 0
+    // Whether any upscaler can run on this card. (The bridge's "sr" answers for the upscaler chosen now, which
+    // on a card without the NVIDIA upscalers is one it cannot run: asking that would switch this row off on
+    // exactly the cards it takes another upscaler for.)
+    readonly property bool upscalePossible: quick.upscaleChoices.length > 0
     readonly property bool upscaleOn: veyra.srEnabled === true
     readonly property string upscaleNow: typeof veyra.srAlgorithmOf === "function" ? String(veyra.srAlgorithmOf(veyra.videoSrQuality)) : ""
     readonly property bool upscaleGains: Upscale.gains(Number(veyra.sourceHeight || 0), quick.screenHigh)
     // The FSR version really running (AMD's own name for it, e.g. 4.1.1), read while FSR upscales.
     property string fsrUpscalerVersion: ""
     readonly property string upscaleHint: {
-        if (!quick.upscalePossible && !quick.upscaleOn) return Support.reason(veyra, "sr")
+        if (!quick.upscalePossible && !quick.upscaleOn) return Upscale.note(veyra.srBackendChoices, "6") || Support.reason(veyra, "sr")
         if (quick.upscaleOn) {
             if (quick.upscaleNow === "5" && quick.fsrUpscalerVersion.length > 0) return qsTr("正在使用 %1").arg("FSR " + quick.fsrUpscalerVersion)
             const name = Upscale.label(veyra.srBackendChoices, quick.upscaleNow)

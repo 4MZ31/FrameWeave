@@ -75,7 +75,7 @@ DialogLayer {
             pictureHeight: Number(veyra.sourceHeight || 0),
             // 4.2.1: upscaling (PushUpscale.js). A screen size nobody reported is 0 and never "larger".
             screenHeight: diag.screenHigh,
-            upscalePossible: Support.available(veyra, "sr") && Upscale.offered(veyra.srBackendChoices).length > 0,
+            upscalePossible: Upscale.offered(veyra.srBackendChoices).length > 0,   // any upscaler this card can run
             upscaleOn: veyra.srEnabled === true,
             targetFixed: mode === 2,
             targetFps: custom,

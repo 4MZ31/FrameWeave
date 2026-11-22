@@ -59,6 +59,14 @@ function targetIndex(screenHigh, now) {
     return want === n ? 0 : want
 }
 
+// Why a choice cannot run, as the bridge says it ("" when it can, or is not in the list).
+function note(choices, id) {
+    var list = choices || []
+    for (var i = 0; i < list.length; ++i)
+        if (list[i] && list[i].id === id) return list[i].disabled === true ? String(list[i].note || "") : ""
+    return ""
+}
+
 // The label of a choice by its id ("" when it is not in the list).
 function label(choices, id) {
     var list = choices || []

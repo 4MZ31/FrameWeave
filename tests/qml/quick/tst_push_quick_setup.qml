@@ -279,9 +279,16 @@ Item {
             veyra.srBackendChoices = [{id: "0", label: "DLSS SR", disabled: true}, {id: "rtx", label: "RTX", disabled: true},
                                       {id: "5", label: "FSR 3.1 / 4"}, {id: "6", label: "NVIDIA Image Scaling (NIS)"}]
             quick.screenHighOverride = 1440
+            // The bridge answers "sr" for the upscaler chosen now, which this card cannot run: the row is for
+            // any upscaler the card can run, so its switch stays usable.
+            const wasCaps = veyra.effectCapabilities
+            veyra.effectCapabilities = Object.assign({}, wasCaps, {sr: {available: false, reason: "needs NVIDIA"}})
+            verify(quick.upscalePossible && sw.enabled, "usable on a card that cannot run the upscaler chosen now")
+            verify(row.hint.indexOf("needs NVIDIA") < 0, "and not explained away with that upscaler's reason: " + row.hint)
             sw.toggled(true)
             verify(veyra.srEnabled)
             compare(veyra.videoSrQuality, 5, "FSR on a card without the NVIDIA upscalers")
+            veyra.effectCapabilities = wasCaps
             compare(veyra.srTargetIndex, 1, "1440p for a 1440p screen")
             // The FSR version really running is read while it runs and said.
             veyra.liveStats = ({running: true, fsrUpscalerVersion: "4.1.1"})
@@ -294,8 +301,9 @@ Item {
             compare(veyra.srTargetIndex, 3)
             veyra.srEnabled = false
             // No upscaler at all: the switch cannot be turned on, and nothing is set.
-            veyra.srBackendChoices = [{id: "0", label: "DLSS SR", disabled: true}]
+            veyra.srBackendChoices = [{id: "0", label: "DLSS SR", disabled: true}, {id: "6", label: "NIS", disabled: true, note: "needs a hardware card"}]
             verify(!quick.upscalePossible && !sw.enabled)
+            compare(row.hint, "needs a hardware card", "why nothing can run is said")
             quick.setUpscale(true)
             verify(!veyra.srEnabled, "nothing to run: nothing switched on")
             // A picture as large as the screen: nothing is promised.
