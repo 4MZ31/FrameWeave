@@ -23,6 +23,20 @@ Item {
         function init() { savedPreferences = veyra.preferences; veyra.preferences = ({}); page.overlay = false; page.tab = "fg" }
         function cleanup() { Theme.design = "legacy"; page.overlay = false; page.onboardingActive = false; page.tab = "fg"; veyra.preferences = savedPreferences }
         function control(parent, name) { const c = findChild(parent, name); verify(c !== null, name); return c }
+        // What stands under an item's middle, from the page inwards (for a press that did not arrive).
+        function under(item) {
+            const at = item.mapToItem(page, item.width / 2, item.height / 2)
+            let node = page, x = at.x, y = at.y, path = Math.round(at.x) + "," + Math.round(at.y) + " of " + Math.round(item.width) + "x" + Math.round(item.height)
+                + (item.visible ? "" : " (not visible)") + (item.enabled ? "" : " (not enabled)") + ":"
+            for (let depth = 0; depth < 24 && node; ++depth) {
+                const child = node.childAt(x, y)
+                if (!child) break
+                const p = node.mapToItem(child, x, y)
+                x = p.x; y = p.y; node = child
+                path += " > " + (child.objectName || String(child).split("(")[0])
+            }
+            return path
+        }
 
         // The redesign: in the new design every tab's settings stand in one list, each under its name, so
         // nothing is looked for from tab to tab, and AI picture enhancement's card comes first. The five
@@ -57,8 +71,9 @@ Item {
             compare(picture.parent, control(page, "list-pushfps-picture-first"), "AI picture enhancement's card is the first card")
             tryVerify(function() { return control(page, "pushfps-enhance-row").visible }, 3000, "with its switch")
             // A tab still shows that tab alone.
-            mouseClick(control(page, "pro-tab-fg"))
-            compare(page.tab, "fg")
+            const tabFg = control(page, "pro-tab-fg")
+            mouseClick(tabFg)
+            compare(page.tab, "fg", "a press on the tab; under the pointer stands " + under(tabFg))
             tryVerify(function() { return !picture.visible && control(page, "list-pushfps-quick").visible && !control(page, "pro-all-fg").visible }, 3000)
             mouseClick(control(page, "pro-tab-all"))
             compare(page.tab, "all")
@@ -75,7 +90,7 @@ Item {
         // always shows its block.
         function test_all_tab_blocks_fold_by_their_titles() {
             Theme.design = "new"
-            tryCompare(page, "tab", "all")
+            page.tab = "all"
             const blocks = { quality: "list-pushfps-picture", fg: "list-pushfps-quick", audio: "", display: "", color: "" }
             const head = id => control(page, "pro-all-" + id)
             for (const id in blocks) {

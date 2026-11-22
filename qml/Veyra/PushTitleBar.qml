@@ -39,7 +39,7 @@ Rectangle {
     // A side button: the outline of a window with one side marked, filled while that side is shown.
     component SideButton: Item {
         id: sbtn
-        property bool right: false
+        property bool atRight: false   // (Item has `right` already: its anchor line)
         property bool shown: true          // the side it stands for is on screen
         property string tip: ""
         signal pressed()
@@ -66,10 +66,10 @@ Rectangle {
             width: 16; height: 13
             readonly property color tint: shover.hovered ? Theme.t1 : Theme.t2
             Rectangle { anchors.fill: parent; radius: 3; color: "transparent"; border.width: 1; border.color: glyph.tint }
-            Rectangle { x: sbtn.right ? parent.width - 6 : 5; y: 1; width: 1; height: parent.height - 2; color: glyph.tint }
+            Rectangle { x: sbtn.atRight ? parent.width - 6 : 5; y: 1; width: 1; height: parent.height - 2; color: glyph.tint }
             Rectangle {
                 visible: sbtn.shown
-                x: sbtn.right ? parent.width - 5 : 2; y: 2
+                x: sbtn.atRight ? parent.width - 5 : 2; y: 2
                 width: 3; height: parent.height - 4
                 color: Theme.accent
             }
@@ -167,7 +167,7 @@ Rectangle {
             objectName: "pushfps-side-toggle"
             visible: bar.sideToggleShown
             Layout.alignment: Qt.AlignVCenter
-            right: true
+            atRight: true
             shown: !bar.sideCollapsed
             tip: bar.sideCollapsed ? qsTr("显示右侧设置栏") : qsTr("隐藏右侧设置栏")
             onPressed: bar.requestToggleSide()
