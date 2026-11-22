@@ -1594,6 +1594,26 @@
      "contains": "\"a held clock is a held picture\""
     }
    ]
+  },
+  {
+   "id": "F59",
+   "what": "A folded section of quick setup takes no room, also when the fold happens in one step (reduced motion, or a frame longer than the animation): its rows are not left drawn under a title that says it is folded",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "function test_a_folded_section_takes_no_room()"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "\"folded in one step: no room (\""
+    },
+    {
+     "file": "qml/Veyra/PushSection.qml",
+     "contains": "Layout.preferredHeight: body.implicitHeight * shown"
+    }
+   ]
   }
  ]
 }
