@@ -25,7 +25,7 @@ Item {
             radius: backdrop.radius
             Image {
                 anchors.fill: parent
-                visible: Theme.backdropLevel !== 0 && Theme.mode === "default"
+                visible: Theme.backdropLevel !== 0 && Theme.mode === "default" && !Theme.modern   // the new design is flat
                 source: Theme.backdropImage
                 smooth: true
             }
@@ -65,7 +65,7 @@ Item {
                 strokeColor: backdrop.strokeColor
                 // PushFPS: the gradient image is dark; the black and light modes use a flat colour.
                 fillColor: Theme.mode === "default" ? Theme.bgOuter : Theme.bgMid
-                fillItem: Theme.backdropLevel === 0 || Theme.mode !== "default" ? null : fill
+                fillItem: Theme.backdropLevel === 0 || Theme.mode !== "default" || Theme.modern ? null : fill   // the new design is flat
                 PathRectangle {
                     x: 0.5; y: 0.5
                     width: backdrop.width - 1; height: backdrop.height - 1

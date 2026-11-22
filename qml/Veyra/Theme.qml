@@ -39,7 +39,22 @@ QtObject {
         "forest":   { card: "#0F1613", card2: "#141D19", card3: "#1F2B25", popover: "#16201B", dialog: "#101814", bgOuter: "#050907", bgMid: "#090F0C", bgInner: "#131C17" },
         "contrast": { card: "#000000", card2: "#000000", card3: "#1C1C1C", popover: "#000000", dialog: "#000000", bgOuter: "#000000", bgMid: "#000000", bgInner: "#000000" }
     })
-    readonly property var surface: surfaces[mode] || surfaces["default"]
+    // PushFPS redesign (after 4.2.1). `design` is "new" (the default) or "legacy", the interface every
+    // version up to 4.2.1 had (preference pushDesign; the palette button's Appearance panel switches it).
+    // The new design has its own graphite and its own light surfaces; every other theme (black, the
+    // tinted ones, high contrast) is one table for both. In legacy nothing below differs from 4.2.1:
+    // each token that has a new value is written as `modernTone ? new : what it was`.
+    property string design: "new"
+    readonly property bool modern: design !== "legacy"
+    readonly property var surfacesModern: ({
+        "default": { card: "#141A21", card2: "#1C242E", card3: "#28323F", popover: "#1A222B", dialog: "#141A21", bgOuter: "#0B0F14", bgMid: "#0B0F14", bgInner: "#0E131A" },
+        "light":   { card: "#FFFFFF", card2: "#EDF1F5", card3: "#DDE4EB", popover: "#FFFFFF", dialog: "#FFFFFF", bgOuter: "#F5F7FA", bgMid: "#F5F7FA", bgInner: "#F5F7FA" }
+    })
+    // The surfaces of a theme as this design draws it (the pickers show a tile of each).
+    function surfaceOf(id) { return (modern && surfacesModern[id]) || surfaces[id] || surfaces["default"] }
+    readonly property var surface: surfaceOf(mode)
+    // Whether this theme has the new design's own colours (graphite and light).
+    readonly property bool modernTone: modern && surfacesModern[mode] !== undefined
     function ink(a) { return light ? Qt.rgba(0.07, 0.08, 0.06, Math.min(1, a * 1.15)) : contrast ? Qt.rgba(1, 1, 1, Math.min(1, a * 1.8)) : Qt.rgba(1, 1, 1, a) }
     // Text and icons drawn over the video picture or a dark chip stay white in every mode.
     readonly property color onVideo: "#FFFFFF"
@@ -50,8 +65,8 @@ QtObject {
     readonly property color card3: surface.card3
     readonly property color popover: surface.popover
     readonly property color dialog: surface.dialog
-    readonly property color stroke: light ? Qt.rgba(0, 0, 0, 0.10) : contrast ? Qt.rgba(1, 1, 1, 0.55) : Qt.rgba(1, 1, 1, black ? 0.08 : 0.07)
-    readonly property color stroke2: light ? Qt.rgba(0, 0, 0, 0.18) : contrast ? Qt.rgba(1, 1, 1, 0.85) : Qt.rgba(1, 1, 1, black ? 0.14 : 0.13)
+    readonly property color stroke: modernTone ? (light ? "#D7DEE6" : "#252E39") : light ? Qt.rgba(0, 0, 0, 0.10) : contrast ? Qt.rgba(1, 1, 1, 0.55) : Qt.rgba(1, 1, 1, black ? 0.08 : 0.07)
+    readonly property color stroke2: modernTone ? (light ? "#C2CBD6" : "#344050") : light ? Qt.rgba(0, 0, 0, 0.18) : contrast ? Qt.rgba(1, 1, 1, 0.85) : Qt.rgba(1, 1, 1, black ? 0.14 : 0.13)
     // The app background: a radial gradient in the prototype, approximated here
     // with the three stops it interpolates between.
     readonly property color bgOuter: surface.bgOuter
@@ -73,13 +88,13 @@ QtObject {
     }
 
     // --- text -------------------------------------------------------------
-    readonly property color t1: light ? "#15171A" : contrast ? "#FFFFFF" : "#F3F3F5"
-    readonly property color t2: light ? Qt.rgba(0.08, 0.09, 0.10, 0.74) : contrast ? Qt.rgba(1, 1, 1, 0.92) : Qt.rgba(0.953, 0.953, 0.961, 0.62)
+    readonly property color t1: modernTone ? (light ? "#17202B" : "#F4F7FA") : light ? "#15171A" : contrast ? "#FFFFFF" : "#F3F3F5"
+    readonly property color t2: modernTone ? (light ? "#485566" : "#B7C1CD") : light ? Qt.rgba(0.08, 0.09, 0.10, 0.74) : contrast ? Qt.rgba(1, 1, 1, 0.92) : Qt.rgba(0.953, 0.953, 0.961, 0.62)
     // PushFPS: secondary text a little brighter than the design's .38, so hints
     // stay readable on the dark cards (contrast about 4.5:1 on card2).
-    readonly property color t3: light ? Qt.rgba(0.08, 0.09, 0.10, 0.62) : contrast ? Qt.rgba(1, 1, 1, 0.82) : Qt.rgba(0.953, 0.953, 0.961, 0.48)
+    readonly property color t3: modernTone ? (light ? "#5A6676" : "#93A0AF") : light ? Qt.rgba(0.08, 0.09, 0.10, 0.62) : contrast ? Qt.rgba(1, 1, 1, 0.82) : Qt.rgba(0.953, 0.953, 0.961, 0.48)
     // Row labels: between t1 and t2, so a label reads before its hint.
-    readonly property color tLabel: light ? Qt.rgba(0.08, 0.09, 0.10, 0.90) : contrast ? "#FFFFFF" : Qt.rgba(0.953, 0.953, 0.961, 0.88)
+    readonly property color tLabel: modernTone ? (light ? "#1F2A36" : "#E6EBF1") : light ? Qt.rgba(0.08, 0.09, 0.10, 0.90) : contrast ? "#FFFFFF" : Qt.rgba(0.953, 0.953, 0.961, 0.88)
     readonly property real fsHint: 11.5
 
     // --- accent and state -------------------------------------------------
@@ -110,9 +125,9 @@ QtObject {
     readonly property color accentGlow: accentWhite ? ink(0.35) : Qt.rgba(accent.r, accent.g, accent.b, light ? 0.30 : 0.35)
     // 设置 → 背景渐变强度: 0 none, 1 light (the design default), 2 medium.
     property int backdropLevel: 1
-    readonly property color ok: light ? "#17824A" : "#3DDC84"
+    readonly property color ok: modernTone ? (light ? "#147D49" : "#52D98B") : light ? "#17824A" : "#3DDC84"
     readonly property color okGlow: Qt.rgba(0.239, 0.863, 0.518, 0.16)
-    readonly property color warn: light ? "#9A6200" : "#F5C84B"
+    readonly property color warn: modernTone ? (light ? "#946100" : "#F0BD55") : light ? "#9A6200" : "#F5C84B"
     // Veyra 2.1.9 accent-gradient API (VAccentFill.qml): a plain fill in PushFPS.
     readonly property bool accentGradient: false
     readonly property color accentFrom: accent
@@ -122,7 +137,7 @@ QtObject {
     // PushFPS logo (the chevrons, scripts/brand/make_icon.py) in every mode.
     readonly property string logoImage: "logo.png"
     readonly property color warnGlow: Qt.rgba(0.961, 0.784, 0.294, 0.16)
-    readonly property color err: light ? "#C62828" : "#FF5D5D"
+    readonly property color err: modernTone ? (light ? "#B62F35" : "#FF7373") : light ? "#C62828" : "#FF5D5D"
     readonly property color errGlow: Qt.rgba(1, 0.365, 0.365, 0.16)
     readonly property color exp: light ? "#5B3FC4" : "#B79BFF"
     readonly property color expSoft: Qt.rgba(0.718, 0.608, 1.0, 0.14)
@@ -132,8 +147,14 @@ QtObject {
     // The video surface is NEVER rounded: .video in the prototype carries
     // border-radius:0!important because rounding crops the picture.
     readonly property int rWindow: 8
-    readonly property int rCard: 14
-    readonly property int rCtl: 10
+    readonly property int rCard: modern ? 12 : 14
+    readonly property int rCtl: modern ? 8 : 10
+    // The new design's shell (Main.qml): the navigation's width with labels and as icons, the title
+    // bar and the status strip.
+    readonly property int shellNav: 208
+    readonly property int shellNavSlim: 60
+    readonly property int shellHeader: 46
+    readonly property int shellStatus: 34
 
     // --- motion (--spring / --spring-soft / --out) ------------------------
     // easing.bezierCurve takes whole cubic segments, six numbers each
