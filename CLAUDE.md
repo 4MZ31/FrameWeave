@@ -220,6 +220,8 @@ and edits would conflict on every merge.
   `PushFPS.exe`, runs the GPU-free unit tests, checks the exe's Qt/FFmpeg imports against Veyra's runtime
   package, packages `packaging/make-release.ps1`, then installs with `packaging/Install-PushFPS.ps1` and
   starts the program; QML errors at startup fail the build. FFmpeg (~25 min) and the static streaming libraries (~30 min) are kept in a vcpkg binary cache saved by every run (`vcpkg-bin-<commit>-v2-<run>`), so a run with an unchanged compiler restores them in seconds.
+- **4.2.2 was never released by itself.** Its two fixes (rows marked 4.2.2 in the table above) were collected on
+  `hotfix/4.2.2` and went out in 4.3.0 with the redesign; there is no tag `v4.2.2` and no notes file for it.
 - Releases: push a tag `vX.Y.Z` or dispatch with `-f release_tag=vX.Y.Z` (stable numbers only: the
   in-app update checker ignores other tags). **Every release is a full (latest) release, never a
   pre-release** (the owner's standing instruction, November 2026); `full_release` defaults to true. The
