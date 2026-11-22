@@ -48,10 +48,11 @@ Item {
             let bottom = -1
             for (const name of ["pro-all-quality", "list-pushfps-picture", "pro-all-fg", "list-pushfps-quick", "pro-all-color", "pro-all-audio", "pro-all-display"]) {
                 const item = control(page, name)
-                tryVerify(function() { return item.visible && item.height > 0 }, 3000, name)
-                const y = item.mapToItem(page, 0, 0).y
-                verify(y >= bottom - 0.5, name + " stands under what comes before it")
-                bottom = y
+                const under = bottom
+                // (A layout gives an item its place at its next pass, not when it is shown.)
+                tryVerify(function() { return item.visible && item.height > 0 && item.mapToItem(page, 0, 0).y >= under - 0.5 }, 3000,
+                          name + " stands under what comes before it")
+                bottom = item.mapToItem(page, 0, 0).y
             }
             compare(picture.parent, control(page, "list-pushfps-picture-first"), "AI picture enhancement's card is the first card")
             tryVerify(function() { return control(page, "pushfps-enhance-row").visible }, 3000, "with its switch")

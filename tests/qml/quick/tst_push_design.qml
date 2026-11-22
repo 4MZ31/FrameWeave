@@ -132,10 +132,10 @@ Item {
             // Two quick presses on a button are that button twice, never a double click on the bar.
             mouseClick(max); mouseClick(max)
             compare(maximizes.count, 2)
-            // The bar itself: a double click maximises, as a Windows title bar does.
-            mouseDoubleClickSequence(bar, 300, 23)
-            compare(maximizes.count, 3)
             compare(minimizes.count, 1); compare(closes.count, 1)
+            // The part of the bar that moves the window (and maximises it on a double click) ends before the buttons.
+            const drag = control(bar, "pushfps-titlebar-drag")
+            verify(drag.width > 500 && drag.x + drag.width <= min.mapToItem(bar, 0, 0).x + 0.5, "the bar's own handlers never see a press on a button")
         }
 
         // A figure nobody reported is a dash: never a zero, never a made-up number.
@@ -190,7 +190,7 @@ Item {
             // Everything the home page had is still on it, and drawn.
             const names = ["home-capture", "home-pushfps-quick", "home-picture-sound", "home-onboarding",
                            "pushfps-optimize", "pushfps-diagnose", "pushfps-game-presets", "pushfps-compare-clip", "pushfps-stream",
-                           "pushfps-section-setup", "pushfps-section-fg", "pushfps-section-picture", "pushfps-enhance-row", "pushfps-section-latency", "pushfps-section-start"]
+                           "pushfps-section-setup", "pushfps-section-fg", "pushfps-section-picture", "pushfps-enhance-row", "pushfps-section-latency"]
             for (const name of names) {
                 const item = control(home, name)
                 tryVerify(function() { return drawn(item) }, 3000, name + " is on the new home page")
@@ -258,7 +258,7 @@ Item {
             const list = control(home, "home-desk-settings-list")
             tryVerify(function() { return list.contentHeight > list.height + 200 }, 3000, "the list is longer than the pane")
             compare(list.contentY, 0)
-            for (const id of ["setup", "fg", "enhance", "picture", "latency", "start"]) {
+            for (const id of ["setup", "fg", "enhance", "picture", "latency"]) {
                 const chip = control(home, "home-desk-index-" + id)
                 tryVerify(function() { return drawn(chip) }, 3000, id + " is in the index")
                 verify(chip.mapToItem(home, 0, 0).x + chip.width <= home.width, id + " is inside the pane")

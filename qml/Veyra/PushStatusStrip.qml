@@ -42,10 +42,12 @@ Rectangle {
         return playing && w !== "" && h !== "" ? w + " × " + h + (stats.hdr === true ? " · HDR" : "") : dash
     }
     function refresh() { strip.stats = (strip.playing && typeof veyra.pushLiveStats === "function" ? veyra.pushLiveStats() : null) || ({}) }
-    onPlayingChanged: refresh()
+    // (After the change, not inside it: the figures above read `playing`, and a new `stats` while one of
+    // them is being worked out is a binding loop.)
+    onPlayingChanged: Qt.callLater(strip.refresh)
     Timer {
         objectName: "pushfps-status-timer"
-        interval: 1000; repeat: true; triggeredOnStart: true
+        interval: 1000; repeat: true
         running: strip.visible && strip.playing
         onTriggered: strip.refresh()
     }
