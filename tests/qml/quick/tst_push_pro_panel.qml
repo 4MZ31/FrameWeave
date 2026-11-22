@@ -100,19 +100,19 @@ Item {
             const quick = control(page, "list-pushfps-quick"), picture = control(page, "list-pushfps-picture")
             tryVerify(function() { return quick.visible && picture.visible }, 3000)
             // A press on the title folds the block under it, and only that one.
+            // (A layout gives an item its place at its next pass, not when it is shown.)
             const colour = head("color")
-            const before = colour.mapToItem(page, 0, 0).y
+            const gap = () => colour.mapToItem(page, 0, 0).y - (head("fg").mapToItem(page, 0, 0).y + head("fg").height)
+            tryVerify(function() { return gap() > 200 }, 3000, "open: the Frame Gen block stands between its title and the next (" + gap() + ")")
             head("fg").toggled(false)
             compare(veyra.preferences.pushProFolded, "fg", "the fold is a preference")
             tryVerify(function() { return !quick.visible && !head("fg").open }, 3000, "the block is not drawn")
             verify(head("fg").visible, "its title stays, to open it again")
             verify(picture.visible && page.blockOpen("quality") && !page.blockOpen("fg"))
-            tryVerify(function() { return colour.mapToItem(page, 0, 0).y < before - 100 }, 3000, "what stood under it moves up: a folded block takes no room")
+            tryVerify(function() { return gap() >= 0 && gap() < 24 }, 3000, "what stood under it moves up: a folded block takes no room (" + gap() + ")")
             // A second one; the list keeps both.
             head("display").toggled(false)
             compare(veyra.preferences.pushProFolded, "fg,display")
-            // The mouse does the same as the call (the title is the button).
-            const audio = head("audio")
             page.setBlockOpen("audio", true)
             compare(veyra.preferences.pushProFolded, "fg,display", "opening what is open changes nothing")
             // A tab of its own shows its block whatever is folded in the list.
@@ -124,7 +124,12 @@ Item {
             // Opened again by its title.
             head("fg").toggled(true)
             compare(veyra.preferences.pushProFolded, "display")
-            tryVerify(function() { return quick.visible && head("fg").open }, 3000)
+            tryVerify(function() { return quick.visible && head("fg").open && gap() > 200 }, 3000)
+            // The title is the button: a press on it does what the call does.
+            mouseClick(head("audio"))
+            compare(veyra.preferences.pushProFolded, "display,audio", "a press on the title folds; under the pointer stands " + under(head("audio")))
+            mouseClick(head("audio"))
+            compare(veyra.preferences.pushProFolded, "display")
             // What was saved wrongly folds nothing it should not.
             veyra.setPreference("pushProFolded", "nonsense,,quality")
             tryVerify(function() { return !picture.visible && quick.visible }, 3000)
