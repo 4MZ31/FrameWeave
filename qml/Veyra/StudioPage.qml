@@ -395,6 +395,7 @@ VPage {
                     Layout.fillWidth: true
                     compact: true
                     compactPro: true
+                    shortForm: !Theme.modern   // (the new design: every row of quick setup, here too)
                 }
                 // PushFPS measurements (quality test, PS5 latency test).
                 RowLayout {

@@ -1545,7 +1545,7 @@
     {
      "file": "tests/qml/quick/tst_push_design.qml",
      "ci": "tst_push_design",
-     "contains": "for (const id of [\"setup\", \"fg\", \"enhance\", \"picture\", \"latency\"])"
+     "contains": "for (const id of [\"setup\", \"fg\", \"enhance\", \"picture\", \"latency\", \"start\"])"
     },
     {
      "file": "tests/qml/quick/tst_push_pro_panel.qml",

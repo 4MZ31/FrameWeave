@@ -250,7 +250,7 @@ Item {
             const before = veyra.nrLayers.length
             control("pushfps-enhance").toggled(true)
             verify(veyra.nrLayers.length > before || veyra.nrAnyEnabled === true, "switched on with no layer yet: a layer is added")
-            verify(!control("pushfps-upscale-row").visible, "and its own upscaler card the upscaling")
+            verify(control("pushfps-upscale-row").visible, "upscale to my screen stands here too: the page's own upscaler card cannot be switched on for an upscaler the card cannot run")
             veyra.nrAnyEnabled = true
             veyra.nrLayers = [{index: 1, runtime: 2, tone: 1, structure: 1}]
             tryVerify(function() { return control("pushfps-look-row").visible && control("pushfps-fine-row").visible }, 3000, "the look and the fine-tuning stand in the picture card")
@@ -326,9 +326,10 @@ Item {
             veyra.srBackendChoices = wasChoices
             veyra.sourceHeight = 2160; quick.screenHighOverride = 2160
             verify(!quick.upscaleGains && row.hint.indexOf("2160") < 0)
-            // Professional mode's page has the upscaler's own card.
+            // Professional mode's page has the upscaler's own card, and this row beside it: that card's
+            // switch is greyed out while the upscaler chosen is one the graphics card cannot run.
             quick.compactPro = true
-            verify(!row.visible)
+            verify(row.visible)
             quick.compactPro = false
             veyra.videoSrQuality = wasQuality; veyra.srTargetIndex = wasTarget; veyra.sourceHeight = wasHigh
             veyra.srEnabled = false

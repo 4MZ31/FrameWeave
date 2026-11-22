@@ -121,6 +121,11 @@ VGroup {
     // are drawn: nothing about what a tile does or shows changes.
     property bool showHeader: true
     property Item toolsHost: null
+    // The short form leaves five rows to Professional mode: smooth frame pacing, the G-SYNC set-up, low
+    // latency, connecting at start-up and full screen on connecting. It is what the home page and
+    // streaming mode always had (`compact`), and what they have in Legacy. The new design shows them
+    // there too (the owner: nothing lost, nothing hidden, no going from page to page for a setting).
+    property bool shortForm: compact
     readonly property real toolsHeight: toolsGrid.implicitHeight
     // The sections by name, for a page that lists them (the new home page's index over the list).
     function sectionItem(id) {
@@ -1285,7 +1290,7 @@ VGroup {
         // latency, but frame generation output can skip a frame and repeat the next).
         VRow {
             objectName: "pushfps-smooth-row"
-            visible: !quick.compact
+            visible: !quick.shortForm
             label: qsTr("流畅帧同步")
             help: qsTr("等屏幕刷新再显示每一帧，并把输出限制在屏幕刷新率：补出来的每一帧都完整显示，玩起来和录像一样流畅。屏幕支持 G-SYNC/FreeSync 时会请求可变刷新，几乎不增加延迟")
             hint: quick.screenLimitedTarget
@@ -1303,7 +1308,7 @@ VGroup {
         VRow {
             objectName: "pushfps-gsync-row"
             // Once checked with nothing left to set, the row goes: the driver's report is then all there is.
-            visible: !quick.compact && quick.gsyncUnconfirmed && veyra.preferences.pushGsyncChecked !== true
+            visible: !quick.shortForm && quick.gsyncUnconfirmed && veyra.preferences.pushGsyncChecked !== true
                      && (!quick.gsyncChecked || quick.gsyncWanted || quick.gsyncTools.busy || quick.gsyncTools.canRepair)
             label: "G-SYNC"
             help: qsTr("屏幕支持可变刷新时，画面一准备好屏幕就刷新：不撕裂，每一帧显示的时间都一样长。NVIDIA 驱动要为每个程序单独允许窗口和全屏 G-SYNC")
@@ -1497,11 +1502,14 @@ VGroup {
                 }
             }
         }
-        // PushFPS 4.2.1: upscale to my screen. Not on Professional mode's page: the upscaler's own card
-        // stands in the same tab there.
+        // PushFPS 4.2.1: upscale to my screen. Until 4.2.2 it was left out on Professional mode's page,
+        // whose own upscaler card stands in the same tab. That card's switch answers for the upscaler
+        // chosen now: on a card without NVIDIA's upscalers it is greyed out until another one is picked in
+        // the list under it, which reads as "upscaling cannot be used here". This row takes an upscaler
+        // the card can run, so it stands on every page (the 4.2.2 lesson: a switch is never hidden as a
+        // duplicate while the other one cannot be used in every state).
         VRow {
             objectName: "pushfps-upscale-row"
-            visible: !quick.proPage
             label: qsTr("放大到屏幕")
             help: qsTr("采集的画面比屏幕小时，全屏只是把它拉大，看起来发软。开启后由显卡把画面放大到屏幕分辨率，边缘和文字更清晰，也更吃显卡。放大方式可以在专业模式的「画质」里更换")
             hint: quick.upscaleHint
@@ -1639,7 +1647,7 @@ VGroup {
         }
         VRow {
             objectName: "pushfps-low-latency-row"
-            visible: !quick.compact
+            visible: !quick.shortForm
             label: quick.nvidiaLatency ? qsTr("英伟达低延迟") : qsTr("低延迟队列")
             help: quick.nvidiaLatency ? qsTr("减少在显卡里排队等待的画面，从按下按键到画面反应更快。只在 NVIDIA 显卡上可用")
                                       : qsTr("只让一帧画面排队等待屏幕，而不是三帧：从按下按键到画面反应更快。任何显卡都能用")
@@ -1745,7 +1753,7 @@ VGroup {
         // settings, or the last stream) and PushFPS's fullscreen-on-connect (Main.qml).
         VRow {
             objectName: "pushfps-auto-connect-row"
-            visible: !quick.compact
+            visible: !quick.shortForm
             label: qsTr("启动时自动连接")
             hint: qsTr("打开 PushFPS 时直接连接上次的采集卡（沿用上次的设置）或串流")
             VSwitch {
@@ -1756,7 +1764,7 @@ VGroup {
         }
         VRow {
             objectName: "pushfps-auto-fullscreen-row"
-            visible: !quick.compact
+            visible: !quick.shortForm
             label: qsTr("连接后自动全屏")
             hint: qsTr("采集卡或串流画面出现时进入全屏；按 F11 或 Esc 退出")
             VSwitch {

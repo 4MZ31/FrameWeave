@@ -190,8 +190,14 @@ Item {
             // Everything the home page had is still on it, and drawn.
             const names = ["home-capture", "home-pushfps-quick", "home-picture-sound", "home-onboarding",
                            "pushfps-optimize", "pushfps-diagnose", "pushfps-game-presets", "pushfps-compare-clip", "pushfps-stream",
-                           "pushfps-section-setup", "pushfps-section-fg", "pushfps-section-picture", "pushfps-enhance-row", "pushfps-section-latency"]
+                           "pushfps-section-setup", "pushfps-section-fg", "pushfps-section-picture", "pushfps-enhance-row", "pushfps-upscale-row", "pushfps-crop-row", "pushfps-section-latency"]
             for (const name of names) {
+                const item = control(home, name)
+                tryVerify(function() { return drawn(item) }, 3000, name + " is on the new home page")
+            }
+            // The whole of quick setup: the five rows the short form leaves to Professional mode are here too.
+            const whole = ["pushfps-smooth-row", "pushfps-low-latency-row", "pushfps-auto-connect-row", "pushfps-auto-fullscreen-row", "pushfps-section-start"]
+            for (const name of whole) {
                 const item = control(home, name)
                 tryVerify(function() { return drawn(item) }, 3000, name + " is on the new home page")
             }
@@ -212,6 +218,9 @@ Item {
                 const item = control(home, name)
                 tryVerify(function() { return drawn(item) }, 3000, name + " is on the legacy home page")
             }
+            // Legacy's home page has the short form of quick setup, as it always had.
+            for (const name of ["pushfps-smooth-row", "pushfps-low-latency-row", "pushfps-auto-connect-row", "pushfps-auto-fullscreen-row"])
+                verify(!control(home, name).visible, name + " is Professional mode's in Legacy")
             // Its palette: the way to the Appearance panel, and so to the new design.
             const palette = control(home, "home-appearance")
             tryVerify(function() { return drawn(palette) }, 3000)
@@ -258,7 +267,7 @@ Item {
             const list = control(home, "home-desk-settings-list")
             tryVerify(function() { return list.contentHeight > list.height + 200 }, 3000, "the list is longer than the pane")
             compare(list.contentY, 0)
-            for (const id of ["setup", "fg", "enhance", "picture", "latency"]) {
+            for (const id of ["setup", "fg", "enhance", "picture", "latency", "start"]) {
                 const chip = control(home, "home-desk-index-" + id)
                 tryVerify(function() { return drawn(chip) }, 3000, id + " is in the index")
                 verify(chip.mapToItem(home, 0, 0).x + chip.width <= home.width, id + " is inside the pane")

@@ -197,7 +197,7 @@ VPage {
         }
     }
 
-    // The three groups. Each is declared once and stands where the design puts it.
+    // The four groups. Each is declared once and stands where the design puts it.
     ColumnLayout {
         id: groupA
         parent: root.threePane ? paneSlotA : slotA
@@ -222,7 +222,7 @@ VPage {
             }
             Item {
                 id: mark
-                visible: !root.sunset
+                visible: !root.sunset && !Theme.modern   // (the new design has the mark in its title bar)
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: -40
                 Layout.bottomMargin: -40
@@ -540,6 +540,9 @@ VPage {
                 id: quickSetup
                 objectName: "home-pushfps-quick"
                 compact: true
+                // (The new design shows the whole of quick setup here: the five rows the short form
+                // leaves to Professional mode too. Legacy: the short form, as always.)
+                shortForm: !Theme.modern
                 // (The three panes: the tip stands in the empty picture, the title is pinned over the
                 // list with the index of its sections, the tools stand under the picture, and the pane
                 // is the card.)
