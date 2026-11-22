@@ -1035,6 +1035,7 @@ first start (right-click → Open).
 | Black picture from a PlayStation | Turn HDCP off on the console |
 | Stutter every second or so | Set the capture card to exactly 60 FPS, close other apps that use the card, use a USB port directly on the PC |
 | Not sure which setting is wrong | Run **Check my setup** on the home page while the game is on screen |
+| Sharp in a window, soft in full screen | The capture is smaller than your screen: turn on **Upscale to my screen** (*Quick setup → Picture*) |
 | Smeared HUD or text during fast motion | Pick a lower target (60 instead of 120), or a higher frame generation quality (*Quick setup*, with NVIDIA's frame generation: Low, Medium, High) |
 | Picture looks washed out | Match the colour settings in the capture dialog to the console: HDR (PQ) or SDR, Limited or Full range |
 | The game feels slow to react | Turn on NVIDIA Low Latency. Frame generation can't reduce the game's own delay |
@@ -1179,6 +1180,8 @@ A measurement from your own card helps: [how to take one](docs/BENCHMARKING.md).
       cards, six backgrounds and seven accents, the interface in sections
 - [x] 4.2: picture quality for comparison clips up to near lossless, recordings in parts without a gap, a
       quick tour for new users, Korean
+- [x] 4.2.1: upscale to my screen, a before/after line that moves in full screen and swaps sides, colour
+      above 100% that holds, a wider panel in full screen
 - [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)

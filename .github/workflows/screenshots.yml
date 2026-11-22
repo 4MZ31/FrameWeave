@@ -266,7 +266,12 @@ jobs:
             @{ name = '130-korean-home'; args = @('--page', 'home', '--lang', 'ko', '--pref', 'pushSunset=false', '--dock-pinned') },
             @{ name = '131-korean-settings'; args = @('--page', 'set', '--lang', 'ko') },
             @{ name = '132-korean-tour'; args = @('--page', 'home', '--lang', 'ko', '--pref', 'pushSunset=false', '--tour', '8') },
-            @{ name = '133-korean-pro'; args = @('--page', 'pro', '--tab', 'fg', '--lang', 'ko') }
+            @{ name = '133-korean-pro'; args = @('--page', 'pro', '--tab', 'fg', '--lang', 'ko') },
+            # 4.2.1: upscale to my screen in quick setup, and Professional mode with the quick setup as two cards
+            # (the Picture section in the Quality tab, the rest in the Frame Gen tab).
+            @{ name = '134-upscale-row'; args = @('--page', 'home', '--lang', 'en', '--scroll-to', 'pushfps-upscale-row') },
+            @{ name = '135-pro-quality-picture'; args = @('--page', 'pro', '--tab', 'quality', '--lang', 'en') },
+            @{ name = '136-pro-frame-gen-rest'; args = @('--page', 'pro', '--tab', 'fg', '--lang', 'en') }
           )
           if ($env:ONLY) { $list = @($list | Where-Object { $_.name -match $env:ONLY }); Write-Host "Only: $($list.name -join ', ')" }
           foreach ($s in $list) {

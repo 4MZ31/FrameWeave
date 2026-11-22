@@ -91,6 +91,15 @@ between them (the recorder starts a new encoder between parts).
   there on the home page.
 - Korean, the fifteenth interface language.
 
+## Done in 4.2.1
+
+- Upscale to my screen: one switch in quick setup that enlarges a capture smaller than the screen to the
+  screen's resolution, with an upscaler the card can run. Check my setup offers it.
+- The before/after line moves in full screen, and its sides can be swapped.
+- The colour strength of AI picture enhancement no longer breaks colours above 100%.
+- Professional mode: the panel over the full-screen picture can be made wider, and the picture's settings
+  stand together in the Quality tab.
+
 ## Next: can be built now, ships after it is measured
 
 These need card test results and performance reports from real cards before they are switched on by default.
