@@ -325,8 +325,11 @@ jobs:
               if ($sender -and -not $sender.HasExited) { Stop-Process -Id $sender.Id -Force }
               continue
             }
-            [W]::SetForegroundWindow($hwnd) | Out-Null; Start-Sleep -Milliseconds 800
             $r = New-Object W+RECT; [W]::GetWindowRect($hwnd, [ref]$r) | Out-Null
+            # The pointer rests in the window's bottom left corner, where nothing reacts to it: wherever the
+            # runner left it, a tooltip or a hover edge would be in the picture.
+            try { [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point(($r.L + 3), ($r.B - 4)) } catch { Write-Host "pointer: $_" }
+            [W]::SetForegroundWindow($hwnd) | Out-Null; Start-Sleep -Milliseconds 800
             $bw = $r.R - $r.L; $bh = $r.B - $r.T
             $bmp = New-Object System.Drawing.Bitmap $bw, $bh
             $g = [System.Drawing.Graphics]::FromImage($bmp)

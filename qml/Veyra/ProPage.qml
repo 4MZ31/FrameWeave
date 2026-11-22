@@ -1535,6 +1535,8 @@ VPage {
                             visible: Theme.modern
                             Layout.fillWidth: true
                             implicitHeight: pictureCard.implicitHeight
+                            property real motionDy: 0
+                            transform: Translate { y: pictureFirst.motionDy }
                         }
 
                         // The design builds the inspector from accordion cards, not
@@ -1673,6 +1675,10 @@ VPage {
                             visible: !Theme.modern
                             Layout.fillWidth: true
                             implicitHeight: pictureCard.implicitHeight
+                            // (The tab's cards come in one after another, VRise.Stagger: the place takes
+                            // the card's part in that, as the card did when it stood here itself.)
+                            property real motionDy: 0
+                            transform: Translate { y: pictureHere.motionDy }
                         }
                         PushQuickSetup {
                             id: pictureCard
