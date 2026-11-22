@@ -123,7 +123,9 @@ VPage {
             ScrollBar.vertical: VScrollBar {}
             ColumnLayout {
                 id: column
-                width: scroll.width
+                // (The new design: room for the scroll bar, so it never lies over a control's edge. Constant,
+                // not "when the list scrolls": a width that follows the height is a layout loop.)
+                width: scroll.width - (Theme.modern ? 8 : 0)
                 spacing: 10
 
                 Text {

@@ -44,21 +44,26 @@ Item {
     Layout.preferredHeight: implicitHeight
     Layout.fillWidth: true
     // PushFPS redesign: the row's edge lights up in the accent while the pointer is over it (the new
-    // design only; legacy rows are what they were).
-    Rectangle {
+    // design only; legacy rows are what they were). The light reaches 7 pixels into the card's own
+    // padding on each side; the item that holds it is exactly the row's size, so the row's children
+    // still end where the row ends (tst_menu_layout: nothing a row holds is wider than the row).
+    Item {
         visible: Theme.modern
         z: -1
         anchors.fill: parent
-        anchors.leftMargin: -7
-        anchors.rightMargin: -7
-        anchors.topMargin: 1
-        anchors.bottomMargin: 1
-        radius: Theme.rCtl
-        color: rowHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, Theme.light ? 0.06 : 0.05) : "transparent"
-        border.width: 1
-        border.color: rowHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.6) : "transparent"
-        Behavior on color { ColorAnimation { duration: Theme.d(160) } }
-        Behavior on border.color { ColorAnimation { duration: Theme.d(160) } }
+        Rectangle {
+            anchors.fill: parent
+            anchors.leftMargin: -7
+            anchors.rightMargin: -7
+            anchors.topMargin: 1
+            anchors.bottomMargin: 1
+            radius: Theme.rCtl
+            color: rowHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, Theme.light ? 0.06 : 0.05) : "transparent"
+            border.width: 1
+            border.color: rowHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.6) : "transparent"
+            Behavior on color { ColorAnimation { duration: Theme.d(160) } }
+            Behavior on border.color { ColorAnimation { duration: Theme.d(160) } }
+        }
     }
     HoverHandler { id: rowHover; enabled: Theme.modern }
     GridLayout {
