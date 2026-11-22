@@ -100,6 +100,18 @@ between them (the recorder starts a new encoder between parts).
 - Professional mode: the panel over the full-screen picture can be made wider, and the picture's settings
   stand together in the Quality tab.
 
+## Done in 4.3
+
+- A new design: navigation by name, a title bar and a status strip around the same pages; a home page with
+  the sources, the picture and quick setup side by side; an index over quick setup that brings any part of
+  it to the top; an *All* tab in Professional mode; a start-up animation of its own; edges that light up in
+  the accent colour under the pointer.
+- Legacy: the interface of 4.2, one click away behind the palette, with the same features and settings.
+- The whole of quick setup on the home page and in Streaming mode in the new design (smooth frame pacing,
+  low latency, connecting at start-up, full screen on connecting).
+- AI picture enhancement can be switched on in Professional mode with no layer yet, upscale to my screen is
+  in Professional mode too, and the update buttons in Settings stand side by side.
+
 ## Next: can be built now, ships after it is measured
 
 These need card test results and performance reports from real cards before they are switched on by default.
