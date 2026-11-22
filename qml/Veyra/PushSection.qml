@@ -104,6 +104,7 @@ ColumnLayout {
     }
     Item {
         id: fold
+        objectName: "pushfps-section-fold-" + section.sectionId
         Layout.fillWidth: true
         // Only the fold itself is animated: rows that come and go, or wrap differently while the window is
         // resized, take their room at once.

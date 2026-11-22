@@ -202,6 +202,25 @@ Item {
             quick.applyTarget("off")
             verify(quick.sectionSummary("fg").length > 0 && quick.sectionSummary("fg") !== "120 FPS")
         }
+        // A folded section takes no room, however the fold got there: animated, or in one step (reduced
+        // motion, or a frame that took longer than the animation). A layout keeps the size an item has when
+        // its implicit height is 0 and nothing else says how high it should be, so a fold that reached 0 in
+        // one step stayed as high as it was: the section read as folded and its rows were still drawn.
+        function test_a_folded_section_takes_no_room() {
+            const fold = control("pushfps-section-fold-picture")
+            tryVerify(function() { return fold.height > 100 }, 3000, "open: the rows have their room (" + fold.height + ")")
+            const was = Theme.reduced
+            Theme.reduced = true
+            quick.setSectionOpen("picture", false)
+            tryVerify(function() { return fold.height < 0.5 }, 3000, "folded in one step: no room (" + fold.height + ")")
+            quick.setSectionOpen("picture", true)
+            tryVerify(function() { return fold.height > 100 }, 3000, "opened again in one step (" + fold.height + ")")
+            Theme.reduced = was
+            quick.setSectionOpen("picture", false)
+            tryVerify(function() { return fold.height < 0.5 }, 3000, "folded with its animation: no room (" + fold.height + ")")
+            quick.setSectionOpen("picture", true)
+            tryVerify(function() { return fold.height > 100 }, 3000, "opened again (" + fold.height + ")")
+        }
         // Each page shows a setting once: what the page beside the quick setup has itself is left to that page.
         function test_each_page_shows_a_setting_once() {
             const proOwned = ["pushfps-adaptive-row", "pushfps-pacing-row", "pushfps-hudstill-row", "pushfps-hudlock-row"]
