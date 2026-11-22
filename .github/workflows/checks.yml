@@ -7,6 +7,7 @@
 #     and is still run by a workflow.
 #  5. Every workflow file is valid YAML.
 #  6. The interface tests' bridge object has no doubled name (scripts/checks/qml_fixture.py).
+#  7. No settings row holds two controls of its own, which would be drawn on top of each other (scripts/checks/qml_rows.py).
 name: checks
 
 on:
@@ -71,6 +72,11 @@ jobs:
       # load, no test runs, and the Windows build only says so forty minutes in.
       - name: The interface tests' bridge loads
         run: python3 -B scripts/checks/qml_fixture.py
+
+      # A settings row lays out one control; two written straight into it are drawn on top of each
+      # other (the update row's buttons, a user's screenshot of 22 November 2026).
+      - name: No settings row has two controls on top of each other
+        run: python3 -B scripts/checks/qml_rows.py
 
       - name: PowerShell scripts parse
         shell: pwsh

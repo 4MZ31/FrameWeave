@@ -2142,6 +2142,9 @@ VPage {
                                   ? (veyra.updates.canInstall ? qsTr("发现新版本 %1，已签名，可以一键安装").arg(veyra.updates.latestVersion)
                                                               : qsTr("发现新版本 %1").arg(veyra.updates.latestVersion))
                                   : qsTr("启动时自动检查，有更新时提示")
+                            // (PushFPS 4.2.2) A row lays out one control: the three buttons stood on top of each other ("View update" over "Install update").
+                            RowLayout {
+                            spacing: 8
                             VButton {
                                 text: veyra.updates.checking ? qsTr("检查中…") : qsTr("检查")
                                 enabled: !veyra.updates.checking
@@ -2159,6 +2162,7 @@ VPage {
                                 visible: veyra.updates.latestVersion.length > 0
                                 text: qsTr("查看更新")
                                 onClicked: veyra.updates.openRelease()
+                            }
                             }
                         }
                         VRow {
