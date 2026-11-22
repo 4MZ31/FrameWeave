@@ -43,6 +43,24 @@ Item {
         + (hintUnder ? belowHint.implicitHeight + 2 : 0)
     Layout.preferredHeight: implicitHeight
     Layout.fillWidth: true
+    // PushFPS redesign: the row's edge lights up in the accent while the pointer is over it (the new
+    // design only; legacy rows are what they were).
+    Rectangle {
+        visible: Theme.modern
+        z: -1
+        anchors.fill: parent
+        anchors.leftMargin: -7
+        anchors.rightMargin: -7
+        anchors.topMargin: 1
+        anchors.bottomMargin: 1
+        radius: Theme.rCtl
+        color: rowHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, Theme.light ? 0.06 : 0.05) : "transparent"
+        border.width: 1
+        border.color: rowHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.6) : "transparent"
+        Behavior on color { ColorAnimation { duration: Theme.d(160) } }
+        Behavior on border.color { ColorAnimation { duration: Theme.d(160) } }
+    }
+    HoverHandler { id: rowHover; enabled: Theme.modern }
     GridLayout {
         id: mainRow
         anchors.left: parent.left
