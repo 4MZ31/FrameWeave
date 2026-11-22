@@ -96,7 +96,8 @@ Rectangle {
     radius: 12
     color: Theme.card2
     border.width: 1
-    border.color: open ? Theme.stroke2 : Theme.stroke
+    // (The new design: the card's edge lights up in the accent while the pointer is over its header.)
+    border.color: Theme.modern && headHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.7) : open ? Theme.stroke2 : Theme.stroke
     Behavior on border.color { ColorAnimation { duration: Theme.d(250) } }
     Behavior on implicitHeight {
         enabled: !acc.instantExpansion
@@ -195,7 +196,7 @@ Rectangle {
                 }
             }
 
-            HoverHandler { cursorShape: Qt.PointingHandCursor }
+            HoverHandler { id: headHover; cursorShape: Qt.PointingHandCursor }
             TapHandler { onTapped: point => {
                 for (const tools of [leadingTools, headerTools]) {
                     const p = tools.mapFromItem(parent, point.position.x, point.position.y)

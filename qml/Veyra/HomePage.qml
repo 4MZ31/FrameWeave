@@ -59,7 +59,8 @@ VPage {
                 if (row) { target = row; break }
             }
             const y = target.mapToItem(rightFlick.contentItem, 0, 0).y - (target === section ? 0 : 6)
-            rightFlick.contentY = Math.max(0, Math.min(y, rightFlick.contentHeight - rightFlick.height))
+            // (What stands within a few pixels of the list's start is the start.)
+            rightFlick.contentY = y < 24 ? 0 : Math.max(0, Math.min(y, rightFlick.contentHeight - rightFlick.height))
         }
     }
     // Picture and sound stands open under the picture the first time the three panes are shown.

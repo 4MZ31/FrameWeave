@@ -19,7 +19,9 @@ Rectangle {
     radius: 9
     color: hover.hovered ? Theme.ink(0.09) : Theme.ink(0.05)
     border.width: 1
-    border.color: Theme.stroke
+    // (The new design: the edge lights up in the accent under the pointer. Legacy: as it was.)
+    border.color: Theme.modern && hover.hovered && enabled ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.75) : Theme.stroke
+    Behavior on border.color { enabled: Theme.modern; ColorAnimation { duration: Theme.d(160) } }
     HoverHandler { id: hover; cursorShape: Qt.PointingHandCursor }
     TapHandler { gesturePolicy: TapHandler.WithinBounds; onTapped: menu.openAt(sel, "down") }
 

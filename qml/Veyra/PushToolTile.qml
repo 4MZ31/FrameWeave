@@ -39,7 +39,10 @@ Item {
         radius: 12
         color: hover.hovered && tile.enabled ? Theme.card2 : Theme.card
         border.width: tile.activeFocus ? 2 : 1
-        border.color: tile.activeFocus ? Theme.accent : hover.hovered && tile.enabled ? Theme.stroke2 : Theme.stroke
+        // (The new design: the edge lights up in the accent under the pointer. Legacy: as it was.)
+        border.color: tile.activeFocus ? Theme.accent
+                    : hover.hovered && tile.enabled ? (Theme.modern ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.75) : Theme.stroke2) : Theme.stroke
+        Behavior on border.color { enabled: Theme.modern; ColorAnimation { duration: Theme.d(160) } }
         opacity: tile.enabled ? 1 : 0.55
         scale: tap.pressed ? 0.98 : 1.0
         Behavior on color { ColorAnimation { duration: Theme.d(Theme.durFast) } }
