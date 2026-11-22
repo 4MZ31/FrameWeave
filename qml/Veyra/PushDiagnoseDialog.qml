@@ -16,6 +16,7 @@ import QtQuick
 import QtQuick.Layouts
 import "EffectSupport.js" as Support
 import "PushDiagnose.js" as Diagnose
+import "PushUpscale.js" as Upscale
 
 DialogLayer {
     id: diag
@@ -72,6 +73,10 @@ DialogLayer {
             // -1 = not known: a size nobody reported is never taken for "up to 1080p".
             enhanceSize: layer !== null && layer.sizePolicy !== undefined ? Number(layer.sizePolicy) : -1,
             pictureHeight: Number(veyra.sourceHeight || 0),
+            // 4.2.1: upscaling (PushUpscale.js). A screen size nobody reported is 0 and never "larger".
+            screenHeight: diag.screenHigh,
+            upscalePossible: Support.available(veyra, "sr") && Upscale.offered(veyra.srBackendChoices).length > 0,
+            upscaleOn: veyra.srEnabled === true,
             targetFixed: mode === 2,
             targetFps: custom,
             outputCap: mode === 2 ? custom : mode === 1 ? hz : 0,
@@ -127,6 +132,7 @@ DialogLayer {
         case "fg-behind": return qsTr("显卡跟不上：每秒显示 %1 帧，目标是 %2 帧").arg(f.shown).arg(f.wanted)
         case "still-on": return qsTr("「保持 HUD 清晰」开着")
         case "enhance-small": return qsTr("AI 画质增强按 1080p 计算，画面是 %1p").arg(f.height)
+        case "upscale-off": return qsTr("画面是 %1p，屏幕是 %2p").arg(f.height).arg(f.screen)
         case "vfg-quality": return qsTr("NVIDIA VFG 用的是「%1」质量").arg(diag.tierName(f.tier))
         case "pushflow-room": return qsTr("PushFlow 还有余量：只用了每帧时间的 %1%").arg(f.percent)
         case "fg-off": return qsTr("补帧没有开")
@@ -143,6 +149,7 @@ DialogLayer {
         case "fg-behind": return qsTr("生成的画面来不及做完就被跳过，看起来不流畅。可以降低目标帧率、把 AI 画质增强的大小调低，或把补帧质量调低一档")
         case "still-on": return qsTr("镜头移动时，它会把上一帧的像素盖在生成的画面上：物体边缘会破碎，画面会发糊。要保护 HUD，请用游戏预设或 HUD 保护")
         case "enhance-small": return qsTr("增强的结果被放大后贴回画面，所以会发糊、有颗粒。按画面的完整大小计算更清晰，也更吃显卡；帧率掉了就换回来")
+        case "upscale-off": return qsTr("全屏时画面只是被拉大到屏幕大小，所以看起来发软。开启放大后由显卡把画面放大到屏幕分辨率，更清晰，也更吃显卡；帧率掉了就关掉")
         case "vfg-quality": return qsTr("「高」在物体边缘、头部和细小物体上更稳，每帧也更吃显卡。帧率掉了就换回来")
         case "pushflow-room": return qsTr("可以试试「%1」档：运动在更大的画面上估算，物体边缘更干净。显卡跟不上时 PushFPS 会自己降回来").arg(diag.flowTierName(f.tier + 1))
         case "fg-off": return qsTr("现在看到的是主机原本的帧率。在快速设置里选一个目标帧率就会开启")
@@ -158,6 +165,7 @@ DialogLayer {
         switch (f.id) {
         case "still-on": return [{ label: qsTr("关闭"), arg: 0 }]
         case "enhance-small": return (f.offer || []).map(id => ({ label: id === 1 ? qsTr("完整大小") : "1440p", arg: id }))
+        case "upscale-off": return [{ label: qsTr("开启放大"), arg: 1 }]
         case "vfg-quality": return [{ label: qsTr("改用「高」"), arg: 2 }]
         case "pushflow-room": return [{ label: qsTr("试试「%1」").arg(diag.flowTierName(f.tier + 1)), arg: f.tier + 1 }]
         case "capture-compressed":
@@ -183,8 +191,29 @@ DialogLayer {
         for (const index of list) ok = veyra.setNrLayerParameter(index, "sizePolicy", Number(id)) && ok
         return ok && list.length > 0
     }
+    // 4.2.1: upscaling switched on as quick setup's row does it (PushUpscale.js); what was set is kept for Undo.
+    property real screenHighOverride: 0   // tests
+    readonly property real screenHigh: diag.screenHighOverride > 0 ? diag.screenHighOverride
+                                       : Math.round(Screen.height * Math.max(1, Screen.devicePixelRatio))
+    function upscaleNow() { return typeof veyra.srAlgorithmOf === "function" ? String(veyra.srAlgorithmOf(veyra.videoSrQuality)) : "" }
+    function setUpscaleOn() {
+        const now = diag.upscaleNow()
+        const id = Upscale.method(veyra.srBackendChoices, now)
+        if (id === "") return null
+        const before = { quality: Number(veyra.videoSrQuality), target: Number(veyra.srTargetIndex) }
+        if (id !== now) veyra.videoSrQuality = veyra.srQualityFor(id, veyra.srTierOf(veyra.videoSrQuality))
+        const size = Upscale.targetIndex(diag.screenHigh, veyra.srTargetIndex)
+        if (size > 0) veyra.srTargetIndex = size
+        veyra.srEnabled = true
+        return before
+    }
     function apply(f, arg) {
         switch (f.id) {
+        case "upscale-off": {
+            const before = diag.setUpscaleOn()
+            if (before !== null) diag.remember(f.id, before)
+            break
+        }
         case "still-on":
             if (veyra.setPreference("pushHudStill", false) !== false) diag.remember(f.id, true)
             break
@@ -209,6 +238,11 @@ DialogLayer {
         if (before === undefined) return
         if (f.id === "still-on") veyra.setPreference("pushHudStill", before === true)
         else if (f.id === "enhance-small") diag.setEnhanceSize(before)
+        else if (f.id === "upscale-off") {
+            veyra.srEnabled = false
+            if (Number(veyra.videoSrQuality) !== before.quality) veyra.videoSrQuality = before.quality
+            if (before.target >= 1 && Number(veyra.srTargetIndex) !== before.target) veyra.srTargetIndex = before.target
+        }
         else if (f.id === "vfg-quality" || f.id === "pushflow-room") veyra.vfgQuality = Number(before)
         diag.forget(f.id)
     }

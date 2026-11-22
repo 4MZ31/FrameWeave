@@ -1576,6 +1576,8 @@ void EnhanceGraph::composeHudLock(ID3D12GraphicsCommandList* list,unsigned gener
 
 bool EnhanceGraph::fsrActive() const { return fsrFgBackend_&&fsrFgBackend_->available(); }
 const char* EnhanceGraph::fsrProviderVersion() const { return fsrFgBackend_?fsrFgBackend_->providerVersion():""; }
+// PushFPS 4.2.1: the pass that makes the final picture when there are two.
+const char* EnhanceGraph::fsrSrProviderVersion() const { return fsrSrBackend_?fsrSrBackend_->providerVersion():firstFsrSrBackend_?firstFsrSrBackend_->providerVersion():""; }
 bool EnhanceGraph::initFsrFg() {
     if(!fsrEnabled()||!fgEnabled_)return true;
     failedBackend_=engine::FailedBackend::Fg;

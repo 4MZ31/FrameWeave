@@ -94,7 +94,22 @@ float3 PushCapDelta(float3 base,float3 delta,uint more,bool hdr){
     delta/=max(weights,1e-6);
     float3 rawDelta=delta;
     if(darken!=1||brighten!=1)delta=min(delta,0)*darken+max(delta,0)*brighten;
-    if(color!=1||luminance!=1){float dy=dot(delta,float3(0.2126,0.7152,0.0722));delta=dy*luminance+(delta-dy)*color;}
+    if(color!=1||luminance!=1){
+        float dy=dot(delta,float3(0.2126,0.7152,0.0722));float3 chroma=delta-dy;float gain=color;
+        // PushFPS 4.2.1: above 100 % the colour change is carried on past what the enhancement made, and
+        // where that change is already large twice of it leaves the picture's own colours (a user: "gets
+        // easily distorted, kinda hard to find a good point"). So the part above 100 % tapers with the size
+        // of the change, measured against the pixel's brightness: small changes are strengthened as asked,
+        // and what is added never passes (color-1)*kPushColorKnee of that brightness. Up to 100 % this is
+        // the statement it always was. The same rule is push_shape_ref::colorDelta (PushEnhanceShape.h),
+        // which the graphics test compares this shader against: change both together.
+        if(color>1){
+            float level=max(dot(base.rgb,float3(0.2126,0.7152,0.0722)),0.02*(unused>0.5?203.0/80.0:1.0));
+            float shift=max(abs(chroma.r),max(abs(chroma.g),abs(chroma.b)))/level;
+            gain=1+(color-1)*0.25/(0.25+shift);
+        }
+        delta=dy*luminance+chroma*gain;
+    }
     bool pushShape=correctionReserved.w>0.5;
     uint pushZones=uint(correctionReserved.x+0.5),pushMore=uint(correctionReserved.y+0.5);
     if(pushShape)delta=PushShapeDelta(base.rgb,delta,pushZones,pushMore,unused>0.5);

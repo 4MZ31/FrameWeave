@@ -1534,3 +1534,14 @@ zh:固定画质编码：细节清楚、画面干净，文件大小随画面内�
 zh:几乎看不出和原画的差别。文件很大（4K 每分钟可达数 GB），建议录到固态硬盘|Trudna do odróżnienia od tego, co było na ekranie. Pliki są duże (klip 4K może zajmować kilka GB na minutę): nagrywaj na dysk SSD
 zh:长时间录制时每隔一段时间接着写入一个新文件；各段之间不丢画面也不丢声音，可以无缝接起来。单个文件更小，出问题时损失更少|Długie nagranie co pewien czas jest kontynuowane w nowym pliku. Między częściami nie ginie ani obraz, ani dźwięk, więc łączą się bez przerw. Każdy plik jest mniejszy, a w razie problemu traci się mniej
 zh:文件快到这个大小时，在关键帧处接着写入新文件；各段之间不丢画面也不丢声音。0 表示关闭，下次录制时生效|Gdy plik zbliża się do tego rozmiaru, nagranie jest kontynuowane w nowym pliku od klatki kluczowej. Między częściami nie ginie ani obraz, ani dźwięk. 0 wyłącza; obowiązuje od następnego nagrania
+zh:交换两侧|Zamień strony
+zh:开启放大|Włącz skalowanie
+zh:放大到屏幕|Skaluj do mojego ekranu
+zh:正在使用 %1|W użyciu: %1
+zh:画面是 %1p，屏幕是 %2p|Obraz ma %1p, a ekran %2p
+zh:画面是 %1p，屏幕是 %2p：开启后全屏更清晰|Obraz ma %1p, a ekran %2p: po włączeniu ostrzejszy na pełnym ekranie
+zh:左边增强后，右边原画|Ulepszony po lewej, oryginał po prawej
+zh:在画面上按住左键拖动分割线：左边增强、右边原画。|Przytrzymaj lewy przycisk na obrazie i przeciągnij linię podziału: ulepszony po lewej, oryginał po prawej.
+zh:全屏时画面只是被拉大到屏幕大小，所以看起来发软。开启放大后由显卡把画面放大到屏幕分辨率，更清晰，也更吃显卡；帧率掉了就关掉|Na pełnym ekranie obraz jest tylko rozciągany do rozmiaru ekranu, dlatego wygląda miękko. Po włączeniu skalowania karta graficzna powiększa go do rozdzielczości ekranu: jest ostrzejszy, ale karta ma więcej pracy. Wyłącz, jeśli liczba klatek spadnie
+zh:采集的画面比屏幕小时，全屏只是把它拉大，看起来发软。开启后由显卡把画面放大到屏幕分辨率，边缘和文字更清晰，也更吃显卡。放大方式可以在专业模式的「画质」里更换|Gdy przechwycony obraz jest mniejszy niż ekran, pełny ekran tylko go rozciąga i wygląda miękko. Po włączeniu karta graficzna skaluje go do rozdzielczości ekranu: krawędzie i tekst są ostrzejsze, ale karta ma więcej pracy. Metodę skalowania zmienisz w trybie profesjonalnym, w sekcji Jakość
+zh:把画面分成两半：一边是没有 AI 画面增强的原画，另一边是增强后的画面，方便边调边看。在专业模式的画面上或全屏时，按住鼠标左键可以拖动分割线；两侧可以交换|Dzieli obraz na dwie części: po jednej stronie oryginał bez ulepszania obrazu AI, po drugiej obraz ulepszony, żeby regulować, patrząc. Na obrazie w trybie profesjonalnym lub na pełnym ekranie przytrzymaj lewy przycisk myszy, aby przeciągnąć linię podziału; strony można zamienić

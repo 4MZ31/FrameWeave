@@ -815,6 +815,30 @@ Window {
             root.toggleFullscreen()
         }
     }
+    // PushFPS 4.2.1: the before/after line follows the mouse wherever the picture itself takes clicks (full
+    // screen, the minimal page, the node page). Until now only Professional mode's own picture moved it, so in
+    // full screen, where a comparison is looked at, the line stood where it was (a user's request). A press on
+    // anything floating over the picture belongs to that; this handler only watches (it never takes a grab),
+    // and the tap handlers above already leave the picture alone while the split is on.
+    function moveCompareLine(sceneX) {
+        if (videoHost.width > 0) veyra.setCompareSplitAt(Math.max(0, Math.min(1, (sceneX - videoHost.x) / videoHost.width)))
+    }
+    readonly property bool compareLineMoves: veyra.compareMode === 2 && veyra.hasSource === true && !root.fullLocked
+                                             && !veyra.gameInputActive && dialogs.dialog === ""
+                                             && veyra.protectionDrawShape.length === 0 && !veyra.exclusionOverlayVisible
+                                             && (root.fullscreen || root.page === "min" || root.page === "node")
+    PointHandler {
+        id: compareLineDrag
+        objectName: "pushfps-compare-drag"
+        acceptedButtons: Qt.LeftButton
+        enabled: root.compareLineMoves
+        property bool onPicture: false
+        onActiveChanged: {
+            onPicture = active && !root.overVideoCover(point.scenePressPosition) && root.pictureContains(point.scenePressPosition)
+            if (onPicture) root.moveCompareLine(point.scenePosition.x)
+        }
+        onPointChanged: if (active && onPicture) root.moveCompareLine(point.scenePosition.x)
+    }
     // A click on the picture of a PC stream takes the keyboard and mouse back after a release
     // (Ctrl+Alt+Shift+Z). While captured the clicks belong to the host and never get here.
     TapHandler {

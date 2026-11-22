@@ -3,6 +3,7 @@
 #include "veyra/engine/PushStreamOverlay.h"
 #include "veyra/engine/PushAudioMix.h"
 #include "veyra/engine/PushAmbient.h"
+#include "veyra/engine/PushCompareLine.h"
 #include "veyra/engine/PushPresentScaling.h"
 #include "veyra/Brand.h"
 
@@ -243,6 +244,7 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         {"subtitleMargin", {0, 240}}, {"subtitleLines", {0, 8}},
         // 列表模式 parameter panel width (ProPage splitter); QML clamps it to the window.
         {"listInspectorWidth", {376, 4000}},
+        {"pushOverlayPanelWidth", {376, 4000}},   // PushFPS 4.2.1: the full-screen quick panel's width
         // PushFPS quick setup: the console game's own frame rate (30, 40 or 60).
         {"pushGameFps", {30, 60}},
         // PushFPS sound profile (veyra::sink::SoundPreset): 0 off .. 6 custom EQ.
@@ -341,6 +343,8 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    "pushAmbientFill",
                                    // PushFPS: the picture resized to the window with the fine path (engine/PushPresentScaling.h).
                                    "pushSharpScaling",
+                                   // PushFPS 4.2.1: the split comparison with its sides swapped (engine/PushCompareLine.h).
+                                   "pushCompareSwap",
                                    // PushFPS local control (ui/PushControl.h): off unless switched on.
                                    "pushControl",
                                    // PushFPS: a vertical copy (1080 x 1920) recorded beside every recording.
@@ -703,6 +707,8 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
         engine::setPushAmbientFill(impl_->prefBool("pushAmbientFill", false));   // read by the presenter at every frame
     else if (key == QLatin1String("pushSharpScaling"))
         engine::setPushSharpScaling(impl_->prefBool("pushSharpScaling", true));   // on unless switched off; read at every frame
+    else if (key == QLatin1String("pushCompareSwap"))
+        engine::setPushCompareSwapped(impl_->prefBool("pushCompareSwap", false));   // off unless switched on; read at every frame
     else if (key == QLatin1String("pushHudStill")) {
         // The still rule (pipeline/PushHudStill.h): off unless switched on (since 4.0.1), and off for a run
         // started with --safe-mode. Read when the graph is described; while frame generation plays, the engine is asked

@@ -1313,6 +1313,137 @@
      "contains": "if (system.language() == QLocale::Korean) return QStringLiteral(\"ko\");"
     }
    ]
+  },
+  {
+   "id": "F50",
+   "what": "Upscale to my screen: quick setup switches the existing upscaler on with one this card can run (the one already chosen, else FSR, else NVIDIA Image Scaling) at the screen's size, never switches anything by itself, and Check my setup offers it for a picture clearly smaller than the screen with an undo that puts everything back",
+   "guards": [
+    {
+     "file": "tests/js/push_upscale_test.js",
+     "ci": "tests/js/*_test.js",
+     "contains": "t.same(U.method(amd, 'rtx'), '5', 'an AMD card gets FSR in place of an NVIDIA upscaler')"
+    },
+    {
+     "file": "tests/js/push_upscale_test.js",
+     "ci": "tests/js/*_test.js",
+     "contains": "'a larger target chosen in Professional mode is left alone ('"
+    },
+    {
+     "file": "tests/js/push_diagnose_test.js",
+     "ci": "tests/js/*_test.js",
+     "contains": "t.check(same, 'Check my setup and the quick setup row agree on every size')"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "function test_upscale_to_my_screen"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "verify(!veyra.srEnabled, \"nothing to run: nothing switched on\")"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_diagnose.qml",
+     "ci": "tst_push_diagnose",
+     "contains": "function test_a_picture_smaller_than_the_screen_is_offered_upscaling"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_diagnose.qml",
+     "ci": "tst_push_diagnose",
+     "contains": "verify(!veyra.srEnabled, \"nothing changes until the button is pressed\")"
+    }
+   ]
+  },
+  {
+   "id": "F51",
+   "what": "The split comparison's sides can be swapped: not swapped, the presenter's bounds are exactly what they always were; swapped, the reference is the other part from the same line, never outside the picture's part",
+   "guards": [
+    {
+     "file": "tests/unit/PushCompareLineTests.cpp",
+     "ci": "veyra_push_compare_line_tests",
+     "contains": "check(same, \"sides: not swapped, the reference is the left part with the bounds it always had\");"
+    },
+    {
+     "file": "tests/unit/PushCompareLineTests.cpp",
+     "ci": "veyra_push_compare_line_tests",
+     "contains": "check(inside, \"sides: either way the reference lies inside the picture's part and is never inside out\");"
+    },
+    {
+     "file": "tests/unit/PushCompareLineTests.cpp",
+     "ci": "veyra_push_compare_line_tests",
+     "contains": "check(!pushCompareSwapped(), \"sides: not swapped unless asked\");"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "function test_comparison_sides_are_swapped_with_a_button"
+    },
+    {
+     "file": "src/engine/VideoPresenter.cpp",
+     "contains": "const PushCompareSides sides=pushCompareSides(rect.left,rect.right,splitX,compareSwapped);"
+    }
+   ]
+  },
+  {
+   "id": "F52",
+   "what": "The colour strength of AI picture enhancement: up to 100 % the statement it always was; above 100 % the part over it tapers with the size of the colour change, and nothing is added past a quarter of a pixel's brightness at 200 %. The shader and its reference are compared pixel by pixel",
+   "guards": [
+    {
+     "file": "tests/integration/PushGpuTests.cpp",
+     "ci": "veyra_push_gpu_tests",
+     "contains": "{\"colour halved\", 0.5f, 1.0f, neutral, 1.0f, false},"
+    },
+    {
+     "file": "tests/integration/PushGpuTests.cpp",
+     "ci": "veyra_push_gpu_tests",
+     "contains": "{\"colour doubled, HDR\", 2.0f, 1.0f, neutral, 1.0f, true},"
+    },
+    {
+     "file": "tests/integration/PushGpuTests.cpp",
+     "ci": "veyra_push_gpu_tests",
+     "contains": "enhance colour: at 200 % nothing is added past a quarter of a pixel's brightness"
+    },
+    {
+     "file": "include/veyra/pipeline/PushEnhanceShape.h",
+     "contains": "if (!(color > 1.0f)) return color;"
+    },
+    {
+     "file": "shaders/NrResidualComposite.hlsl",
+     "contains": "gain=1+(color-1)*0.25/(0.25+shift);"
+    }
+   ]
+  },
+  {
+   "id": "F53",
+   "what": "Professional mode's panel: over the full-screen picture it is as wide as its edge is dragged (376 until then, never past what leaves the picture room, remembered, a double click puts it back), and the quick setup stands there as two cards that share nothing: the Picture section in the Quality tab, the rest in the Frame Gen tab",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "function test_overlay_panel_is_as_wide_as_its_edge_is_dragged"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "compare(page.overlayWidth, 376, \"the width it always had until it is dragged\")"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "function test_the_picture_settings_stand_in_the_quality_tab"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "function test_scope_shows_one_part_of_the_quick_setup"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "compare(quick.scope, \"\", \"everything unless asked\")"
+    }
+   ]
   }
  ]
 }

@@ -517,13 +517,25 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
         list->SetGraphicsRootDescriptorTable(1,{pass_.heap->GetGPUDescriptorHandleForHeapStart().ptr+size_t(slot+(generated?2:0))*pass_.increment});
         probeCurve_=hdrCurve;probeIdentity_=identity;probeIssued=true;
     }
+    const bool compareSwapped=pushCompareSwapped();   // read once a frame: both uses below agree
     if(comparison&&!generated&&referencesValid){
         auto* reference=baseReference?graph.baseReference(slot):graph.sourceReference(slot);
         D3D12_RESOURCE_BARRIER b{};b.Type=D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;b.Transition.pResource=reference;b.Transition.Subresource=D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;b.Transition.StateBefore=D3D12_RESOURCE_STATE_COMMON;b.Transition.StateAfter=D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;list->ResourceBarrier(1,&b);
         dims[2]=samplingFlags+curveFlag+(graph.hdr10Output()?4:graph.hdrOutput()?0:1)+(graph.videoHdrActive()?8:0);list->SetGraphicsRoot32BitConstants(0,16,dims,0);list->SetGraphicsRootDescriptorTable(1,{pass_.heap->GetGPUDescriptorHandleForHeapStart().ptr+size_t(pipeline::kOutputPoolSlots+slot+(baseReference?2:0))*pass_.increment});
         // (PushFPS crop: rect is the kept part by now, so the split never uncovers what was cut; without
         // a crop rect.left is 0 and rect.right the buffer's width, and the two bounds change nothing.)
-        if(comparison==2)rect.right=std::max(rect.left,std::min(rect.right,LONG(std::clamp((rc.right*.5f+(std::clamp(split,0.0f,1.0f)-view.centerX)*renderW)*sink_.bufferWidth()/rc.right,0.0f,float(sink_.bufferWidth())))));list->RSSetScissorRects(1,&rect);list->DrawInstanced(3,1,0,0);
+        // (PushFPS 4.2.1: the reference is the left part, as always, or the right one when the sides are
+        // swapped; pushCompareSides gives the old bounds exactly when they are not.)
+        LONG compareLineX=rect.right;
+        if(comparison==2){
+            const LONG splitX=LONG(std::clamp((rc.right*.5f+(std::clamp(split,0.0f,1.0f)-view.centerX)*renderW)*sink_.bufferWidth()/rc.right,0.0f,float(sink_.bufferWidth())));
+            const PushCompareSides sides=pushCompareSides(rect.left,rect.right,splitX,compareSwapped);
+            rect.left=LONG(sides.referenceLeft);rect.right=LONG(sides.referenceRight);compareLineX=LONG(sides.line);
+            // A left edge is on an even pixel, inwards, as the crop's edges are (the present shader's footprint
+            // comes from 2 x 2 pixel blocks); the column this leaves out lies under the line.
+            if(compareSwapped)rect.left=std::min(rect.right,LONG((rect.left+1)&~LONG(1)));
+        }
+        list->RSSetScissorRects(1,&rect);list->DrawInstanced(3,1,0,0);
         std::swap(b.Transition.StateBefore,b.Transition.StateAfter);list->ResourceBarrier(1,&b);
         // PushFPS 4.0: a line where the two sides meet. Until now nothing marked it, and on a picture
         // the enhancement changes little the split could hardly be found. A white core between two
@@ -533,7 +545,7 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
         // state, nothing sampled. White is the
         // output's own reference white (203 nits on an HDR output), never its peak.
         if(comparison==2&&rc.right>0&&rc.bottom>0){
-            const LONG x=rect.right;
+            const LONG x=compareLineX;
             const LONG bufferH=LONG(sink_.bufferHeight());
             const auto shown=view.keptRect(float(rc.right),float(rc.bottom),renderW,renderH);
             const float scaleX=float(sink_.bufferWidth())/float(rc.right),scaleY=float(bufferH)/float(rc.bottom);
@@ -554,7 +566,8 @@ bool VideoPresenter::present(gfx::D3D12DeviceContext& ctx,gfx::CommandSlotRing& 
         if(veyra::log::verboseFrameLogs())veyra::log::info("comparison",std::format("real-frame source={} epoch={} revision={} reference={} mode={} split={} (same leased frame)",identity.sourceFrameId,identity.epoch,identity.settingsRevision,baseReference?"base":"input",comparison,split));
     }
     // PushFPS crop: whatever is drawn after the picture (subtitles, provider work) gets the whole buffer again.
-    if(cropped){const D3D12_RECT whole{0,0,LONG(sink_.bufferWidth()),LONG(sink_.bufferHeight())};list->RSSetScissorRects(1,&whole);}
+    // (4.2.1: also after a comparison with the sides swapped, whose scissor ends at the picture's right edge and starts at the line.)
+    if(cropped||(comparison==2&&compareSwapped)){const D3D12_RECT whole{0,0,LONG(sink_.bufferWidth()),LONG(sink_.bufferHeight())};list->RSSetScissorRects(1,&whole);}
     for(auto& b:barriers)std::swap(b.Transition.StateBefore,b.Transition.StateAfter);
     if(copyBeforePresent_)barriers[1].Transition.StateAfter=D3D12_RESOURCE_STATE_COPY_SOURCE;
     list->ResourceBarrier(2,barriers);

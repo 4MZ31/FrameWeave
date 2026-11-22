@@ -7,6 +7,7 @@ import "PushCaptureCards.js" as Cards
 import "PushGamePresets.js" as Presets
 import "PushCompareClip.js" as CompareClip
 import "PushCrop.js" as Crop
+import "PushUpscale.js" as Upscale
 
 // PushFPS quick setup: the choices most console players make, above the detailed
 // controls. Every control here only sets existing settings (frame generation on/off,
@@ -106,6 +107,13 @@ VGroup {
     // it already has (Professional mode's own list under it, streaming mode's buttons) is left to that page.
     readonly property bool proPage: quick.compactPro && !quick.compact
     readonly property bool streamingPage: quick.compactPro && quick.compact
+    // PushFPS 4.2.1: which part of the quick setup this card is. "" is all of it (the home page, streaming
+    // mode). Professional mode has two cards: "picture" (the Picture section alone, in its Quality tab, with
+    // that tab's own enhancement settings; a user asked for them to stand together) and "rest" (everything
+    // else, in its Frame Gen tab). A hidden section is hidden as a whole; nothing in a row changes.
+    property string scope: ""
+    readonly property bool scopeMain: quick.scope !== "picture"
+    readonly property bool scopePicture: quick.scope !== "rest"
 
     // --- sections (PushSection.qml) ----------------------------------------------
     // Which sections are folded is remembered (preference pushQuickFolded: their ids, with commas); every
@@ -377,6 +385,53 @@ VGroup {
     // so a split this panel turned on never stays: it ends when the look controls go away, when this
     // panel is hidden, and after two minutes.
     readonly property bool lookSplit: veyra.compareMode === 2
+    readonly property bool compareSwapped: veyra.preferences.pushCompareSwap === true
+
+    // --- upscale to my screen (4.2.1; PushUpscale.js has the rules) ------------------------------------
+    // A capture smaller than the screen is only stretched to it by the window: sharp in a small window, soft
+    // in full screen (a user's report). The upscalers were in Professional mode and nowhere else. This row
+    // switches the existing super resolution stage on with an upscaler the card can run.
+    property real screenHighOverride: 0   // tests
+    readonly property real screenHigh: quick.screenHighOverride > 0 ? quick.screenHighOverride
+                                       : Math.round(Screen.height * Math.max(1, Screen.devicePixelRatio))
+    readonly property var upscaleChoices: Upscale.offered(veyra.srBackendChoices)
+    readonly property bool upscalePossible: Support.available(veyra, "sr") && quick.upscaleChoices.length > 0
+    readonly property bool upscaleOn: veyra.srEnabled === true
+    readonly property string upscaleNow: typeof veyra.srAlgorithmOf === "function" ? String(veyra.srAlgorithmOf(veyra.videoSrQuality)) : ""
+    readonly property bool upscaleGains: Upscale.gains(Number(veyra.sourceHeight || 0), quick.screenHigh)
+    // The FSR version really running (AMD's own name for it, e.g. 4.1.1), read while FSR upscales.
+    property string fsrUpscalerVersion: ""
+    readonly property string upscaleHint: {
+        if (!quick.upscalePossible && !quick.upscaleOn) return Support.reason(veyra, "sr")
+        if (quick.upscaleOn) {
+            if (quick.upscaleNow === "5" && quick.fsrUpscalerVersion.length > 0) return qsTr("正在使用 %1").arg("FSR " + quick.fsrUpscalerVersion)
+            const name = Upscale.label(veyra.srBackendChoices, quick.upscaleNow)
+            return name.length > 0 ? qsTr("正在使用 %1").arg(name) : qsTr("放大到屏幕分辨率")
+        }
+        if (quick.upscaleGains) return qsTr("画面是 %1p，屏幕是 %2p：开启后全屏更清晰").arg(Number(veyra.sourceHeight || 0)).arg(quick.screenHigh)
+        return qsTr("放大到屏幕分辨率")
+    }
+    function setUpscale(on) {
+        if (on) {
+            const id = Upscale.method(veyra.srBackendChoices, quick.upscaleNow)
+            if (id === "") return
+            if (id !== quick.upscaleNow) veyra.videoSrQuality = veyra.srQualityFor(id, veyra.srTierOf(veyra.videoSrQuality))
+            const size = Upscale.targetIndex(quick.screenHigh, veyra.srTargetIndex)
+            if (size > 0) veyra.srTargetIndex = size
+        }
+        veyra.srEnabled = on
+    }
+    Timer {
+        objectName: "pushfps-upscale-timer"
+        interval: 2000; repeat: true
+        running: quick.visible && quick.scopePicture && !quick.proPage && veyra.hasSource === true && quick.upscaleOn && quick.upscaleNow === "5"
+        triggeredOnStart: true
+        onTriggered: {
+            const st = veyra.pushLiveStats ? veyra.pushLiveStats() : null
+            quick.fsrUpscalerVersion = st ? String(st.fsrUpscalerVersion || "") : ""
+        }
+        onRunningChanged: if (!running) quick.fsrUpscalerVersion = ""
+    }
     property bool lookCompare: false
     function setLookCompare(on) {
         if (on) {
@@ -639,6 +694,7 @@ VGroup {
 
     // Header: what this card is, and the one-line explanation in the full form.
     ColumnLayout {
+        visible: quick.scopeMain
         Layout.fillWidth: true
         Layout.topMargin: 12
         Layout.bottomMargin: 2
@@ -664,7 +720,7 @@ VGroup {
     // First-run tip, as a quiet info strip rather than a paragraph above the rows.
     Rectangle {
         objectName: "pushfps-setup-tip"
-        visible: quick.showSetupTip && !veyra.hasCaptureSession
+        visible: quick.scopeMain && quick.showSetupTip && !veyra.hasCaptureSession
         Layout.fillWidth: true
         Layout.topMargin: 8
         Layout.bottomMargin: 2
@@ -705,6 +761,7 @@ VGroup {
     GridLayout {
         id: toolsGrid
         objectName: "pushfps-tools-row"
+        visible: quick.scopeMain
         Layout.fillWidth: true
         Layout.topMargin: 8
         Layout.bottomMargin: 6
@@ -810,7 +867,7 @@ VGroup {
     Timer {
         objectName: "pushfps-fg-idle-timer"
         interval: 1000; repeat: true
-        running: veyra.hasSource && veyra.fgEnabled && quick.visible
+        running: veyra.hasSource && veyra.fgEnabled && quick.visible && quick.scopeMain
         triggeredOnStart: true
         onTriggered: quick.readFgHealth()
         onRunningChanged: if (!running) { quick.fgIdle = 0; quick.fgIdleText = "" }
@@ -917,6 +974,7 @@ VGroup {
     PushSection {
         id: secSetup
         sectionId: "setup"
+        visible: quick.scopeMain
         title: qsTr("主机与游戏")
         summary: quick.sectionSummary("setup")
         open: quick.sectionOpen("setup")
@@ -1052,6 +1110,7 @@ VGroup {
     PushSection {
         id: secFg
         sectionId: "fg"
+        visible: quick.scopeMain
         title: qsTr("补帧", "section")
         summary: quick.sectionSummary("fg")
         open: quick.sectionOpen("fg")
@@ -1219,6 +1278,8 @@ VGroup {
     PushSection {
         id: secPicture
         sectionId: "picture"
+        visible: quick.scopePicture
+        first: quick.scope === "picture"
         title: qsTr("画面")
         summary: quick.sectionSummary("picture")
         open: quick.sectionOpen("picture")
@@ -1226,6 +1287,9 @@ VGroup {
         VRow {
             id: enhanceRow
             objectName: "pushfps-enhance-row"
+            // In Professional mode's Quality tab the page's own enhancement card stands right under this
+            // section and has the switch: a setting once per page.
+            visible: !(quick.proPage && quick.scope === "picture")
             label: qsTr("AI 画面增强")
             help: qsTr("用 AI 去掉采集卡压缩造成的色块和噪点，让细节更清楚。和补帧无关，可以单独开关")
             // Not possible: the reason, and when the card could run it but its files were left out at
@@ -1322,15 +1386,28 @@ VGroup {
             objectName: "pushfps-look-compare-row"
             visible: quick.lookShown
             label: qsTr("与原画对比")
-            help: qsTr("把画面分成两半：左边是没有 AI 画面增强的原画，右边是增强后的画面，方便边调边看。在专业模式的画面上可以拖动分割线")
+            help: qsTr("把画面分成两半：一边是没有 AI 画面增强的原画，另一边是增强后的画面，方便边调边看。在专业模式的画面上或全屏时，按住鼠标左键可以拖动分割线；两侧可以交换")
             hint: quick.lookSplit ? qsTr("对比时补帧暂停；关闭对比后自动恢复。两分钟后自动关闭")
-                                  : veyra.hasSource === true ? qsTr("左边原画，右边增强后") : qsTr("先连接画面")
-            VSwitch {
-                objectName: "pushfps-look-compare"
-                enabled: veyra.hasSource === true || quick.lookSplit
-                opacity: enabled ? 1 : 0.4
-                checked: quick.lookSplit
-                onToggled: checked => quick.setLookCompare(checked)
+                                  : veyra.hasSource !== true ? qsTr("先连接画面")
+                                  : quick.compareSwapped ? qsTr("左边增强后，右边原画") : qsTr("左边原画，右边增强后")
+            RowLayout {
+                spacing: 8
+                // PushFPS 4.2.1: which side is which (a user's request). Shown while the split is on, and
+                // while the sides are swapped, so a swap is never left behind unseen.
+                VButton {
+                    objectName: "pushfps-look-compare-swap"
+                    ghost: true
+                    visible: quick.lookSplit || quick.compareSwapped
+                    text: qsTr("交换两侧")
+                    onClicked: veyra.setPreference("pushCompareSwap", !quick.compareSwapped)
+                }
+                VSwitch {
+                    objectName: "pushfps-look-compare"
+                    enabled: veyra.hasSource === true || quick.lookSplit
+                    opacity: enabled ? 1 : 0.4
+                    checked: quick.lookSplit
+                    onToggled: checked => quick.setLookCompare(checked)
+                }
             }
         }
         // Fine-tuning (ten sliders): folded away until asked for.
@@ -1374,6 +1451,22 @@ VGroup {
                     resettable: true; defaultValue: modelData.neutral
                     onMoved: v => { if (quick.fineShown) quick.setFine(modelData.id, v) }
                 }
+            }
+        }
+        // PushFPS 4.2.1: upscale to my screen. Not on Professional mode's page: the upscaler's own card
+        // stands in the same tab there.
+        VRow {
+            objectName: "pushfps-upscale-row"
+            visible: !quick.proPage
+            label: qsTr("放大到屏幕")
+            help: qsTr("采集的画面比屏幕小时，全屏只是把它拉大，看起来发软。开启后由显卡把画面放大到屏幕分辨率，边缘和文字更清晰，也更吃显卡。放大方式可以在专业模式的「画质」里更换")
+            hint: quick.upscaleHint
+            VSwitch {
+                objectName: "pushfps-upscale"
+                enabled: quick.upscalePossible || quick.upscaleOn
+                opacity: enabled ? 1 : 0.4
+                checked: quick.upscaleOn
+                onToggled: checked => quick.setUpscale(checked)
             }
         }
         VRow {
@@ -1420,6 +1513,7 @@ VGroup {
     PushSection {
         id: secHud
         sectionId: "hud"
+        visible: quick.scopeMain
         title: qsTr("HUD")
         summary: quick.sectionSummary("hud")
         open: quick.sectionOpen("hud")
@@ -1469,6 +1563,7 @@ VGroup {
     PushSection {
         id: secLatency
         sectionId: "latency"
+        visible: quick.scopeMain
         title: qsTr("延迟与声音")
         summary: quick.sectionSummary("latency")
         open: quick.sectionOpen("latency")
@@ -1583,6 +1678,7 @@ VGroup {
     PushSection {
         id: secStart
         sectionId: "start"
+        visible: quick.scopeMain
         title: qsTr("连接与启动")
         summary: quick.sectionSummary("start")
         open: quick.sectionOpen("start")

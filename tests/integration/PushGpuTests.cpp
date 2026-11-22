@@ -1473,7 +1473,7 @@ void testEnhanceShape(Gpu& gpu) {
         gpu.list->ResourceBarrier(1, &b);
     };
     // Runs the shader on `d` with the given strength and shape constants; returns the result as floats (rgb per pixel).
-    auto run = [&](const Data& d, float total, const std::array<float, 4>& shape, bool hdr, std::vector<ref::Rgb>& result) {
+    auto run = [&](const Data& d, float total, const std::array<float, 4>& shape, bool hdr, std::vector<ref::Rgb>& result, float color = 1.0f, float luminance = 1.0f) {
         gpu.begin();
         auto u0 = recordFill(gpu, base, bytes(d.base), inState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
         auto u1 = recordFill(gpu, input, bytes(d.input), inState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
@@ -1481,7 +1481,7 @@ void testEnhanceShape(Gpu& gpu) {
         inState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
         barrier(out.texture.Get(), outState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         float c[40]{};
-        c[0] = total; c[1] = 1; c[2] = 1; c[3] = 1; c[4] = 1; c[7] = hdr ? 1.0f : 0.0f; c[31] = hdr ? 1.0f : 0.0f;
+        c[0] = total; c[1] = 1; c[2] = 1; c[3] = color; c[4] = luminance; c[7] = hdr ? 1.0f : 0.0f; c[31] = hdr ? 1.0f : 0.0f;
         std::copy(shape.begin(), shape.end(), c + 36);
         pass.bind(gpu.list.Get(), c, pipeline::gpuHandleOf(pass, 0).ptr, pipeline::gpuHandleOf(pass, 3).ptr);
         gpu.list->Dispatch((W + 15) / 16, (H + 15) / 16, 1);
@@ -1504,19 +1504,20 @@ void testEnhanceShape(Gpu& gpu) {
         if (b >= 0 && anchor > 0 && requested < anchorDelta) return anchor / (1.0f + (anchorDelta - requested) / anchor);
         return b + requested;
     };
-    auto expected = [&](const Data& d, float total, const PushEnhanceShape& shape, bool hdr, size_t i) {
+    auto expected = [&](const Data& d, float total, const PushEnhanceShape& shape, bool hdr, size_t i, float color = 1.0f, float luminance = 1.0f) {
         const ref::Rgb raw{d.fin[i].r - d.input[i].r, d.fin[i].g - d.input[i].g, d.fin[i].b - d.input[i].b};
-        ref::Rgb delta = shape.neutral() ? raw : ref::shapeDelta(d.base[i], raw, shape, hdr);
+        ref::Rgb delta = ref::colorDelta(d.base[i], raw, color, luminance, hdr);
+        delta = shape.neutral() ? delta : ref::shapeDelta(d.base[i], delta, shape, hdr);
         delta = {delta.r * total, delta.g * total, delta.b * total};
         if (!shape.neutral() && (shape.maxBrighten > 0 || shape.maxDarken > 0)) delta = ref::capDelta(d.base[i], delta, shape, hdr);
         ref::Rgb r{shadowSafe(d.base[i].r, raw.r, delta.r), shadowSafe(d.base[i].g, raw.g, delta.g), shadowSafe(d.base[i].b, raw.b, delta.b)};
         if (!hdr) r = {std::max(0.0f, r.r), std::max(0.0f, r.g), std::max(0.0f, r.b)};
         return r;
     };
-    auto worst = [&](const Data& d, float total, const PushEnhanceShape& shape, bool hdr, const std::vector<ref::Rgb>& got) {
+    auto worst = [&](const Data& d, float total, const PushEnhanceShape& shape, bool hdr, const std::vector<ref::Rgb>& got, float color = 1.0f, float luminance = 1.0f) {
         float w = 0;
         for (size_t i = 0; i < got.size(); ++i) {
-            const ref::Rgb e = expected(d, total, shape, hdr, i);
+            const ref::Rgb e = expected(d, total, shape, hdr, i, color, luminance);
             for (const auto [a, b] : {std::pair{got[i].r, e.r}, std::pair{got[i].g, e.g}, std::pair{got[i].b, e.b}})
                 w = std::max(w, std::abs(a - b) / (1.0f + std::abs(b)));
         }
@@ -1567,6 +1568,41 @@ void testEnhanceShape(Gpu& gpu) {
                         d.base[at].r, d.base[at].g, d.base[at].b, d.fin[at].r - d.input[at].r, d.fin[at].g - d.input[at].g, d.fin[at].b - d.input[at].b,
                         got[at].r, got[at].g, got[at].b, e.r, e.g, e.b);
         }
+    }
+    // PushFPS 4.2.1: the layer's colour strength (push_shape_ref::colorDelta). Up to 100 % it is the plain
+    // statement it always was; above 100 % the part over it tapers with the size of the colour change.
+    struct ColorCase { const char* name; float color, luminance; PushEnhanceShape shape; float total; bool hdr; };
+    const ColorCase colorCases[] = {
+        {"colour off", 0.0f, 1.0f, neutral, 1.0f, false},
+        {"colour halved", 0.5f, 1.0f, neutral, 1.0f, false},
+        {"brightness halved, colour as made", 1.0f, 0.5f, neutral, 1.0f, false},
+        {"colour doubled", 2.0f, 1.0f, neutral, 1.0f, false},
+        {"colour at 150 %, brightness halved", 1.5f, 0.5f, neutral, 1.0f, false},
+        {"colour doubled, HDR", 2.0f, 1.0f, neutral, 1.0f, true},
+        {"colour doubled with every other control", 2.0f, 1.0f, make(150, 50, 20, 40, 15, 10), 1.5f, false},
+    };
+    for (const ColorCase& k : colorCases) {
+        const Data& d = k.hdr ? hdrData : sdr;
+        ran = run(d, k.total, k.shape.constants(), k.hdr, got, k.color, k.luminance);
+        const float w = ran ? worst(d, k.total, k.shape, k.hdr, got, k.color, k.luminance) : -1.0f;
+        check(ran && w < 0.004f, std::format("enhance colour: {} matches the reference (worst {:.5f})", k.name, w));
+    }
+    {
+        // The promise, on the shader's own output: at 200 % no channel is further from the picture at 100 %
+        // than a quarter of the pixel's brightness, where plain doubling would have been further for many.
+        ran = run(sdr, 1.0f, {0, 0, 0, 0}, false, got, 2.0f, 1.0f);
+        float over = 0, most = 0; int wouldPass = 0, acted = 0;
+        for (size_t i = 0; ran && i < got.size(); ++i) {
+            const ref::Rgb raw{sdr.fin[i].r - sdr.input[i].r, sdr.fin[i].g - sdr.input[i].g, sdr.fin[i].b - sdr.input[i].b};
+            const float dy = ref::luma(raw), peak = std::max({std::abs(raw.r - dy), std::abs(raw.g - dy), std::abs(raw.b - dy)});
+            const float room = pipeline::push_shape_ref::kPushColorKnee * std::max(ref::luma(sdr.base[i]), pipeline::push_shape_ref::kPushColorFloor);
+            const float moved = std::max({std::abs(got[i].r - plain[i].r), std::abs(got[i].g - plain[i].g), std::abs(got[i].b - plain[i].b)});
+            over = std::max(over, moved - room); most = std::max(most, moved);
+            if (peak > room + 0.01f) ++wouldPass;
+            if (moved > 0.01f) ++acted;
+        }
+        check(ran && over < 0.002f && wouldPass > 200 && acted > 200 && most > 0.05f,
+              std::format("enhance colour: at 200 % nothing is added past a quarter of a pixel's brightness (worst {:+.5f} over; plain doubling would pass it on {} pixels; {} pixels changed, the most {:.3f})", over, wouldPass, acted, most));
     }
     // What the controls promise, checked on the shader's own output.
     ran = run(sdr, 1.0f, make(0, 0, 0, 100, 0, 0).constants(), false, got);

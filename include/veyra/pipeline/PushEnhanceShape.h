@@ -90,6 +90,32 @@ inline float perceptual(float y, bool hdr) { return std::pow(std::max(y, 0.0f) /
 inline float linear(float p, bool hdr) { return std::pow(std::max(p, 0.0f), 2.2f) * (hdr ? 203.0f / 80.0f : 1.0f); }
 inline float smoothstep(float a, float b, float x) { const float t = std::clamp((x - a) / (b - a), 0.0f, 1.0f); return t * t * (3.0f - 2.0f * t); }
 
+// The layer's colour and brightness strengths (Veyra's `color` and `luminance`, 0..2 with 1 neutral),
+// as the composite shader applies them before anything of PushFPS's. Up to 100 % this is the plain
+// statement: the change's brightness part times `luminance`, its colour part times `color`.
+//
+// PushFPS 4.2.1: above 100 % the colour part tapers. A colour change twice as large as the one the
+// enhancement made is fine where that change is small, and leaves the picture's own colours where
+// it is large (a user's report: the slider "gets easily distorted"). The size of the change is its
+// largest channel, measured against the pixel's own brightness (never under 2 % of white, so a
+// black pixel's noise is not a large change); the factor is 1 + (color - 1) * knee / (knee + size).
+// So a small change gets the full strength asked for, and what is added to any pixel's colour
+// never passes (color - 1) * knee of its brightness: a quarter at 200 %.
+inline constexpr float kPushColorKnee = 0.25f;
+inline constexpr float kPushColorFloor = 0.02f;
+inline float colorGain(float color, float baseLuma, float chromaPeak, bool hdr) {
+    if (!(color > 1.0f)) return color;
+    const float level = std::max(baseLuma, kPushColorFloor * (hdr ? 203.0f / 80.0f : 1.0f));
+    return 1.0f + (color - 1.0f) * kPushColorKnee / (kPushColorKnee + chromaPeak / level);
+}
+inline Rgb colorDelta(Rgb base, Rgb delta, float color, float luminance, bool hdr) {
+    if (color == 1.0f && luminance == 1.0f) return delta;
+    const float dy = luma(delta);
+    const Rgb chroma{delta.r - dy, delta.g - dy, delta.b - dy};
+    const float peak = std::max(std::abs(chroma.r), std::max(std::abs(chroma.g), std::abs(chroma.b)));
+    const float gain = colorGain(color, luma(base), peak, hdr);
+    return {dy * luminance + chroma.r * gain, dy * luminance + chroma.g * gain, dy * luminance + chroma.b * gain};
+}
 // Before the layer's own strength: the change scaled by the picture's tonal range, and the part
 // of its colour change that turns the hue scaled by `hue`.
 inline Rgb shapeDelta(Rgb base, Rgb delta, const PushEnhanceShape& in, bool hdr) {

@@ -226,6 +226,112 @@ Item {
             for (const row of proOwned) verify(control(row).visible)
             quick.compact = false
         }
+        // 4.2.1: Professional mode has the quick setup as two cards (the Picture section in its Quality tab,
+        // the rest in its Frame Gen tab). A card shows its part and nothing of the other.
+        function test_scope_shows_one_part_of_the_quick_setup() {
+            const head = id => control("pushfps-section-" + id)
+            const sections = ["setup", "fg", "hud", "latency", "start"]
+            compare(quick.scope, "", "everything unless asked")
+            verify(control("pushfps-tools-row").visible && head("setup").visible && head("picture").visible)
+            verify(control("pushfps-crop-row").visible && control("pushfps-target-row").visible)
+            quick.compactPro = true
+            quick.scope = "picture"
+            verify(!quick.scopeMain && quick.scopePicture)
+            verify(!control("pushfps-tools-row").visible, "no tools in the picture card")
+            for (const id of sections) verify(!head(id).visible, id + " is not in the picture card")
+            verify(!control("pushfps-target-row").visible && !control("pushfps-lowest-latency-row").visible)
+            verify(head("picture").visible && control("pushfps-crop-row").visible, "the Picture section is")
+            verify(!control("pushfps-enhance-row").visible, "the page's own enhancement card under it has the switch")
+            verify(!control("pushfps-upscale-row").visible, "and its own upscaler card the upscaling")
+            veyra.nrAnyEnabled = true
+            veyra.nrLayers = [{index: 1, runtime: 2, tone: 1, structure: 1}]
+            tryVerify(function() { return control("pushfps-look-row").visible && control("pushfps-fine-row").visible }, 3000, "the look and the fine-tuning stand in the picture card")
+            quick.scope = "rest"
+            verify(quick.scopeMain && !quick.scopePicture)
+            verify(control("pushfps-tools-row").visible && head("setup").visible && control("pushfps-target-row").visible)
+            verify(!head("picture").visible && !control("pushfps-crop-row").visible && !control("pushfps-look-row").visible && !control("pushfps-fine-row").visible,
+                   "nothing of the picture in the other card")
+            quick.scope = ""
+            verify(control("pushfps-enhance-row").visible && control("pushfps-look-row").visible && control("pushfps-tools-row").visible, "one card again: everything")
+            quick.compactPro = false
+            verify(control("pushfps-upscale-row").visible)
+        }
+        // 4.2.1: upscale to my screen (PushUpscale.js has the rules; tests/js runs them one by one).
+        function test_upscale_to_my_screen() {
+            const wasChoices = veyra.srBackendChoices, wasQuality = veyra.videoSrQuality, wasTarget = veyra.srTargetIndex, wasHigh = veyra.sourceHeight
+            const row = control("pushfps-upscale-row"), sw = control("pushfps-upscale")
+            veyra.srEnabled = false
+            veyra.sourceHeight = 1080
+            quick.screenHighOverride = 2160
+            verify(row.visible && sw.enabled && !sw.checked)
+            verify(quick.upscaleGains && row.hint.indexOf("1080") >= 0 && row.hint.indexOf("2160") >= 0, "a picture smaller than the screen is said with both sizes: " + row.hint)
+            // An NVIDIA card with the standard upscaler: switched on as it is, at 4K for a 4K screen.
+            veyra.videoSrQuality = 2; veyra.srTargetIndex = 2
+            sw.toggled(true)
+            verify(veyra.srEnabled)
+            compare(veyra.videoSrQuality, 2, "the upscaler already chosen is kept")
+            compare(veyra.srTargetIndex, 2)
+            tryVerify(function() { return sw.checked && row.hint.indexOf("RTX") >= 0 }, 3000, "what runs is named: " + row.hint)
+            sw.toggled(false)
+            verify(!veyra.srEnabled)
+            compare(veyra.videoSrQuality, 2, "switching off changes nothing else")
+            // An AMD card: the NVIDIA upscalers cannot run, so FSR is taken; a 1440p screen gets a 1440p target.
+            veyra.srBackendChoices = [{id: "0", label: "DLSS SR", disabled: true}, {id: "rtx", label: "RTX", disabled: true},
+                                      {id: "5", label: "FSR 3.1 / 4"}, {id: "6", label: "NVIDIA Image Scaling (NIS)"}]
+            quick.screenHighOverride = 1440
+            sw.toggled(true)
+            verify(veyra.srEnabled)
+            compare(veyra.videoSrQuality, 5, "FSR on a card without the NVIDIA upscalers")
+            compare(veyra.srTargetIndex, 1, "1440p for a 1440p screen")
+            // The FSR version really running is read while it runs and said.
+            veyra.liveStats = ({running: true, fsrUpscalerVersion: "4.1.1"})
+            tryVerify(function() { return row.hint.indexOf("FSR 4.1.1") >= 0 }, 5000, "the running FSR version is said: " + row.hint)
+            veyra.srEnabled = false
+            tryVerify(function() { return quick.fsrUpscalerVersion === "" }, 3000, "and forgotten when it stops")
+            // A larger size chosen in Professional mode is left alone.
+            veyra.srTargetIndex = 3
+            sw.toggled(true)
+            compare(veyra.srTargetIndex, 3)
+            veyra.srEnabled = false
+            // No upscaler at all: the switch cannot be turned on, and nothing is set.
+            veyra.srBackendChoices = [{id: "0", label: "DLSS SR", disabled: true}]
+            verify(!quick.upscalePossible && !sw.enabled)
+            quick.setUpscale(true)
+            verify(!veyra.srEnabled, "nothing to run: nothing switched on")
+            // A picture as large as the screen: nothing is promised.
+            veyra.srBackendChoices = wasChoices
+            veyra.sourceHeight = 2160; quick.screenHighOverride = 2160
+            verify(!quick.upscaleGains && row.hint.indexOf("2160") < 0)
+            // Professional mode's page has the upscaler's own card.
+            quick.compactPro = true
+            verify(!row.visible)
+            quick.compactPro = false
+            veyra.videoSrQuality = wasQuality; veyra.srTargetIndex = wasTarget; veyra.sourceHeight = wasHigh
+            veyra.srEnabled = false
+            quick.screenHighOverride = 0
+        }
+        // 4.2.1: the split comparison's sides can be swapped.
+        function test_comparison_sides_are_swapped_with_a_button() {
+            veyra.nrAnyEnabled = true
+            veyra.nrLayers = [{index: 1, runtime: 2, tone: 1, structure: 1}]
+            const row = control("pushfps-look-compare-row"), swap = control("pushfps-look-compare-swap")
+            tryVerify(function() { return row.visible }, 3000)
+            verify(!swap.visible, "nothing to swap while nothing is compared")
+            const sidesBefore = row.hint
+            quick.setLookCompare(true)
+            compare(veyra.compareMode, 2)
+            tryVerify(function() { return swap.visible }, 3000, "the button comes with the split")
+            swap.clicked()
+            compare(veyra.preferences.pushCompareSwap, true)
+            verify(quick.compareSwapped)
+            quick.setLookCompare(false)
+            compare(veyra.compareMode, 0)
+            verify(swap.visible, "a swap is never left behind unseen")
+            verify(row.hint !== sidesBefore, "the row says which side is which: " + row.hint)
+            swap.clicked()
+            compare(veyra.preferences.pushCompareSwap, false)
+            tryVerify(function() { return !swap.visible && row.hint === sidesBefore }, 3000)
+        }
         function test_90_fps_target_in_profiles_and_adaptive() {
             veyra.displayRefreshHz = 90
             quick.applyTarget("90")

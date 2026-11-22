@@ -14,12 +14,25 @@ ColumnLayout {
         ProPresentationRows { }
         VRow {
             label: qsTr("原画 / 增强对比")
-            hint: (veyra.compareMode === 2 ? qsTr("在画面上按住左键拖动分割线：左边原画、右边增强。") : "") + (veyra.compareMode !== 0 ? qsTr("对比时补帧暂停，关闭对比后恢复") : "")
+            readonly property string sides: veyra.preferences.pushCompareSwap === true ? qsTr("在画面上按住左键拖动分割线：左边增强、右边原画。")
+                                                                                        : qsTr("在画面上按住左键拖动分割线：左边原画、右边增强。")
+            hint: (veyra.compareMode === 2 ? sides : "") + (veyra.compareMode !== 0 ? qsTr("对比时补帧暂停，关闭对比后恢复") : "")
             VSeg {
                 objectName: "display-compare"
                 options: [{ id: "0", label: qsTr("关闭", "off") }, { id: "2", label: qsTr("分屏") }, { id: "1", label: qsTr("只看原画") }]
                 current: String(veyra.compareMode)
                 onPicked: id => veyra.compareMode = Number(id)
+            }
+        }
+        // PushFPS 4.2.1: the split comparison's sides, swapped (engine/PushCompareLine.h).
+        VRow {
+            objectName: "display-compare-swap-row"
+            label: qsTr("交换两侧")
+            visible: veyra.compareMode === 2 || veyra.preferences.pushCompareSwap === true
+            VSwitch {
+                objectName: "display-compare-swap"
+                checked: veyra.preferences.pushCompareSwap === true
+                onToggled: checked => veyra.setPreference("pushCompareSwap", checked)
             }
         }
         VRow {

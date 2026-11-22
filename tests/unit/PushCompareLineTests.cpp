@@ -43,6 +43,30 @@ int main() {
         check(whole, "every split position gives a line inside the picture, edges outside the core");
     }
     check(kPushCompareWhitePq > 0.57f && kPushCompareWhitePq < 0.59f && kPushCompareWhiteScRgb > 2.5f && kPushCompareWhiteScRgb < 2.6f, "on an HDR output the line is reference white (203 nits), not the peak");
+    // 4.2.1: which side the reference is on.
+    {
+        // Not swapped: the bounds the presenter always set (left stays, right = max(left, min(right, split))).
+        bool same = true, inside = true, shared = true, whole = true;
+        for (long left : {0L, 213L, 640L}) for (long right : {1280L, 1067L, 640L}) for (long split = -50; split <= 1400; split += 7) {
+            if (right < left) continue;
+            const PushCompareSides a = pushCompareSides(left, right, split, false), b = pushCompareSides(left, right, split, true);
+            same = same && a.referenceLeft == left && a.referenceRight == std::max(left, std::min(right, split)) && a.line == a.referenceRight;
+            inside = inside && a.referenceLeft >= left && a.referenceRight <= right && a.referenceLeft <= a.referenceRight
+                            && b.referenceLeft >= left && b.referenceRight <= right && b.referenceLeft <= b.referenceRight;
+            // The two choices share the line and together cover the part exactly once.
+            shared = shared && a.line == b.line && b.referenceLeft == a.referenceRight && b.referenceRight == right && b.line == b.referenceLeft;
+            whole = whole && (a.referenceRight - a.referenceLeft) + (b.referenceRight - b.referenceLeft) == right - left;
+        }
+        check(same, "sides: not swapped, the reference is the left part with the bounds it always had");
+        check(inside, "sides: either way the reference lies inside the picture's part and is never inside out");
+        check(shared && whole, "sides: swapped, the reference is the right part, from the same line, and the two parts make the whole");
+        const PushCompareSides l = pushCompareSides(0, 1920, 480, false), r = pushCompareSides(0, 1920, 480, true);
+        check(l.referenceLeft == 0 && l.referenceRight == 480 && l.line == 480 && r.referenceLeft == 480 && r.referenceRight == 1920 && r.line == 480,
+              "sides: a split at a quarter: 0..480 before on the left, or 480..1920 before on the right");
+        check(!pushCompareSwapped(), "sides: not swapped unless asked");
+        setPushCompareSwapped(true); const bool on = pushCompareSwapped(); setPushCompareSwapped(false);
+        check(on && !pushCompareSwapped(), "sides: the switch is kept and given back");
+    }
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "ALL PASSED", failures);
     return failures ? 1 : 0;
 }

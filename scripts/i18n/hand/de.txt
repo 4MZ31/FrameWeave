@@ -1534,3 +1534,14 @@ zh:固定画质编码：细节清楚、画面干净，文件大小随画面内�
 zh:几乎看不出和原画的差别。文件很大（4K 每分钟可达数 GB），建议录到固态硬盘|Kaum von dem zu unterscheiden, was auf dem Bildschirm war. Die Dateien sind groß (ein 4K-Clip kann mehrere GB pro Minute haben): auf eine SSD aufnehmen
 zh:长时间录制时每隔一段时间接着写入一个新文件；各段之间不丢画面也不丢声音，可以无缝接起来。单个文件更小，出问题时损失更少|Eine lange Aufnahme wird in Abständen in einer neuen Datei fortgesetzt. Zwischen den Teilen geht weder Bild noch Ton verloren, sie lassen sich also nahtlos aneinanderfügen. Jede Datei ist kleiner, und bei einem Problem geht weniger verloren
 zh:文件快到这个大小时，在关键帧处接着写入新文件；各段之间不丢画面也不丢声音。0 表示关闭，下次录制时生效|Nähert sich eine Datei dieser Größe, wird die Aufnahme an einem Keyframe in einer neuen Datei fortgesetzt. Zwischen den Teilen geht weder Bild noch Ton verloren. 0 schaltet es aus; gilt ab der nächsten Aufnahme
+zh:交换两侧|Seiten tauschen
+zh:开启放大|Hochskalierung einschalten
+zh:放大到屏幕|Auf meinen Bildschirm hochskalieren
+zh:正在使用 %1|%1 wird verwendet
+zh:画面是 %1p，屏幕是 %2p|Das Bild hat %1p, dein Bildschirm %2p
+zh:画面是 %1p，屏幕是 %2p：开启后全屏更清晰|Das Bild hat %1p, dein Bildschirm %2p: damit im Vollbild schärfer
+zh:左边增强后，右边原画|Verbessert links, Original rechts
+zh:在画面上按住左键拖动分割线：左边增强、右边原画。|Halte die linke Maustaste auf dem Bild gedrückt und ziehe die Trennlinie: verbessert links, Original rechts.
+zh:全屏时画面只是被拉大到屏幕大小，所以看起来发软。开启放大后由显卡把画面放大到屏幕分辨率，更清晰，也更吃显卡；帧率掉了就关掉|Im Vollbild wird das Bild nur auf die Größe des Bildschirms gestreckt, deshalb wirkt es weich. Mit Hochskalierung vergrößert die Grafikkarte es auf die Auflösung des Bildschirms: schärfer, aber mehr Arbeit für die Karte. Wieder ausschalten, wenn die Bildrate sinkt
+zh:采集的画面比屏幕小时，全屏只是把它拉大，看起来发软。开启后由显卡把画面放大到屏幕分辨率，边缘和文字更清晰，也更吃显卡。放大方式可以在专业模式的「画质」里更换|Ist das aufgenommene Bild kleiner als dein Bildschirm, wird es im Vollbild nur gestreckt und wirkt weich. Hiermit skaliert die Grafikkarte es auf die Auflösung des Bildschirms hoch: Kanten und Text werden schärfer, die Karte arbeitet mehr. Das Verfahren lässt sich im Profimodus unter „Qualität“ ändern
+zh:把画面分成两半：一边是没有 AI 画面增强的原画，另一边是增强后的画面，方便边调边看。在专业模式的画面上或全屏时，按住鼠标左键可以拖动分割线；两侧可以交换|Teilt das Bild in zwei Hälften: eine Seite zeigt das Original ohne KI-Bildverbesserung, die andere das verbesserte Bild, sodass du beim Ansehen einstellen kannst. Auf dem Bild des Profimodus oder im Vollbild ziehst du die Trennlinie mit gedrückter linker Maustaste; die Seiten lassen sich tauschen

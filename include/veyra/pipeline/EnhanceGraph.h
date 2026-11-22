@@ -826,6 +826,8 @@ public:
     PushFlowSummary pushFlowSummary() const;
     bool amfFrcActive() const;
     const char* fsrProviderVersion() const;
+    // PushFPS 4.2.1: the FSR upscaler's own version name (AMD's, e.g. "4.1.1"), "" while FSR does not upscale.
+    const char* fsrSrProviderVersion() const;
     // XeSS generates in the present sink; FSR and DLSSG generate in the graph.
     // All backends consume the same guidance motion texture.
     bool presentSinkFg() const { return xessEnabled(); }

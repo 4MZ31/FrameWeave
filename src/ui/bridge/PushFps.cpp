@@ -90,6 +90,8 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["pacingFrames"] = QVariant::fromValue(qulonglong(s.pacingFrames));
     m["hudLockState"] = s.hudLockState;
     m["hudStillState"] = s.hudStillState;
+    // PushFPS 4.2.1: the FSR upscaler really running (quick setup's upscale row says it).
+    m["fsrUpscalerVersion"] = QString::fromStdString(s.fsrSrProviderVersion);
     m["pushFlowPrecision"] = QString::fromStdString(s.pushFlowPrecision);
     m["pushFlowRebuild"] = s.pushFlowRebuild;
     m["pushFlowP50Ms"] = s.pushFlowP50Ms;

@@ -1214,6 +1214,15 @@ VPage {
     property real inspectorDrag: -1
     readonly property real inspectorWidth: Math.max(376, Math.min(inspectorMax,
         inspectorDrag >= 0 ? inspectorDrag : Number(veyra.preferences.listInspectorWidth || root.inspectorDefault)))
+    // PushFPS 4.2.1: the panel over the full-screen picture is as wide as its right edge is dragged
+    // (a user's request; it was 376 and nothing else). 376 stays what it is until it is dragged, the
+    // picture keeps at least two fifths of the window, and the width has its own preference: the
+    // docked panel's width is a share of a window, this one lies over the picture.
+    readonly property real overlayGrip: 8
+    readonly property real overlayMax: Math.max(376, Math.min(root.width * 0.6, root.width - 16 * 2 - overlayGrip - 240))
+    property real overlayDrag: -1
+    readonly property real overlayWidth: Math.max(376, Math.min(overlayMax,
+        overlayDrag >= 0 ? overlayDrag : Number(veyra.preferences.pushOverlayPanelWidth || 376)))
     MouseArea {
         id: inspectorSplit
         objectName: "pro-inspector-split"
@@ -1273,7 +1282,7 @@ VPage {
         anchors.topMargin: 10
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 14
-        width: root.overlay ? 376 : root.inspectorWidth
+        width: root.overlay ? root.overlayWidth + root.overlayGrip : root.inspectorWidth
         radius: Theme.rCard
         color: Theme.card
         border.width: 1
@@ -1288,11 +1297,70 @@ VPage {
         }
         // A click on the panel's own background is not a click on the picture.
         MouseArea { anchors.fill: parent; acceptedButtons: Qt.AllButtons; onWheel: wheel => wheel.accepted = true }
+        // PushFPS 4.2.1: the overlay panel's right edge is a grip. It stands inside the panel (a strip
+        // of its own beside the rows, so the scroll bar keeps its place): what is drawn outside a
+        // cover is behind the picture.
+        MouseArea {
+            id: overlaySplit
+            objectName: "pro-overlay-split"
+            visible: root.overlay
+            z: 10
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: root.overlayGrip
+            cursorShape: Qt.SplitHCursor
+            hoverEnabled: true
+            preventStealing: true
+            property real pressX: 0
+            property real pressWidth: 0
+            // A double click puts the width back. Its second press is a press too and its release a
+            // release, so that release must not write the width the press started from.
+            property bool restored: false
+            onPressed: mouse => {
+                restored = false
+                pressX = mapToItem(root, mouse.x, 0).x
+                pressWidth = root.overlayWidth
+                root.overlayDrag = pressWidth
+            }
+            onPositionChanged: mouse => {
+                if (!pressed || restored) return
+                root.overlayDrag = Math.max(376, Math.min(root.overlayMax, pressWidth + (mapToItem(root, mouse.x, 0).x - pressX)))
+            }
+            onReleased: {
+                if (restored) { restored = false; root.overlayDrag = -1; return }
+                const width = Math.round(root.overlayWidth)
+                root.overlayDrag = -1
+                veyra.setPreference("pushOverlayPanelWidth", width)
+            }
+            onCanceled: { restored = false; root.overlayDrag = -1 }
+            onDoubleClicked: {
+                restored = true
+                root.overlayDrag = -1
+                veyra.setPreference("pushOverlayPanelWidth", 376)
+            }
+            Rectangle {
+                anchors.centerIn: parent
+                width: 3
+                height: 36
+                radius: 1.5
+                color: overlaySplit.pressed ? Theme.accent : Theme.ink(0.28)
+                opacity: overlaySplit.containsMouse || overlaySplit.pressed ? 1 : 0.55
+                Behavior on opacity { NumberAnimation { duration: Theme.d(150) } }
+            }
+            ToolTip {
+                visible: overlaySplit.containsMouse && !overlaySplit.pressed
+                delay: 600
+                x: overlaySplit.width + 6
+                y: overlaySplit.mouseY + 16
+                text: qsTr("拖动调整参数面板宽度 · 双击还原")
+            }
+        }
 
         ColumnLayout {
             anchors.fill: parent
             anchors.leftMargin: root.tab === "color" ? insp.border.width : 0
-            anchors.rightMargin: root.tab === "color" ? insp.border.width : 0
+            anchors.rightMargin: (root.tab === "color" ? insp.border.width : 0) + (root.overlay ? root.overlayGrip : 0)
             spacing: 0
 
             // .insp-tabs: five tabs, equal width, 30px, radius 9.
@@ -1568,6 +1636,17 @@ VPage {
                             }
                         }
 
+                        // PushFPS 4.2.1: quick setup's Picture section (the look of AI picture enhancement,
+                        // its size and fine-tuning, the wide-screen fill, the crop) stands here, over the
+                        // enhancement's own card, and no longer in the Frame Gen tab: a user asked for the
+                        // enhancement's settings to be in one place.
+                        PushQuickSetup {
+                            objectName: "list-pushfps-picture"
+                            Layout.fillWidth: true
+                            compactPro: true
+                            scope: "picture"
+                        }
+
                         // .stage: one NR card, its layers inside (pages-pro.js nrStage):
                         // "N 层依次处理 · 每层参数独立", a bar per layer lit when it
                         // runs, the add button at the bottom of the stage.
@@ -1840,6 +1919,7 @@ VPage {
                             objectName: "list-pushfps-quick"
                             Layout.fillWidth: true
                             compactPro: true
+                            scope: "rest"
                         }
 
                         VAccordion {

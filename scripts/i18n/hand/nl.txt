@@ -1534,3 +1534,14 @@ zh:固定画质编码：细节清楚、画面干净，文件大小随画面内�
 zh:几乎看不出和原画的差别。文件很大（4K 每分钟可达数 GB），建议录到固态硬盘|Nauwelijks te onderscheiden van wat er op het scherm stond. De bestanden zijn groot (een 4K-clip kan enkele GB per minuut zijn): neem op naar een SSD
 zh:长时间录制时每隔一段时间接着写入一个新文件；各段之间不丢画面也不丢声音，可以无缝接起来。单个文件更小，出问题时损失更少|Een lange opname gaat om de zoveel tijd verder in een nieuw bestand. Tussen de delen gaat geen beeld en geen geluid verloren, dus ze sluiten naadloos aan. Elk bestand is kleiner, en er gaat minder verloren als er iets misgaat
 zh:文件快到这个大小时，在关键帧处接着写入新文件；各段之间不丢画面也不丢声音。0 表示关闭，下次录制时生效|Nadert een bestand deze grootte, dan gaat de opname bij een keyframe verder in een nieuw bestand. Tussen de delen gaat geen beeld en geen geluid verloren. 0 schakelt het uit; geldt vanaf de volgende opname
+zh:交换两侧|Kanten wisselen
+zh:开启放大|Upscaling inschakelen
+zh:放大到屏幕|Upscalen naar mijn scherm
+zh:正在使用 %1|%1 in gebruik
+zh:画面是 %1p，屏幕是 %2p|Het beeld is %1p, je scherm is %2p
+zh:画面是 %1p，屏幕是 %2p：开启后全屏更清晰|Het beeld is %1p, je scherm is %2p: hiermee scherper op volledig scherm
+zh:左边增强后，右边原画|Verbeterd links, origineel rechts
+zh:在画面上按住左键拖动分割线：左边增强、右边原画。|Houd de linkerknop op het beeld ingedrukt en sleep de scheidingslijn: verbeterd links, origineel rechts.
+zh:全屏时画面只是被拉大到屏幕大小，所以看起来发软。开启放大后由显卡把画面放大到屏幕分辨率，更清晰，也更吃显卡；帧率掉了就关掉|Op volledig scherm wordt het beeld alleen uitgerekt tot de grootte van het scherm, daarom oogt het zacht. Met upscaling aan vergroot de grafische kaart het naar de resolutie van het scherm: scherper, en meer werk voor de kaart. Zet het weer uit als de framerate daalt
+zh:采集的画面比屏幕小时，全屏只是把它拉大，看起来发软。开启后由显卡把画面放大到屏幕分辨率，边缘和文字更清晰，也更吃显卡。放大方式可以在专业模式的「画质」里更换|Als het vastgelegde beeld kleiner is dan je scherm, wordt het op volledig scherm alleen uitgerekt en oogt het zacht. Hiermee schaalt de grafische kaart het op naar de resolutie van het scherm: randen en tekst zijn scherper, en de kaart moet harder werken. De upscaler kies je in de professionele modus onder Kwaliteit
+zh:把画面分成两半：一边是没有 AI 画面增强的原画，另一边是增强后的画面，方便边调边看。在专业模式的画面上或全屏时，按住鼠标左键可以拖动分割线；两侧可以交换|Splitst het beeld in tweeën: de ene kant is het origineel zonder AI-beeldverbetering, de andere het verbeterde beeld, zodat je kunt bijstellen terwijl je kijkt. Op het beeld van de professionele modus of op volledig scherm houd je de linkermuisknop ingedrukt om de scheidingslijn te slepen; de kanten kunnen worden gewisseld

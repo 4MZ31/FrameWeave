@@ -5,7 +5,8 @@ import VeyraTest 1.0
 
 Item {
     id: fixture
-    width: 1280; height: 1800
+    // (PushFPS 4.2.1: 200 higher; the Quality tab has the quick setup's Picture card over the enhancement's.)
+    width: 1280; height: 2000
     QtObject {
         id: backend
         property var beautyLayers: []

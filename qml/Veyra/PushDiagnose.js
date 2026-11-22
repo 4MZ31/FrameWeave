@@ -28,6 +28,8 @@ var kRoomFast = 0.36
 var kRoomBalanced = 0.11
 // Generated frames shown against generated frames asked for: under this, the card is not keeping up.
 var kBehind = 0.8
+// How much lower than the screen a picture is before upscaling is offered (PushUpscale.js kSmaller).
+var kUpscaleSmaller = 1.2
 
 // A reading as a number, or the fallback when it is not there. Only a number, or a number written as
 // text, is a reading: JavaScript's Number() turns null, "", " ", false and [] into 0, and a missing
@@ -81,6 +83,13 @@ function findings(s) {
     var h = Math.round(num(s.pictureHeight, 0))
     if (s.enhanceOn === true && s.enhanceSized === true && Math.round(num(s.enhanceSize, -1)) === 0 && h > 1088)
         out.push({ id: "enhance-small", level: "better", height: h, offer: h > 1448 ? [1, 5] : [1] })
+
+    // 4.2.1: the picture is clearly smaller than the screen and nothing enlarges it but the window, which is
+    // what "sharp in a small window, like 720p in full screen" is. Offered, never switched: upscaling costs
+    // graphics card time. (kUpscaleSmaller is PushUpscale.js's kSmaller: change both together.)
+    var screen = Math.round(num(s.screenHeight, 0))
+    if (s.upscalePossible === true && s.upscaleOn === false && h >= 360 && screen > 0 && h * kUpscaleSmaller < screen)
+        out.push({ id: "upscale-off", level: "try", height: h, screen: screen })
 
     // NVIDIA VFG below its best model.
     if (fgOn && s.method === "vfg" && idle < 2) {

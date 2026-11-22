@@ -111,6 +111,28 @@ t.same(ids(good({ pushFlowMotion: null, method: 'pushflow', pushFlowTier: null, 
 t.same(ids(good({ audioChoice: null, audioSuggestion: 3 })), [], 'a sound choice that is not known is not "no sound"')
 
 // The mean of sampled figures.
+// 4.2.1: a picture clearly smaller than the screen, with nothing enlarging it but the window.
+const small = extra => good(Object.assign({ pictureHeight: 1080, enhanceSize: 1, screenHeight: 2160, upscalePossible: true, upscaleOn: false }, extra || {}))
+t.same(ids(small()), ['upscale-off'], 'a 1080p picture on a 4K screen is offered upscaling')
+t.same(find(small(), 'upscale-off'), { id: 'upscale-off', level: 'try', height: 1080, screen: 2160 }, 'with both sizes, as something to try')
+t.same(ids(small({ screenHeight: 1440 })), ['upscale-off'], '1080p on a 1440p screen too')
+t.same(ids(small({ pictureHeight: 1440 })), ['upscale-off'], 'and 1440p on a 4K screen')
+t.same(ids(small({ screenHeight: 1200 })), [], 'not for a screen a little larger than the picture')
+t.same(ids(small({ pictureHeight: 2160 })), [], 'not for a picture as large as the screen')
+t.same(ids(small({ upscaleOn: true })), [], 'not when upscaling is already on')
+t.same(ids(small({ upscalePossible: false })), [], 'not when the card has no upscaler')
+t.same([ids(small({ screenHeight: 0 })), ids(small({ screenHeight: undefined })), ids(small({ screenHeight: null })), ids(small({ screenHeight: '' }))], [[], [], [], []], 'a screen size nobody reported is never "larger"')
+t.same([ids(small({ upscaleOn: undefined })), ids(small({ upscalePossible: undefined })), ids(small({ pictureHeight: 0 }))], [[], [], []], 'nor is a state nobody reported "off", "possible" or "small"')
+t.same(ids(good()), [], 'a state from before 4.2.1 (no screen, no upscaling fields) says nothing new')
+{
+    // The same threshold as the quick setup row's (PushUpscale.js).
+    const U = t.load('PushUpscale.js')
+    let same = true
+    for (const p of [0, 240, 360, 720, 1080, 1200, 1440, 2160]) for (const sc of [0, 1080, 1200, 1296, 1297, 1440, 1600, 2160])
+        same = same && (ids(small({ pictureHeight: p, screenHeight: sc })).indexOf('upscale-off') >= 0) === U.gains(p, sc)
+    t.check(same, 'Check my setup and the quick setup row agree on every size')
+}
+
 t.same(D.mean([{ a: 10 }, { a: 20 }, { a: 'x' }, {}], 'a', -1), 15, 'values that are not numbers are left out')
 t.same(D.mean([], 'a', -1), -1, 'no samples: the fallback')
 t.same(D.mean([{ a: null }, { a: '' }, { a: undefined }], 'a', 7), 7, 'a figure that is not known is not a zero')

@@ -30,6 +30,9 @@ Item {
                 choices: veyra.fgBackendChoices
             }
             host.dialog = ""; root.navigated = ""
+            // (4.2.1) A screen no picture of these tests is smaller than, whatever screen the tests run on:
+            // the upscaling offer has its own test.
+            diag.screenHighOverride = 720
             // A 4K console picture at 30 FPS, NVIDIA VFG on Medium at 4X to 120 on a 120 Hz screen
             // with variable refresh, enhancement at the standard size: two things to say.
             veyra.hasSource = true; veyra.sourceKind = "capture"; veyra.sourceHeight = 2160
@@ -94,6 +97,48 @@ Item {
             compare(veyra.preferences.pushHudStill, false)
             diag.undo(diag.found[0])
             compare(veyra.preferences.pushHudStill, true)
+        }
+        // 4.2.1: a picture clearly smaller than the screen is offered upscaling; it is switched on as quick
+        // setup's row does it (an upscaler this card can run, at the screen's size) and taken back whole.
+        function test_a_picture_smaller_than_the_screen_is_offered_upscaling() {
+            const was = { on: veyra.srEnabled, quality: veyra.videoSrQuality, target: veyra.srTargetIndex, choices: veyra.srBackendChoices }
+            veyra.vfgQuality = 2
+            veyra.nrLayers = [{ index: 1, sizePolicy: 1, runtime: 2 }]
+            veyra.sourceHeight = 1080
+            diag.screenHighOverride = 1440
+            veyra.srEnabled = false; veyra.videoSrQuality = 2; veyra.srTargetIndex = 2
+            veyra.srBackendChoices = [{id: "0", label: "DLSS SR", disabled: true}, {id: "rtx", label: "RTX", disabled: true},
+                                      {id: "5", label: "FSR 3.1 / 4"}, {id: "6", label: "NVIDIA Image Scaling (NIS)"}]
+            open()
+            compare(ids(), ["upscale-off"])
+            tryVerify(function() { return findChild(diag, "pushfps-diagnose-fix-upscale-off-0") !== null }, 3000)
+            const title = control(diag, "pushfps-diagnose-title-upscale-off").text
+            verify(title.indexOf("1080") >= 0 && title.indexOf("1440") >= 0, "both sizes are said: " + title)
+            verify(control(diag, "pushfps-diagnose-body-upscale-off").text.length > 0)
+            verify(!veyra.srEnabled, "nothing changes until the button is pressed")
+            control(diag, "pushfps-diagnose-fix-upscale-off-0").clicked()
+            verify(veyra.srEnabled, "upscaling is on")
+            compare(veyra.videoSrQuality, 5, "with an upscaler this card can run")
+            compare(veyra.srTargetIndex, 1, "at the screen's size")
+            verify(diag.changed["upscale-off"] !== undefined)
+            compare(ids(), ["upscale-off"], "the row stays so the change can be undone")
+            diag.undo(diag.found[0])
+            verify(!veyra.srEnabled, "undo switches it off")
+            compare(veyra.videoSrQuality, 2, "and puts the upscaler back")
+            compare(veyra.srTargetIndex, 2, "and its size")
+            verify(diag.changed["upscale-off"] === undefined)
+            // Already on, or a picture as large as the screen: nothing to offer.
+            host.dialog = ""
+            veyra.srEnabled = true
+            open()
+            compare(ids(), [])
+            host.dialog = ""
+            veyra.srEnabled = false; veyra.sourceHeight = 1440
+            open()
+            compare(ids(), [], "1440p on a 1440p screen")
+            host.dialog = ""
+            veyra.srEnabled = was.on; veyra.videoSrQuality = was.quality; veyra.srTargetIndex = was.target; veyra.srBackendChoices = was.choices
+            diag.screenHighOverride = 720
         }
         function test_a_session_with_nothing_wrong_says_so() {
             veyra.vfgQuality = 2

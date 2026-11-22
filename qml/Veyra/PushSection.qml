@@ -17,6 +17,8 @@ ColumnLayout {
     // One short line beside the title: what is set, readable while the section is folded.
     property string summary: ""
     property bool open: true
+    // The first thing in its card: no line above the title (there is nothing to set it off from).
+    property bool first: false
     default property alias rows: body.data
     readonly property bool empty: body.implicitHeight <= 0
     signal toggled(bool open)
@@ -49,6 +51,7 @@ ColumnLayout {
         Keys.onReturnPressed: section.toggled(!section.open)
         // The line that sets one section off from the one above it.
         Rectangle {
+            visible: !section.first
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
