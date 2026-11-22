@@ -82,6 +82,13 @@ Item {
             verify(control(rest, "pushfps-tools-row").visible && control(rest, "pushfps-target-row").visible, "the Frame Gen tab keeps the rest")
             verify(!control(rest, "pushfps-section-picture").visible && !control(rest, "pushfps-crop-row").visible && !control(rest, "pushfps-fine-row").visible,
                    "and no longer the picture's settings")
+            // 4.2.2: it says where they went, and its button opens that tab, where the enhancement's own
+            // switch stands again.
+            verify(control(rest, "pushfps-picture-moved-row").visible)
+            control(rest, "pushfps-picture-moved-open").clicked()
+            compare(page.tab, "quality")
+            tryVerify(function() { return picture.visible && control(picture, "pushfps-enhance-row").visible }, 3000, "the enhancement's switch is in the Quality tab's picture card")
+            verify(!control(picture, "pushfps-picture-moved-row").visible)
         }
     }
 }

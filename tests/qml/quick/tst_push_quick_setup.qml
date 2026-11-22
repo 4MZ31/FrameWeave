@@ -228,6 +228,7 @@ Item {
         }
         // 4.2.1: Professional mode has the quick setup as two cards (the Picture section in its Quality tab,
         // the rest in its Frame Gen tab). A card shows its part and nothing of the other.
+        SignalSpy { id: wantedTabs; target: quick; signalName: "requestTab" }
         function test_scope_shows_one_part_of_the_quick_setup() {
             const head = id => control("pushfps-section-" + id)
             const sections = ["setup", "fg", "hud", "latency", "start"]
@@ -241,19 +242,34 @@ Item {
             for (const id of sections) verify(!head(id).visible, id + " is not in the picture card")
             verify(!control("pushfps-target-row").visible && !control("pushfps-lowest-latency-row").visible)
             verify(head("picture").visible && control("pushfps-crop-row").visible, "the Picture section is")
-            verify(!control("pushfps-enhance-row").visible, "the page's own enhancement card under it has the switch")
+            // 4.2.2: the on/off row is in the picture card too. The page's own enhancement card cannot switch
+            // the enhancement on before a layer exists; this switch adds the first layer.
+            verify(control("pushfps-enhance-row").visible && control("pushfps-enhance").enabled, "the enhancement's own switch stands in the picture card")
+            verify(!control("pushfps-picture-moved-row").visible, "nothing to point at from the picture card itself")
+            veyra.nrLayers = []; veyra.nrAnyEnabled = false
+            const before = veyra.nrLayers.length
+            control("pushfps-enhance").toggled(true)
+            verify(veyra.nrLayers.length > before || veyra.nrAnyEnabled === true, "switched on with no layer yet: a layer is added")
             verify(!control("pushfps-upscale-row").visible, "and its own upscaler card the upscaling")
             veyra.nrAnyEnabled = true
             veyra.nrLayers = [{index: 1, runtime: 2, tone: 1, structure: 1}]
             tryVerify(function() { return control("pushfps-look-row").visible && control("pushfps-fine-row").visible }, 3000, "the look and the fine-tuning stand in the picture card")
             quick.scope = "rest"
             verify(quick.scopeMain && !quick.scopePicture)
+            // 4.2.2: the other card says where the picture's settings went and opens that tab.
+            verify(control("pushfps-picture-moved-row").visible)
+            wantedTabs.clear()
+            control("pushfps-picture-moved-open").clicked()
+            compare(wantedTabs.count, 1)
+            compare(wantedTabs.signalArguments[0][0], "quality")
             verify(control("pushfps-tools-row").visible && head("setup").visible && control("pushfps-target-row").visible)
             verify(!head("picture").visible && !control("pushfps-crop-row").visible && !control("pushfps-look-row").visible && !control("pushfps-fine-row").visible,
                    "nothing of the picture in the other card")
             quick.scope = ""
             verify(control("pushfps-enhance-row").visible && control("pushfps-look-row").visible && control("pushfps-tools-row").visible, "one card again: everything")
+            verify(!control("pushfps-picture-moved-row").visible, "one card: nothing moved")
             quick.compactPro = false
+            verify(!control("pushfps-picture-moved-row").visible, "the home page never shows the pointer")
             verify(control("pushfps-upscale-row").visible)
         }
         // 4.2.1: upscale to my screen (PushUpscale.js has the rules; tests/js runs them one by one).

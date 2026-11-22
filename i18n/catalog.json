@@ -33410,6 +33410,24 @@
    "ru": "Переключатели, прогресс, выбранное состояние"
   },
   {
+   "zh": "开关、风格、微调和其他画面设置现在都在「画质」页",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "開關、風格、微調和其他畫面設定現在都在「畫質」頁",
+   "en": "The switch, the look, fine-tuning and the other picture settings are now in the Quality tab",
+   "ja": "オン/オフ、スタイル、微調整、その他の映像設定は「画質」タブにまとまりました",
+   "ko": "켜기/끄기, 스타일, 미세 조정과 다른 영상 설정은 이제 「화질」 탭에 있습니다",
+   "nl": "De schakelaar, de stijl, de fijnafstelling en de andere beeldinstellingen staan nu op het tabblad Kwaliteit",
+   "de": "Schalter, Stil, Feinabstimmung und die übrigen Bildeinstellungen stehen jetzt im Tab „Qualität“",
+   "es": "El interruptor, el estilo, el ajuste fino y los demás ajustes de imagen están ahora en la pestaña Calidad",
+   "fr": "L'interrupteur, le style, le réglage fin et les autres réglages d'image se trouvent maintenant dans l'onglet Qualité",
+   "it": "L'interruttore, lo stile, la regolazione fine e le altre impostazioni dell'immagine ora sono nella scheda Qualità",
+   "pt-BR": "A chave, o estilo, o ajuste fino e os outros ajustes de imagem agora ficam na aba Qualidade",
+   "tr": "Anahtar, stil, ince ayar ve diğer görüntü ayarları artık Kalite sekmesinde",
+   "ar": "المفتاح والنمط والضبط الدقيق وبقية إعدادات الصورة موجودة الآن في تبويب «الجودة»",
+   "pl": "Przełącznik, styl, dostrajanie i pozostałe ustawienia obrazu są teraz na karcie Jakość",
+   "ru": "Переключатель, стиль, тонкая настройка и остальные настройки картинки теперь на вкладке «Качество»"
+  },
+  {
    "zh": "开发和测试设备的开销一直由作者自己承担。如果 Veyra 对你有帮助，欢迎请作者喝杯咖啡，你的支持就是持续更新的动力。",
    "src": "qml/SponsorPanel.qml",
    "zh-TW": "開發和測試設備的開銷一直由作者自己承擔。如果 Veyra 對你有幫助，歡迎請作者喝杯咖啡，你的支持就是持續更新的動力。",
