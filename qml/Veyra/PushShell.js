@@ -29,6 +29,11 @@ function staysHomeOnConnect(modern, threePane, prefs) {
     return !on(prefs, "pushConnectToPro") && !on(prefs, "pushAutoFullscreen")
 }
 
+// Full screen asked for (the shortcut, F11) while a picture plays on the new home page: full screen
+// is that picture, not that page. The page's own Fullscreen button always went to the picture alone
+// first; with a capture card now playing on the home page, the shortcut does the same.
+function fullScreenLeavesHome(page, modern, hasSource) { return page === "home" && modern === true && hasSource === true }
+
 // Professional mode's All tab: its blocks, and the list of the folded ones as it is kept (ids with
 // commas; anything else in the text is dropped, as the bridge drops it).
 var kBlocks = ["quality", "fg", "color", "audio", "display"]

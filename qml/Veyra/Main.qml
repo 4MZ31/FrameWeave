@@ -380,6 +380,8 @@ Window {
                 veyra.selectedNrLayer = index
                 veyra.selectedColourLayer = index
                 proPage.tab = type === "color" ? "color" : "quality"
+                // (4.3.1) What is asked for stands in the panel: a hidden settings side is shown for it.
+                if (root.sideCollapsed) veyra.setPreference("pushSideCollapsed", false)
                 root.page = "pro"
             }
         }
@@ -730,6 +732,13 @@ Window {
         if (!fullscreen && veyra.fullscreenMemorySafe === false) {
             toast.show(qsTr("本次播放检测到全屏显存持续增长，请使用窗口播放；重新打开片源后可再次测试全屏。"), true)
             veyra.logUi("ui-fullscreen", "blocked after sustained video-memory growth")
+            return
+        }
+        // (4.3.1) A picture playing on the new home page: full screen is that picture, not that page.
+        // The same two steps the page's own Fullscreen button takes (onRequestFullscreen above).
+        if (!fullscreen && PushShell.fullScreenLeavesHome(page, Theme.modern, veyra.hasSource === true)) {
+            goPage("min")
+            Qt.callLater(root.toggleFullscreen)
             return
         }
         fullLocked = false

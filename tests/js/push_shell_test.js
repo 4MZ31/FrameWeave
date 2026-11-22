@@ -32,6 +32,13 @@ t.check(!S.staysHomeOnConnect(true, true, { pushConnectToPro: true }), 'whoever 
 t.check(!S.staysHomeOnConnect(true, true, { pushAutoFullscreen: true }), 'full screen on connecting goes full screen in Professional mode, as before')
 t.check(S.staysHomeOnConnect(true, true, { pushConnectToPro: false, pushAutoFullscreen: false }), 'both switched off: the home page')
 
+// Full screen from the home page.
+t.check(S.fullScreenLeavesHome('home', true, true), 'a picture playing on the new home page: full screen is the picture')
+t.check(!S.fullScreenLeavesHome('home', true, false) && !S.fullScreenLeavesHome('home', true, undefined), 'nothing playing: the page goes full screen as it did')
+t.check(!S.fullScreenLeavesHome('home', false, true), 'Legacy: as it did')
+for (const page of ['pro', 'min', 'live', 'watch', 'exp', 'set', 'node'])
+    t.check(!S.fullScreenLeavesHome(page, true, true), page + ' goes full screen itself')
+
 // The folded blocks of the All tab.
 t.same(S.foldedBlocks(''), [], 'nothing saved: nothing folded')
 t.same(S.foldedBlocks(undefined), [], 'no preference: nothing folded')

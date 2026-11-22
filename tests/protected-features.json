@@ -1716,6 +1716,11 @@
     {
      "file": "src/ui/bridge/Capture.cpp",
      "contains": "screen ? QStringLiteral(\"min\") : QStringLiteral(\"afterconnect\")"
+    },
+    {
+     "file": "tests/js/push_shell_test.js",
+     "ci": "tests/js/*_test.js",
+     "contains": "a picture playing on the new home page: full screen is the picture"
     }
    ],
    "needs_hardware": "A capture card connected while the home page is shown: the engine opening with the picture's place on that page. No capture card exists in CI."
