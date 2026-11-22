@@ -1553,3 +1553,11 @@ zh:新版把导航、预览和全部快速设置放在同一个窗口里；旧�
 zh:更多外观设置|Weitere Darstellungseinstellungen
 zh:语言、启动方式和窗口选项在「设置」里|Sprache, Start und Fensteroptionen stehen in den Einstellungen
 zh:打开 PushFPS 时播放约 2 秒的开场动画，单击或按任意键可跳过|Spielt beim Öffnen von PushFPS ein 2-Sekunden-Intro ab; Klick oder beliebige Taste überspringt es
+zh:展开导航栏|Navigation ausklappen
+zh:收起导航栏|Navigation auf Symbole einklappen
+zh:显示右侧设置栏|Einstellungsleiste rechts einblenden
+zh:隐藏右侧设置栏|Einstellungsleiste rechts ausblenden
+zh:当前补帧方式自行估算运动，不使用此选项|Diese Methode der Frame-Generierung ermittelt die Bewegung selbst und nutzt diese Auswahl nicht
+zh:连接采集卡后打开专业模式|Pro-Modus öffnen, wenn eine Capture-Karte verbunden wird
+zh:关闭时留在首页，画面显示在首页中间|Aus: Du bleibst auf der Startseite, wo das Bild in der Mitte läuft
+zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Vollbild beim Verbinden" ist an: Beim Verbinden öffnet sich immer der Pro-Modus im Vollbild

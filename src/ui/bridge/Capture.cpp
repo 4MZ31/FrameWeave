@@ -609,6 +609,11 @@ void QmlPlayerBridge::openSourceUri(const std::wstring& uri, const std::wstring&
     if (!impl_->gameModeUri.empty() && uri == impl_->gameModeUri) impl_->aspectMode = 0;
     const bool screen = uri.starts_with(L"screen:");
     veyra::log::info("capture-ui", "open uri " + QString::fromStdWString(uri).toStdString());
+    // (PushFPS 4.3.1) A capture card opened from the home page: the interface decides where the picture
+    // goes ("afterconnect", Main.qml onNavigate). The new design's home page shows the picture and keeps
+    // it; Legacy, a narrow window and whoever asked for it go to Professional mode, which is what this
+    // always asked for by name. A screen capture goes to the picture alone, as before.
+    const QString homeTarget = screen ? QStringLiteral("min") : QStringLiteral("afterconnect");
     openAfterLivePage(screen ? tr("正在开始屏幕捕获…") : tr("正在打开采集设备 · %1").arg(utf8Of(label)), [this, uri] {
         if (impl_->preOpen) impl_->preOpen();
         impl_->engine.previewView({});
@@ -620,7 +625,7 @@ void QmlPlayerBridge::openSourceUri(const std::wstring& uri, const std::wstring&
         impl_->gameModeUri.clear();
         updateGameMode();
         refreshSubtitles({});
-    }, screen ? QStringLiteral("min") : QStringLiteral("pro"));
+    }, homeTarget);
 }
 
 void QmlPlayerBridge::openAfterLivePage(const QString& pending, std::function<void()> open, const QString& homeTarget) {

@@ -16,6 +16,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "ExportLayout.js" as ExportLayout
+import "PushShell.js" as PushShell
 
 Window {
     id: root
@@ -93,7 +94,21 @@ Window {
     // where the pages stand). Not in cinema, where the picture is the window, and not in full screen:
     // there everything is as it always was, the dock included.
     readonly property bool shellShown: Theme.modern && !fullscreen && page !== "min" && test.portableUpdateProbe !== true
-    readonly property bool navSlim: width < 1100
+    // The navigation shows its icons alone in a narrow window, and (4.3.1) wherever the title bar's
+    // button folded it. The button is not offered where the window's width has already decided.
+    // (The rules are PushShell.js, which is tested without Qt: no test loads this window.)
+    readonly property bool navForcedSlim: PushShell.navForcedSlim(width)
+    readonly property bool navCollapsed: veyra.preferences.pushNavCollapsed === true
+    readonly property bool navSlim: PushShell.navSlim(width, veyra.preferences)
+    // (4.3.1) The settings side of a page: quick setup on the home page's three panes, the panel in
+    // Professional mode. One choice for both, made with the title bar's other button.
+    readonly property bool sideCollapsed: PushShell.sideCollapsed(veyra.preferences)
+    readonly property bool sideOffered: PushShell.sideOffered(page, homePage.threePane)
+    // (4.3.1) A capture card connected from the new home page plays there: that page shows the
+    // picture now. Not while full screen on connecting is on (Professional mode is the page that
+    // goes full screen with its panel over the picture), and not where a user asked for Professional
+    // mode. Legacy and a window too narrow for the three panes have no picture on the home page.
+    readonly property bool staysHomeOnConnect: PushShell.staysHomeOnConnect(Theme.modern, homePage.threePane, veyra.preferences)
     readonly property real shellLeft: shellShown ? (navSlim ? Theme.shellNavSlim : Theme.shellNav) : 0
     readonly property real shellTop: shellShown ? Theme.shellHeader : 0
     readonly property real shellBottom: shellShown ? Theme.shellStatus : 0
@@ -413,6 +428,12 @@ Window {
         onRequestMaximize: root.toggleMaximized()
         onRequestClose: root.close()
         onRequestMove: root.startSystemMove()
+        navCollapsed: root.navCollapsed
+        navToggleShown: !root.navForcedSlim
+        sideCollapsed: root.sideCollapsed
+        sideToggleShown: root.sideOffered
+        onRequestToggleNav: veyra.setPreference("pushNavCollapsed", !root.navCollapsed)
+        onRequestToggleSide: veyra.setPreference("pushSideCollapsed", !root.sideCollapsed)
     }
     PushSidebar {
         id: shellNav
@@ -462,6 +483,8 @@ Window {
         if (onboarding.visible) return
         dialogs.close()
         root.goPage("home")
+        // (4.3.1) The tour points at quick setup: a hidden settings side is shown again for it.
+        if (root.sideCollapsed) veyra.setPreference("pushSideCollapsed", false)
         onboarding.steps = pushTour.steps({ enhance: homePage.tourOffers("enhance") })
         veyra.logUi("push-tour", "start source=" + source + " steps=" + onboarding.steps.length)
         // Offered by itself only once; from then on it starts when asked for.
@@ -1179,6 +1202,13 @@ Window {
             onboarding.close()
             // PushFPS: the first-run tour, asked for from anywhere.
             if (p === "tour") { root.startTour("navigate"); return }
+            // (4.3.1) A capture card was connected from the home page: the bridge asks where the
+            // picture goes. The new home page shows it; everywhere else it is Professional mode.
+            if (p === "afterconnect") {
+                if (root.staysHomeOnConnect) veyra.logUi("ui-page", "a capture card connected from the home page plays there")
+                else root.goPage("pro")
+                return
+            }
             // A dialog key opens the dialog; anything else is a page.
             if (p === "network" || p === "capture" || p === "ps5" || p === "moonlight" || p === "xbox" || p === "screen"
                 || p === "subtitle" || p === "translation" || p === "audio" || p === "save" || p === "manage" || p === "optimize" || p === "games" || p === "hud" || p === "latencyguide" || p === "crop" || p === "stream" || p === "compare" || p === "record" || p === "micfilters" || p === "layout" || p === "frameinput" || p === "qualitytest" || p === "latencytest" || p === "crash" || p === "cardtest" || p === "diagnose" || p === "readtext") {

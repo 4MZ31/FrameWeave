@@ -4,6 +4,11 @@
 // The new design's title bar: the mark and the wordmark, the page's name, what is connected, and the
 // window's own buttons. The window is frameless (Main.qml), so this bar is also where it is moved
 // from; a double click maximises it, as a Windows title bar does. Legacy has all of this in its dock.
+//
+// Since 4.3.1 it also has the two side buttons: one at its left end, over the navigation, that folds
+// the navigation to its icons, and one at its right end, before the window's buttons, that hides the
+// settings side of the page (quick setup on the home page, the panel in Professional mode). Each is
+// shown only where there is something for it to fold.
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -17,8 +22,64 @@ Rectangle {
     signal requestMaximize()
     signal requestClose()
     signal requestMove()
-    // Three buttons of 38, the two gaps between them, the row's right margin and the gap before them.
-    readonly property real buttonsWidth: 3 * 38 + 2 * 10 + 6 + 5
+    // The navigation folded to its icons / the settings side hidden, and whether each can be changed here.
+    property bool navCollapsed: false
+    property bool navToggleShown: false
+    property bool sideCollapsed: false
+    property bool sideToggleShown: false
+    signal requestToggleNav()
+    signal requestToggleSide()
+    // Three buttons of 38, the two gaps between them, the row's right margin and the gap before them
+    // (and the side button with its gap, where it is shown).
+    readonly property real sideButtonWidth: 34
+    readonly property real buttonsWidth: 3 * 38 + 2 * 10 + 6 + 5 + (sideToggleShown ? sideButtonWidth + 10 : 0)
+    // What stands left of the part the window is moved by: the navigation's button, where it is shown.
+    readonly property real leadWidth: navToggleShown ? 10 + sideButtonWidth + 5 : 0
+
+    // A side button: the outline of a window with one side marked, filled while that side is shown.
+    component SideButton: Item {
+        id: sbtn
+        property bool right: false
+        property bool shown: true          // the side it stands for is on screen
+        property string tip: ""
+        signal pressed()
+        implicitWidth: 34
+        implicitHeight: 30
+        activeFocusOnTab: true
+        Accessible.role: Accessible.Button
+        Accessible.name: tip
+        Keys.onReturnPressed: sbtn.pressed()
+        Keys.onSpacePressed: sbtn.pressed()
+        Rectangle {
+            anchors.fill: parent
+            radius: Theme.rCtl
+            readonly property bool lit: shover.hovered || sbtn.activeFocus
+            color: lit ? Theme.ink(0.07) : "transparent"
+            border.width: 1
+            border.color: lit ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.7) : "transparent"
+            Behavior on color { ColorAnimation { duration: Theme.d(150) } }
+            Behavior on border.color { ColorAnimation { duration: Theme.d(150) } }
+        }
+        Item {
+            id: glyph
+            anchors.centerIn: parent
+            width: 16; height: 13
+            readonly property color tint: shover.hovered ? Theme.t1 : Theme.t2
+            Rectangle { anchors.fill: parent; radius: 3; color: "transparent"; border.width: 1; border.color: glyph.tint }
+            Rectangle { x: sbtn.right ? parent.width - 6 : 5; y: 1; width: 1; height: parent.height - 2; color: glyph.tint }
+            Rectangle {
+                visible: sbtn.shown
+                x: sbtn.right ? parent.width - 5 : 2; y: 2
+                width: 3; height: parent.height - 4
+                color: Theme.accent
+            }
+        }
+        HoverHandler { id: shover; cursorShape: Qt.PointingHandCursor }
+        TapHandler { onTapped: sbtn.pressed() }
+        ToolTip.visible: shover.hovered
+        ToolTip.delay: 500
+        ToolTip.text: tip
+    }
 
     color: Theme.card
     topLeftRadius: Theme.rWindow
@@ -29,6 +90,7 @@ Rectangle {
     Item {
         objectName: "pushfps-titlebar-drag"
         anchors.fill: parent
+        anchors.leftMargin: bar.leadWidth
         anchors.rightMargin: bar.buttonsWidth
         TapHandler { onDoubleTapped: bar.requestMaximize() }
         DragHandler {
@@ -40,9 +102,18 @@ Rectangle {
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 14
+        anchors.leftMargin: bar.navToggleShown ? 10 : 14
         anchors.rightMargin: 6
         spacing: 10
+        // The navigation: its names shown, or folded to its icons.
+        SideButton {
+            objectName: "pushfps-nav-toggle"
+            visible: bar.navToggleShown
+            Layout.alignment: Qt.AlignVCenter
+            shown: !bar.navCollapsed
+            tip: bar.navCollapsed ? qsTr("展开导航栏") : qsTr("收起导航栏")
+            onPressed: bar.requestToggleNav()
+        }
         Image {
             Layout.alignment: Qt.AlignVCenter
             source: Theme.logoImage
@@ -90,6 +161,16 @@ Rectangle {
                     font.pixelSize: 12
                 }
             }
+        }
+        // The settings side of the page: shown or hidden.
+        SideButton {
+            objectName: "pushfps-side-toggle"
+            visible: bar.sideToggleShown
+            Layout.alignment: Qt.AlignVCenter
+            right: true
+            shown: !bar.sideCollapsed
+            tip: bar.sideCollapsed ? qsTr("显示右侧设置栏") : qsTr("隐藏右侧设置栏")
+            onPressed: bar.requestToggleSide()
         }
         // The window's buttons.
         Repeater {

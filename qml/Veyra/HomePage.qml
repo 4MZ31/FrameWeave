@@ -40,6 +40,7 @@ VPage {
     function showInQuick(entry) {
         const section = quickSetup.sectionItem(entry.section)
         if (!section) return
+        root.showSide()
         const folded = !section.open
         if (folded) quickSetup.setSectionOpen(entry.section, true)
         root.quickWanted = entry
@@ -70,8 +71,13 @@ VPage {
     readonly property real paneGap: 14
     readonly property real leftWidth: Math.round(Math.max(236, Math.min(290, width * 0.21)))
     readonly property real rightWidth: Math.round(Math.max(336, Math.min(410, width * 0.30)))
+    // (4.3.1) The settings side hidden with the title bar's button: the picture's column takes its
+    // room. Quick setup is still the same item; whatever asks to be shown a row of it brings the
+    // side back first (showSide).
+    readonly property bool sideCollapsed: threePane && veyra.preferences.pushSideCollapsed === true
+    function showSide() { if (sideCollapsed) veyra.setPreference("pushSideCollapsed", false) }
     readonly property real midX: paneMargin + leftWidth + paneGap
-    readonly property real midWidth: Math.max(1, width - 2 * paneMargin - leftWidth - rightWidth - 2 * paneGap)
+    readonly property real midWidth: Math.max(1, width - 2 * paneMargin - leftWidth - paneGap - (sideCollapsed ? 0 : rightWidth + paneGap))
     readonly property real actionHeight: 44
     // The picture: 16:9 in the middle column, never taller than leaves room for its own row of actions
     // and a strip of picture and sound under it.
@@ -87,7 +93,7 @@ VPage {
         const item = key === "capture" ? captureCard : quickSetup.tourItem(key)
         return item ? { item: item, viewport: root.threePane ? (key === "capture" ? leftFlick : key === "tools" ? midFlick : rightFlick) : content } : null
     }
-    function showTourStep(key) { quickSetup.showTourStep(key) }
+    function showTourStep(key) { if (key !== "capture" && key !== "tools") root.showSide(); quickSetup.showTourStep(key) }
     // Opens 画面与声音 and scrolls it into view (the screenshot run's `--tab tuning`).
     function showTuning() {
         tuning.open = true
@@ -114,6 +120,7 @@ VPage {
         for (const g of [[groupA, leftFlick], [groupB, rightFlick], [groupT, midFlick], [groupC, leftFlick]]) {
             const target = find(g[0])
             if (!target) continue
+            if (g[0] === groupB) root.showSide()
             if (root.threePane) {
                 const view = g[1]
                 view.contentY = Math.max(0, Math.min(target.mapToItem(view.contentItem, 0, 0).y - 24, view.contentHeight - view.height))
@@ -878,6 +885,7 @@ VPage {
         Rectangle {
             id: rightPane
             objectName: "home-desk-settings"
+            visible: !root.sideCollapsed
             x: desk.width - root.paneMargin - root.rightWidth
             y: root.paneMargin
             width: root.rightWidth
