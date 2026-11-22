@@ -1964,6 +1964,9 @@ VPage {
                                 // 档位与作者原版一致（只有数字档）；自动选择由下方独立开关控制。
                                 hint: veyra.fgDisplayHint.length > 0 ? veyra.fgDisplayHint : veyra.fgMaxMultiplier + qsTr("X 为上限")
                                 hintColor: veyra.fgDisplayHint.length > 0 ? Theme.warn : Theme.t3
+                                // (PushFPS 4.2.2) One of the two is shown; in one layout they can never stand on top of each other.
+                                RowLayout {
+                                spacing: 0
                                 VSeg {
                                     visible: veyra.fgBackendName !== "vfg"
                                     options: veyra.fgMultiplierChoices
@@ -1976,6 +1979,7 @@ VPage {
                                     options: veyra.fgMultiplierChoices
                                     value: String(veyra.fgMultiplier) + "X"
                                     onPicked: id => veyra.fgMultiplier = Number(id)
+                                }
                                 }
                             }
                             // PushFPS adaptive multiplier (EnhancementSettings::fgAdaptive): the multiplier
