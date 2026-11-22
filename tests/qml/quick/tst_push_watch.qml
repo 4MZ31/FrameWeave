@@ -67,6 +67,26 @@ Item {
             verify(veyra.nrAnyEnabled)
             watch.setEnhancement(false)
         }
+        // 4.2.1: "Sharper" is switched on with an upscaler this card can run (PushUpscale.js): with one it
+        // cannot run the engine switches the stage off again, and the switch did nothing on such a card.
+        function test_sharper_takes_an_upscaler_the_card_can_run() {
+            const wasChoices = veyra.srBackendChoices, wasQuality = veyra.videoSrQuality
+            veyra.srEnabled = false
+            veyra.videoSrQuality = 2
+            control("watch-sharp").toggled(true)
+            verify(veyra.srEnabled)
+            compare(veyra.videoSrQuality, 2, "an upscaler the card runs is kept")
+            control("watch-sharp").toggled(false)
+            verify(!veyra.srEnabled)
+            veyra.srBackendChoices = [{id: "0", label: "DLSS SR", disabled: true}, {id: "rtx", label: "RTX", disabled: true},
+                                      {id: "5", label: "FSR 3.1 / 4"}, {id: "6", label: "NVIDIA Image Scaling (NIS)"}]
+            control("watch-sharp").toggled(true)
+            verify(veyra.srEnabled)
+            compare(veyra.videoSrQuality, 5, "a card without the NVIDIA upscalers gets FSR")
+            control("watch-sharp").toggled(false)
+            compare(veyra.videoSrQuality, 5, "switching off changes nothing else")
+            veyra.srBackendChoices = wasChoices; veyra.videoSrQuality = wasQuality; veyra.srEnabled = false
+        }
         SignalSpy { id: navigations; target: veyra; signalName: "navigate" }
         SignalSpy { id: settingsRequests; target: watch; signalName: "requestSettings" }
         // Recording as in Professional mode: record, comparison clip (same dialog), instant replay,

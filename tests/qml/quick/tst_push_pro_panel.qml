@@ -7,6 +7,7 @@
 import QtQuick
 import QtTest
 import Veyra
+import VeyraTest 1.0   // the Professional page is private to the shell's folder; the test program registers it here
 
 Item {
     id: root

@@ -1352,6 +1352,11 @@
      "file": "tests/qml/quick/tst_push_diagnose.qml",
      "ci": "tst_push_diagnose",
      "contains": "verify(!veyra.srEnabled, \"nothing changes until the button is pressed\")"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_watch.qml",
+     "ci": "tst_push_watch",
+     "contains": "function test_sharper_takes_an_upscaler_the_card_can_run"
     }
    ]
   },

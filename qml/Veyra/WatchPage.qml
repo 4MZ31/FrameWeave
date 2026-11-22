@@ -13,6 +13,7 @@ import QtQuick.Layouts
 import "EffectSupport.js" as Support
 import "PushCompareClip.js" as CompareClip
 import "PushRecord.js" as Record
+import "PushUpscale.js" as Upscale
 
 VPage {
     id: watch
@@ -219,7 +220,17 @@ VPage {
                             enabled: watch.srOk
                             opacity: enabled ? 1 : 0.4
                             checked: veyra.srEnabled === true
-                            onToggled: checked => veyra.srEnabled = checked
+                            // PushFPS 4.2.1: switched on with an upscaler this card can run (PushUpscale.js). With
+                            // one it cannot run the engine switches the stage off again, so on a card without the
+                            // NVIDIA upscalers this switch did nothing.
+                            onToggled: checked => {
+                                if (checked) {
+                                    const now = typeof veyra.srAlgorithmOf === "function" ? String(veyra.srAlgorithmOf(veyra.videoSrQuality)) : ""
+                                    const id = Upscale.method(veyra.srBackendChoices, now)
+                                    if (id !== "" && id !== now) veyra.videoSrQuality = veyra.srQualityFor(id, veyra.srTierOf(veyra.videoSrQuality))
+                                }
+                                veyra.srEnabled = checked
+                            }
                         }
                     }
                     VRow {

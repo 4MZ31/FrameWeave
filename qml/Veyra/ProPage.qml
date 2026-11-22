@@ -14,6 +14,7 @@ import QtQuick.Controls.Basic as Basic
 import QtQuick.Layouts
 import "EffectSupport.js" as Support
 import "PushRecord.js" as Record
+import "PushUpscale.js" as Upscale
 import QtQuick.Shapes
 import QtQuick.Effects
 
@@ -1559,7 +1560,17 @@ VPage {
                                 || veyra.srBackendChoices?.find(o => o.id === veyra.srAlgorithmOf(veyra.dualSrQuality))?.label || ""
                             on: veyra.srEnabled
                             open: true
-                            onToggled: on => veyra.srEnabled = on
+                            // (PushFPS 4.2.1: switched on with an upscaler this card can run, when the one chosen
+                            // is not among them; the engine would switch the stage off again otherwise. A choice
+                            // the card can run is never changed.)
+                            onToggled: on => {
+                                if (on) {
+                                    const now = String(veyra.srAlgorithmOf(veyra.videoSrQuality))
+                                    const id = Upscale.method(veyra.srBackendChoices, now)
+                                    if (id !== "" && id !== now) veyra.videoSrQuality = veyra.srQualityFor(id, veyra.srTierOf(veyra.videoSrQuality))
+                                }
+                                veyra.srEnabled = on
+                            }
 
                             VRow {
                                 label: qsTr("超分算法")
