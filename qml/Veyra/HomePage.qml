@@ -14,13 +14,35 @@ VPage {
     // The first-run tour (PushTour.qml; the tour itself is OnboardingGuide in Main.qml): asked for with the
     // button under the cards, and what its steps on this page point at.
     signal requestOnboarding()
+    // PushFPS redesign (the new home page): the big picture, and the Appearance panel.
+    signal requestFullscreen()
+    signal requestAppearance()
+    // Three panes when there is room for them: sources | the picture | quick setup. Otherwise (legacy,
+    // or a narrow window in the new design) one column, as the page always was.
+    readonly property bool threePane: Theme.modern && width >= 900
+    // Picture and sound stands open under the picture the first time the three panes are shown.
+    property bool tuningOpened: false
+    onThreePaneChanged: if (threePane && !tuningOpened) { tuningOpened = true; tuning.open = true }
+    readonly property real paneMargin: 16
+    readonly property real paneGap: 14
+    readonly property real leftWidth: Math.round(Math.max(236, Math.min(290, width * 0.21)))
+    readonly property real rightWidth: Math.round(Math.max(336, Math.min(410, width * 0.30)))
+    readonly property real midX: paneMargin + leftWidth + paneGap
+    readonly property real midWidth: Math.max(1, width - 2 * paneMargin - leftWidth - rightWidth - 2 * paneGap)
+    readonly property real actionHeight: 44
+    // The picture: 16:9 in the middle column, never taller than leaves room for its own row of actions
+    // and a strip of picture and sound under it.
+    readonly property real previewHeight: Math.round(Math.max(120, Math.min(midWidth * 9 / 16, height - 2 * paneMargin - actionHeight - 2 * paneGap - 60)))
+    // Where the native picture window stands on this page (Main.qml videoRect): inside the preview
+    // card's outline. No rectangle without the three panes: the legacy home page shows no picture.
+    readonly property rect videoViewport: threePane ? Qt.rect(midX + 1, paneMargin + 1, midWidth - 2, previewHeight - 2) : Qt.rect(0, 0, 0, 0)
     readonly property Item onboardingEntry: tourEntry
     readonly property alias sourceViewport: content
     // Whether this PC offers what a step is about (a step for something that is not there is left out).
     function tourOffers(what) { return quickSetup.tourItem(what) !== null }
     function tourTarget(key) {
         const item = key === "capture" ? captureCard : quickSetup.tourItem(key)
-        return item ? { item: item, viewport: content } : null
+        return item ? { item: item, viewport: root.threePane ? (key === "capture" ? leftFlick : rightFlick) : content } : null
     }
     function showTourStep(key) { quickSetup.showTourStep(key) }
     // Opens 画面与声音 and scrolls it into view (the screenshot run's `--tab tuning`).
@@ -31,7 +53,10 @@ VPage {
     Timer {
         id: tuningScroll
         interval: 450
-        onTriggered: content.contentY = Math.max(0, Math.min(tuning.mapToItem(column, 0, 0).y - 24, content.contentHeight - content.height))
+        onTriggered: {
+            if (root.threePane) midFlick.contentY = 0
+            else content.contentY = Math.max(0, Math.min(tuning.mapToItem(column, 0, 0).y - 24, content.contentHeight - content.height))
+        }
     }
     // The screenshot run's `--scroll-to <objectName>` on this page (as SettingsPage.scrollToObject).
     function scrollToObject(name) {
@@ -42,10 +67,19 @@ VPage {
             for (let i = 0; i < item.children.length; ++i) { const r = find(item.children[i]); if (r) return r }
             return null
         }
-        const target = find(column)
-        if (!target) return false
-        content.contentY = Math.max(0, Math.min(target.mapToItem(column, 0, 0).y - 24, content.contentHeight - content.height))
-        return true
+        // The four groups are the page's contents wherever they stand; each has its own list in the three panes.
+        for (const g of [[groupA, leftFlick], [groupB, rightFlick], [groupT, midFlick], [groupC, leftFlick]]) {
+            const target = find(g[0])
+            if (!target) continue
+            if (root.threePane) {
+                const view = g[1]
+                view.contentY = Math.max(0, Math.min(target.mapToItem(view.contentItem, 0, 0).y - 24, view.contentHeight - view.height))
+            } else {
+                content.contentY = Math.max(0, Math.min(target.mapToItem(column, 0, 0).y - 24, content.contentHeight - content.height))
+            }
+            return true
+        }
+        return false
     }
     // Veyra 2.1.9's startup intro hooks (Main.qml); PushFPS has no intro, so nothing is held.
     property bool introHold: false
@@ -61,6 +95,7 @@ VPage {
     // home is still here; the content scrolls when the window is short.
     Flickable {
         id: content
+        visible: !root.threePane
         anchors.fill: parent
         anchors.bottomMargin: 44
         readonly property real columnWidthMax: 600
@@ -107,12 +142,30 @@ VPage {
             width: content.columnWidth
             spacing: 0
 
+            // PushFPS redesign: the page's contents are four groups (sources; quick setup; picture and
+            // sound; the lesser actions and recent files). Here, in the legacy design and in a window
+            // too narrow for three panes, they stand under each other as they always did. In the new
+            // design the sources stand left of the picture, quick setup right of it, picture and sound
+            // under it (below).
+            Item { id: slotA; Layout.fillWidth: true; implicitHeight: groupA.parent === slotA ? groupA.implicitHeight : 0 }
+            Item { id: slotB; Layout.fillWidth: true; implicitHeight: groupB.parent === slotB ? groupB.implicitHeight : 0 }
+            Item { id: slotT; Layout.fillWidth: true; implicitHeight: groupT.parent === slotT ? groupT.implicitHeight : 0 }
+            Item { id: slotC; Layout.fillWidth: true; implicitHeight: groupC.parent === slotC ? groupC.implicitHeight : 0 }
+        }
+    }
+
+    // The three groups. Each is declared once and stands where the design puts it.
+    ColumnLayout {
+        id: groupA
+        parent: root.threePane ? paneSlotA : slotA
+        width: parent ? parent.width : 0
+        spacing: 0
             // Sunset City logo (scripts/brand/make_sunset.py; its glow is baked into the image, 70/1340
             // of the width on each side). The startup intro glides into exactly this rect.
             Image {
                 id: sunsetLogo
                 objectName: "home-sunset-logo"
-                visible: root.sunset
+                visible: root.sunset && !Theme.modern   // the new design has the wordmark in its title bar
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: -6
                 Layout.bottomMargin: -22
@@ -169,6 +222,7 @@ VPage {
 
             ColumnLayout {
                 id: hello
+                visible: !Theme.modern
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 14
                 spacing: 6
@@ -194,7 +248,7 @@ VPage {
                 // The last source actually used: capture card, PS5 or screen capture.
                 readonly property var last: veyra.lastSource
                 visible: last.kind !== undefined
-                implicitWidth: content.columnWidth
+                implicitWidth: root.threePane ? groupA.width : content.columnWidth
                 implicitHeight: 54
                 radius: 14
                 border.width: 1
@@ -252,7 +306,7 @@ VPage {
                 id: captureCard
                 objectName: "home-capture"
                 Layout.fillWidth: true
-                Layout.topMargin: resume.visible ? 12 : 28
+                Layout.topMargin: Theme.modern ? (resume.visible ? 10 : 0) : resume.visible ? 12 : 28
                 implicitHeight: 76
                 radius: Theme.rCard
                 color: captureHover.hovered ? Theme.card2 : Theme.card
@@ -330,7 +384,8 @@ VPage {
                     { glyph: "import", title: qsTr("其他应用"), act: "frameinput" }
                 ]
                 readonly property int shownCount: shown.filter(c => srcGrid.available(c.act)).length
-                columns: width >= 140 * shownCount + 10 * (shownCount - 1) ? shownCount : Math.ceil(shownCount / 2)
+                // (The new design's left pane: one card to a line, so no card is ever squeezed.)
+                columns: root.threePane ? 1 : width >= 140 * shownCount + 10 * (shownCount - 1) ? shownCount : Math.ceil(shownCount / 2)
                 columnSpacing: 10
                 rowSpacing: 10
                 Repeater {
@@ -351,7 +406,9 @@ VPage {
                             radius: 12
                             color: cardHover.hovered ? Theme.card2 : Theme.card
                             border.width: 1
-                            border.color: cardHover.hovered ? Theme.stroke2 : Theme.stroke
+                            // (The new design: the edge lights up in the accent under the pointer.)
+                            border.color: cardHover.hovered ? (Theme.modern ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.7) : Theme.stroke2) : Theme.stroke
+                            Behavior on border.color { ColorAnimation { duration: Theme.d(160) } }
                             y: cardHover.hovered ? -2 : 0
                             Behavior on y { NumberAnimation { duration: Theme.d(500); easing.bezierCurve: Theme.spring } }
                             Behavior on color { ColorAnimation { duration: Theme.d(Theme.durFast) } }
@@ -409,6 +466,12 @@ VPage {
                 }
             }
 
+    }
+    ColumnLayout {
+        id: groupB
+        parent: root.threePane ? paneSlotB : slotB
+        width: parent ? parent.width : 0
+        spacing: 0
             // PushFPS: pick the frame rate before connecting; the same settings as
             // Professional → 补帧, in their short form.
             PushQuickSetup {
@@ -417,16 +480,22 @@ VPage {
                 compact: true
                 showSetupTip: true
                 Layout.fillWidth: true
-                Layout.topMargin: 22
+                Layout.topMargin: root.threePane ? 0 : 22
             }
 
+    }
+    ColumnLayout {
+        id: groupT
+        parent: root.threePane ? paneSlotT : slotT
+        width: parent ? parent.width : 0
+        spacing: 0
             // PushFPS picture and sound: the everyday colour controls with presets and
             // the sound profile, folded away until wanted.
             VAccordion {
                 id: tuning
                 objectName: "home-picture-sound"
                 Layout.fillWidth: true
-                Layout.topMargin: 12
+                Layout.topMargin: root.threePane ? 0 : 12
                 glyph: "sliders"
                 title: qsTr("画面与声音")
                 summary: {
@@ -439,19 +508,28 @@ VPage {
                 PushSoundProfile { id: homeSound; Layout.fillWidth: true; compact: true }
             }
 
+    }
+    ColumnLayout {
+        id: groupC
+        parent: root.threePane ? paneSlotC : slotC
+        width: parent ? parent.width : 0
+        spacing: 0
             // The lesser actions on one line.
-            RowLayout {
+            // (One line in the one column; one under the other in the new design's left pane.)
+            GridLayout {
                 id: moreActions
-                Layout.alignment: Qt.AlignHCenter
+                Layout.alignment: root.threePane ? Qt.AlignLeft : Qt.AlignHCenter
                 Layout.topMargin: 14
-                spacing: 6
+                columns: root.threePane ? 1 : 5
+                columnSpacing: 6
+                rowSpacing: 2
                 VButton {
                     objectName: "home-playlist"
                     ghost: true
                     text: qsTr("播放列表 · 导入文件夹"); iconName: "list"
                     onClicked: veyra.showPlaylist()
                 }
-                Rectangle { implicitWidth: 1; implicitHeight: 14; color: Theme.stroke2 }
+                Rectangle { visible: !root.threePane; implicitWidth: 1; implicitHeight: 14; color: Theme.stroke2 }
                 VButton {
                     objectName: "home-network"
                     ghost: true
@@ -459,7 +537,7 @@ VPage {
                     iconName: "cast"
                     onClicked: veyra.openNetworkDialog()
                 }
-                Rectangle { implicitWidth: 1; implicitHeight: 14; color: Theme.stroke2 }
+                Rectangle { visible: !root.threePane; implicitWidth: 1; implicitHeight: 14; color: Theme.stroke2 }
                 // The first-run tour, whenever it is wanted again.
                 VButton {
                     id: tourEntry
@@ -482,7 +560,7 @@ VPage {
                 id: recent
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 14
-                Layout.preferredWidth: content.columnWidth
+                Layout.preferredWidth: root.threePane ? groupC.width : content.columnWidth
                 visible: veyra.recentFiles.length > 0
                 spacing: 8
                 Text {
@@ -532,13 +610,235 @@ VPage {
                     }
                 }
             }
+    }
+
+    // --- PushFPS redesign: sources | the picture | quick setup ---------------------------------
+    // Nothing here is a new setting or a second copy of one: the panes hold the page's own groups.
+    Item {
+        id: desk
+        objectName: "home-desk"
+        anchors.fill: parent
+        visible: root.threePane
+        opacity: root.introHold ? 0 : 1
+        Behavior on opacity { NumberAnimation { duration: Theme.d(420); easing.type: Easing.OutCubic } }
+
+        // Left: where the picture comes from.
+        Rectangle {
+            id: leftPane
+            objectName: "home-desk-sources"
+            x: root.paneMargin; y: root.paneMargin
+            width: root.leftWidth
+            height: desk.height - 2 * root.paneMargin
+            radius: Theme.rCard
+            color: Theme.card
+            border.width: 1
+            border.color: Theme.stroke
+            Flickable {
+                id: leftFlick
+                anchors.fill: parent
+                anchors.margins: 12
+                contentWidth: width
+                contentHeight: leftColumn.implicitHeight
+                interactive: contentHeight > height + 1
+                boundsBehavior: Flickable.StopAtBounds
+                clip: true
+                ScrollBar.vertical: VScrollBar {}
+                ColumnLayout {
+                    id: leftColumn
+                    width: leftFlick.width
+                    spacing: 0
+                    Text {
+                        Layout.fillWidth: true
+                        Layout.bottomMargin: 10
+                        text: qsTr("片源")
+                        color: Theme.t1
+                        font.family: Theme.fontUi
+                        font.pixelSize: Theme.fsH3
+                        font.variableAxes: Theme.axesDemiBold
+                        elide: Text.ElideRight
+                    }
+                    Item { id: paneSlotA; Layout.fillWidth: true; implicitHeight: groupA.parent === paneSlotA ? groupA.implicitHeight : 0 }
+                    Item { id: paneSlotC; Layout.fillWidth: true; implicitHeight: groupC.parent === paneSlotC ? groupC.implicitHeight : 0 }
+                    Text {
+                        Layout.fillWidth: true
+                        Layout.topMargin: 18
+                        text: qsTr("免费开源 · 基于 Veyra 构建")
+                        color: Theme.t3
+                        font.family: Theme.fontUi
+                        font.pixelSize: Theme.fsSmall
+                        wrapMode: Text.WordWrap
+                    }
+                }
+            }
         }
+
+        // Middle: the picture. The native picture window stands inside this card's outline while a
+        // source plays (videoViewport); with none, the card says so and offers the two usual ways in.
+        Rectangle {
+            id: previewCard
+            objectName: "home-desk-preview"
+            x: root.midX; y: root.paneMargin
+            width: root.midWidth
+            height: root.previewHeight
+            radius: 4
+            color: veyra.hasSource === true ? Theme.videoBlack : Theme.card
+            border.width: 1
+            border.color: previewHover.hovered && veyra.hasSource !== true ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.6) : Theme.stroke
+            Behavior on border.color { ColorAnimation { duration: Theme.d(160) } }
+            HoverHandler { id: previewHover }
+            ColumnLayout {
+                objectName: "home-desk-empty"
+                visible: veyra.hasSource !== true
+                anchors.centerIn: parent
+                width: Math.min(parent.width - 32, 420)
+                spacing: 10
+                VIcon { Layout.alignment: Qt.AlignHCenter; name: "tv"; size: 30; color: Theme.t3 }
+                Text {
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    text: qsTr("未打开片源")
+                    color: Theme.t1
+                    font.family: Theme.fontUi
+                    font.pixelSize: Theme.fsH3
+                    font.variableAxes: Theme.axesDemiBold
+                    elide: Text.ElideRight
+                }
+                Text {
+                    visible: previewCard.height >= 230
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    text: qsTr("主机画面经采集卡接入，由电脑补帧到 60 或 120 FPS")
+                    color: Theme.t3
+                    font.family: Theme.fontUi
+                    font.pixelSize: Theme.fsBody
+                    wrapMode: Text.WordWrap
+                }
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.topMargin: 4
+                    spacing: 8
+                    VButton {
+                        objectName: "home-desk-connect"
+                        primary: true
+                        iconName: "play"
+                        text: qsTr("连接")
+                        onClicked: captureCard.open()
+                    }
+                    VButton {
+                        objectName: "home-desk-open"
+                        iconName: "folder"
+                        text: qsTr("打开视频")
+                        onClicked: veyra.openFileDialog()
+                    }
+                }
+            }
+        }
+        // Under the picture: what plays, and the way to the big picture.
+        RowLayout {
+            id: previewActions
+            objectName: "home-desk-actions"
+            x: root.midX
+            y: root.paneMargin + root.previewHeight + root.paneGap
+            width: root.midWidth
+            height: root.actionHeight
+            spacing: 8
+            VDot { off: veyra.hasSource !== true; warn: veyra.captureRecovering === true }
+            Text {
+                Layout.fillWidth: true
+                text: veyra.hasSource === true ? (String(veyra.sourceTitle || "").length > 0 ? veyra.sourceTitle : qsTr("已连接")) : qsTr("未连接")
+                color: veyra.hasSource === true ? Theme.t1 : Theme.t3
+                font.family: Theme.fontUi
+                font.pixelSize: Theme.fsBody
+                elide: Text.ElideMiddle
+            }
+            VButton {
+                objectName: "home-desk-stop"
+                visible: veyra.hasSource === true
+                ghost: true
+                text: qsTr("断开")
+                onClicked: veyra.stopPlayback()
+            }
+            VButton {
+                objectName: "home-desk-fullscreen"
+                primary: true
+                enabled: veyra.hasSource === true
+                opacity: enabled ? 1 : 0.45
+                iconName: "max"
+                text: qsTr("全屏")
+                onClicked: root.requestFullscreen()
+            }
+        }
+        // Under that: picture and sound, with the picture right above it.
+        Flickable {
+            id: midFlick
+            objectName: "home-desk-tuning"
+            x: root.midX
+            y: previewActions.y + root.actionHeight + root.paneGap
+            width: root.midWidth
+            height: Math.max(0, desk.height - y - root.paneMargin)
+            contentWidth: width
+            contentHeight: paneSlotT.implicitHeight
+            interactive: contentHeight > height + 1
+            boundsBehavior: Flickable.StopAtBounds
+            clip: true
+            ScrollBar.vertical: VScrollBar {}
+            Item { id: paneSlotT; width: midFlick.width - 10; height: implicitHeight; implicitHeight: groupT.parent === paneSlotT ? groupT.implicitHeight : 0 }
+        }
+
+        // Right: quick setup, every section of it, in one list.
+        Flickable {
+            id: rightFlick
+            objectName: "home-desk-settings"
+            x: desk.width - root.paneMargin - root.rightWidth
+            y: root.paneMargin
+            width: root.rightWidth
+            height: desk.height - 2 * root.paneMargin
+            contentWidth: width
+            contentHeight: paneSlotB.implicitHeight
+            interactive: contentHeight > height + 1
+            boundsBehavior: Flickable.StopAtBounds
+            clip: true
+            ScrollBar.vertical: VScrollBar {}
+            Item { id: paneSlotB; width: rightFlick.width - 10; height: implicitHeight; implicitHeight: groupB.parent === paneSlotB ? groupB.implicitHeight : 0 }
+        }
+    }
+
+    // The painter's palette of the legacy design: the way to the Appearance panel, and so back to the
+    // new design (the new design has it at the bottom of its navigation).
+    Item {
+        id: legacyPalette
+        objectName: "home-appearance"
+        visible: !Theme.modern
+        x: 14
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 8
+        width: 32; height: 32
+        activeFocusOnTab: true
+        Accessible.role: Accessible.Button
+        Accessible.name: qsTr("外观")
+        Keys.onReturnPressed: root.requestAppearance()
+        Keys.onSpacePressed: root.requestAppearance()
+        Rectangle {
+            anchors.fill: parent
+            radius: 16
+            color: paletteHover.hovered ? Theme.card2 : "transparent"
+            border.width: 1
+            border.color: paletteHover.hovered || legacyPalette.activeFocus ? Theme.accent : Theme.stroke2
+            Behavior on border.color { ColorAnimation { duration: Theme.d(160) } }
+        }
+        VIcon { anchors.centerIn: parent; name: "palette"; size: 16; color: paletteHover.hovered ? Theme.t1 : Theme.t2 }
+        HoverHandler { id: paletteHover; cursorShape: Qt.PointingHandCursor }
+        TapHandler { onTapped: root.requestAppearance() }
+        ToolTip.visible: paletteHover.hovered
+        ToolTip.delay: 300
+        ToolTip.text: qsTr("外观")
     }
 
     // Free and open source, built on Veyra (since 3.1.3 PushFPS links no sponsor pages).
     Text {
         id: creditLine
         objectName: "home-credit"
+        visible: !root.threePane   // the three panes have it at the foot of the sources
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 18

@@ -55,6 +55,13 @@ Window {
         running: root.test.compare !== undefined
         onTriggered: if (veyra.hasSource && veyra.compareMode !== 2) { veyra.compareMode = 2; veyra.setCompareSplitAt(Number(root.test.compare)) }
     }
+    // PushFPS redesign (screenshots only, --tab home-preview with a source on the command line): back to the
+    // home page once the picture plays, to photograph the new home page with its live preview.
+    Timer {
+        interval: 6000
+        running: root.test.tab === "home-preview"
+        onTriggered: if (veyra.hasSource) root.goPage("home")
+    }
     readonly property bool cinema: page === "min"
     // Maximized behaves like fullscreen for geometry: the screen owns the size,
     // so the cinema aspect rule must not fight the window manager.
@@ -77,6 +84,32 @@ Window {
     Binding { target: Theme; property: "backdropLevel"; value: veyra.preferences.backdrop !== undefined ? veyra.preferences.backdrop : 1 }
     // PushFPS appearance: default, black or light (设置 → 外观, or --theme for screenshots).
     Binding { target: Theme; property: "mode"; value: root.test.theme !== undefined ? root.test.theme : (veyra.preferences.pushTheme || "default") }
+    // PushFPS redesign: the new design unless Legacy was chosen (the palette button's Appearance panel,
+    // preference pushDesign; --pref pushDesign=legacy for screenshots).
+    Binding { target: Theme; property: "design"; value: veyra.preferences.pushDesign === "legacy" ? "legacy" : "new" }
+    // The new design's shell: a title bar, the named navigation and a status strip stand around the
+    // pages, which keep their ids, their contents and their own picture rectangles (videoRect adds
+    // where the pages stand). Not in cinema, where the picture is the window, and not in full screen:
+    // there everything is as it always was, the dock included.
+    readonly property bool shellShown: Theme.modern && !fullscreen && page !== "min" && test.portableUpdateProbe !== true
+    readonly property bool navSlim: width < 1100
+    readonly property real shellLeft: shellShown ? (navSlim ? Theme.shellNavSlim : Theme.shellNav) : 0
+    readonly property real shellTop: shellShown ? Theme.shellHeader : 0
+    readonly property real shellBottom: shellShown ? Theme.shellStatus : 0
+    onShellShownChanged: Qt.callLater(videoHost.syncRect)
+    onNavSlimChanged: Qt.callLater(videoHost.syncRect)
+    function pageName(p) {
+        switch (p) {
+        case "home": return qsTr("首页")
+        case "pro": return qsTr("专业模式")
+        case "node": return qsTr("节点模式")
+        case "live": return qsTr("直播模式")
+        case "watch": return qsTr("视频播放模式")
+        case "exp": return qsTr("导出")
+        case "set": return qsTr("设置")
+        default: return ""
+        }
+    }
 
     // Cinema geometry: the main window ends at the picture. The independent pill
     // can extend below it without leaving an opaque strip in this window.
@@ -245,34 +278,54 @@ Window {
         case "pro":
             // Share the page's responsive header, transport and status dimensions.
             // A second fixed-height formula let the HWND cover the playback bar.
-            return proPage.videoViewport
+            return onPages(proPage.videoViewport)
         case "node":
-            return nodePage.videoViewport
+            return onPages(nodePage.videoViewport)
         case "exp":
-            return ExportLayout.calculate(width, height, exportPage.compactTab).video
+            return onPages(ExportLayout.calculate(pages.width, pages.height, exportPage.compactTab).video)
         case "live":
             // PushFPS streaming mode: the preview card (StudioLayout.js).
-            return studioPage.videoViewport
+            return onPages(studioPage.videoViewport)
         case "watch":
             // PushFPS video playback mode: the picture beside its controls.
-            return watchPage.videoViewport
+            return onPages(watchPage.videoViewport)
+        case "home":
+            // PushFPS redesign: the new home page has the picture in its middle (legacy has none: 0 x 0).
+            return Theme.modern ? onPages(homePage.videoViewport) : { x: 0, y: 0, width: 0, height: 0 }
         default:
             return { x: 0, y: 0, width: 0, height: 0 }
         }
     }
+    // A page's own rectangle, in the window's coordinates: the pages stand inside the new design's
+    // shell. Without the shell (legacy, cinema, full screen) the pages fill the window and this adds 0.
+    function onPages(r) { return { x: r.x + pages.x, y: r.y + pages.y, width: r.width, height: r.height } }
 
     // Pages live for the whole session so switching never loses a half-edited
     // chain; only the visible page owns the video window.
     Item {
         id: pages
         anchors.fill: parent
+        anchors.leftMargin: root.shellLeft
+        anchors.topMargin: root.shellTop
+        anchors.bottomMargin: root.shellBottom
+        onXChanged: videoHost.syncRect()
+        onYChanged: videoHost.syncRect()
+        onWidthChanged: videoHost.syncRect()
+        onHeightChanged: videoHost.syncRect()
         // In fullscreen the picture covers the page, and the native video window
         // passes the pointer through: a hidden page control must not take a click
         // meant for the picture.
         visible: !root.fullscreen || root.page === "home" || root.page === "set" || root.quickPanelShown
         // Each page is shown while current or while sinking out; the sinking one
         // takes no input (.page.leave { pointer-events: none }).
-        HomePage { id: homePage; pageId: "home"; home: pages; topInset: dock.pinned && !homePage.sunset ? 40 : 0; onRequestPage: p => root.goPage(p); onRequestOnboarding: root.startTour("home") }
+        HomePage {
+            id: homePage; pageId: "home"; home: pages; topInset: !Theme.modern && dock.pinned && !homePage.sunset ? 40 : 0
+            onRequestPage: p => root.goPage(p); onRequestOnboarding: root.startTour("home")
+            // PushFPS redesign: the new home page has the picture in its middle.
+            onVideoViewportChanged: if (root.page === "home" && !root.fullscreen) videoHost.syncRect()
+            onRequestFullscreen: { root.goPage("min"); Qt.callLater(root.toggleFullscreen) }
+            onRequestAppearance: dialogs.open("appearance")
+        }
         MinimalPage {
             id: minPage
             pageId: "min"
@@ -346,10 +399,46 @@ Window {
         }
     }
 
+    // PushFPS redesign: the shell. None of it lies over a page or over the picture.
+    PushTitleBar {
+        id: shellBar
+        visible: root.shellShown
+        x: 1; y: 1
+        width: parent.width - 2
+        height: Theme.shellHeader - 1
+        pageName: root.pageName(root.page)
+        maximized: root.maximized
+        onRequestMinimize: root.showMinimized()
+        onRequestMaximize: root.toggleMaximized()
+        onRequestClose: root.close()
+        onRequestMove: root.startSystemMove()
+    }
+    PushSidebar {
+        id: shellNav
+        visible: root.shellShown
+        x: 1; y: Theme.shellHeader
+        width: root.shellLeft - 1
+        height: parent.height - Theme.shellHeader - 1
+        slim: root.navSlim
+        // The node page is the professional mode's node view.
+        currentPage: root.page === "node" ? "pro" : root.page
+        onRequestPage: p => root.goPage(p)
+        onRequestAppearance: dialogs.open("appearance")
+    }
+    PushStatusStrip {
+        id: shellStatus
+        visible: root.shellShown
+        x: root.shellLeft; y: parent.height - Theme.shellStatus
+        width: parent.width - root.shellLeft - 1
+        height: Theme.shellStatus - 1
+    }
+
     // The five dialogs sit above the pages and below the dock's own tooltips.
     DialogHost {
         id: dialogs
         anchors.fill: parent
+        // PushFPS redesign: the Appearance panel's way to the full settings.
+        onRequestAppearanceSettings: { dialogs.close(); settingsPage.section = "look"; root.goPage("set") }
         onboardingActive: root.onboardingActive
         // The dialogs open the source through the bridge; show the picture.
         onStartPs5: if (root.page === "home") root.goPage("min")
@@ -442,6 +531,8 @@ Window {
     // The dock floats above every page and retracts on its own.
     TopDock {
         id: dock
+        // (PushFPS redesign: where the new design's shell stands, its navigation and title bar do the dock's work.)
+        visible: !root.shellShown
         anchors.horizontalCenter: parent.horizontalCenter
         // The node page is the professional mode's node view.
         currentPage: root.page === "node" ? "pro" : root.page
@@ -1191,14 +1282,27 @@ Window {
         anchors.fill: parent
         z: 1000
         active: false
-        sourceComponent: PushIntro {
+        // PushFPS redesign: each design has its own (the new one: PushIntroModern.qml, the logo on the new graphite).
+        sourceComponent: Theme.modern ? modernIntro : sunsetIntro
+        onLoaded: item.target = root.introTarget()
+    }
+    Component {
+        id: sunsetIntro
+        PushIntro {
             skipText: qsTr("单击或按任意键跳过")
             musicClock: () => { const s = vyMusic.position(); return s >= 0 ? s * 1000 : -1 }
             onFrame: target = root.introTarget()
             onRevealHome: homePage.introHold = false
             onFinished: root.endIntro()
         }
-        onLoaded: item.target = root.introTarget()
+    }
+    Component {
+        id: modernIntro
+        PushIntroModern {
+            skipText: qsTr("单击或按任意键跳过")
+            onRevealHome: homePage.introHold = false
+            onFinished: root.endIntro()
+        }
     }
     function introTarget() {
         const w = homePage.wordmarkItem

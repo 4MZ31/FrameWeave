@@ -31,10 +31,8 @@ Rectangle {
         if (!playing || game === "" || !(shown > 0)) return dash
         return game + " → " + Math.round(shown) + " FPS"
     }
-    readonly property string latencyText: {
-        const ms = num(stats.latencyMs)
-        return playing && stats.running === true && ms >= 0 ? qsTr("延迟 %1 ms").arg(ms.toFixed(0)) : dash
-    }
+    readonly property bool latencyKnown: playing && stats.running === true && num(stats.latencyMs) >= 0
+    readonly property string latencyText: qsTr("延迟 %1 ms").arg(latencyKnown ? num(stats.latencyMs).toFixed(0) : dash)
     readonly property string gpuText: {
         const g = num(stats.gpuUtilization)
         return playing && g >= 0 ? Math.round(g) + " %" : dash
@@ -84,7 +82,7 @@ Rectangle {
         Item { Layout.fillWidth: true; Layout.minimumWidth: 12 }
         Cell { objectName: "pushfps-status-rate"; glyph: "zap"; label: qsTr("帧率"); value: strip.rateText; known: strip.rateText !== strip.dash }
         Item { Layout.fillWidth: true; Layout.minimumWidth: 12 }
-        Cell { objectName: "pushfps-status-latency"; glyph: "clock"; visible: strip.width >= 700; label: ""; value: strip.latencyText; known: strip.latencyText !== strip.dash }
+        Cell { objectName: "pushfps-status-latency"; glyph: "clock"; visible: strip.width >= 700; label: ""; value: strip.latencyText; known: strip.latencyKnown }
         Item { visible: strip.width >= 700; Layout.fillWidth: true; Layout.minimumWidth: 12 }
         Cell { objectName: "pushfps-status-gpu"; glyph: "cpu"; visible: strip.width >= 860; label: qsTr("GPU 占用"); value: strip.gpuText; known: strip.gpuText !== strip.dash }
         Item { visible: strip.width >= 860; Layout.fillWidth: true; Layout.minimumWidth: 12 }

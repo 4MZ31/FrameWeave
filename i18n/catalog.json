@@ -7400,7 +7400,7 @@
   },
   {
    "zh": "PushFPS 绿",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "PushFPS 綠",
    "en": "PushFPS green",
    "ja": "PushFPS グリーン",
@@ -11576,7 +11576,7 @@
   },
   {
    "zh": "专业模式",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/Main.qml",
    "zh-TW": "專業模式",
    "en": "Pro mode",
    "ja": "プロモード",
@@ -13196,7 +13196,7 @@
   },
   {
    "zh": "主题",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "主題",
    "en": "Theme",
    "ja": "テーマ",
@@ -16184,7 +16184,7 @@
   },
   {
    "zh": "全屏",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "全螢幕",
    "en": "Fullscreen",
    "ja": "全画面",
@@ -16364,7 +16364,7 @@
   },
   {
    "zh": "全部",
-   "src": "qml/PushGamePresetsDialog.qml",
+   "src": "qml/ProPage.qml",
    "zh-TW": "全部",
    "en": "All",
    "ja": "すべて",
@@ -17715,7 +17715,7 @@
   },
   {
    "zh": "冰蓝",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "冰藍",
    "en": "Ice",
    "ja": "アイス",
@@ -19497,7 +19497,7 @@
   },
   {
    "zh": "午夜蓝",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "午夜藍",
    "en": "Midnight",
    "ja": "ミッドナイト",
@@ -22629,7 +22629,7 @@
   },
   {
    "zh": "启动动画",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "啟動動畫",
    "en": "Startup animation",
    "ja": "起動アニメーション",
@@ -22755,7 +22755,7 @@
   },
   {
    "zh": "启动音乐",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "啟動音樂",
    "en": "Startup music",
    "ja": "起動時の音楽",
@@ -25131,7 +25131,7 @@
   },
   {
    "zh": "墨绿",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "墨綠",
    "en": "Forest",
    "ja": "フォレスト",
@@ -25977,7 +25977,7 @@
   },
   {
    "zh": "外观",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "外觀",
    "en": "Appearance",
    "ja": "外観",
@@ -34491,7 +34491,7 @@
   },
   {
    "zh": "强调色",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "強調色",
    "en": "Accent color",
    "ja": "アクセントカラー",
@@ -41801,6 +41801,42 @@
    "ru": "Новая сцена"
   },
   {
+   "zh": "新版",
+   "src": "qml/PushAppearanceDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "ko": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
+   "zh": "新版把导航、预览和全部快速设置放在同一个窗口里；旧版是 4.2 及更早版本的界面。两种设计的功能完全相同",
+   "src": "qml/PushAppearanceDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "ko": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
+  },
+  {
    "zh": "新预设名称",
    "src": "qml/ColourPanel.qml",
    "zh-TW": "新預設名稱",
@@ -43656,7 +43692,7 @@
   },
   {
    "zh": "日落之城标志",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "日落之城標誌",
    "en": "Sunset City logo",
    "ja": "サンセットシティのロゴ",
@@ -43707,6 +43743,24 @@
    "ar": "دوسك: بيولية عميقة ذات بلهجة متدرجة في الغروب؛ كلاسيكية: الأسود والرمادي الأصلي",
    "pl": "Zmierzch: głęboki indygofiolet z akcentem gradientu zachodu słońca; Classic: oryginalny czarny i szary",
    "ru": "Дуск: глубокий индиго-фиолетовый с градиентным акцентом заката; Классический: оригинальный черный и серый"
+  },
+  {
+   "zh": "旧版",
+   "src": "qml/PushAppearanceDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "ko": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "旧版格式列表",
@@ -45726,7 +45780,7 @@
   },
   {
    "zh": "最小化",
-   "src": "qml/TopDock.qml",
+   "src": "qml/PushTitleBar.qml",
    "zh-TW": "最小化",
    "en": "Minimize",
    "ja": "最小化",
@@ -46248,7 +46302,7 @@
   },
   {
    "zh": "未打开片源",
-   "src": "qml/NodePage.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "未開啟片源",
    "en": "No source open",
    "ja": "ソースが開かれていません",
@@ -47454,7 +47508,7 @@
   },
   {
    "zh": "极简",
-   "src": "qml/TopDock.qml",
+   "src": "qml/PushSidebar.qml",
    "zh-TW": "極簡",
    "en": "Minimal",
    "ja": "シンプル",
@@ -52512,7 +52566,7 @@
   },
   {
    "zh": "浅色",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "淺色",
    "en": "Light",
    "ja": "ライト",
@@ -52908,7 +52962,7 @@
   },
   {
    "zh": "深紫",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "深紫",
    "en": "Plum",
    "ja": "プラム",
@@ -54438,7 +54492,7 @@
   },
   {
    "zh": "片源",
-   "src": "qml/MinimalPage.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "片源",
    "en": "Source",
    "ja": "ソース",
@@ -54672,7 +54726,7 @@
   },
   {
    "zh": "玫红",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "玫紅",
    "en": "Rose",
    "ja": "ローズ",
@@ -54780,7 +54834,7 @@
   },
   {
    "zh": "琥珀",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "琥珀",
    "en": "Amber",
    "ja": "アンバー",
@@ -56490,7 +56544,7 @@
   },
   {
    "zh": "白色光晕",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "白色光暈",
    "en": "White glow",
    "ja": "白い光彩",
@@ -57012,7 +57066,7 @@
   },
   {
    "zh": "直播模式",
-   "src": "qml/StudioPage.qml",
+   "src": "qml/Main.qml",
    "zh-TW": "直播模式",
    "en": "Streaming mode",
    "ja": "配信モード",
@@ -57408,7 +57462,7 @@
   },
   {
    "zh": "石墨",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "石墨",
    "en": "Graphite",
    "ja": "グラファイト",
@@ -59442,7 +59496,7 @@
   },
   {
    "zh": "纯黑",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "純黑",
    "en": "Black",
    "ja": "ブラック",
@@ -62754,7 +62808,7 @@
   },
   {
    "zh": "节点模式",
-   "src": "qml/ProPage.qml",
+   "src": "qml/Main.qml",
    "zh-TW": "節點模式",
    "en": "Node mode",
    "ja": "ノードモード",
@@ -64717,7 +64771,7 @@
   },
   {
    "zh": "视频播放模式",
-   "src": "qml/TopDock.qml",
+   "src": "qml/Main.qml",
    "zh-TW": "影片播放模式",
    "en": "Video playback mode",
    "ja": "動画再生モード",
@@ -65651,6 +65705,24 @@
    "ar": "تم اختيار مقاس آخر (%1 × %2) اختر واحداً هنا لاستخدامه بدلاً من ذلك",
    "pl": "Ustawienia mają wybrany inny rozmiar (%1 × %2). Wybierz jeden tutaj, aby go użyć",
    "ru": "Настройки имеют другой размер, выбранный %1 × %2. Выберите один здесь, чтобы использовать его вместо этого."
+  },
+  {
+   "zh": "设计",
+   "src": "qml/PushAppearanceDialog.qml",
+   "zh-TW": "",
+   "en": "",
+   "ja": "",
+   "ko": "",
+   "nl": "",
+   "de": "",
+   "es": "",
+   "fr": "",
+   "it": "",
+   "pt-BR": "",
+   "tr": "",
+   "ar": "",
+   "pl": "",
+   "ru": ""
   },
   {
    "zh": "访问页面",
@@ -72296,7 +72368,7 @@
   },
   {
    "zh": "采集",
-   "src": "qml/ScreenSourceDialog.qml",
+   "src": "qml/PushStatusStrip.qml",
    "zh-TW": "擷取",
    "en": "Capture",
    "ja": "キャプチャー",
@@ -77066,7 +77138,7 @@
   },
   {
    "zh": "首页",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/Main.qml",
    "zh-TW": "首頁",
    "en": "Home",
    "ja": "ホーム",
@@ -77570,7 +77642,7 @@
   },
   {
    "zh": "高对比度",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushAppearanceDialog.qml",
    "zh-TW": "高對比",
    "en": "High contrast",
    "ja": "ハイコントラスト",
