@@ -114,6 +114,35 @@ VGroup {
     property string scope: ""
     // Asks the page this card stands in for one of its tabs (Professional mode: "quality", "fg", ...).
     signal requestTab(string tab)
+    // PushFPS redesign (the new home page; both are what they always were unless a page sets them):
+    // the page shows the card's title itself, pinned over the list (showHeader false), and gives the
+    // six tools a place of its own under the picture (toolsHost: the item they are drawn in, as wide as
+    // that item; toolsHeight is how high they are there). The tools are the same items wherever they
+    // are drawn: nothing about what a tile does or shows changes.
+    property bool showHeader: true
+    property Item toolsHost: null
+    readonly property real toolsHeight: toolsGrid.implicitHeight
+    // The sections by name, for a page that lists them (the new home page's index over the list).
+    function sectionItem(id) {
+        for (let i = 0; i < quick.sectionItems.length; ++i)
+            if (quick.sectionItems[i] && quick.sectionItems[i].sectionId === id) return quick.sectionItems[i]
+        return null
+    }
+    // A row by its object name, for a page that scrolls to it (null when it is not shown).
+    function rowItem(name) {
+        const find = item => {
+            if (!item) return null
+            if (item.objectName === name) return item
+            const kids = item.children || []
+            for (let i = 0; i < kids.length; ++i) { const hit = find(kids[i]); if (hit) return hit }
+            return null
+        }
+        for (let i = 0; i < quick.sectionItems.length; ++i) {
+            const hit = find(quick.sectionItems[i])
+            if (hit) return hit.visible ? hit : null
+        }
+        return null
+    }
     readonly property bool scopeMain: quick.scope !== "picture"
     readonly property bool scopePicture: quick.scope !== "rest"
 
@@ -699,7 +728,7 @@ VGroup {
 
     // Header: what this card is, and the one-line explanation in the full form.
     ColumnLayout {
-        visible: quick.scopeMain
+        visible: quick.scopeMain && quick.showHeader
         Layout.fillWidth: true
         Layout.topMargin: 12
         Layout.bottomMargin: 2
@@ -763,15 +792,24 @@ VGroup {
         if (veyra.hasSource && !quick.compactPro) veyra.navigate("pro")
         veyra.navigate(dialog)
     }
-    GridLayout {
-        id: toolsGrid
-        objectName: "pushfps-tools-row"
-        visible: quick.scopeMain
+    // (The tools' place in this card. They are drawn in it unless the page gave them another: an item
+    // moved out of a layout and back would come back at its end, so it is this place that stays.)
+    Item {
+        id: toolsSlot
+        visible: quick.scopeMain && quick.toolsHost === null
         Layout.fillWidth: true
         Layout.topMargin: 8
         Layout.bottomMargin: 6
-        // Two equal columns; one in a very narrow panel.
-        columns: width >= 360 ? 2 : 1
+        implicitHeight: toolsGrid.implicitHeight
+    }
+    GridLayout {
+        id: toolsGrid
+        objectName: "pushfps-tools-row"
+        parent: quick.toolsHost !== null ? quick.toolsHost : toolsSlot
+        width: parent ? parent.width : 0
+        visible: quick.scopeMain
+        // Two equal columns; one in a very narrow panel. (Under the new home page's picture: three, or two.)
+        columns: quick.toolsHost !== null ? (width >= 600 ? 3 : 2) : width >= 360 ? 2 : 1
         columnSpacing: 8
         rowSpacing: 8
         PushToolTile {

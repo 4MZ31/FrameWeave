@@ -1528,6 +1528,14 @@ VPage {
                         Layout.fillWidth: true
                         spacing: 6
                         visible: root.tab === "quality" || root.allTabs
+                        // (The new design: quick setup's Picture card, with AI picture enhancement, comes first.)
+                        Item {
+                            id: pictureFirst
+                            objectName: "list-pushfps-picture-first"
+                            visible: Theme.modern
+                            Layout.fillWidth: true
+                            implicitHeight: pictureCard.implicitHeight
+                        }
 
                         // The design builds the inspector from accordion cards, not
                         // flat rows: an icon, a title, a live summary line, a switch
@@ -1657,9 +1665,20 @@ VPage {
                         // its size and fine-tuning, the wide-screen fill, the crop) stands here, over the
                         // enhancement's own card, and no longer in the Frame Gen tab: a user asked for the
                         // enhancement's settings to be in one place.
-                        PushQuickSetup {
-                            objectName: "list-pushfps-picture"
+                        // (The redesign: in the new design this card is the first thing in the list, so AI
+                        // picture enhancement is where the eye lands; in Legacy it stands here, as in 4.2.1.
+                        // The card is one item drawn in one of two places: pictureFirst above, pictureHere.)
+                        Item {
+                            id: pictureHere
+                            visible: !Theme.modern
                             Layout.fillWidth: true
+                            implicitHeight: pictureCard.implicitHeight
+                        }
+                        PushQuickSetup {
+                            id: pictureCard
+                            objectName: "list-pushfps-picture"
+                            parent: Theme.modern ? pictureFirst : pictureHere
+                            width: parent ? parent.width : 0
                             compactPro: true
                             scope: "picture"
                         }

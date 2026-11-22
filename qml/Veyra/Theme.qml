@@ -39,12 +39,15 @@ QtObject {
         "forest":   { card: "#0F1613", card2: "#141D19", card3: "#1F2B25", popover: "#16201B", dialog: "#101814", bgOuter: "#050907", bgMid: "#090F0C", bgInner: "#131C17" },
         "contrast": { card: "#000000", card2: "#000000", card3: "#1C1C1C", popover: "#000000", dialog: "#000000", bgOuter: "#000000", bgMid: "#000000", bgInner: "#000000" }
     })
-    // PushFPS redesign (after 4.2.1). `design` is "new" (the default) or "legacy", the interface every
+    // PushFPS redesign (after 4.2.1). `design` is "new" (what PushFPS shows unless Legacy is chosen) or "legacy", the interface every
     // version up to 4.2.1 had (preference pushDesign; the palette button's Appearance panel switches it).
     // The new design has its own graphite and its own light surfaces; every other theme (black, the
     // tinted ones, high contrast) is one table for both. In legacy nothing below differs from 4.2.1:
     // each token that has a new value is written as `modernTone ? new : what it was`.
-    property string design: "new"
+    // The value here is "legacy": the main window (Main.qml) binds it to the preference, where no choice
+    // means the new design. So a component used without the shell (every QML test) is drawn as it always
+    // was unless the test asks for the new design.
+    property string design: "legacy"
     readonly property bool modern: design !== "legacy"
     readonly property var surfacesModern: ({
         "default": { card: "#141A21", card2: "#1C242E", card3: "#28323F", popover: "#1A222B", dialog: "#141A21", bgOuter: "#0B0F14", bgMid: "#0B0F14", bgInner: "#0E131A" },

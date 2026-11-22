@@ -1552,3 +1552,4 @@ zh:旧版|Klasik
 zh:新版把导航、预览和全部快速设置放在同一个窗口里；旧版是 4.2 及更早版本的界面。两种设计的功能完全相同|Yeni; gezinmeyi, önizlemeyi ve hızlı kurulumun tamamını tek pencerede toplar. Klasik, 4.2 ve önceki sürümlerin arayüzüdür. İki tasarımın özellikleri tamamen aynıdır
 zh:更多外观设置|Diğer görünüm ayarları
 zh:语言、启动方式和窗口选项在「设置」里|Dil, başlangıç ve pencere seçenekleri Ayarlar’da
+zh:打开 PushFPS 时播放约 2 秒的开场动画，单击或按任意键可跳过|PushFPS açılırken 2 saniyelik bir giriş oynatır; atlamak için tıklayın veya bir tuşa basın

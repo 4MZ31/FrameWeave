@@ -78,7 +78,7 @@ Rectangle {
         anchors.leftMargin: 14
         anchors.rightMargin: 14
         spacing: 0
-        Cell { objectName: "pushfps-status-capture"; glyph: "video"; label: qsTr("采集"); value: strip.sizeText === strip.dash ? strip.dash : strip.sizeText + " · " + strip.captureText; known: strip.sizeText !== strip.dash }
+        Cell { objectName: "pushfps-status-capture"; glyph: "video"; label: qsTr("采集"); value: strip.sizeText === strip.dash ? strip.dash : strip.captureText === strip.dash ? strip.sizeText : strip.sizeText + " · " + strip.captureText; known: strip.sizeText !== strip.dash }
         Item { Layout.fillWidth: true; Layout.minimumWidth: 12 }
         Cell { objectName: "pushfps-status-rate"; glyph: "zap"; label: qsTr("帧率"); value: strip.rateText; known: strip.rateText !== strip.dash }
         Item { Layout.fillWidth: true; Layout.minimumWidth: 12 }

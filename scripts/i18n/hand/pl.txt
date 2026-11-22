@@ -1552,3 +1552,4 @@ zh:旧版|Klasyczny
 zh:新版把导航、预览和全部快速设置放在同一个窗口里；旧版是 4.2 及更早版本的界面。两种设计的功能完全相同|Nowy łączy nawigację, podgląd i całą szybką konfigurację w jednym oknie. Klasyczny to interfejs wersji 4.2 i wcześniejszych. Oba wyglądy mają dokładnie te same funkcje
 zh:更多外观设置|Więcej ustawień wyglądu
 zh:语言、启动方式和窗口选项在「设置」里|Język, uruchamianie i opcje okna są w Ustawieniach
+zh:打开 PushFPS 时播放约 2 秒的开场动画，单击或按任意键可跳过|Odtwarza 2-sekundowe intro przy otwieraniu PushFPS; kliknij lub naciśnij dowolny klawisz, aby pominąć

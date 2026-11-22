@@ -20,6 +20,45 @@ VPage {
     // Three panes when there is room for them: sources | the picture | quick setup. Otherwise (legacy,
     // or a narrow window in the new design) one column, as the page always was.
     readonly property bool threePane: Theme.modern && width >= 900
+    // The index pinned over quick setup in the three panes: every section by its name, and AI picture
+    // enhancement by its own (it is the first thing people look for, and stands in the Picture section).
+    // A press opens the section if it was folded and brings it to the top of the list. Nothing is a
+    // copy of a setting: these only scroll.
+    readonly property var quickIndex: [
+        { id: "setup", section: "setup", row: "", label: qsTr("主机与游戏") },
+        { id: "fg", section: "fg", row: "", label: qsTr("补帧", "section") },
+        { id: "enhance", section: "picture", row: "pushfps-enhance-row", label: qsTr("AI 画面增强") },
+        { id: "picture", section: "picture", row: "pushfps-upscale-row,pushfps-fill-row,pushfps-crop-row", label: qsTr("画面") },
+        { id: "hud", section: "hud", row: "", label: qsTr("HUD") },
+        { id: "latency", section: "latency", row: "", label: qsTr("延迟与声音") },
+        { id: "start", section: "start", row: "", label: qsTr("连接与启动") }
+    ]
+    property var quickWanted: null
+    function showInQuick(entry) {
+        const section = quickSetup.sectionItem(entry.section)
+        if (!section) return
+        const folded = !section.open
+        if (folded) quickSetup.setSectionOpen(entry.section, true)
+        root.quickWanted = entry
+        // A section that was folded takes a moment to have its height again (PushSection: 260 ms).
+        quickScroll.interval = folded ? Theme.d(300) + 1 : 1
+        quickScroll.restart()
+    }
+    Timer {
+        id: quickScroll
+        onTriggered: {
+            const entry = root.quickWanted
+            const section = entry ? quickSetup.sectionItem(entry.section) : null
+            if (!section) return
+            let target = section
+            for (const name of String(entry.row || "").split(",")) {
+                const row = name.length > 0 ? quickSetup.rowItem(name) : null
+                if (row) { target = row; break }
+            }
+            const y = target.mapToItem(rightFlick.contentItem, 0, 0).y - (target === section ? 0 : 6)
+            rightFlick.contentY = Math.max(0, Math.min(y, rightFlick.contentHeight - rightFlick.height))
+        }
+    }
     // Picture and sound stands open under the picture the first time the three panes are shown.
     property bool tuningOpened: false
     onThreePaneChanged: if (threePane && !tuningOpened) { tuningOpened = true; tuning.open = true }
@@ -42,7 +81,7 @@ VPage {
     function tourOffers(what) { return quickSetup.tourItem(what) !== null }
     function tourTarget(key) {
         const item = key === "capture" ? captureCard : quickSetup.tourItem(key)
-        return item ? { item: item, viewport: root.threePane ? (key === "capture" ? leftFlick : rightFlick) : content } : null
+        return item ? { item: item, viewport: root.threePane ? (key === "capture" ? leftFlick : key === "tools" ? midFlick : rightFlick) : content } : null
     }
     function showTourStep(key) { quickSetup.showTourStep(key) }
     // Opens 画面与声音 and scrolls it into view (the screenshot run's `--tab tuning`).
@@ -497,7 +536,14 @@ VPage {
                 id: quickSetup
                 objectName: "home-pushfps-quick"
                 compact: true
-                showSetupTip: true
+                // (The three panes: the tip stands in the empty picture, the title is pinned over the
+                // list with the index of its sections, the tools stand under the picture, and the pane
+                // is the card.)
+                showSetupTip: !root.threePane
+                showHeader: !root.threePane
+                toolsHost: root.threePane ? toolsPlace : null
+                color: root.threePane ? "transparent" : Theme.card2
+                border.width: root.threePane ? 0 : 1
                 Layout.fillWidth: true
                 Layout.topMargin: root.threePane ? 0 : 22
             }
@@ -664,7 +710,8 @@ VPage {
                 ScrollBar.vertical: VScrollBar {}
                 ColumnLayout {
                     id: leftColumn
-                    width: leftFlick.width
+                    // (Room for the scroll bar when there is one, so it never lies over a card's edge.)
+                    width: leftFlick.width - (leftFlick.interactive ? 10 : 0)
                     spacing: 0
                     Text {
                         Layout.fillWidth: true
@@ -709,7 +756,7 @@ VPage {
                 objectName: "home-desk-empty"
                 visible: veyra.hasSource !== true
                 anchors.centerIn: parent
-                width: Math.min(parent.width - 32, 420)
+                width: Math.min(parent.width - 40, 560)
                 spacing: 10
                 VIcon { Layout.alignment: Qt.AlignHCenter; name: "tv"; size: 30; color: Theme.t3 }
                 Text {
@@ -722,14 +769,18 @@ VPage {
                     font.variableAxes: Theme.axesDemiBold
                     elide: Text.ElideRight
                 }
+                // The first-run tip of quick setup (what to set on the console before connecting), until a
+                // capture card has been used once: here it has the room the list beside the picture has not.
                 Text {
-                    visible: previewCard.height >= 230
+                    objectName: "home-desk-tip"
+                    visible: previewCard.height >= 250 && !veyra.hasCaptureSession
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
-                    text: qsTr("主机画面经采集卡接入，由电脑补帧到 60 或 120 FPS")
+                    text: quickSetup.setupTip
                     color: Theme.t3
                     font.family: Theme.fontUi
-                    font.pixelSize: Theme.fsBody
+                    font.pixelSize: Theme.fsHint
+                    lineHeight: 1.1
                     wrapMode: Text.WordWrap
                 }
                 RowLayout {
@@ -779,9 +830,8 @@ VPage {
             }
             VButton {
                 objectName: "home-desk-fullscreen"
-                primary: true
+                primary: veyra.hasSource === true
                 enabled: veyra.hasSource === true
-                opacity: enabled ? 1 : 0.45
                 iconName: "max"
                 text: qsTr("全屏")
                 onClicked: root.requestFullscreen()
@@ -796,29 +846,107 @@ VPage {
             width: root.midWidth
             height: Math.max(0, desk.height - y - root.paneMargin)
             contentWidth: width
-            contentHeight: paneSlotT.implicitHeight
+            contentHeight: midColumn.height
             interactive: contentHeight > height + 1
             boundsBehavior: Flickable.StopAtBounds
             clip: true
             ScrollBar.vertical: VScrollBar {}
-            Item { id: paneSlotT; width: midFlick.width - 10; height: implicitHeight; implicitHeight: groupT.parent === paneSlotT ? groupT.implicitHeight : 0 }
+            Column {
+                id: midColumn
+                width: midFlick.width - (midFlick.interactive ? 10 : 0)
+                spacing: root.paneGap
+                // Quick setup's six tools (the same tiles: PushQuickSetup.toolsHost).
+                Item { id: toolsPlace; objectName: "home-desk-tools"; width: parent.width; height: quickSetup.toolsHeight }
+                Item { id: paneSlotT; width: parent.width; height: implicitHeight; implicitHeight: groupT.parent === paneSlotT ? groupT.implicitHeight : 0 }
+            }
         }
 
-        // Right: quick setup, every section of it, in one list.
-        Flickable {
-            id: rightFlick
+        // Right: quick setup, every section of it, in one list. Its title and the index of what is in
+        // it stay in place over the list.
+        Rectangle {
+            id: rightPane
             objectName: "home-desk-settings"
             x: desk.width - root.paneMargin - root.rightWidth
             y: root.paneMargin
             width: root.rightWidth
             height: desk.height - 2 * root.paneMargin
-            contentWidth: width
-            contentHeight: paneSlotB.implicitHeight
-            interactive: contentHeight > height + 1
-            boundsBehavior: Flickable.StopAtBounds
-            clip: true
-            ScrollBar.vertical: VScrollBar {}
-            Item { id: paneSlotB; width: rightFlick.width - 10; height: implicitHeight; implicitHeight: groupB.parent === paneSlotB ? groupB.implicitHeight : 0 }
+            radius: Theme.rCard
+            color: Theme.card2
+            border.width: 1
+            border.color: Theme.stroke
+            Column {
+                id: rightHead
+                x: 14; y: 12
+                width: parent.width - 28
+                spacing: 9
+                Text {
+                    width: parent.width
+                    text: qsTr("快速设置")
+                    color: Theme.t1
+                    font.family: Theme.fontUi
+                    font.pixelSize: Theme.fsH3
+                    font.variableAxes: Theme.axesDemiBold
+                    elide: Text.ElideRight
+                }
+                Flow {
+                    id: indexFlow
+                    objectName: "home-desk-index"
+                    width: parent.width
+                    spacing: 6
+                    Repeater {
+                        model: root.quickIndex
+                        delegate: Rectangle {
+                            id: chip
+                            required property var modelData
+                            readonly property var section: quickSetup.sectionItem(modelData.section)
+                            objectName: "home-desk-index-" + modelData.id
+                            // (A section this PC shows nothing of has no entry.)
+                            visible: section !== null && section.visible && !section.empty
+                            width: Math.min(chipText.implicitWidth + 20, indexFlow.width)
+                            height: 26
+                            radius: 13
+                            color: chipHover.hovered || chip.activeFocus ? Theme.accentSoft : Theme.ink(0.05)
+                            border.width: 1
+                            border.color: chipHover.hovered || chip.activeFocus ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.75) : Theme.stroke
+                            Behavior on color { ColorAnimation { duration: Theme.d(160) } }
+                            Behavior on border.color { ColorAnimation { duration: Theme.d(160) } }
+                            activeFocusOnTab: true
+                            Accessible.role: Accessible.Button
+                            Accessible.name: modelData.label
+                            Keys.onReturnPressed: root.showInQuick(modelData)
+                            Keys.onSpacePressed: root.showInQuick(modelData)
+                            Text {
+                                id: chipText
+                                anchors.centerIn: parent
+                                width: Math.min(implicitWidth, chip.width - 20)
+                                elide: Text.ElideRight
+                                text: chip.modelData.label
+                                color: chipHover.hovered ? Theme.t1 : Theme.t2
+                                font.family: Theme.fontUi
+                                font.pixelSize: 12
+                            }
+                            HoverHandler { id: chipHover; cursorShape: Qt.PointingHandCursor }
+                            TapHandler { onTapped: root.showInQuick(chip.modelData) }
+                        }
+                    }
+                }
+            }
+            Rectangle { id: rightRule; x: 0; y: rightHead.y + rightHead.height + 11; width: parent.width; height: 1; color: Theme.stroke }
+            Flickable {
+                id: rightFlick
+                objectName: "home-desk-settings-list"
+                x: 0
+                y: rightRule.y + 1
+                width: parent.width
+                height: parent.height - y - 6
+                contentWidth: width
+                contentHeight: paneSlotB.implicitHeight
+                interactive: contentHeight > height + 1
+                boundsBehavior: Flickable.StopAtBounds
+                clip: true
+                ScrollBar.vertical: VScrollBar {}
+                Item { id: paneSlotB; width: rightFlick.width - (rightFlick.interactive ? 8 : 0); height: implicitHeight; implicitHeight: groupB.parent === paneSlotB ? groupB.implicitHeight : 0 }
+            }
         }
     }
 

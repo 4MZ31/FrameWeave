@@ -47,9 +47,9 @@ DialogLayer {
             objectName: "pushfps-appearance-theme-row"
             label: qsTr("主题")
             hint: (look.themes.find(t => t.id === look.themeShown) || look.themes[0]).tip
-            Flow {
+            hintBelow: true
+            Row {
                 objectName: "pushfps-appearance-theme"
-                width: Math.min(implicitWidth, 7 * 58 + 6 * 8)
                 spacing: 8
                 Repeater {
                     model: look.themes
@@ -60,7 +60,7 @@ DialogLayer {
                         readonly property bool lightLook: modelData.id === "light"
                         readonly property bool on: look.themeShown === modelData.id
                         objectName: "pushfps-appearance-theme-" + modelData.id
-                        width: 58; height: 40; radius: 8
+                        width: 52; height: 38; radius: 8
                         color: shown.bgMid
                         border.width: on || tileHover.hovered ? 2 : 1
                         border.color: on ? Theme.accent : tileHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.7) : Theme.stroke2

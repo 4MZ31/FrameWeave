@@ -3,7 +3,7 @@
 //
 // The new design's startup animation (the legacy design keeps the Sunset City intro, PushIntro.qml).
 // About two seconds on the new graphite: a lime line opens from the centre, the PushFPS mark rises
-// over it, the wordmark comes up from behind the line, one bright sweep runs across it while the
+// over it, the wordmark comes up from behind the line, one bright frame runs along the line while the
 // window's edge lights up once in lime, and then everything lets go into the interface behind it.
 //
 // It has the interface the main window drives the Sunset intro through (ms, running, dismissing,
@@ -119,13 +119,32 @@ Item {
             color: intro.lime
             opacity: 0.35 + 0.65 * Math.max(intro.lineOn * (1 - intro.wordOn * 0.5), intro.edge)
         }
-        // Its glow.
+        // Its glow: lime at the line, nothing a few pixels above and below.
         Rectangle {
-            width: line.width; height: 14 * intro.unit
+            width: line.width; height: 26 * intro.unit
             x: line.x; y: line.y - height / 2 + line.height / 2
+            opacity: 0.16 * intro.lineOn + 0.30 * intro.edge
+            gradient: Gradient {
+                GradientStop { position: 0; color: "transparent" }
+                GradientStop { position: 0.5; color: intro.lime }
+                GradientStop { position: 1; color: "transparent" }
+            }
+        }
+        // One bright frame runs along the line, left to right.
+        Rectangle {
+            visible: intro.sweep > 0 && intro.sweep < 1
+            width: 96 * intro.unit
+            height: line.height + 2
+            x: line.x + (line.width - width) * intro.sweep
+            y: line.y - 1
             radius: height / 2
-            color: intro.lime
-            opacity: 0.10 * intro.lineOn + 0.22 * intro.edge
+            opacity: Math.sin(Math.PI * intro.sweep)
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0; color: "transparent" }
+                GradientStop { position: 0.5; color: "#FFFFFF" }
+                GradientStop { position: 1; color: "transparent" }
+            }
         }
         // The wordmark: comes up from behind the line.
         Item {
@@ -140,21 +159,6 @@ Item {
                 x: (wordClip.width - width) / 2
                 y: (1 - intro.wordOn) * -wordClip.height
                 opacity: intro.wordOn
-            }
-            // One bright sweep across the wordmark.
-            Rectangle {
-                visible: intro.sweep > 0 && intro.sweep < 1
-                width: 70 * intro.unit
-                height: wordClip.height
-                x: word.x - width + (word.width + width * 2) * intro.sweep
-                rotation: 14
-                opacity: 0.22 * Math.sin(Math.PI * intro.sweep)
-                gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0; color: "transparent" }
-                    GradientStop { position: 0.5; color: intro.lime }
-                    GradientStop { position: 1; color: "transparent" }
-                }
             }
         }
     }

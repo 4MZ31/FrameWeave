@@ -2702,7 +2702,7 @@
   },
   {
    "zh": "AI 画面增强",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "AI 畫面增強",
    "en": "AI picture enhancement",
    "ja": "AI 画質強化",
@@ -12602,7 +12602,7 @@
   },
   {
    "zh": "主机与游戏",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "主機與遊戲",
    "en": "Console and game",
    "ja": "ゲーム機とゲーム",
@@ -33267,7 +33267,7 @@
   },
   {
    "zh": "延迟与声音",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "延遲與聲音",
    "en": "Latency and sound",
    "ja": "遅延と音",
@@ -36544,7 +36544,7 @@
   },
   {
    "zh": "快速设置",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "快速設定",
    "en": "Quick setup",
    "ja": "クイック設定",
@@ -37783,6 +37783,24 @@
    "ar": "Opens GitHub Issues; diagnostics have been copied for you",
    "pl": "Otwiera GitHub Issues; diagnostyka została skopiowana dla Ciebie",
    "ru": "Открытие GitHub Проблемы; диагностика была скопирована для вас"
+  },
+  {
+   "zh": "打开 PushFPS 时播放约 2 秒的开场动画，单击或按任意键可跳过",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "開啟 PushFPS 時播放約 2 秒的開場動畫，按一下或按任意鍵可略過",
+   "en": "Plays a 2-second intro when PushFPS opens; click or press any key to skip",
+   "ja": "PushFPS の起動時に約 2 秒のオープニングを再生します。クリックまたは任意のキーでスキップできます",
+   "ko": "PushFPS를 열 때 약 2초의 시작 애니메이션을 재생합니다. 클릭하거나 아무 키나 누르면 건너뜁니다",
+   "nl": "Speelt een intro van 2 seconden af wanneer PushFPS opent; klik of druk op een toets om over te slaan",
+   "de": "Spielt beim Öffnen von PushFPS ein 2-Sekunden-Intro ab; Klick oder beliebige Taste überspringt es",
+   "es": "Reproduce una introducción de 2 segundos al abrir PushFPS; haz clic o pulsa cualquier tecla para saltarla",
+   "fr": "Joue une intro de 2 secondes à l'ouverture de PushFPS ; cliquez ou appuyez sur une touche pour la passer",
+   "it": "Riproduce un'introduzione di 2 secondi all'apertura di PushFPS; fai clic o premi un tasto per saltarla",
+   "pt-BR": "Reproduz uma abertura de 2 segundos quando o PushFPS abre; clique ou pressione qualquer tecla para pular",
+   "tr": "PushFPS açılırken 2 saniyelik bir giriş oynatır; atlamak için tıklayın veya bir tuşa basın",
+   "ar": "يعرض مقدمة مدتها ثانيتان عند فتح PushFPS؛ انقر أو اضغط أي مفتاح للتخطي",
+   "pl": "Odtwarza 2-sekundowe intro przy otwieraniu PushFPS; kliknij lub naciśnij dowolny klawisz, aby pominąć",
+   "ru": "При запуске PushFPS показывает 2-секундную заставку; щелчок или любая клавиша пропускают её"
   },
   {
    "zh": "打开 PushFPS 时播放约 3 秒的日落之城开场，单击或按任意键可跳过",
@@ -55374,7 +55392,7 @@
   },
   {
    "zh": "画面",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "畫面",
    "en": "Picture",
    "ja": "映像",
@@ -63727,7 +63745,7 @@
   {
    "zh": "补帧",
    "ctx": "section",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "補幀",
    "en": "Frame generation",
    "ja": "フレーム生成",
@@ -71108,7 +71126,7 @@
   },
   {
    "zh": "连接与启动",
-   "src": "qml/PushQuickSetup.qml",
+   "src": "qml/HomePage.qml",
    "zh-TW": "連線與啟動",
    "en": "Connecting",
    "ja": "接続と起動",
