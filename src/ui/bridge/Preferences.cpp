@@ -359,6 +359,10 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    "pushGsyncChecked",
                                    // PushFPS: the first-run tour was shown (it offers itself once, on a new install).
                                    "pushTourSeen",
+                                   // PushFPS 4.3.1 (the new design): the navigation folded to its icons, the settings side of
+                                   // the home page and of Professional mode hidden, and Professional mode opened when a
+                                   // capture card connects from the home page (off unless set: the picture plays there).
+                                   "pushNavCollapsed", "pushSideCollapsed", "pushConnectToPro",
                                    // PushFPS going live: sound and microphone in the stream.
                                    "streamAudio", "streamMic",
                                    // PushFPS streaming mode mixer: mutes and the microphone filters.
@@ -529,6 +533,14 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         QStringList kept;
         for (const auto& part : value.toString().split(QLatin1Char(','), Qt::SkipEmptyParts))
             if (sections.contains(part) && !kept.contains(part)) kept << part;
+        stored = kept.join(QLatin1Char(','));
+    } else if (key == QLatin1String("pushProFolded")) {
+        // PushFPS 4.3.1, Professional mode's All tab: which of its blocks are folded (PushFoldHead.qml),
+        // their ids with commas. Anything that is not a block's id is dropped.
+        static const QStringList blocks{"quality", "fg", "color", "audio", "display"};
+        QStringList kept;
+        for (const auto& part : value.toString().split(QLatin1Char(','), Qt::SkipEmptyParts))
+            if (blocks.contains(part) && !kept.contains(part)) kept << part;
         stored = kept.join(QLatin1Char(','));
     } else if (key == QLatin1String("pushDesign")) {
         // PushFPS redesign (Theme.qml design): "new" (navigation, preview and quick setup in one window; what

@@ -9991,6 +9991,24 @@
    "ru": "{} GPU перезагрузить {} время(ы); экспортировать в {} части и соединить без повторного кодирования"
   },
   {
+   "zh": "“连接后自动全屏”已开启：连接后总是进入专业模式并全屏",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "「連接後自動全螢幕」已開啟：連接後一律進入專業模式並全螢幕",
+   "en": "\"Fullscreen on connect\" is on: connecting always opens Pro mode in full screen",
+   "ja": "「接続後に自動で全画面」がオンです：接続すると常にプロモードが全画面で開きます",
+   "ko": "\"연결되면 전체 화면\"이 켜져 있습니다: 연결하면 항상 프로 모드가 전체 화면으로 열립니다",
+   "nl": "\"Volledig scherm bij verbinden\" staat aan: verbinden opent altijd de Pro-modus op volledig scherm",
+   "de": "\"Vollbild beim Verbinden\" ist an: Beim Verbinden öffnet sich immer der Pro-Modus im Vollbild",
+   "es": "\"Pantalla completa al conectar\" está activado: al conectar siempre se abre el Modo Pro a pantalla completa",
+   "fr": "\"Plein écran à la connexion\" est activé : la connexion ouvre toujours le Mode Pro en plein écran",
+   "it": "\"Schermo intero alla connessione\" è attivo: la connessione apre sempre la Modalità Pro a schermo intero",
+   "pt-BR": "\"Tela cheia ao conectar\" está ligado: conectar sempre abre o Modo Pro em tela cheia",
+   "tr": "\"Bağlanınca tam ekran\" açık: bağlanınca her zaman Pro modu tam ekran açılır",
+   "ar": "\"ملء الشاشة عند الاتصال\" مفعّل: الاتصال يفتح دائمًا وضع Pro بملء الشاشة",
+   "pl": "\"Pełny ekran po połączeniu\" jest włączony: połączenie zawsze otwiera tryb Pro na pełnym ekranie",
+   "ru": "\"Полный экран при подключении\" включён: подключение всегда открывает режим Pro на весь экран"
+  },
+  {
    "zh": "☕ 请作者喝杯咖啡 · US$5",
    "src": "qml/SponsorPanel.qml",
    "zh-TW": "☕ 請作者喝杯咖啡 · US$5",
@@ -16830,6 +16848,24 @@
    "ar": "يستخدم المضاعف المختار يدوياً مقبوضة",
    "pl": "Off używa ręcznie wybranego mnożnika. Domyślnie wyłączone",
    "ru": "Off использует выбранный вручную множитель. Выключено по умолчанию"
+  },
+  {
+   "zh": "关闭时留在首页，画面显示在首页中间",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "關閉時留在首頁，畫面顯示在首頁中間",
+   "en": "Off: you stay on the home page, where the picture plays in the middle",
+   "ja": "オフのときはホームにとどまり、映像はホームの中央に表示されます",
+   "ko": "끄면 홈에 머물며 화면은 홈 가운데에 표시됩니다",
+   "nl": "Uit: je blijft op Start, waar het beeld in het midden speelt",
+   "de": "Aus: Du bleibst auf der Startseite, wo das Bild in der Mitte läuft",
+   "es": "Desactivado: te quedas en Inicio, donde la imagen se reproduce en el centro",
+   "fr": "Désactivé : vous restez sur l'accueil, où l'image s'affiche au centre",
+   "it": "Disattivato: resti nella Home, dove l'immagine viene riprodotta al centro",
+   "pt-BR": "Desligado: você fica no Início, onde a imagem é reproduzida no centro",
+   "tr": "Kapalıyken ana sayfada kalırsınız; görüntü ortada oynar",
+   "ar": "عند الإيقاف تبقى في الصفحة الرئيسية حيث تُعرض الصورة في الوسط",
+   "pl": "Wyłączone: zostajesz na stronie Start, gdzie obraz jest odtwarzany pośrodku",
+   "ru": "Выключено: вы остаётесь на главной, где изображение показывается в центре"
   },
   {
    "zh": "关闭时这条链路不存在，零开销",
@@ -29702,6 +29738,24 @@
    "ru": "Развернуть"
   },
   {
+   "zh": "展开导航栏",
+   "src": "qml/PushTitleBar.qml",
+   "zh-TW": "展開導覽列",
+   "en": "Show the navigation names",
+   "ja": "ナビゲーションを広げる",
+   "ko": "탐색 메뉴 펼치기",
+   "nl": "Navigatie uitklappen",
+   "de": "Navigation ausklappen",
+   "es": "Expandir la navegación",
+   "fr": "Déplier la navigation",
+   "it": "Espandi la navigazione",
+   "pt-BR": "Expandir a navegação",
+   "tr": "Gezinmeyi genişlet",
+   "ar": "توسيع شريط التنقل",
+   "pl": "Rozwiń nawigację",
+   "ru": "Развернуть навигацию"
+  },
+  {
    "zh": "展开本卡片并播放 HDR 输出时测量，每秒最多 4 次",
    "src": "qml/ProDisplayPanel.qml",
    "zh-TW": "展開本卡片並播放 HDR 輸出時測量，每秒最多 4 次",
@@ -35280,6 +35334,24 @@
    "ar": "تصل طريقة توليد الإطارات هذه إلى %1×: لعبة بـ %2 FPS تبلغ نحو %3 FPS",
    "pl": "Ta metoda generowania klatek daje do %1×: gra w %2 FPS osiąga około %3 FPS",
    "ru": "Этот способ генерации кадров даёт до %1×: игра с %2 FPS достигает примерно %3 FPS"
+  },
+  {
+   "zh": "当前补帧方式自行估算运动，不使用此选项",
+   "src": "qml/NodePage.qml",
+   "zh-TW": "目前的補幀方式會自行估算運動，不使用此選項",
+   "en": "This frame generation method works out motion by itself and does not use this choice",
+   "ja": "現在のフレーム生成方式は動きを自前で推定するため、この選択は使われません",
+   "ko": "현재 프레임 생성 방식은 움직임을 자체적으로 추정하므로 이 선택을 사용하지 않습니다",
+   "nl": "Deze methode voor framegeneratie berekent de beweging zelf en gebruikt deze keuze niet",
+   "de": "Diese Methode der Frame-Generierung ermittelt die Bewegung selbst und nutzt diese Auswahl nicht",
+   "es": "Este método de generación de fotogramas calcula el movimiento por sí mismo y no usa esta opción",
+   "fr": "Cette méthode de génération d'images estime le mouvement elle-même et n'utilise pas ce choix",
+   "it": "Questo metodo di generazione dei fotogrammi calcola il movimento da sé e non usa questa scelta",
+   "pt-BR": "Este método de geração de quadros calcula o movimento sozinho e não usa esta opção",
+   "tr": "Bu kare oluşturma yöntemi hareketi kendisi hesaplar ve bu seçimi kullanmaz",
+   "ar": "طريقة توليد الإطارات هذه تحسب الحركة بنفسها ولا تستخدم هذا الخيار",
+   "pl": "Ta metoda generowania klatek sama wyznacza ruch i nie korzysta z tego wyboru",
+   "ru": "Этот способ генерации кадров сам оценивает движение и не использует этот выбор"
   },
   {
    "zh": "当前设备不能执行所选 NR，请选择此显卡可用的 NR 运行库",
@@ -40882,6 +40954,24 @@
    "ru": "Свернуть"
   },
   {
+   "zh": "收起导航栏",
+   "src": "qml/PushTitleBar.qml",
+   "zh-TW": "收起導覽列",
+   "en": "Fold the navigation to its icons",
+   "ja": "ナビゲーションをアイコンだけにする",
+   "ko": "탐색 메뉴를 아이콘만 표시",
+   "nl": "Navigatie inklappen tot pictogrammen",
+   "de": "Navigation auf Symbole einklappen",
+   "es": "Contraer la navegación a sus iconos",
+   "fr": "Réduire la navigation à ses icônes",
+   "it": "Riduci la navigazione alle icone",
+   "pt-BR": "Recolher a navegação para ícones",
+   "tr": "Gezinmeyi simgelere daralt",
+   "ar": "طي شريط التنقل إلى أيقونات",
+   "pl": "Zwiń nawigację do ikon",
+   "ru": "Свернуть навигацию до значков"
+  },
+  {
    "zh": "改为 60→30",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "改為 60→30",
@@ -44445,6 +44535,24 @@
    "ar": "إظهار حدود المناطق",
    "pl": "Pokaż obrysy obszarów",
    "ru": "Показывать рамки областей"
+  },
+  {
+   "zh": "显示右侧设置栏",
+   "src": "qml/PushTitleBar.qml",
+   "zh-TW": "顯示右側設定欄",
+   "en": "Show the settings side",
+   "ja": "右側の設定パネルを表示",
+   "ko": "오른쪽 설정 패널 표시",
+   "nl": "Instellingenpaneel rechts tonen",
+   "de": "Einstellungsleiste rechts einblenden",
+   "es": "Mostrar el panel de ajustes de la derecha",
+   "fr": "Afficher le panneau de réglages à droite",
+   "it": "Mostra il pannello delle impostazioni a destra",
+   "pt-BR": "Mostrar o painel de configurações à direita",
+   "tr": "Sağdaki ayar panelini göster",
+   "ar": "إظهار لوحة الإعدادات اليمنى",
+   "pl": "Pokaż panel ustawień po prawej",
+   "ru": "Показать панель настроек справа"
   },
   {
    "zh": "显示同步",
@@ -71413,6 +71521,24 @@
    "ru": "После подключения устройства выключите улучшение, чтобы сначала проверить базовое изображение, а затем включите то, что вам нужно."
   },
   {
+   "zh": "连接采集卡后打开专业模式",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "連接擷取卡後開啟專業模式",
+   "en": "Open Pro mode when a capture card connects",
+   "ja": "キャプチャーカードの接続後にプロモードを開く",
+   "ko": "캡처 카드가 연결되면 프로 모드 열기",
+   "nl": "Pro-modus openen bij verbinden van een capturekaart",
+   "de": "Pro-Modus öffnen, wenn eine Capture-Karte verbunden wird",
+   "es": "Abrir el Modo Pro al conectar una capturadora",
+   "fr": "Ouvrir le Mode Pro à la connexion d'une carte de capture",
+   "it": "Apri la Modalità Pro alla connessione di una scheda di acquisizione",
+   "pt-BR": "Abrir o Modo Pro ao conectar uma placa de captura",
+   "tr": "Yakalama kartı bağlanınca Pro modunu aç",
+   "ar": "فتح وضع Pro عند اتصال بطاقة الالتقاط",
+   "pl": "Otwórz tryb Pro po połączeniu karty przechwytującej",
+   "ru": "Открывать режим Pro при подключении карты захвата"
+  },
+  {
    "zh": "退出全屏",
    "src": "portable/app/qml/PlayerPage.qml",
    "zh-TW": "退出全螢幕",
@@ -74147,6 +74273,24 @@
    "ar": "كل شيء PushFPS",
    "pl": "Wszystko z wyjątkiem PushFPS",
    "ru": "Все кроме разве что PushFPS"
+  },
+  {
+   "zh": "隐藏右侧设置栏",
+   "src": "qml/PushTitleBar.qml",
+   "zh-TW": "隱藏右側設定欄",
+   "en": "Hide the settings side",
+   "ja": "右側の設定パネルを隠す",
+   "ko": "오른쪽 설정 패널 숨기기",
+   "nl": "Instellingenpaneel rechts verbergen",
+   "de": "Einstellungsleiste rechts ausblenden",
+   "es": "Ocultar el panel de ajustes de la derecha",
+   "fr": "Masquer le panneau de réglages à droite",
+   "it": "Nascondi il pannello delle impostazioni a destra",
+   "pt-BR": "Ocultar o painel de configurações à direita",
+   "tr": "Sağdaki ayar panelini gizle",
+   "ar": "إخفاء لوحة الإعدادات اليمنى",
+   "pl": "Ukryj panel ustawień po prawej",
+   "ru": "Скрыть панель настроек справа"
   },
   {
    "zh": "隐藏播放条",

@@ -1594,6 +1594,156 @@
      "contains": "\"a held clock is a held picture\""
     }
    ]
+  },
+  {
+   "id": "F59",
+   "what": "A folded section of quick setup takes no room, also when the fold happens in one step (reduced motion, or a frame longer than the animation): its rows are not left drawn under a title that says it is folded",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "function test_a_folded_section_takes_no_room()"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "\"folded in one step: no room (\""
+    },
+    {
+     "file": "qml/Veyra/PushSection.qml",
+     "contains": "Layout.preferredHeight: body.implicitHeight * shown"
+    }
+   ]
+  },
+  {
+   "id": "F60",
+   "what": "The new design's sides fold with the title bar's two buttons: the navigation to its icons, the settings side of the home page and of Professional mode away, and the picture takes the room; whatever asks for a part of quick setup brings the side back, the panel over the full-screen picture and the tour are never hidden by it, and Legacy ignores it",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "function test_side_buttons_stand_at_their_ends_and_ask_for_their_side()"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "\"the navigation's button stands left of the part that moves the window\""
+    },
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "function test_home_hides_its_settings_side_and_the_picture_takes_the_room()"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_design.qml",
+     "ci": "tst_push_design",
+     "contains": "\"the index brings it back\""
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "function test_the_settings_side_is_hidden_and_the_picture_takes_its_room()"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "\"the overlay panel is shown when asked for\""
+    },
+    {
+     "file": "tests/js/push_shell_test.js",
+     "ci": "tests/js/*_test.js",
+     "contains": "a narrow window stays folded whatever was chosen"
+    },
+    {
+     "file": "src/ui/bridge/Preferences.cpp",
+     "contains": "\"pushNavCollapsed\", \"pushSideCollapsed\", \"pushConnectToPro\","
+    }
+   ]
+  },
+  {
+   "id": "F61",
+   "what": "Professional mode's All tab: each category folds by its title, stays folded, takes no room while folded, and a tab of its own always shows its category",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "function test_all_tab_blocks_fold_by_their_titles()"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "\"the Frame Gen tab is the Frame Gen block\""
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "a folded block takes no room ("
+    },
+    {
+     "file": "tests/js/push_shell_test.js",
+     "ci": "tests/js/*_test.js",
+     "contains": "doubles, empties and what is no block are dropped"
+    },
+    {
+     "file": "src/ui/bridge/Preferences.cpp",
+     "contains": "static const QStringList blocks{\"quality\", \"fg\", \"color\", \"audio\", \"display\"};"
+    }
+   ]
+  },
+  {
+   "id": "F62",
+   "what": "A capture card connected from the new home page plays there; Professional mode is where it goes in Legacy, in a window too narrow for the three panes, with full screen on connecting, and for whoever chose it",
+   "guards": [
+    {
+     "file": "tests/js/push_shell_test.js",
+     "ci": "tests/js/*_test.js",
+     "contains": "full screen on connecting goes full screen in Professional mode, as before"
+    },
+    {
+     "file": "tests/js/push_shell_test.js",
+     "ci": "tests/js/*_test.js",
+     "contains": "Legacy has no picture on its home page: Professional mode, as always"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "function test_professional_mode_on_connecting_is_a_choice_of_the_new_design()"
+    },
+    {
+     "file": "qml/Veyra/Main.qml",
+     "contains": "if (p === \"afterconnect\") {"
+    },
+    {
+     "file": "src/ui/bridge/Capture.cpp",
+     "contains": "screen ? QStringLiteral(\"min\") : QStringLiteral(\"afterconnect\")"
+    },
+    {
+     "file": "tests/js/push_shell_test.js",
+     "ci": "tests/js/*_test.js",
+     "contains": "a picture playing on the new home page: full screen is the picture"
+    }
+   ],
+   "needs_hardware": "A capture card connected while the home page is shown: the engine opening with the picture's place on that page. No capture card exists in CI."
+  },
+  {
+   "id": "F63",
+   "what": "The frame generation motion source row is on screen for every method; for the methods that work out motion themselves it is greyed out and says why",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "function test_motion_source_row_stays_and_says_when_it_does_not_apply()"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "own + \": the row is still there\""
+    },
+    {
+     "file": "include/veyra/engine/EnhancementSettings.h",
+     "contains": "backend!=FrameGenerationBackend::Vfg&&backend!=FrameGenerationBackend::AmdFrc&&backend!=FrameGenerationBackend::PushFlow"
+    }
+   ]
   }
  ]
 }

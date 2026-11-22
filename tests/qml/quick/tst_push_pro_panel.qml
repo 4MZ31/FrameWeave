@@ -21,8 +21,22 @@ Item {
         when: windowShown
         property var savedPreferences: ({})
         function init() { savedPreferences = veyra.preferences; veyra.preferences = ({}); page.overlay = false; page.tab = "fg" }
-        function cleanup() { Theme.design = "legacy"; page.overlay = false; page.tab = "fg"; veyra.preferences = savedPreferences }
+        function cleanup() { Theme.design = "legacy"; page.overlay = false; page.onboardingActive = false; page.tab = "fg"; veyra.preferences = savedPreferences }
         function control(parent, name) { const c = findChild(parent, name); verify(c !== null, name); return c }
+        // What stands under an item's middle, from the page inwards (for a press that did not arrive).
+        function under(item) {
+            const at = item.mapToItem(page, item.width / 2, item.height / 2)
+            let node = page, x = at.x, y = at.y, path = Math.round(at.x) + "," + Math.round(at.y) + " of " + Math.round(item.width) + "x" + Math.round(item.height)
+                + (item.visible ? "" : " (not visible)") + (item.enabled ? "" : " (not enabled)") + ":"
+            for (let depth = 0; depth < 24 && node; ++depth) {
+                const child = node.childAt(x, y)
+                if (!child) break
+                const p = node.mapToItem(child, x, y)
+                x = p.x; y = p.y; node = child
+                path += " > " + (child.objectName || String(child).split("(")[0])
+            }
+            return path
+        }
 
         // The redesign: in the new design every tab's settings stand in one list, each under its name, so
         // nothing is looked for from tab to tab, and AI picture enhancement's card comes first. The five
@@ -57,8 +71,9 @@ Item {
             compare(picture.parent, control(page, "list-pushfps-picture-first"), "AI picture enhancement's card is the first card")
             tryVerify(function() { return control(page, "pushfps-enhance-row").visible }, 3000, "with its switch")
             // A tab still shows that tab alone.
-            mouseClick(control(page, "pro-tab-fg"))
-            compare(page.tab, "fg")
+            const tabFg = control(page, "pro-tab-fg")
+            mouseClick(tabFg)
+            compare(page.tab, "fg", "a press on the tab; under the pointer stands " + under(tabFg))
             tryVerify(function() { return !picture.visible && control(page, "list-pushfps-quick").visible && !control(page, "pro-all-fg").visible }, 3000)
             mouseClick(control(page, "pro-tab-all"))
             compare(page.tab, "all")
@@ -69,6 +84,123 @@ Item {
             page.tab = "color"
             Theme.design = "new"
             compare(page.tab, "color", "what was chosen stays chosen")
+        }
+
+        // 4.3.1: in the All tab each tab's block folds by its title and stays folded; a tab of its own
+        // always shows its block.
+        function test_all_tab_blocks_fold_by_their_titles() {
+            Theme.design = "new"
+            page.tab = "all"
+            const blocks = { quality: "list-pushfps-picture", fg: "list-pushfps-quick", audio: "", display: "", color: "" }
+            const head = id => control(page, "pro-all-" + id)
+            for (const id in blocks) {
+                tryVerify(function() { return head(id).visible && head(id).height > 20 && head(id).open }, 3000, id + " has a title that is open")
+                verify(page.blockOpen(id) && page.blockShown(id))
+            }
+            const quick = control(page, "list-pushfps-quick"), picture = control(page, "list-pushfps-picture")
+            tryVerify(function() { return quick.visible && picture.visible }, 3000)
+            // A press on the title folds the block under it, and only that one.
+            // (A layout gives an item its place at its next pass, not when it is shown.)
+            const colour = head("color")
+            const gap = () => colour.mapToItem(page, 0, 0).y - (head("fg").mapToItem(page, 0, 0).y + head("fg").height)
+            tryVerify(function() { return gap() > 200 }, 3000, "open: the Frame Gen block stands between its title and the next (" + gap() + ")")
+            head("fg").toggled(false)
+            compare(veyra.preferences.pushProFolded, "fg", "the fold is a preference")
+            tryVerify(function() { return !quick.visible && !head("fg").open }, 3000, "the block is not drawn")
+            verify(head("fg").visible, "its title stays, to open it again")
+            verify(picture.visible && page.blockOpen("quality") && !page.blockOpen("fg"))
+            tryVerify(function() { return gap() >= 0 && gap() < 24 }, 3000, "what stood under it moves up: a folded block takes no room (" + gap() + ")")
+            // A second one; the list keeps both.
+            head("display").toggled(false)
+            compare(veyra.preferences.pushProFolded, "fg,display")
+            page.setBlockOpen("audio", true)
+            compare(veyra.preferences.pushProFolded, "fg,display", "opening what is open changes nothing")
+            // A tab of its own shows its block whatever is folded in the list.
+            page.tab = "fg"
+            tryVerify(function() { return quick.visible && !head("fg").visible }, 3000, "the Frame Gen tab is the Frame Gen block")
+            verify(page.blockShown("fg") && !page.blockShown("quality"))
+            page.tab = "all"
+            tryVerify(function() { return !quick.visible && head("fg").visible }, 3000, "and the list still has it folded")
+            // Opened again by its title.
+            head("fg").toggled(true)
+            compare(veyra.preferences.pushProFolded, "display")
+            tryVerify(function() { return quick.visible && head("fg").open && gap() > 200 }, 3000)
+            // The title is the button: a press on it does what the call does (the first title: it is in view).
+            mouseClick(head("quality"))
+            compare(veyra.preferences.pushProFolded, "display,quality", "a press on the title folds; under the pointer stands " + under(head("quality")))
+            tryVerify(function() { return !picture.visible }, 3000)
+            mouseClick(head("quality"))
+            compare(veyra.preferences.pushProFolded, "display")
+            tryVerify(function() { return picture.visible }, 3000)
+            // What was saved wrongly folds nothing it should not.
+            veyra.setPreference("pushProFolded", "nonsense,,quality")
+            tryVerify(function() { return !picture.visible && quick.visible }, 3000)
+            verify(page.blockOpen("display") && !page.blockOpen("quality"))
+            veyra.setPreference("pushProFolded", "")
+            tryVerify(function() { return picture.visible }, 3000)
+            // Legacy has no such list: its tabs show their blocks, folded or not.
+            veyra.setPreference("pushProFolded", "quality,fg")
+            Theme.design = "legacy"
+            tryCompare(page, "tab", "quality")
+            tryVerify(function() { return picture.visible && !head("quality").visible }, 3000)
+        }
+        // 4.3.1: the settings side is hidden with the title bar's button, and the picture takes its room.
+        function test_the_settings_side_is_hidden_and_the_picture_takes_its_room() {
+            Theme.design = "new"
+            page.tab = "all"
+            const panel = control(page, "pro-inspector"), split = control(page, "pro-inspector-split")
+            tryVerify(function() { return panel.visible && panel.width >= 376 }, 3000)
+            const wide = page.videoViewport.width
+            verify(!page.sideCollapsed && split.visible)
+            veyra.setPreference("pushSideCollapsed", true)
+            tryVerify(function() { return page.sideCollapsed && !panel.visible && !split.visible }, 3000, "the panel is not drawn, nor the handle beside it")
+            compare(page.videoViewport.width, page.width - 28, "the picture's column is the page's width inside its margins")
+            verify(page.videoViewport.width > wide + 370, "it took the panel's room: " + page.videoViewport.width)
+            verify(page.videoViewport.x + page.videoViewport.width <= page.width)
+            // The panel over the full-screen picture has its own way in and out: it is never hidden by this.
+            page.overlay = true
+            tryVerify(function() { return panel.visible && !page.sideCollapsed }, 3000, "the overlay panel is shown when asked for")
+            page.overlay = false
+            tryVerify(function() { return !panel.visible }, 3000)
+            // The tour points at the panel: it is shown while the tour runs.
+            page.onboardingActive = true
+            tryVerify(function() { return panel.visible && Math.abs(page.videoViewport.width - wide) < 1 }, 3000)
+            page.onboardingActive = false
+            tryVerify(function() { return !panel.visible }, 3000)
+            // Shown again: everything is where it was.
+            veyra.setPreference("pushSideCollapsed", false)
+            tryVerify(function() { return panel.visible && split.visible && Math.abs(page.videoViewport.width - wide) < 1 }, 3000)
+            // Legacy has no such button, so a saved choice hides nothing there.
+            veyra.setPreference("pushSideCollapsed", true)
+            Theme.design = "legacy"
+            tryVerify(function() { return panel.visible && !page.sideCollapsed }, 3000)
+        }
+        // 4.3.1: the motion source row is there for every method. For the methods that work out the motion
+        // themselves it is greyed out and says so, instead of being gone (NVIDIA VFG) or doing nothing.
+        function test_motion_source_row_stays_and_says_when_it_does_not_apply() {
+            page.tab = "fg"
+            const row = control(page, "list-fg-motion-row"), seg = control(page, "list-fg-motion")
+            const was = veyra.fgBackendName
+            const usual = "dlss"
+            veyra.fgBackendName = usual
+            tryVerify(function() { return row.visible && !row.ownMotion }, 3000)
+            const hint = row.hint
+            verify(hint.length > 0 && seg.options.length === 2 && seg.options[0].disabled !== true && seg.options[1].disabled !== true, "a choice that can be made")
+            for (const own of ["vfg", "amdfrc", "pushflow"]) {
+                veyra.fgBackendName = own
+                tryVerify(function() { return row.ownMotion }, 3000, own)
+                verify(row.visible, own + ": the row is still there")
+                verify(seg.options[0].disabled === true && seg.options[1].disabled === true, own + ": greyed out")
+                compare(seg.current, "", own + ": nothing reads as chosen")
+                verify(row.hint.length > 0 && row.hint !== hint, own + ": it says why")
+            }
+            for (const other of ["dlss", "fsr3", "fsr4", "xess", "anr"]) {
+                veyra.fgBackendName = other
+                tryVerify(function() { return !row.ownMotion && row.visible }, 3000, other)
+                verify(seg.options[0].disabled !== true && seg.options[1].disabled !== true, other)
+                compare(row.hint, hint)
+            }
+            veyra.fgBackendName = was
         }
 
         function test_overlay_panel_is_as_wide_as_its_edge_is_dragged() {

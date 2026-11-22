@@ -986,6 +986,13 @@ the interface of 4.2 as it was, and the same panel has the backgrounds and accen
 palette is at the bottom left of the home page. Both designs have the same features, and changing the design
 changes no setting. The new design opens with a two-second animation of the PushFPS logo.
 
+**More room for the picture (4.3.1).** The title bar has two small buttons. The one on the left folds the
+navigation to its icons; the one on the right hides the settings side (quick setup on the home page, the
+panel in Professional mode), and the picture takes the room. In Professional mode's *All* tab every category
+(*Quality*, *Frame Gen*, *Color*, *Audio*, *Display*) folds by its title. A capture card connected from the
+home page plays there, beside quick setup; *Quick setup → Connecting → Open Pro mode when a capture card
+connects* brings back the jump to Professional mode.
+
 **Sunset City (Legacy).** In the Legacy design PushFPS opens with a three-second intro: a neon road out of the dark, the logo landing on the
 beat, the sky turning to sunset over a palm-lined city, and the logo gliding into place on the home page, where
 it stays filled with the sunset city. The music is the startup track that comes with Veyra's runtime package.
@@ -1193,6 +1200,8 @@ A measurement from your own card helps: [how to take one](docs/BENCHMARKING.md).
       above 100% that holds, a wider panel in full screen
 - [x] 4.3: a new design with the picture and quick setup on the home page, an *All* tab in Professional
       mode and a new start-up animation; Legacy, the design of 4.2, one click away behind the palette
+- [x] 4.3.1: both sides of the new design fold with a button each, Professional mode's categories fold, and
+      a capture card connected from the home page plays there
 - [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)

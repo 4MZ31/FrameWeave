@@ -14,6 +14,7 @@ import QtQuick.Controls.Basic as Basic
 import QtQuick.Layouts
 import "EffectSupport.js" as Support
 import "PushRecord.js" as Record
+import "PushShell.js" as PushShell
 import QtQuick.Shapes
 import QtQuick.Effects
 
@@ -50,7 +51,7 @@ VPage {
                         "hdr": hdrCard.headerItem, "dedup": dedupRow }
         return { item: items[key], viewport: inspFlick }
     }
-    readonly property bool hdrMeterObserved: visible && (tab === "display" || tab === "all") && displayCol.hdrMeterObserved
+    readonly property bool hdrMeterObserved: visible && !sideCollapsed && blockShown("display") && displayCol.hdrMeterObserved
     onHdrMeterObservedChanged: veyra.observeHdrCoverage(hdrMeterObserved)
     function overlayContains(x, y) {
         const hit = item => x >= item.x && x <= item.x + item.width && y >= item.y && y <= item.y + item.height
@@ -105,6 +106,14 @@ VPage {
     // where that design starts; with Legacy chosen the list goes back to a tab.
     readonly property bool allTabs: tab === "all"
     property bool allTabsOffered: false
+    // (PushFPS 4.3.1) In the All tab each tab's block folds by its title and is remembered folded
+    // (preference pushProFolded: the blocks' ids with commas, as quick setup's sections are kept). A
+    // tab of its own always shows its block: there the fold has nothing to say.
+    // (The list's rules are PushShell.js, tested without Qt.)
+    readonly property string foldedText: String(veyra.preferences.pushProFolded || "")
+    function blockOpen(id) { return PushShell.blockOpen(root.foldedText, id) }
+    function setBlockOpen(id, open) { veyra.setPreference("pushProFolded", PushShell.withBlock(root.foldedText, id, open)) }
+    function blockShown(id) { return root.tab === id || (root.allTabs && root.blockOpen(id)) }
     function followDesign() {
         if (Theme.modern && !allTabsOffered) { allTabsOffered = true; if (tab === "quality") tab = "all" }
         else if (!Theme.modern) { allTabsOffered = false; if (tab === "all") tab = "quality" }
@@ -562,7 +571,12 @@ VPage {
 
     // One geometry contract for this layout and Main's native video HWND.
     // These are available before the first layout pass when a source is opened.
-    readonly property real videoColumnWidth: Math.max(1, root.width - root.inspectorWidth - 14 * 2 - 10)
+    // (PushFPS 4.3.1) The settings side hidden with the title bar's button (the new design; never the
+    // panel over the full-screen picture, which has its own way in and out, and never during the
+    // tour, which points at the panel): the picture's column takes the panel's room.
+    readonly property bool sideCollapsed: Theme.modern && !root.overlay && !root.onboardingActive
+        && veyra.preferences.pushSideCollapsed === true
+    readonly property real videoColumnWidth: Math.max(1, root.width - 14 * 2 - (root.sideCollapsed ? 0 : root.inspectorWidth + 10))
     // PushFPS: the three meter cards show only while something plays (with nothing open they were a wall of
     // "Not measured"), and, since 2.2.0's layout, only when the picture keeps room beside them. The guided
     // tour shows them whatever plays.
@@ -1237,7 +1251,7 @@ VPage {
     MouseArea {
         id: inspectorSplit
         objectName: "pro-inspector-split"
-        visible: !root.overlay
+        visible: !root.overlay && !root.sideCollapsed
         x: insp.x - 10
         y: insp.y
         width: 10
@@ -1285,6 +1299,7 @@ VPage {
     Rectangle {
         id: insp
         objectName: "pro-inspector"
+        visible: !root.sideCollapsed
         readonly property bool videoCover: root.overlay
         property real coverRadius: radius
         anchors.right: parent.right
@@ -1522,12 +1537,12 @@ VPage {
                     spacing: 6
 
                     // --- 画质 -------------------------------------------------
-                    VH3 { objectName: "pro-all-quality"; visible: root.allTabs; text: qsTr("画质") }
+                    PushFoldHead { objectName: "pro-all-quality"; visible: root.allTabs; text: qsTr("画质"); open: root.blockOpen("quality"); onToggled: open => root.setBlockOpen("quality", open) }
                     ColumnLayout {
                         id: qualityCol
                         Layout.fillWidth: true
                         spacing: 6
-                        visible: root.tab === "quality" || root.allTabs
+                        visible: root.blockShown("quality")
                         // (The new design: quick setup's Picture card, with AI picture enhancement, comes first.)
                         Item {
                             id: pictureFirst
@@ -1948,12 +1963,12 @@ VPage {
                     // 画质效果之后"), the optical-flow and presentation groups nested
                     // as sub-panels. Backend choices share the node editor's
                     // bridge contract; FSR 4 requests never silently become 3.1.
-                    VH3 { objectName: "pro-all-fg"; visible: root.allTabs; text: qsTr("补帧"); Layout.topMargin: 12 }
+                    PushFoldHead { objectName: "pro-all-fg"; visible: root.allTabs; text: qsTr("补帧"); Layout.topMargin: 6; open: root.blockOpen("fg"); onToggled: open => root.setBlockOpen("fg", open) }
                     ColumnLayout {
                         id: fgCol
                         Layout.fillWidth: true
                         spacing: 6
-                        visible: root.tab === "fg" || root.allTabs
+                        visible: root.blockShown("fg")
                         objectName: "list-fg-group"
 
                         // PushFPS: target frame rate, AI enhancement and low latency in
@@ -1997,10 +2012,22 @@ VPage {
                                 }
                             }
                             VRow {
+                                id: fgMotionRow
+                                objectName: "list-fg-motion-row"
                                 label: qsTr("补帧运动来源")
-                                visible: veyra.fgBackendName !== "vfg"
-                                hint: qsTr("XeSS 默认零运动；FSR 仍有自身的光流计算")
-                                VSeg { objectName: "list-fg-motion"; options: [{id:"0",label:qsTr("零运动")},{id:"1",label:qsTr("光流")}]; current: String(veyra.fgMotionSource); onPicked: id => veyra.fgMotionSource = Number(id) }
+                                // (PushFPS 4.3.1) Shown for every method. NVIDIA VFG, AMD FRC and PushFlow work out
+                                // the motion themselves from the two pictures (engine::motionUsesFlow) and take no
+                                // motion source: with VFG the row was not shown at all, which read as "the optical
+                                // flow choice is gone" (users' reports), and with the other two it was a choice that
+                                // changed nothing. It now stays, greyed out, and says why.
+                                readonly property bool ownMotion: ["vfg", "amdfrc", "pushflow"].indexOf(veyra.fgBackendName) >= 0
+                                hint: ownMotion ? qsTr("当前补帧方式自行估算运动，不使用此选项") : qsTr("XeSS 默认零运动；FSR 仍有自身的光流计算")
+                                VSeg {
+                                    objectName: "list-fg-motion"
+                                    options: [{id:"0",label:qsTr("零运动"),disabled:fgMotionRow.ownMotion},{id:"1",label:qsTr("光流"),disabled:fgMotionRow.ownMotion}]
+                                    current: fgMotionRow.ownMotion ? "" : String(veyra.fgMotionSource)
+                                    onPicked: id => { if (!fgMotionRow.ownMotion) veyra.fgMotionSource = Number(id) }
+                                }
                             }
                             VRow {
                                 label: qsTr("倍率")
@@ -2353,28 +2380,28 @@ VPage {
 
                     // --- 色彩 -------------------------------------------------
                     // The same real-instance editor is used by the node inspector.
-                    VH3 { objectName: "pro-all-color"; visible: root.allTabs; text: qsTr("色彩"); Layout.topMargin: 12 }
+                    PushFoldHead { objectName: "pro-all-color"; visible: root.allTabs; text: qsTr("色彩"); Layout.topMargin: 6; open: root.blockOpen("color"); onToggled: open => root.setBlockOpen("color", open) }
                     ColourPanel {
                         id: colourPanel
                         Layout.fillWidth: true
-                        visible: root.tab === "color" || root.allTabs
+                        visible: root.blockShown("color")
                         api: veyra
                     }
 
                     // --- 声音 -------------------------------------------------
-                    VH3 { objectName: "pro-all-audio"; visible: root.allTabs; text: qsTr("声音"); Layout.topMargin: 12 }
+                    PushFoldHead { objectName: "pro-all-audio"; visible: root.allTabs; text: qsTr("声音"); Layout.topMargin: 6; open: root.blockOpen("audio"); onToggled: open => root.setBlockOpen("audio", open) }
                     ProAudioPanel {
                         id: audioCol
                         Layout.fillWidth: true
-                        visible: root.tab === "audio" || root.allTabs
+                        visible: root.blockShown("audio")
                     }
 
                     // --- 显示 -------------------------------------------------
-                    VH3 { objectName: "pro-all-display"; visible: root.allTabs; text: qsTr("显示"); Layout.topMargin: 12 }
+                    PushFoldHead { objectName: "pro-all-display"; visible: root.allTabs; text: qsTr("显示"); Layout.topMargin: 6; open: root.blockOpen("display"); onToggled: open => root.setBlockOpen("display", open) }
                     ProDisplayPanel {
                         id: displayCol
                         Layout.fillWidth: true
-                        visible: root.tab === "display" || root.allTabs
+                        visible: root.blockShown("display")
                     }
 
                     Item { Layout.preferredHeight: 12 }

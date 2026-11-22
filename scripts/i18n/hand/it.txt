@@ -1553,3 +1553,11 @@ zh:新版把导航、预览和全部快速设置放在同一个窗口里；旧�
 zh:更多外观设置|Altre impostazioni dell'aspetto
 zh:语言、启动方式和窗口选项在「设置」里|La lingua, l'avvio e le opzioni della finestra sono in Impostazioni
 zh:打开 PushFPS 时播放约 2 秒的开场动画，单击或按任意键可跳过|Riproduce un'introduzione di 2 secondi all'apertura di PushFPS; fai clic o premi un tasto per saltarla
+zh:展开导航栏|Espandi la navigazione
+zh:收起导航栏|Riduci la navigazione alle icone
+zh:显示右侧设置栏|Mostra il pannello delle impostazioni a destra
+zh:隐藏右侧设置栏|Nascondi il pannello delle impostazioni a destra
+zh:当前补帧方式自行估算运动，不使用此选项|Questo metodo di generazione dei fotogrammi calcola il movimento da sé e non usa questa scelta
+zh:连接采集卡后打开专业模式|Apri la Modalità Pro alla connessione di una scheda di acquisizione
+zh:关闭时留在首页，画面显示在首页中间|Disattivato: resti nella Home, dove l'immagine viene riprodotta al centro
+zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Schermo intero alla connessione" è attivo: la connessione apre sempre la Modalità Pro a schermo intero

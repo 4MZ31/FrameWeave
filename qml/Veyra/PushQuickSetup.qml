@@ -1773,5 +1773,21 @@ VGroup {
                 onToggled: v => veyra.setPreference("pushAutoFullscreen", v)
             }
         }
+        // (4.3.1) The new design's home page shows the picture, so a capture card connected from it
+        // plays there (Main.qml staysHomeOnConnect). Whoever would rather land in Professional mode,
+        // as before, says so here. Legacy's home page has no picture and always goes there: no row.
+        VRow {
+            objectName: "pushfps-connect-pro-row"
+            visible: !quick.shortForm && Theme.modern
+            label: qsTr("连接采集卡后打开专业模式")
+            hint: veyra.preferences.pushAutoFullscreen === true
+                  ? qsTr("“连接后自动全屏”已开启：连接后总是进入专业模式并全屏")
+                  : qsTr("关闭时留在首页，画面显示在首页中间")
+            VSwitch {
+                objectName: "pushfps-connect-pro"
+                checked: veyra.preferences.pushConnectToPro === true
+                onToggled: v => veyra.setPreference("pushConnectToPro", v)
+            }
+        }
     }
 }

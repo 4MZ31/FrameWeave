@@ -28,6 +28,8 @@ Item {
     SignalSpy { id: minimizes; target: bar; signalName: "requestMinimize" }
     SignalSpy { id: maximizes; target: bar; signalName: "requestMaximize" }
     SignalSpy { id: closes; target: bar; signalName: "requestClose" }
+    SignalSpy { id: navToggles; target: bar; signalName: "requestToggleNav" }
+    SignalSpy { id: sideToggles; target: bar; signalName: "requestToggleSide" }
     SignalSpy { id: fullscreens; target: home; signalName: "requestFullscreen" }
     SignalSpy { id: homePalettes; target: home; signalName: "requestAppearance" }
     SignalSpy { id: moreSettings; target: look; signalName: "requestSettings" }
@@ -47,7 +49,8 @@ Item {
             nav.slim = false; nav.currentPage = "home"
             home.width = 1392; home.height = 820
             host.dialog = ""
-            for (const spy of [pages, palettes, minimizes, maximizes, closes, fullscreens, homePalettes, moreSettings]) spy.clear()
+            bar.navToggleShown = false; bar.sideToggleShown = false; bar.navCollapsed = false; bar.sideCollapsed = false
+            for (const spy of [pages, palettes, minimizes, maximizes, closes, navToggles, sideToggles, fullscreens, homePalettes, moreSettings]) spy.clear()
         }
         function cleanup() {
             host.dialog = ""
@@ -136,6 +139,76 @@ Item {
             // The part of the bar that moves the window (and maximises it on a double click) ends before the buttons.
             const drag = control(bar, "pushfps-titlebar-drag")
             verify(drag.width > 500 && drag.x + drag.width <= min.mapToItem(bar, 0, 0).x + 0.5, "the bar's own handlers never see a press on a button")
+        }
+
+        // 4.3.1: the two side buttons. One at the bar's left end folds the navigation to its icons, one at
+        // its right end hides the settings side; each is there only where it has something to fold.
+        function test_side_buttons_stand_at_their_ends_and_ask_for_their_side() {
+            bar.visible = true
+            const navButton = control(bar, "pushfps-nav-toggle"), sideButton = control(bar, "pushfps-side-toggle")
+            const min = control(bar, "pushfps-window-min"), drag = control(bar, "pushfps-titlebar-drag")
+            verify(!navButton.visible && !sideButton.visible, "not shown where there is nothing to fold")
+            const plain = drag.width
+            bar.navToggleShown = true; bar.sideToggleShown = true
+            tryVerify(function() { return drawn(navButton) && drawn(sideButton) }, 3000)
+            const left = item => item.mapToItem(bar, 0, 0).x
+            // Each at its own end, beside what is there and over nothing.
+            tryVerify(function() { return left(navButton) >= 0 && left(navButton) + navButton.width <= drag.x + 0.5 }, 3000,
+                      "the navigation's button stands left of the part that moves the window")
+            tryVerify(function() { return left(sideButton) >= drag.x + drag.width - 0.5 && left(sideButton) + sideButton.width <= left(min) + 0.5 }, 3000,
+                      "the settings side's button stands between that part and the window's buttons")
+            verify(left(navButton) + navButton.width < bar.width / 2 && left(sideButton) > bar.width / 2, "one left, one right")
+            verify(drag.width > 400 && drag.width < plain, "the bar is still moved by what is between them")
+            // Each asks for its own side; two quick presses are that button twice, never a double click on the bar.
+            mouseClick(navButton)
+            compare(navToggles.count, 1); compare(sideToggles.count, 0)
+            mouseClick(sideButton); mouseClick(sideButton)
+            compare(sideToggles.count, 2); compare(navToggles.count, 1)
+            compare(maximizes.count, 0); compare(minimizes.count, 0); compare(closes.count, 0)
+            // What a button says follows what it would do.
+            verify(navButton.shown && sideButton.shown)
+            const navTip = navButton.tip, sideTip = sideButton.tip
+            verify(navTip.length > 0 && sideTip.length > 0 && navTip !== sideTip)
+            bar.navCollapsed = true; bar.sideCollapsed = true
+            verify(!navButton.shown && !sideButton.shown)
+            verify(navButton.tip !== navTip && sideButton.tip !== sideTip && navButton.tip.length > 0 && sideButton.tip.length > 0)
+            // Without them the bar is what it was.
+            bar.navToggleShown = false; bar.sideToggleShown = false
+            tryVerify(function() { return !navButton.visible && !sideButton.visible && Math.abs(drag.width - plain) < 0.5 }, 3000)
+        }
+
+        // 4.3.1: the home page's settings side hidden; the picture takes its room, and whatever asks for a
+        // part of quick setup brings the side back.
+        function test_home_hides_its_settings_side_and_the_picture_takes_the_room() {
+            home.visible = true
+            tryVerify(function() { return home.threePane }, 3000)
+            const picture = control(home, "home-desk-preview"), settings = control(home, "home-desk-settings"), sources = control(home, "home-desk-sources")
+            tryVerify(function() { return drawn(settings) && picture.width > 300 }, 3000)
+            const before = picture.width, viewBefore = home.videoViewport.width
+            verify(!home.sideCollapsed)
+            veyra.setPreference("pushSideCollapsed", true)
+            tryVerify(function() { return home.sideCollapsed && !settings.visible }, 3000, "quick setup's pane is not drawn")
+            tryVerify(function() { return picture.width > before + 300 }, 3000, "the picture's column takes the room: " + picture.width)
+            verify(picture.x + picture.width <= home.width - home.paneMargin + 0.5, "and stays inside the page")
+            const view = home.videoViewport
+            verify(view.width > viewBefore && view.x >= picture.x && view.x + view.width <= picture.x + picture.width, "the picture's place follows")
+            verify(sources.x + sources.width <= picture.x, "the sources stay where they are")
+            tryVerify(function() { return drawn(control(home, "pushfps-optimize")) }, 3000, "the tools stay under the picture")
+            // Asking for a part of quick setup shows the side again.
+            home.showInQuick(home.quickIndex[2])
+            tryVerify(function() { return !home.sideCollapsed && drawn(settings) }, 3000, "the index brings it back")
+            compare(veyra.preferences.pushSideCollapsed, false)
+            tryVerify(function() { return Math.abs(picture.width - before) < 1 }, 3000)
+            veyra.setPreference("pushSideCollapsed", true)
+            tryVerify(function() { return home.sideCollapsed }, 3000)
+            home.showTourStep("target")
+            tryVerify(function() { return !home.sideCollapsed }, 3000, "so does the tour")
+            // The one column has no side to hide.
+            veyra.setPreference("pushSideCollapsed", true)
+            Theme.design = "legacy"
+            tryVerify(function() { return !home.threePane }, 3000)
+            verify(!home.sideCollapsed)
+            tryVerify(function() { return drawn(control(home, "home-pushfps-quick")) }, 3000, "Legacy: quick setup is on the page, whatever was saved")
         }
 
         // A figure nobody reported is a dash: never a zero, never a made-up number.

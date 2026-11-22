@@ -28,6 +28,7 @@ Item {
         name: "PushQuickSetup"
         when: windowShown
         function init() {
+            Theme.design = "legacy"; quick.compact = false   // (a test that left the new design or the short form on would change every later one)
             veyra.preferences = ({exportStopsPlayback: false})
             veyra.fgMultiplier = 1
             veyra.fgEnabled = false
@@ -201,6 +202,52 @@ Item {
             compare(quick.sectionSummary("fg"), "120 FPS")
             quick.applyTarget("off")
             verify(quick.sectionSummary("fg").length > 0 && quick.sectionSummary("fg") !== "120 FPS")
+        }
+        // A folded section takes no room, however the fold got there: animated, or in one step (reduced
+        // motion, or a frame that took longer than the animation). A layout keeps the size an item has when
+        // its implicit height is 0 and nothing else says how high it should be, so a fold that reached 0 in
+        // one step stayed as high as it was: the section read as folded and its rows were still drawn.
+        function test_a_folded_section_takes_no_room() {
+            const fold = control("pushfps-section-fold-picture")
+            tryVerify(function() { return fold.height > 100 }, 3000, "open: the rows have their room (" + fold.height + ")")
+            const was = Theme.reduced
+            Theme.reduced = true
+            quick.setSectionOpen("picture", false)
+            tryVerify(function() { return fold.height < 0.5 }, 3000, "folded in one step: no room (" + fold.height + ")")
+            quick.setSectionOpen("picture", true)
+            tryVerify(function() { return fold.height > 100 }, 3000, "opened again in one step (" + fold.height + ")")
+            Theme.reduced = was
+            quick.setSectionOpen("picture", false)
+            tryVerify(function() { return fold.height < 0.5 }, 3000, "folded with its animation: no room (" + fold.height + ")")
+            quick.setSectionOpen("picture", true)
+            tryVerify(function() { return fold.height > 100 }, 3000, "opened again (" + fold.height + ")")
+        }
+        // 4.3.1: a capture card connected from the new home page plays there; whoever would rather land in
+        // Professional mode says so in the Connecting section. Legacy always goes there and has no such row.
+        function test_professional_mode_on_connecting_is_a_choice_of_the_new_design() {
+            const row = control("pushfps-connect-pro-row"), sw = control("pushfps-connect-pro")
+            verify(!Theme.modern && !row.visible, "Legacy: no row, it has no picture on its home page")
+            Theme.design = "new"
+            tryVerify(function() { return row.visible }, 3000, "the new design offers it")
+            verify(!sw.checked, "off until chosen: the picture plays on the home page")
+            verify(quick.sectionItems.find(s => s.sectionId === "start").holds("pushfps-connect-pro-row"), "it stands in the Connecting section")
+            sw.toggled(true)
+            compare(veyra.preferences.pushConnectToPro, true)
+            tryVerify(function() { return sw.checked }, 3000)
+            sw.toggled(false)
+            compare(veyra.preferences.pushConnectToPro, false)
+            // With full screen on connecting the row says that this decides it.
+            const plain = row.hint
+            veyra.setPreference("pushAutoFullscreen", true)
+            tryVerify(function() { return row.hint !== plain && row.hint.length > 0 }, 3000)
+            veyra.setPreference("pushAutoFullscreen", false)
+            compare(row.hint, plain)
+            // The short form leaves the Connecting section out, this row with it.
+            quick.compact = true
+            tryVerify(function() { return !row.visible }, 3000)
+            quick.compact = false
+            Theme.design = "legacy"
+            tryVerify(function() { return !row.visible }, 3000)
         }
         // Each page shows a setting once: what the page beside the quick setup has itself is left to that page.
         function test_each_page_shows_a_setting_once() {

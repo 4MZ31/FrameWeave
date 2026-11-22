@@ -112,6 +112,18 @@ between them (the recorder starts a new encoder between parts).
 - AI picture enhancement can be switched on in Professional mode with no layer yet, upscale to my screen is
   in Professional mode too, and the update buttons in Settings stand side by side.
 
+## Done in 4.3.1
+
+- The new design's sides fold: the navigation to its icons, and the settings side of the home page and of
+  Professional mode away, each with its own button in the title bar. The picture takes the room.
+- Professional mode's *All* tab: each category folds by its title and stays folded.
+- A capture card connected from the new home page plays there, with a switch for landing in Professional
+  mode as before.
+- The motion source choice stays on screen for every frame generation method and says when a method does
+  not use it; a folded quick setup section takes no room however it is folded.
+- Linux and macOS preview 0.1.1 (a contribution by ShyVortex): connecting at start works with a single
+  capture card, the sound devices are remembered, and the interface always draws with its theme.
+
 ## Next: can be built now, ships after it is measured
 
 These need card test results and performance reports from real cards before they are switched on by default.
