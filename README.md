@@ -32,7 +32,7 @@ Nothing changes on the console or in the game: you need a capture card and a gra
 
 <br>
 
-<img src="assets/screenshots/home.png" alt="PushFPS home screen: capture card, quick setup with console and game profiles" width="860">
+<img src="assets/screenshots/home.png" alt="PushFPS home screen: your sources on the left, the picture in the middle, quick setup on the right" width="860">
 
 </div>
 
@@ -159,6 +159,10 @@ like the original 30 FPS, plus a few milliseconds for the capture card and proce
 
 <table>
 <tr>
+<td width="50%"><img src="assets/screenshots/pro-all.png" alt="Professional mode, the All tab"><br><sub><b>Everything in one list.</b> Professional mode's <i>All</i> tab; each category folds by its title.</sub></td>
+<td width="50%"><img src="assets/screenshots/sides-folded.png" alt="Home screen with the navigation folded and the settings side hidden"><br><sub><b>More room for the picture.</b> One button folds the navigation, one hides the settings side.</sub></td>
+</tr>
+<tr>
 <td width="50%"><img src="assets/screenshots/frame-generation.png" alt="Professional mode, frame generation tab"><br><sub><b>Frame generation.</b> Quick setup on top, every detail below.</sub></td>
 <td width="50%"><img src="assets/screenshots/capture-card.png" alt="Capture card dialog"><br><sub><b>Capture card.</b> Device, format, frame rate, colour and audio in one dialog.</sub></td>
 </tr>
@@ -167,8 +171,8 @@ like the original 30 FPS, plus a few milliseconds for the capture card and proce
 <td width="50%"><img src="assets/screenshots/settings.png" alt="Settings"><br><sub><b>Settings.</b> Interface, playback, performance, shortcuts.</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="assets/screenshots/picture-sound.png" alt="Home screen, picture and sound panel"><br><sub><b>Picture &amp; sound.</b> Picture styles, gamma, sharpness and sound profiles on the home screen.</sub></td>
-<td width="50%"><img src="assets/screenshots/appearance-light.png" alt="PushFPS home screen in light mode"><br><sub><b>Light mode.</b> Settings → Appearance.</sub></td>
+<td width="50%"><img src="assets/screenshots/pro-folded.png" alt="Professional mode with some categories folded"><br><sub><b>Fold what you don't need.</b> Quality, Frame Gen, Color, Audio and Display fold by their title.</sub></td>
+<td width="50%"><img src="assets/screenshots/appearance-light.png" alt="PushFPS home screen in light mode"><br><sub><b>Light mode.</b> The palette opens <i>Appearance</i>.</sub></td>
 </tr>
 <tr>
 <td width="50%"><img src="assets/screenshots/optimize.png" alt="Optimise for my PC dialog"><br><sub><b>Optimise for my PC.</b> Tests every combination on your real picture.</sub></td>
@@ -185,6 +189,10 @@ like the original 30 FPS, plus a few milliseconds for the capture card and proce
 <tr>
 <td width="50%"><img src="assets/screenshots/pc-streaming.png" alt="PC streaming dialog for Sunshine hosts"><br><sub><b>PC streaming.</b> Another PC through Sunshine (Moonlight protocol).</sub></td>
 <td width="50%"><img src="assets/screenshots/recording-advanced.png" alt="Advanced encoding settings"><br><sub><b>Advanced encoding.</b> Rate control, quality, preset, keyframes, MP4 or MKV.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="assets/screenshots/appearance.png" alt="Appearance panel: design, theme and accent colour"><br><sub><b>Appearance.</b> New or Legacy, seven backgrounds, seven accent colours.</sub></td>
+<td width="50%"><img src="assets/screenshots/legacy.png" alt="PushFPS home screen in the Legacy design"><br><sub><b>Legacy.</b> The design of 4.2, one click away, with the same features.</sub></td>
 </tr>
 </table>
 
