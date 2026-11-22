@@ -111,6 +111,11 @@ ColumnLayout {
         property real shown: section.open ? 1 : 0
         Behavior on shown { NumberAnimation { duration: Theme.d(260); easing.type: Easing.OutCubic } }
         implicitHeight: body.implicitHeight * shown
+        // Said to the layout in so many words: with an implicit height of 0 and nothing else to go by, a
+        // layout keeps the height an item happens to have. A fold that reached 0 in one step (reduced
+        // motion, or a frame that took longer than the animation) then stayed as high as it was, and the
+        // section's rows were still drawn under a title that said it was folded.
+        Layout.preferredHeight: body.implicitHeight * shown
         clip: shown < 1
         // Folded rows cannot be reached with the keyboard either.
         enabled: section.open
