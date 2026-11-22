@@ -292,7 +292,37 @@ jobs:
             @{ name = '156-design-home-de'; size = '1280x720'; args = @('--page', 'home', '--lang', 'de') },
             @{ name = '157-design-home-ko'; size = '1600x900'; args = @('--page', 'home', '--lang', 'ko') },
             @{ name = '158-design-pro-quality'; size = '1600x900'; args = @('--page', 'pro', '--tab', 'quality', '--lang', 'en') },
-            @{ name = '159-design-legacy-appearance'; size = '1600x900'; args = @('--page', 'home', '--dialog', 'appearance', '--lang', 'en', '--pref', 'pushDesign=legacy') }
+            @{ name = '159-design-legacy-appearance'; size = '1600x900'; args = @('--page', 'home', '--dialog', 'appearance', '--lang', 'en', '--pref', 'pushDesign=legacy') },
+            # 4.3.1: the sides folded with the title bar's buttons, Professional mode's categories folded, and
+            # the row for landing in Professional mode when a capture card connects.
+            @{ name = '160-sides-home-hidden'; size = '1600x900'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushSideCollapsed=true') },
+            @{ name = '161-sides-nav-folded'; size = '1600x900'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushNavCollapsed=true') },
+            @{ name = '162-pro-categories-folded'; size = '1600x900'; args = @('--page', 'pro', '--lang', 'en', '--pref', 'pushProFolded=quality,fg,audio') },
+            @{ name = '163-pro-side-hidden'; size = '1600x900'; args = @('--page', 'pro', '--lang', 'en', '--pref', 'pushSideCollapsed=true') },
+            @{ name = '164-home-connecting'; size = '1600x900'; args = @('--page', 'home', '--lang', 'en', '--scroll-to', 'pushfps-connect-pro-row') },
+            # The README's and the website's pictures (assets/screenshots/<name>.png, website/assets/shots): the
+            # new design in English, 1440 x 900 as they always were. On the home page the three sections whose
+            # rows read "Requires an NVIDIA RTX GPU" on this runner (it has no graphics card) are folded: that
+            # line is the runner's, not what a reader's PC says.
+            @{ name = 'R-00-warmup'; size = '1440x900'; args = @('--page', 'home', '--lang', 'en') },
+            @{ name = 'R-home'; size = '1440x900'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushQuickFolded=fg,picture,hud') },
+            @{ name = 'R-appearance-light'; size = '1440x900'; args = @('--page', 'home', '--lang', 'en', '--theme', 'light', '--pref', 'pushQuickFolded=fg,picture,hud') },
+            @{ name = 'R-appearance-black'; size = '1440x900'; args = @('--page', 'home', '--lang', 'en', '--theme', 'black', '--pref', 'pushQuickFolded=fg,picture,hud') },
+            @{ name = 'R-frame-generation'; size = '1440x900'; args = @('--page', 'pro', '--tab', 'fg', '--lang', 'en') },
+            @{ name = 'R-picture'; size = '1440x900'; args = @('--page', 'pro', '--tab', 'quality', '--lang', 'en') },
+            @{ name = 'R-capture-card'; size = '1440x900'; args = @('--page', 'home', '--dialog', 'capture', '--lang', 'en', '--pref', 'pushQuickFolded=fg,picture,hud') },
+            @{ name = 'R-settings'; size = '1440x900'; args = @('--page', 'set', '--lang', 'en') },
+            @{ name = 'R-picture-sound'; size = '1440x900'; args = @('--page', 'home', '--tab', 'tuning', '--lang', 'en', '--pref', 'pushQuickFolded=fg,picture,hud') },
+            @{ name = 'R-optimize'; size = '1440x900'; args = @('--page', 'home', '--dialog', 'optimize', '--lang', 'en', '--pref', 'pushQuickFolded=fg,picture,hud') },
+            @{ name = 'R-game-presets'; size = '1440x900'; args = @('--page', 'home', '--dialog', 'games', '--lang', 'en', '--pref', 'pushQuickFolded=fg,picture,hud') },
+            @{ name = 'R-anr'; size = '1440x900'; args = @('--page', 'set', '--tab', 'comp', '--lang', 'en') },
+            @{ name = 'R-hud-protection'; size = '1440x900'; args = @('--page', 'home', '--dialog', 'hud', '--lang', 'en', '--pref', 'pushQuickFolded=fg,picture,hud') },
+            @{ name = 'R-ps5-streaming'; size = '1440x900'; args = @('--page', 'home', '--dialog', 'ps5', '--lang', 'en', '--pref', 'pushQuickFolded=fg,picture,hud') },
+            @{ name = 'R-pc-streaming'; size = '1440x900'; args = @('--page', 'home', '--dialog', 'moonlight', '--lang', 'en', '--pref', 'pushQuickFolded=fg,picture,hud') },
+            @{ name = 'R-recording-advanced'; size = '1440x900'; args = @('--page', 'set', '--tab', 'rec', '--scroll-to', 'set-recadvanced', '--lang', 'en', '--pref', 'recordAdvanced=true', '--pref', 'recordRateControl=2') },
+            @{ name = 'R-pro-all'; size = '1440x900'; args = @('--page', 'pro', '--lang', 'en') },
+            @{ name = 'R-appearance'; size = '1440x900'; args = @('--page', 'home', '--dialog', 'appearance', '--lang', 'en', '--pref', 'pushQuickFolded=fg,picture,hud') },
+            @{ name = 'R-legacy'; size = '1440x900'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushDesign=legacy', '--pref', 'pushSunset=false') }
           )
           if ($env:ONLY) { $list = @($list | Where-Object { $_.name -match $env:ONLY }); Write-Host "Only: $($list.name -join ', ')" }
           foreach ($s in $list) {
