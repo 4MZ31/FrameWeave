@@ -21,8 +21,54 @@ Item {
         when: windowShown
         property var savedPreferences: ({})
         function init() { savedPreferences = veyra.preferences; veyra.preferences = ({}); page.overlay = false; page.tab = "fg" }
-        function cleanup() { page.overlay = false; page.tab = "fg"; veyra.preferences = savedPreferences }
+        function cleanup() { Theme.design = "legacy"; page.overlay = false; page.tab = "fg"; veyra.preferences = savedPreferences }
         function control(parent, name) { const c = findChild(parent, name); verify(c !== null, name); return c }
+
+        // The redesign: in the new design every tab's settings stand in one list, each under its name, so
+        // nothing is looked for from tab to tab, and AI picture enhancement's card comes first. The five
+        // tabs stay beside it. Legacy has the five tabs and the card where 4.2.1 had it.
+        function test_new_design_lists_every_tab_in_one_place() {
+            const shown = name => { const c = control(page, name); return c.visible && c.height > 0 }
+            verify(!Theme.modern, "a test starts in Legacy")
+            page.tab = "quality"
+            verify(findChild(page, "pro-tab-all") === null, "Legacy has no such tab")
+            const picture = control(page, "list-pushfps-picture")
+            verify(picture.parent !== control(page, "list-pushfps-picture-first"), "Legacy: over the enhancement's own card, as in 4.2.1")
+            verify(!control(page, "pro-all-quality").visible)
+            // The new design starts on everything.
+            Theme.design = "new"
+            tryCompare(page, "tab", "all")
+            verify(page.allTabs)
+            tryVerify(function() { return findChild(page, "pro-tab-all") !== null && control(page, "pro-tab-all").visible }, 3000)
+            for (const id of ["quality", "fg", "color", "audio", "display"]) {
+                tryVerify(function() { return control(page, "pro-tab-" + id).visible }, 3000, id + " keeps its own tab")
+                tryVerify(function() { return shown("pro-all-" + id) }, 3000, id + " has its name in the list")
+            }
+            // Each part once, under the one before it.
+            let bottom = -1
+            for (const name of ["pro-all-quality", "list-pushfps-picture", "pro-all-fg", "list-pushfps-quick", "pro-all-color", "pro-all-audio", "pro-all-display"]) {
+                const item = control(page, name)
+                tryVerify(function() { return item.visible && item.height > 0 }, 3000, name)
+                const y = item.mapToItem(page, 0, 0).y
+                verify(y >= bottom - 0.5, name + " stands under what comes before it")
+                bottom = y
+            }
+            compare(picture.parent, control(page, "list-pushfps-picture-first"), "AI picture enhancement's card is the first card")
+            tryVerify(function() { return control(page, "pushfps-enhance-row").visible }, 3000, "with its switch")
+            // A tab still shows that tab alone.
+            mouseClick(control(page, "pro-tab-fg"))
+            compare(page.tab, "fg")
+            tryVerify(function() { return !picture.visible && control(page, "list-pushfps-quick").visible && !control(page, "pro-all-fg").visible }, 3000)
+            mouseClick(control(page, "pro-tab-all"))
+            compare(page.tab, "all")
+            // A tab chosen before the design changes is kept; Legacy never stays on a tab it does not have.
+            Theme.design = "legacy"
+            tryCompare(page, "tab", "quality")
+            tryVerify(function() { return picture.visible && picture.parent !== control(page, "list-pushfps-picture-first") }, 3000)
+            page.tab = "color"
+            Theme.design = "new"
+            compare(page.tab, "color", "what was chosen stays chosen")
+        }
 
         function test_overlay_panel_is_as_wide_as_its_edge_is_dragged() {
             const panel = control(page, "pro-inspector"), grip = control(page, "pro-overlay-split")

@@ -71,8 +71,12 @@ Item {
     function outCubic(t) { return 1 - Math.pow(1 - t, 3) }
     function outExpo(t) { return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t) }
     function inOutSine(t) { return (1 - Math.cos(Math.PI * t)) / 2 }
-    // A pulse: up fast, down slowly, 0 outside a..b.
-    function pulse(a, b) { const p = (ms - a) / (b - a); return p <= 0 || p >= 1 ? 0 : Math.sin(Math.PI * Math.min(1, p * 3.2)) * (1 - p) }
+    // A pulse: up in the first fifth of a..b, down over the rest, 0 outside.
+    function pulse(a, b) {
+        const p = (ms - a) / (b - a)
+        if (p <= 0 || p >= 1) return 0
+        return p < 0.2 ? outCubic(p / 0.2) : Math.pow(1 - (p - 0.2) / 0.8, 2)
+    }
 
     readonly property real lineOn: outExpo(at(lineAt, lineAt + 520))
     readonly property real markOn: outExpo(at(markAt, markAt + 620))

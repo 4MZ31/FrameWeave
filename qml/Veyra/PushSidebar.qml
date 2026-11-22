@@ -79,6 +79,7 @@ Rectangle {
                 Behavior on color { ColorAnimation { duration: Theme.d(160) } }
             }
             Text {
+                id: entryLabel
                 visible: !entry.slim
                 x: 42
                 width: parent.width - x - 10
@@ -88,13 +89,15 @@ Rectangle {
                 color: entry.current || plate.lit ? Theme.t1 : Theme.t2
                 font.family: Theme.fontUi
                 font.pixelSize: 13
+                font.weight: entry.current ? Font.DemiBold : Font.Medium
                 font.variableAxes: entry.current ? Theme.axesDemiBold : Theme.axesMedium
                 Behavior on color { ColorAnimation { duration: Theme.d(160) } }
             }
         }
         HoverHandler { id: entryHover; cursorShape: Qt.PointingHandCursor }
         TapHandler { id: entryTap; onTapped: entry.picked() }
-        ToolTip.visible: entry.slim && entryHover.hovered
+        // The whole name where it is not on screen: the icons alone, or a name longer than the pane.
+        ToolTip.visible: (entry.slim || entryLabel.truncated) && entryHover.hovered
         ToolTip.delay: 300
         ToolTip.text: entry.text
     }

@@ -60,7 +60,7 @@ Rectangle {
             color: Theme.t2
             font.family: Theme.fontUi
             font.pixelSize: 13
-            font.variableAxes: Theme.axesMedium
+            font.weight: Font.Medium; font.variableAxes: Theme.axesMedium
         }
         Item { Layout.fillWidth: true }
         // What is connected: the engine's own state, never a decoration.

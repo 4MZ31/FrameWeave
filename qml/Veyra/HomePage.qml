@@ -20,6 +20,9 @@ VPage {
     // Three panes when there is room for them: sources | the picture | quick setup. Otherwise (legacy,
     // or a narrow window in the new design) one column, as the page always was.
     readonly property bool threePane: Theme.modern && width >= 900
+    // (The page's own strip for moving the window, VPage: the three panes reach up into it, and the new
+    // design moves the window by its title bar.)
+    dragStripHeight: threePane ? 0 : 56
     // The index pinned over quick setup in the three panes: every section by its name, and AI picture
     // enhancement by its own (it is the first thing people look for, and stands in the Picture section).
     // A press opens the section if it was folded and brings it to the top of the list. Nothing is a
@@ -590,6 +593,7 @@ VPage {
                 rowSpacing: 2
                 VButton {
                     objectName: "home-playlist"
+                    Layout.maximumWidth: root.threePane ? groupC.width : Number.POSITIVE_INFINITY   // (a long label elides in the pane)
                     ghost: true
                     text: qsTr("播放列表 · 导入文件夹"); iconName: "list"
                     onClicked: veyra.showPlaylist()
@@ -597,6 +601,7 @@ VPage {
                 Rectangle { visible: !root.threePane; implicitWidth: 1; implicitHeight: 14; color: Theme.stroke2 }
                 VButton {
                     objectName: "home-network"
+                    Layout.maximumWidth: root.threePane ? groupC.width : Number.POSITIVE_INFINITY
                     ghost: true
                     text: qsTr("播放地址…")
                     iconName: "cast"
@@ -607,6 +612,7 @@ VPage {
                 VButton {
                     id: tourEntry
                     objectName: "home-onboarding"
+                    Layout.maximumWidth: root.threePane ? groupC.width : Number.POSITIVE_INFINITY
                     ghost: true
                     text: qsTr("查看新手引导")
                     iconName: "info"
@@ -702,6 +708,7 @@ VPage {
                 id: leftFlick
                 anchors.fill: parent
                 anchors.margins: 12
+                anchors.rightMargin: 4
                 contentWidth: width
                 contentHeight: leftColumn.implicitHeight
                 interactive: contentHeight > height + 1
@@ -710,8 +717,9 @@ VPage {
                 ScrollBar.vertical: VScrollBar {}
                 ColumnLayout {
                     id: leftColumn
-                    // (Room for the scroll bar when there is one, so it never lies over a card's edge.)
-                    width: leftFlick.width - (leftFlick.interactive ? 10 : 0)
+                    // (Room for the scroll bar, so it never lies over a card's edge. Always: a width that
+                    // depends on whether the list scrolls changes the list's height, and that is a loop.)
+                    width: leftFlick.width - 8
                     spacing: 0
                     Text {
                         Layout.fillWidth: true
@@ -720,7 +728,7 @@ VPage {
                         color: Theme.t1
                         font.family: Theme.fontUi
                         font.pixelSize: Theme.fsH3
-                        font.variableAxes: Theme.axesDemiBold
+                        font.weight: Font.DemiBold; font.variableAxes: Theme.axesDemiBold
                         elide: Text.ElideRight
                     }
                     Item { id: paneSlotA; Layout.fillWidth: true; implicitHeight: groupA.parent === paneSlotA ? groupA.implicitHeight : 0 }
@@ -766,7 +774,7 @@ VPage {
                     color: Theme.t1
                     font.family: Theme.fontUi
                     font.pixelSize: Theme.fsH3
-                    font.variableAxes: Theme.axesDemiBold
+                    font.weight: Font.DemiBold; font.variableAxes: Theme.axesDemiBold
                     elide: Text.ElideRight
                 }
                 // The first-run tip of quick setup (what to set on the console before connecting), until a
@@ -853,7 +861,7 @@ VPage {
             ScrollBar.vertical: VScrollBar {}
             Column {
                 id: midColumn
-                width: midFlick.width - (midFlick.interactive ? 10 : 0)
+                width: midFlick.width - 10   // (always: see the sources' list)
                 spacing: root.paneGap
                 // Quick setup's six tools (the same tiles: PushQuickSetup.toolsHost).
                 Item { id: toolsPlace; objectName: "home-desk-tools"; width: parent.width; height: quickSetup.toolsHeight }
@@ -885,7 +893,7 @@ VPage {
                     color: Theme.t1
                     font.family: Theme.fontUi
                     font.pixelSize: Theme.fsH3
-                    font.variableAxes: Theme.axesDemiBold
+                    font.weight: Font.DemiBold; font.variableAxes: Theme.axesDemiBold
                     elide: Text.ElideRight
                 }
                 Flow {
@@ -945,7 +953,7 @@ VPage {
                 boundsBehavior: Flickable.StopAtBounds
                 clip: true
                 ScrollBar.vertical: VScrollBar {}
-                Item { id: paneSlotB; width: rightFlick.width - (rightFlick.interactive ? 8 : 0); height: implicitHeight; implicitHeight: groupB.parent === paneSlotB ? groupB.implicitHeight : 0 }
+                Item { id: paneSlotB; width: rightFlick.width - 8; height: implicitHeight; implicitHeight: groupB.parent === paneSlotB ? groupB.implicitHeight : 0 }
             }
         }
     }

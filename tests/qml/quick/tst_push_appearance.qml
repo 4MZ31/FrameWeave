@@ -15,7 +15,7 @@ Item {
         readonly property var modes: ["default", "black", "light", "midnight", "plum", "forest", "contrast"]
         readonly property var accents: ["orange", "white", "ice", "blue", "violet", "rose", "amber"]
         readonly property var surfaces: ["card", "card2", "card3", "popover", "dialog", "bgInner"]
-        function cleanup() { Theme.mode = "default"; Theme.accentName = "orange" }
+        function cleanup() { Theme.mode = "default"; Theme.accentName = "orange"; Theme.design = "legacy" }
 
         function lin(c) { return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4) }
         function luminance(r, g, b) { return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b) }
@@ -52,6 +52,40 @@ Item {
                 for (const c of ["ok", "warn", "err", "exp"])
                     verify(contrast(Theme[c], Theme.card2) >= 3, m + " " + c + " on card2: " + contrast(Theme[c], Theme.card2).toFixed(2))
             }
+        }
+        // The redesign: the new design's own graphite and light surfaces meet the same demands, with every
+        // accent (the other themes are one table for both designs, so the tests above already hold them).
+        function test_new_design_is_as_readable() {
+            Theme.design = "new"
+            for (const m of ["default", "light"]) {
+                Theme.mode = m
+                verify(Theme.modernTone, m)
+                for (const s of surfaces) {
+                    const bg = Theme[s]
+                    verify(contrast(Theme.t1, bg) >= 7, m + " t1 on " + s)
+                    verify(contrast(Theme.tLabel, bg) >= 7, m + " tLabel on " + s)
+                    verify(contrast(Theme.t2, bg) >= 4.5, m + " t2 on " + s + ": " + contrast(Theme.t2, bg).toFixed(2))
+                    verify(contrast(Theme.t3, bg) >= 4.5, m + " t3 on " + s + ": " + contrast(Theme.t3, bg).toFixed(2))
+                }
+                for (const name of accents) {
+                    Theme.accentName = name
+                    for (const s of ["card", "card2", "card3"])
+                        verify(contrast(Theme.accent, Theme[s]) >= 3, m + "/" + name + " accent on " + s)
+                    verify(contrast(Theme.accentInk, Theme.accent) >= 4.5, m + "/" + name + " text on accent")
+                }
+                Theme.accentName = "orange"
+                for (const c of ["ok", "warn", "err", "exp"])
+                    verify(contrast(Theme[c], Theme.card2) >= 3, m + " " + c + " on card2: " + contrast(Theme[c], Theme.card2).toFixed(2))
+            }
+            // The page's own background is a surface text stands on too (the status strip, the panes' gaps).
+            Theme.mode = "default"
+            verify(contrast(Theme.t3, Theme.bgOuter) >= 4.5 && contrast(Theme.t2, Theme.bgOuter) >= 7)
+            // The tiles of the theme pickers show each theme as this design draws it.
+            compare(String(Theme.surfaceOf("default").card2).toLowerCase(), "#1c242e")
+            compare(String(Theme.surfaceOf("midnight").card2).toLowerCase(), "#141b2b")
+            compare(String(Theme.surfaceOf("nonsense").card2).toLowerCase(), "#19191e", "an unknown name is the dark grey, never a broken colour")
+            Theme.design = "legacy"
+            compare(String(Theme.surfaceOf("default").card2).toLowerCase(), "#19191e")
         }
         function test_ink_follows_the_mode() {
             Theme.mode = "default"
