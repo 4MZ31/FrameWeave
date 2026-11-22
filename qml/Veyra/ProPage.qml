@@ -1920,6 +1920,7 @@ VPage {
                             Layout.fillWidth: true
                             compactPro: true
                             scope: "rest"
+                            onRequestTab: tab => root.tab = tab
                         }
 
                         VAccordion {

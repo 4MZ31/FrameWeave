@@ -112,6 +112,8 @@ VGroup {
     // that tab's own enhancement settings; a user asked for them to stand together) and "rest" (everything
     // else, in its Frame Gen tab). A hidden section is hidden as a whole; nothing in a row changes.
     property string scope: ""
+    // Asks the page this card stands in for one of its tabs (Professional mode: "quality", "fg", ...).
+    signal requestTab(string tab)
     readonly property bool scopeMain: quick.scope !== "picture"
     readonly property bool scopePicture: quick.scope !== "rest"
 
@@ -1290,9 +1292,10 @@ VGroup {
         VRow {
             id: enhanceRow
             objectName: "pushfps-enhance-row"
-            // In Professional mode's Quality tab the page's own enhancement card stands right under this
-            // section and has the switch: a setting once per page.
-            visible: !(quick.proPage && quick.scope === "picture")
+            // (4.2.2) Shown on every page again. 4.2.1 left it out of Professional mode's picture card
+            // because that page's own enhancement card has a switch; but that switch cannot be used
+            // until a layer exists, and this one adds the first layer. With no layer the enhancement
+            // could not be switched on in Professional mode at all (a user: "the toggle and option is gone").
             label: qsTr("AI 画面增强")
             help: qsTr("用 AI 去掉采集卡压缩造成的色块和噪点，让细节更清楚。和补帧无关，可以单独开关")
             // Not possible: the reason, and when the card could run it but its files were left out at
@@ -1511,6 +1514,20 @@ VGroup {
                     onToggled: checked => veyra.setPreference("pushCropOn", checked)
                 }
             }
+        }
+    }
+    // (4.2.2) Professional mode's Frame Gen tab had AI picture enhancement until 4.2.1 moved the Picture
+    // section to the Quality tab. Someone who looks for it here is told where it is and taken there.
+    VRow {
+        objectName: "pushfps-picture-moved-row"
+        visible: quick.proPage && quick.scope === "rest"
+        label: qsTr("AI 画面增强")
+        hint: qsTr("开关、风格、微调和其他画面设置现在都在「画质」页")
+        VButton {
+            objectName: "pushfps-picture-moved-open"
+            ghost: true
+            text: qsTr("打开")
+            onClicked: quick.requestTab("quality")
         }
     }
     PushSection {
