@@ -125,11 +125,13 @@ Item {
             head("fg").toggled(true)
             compare(veyra.preferences.pushProFolded, "display")
             tryVerify(function() { return quick.visible && head("fg").open && gap() > 200 }, 3000)
-            // The title is the button: a press on it does what the call does.
-            mouseClick(head("audio"))
-            compare(veyra.preferences.pushProFolded, "display,audio", "a press on the title folds; under the pointer stands " + under(head("audio")))
-            mouseClick(head("audio"))
+            // The title is the button: a press on it does what the call does (the first title: it is in view).
+            mouseClick(head("quality"))
+            compare(veyra.preferences.pushProFolded, "display,quality", "a press on the title folds; under the pointer stands " + under(head("quality")))
+            tryVerify(function() { return !picture.visible }, 3000)
+            mouseClick(head("quality"))
             compare(veyra.preferences.pushProFolded, "display")
+            tryVerify(function() { return picture.visible }, 3000)
             // What was saved wrongly folds nothing it should not.
             veyra.setPreference("pushProFolded", "nonsense,,quality")
             tryVerify(function() { return !picture.visible && quick.visible }, 3000)
