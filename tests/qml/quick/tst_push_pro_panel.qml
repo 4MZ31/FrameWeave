@@ -10,9 +10,11 @@ import Veyra
 import VeyraTest 1.0   // the Professional page is private to the shell's folder; the test program registers it here
 
 Item {
-    id: root
+    id: fixture
     width: 1600; height: 900
-    ProPage { id: page; anchors.fill: parent; visible: true; enabled: true; tab: "fg" }
+    // A page takes its parent, size, visibility and input from the shell (VPage.qml): outside the shell a test
+    // sets all five, or the page is in no scene and nothing in it reads visible.
+    ProPage { id: page; parent: fixture; width: fixture.width; height: fixture.height; visible: true; enabled: true; tab: "fg" }
 
     TestCase {
         name: "PushProPanel"
