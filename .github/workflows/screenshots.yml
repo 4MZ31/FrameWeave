@@ -322,7 +322,9 @@ jobs:
             @{ name = 'R-recording-advanced'; size = '1440x900'; args = @('--page', 'set', '--tab', 'rec', '--scroll-to', 'set-recadvanced', '--lang', 'en', '--pref', 'recordAdvanced=true', '--pref', 'recordRateControl=2') },
             @{ name = 'R-pro-all'; size = '1440x900'; args = @('--page', 'pro', '--lang', 'en') },
             @{ name = 'R-appearance'; size = '1440x900'; args = @('--page', 'home', '--dialog', 'appearance', '--lang', 'en', '--pref', 'pushQuickFolded=fg,picture,hud') },
-            @{ name = 'R-legacy'; size = '1440x900'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushDesign=legacy', '--pref', 'pushSunset=false') }
+            @{ name = 'R-legacy'; size = '1440x900'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushDesign=legacy', '--pref', 'pushSunset=false') },
+            @{ name = 'R-sides-folded'; size = '1440x900'; args = @('--page', 'home', '--lang', 'en', '--pref', 'pushSideCollapsed=true', '--pref', 'pushNavCollapsed=true') },
+            @{ name = 'R-pro-folded'; size = '1440x900'; args = @('--page', 'pro', '--lang', 'en', '--pref', 'pushProFolded=quality,fg,audio') }
           )
           if ($env:ONLY) { $list = @($list | Where-Object { $_.name -match $env:ONLY }); Write-Host "Only: $($list.name -join ', ')" }
           foreach ($s in $list) {
