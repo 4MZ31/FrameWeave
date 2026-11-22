@@ -58,9 +58,10 @@ Window {
     // PushFPS redesign (screenshots only, --tab home-preview with a source on the command line): back to the
     // home page once the picture plays, to photograph the new home page with its live preview.
     Timer {
-        interval: 6000
+        interval: 3000
+        repeat: true
         running: root.test.tab === "home-preview"
-        onTriggered: if (veyra.hasSource) root.goPage("home")
+        onTriggered: if (veyra.hasSource && root.page !== "home") root.goPage("home")
     }
     readonly property bool cinema: page === "min"
     // Maximized behaves like fullscreen for geometry: the screen owns the size,
@@ -1348,7 +1349,7 @@ Window {
             root.page = veyra.initialPage === "pro" && veyra.nodeMode === 1 ? "node" : veyra.initialPage
         if (root.test.tab === "tuning") homePage.showTuning()
         else if (root.test.tab !== undefined && root.page === "set") settingsPage.section = root.test.tab  // PushFPS: settings section for screenshots
-        else if (root.test.tab !== undefined) proPage.tab = root.test.tab
+        else if (root.test.tab !== undefined && root.test.tab !== "home-preview") proPage.tab = root.test.tab
         if (root.testAspect > 0) root.fitToFilm(root.testAspect)
         if (root.test.dialog !== undefined) dialogs.open(root.test.dialog)
         videoHost.syncRect()

@@ -244,7 +244,7 @@ VPage {
                 id: resume
                 objectName: "home-resume"
                 Layout.alignment: Qt.AlignHCenter
-                Layout.topMargin: 28
+                Layout.topMargin: root.threePane ? 0 : 28
                 // The last source actually used: capture card, PS5 or screen capture.
                 readonly property var last: veyra.lastSource
                 visible: last.kind !== undefined
@@ -264,6 +264,7 @@ VPage {
                     anchors.rightMargin: 10
                     spacing: 14
                     Rectangle {
+                        visible: !root.threePane   // (the narrow pane keeps the room for the words)
                         implicitWidth: 34; implicitHeight: 34; radius: 10
                         color: Theme.accentSoft
                         VIcon {
@@ -276,6 +277,8 @@ VPage {
                         Layout.fillWidth: true
                         spacing: 2
                         Text {
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
                             text: qsTr("继续上次")
                             color: Theme.t1
                             font.family: Theme.fontUi
@@ -307,7 +310,7 @@ VPage {
                 objectName: "home-capture"
                 Layout.fillWidth: true
                 Layout.topMargin: Theme.modern ? (resume.visible ? 10 : 0) : resume.visible ? 12 : 28
-                implicitHeight: 76
+                implicitHeight: root.threePane ? 126 : 76
                 radius: Theme.rCard
                 color: captureHover.hovered ? Theme.card2 : Theme.card
                 border.width: 1
@@ -318,13 +321,14 @@ VPage {
                 Behavior on scale { NumberAnimation { duration: Theme.d(500); easing.bezierCurve: Theme.spring } }
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 16
-                    anchors.rightMargin: 16
-                    spacing: 14
+                    anchors.leftMargin: root.threePane ? 12 : 16
+                    anchors.rightMargin: root.threePane ? 12 : 16
+                    anchors.bottomMargin: root.threePane ? 50 : 0
+                    spacing: root.threePane ? 10 : 14
                     Rectangle {
-                        implicitWidth: 44; implicitHeight: 44; radius: 12
+                        implicitWidth: root.threePane ? 36 : 44; implicitHeight: implicitWidth; radius: 12
                         color: Theme.accentSoft
-                        VIcon { anchors.centerIn: parent; name: "video"; size: 20; color: Theme.accent }
+                        VIcon { anchors.centerIn: parent; name: "video"; size: root.threePane ? 17 : 20; color: Theme.accent }
                     }
                     ColumnLayout {
                         Layout.fillWidth: true
@@ -332,6 +336,8 @@ VPage {
                         RowLayout {
                             spacing: 8
                             Text {
+                                Layout.fillWidth: root.threePane
+                                elide: Text.ElideRight
                                 text: qsTr("采集卡")
                                 color: Theme.t1
                                 font.family: Theme.fontUi
@@ -356,11 +362,24 @@ VPage {
                     }
                     VButton {
                         objectName: "home-capture-connect"
+                        visible: !root.threePane
                         text: qsTr("连接")
                         iconName: "play"
                         primary: true
                         onClicked: captureCard.open()
                     }
+                }
+                // (The new design's pane: the same button, as wide as the card, under the words.)
+                VButton {
+                    objectName: "home-capture-connect-wide"
+                    visible: root.threePane
+                    x: 12
+                    y: parent.height - height - 12
+                    width: parent.width - 24
+                    text: qsTr("连接")
+                    iconName: "play"
+                    primary: true
+                    onClicked: captureCard.open()
                 }
                 function open() {
                     veyra.logUi("ui-source", "home card act=capture")
@@ -387,7 +406,7 @@ VPage {
                 // (The new design's left pane: one card to a line, so no card is ever squeezed.)
                 columns: root.threePane ? 1 : width >= 140 * shownCount + 10 * (shownCount - 1) ? shownCount : Math.ceil(shownCount / 2)
                 columnSpacing: 10
-                rowSpacing: 10
+                rowSpacing: root.threePane ? 6 : 10
                 Repeater {
                     model: otherSources.shown
                     delegate: Item {
@@ -397,7 +416,7 @@ VPage {
                         visible: srcGrid.available(modelData.act)
                         Layout.fillWidth: true
                         Layout.preferredWidth: 1
-                        implicitHeight: 62
+                        implicitHeight: root.threePane ? 52 : 62
                         VRise { page: root; target: slot; d: 3 + slot.index }
                         Rectangle {
                             id: srcCard

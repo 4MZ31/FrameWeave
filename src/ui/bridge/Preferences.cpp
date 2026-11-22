@@ -530,6 +530,13 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         for (const auto& part : value.toString().split(QLatin1Char(','), Qt::SkipEmptyParts))
             if (sections.contains(part) && !kept.contains(part)) kept << part;
         stored = kept.join(QLatin1Char(','));
+    } else if (key == QLatin1String("pushDesign")) {
+        // PushFPS redesign (Theme.qml design): "new" (navigation, preview and quick setup in one window; what
+        // an install without this preference shows) or "legacy" (the interface of 4.2 and earlier). Only how
+        // the interface is laid out: no setting, profile or engine value depends on it.
+        const QString v = value.toString();
+        if (v != QLatin1String("new") && v != QLatin1String("legacy")) return false;
+        stored = v;
     } else if (key == QLatin1String("pushTheme")) {
         // PushFPS appearance (Theme.qml mode).
         const QString v = value.toString();

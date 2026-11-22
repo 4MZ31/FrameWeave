@@ -157,8 +157,8 @@ DialogLayer {
             }
         }
         VRow {
-            label: qsTr("设置")
-            hint: qsTr("外观")
+            label: qsTr("更多外观设置")
+            hint: qsTr("语言、启动方式和窗口选项在「设置」里")
             VButton {
                 objectName: "pushfps-appearance-more"
                 ghost: true

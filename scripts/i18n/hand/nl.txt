@@ -1546,3 +1546,9 @@ zh:全屏时画面只是被拉大到屏幕大小，所以看起来发软。开�
 zh:采集的画面比屏幕小时，全屏只是把它拉大，看起来发软。开启后由显卡把画面放大到屏幕分辨率，边缘和文字更清晰，也更吃显卡。放大方式可以在专业模式的「画质」里更换|Als het vastgelegde beeld kleiner is dan je scherm, wordt het op volledig scherm alleen uitgerekt en oogt het zacht. Hiermee schaalt de grafische kaart het op naar de resolutie van het scherm: randen en tekst zijn scherper, en de kaart moet harder werken. De upscaler kies je in de professionele modus onder Kwaliteit
 zh:把画面分成两半：一边是没有 AI 画面增强的原画，另一边是增强后的画面，方便边调边看。在专业模式的画面上或全屏时，按住鼠标左键可以拖动分割线；两侧可以交换|Splitst het beeld in tweeën: de ene kant is het origineel zonder AI-beeldverbetering, de andere het verbeterde beeld, zodat je kunt bijstellen terwijl je kijkt. Op het beeld van de professionele modus of op volledig scherm houd je de linkermuisknop ingedrukt om de scheidingslijn te slepen; de kanten kunnen worden gewisseld
 zh:开关、风格、微调和其他画面设置现在都在「画质」页|De schakelaar, de stijl, de fijnafstelling en de andere beeldinstellingen staan nu op het tabblad Kwaliteit
+zh:设计|Ontwerp
+zh:新版|Nieuw
+zh:旧版|Legacy
+zh:新版把导航、预览和全部快速设置放在同一个窗口里；旧版是 4.2 及更早版本的界面。两种设计的功能完全相同|Nieuw zet de navigatie, het voorbeeld en alle snelle instellingen in één venster. Legacy is de interface van 4.2 en eerder. Beide ontwerpen hebben precies dezelfde functies
+zh:更多外观设置|Meer weergave-instellingen
+zh:语言、启动方式和窗口选项在「设置」里|Taal, opstarten en vensteropties staan in Instellingen

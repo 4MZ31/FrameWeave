@@ -17,17 +17,25 @@ Rectangle {
     signal requestMaximize()
     signal requestClose()
     signal requestMove()
+    // Three buttons of 38, the two gaps between them, the row's right margin and the gap before them.
+    readonly property real buttonsWidth: 3 * 38 + 2 * 10 + 6 + 5
 
     color: Theme.card
     topLeftRadius: Theme.rWindow
     topRightRadius: Theme.rWindow
 
-    // Moving the window: the whole bar that is not a button.
-    TapHandler { onDoubleTapped: bar.requestMaximize() }
-    DragHandler {
-        target: null
-        dragThreshold: 4
-        onActiveChanged: if (active) bar.requestMove()
+    // Moving the window: the bar left of its three buttons (a press on a button never reaches this
+    // item, so two quick presses on one are never a double click on the bar).
+    Item {
+        objectName: "pushfps-titlebar-drag"
+        anchors.fill: parent
+        anchors.rightMargin: bar.buttonsWidth
+        TapHandler { onDoubleTapped: bar.requestMaximize() }
+        DragHandler {
+            target: null
+            dragThreshold: 4
+            onActiveChanged: if (active) bar.requestMove()
+        }
     }
 
     RowLayout {

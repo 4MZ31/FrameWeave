@@ -22,7 +22,6 @@ Item {
     property bool dismissing: false
     property var musicClock: null
     property bool followMusic: false
-    property real waited: 0
     property int frames: 0
     property real worstFrameMs: 0
     readonly property real lineAt: 80

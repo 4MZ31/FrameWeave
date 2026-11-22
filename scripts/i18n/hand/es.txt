@@ -1546,3 +1546,9 @@ zh:全屏时画面只是被拉大到屏幕大小，所以看起来发软。开�
 zh:采集的画面比屏幕小时，全屏只是把它拉大，看起来发软。开启后由显卡把画面放大到屏幕分辨率，边缘和文字更清晰，也更吃显卡。放大方式可以在专业模式的「画质」里更换|Cuando la imagen capturada es más pequeña que tu pantalla, a pantalla completa solo se estira y se ve blanda. Con esto, la tarjeta gráfica la escala a la resolución de la pantalla: bordes y texto más nítidos, y más trabajo para la tarjeta. El método de escalado se cambia en el modo profesional, en Calidad
 zh:把画面分成两半：一边是没有 AI 画面增强的原画，另一边是增强后的画面，方便边调边看。在专业模式的画面上或全屏时，按住鼠标左键可以拖动分割线；两侧可以交换|Divide la imagen en dos: un lado es el original sin la mejora de imagen por IA y el otro la imagen mejorada, para ajustar mientras miras. Sobre la imagen del modo profesional o a pantalla completa, mantén pulsado el botón izquierdo del ratón para arrastrar la línea divisoria; los lados se pueden intercambiar
 zh:开关、风格、微调和其他画面设置现在都在「画质」页|El interruptor, el estilo, el ajuste fino y los demás ajustes de imagen están ahora en la pestaña Calidad
+zh:设计|Diseño
+zh:新版|Nuevo
+zh:旧版|Clásico
+zh:新版把导航、预览和全部快速设置放在同一个窗口里；旧版是 4.2 及更早版本的界面。两种设计的功能完全相同|Nuevo reúne la navegación, la vista previa y toda la configuración rápida en una sola ventana. Clásico es la interfaz de la versión 4.2 y anteriores. Los dos diseños tienen exactamente las mismas funciones
+zh:更多外观设置|Más ajustes de apariencia
+zh:语言、启动方式和窗口选项在「设置」里|El idioma, el inicio y las opciones de ventana están en Ajustes

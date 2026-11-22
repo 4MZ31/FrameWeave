@@ -62,12 +62,12 @@ Rectangle {
         property bool known: true
         spacing: 7
         VIcon { name: cell.glyph; size: 14; color: cell.known ? Theme.accent : Theme.t3; Layout.alignment: Qt.AlignVCenter }
-        Text { text: cell.label; color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 11.5 }
+        Text { visible: cell.label !== ""; text: cell.label; color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 12 }
         Text {
             text: cell.value
             color: cell.known ? Theme.t1 : Theme.t3
             font.family: Theme.fontUi
-            font.pixelSize: 11.5
+            font.pixelSize: 12
             font.variableAxes: Theme.axesMedium
             font.features: ({ "tnum": 1 })
         }
