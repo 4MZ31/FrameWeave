@@ -194,7 +194,10 @@ int wmain(int argc, wchar_t** argv) {
     if (bothTooSlow) std::cout << "PREDICT_ENGINE INFO with Dual one run of the network took " << both.networkMs << " ms: too slow here to show a forecast in time" << std::endl;
     check((bothTooSlow || both.generated >= 6) && both.latencyMs >= 0 && both.latencyMs < interval / 4.0, "the screen is as with Predict alone: forecasts shown (" + std::to_string(both.generated) +
                                                                                        "), a real frame " + std::to_string(both.latencyMs) + " ms after it arrives");
-    check(both.dualReal >= 20 && (bothTooSlow || both.dualBetween >= 6) && both.dualBetween <= both.generated + 2,
+    // An in-between frame goes to recordings with each forecast shown; the first pair of a run has no frame before
+    // it, so one or two fewer is right. (The bound was a plain "6 or more" until 4.4.5's release build showed exactly
+    // 6 forecasts on a slow machine and handed 5: the engine was right and the test was not.)
+    check(both.dualReal >= 20 && (bothTooSlow || both.dualBetween + 2 >= both.generated) && both.dualBetween <= both.generated + 2,
           "recordings are handed the real frame before each real frame shown and an in-between frame for each forecast shown (" + std::to_string(both.dualReal) + ", " + std::to_string(both.dualBetween) + ")");
     std::cout << "PREDICT_ENGINE " << failures << " failure(s)" << std::endl;
     Logger::instance().closeFile();
