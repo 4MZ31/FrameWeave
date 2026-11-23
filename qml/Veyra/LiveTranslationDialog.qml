@@ -100,6 +100,26 @@ DialogLayer {
                 onToggled: value => { root.translation.showOriginal = value }
             }
         }
+        // PushFPS: how long a translated line stays after its original went away (ui/PushCaptionHold.h).
+        VRow {
+            id: holdRow
+            objectName: "live-translation-hold-row"
+            visible: root.supported
+            readonly property int holdMs: root.translation && root.translation.holdMs !== undefined ? Math.round(Number(root.translation.holdMs)) : 1500
+            label: qsTr("译文停留时间")
+            help: qsTr("原字幕结束或换成下一句后，译文继续显示这么久，方便读完；下一句的译文一出来就换上。设为 0 就和原字幕一起消失")
+            hint: holdRow.holdMs > 0 ? qsTr("%1 秒").arg(Number((holdRow.holdMs / 1000).toFixed(2))) : qsTr("关")
+            VSlider {
+                objectName: "live-translation-hold"
+                implicitWidth: 150
+                valueFromModel: true
+                resettable: true; defaultValue: 1500
+                from: 0; to: 5000; stepSize: 250
+                editable: false
+                value: holdRow.holdMs
+                onMoved: value => { if (root.translation && root.translation.holdMs !== undefined) root.translation.holdMs = Math.round(value / 250) * 250 }
+            }
+        }
     }
 
     DialogGroup {

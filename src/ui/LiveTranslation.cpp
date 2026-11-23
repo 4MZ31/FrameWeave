@@ -112,6 +112,7 @@ LiveTranslation::LiveTranslation(const QString& directory, QObject* parent)
     if (targetLanguage_ == QLatin1String("zh")) targetLanguage_ = QStringLiteral("zh-CN");
     if (!languageCode(targetLanguage_)) targetLanguage_ = QStringLiteral("en");
     showOriginal_ = settings_.value(QStringLiteral("original"), true).toBool();
+    hold_.setHoldMs(settings_.value(QStringLiteral("holdMs"), kCaptionHoldDefaultMs).toLongLong());
     apiBase_ = settings_.value(QStringLiteral("apiBase")).toString();
     apiModel_ = settings_.value(QStringLiteral("apiModel")).toString();
 
@@ -273,6 +274,14 @@ void LiveTranslation::setShowOriginal(bool value) {
     emit changed();
 }
 
+void LiveTranslation::setHoldMs(int value) {
+    const int clean = cleanCaptionHoldMs(value);
+    if (hold_.holdMs() == clean) return;
+    hold_.setHoldMs(clean);
+    settings_.setValue(QStringLiteral("holdMs"), clean);
+    emit changed();
+}
+
 void LiveTranslation::setApiBase(QString value) {
     value = value.trimmed().left(1024);
     // Avoid saving credentials or query tokens in the configuration file.
@@ -343,21 +352,30 @@ void LiveTranslation::acceptCaption(const QString& text) {
     if (raw_ == text) return;
     raw_ = text;
     if (!enabled_ || !active_ || !captionsOpen_) return;
-    if (text.isEmpty()) { resetCaption(); return; }
+    // The original line ended: its translation may stay a while (PushCaptionHold.h).
+    if (text.isEmpty()) { resetCaption(true); return; }
     if (!sameCaption(caption_, text)) translated_.clear();
     caption_ = text;
     newTextAt_ = clock_.elapsed();
+    shownChanged();
+}
+
+// PushFPS: the one place the shown pair is told about a change, right before the interface is.
+void LiveTranslation::shownChanged() {
+    hold_.observe(caption_, translated_, clock_.elapsed());
     emit captionChanged();
 }
 
-void LiveTranslation::resetCaption() {
+void LiveTranslation::resetCaption(bool keepShown) {
+    // A new source, a seek, a pause, captions closed, switched off: nothing of the last line stays.
+    if (!keepShown) hold_.drop();
     cancelRequest();
     requestedText_.clear();
     requestedAt_ = 0;
     if (caption_.isEmpty() && translated_.isEmpty()) return;
     caption_.clear();
     translated_.clear();
-    emit captionChanged();
+    shownChanged();
 }
 
 void LiveTranslation::cancelRequest() {
@@ -459,7 +477,7 @@ void LiveTranslation::requestTranslation() {
     if (sourceLanguage_.compare(targetLanguage_, Qt::CaseInsensitive) == 0) {
         translated_ = text;
         setStatus(tr("实时翻译运行中"));
-        emit captionChanged();
+        shownChanged();
         return;
     }
     QUrl url;
@@ -540,7 +558,7 @@ void LiveTranslation::receiveTranslation(QNetworkReply* reply, const QString& te
     }
     translated_ = translation.simplified().left(500);
     setStatus(tr("实时翻译运行中"));
-    emit captionChanged();
+    shownChanged();
 }
 
 // --- PushFPS: one text, apart from the captions (reading the text on the picture, ui/PushOcr.h) ---

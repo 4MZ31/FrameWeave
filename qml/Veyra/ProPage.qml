@@ -2283,6 +2283,25 @@ VPage {
                                 label: qsTr("PushFlow 半精度")
                                 visible: veyra.fgBackendName === "pushflow"
                                 property bool testing: false
+                                // Playback was stopped for the test and has not ended yet.
+                                property bool stopping: false
+                                function begin() {
+                                    if (testing || stopping) return
+                                    if (veyra.running === true) { stopping = true; halfStopWait.tries = 0; halfStopWait.restart(); veyra.stopPlayback(); return }
+                                    if (veyra.pushTestPushFlowHalf()) testing = true
+                                }
+                                Timer {
+                                    id: halfStopWait
+                                    objectName: "list-pushflow-half-stop-wait"
+                                    interval: 200; repeat: true
+                                    property int tries: 0
+                                    onTriggered: {
+                                        if (veyra.running !== true) {
+                                            stop(); pushFlowHalfRow.stopping = false
+                                            if (veyra.pushTestPushFlowHalf()) pushFlowHalfRow.testing = true
+                                        } else if (++tries >= 50) { stop(); pushFlowHalfRow.stopping = false }   // ten seconds: left as it is
+                                    }
+                                }
                                 readonly property var probe: {
                                     try { return JSON.parse(veyra.preferences.pushFlowHalfProbe || "{}") } catch (e) { return ({}) }
                                 }
@@ -2290,16 +2309,23 @@ VPage {
                                 hint: testing ? qsTr("正在测试，约需半分钟…")
                                     : pushFlowHalfRow.probe.ok === true ? qsTr("已通过测试：每帧 %1 ms，全精度 %2 ms").arg(Number(pushFlowHalfRow.probe.halfMs || 0).toFixed(1)).arg(Number(pushFlowHalfRow.probe.fullMs || 0).toFixed(1))
                                     : pushFlowHalfRow.probe.reason === "retest" ? qsTr("显卡、驱动或 PushFPS 版本变了：请重新测试后再开启。现在使用全精度")
+                                    : pushFlowHalfRow.probe.reason === "not-faster" ? qsTr("已测试：半精度在这块显卡上并不更快，继续使用全精度")
                                     : pushFlowHalfRow.probe.reason ? qsTr("上次测试没有通过，使用全精度")
-                                    : qsTr("先测试这块显卡；通过后才能开启。请在没有播放时测试")
+                                    : qsTr("先测试这块显卡；通过后才能开启。测试需要先停止播放")
                                 hintBelow: true
                                 RowLayout {
                                     spacing: 8
                                     VButton {
                                         objectName: "list-pushflow-half-test"
-                                        text: pushFlowHalfRow.testing ? qsTr("测试中…") : qsTr("测试")
-                                        enabled: !pushFlowHalfRow.testing
-                                        onClicked: if (veyra.pushTestPushFlowHalf()) pushFlowHalfRow.testing = true
+                                        // The test needs the graphics card to itself. With something playing the button
+                                        // stops it first and starts the test once it has stopped: before, it only said
+                                        // "stop playback first", and a paused source or an unplugged card still counted
+                                        // as playing, so the test could not be reached from here at all.
+                                        text: pushFlowHalfRow.testing ? qsTr("测试中…")
+                                            : pushFlowHalfRow.stopping ? qsTr("正在停止播放…")
+                                            : veyra.running === true ? qsTr("停止播放并测试") : qsTr("测试")
+                                        enabled: !pushFlowHalfRow.testing && !pushFlowHalfRow.stopping
+                                        onClicked: pushFlowHalfRow.begin()
                                     }
                                     VSwitch {
                                         objectName: "list-pushflow-half"

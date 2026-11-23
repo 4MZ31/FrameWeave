@@ -65,6 +65,7 @@ QtObject {
         property string sourceLanguage: ""
         property string targetLanguage: "en"
         property bool showOriginal: true
+        property int holdMs: 1500
         property bool modelInstalled: false
         property bool downloading: false
         property real downloadProgress: 0

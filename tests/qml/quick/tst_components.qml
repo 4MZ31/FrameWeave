@@ -187,6 +187,29 @@ Item {
             dialog.translation.supported = true
         }
 
+        // How long a translated line stays after its original went away: a slider in steps of a quarter second,
+        // 0 = gone with the original as before there was one.
+        function test_liveTranslationHoldIsChosen() {
+            const host = createTemporaryObject(liveTranslationFixture, root)
+            verify(host !== null)
+            const dialog = findChild(host, "live-translation-dialog")
+            tryCompare(dialog, "shown", true)
+            const row = findChild(dialog, "live-translation-hold-row"), slider = findChild(dialog, "live-translation-hold")
+            verify(row !== null && slider !== null)
+            const before = dialog.translation.holdMs
+            dialog.translation.holdMs = 1500
+            tryCompare(slider, "value", 1500)
+            const text = row.hint
+            verify(text.length > 0)
+            slider.moved(2600)
+            compare(dialog.translation.holdMs, 2500)
+            tryVerify(function() { return slider.value === 2500 && row.hint !== text }, 3000)
+            slider.moved(0)
+            compare(dialog.translation.holdMs, 0)
+            tryVerify(function() { return row.hint !== text && row.hint.length > 0 }, 3000)
+            dialog.translation.holdMs = before
+        }
+
         function initTestCase() { Theme.reduced = true }   // no waiting on transitions
 
         function test_colour_mixer_design_motion() {

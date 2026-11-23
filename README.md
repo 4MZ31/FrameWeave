@@ -961,6 +961,7 @@ the window.</sub>
 | AVerMedia Live Gamer Ultra 2.1 (GC553G2) | Reported working by a user (PS5 Pro, RTX 4080 SUPER) |
 | Elgato HD60 Pro | Reported working by a user (no further details) |
 | ezcap Game Link Raw | Reported working by a user (Xbox Series X over USB 3.0, Radeon RX 9060 XT) |
+| AVerMedia Live Streamer Ultra HD (GC571) | Reported working by a user (PS5 at 1440p60 over PCIe, RTX 3060 Ti) |
 | Magewell USB Capture HDMI 4K Plus | Native low-latency mode (from Veyra) |
 | Blackmagic DeckLink / UltraStudio | Blackmagic's own interface (from Veyra) |
 
