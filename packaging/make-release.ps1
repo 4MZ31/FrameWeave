@@ -98,6 +98,14 @@ if ($installer -match '@[A-Z0-9_]+@') { throw "Unfilled placeholder in installer
 [IO.File]::WriteAllText((Join-Path $stage 'Install-PushFPS.ps1'), $installer, (New-Object Text.UTF8Encoding $true))
 Copy-Item (Join-Path $PSScriptRoot 'Install-PushFPS.cmd') $stage
 
+# Where the installer puts this build (Install-PushFPS.ps1): a release in the usual folder, a test build beside it.
+$installsTo = 'installs PushFPS to %LOCALAPPDATA%\Programs\PushFPS with Start menu and desktop shortcuts.'
+$removeBy = 'or delete %LOCALAPPDATA%\Programs\PushFPS and the PushFPS shortcuts.'
+if ($Version -notmatch '^\d+\.\d+\.\d+$') {
+    $installsTo = 'installs this test build to %LOCALAPPDATA%\Programs\PushFPS-test with shortcuts of its own ("PushFPS test"). The PushFPS you have is not changed; the test build starts with a copy of its settings.'
+    $removeBy = 'or delete %LOCALAPPDATA%\Programs\PushFPS-test and the "PushFPS test" shortcuts.'
+}
+
 @"
 PushFPS $Version
 ================
@@ -108,7 +116,7 @@ Install
 
   The installer downloads Veyra's official runtime package (about 750 MB, NVIDIA or AMD to match your
   graphics card) from https://github.com/$UpstreamRepo/releases/tag/$UpstreamTag , checks its SHA-256,
-  and installs PushFPS to %LOCALAPPDATA%\Programs\PushFPS with Start menu and desktop shortcuts.
+  and $installsTo
   No administrator rights are needed.
 
   Windows may warn that the file comes from the internet or an unknown publisher (PushFPS is not code
@@ -117,7 +125,7 @@ Install
 
 Uninstall
   Run Install-PushFPS.cmd -Uninstall from a command prompt in this folder,
-  or delete %LOCALAPPDATA%\Programs\PushFPS and the PushFPS shortcuts.
+  $removeBy
 
 Pinned runtime package hashes (SHA-256)
   NVIDIA: $($hash['NVIDIA'])

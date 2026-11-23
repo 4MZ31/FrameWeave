@@ -1128,24 +1128,33 @@ Item {
             verify(!row.on && !sw.checked, "off by default")
             const off = row.hint
             verify(off.length > 0 && row.help.length > 0)
-            // Switched on it is saved as on and says what it does.
+            // Switched on it is saved as on. With nothing playing it says it is on, never that it runs.
             sw.toggled(true)
             compare(veyra.preferences.pushCrosshairHold, true); verify(row.on && sw.checked && row.hint !== off)
+            const waiting = row.hint
+            // The row says what the engine says: the pass runs and has no crosshair yet, or it runs and holds one.
+            veyra.liveStats = ({ running: true, crosshairHoldState: 1, crosshairHoldPixels: 0 }); quick.liveStats = veyra.liveStats
+            const looking = row.hint
+            verify(looking !== waiting && looking !== off, "a pass that runs and has found no crosshair says so")
+            veyra.liveStats = ({ running: true, crosshairHoldState: 1, crosshairHoldPixels: 240 }); quick.liveStats = veyra.liveStats
             const running = row.hint
-            veyra.liveStats = ({ running: true, crosshairHoldState: 1 }); quick.liveStats = veyra.liveStats
-            compare(row.hint, running)
+            verify(running !== looking && running !== waiting && running !== off, "a pass that holds a crosshair says so")
             // A pass that could not be set up says that instead.
             veyra.liveStats = ({ running: true, crosshairHoldState: 2 }); quick.liveStats = veyra.liveStats
-            verify(row.hint !== running && row.hint !== off, "a pass that could not start says so")
-            veyra.liveStats = ({ running: true, crosshairHoldState: 1 }); quick.liveStats = veyra.liveStats
-            // The methods that work out motion themselves take it; with any other it says which ones do.
-            for (const own of ["vfg", "amdfrc", "pushflow"]) { veyra.fgBackendName = own; verify(row.methodOk, own); compare(row.hint, running, own) }
-            let other = ""
-            for (const method of ["dlss", "fsr3", "fsr4", "anr"]) {
+            verify(row.hint !== running && row.hint !== looking && row.hint !== waiting && row.hint !== off, "a pass that could not start says so")
+            // The switch on while the engine runs no pass (not asked there, or not with what plays) never reads as running.
+            for (const idle of [0, 3]) {
+                veyra.liveStats = ({ running: true, crosshairHoldState: idle, crosshairHoldPixels: 240 }); quick.liveStats = veyra.liveStats
+                compare(row.hint, waiting, "state " + idle)
+            }
+            veyra.liveStats = ({ running: true, crosshairHoldState: 1, crosshairHoldPixels: 240 }); quick.liveStats = veyra.liveStats
+            // Every method the graph runs itself takes it (the list engine/GraphDescription.h crosshairHoldMethod
+            // holds); with the one that cannot it says so, and the choice is kept.
+            for (const own of ["vfg", "amdfrc", "pushflow", "dlss", "fsr3", "fsr4"]) { veyra.fgBackendName = own; verify(row.methodOk, own); compare(row.hint, running, own) }
+            for (const method of ["anr"]) {
                 veyra.fgBackendName = method
                 verify(!row.methodOk, method)
-                verify(row.hint !== running && row.hint !== off && row.hint.indexOf("PushFlow") >= 0, method + ": it names the methods it works with")
-                if (other === "") other = row.hint; else compare(row.hint, other)
+                verify(row.hint !== running && row.hint !== looking && row.hint !== waiting && row.hint !== off, method + ": it says that this method cannot use it")
                 verify(sw.checked, method + ": the choice itself is kept")
             }
             veyra.fgBackendName = "vfg"

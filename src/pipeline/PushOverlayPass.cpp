@@ -2,6 +2,7 @@
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 #include "veyra/pipeline/PushOverlayPass.h"
 #include <bit>
+#include <cstring>
 #include <format>
 
 namespace veyra::pipeline {
@@ -20,6 +21,14 @@ constexpr UINT kFillStride = 3;
 constexpr UINT kComposeStride = 8;
 constexpr D3D12_RESOURCE_STATES kRead = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 constexpr D3D12_RESOURCE_STATES kWrite = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+ComPtr<ID3D12Resource> makeReadbackBuffer(ID3D12Device* device, uint64_t size) {
+    D3D12_HEAP_PROPERTIES hp{}; hp.Type = D3D12_HEAP_TYPE_READBACK;
+    D3D12_RESOURCE_DESC bd{}; bd.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER; bd.Width = size; bd.Height = 1; bd.DepthOrArraySize = 1;
+    bd.MipLevels = 1; bd.SampleDesc.Count = 1; bd.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    ComPtr<ID3D12Resource> r;
+    if (FAILED(device->CreateCommittedResource(&hp, D3D12_HEAP_FLAG_NONE, &bd, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&r)))) return nullptr;
+    return r;
+}
 }
 
 std::string PushOverlayPass::describe() const {
@@ -49,8 +58,45 @@ bool PushOverlayPass::initialize(ID3D12Device* device, uint32_t width, uint32_t 
     if (!track_.loadShader("PushOverlay.dxil", cs) || !track_.create(device, cs, 2 * kStages * kTrackStride, 3, 2, kConstants)) return false;
     if (!fill_.loadShader("PushOverlayFill.dxil", cs) || !fill_.create(device, cs, 2 * kFillStride, 2, 1, kConstants)) return false;
     if (!compose_.loadShader("PushOverlayCompose.dxil", cs) || !compose_.create(device, cs, kMaxGenerated * 2 * kComposeStride, 7, 1, kConstants)) return false;
+    // What the pass found comes back through a small buffer that stays mapped; without it the pass works, uncounted.
+    {
+        const auto maskDesc = mask_[0]->GetDesc();
+        UINT64 total = 0;
+        device->GetCopyableFootprints(&maskDesc, 0, 1, 0, &footprint_, nullptr, nullptr, &total);
+        void* memory = nullptr;
+        if (total) readback_ = makeReadbackBuffer(device, total);
+        if (readback_ && SUCCEEDED(readback_->Map(0, nullptr, &memory)) && memory) {
+            std::memset(memory, 0, size_t(total));
+            mapped_ = static_cast<const uint8_t*>(memory);
+        } else { readback_.Reset(); mapped_ = nullptr; }
+    }
     veyra::log::info("crosshair-hold", std::format("created {}", describe()));
     return true;
+}
+
+// Counts the sample taken last. The card may not have written it yet: then this counts the sample before it once
+// more, which is as good; nothing here waits.
+void PushOverlayPass::harvest() {
+    if (!mapped_ || !samplePending_) return;
+    samplePending_ = false;
+    unsigned masked = 0;
+    const uint8_t* base = mapped_ + footprint_.Offset;
+    for (uint32_t y = 0; y < zone_.size; ++y) {
+        const uint8_t* row = base + size_t(y) * footprint_.Footprint.RowPitch;
+        for (uint32_t x = 0; x < zone_.size; ++x) {
+            uint16_t half = 0;
+            std::memcpy(&half, row + size_t(x) * 2u, 2u);
+            masked += (half & 0x7FFFu) ? 1u : 0u;   // a mask pixel is 0 or 1 (R16_FLOAT)
+        }
+    }
+    masked_ = masked; ++samples_;
+    if (masked) ++samplesWithMask_;
+    if (masked && !foundLogged_) {
+        foundLogged_ = true;
+        veyra::log::info("crosshair-hold", std::format("found: {} pixels of the zone held, {} real frames after the start", masked, updates_));
+    }
+    if (samples_ % 256 == 0)
+        veyra::log::info("crosshair-hold", std::format("real frames={} samples={} with something held={} held now={} pixels", updates_, samples_, samplesWithMask_, masked_));
 }
 
 void PushOverlayPass::createViews(ID3D12Device* device, DescriptorStager& stager, ID3D12Resource* const real[2],
@@ -161,6 +207,17 @@ bool PushOverlayPass::update(ID3D12GraphicsCommandList* list, StateTracker& trac
     fill_.bind(list, f, gpuHandleOf(fill_, parity * kFillStride).ptr, gpuHandleOf(fill_, parity * kFillStride + 2).ptr);
     list->Dispatch(zoneGroups, zoneGroups, 1);
     tracker.uavBarrier(list, input_[parity].Get());
+    // Every few real frames this frame's mask goes to the count buffer, and the sample before it is counted.
+    if (mapped_ && updates_ % sampleEvery_ == 0) {
+        harvest();
+        tracker.transition(list, maskNow, D3D12_RESOURCE_STATE_COPY_SOURCE);
+        D3D12_TEXTURE_COPY_LOCATION to{}, from{};
+        to.pResource = readback_.Get(); to.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT; to.PlacedFootprint = footprint_;
+        from.pResource = maskNow; from.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX; from.SubresourceIndex = 0;
+        list->CopyTextureRegion(&to, 0, 0, 0, &from, nullptr);
+        samplePending_ = true;
+    }
+    ++updates_;
     for (ID3D12Resource* r : {input_[parity].Get(), maskNow, maskBefore, memoryNow, memoryBefore, accept_.Get(), state_.Get(), moving_.Get(), blockMoves_.Get(), now, before})
         tracker.transition(list, r, D3D12_RESOURCE_STATE_COMMON);
     return true;

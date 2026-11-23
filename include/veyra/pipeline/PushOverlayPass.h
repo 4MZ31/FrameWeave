@@ -36,6 +36,16 @@ public:
     ID3D12Resource* countTexture() const { return state_.Get(); }
     ID3D12Resource* movingTexture() const { return moving_.Get(); }
     std::string describe() const;
+    // What the pass found. Every `sampleEvery` real frames (4 unless set) the mask of that frame is copied to a
+    // small buffer and counted one sample later (nothing ever waits for the card): how many pixels of the zone it covered.
+    // 0 = nothing found in that frame. Without the buffer the pass works as it does, uncounted.
+    unsigned maskedPixels() const { return masked_; }
+    uint64_t realFrames() const { return updates_; }
+    uint64_t samples() const { return samples_; }
+    uint64_t samplesWithMask() const { return samplesWithMask_; }
+    // For tests: sample every frame, and count the sample taken last once the card has finished it.
+    void setSampleEvery(unsigned frames) { sampleEvery_ = frames ? frames : 1u; }
+    void harvest();
 
 private:
     void constants(float* c, unsigned stage, bool reset) const;
@@ -54,6 +64,12 @@ private:
     ComPtr<ID3D12Resource> blockMoves_, moving_;      // per block, and for the zone: does the picture move
     ComPtr<ID3D12Resource> zoneCopy_;                 // the zone of a generated frame as it was made
     bool writable_[kMaxGenerated]{};
+    ComPtr<ID3D12Resource> readback_;                 // the mask of a sampled frame, for the count
+    const uint8_t* mapped_ = nullptr;
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint_{};
+    unsigned sampleEvery_ = 4, masked_ = 0;
+    bool samplePending_ = false, foundLogged_ = false;
+    uint64_t updates_ = 0, samples_ = 0, samplesWithMask_ = 0;
     ID3D12Resource* real_[2]{};
     ID3D12Resource* generated_[kMaxGenerated]{};
 };

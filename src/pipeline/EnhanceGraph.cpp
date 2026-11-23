@@ -1570,12 +1570,18 @@ bool EnhanceGraph::initHudLock() {
     hudLock_=std::move(pass);
     return true;
 }
-// PushFPS: Crosshair Hold (PushOverlayPass). Only for the methods that work out motion from the frames they are
-// given (NVIDIA VFG, AMD FRC, PushFlow) and never with PushFlow's Predict; a pass that cannot be created leaves
+// PushFPS: Crosshair Hold (PushOverlayPass). For the methods engine::crosshairHoldMethod names (NVIDIA VFG, AMD FRC,
+// PushFlow, DLSS frame generation, FSR) and never with PushFlow's Predict; a pass that cannot be created leaves
 // frame generation exactly as it was. Without the pass, fgInput() is the real frame itself.
 bool EnhanceGraph::initOverlay() {
     overlay_.reset();
-    if(!desc_.crosshairHold||!fgEnabled_||presentSinkFg())return true;
+    if(!desc_.crosshairHold||!fgEnabled_||presentSinkFg()){
+        // Asked for and not part of this graph: the log says which of the conditions it was (a field log has to
+        // answer "the switch is on and nothing changed" without a second session).
+        if(pipeline::overlay::wanted())veyra::log::info("crosshair-hold",std::format("asked for, not in this graph: described={} frameGeneration={} method={} presentsItself={} multiplier={}",
+            desc_.crosshairHold,fgEnabled_,int(desc_.frameGenerationBackend),presentSinkFg(),desc_.fgMultiplier));
+        return true;
+    }
     auto pass=std::make_unique<PushOverlayPass>();
     if(!pass->initialize(context_.device(),workW_,workH_,outputFormat(),hdr10Output()?2u:desc_.hdrOutput?1u:0u)){
         veyra::log::error("crosshair-hold",std::format("unavailable at {}x{}; frame generation runs without it",workW_,workH_));
@@ -4561,7 +4567,13 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
         auto* flist=ring_.acquireNext(slot,st); if(!flist)return false;
         // 边缘神盾: the refined vectors, same current->previous work-pixel units as baseFlow_.
         auto* motion=desc_.fgMotionProbe?desc_.fgMotionProbe:(haveFlow&&desc_.fgUsesFlow()?(flowRefine_?fgBaseFlow_.Get():baseFlow_.Get()):nrZeroMotion_.Get());
+        // PushFPS Crosshair Hold: the picture DLSS frame generation and FSR are given is the real frame with the
+        // overlay's bars filled in (fgInput is the real frame itself without the pass, and every statement below
+        // is then what it always was). The motion and depth they are given are still worked out from the real
+        // frames: where the overlay stood they say "still", in a patch the overlay is laid back over.
+        auto* const colour=fgInput(parity);
         tracker_.transition(flist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        tracker_.transition(flist,colour,D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
         if(!desc_.fgMotionProbe)tracker_.transition(flist,motion,D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
         tracker_.transition(flist,depthTex_.Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
         tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -4575,7 +4587,7 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
         tracker_.transition(flist,fgDisable_[parity].Get(),D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         }
         ngx::DlssFgBackend::EvalDesc fe{};
-        fe.hdr=hdr10Output();fe.backbuffer=videoFrame_[parity].Get(); fe.depth=depthTex_.Get(); fe.mvecs=motion;
+        fe.hdr=hdr10Output();fe.backbuffer=colour; fe.depth=depthTex_.Get(); fe.mvecs=motion;
         fe.outputInterpolated=genFrame_[generatedSlot].Get(); fe.reset=resetFg;
         fe.outputDisableInterpolation=fgDisable_[parity].Get();
         fe.multiFrameCount=fgCalls;fe.multiFrameIndex=sub;
@@ -4592,11 +4604,12 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
         if(fsrFgBackend_){
             // The SDK restores all externally registered textures to COMMON.
             tracker_.transition(flist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COMMON);
+            tracker_.transition(flist,colour,D3D12_RESOURCE_STATE_COMMON);
             tracker_.transition(flist,motion,D3D12_RESOURCE_STATE_COMMON);
             tracker_.transition(flist,depthTex_.Get(),D3D12_RESOURCE_STATE_COMMON);
             tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_COMMON);
             const float interval=prevValid_&&ptsMs>prevPtsMs_?float(ptsMs-prevPtsMs_):16.6667f;
-            if(!fsrFgBackend_->generate(flist,videoFrame_[parity].Get(),motion,depthTex_.Get(),
+            if(!fsrFgBackend_->generate(flist,colour,motion,depthTex_.Get(),
                     genFrame_[generatedSlot].Get(),resetFg,interval)){
                 failedBackend_=engine::FailedBackend::Fg;return false;
             }
@@ -4620,9 +4633,13 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
         tracker_.transition(flist,fgDisable_[parity].Get(),D3D12_RESOURCE_STATE_COPY_SOURCE);
         flist->CopyBufferRegion(fgDisableReadback_[generatedSlot].Get(),0,fgDisable_[parity].Get(),0,4);
         }
+        // PushFPS Crosshair Hold: the overlay back over what the method made (never a reset pair; there is no pass
+        // for ANR, whose output only exists once this list is submitted).
+        if(!resetFg)composeOverlay(flist,generatedSlot,parity,float(sub)/float(outputMultiplier));
         composeHudLock(flist,generatedSlot,resetFg?parity:1-parity);
         if(!composeExclusion(flist,generatedSlot+2,resetFg?parity:1-parity,false))return false;
         tracker_.transition(flist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COMMON);
+        tracker_.transition(flist,colour,D3D12_RESOURCE_STATE_COMMON);
         tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_COMMON);
         tracker_.transition(flist,depthTex_.Get(),D3D12_RESOURCE_STATE_COMMON);
         if(sub==fgCalls)gpuTimer_.resolve(flist);

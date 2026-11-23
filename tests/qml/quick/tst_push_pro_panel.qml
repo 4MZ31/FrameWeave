@@ -218,10 +218,23 @@ Item {
             compare(veyra.preferences.pushCrosshairHold, true)
             tryVerify(function() { return sw.checked && row.hint !== off }, 3000)
             const on = row.hint
-            veyra.fgBackendName = "dlss"
+            veyra.fgBackendName = "anr"
             tryVerify(function() { return row.hint !== on && row.hint !== off }, 3000, "a method it does not work with yet is said")
+            veyra.fgBackendName = "dlss"
+            tryVerify(function() { return row.hint === on }, 3000, "DLSS frame generation is one it works with")
             veyra.fgBackendName = "pushflow"
             tryVerify(function() { return row.hint === on }, 3000)
+            // The row says what the engine says (read once a second): the pass runs and holds a crosshair, or it
+            // runs and has found none yet; the switch alone never reads as running.
+            const stats = veyra.liveStats
+            veyra.liveStats = ({ running: true, crosshairHoldState: 1, crosshairHoldPixels: 240 })
+            tryVerify(function() { return row.hint !== on && row.hint !== off }, 4000, "a pass that holds a crosshair says so")
+            const holding = row.hint
+            veyra.liveStats = ({ running: true, crosshairHoldState: 1, crosshairHoldPixels: 0 })
+            tryVerify(function() { return row.hint !== holding && row.hint !== on && row.hint !== off }, 4000, "a pass that has found no crosshair says so")
+            veyra.liveStats = ({ running: true, crosshairHoldState: 3, crosshairHoldPixels: 0 })
+            tryVerify(function() { return row.hint === on }, 4000, "no pass in the engine: on, not running")
+            veyra.liveStats = stats
             sw.toggled(false)
             compare(veyra.preferences.pushCrosshairHold, false)
             tryVerify(function() { return !sw.checked && row.hint === off }, 3000)

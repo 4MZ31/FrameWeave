@@ -2181,6 +2181,7 @@ void testOverlayAt(Gpu& gpu, const uint32_t H) {
     check(real[0].texture && real[1].texture && generated.texture, "crosshair hold: textures created");
     pipeline::PushOverlayPass pass;
     check(pass.initialize(device, W, H, F, 0), "crosshair hold: the pass is created");
+    pass.setSampleEvery(1);     // what it says it holds is checked against every frame's mask
     pipeline::DescriptorStager stager;
     check(stager.initialize(device, 256), "crosshair hold: staging heap");
     ID3D12Resource* reals[2] = {real[0].texture.Get(), real[1].texture.Get()};
@@ -2296,7 +2297,7 @@ void testOverlayAt(Gpu& gpu, const uint32_t H) {
         size_t barMarked = 0, dotMarked = 0, dotPixels = 0;
         ov::State state(Z);
         std::vector<uint8_t> beforePx; ov::Picture beforeFilled; ov::Plane beforeMask(Z);
-        size_t maskWrong = 0, countWrong = 0, fillWrong = 0, outsideTouched = 0, composeWrong = 0, composeOutside = 0, held = 0, composed = 0;
+        size_t maskWrong = 0, countWrong = 0, fillWrong = 0, outsideTouched = 0, composeWrong = 0, composeOutside = 0, held = 0, composed = 0, saidWrong = 0;
         int firstHeld = -1; bool ran = true;
         for (int k = 0; k < 9 && ran; ++k) {
             const unsigned parity = unsigned(k & 1);
@@ -2324,6 +2325,9 @@ void testOverlayAt(Gpu& gpu, const uint32_t H) {
                     const size_t i = (size_t(y) * W + x) * 4;
                     if (!inZone) outsideTouched += std::memcmp(seen.input.data() + i, px.data() + i, 4) != 0;
                 }
+            // What the pass itself says it holds (the figure the interface and the log show) is this frame's mask.
+            pass.harvest();
+            saidWrong += size_t(pass.maskedPixels()) != marked;
             if (marked > size_t(60 * unit * unit) && firstHeld < 0) firstHeld = k;
             if (band) {
                 dotMarked = 0; dotPixels = 0;
@@ -2366,6 +2370,7 @@ void testOverlayAt(Gpu& gpu, const uint32_t H) {
         check(outsideTouched == 0, std::string("crosshair hold, ") + name + ": outside the zone that frame is the real frame, bit for bit");
         check(composeWrong == 0, std::string("crosshair hold, ") + name + ": the generated frame is composed as the rule composes it");
         check(composeOutside == 0, std::string("crosshair hold, ") + name + ": no pixel outside the mask is touched in the generated frame");
+        check(saidWrong == 0, std::string("crosshair hold, ") + name + ": the pass's own count of what it holds is the mask's, frame for frame (" + std::to_string(saidWrong) + " frames differ)");
         if (withReticle) {
             check(firstHeld == 4, at + ": the reticle is held once it has stood for four counted frames (frame " + std::to_string(firstHeld) + ")");
             check(held > size_t(150 * unit * unit) && composed > size_t(150 * unit * unit), at + ": all of it, and it is laid back over the generated frame");

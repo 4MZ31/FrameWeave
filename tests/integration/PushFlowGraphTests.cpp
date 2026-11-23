@@ -336,9 +336,12 @@ int wmain(int argc, wchar_t** argv) {
             check(summary.guardFrames > 0 && summary.guardMended == 0 && summary.guardHeld == 0,
                   tag + ": judged " + std::to_string(summary.guardFrames) + " frames, mended " + std::to_string(summary.guardMended) + ", held " + std::to_string(summary.guardHeld));
         }
-        if (run.hold)
+        if (run.hold) {
             check(cacheChecked == checked && cacheChecked > 0 && cacheSame == cacheChecked, tag + ": a picture without a crosshair comes out as it does without Crosshair Hold, frame for frame (" + std::to_string(cacheSame) + "/" +
                                                                                              std::to_string(cacheChecked) + ", worst difference " + std::to_string(cacheWorst) + " of 255)");
+            check(graph.crosshairHoldFrames() > 0 && graph.crosshairHoldPixels() == 0, tag + ": and the pass says it saw " + std::to_string(graph.crosshairHoldFrames()) + " real frames and holds " +
+                                                                                         std::to_string(graph.crosshairHoldPixels()) + " pixels");
+        }
         if (run.cache) {
             const auto summary = graph.pushFlowSummary();
             check(cacheChecked == checked && cacheChecked > 0 && cacheSame == cacheChecked, tag + ": every generated frame is the one PushFlow makes without the cache (" + std::to_string(cacheSame) + "/" +
@@ -406,6 +409,11 @@ int wmain(int argc, wchar_t** argv) {
             }
             check(ok, tag + ": every frame processed");
             check(pairs == Frames - 1 && generated == pairs, tag + ": every pair comes back with its generated frame (" + std::to_string(generated) + "/" + std::to_string(pairs) + ")");
+            // What the interface shows: the pass says how many real frames it saw and how many pixels it holds
+            // (counted from a frame sampled a few frames back, never waited for).
+            if (on) check(graph.crosshairHoldFrames() == Frames && graph.crosshairHoldPixels() > 0, tag + ": the pass says it saw " + std::to_string(graph.crosshairHoldFrames()) + " real frames and holds " +
+                                                                                                     std::to_string(graph.crosshairHoldPixels()) + " pixels");
+            else check(graph.crosshairHoldFrames() == 0 && graph.crosshairHoldPixels() == 0, tag + ": no pass, nothing held");
             if (measured) { meanOf[on] = sum / double(measured); worstOf[on] = worst; }
             std::cout << "PUSHFLOW_GRAPH " << tag << ": the reticle's pixels in " << measured << " generated frames are off by " << meanOf[on] << " of 255 on average, " << worstOf[on] << " in the worst frame" << std::endl;
             ring.drainQueue(); graph.shutdown();

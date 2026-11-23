@@ -1566,3 +1566,7 @@ zh:准星静止而背后的画面在动时，补帧会把准星当成背景一�
 zh:已关闭：画面移动时准星可能闪烁或出现重影|Disattivato: il mirino può sfarfallare o lasciare immagini fantasma quando l'immagine si muove
 zh:已开启：准星不交给补帧，补出的每一帧里都原样放回|Attivo: il mirino resta fuori dalla generazione di fotogrammi e viene rimesso invariato in ogni fotogramma generato
 zh:当前补帧方式暂不支持：可用于 NVIDIA VFG、AMD FRC 和 PushFlow|Non ancora con questo metodo di generazione di fotogrammi: funziona con NVIDIA VFG, AMD FRC e PushFlow
+zh:正在运行：已找到准星，补出的每一帧里都原样放回|In funzione: mirino trovato. Viene rimesso invariato in ogni fotogramma generato
+zh:正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）|In funzione: nessun mirino trovato finora al centro dell'immagine (viene riconosciuto quando l'immagine dietro si muove)
+zh:已开启：有画面播放并且补帧开启后开始运行|Attivo: parte quando un'immagine è in riproduzione con la generazione di fotogrammi attiva
+zh:这种补帧方式暂不支持，请换一种补帧方式|Non ancora con questo metodo di generazione di fotogrammi: scegline un altro

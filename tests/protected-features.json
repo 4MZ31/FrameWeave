@@ -1747,7 +1747,7 @@
   },
   {
    "id": "F64",
-   "what": "Crosshair Hold (off unless switched on): a crosshair (strokes, a dot, a ring) that stands still in the middle of a moving picture is found, taken out of the frames NVIDIA VFG, AMD FRC and PushFlow are given, and laid back over what they make; a picture without one is never marked, nor is scenery that stands still while something passes elsewhere in the zone, so its generated frames are what they are without the switch; with the switch off the methods are given the real frames themselves; the shaders decide every pixel as the rule in plain C++ does.",
+   "what": "Crosshair Hold (off unless switched on): a crosshair (strokes, a dot, a ring) that stands still in the middle of a moving picture is found, taken out of the frames NVIDIA VFG, AMD FRC, PushFlow, DLSS frame generation and FSR are given, and laid back over what they make (never ANR or XeSS); a picture without one is never marked, nor is scenery that stands still while something passes elsewhere in the zone, so its generated frames are what they are without the switch; with the switch off the methods are given the real frames themselves; the shaders decide every pixel as the rule in plain C++ does; the row and the log say what the engine says: whether the pass runs, and how many pixels it holds (never only that the switch is on).",
    "guards": [
     {
      "file": "tests/unit/PushOverlayTests.cpp",
@@ -1831,9 +1831,103 @@
      "file": "tests/integration/PushGpuTests.cpp",
      "ci": "veyra_push_gpu_tests",
      "contains": ": a dot with an outline inside what moves is taken out whole, its inside with its outline"
+    },
+    {
+     "file": "tests/integration/PushGpuTests.cpp",
+     "ci": "veyra_push_gpu_tests",
+     "contains": ": the pass's own count of what it holds is the mask's, frame for frame ("
+    },
+    {
+     "file": "tests/integration/PushFlowGraphTests.cpp",
+     "ci": "veyra_push_flow_graph_tests",
+     "contains": "graph.crosshairHoldFrames() == Frames && graph.crosshairHoldPixels() > 0"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "a pass that runs and has found no crosshair says so"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "compare(row.hint, waiting, \"state \" + idle)"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "no pass in the engine: on, not running"
+    },
+    {
+     "file": "src/engine/EngineController.cpp",
+     "contains": "snapshot_.crosshairHoldPixels=int(graph->crosshairHoldPixels())"
+    },
+    {
+     "file": "include/veyra/engine/GraphDescription.h",
+     "contains": "!crosshairHoldMethod(FrameGenerationBackend::Anr)&&!crosshairHoldMethod(FrameGenerationBackend::XeSS)"
+    },
+    {
+     "file": "src/pipeline/EnhanceGraph.cpp",
+     "contains": "fe.hdr=hdr10Output();fe.backbuffer=colour;"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "for (const own of [\"vfg\", \"amdfrc\", \"pushflow\", \"dlss\", \"fsr3\", \"fsr4\"])"
     }
    ],
    "needs_hardware": "A real card and a real game: the rule was found on frames of a real game and measured in plain C++, and the shaders and the graph were compared with it on the software renderer. What NVIDIA VFG makes of frames with the crosshair taken out has been seen by nobody."
+  },
+  {
+   "id": "F65",
+   "what": "The installer never harms the PushFPS that is installed: a test build (a version that is not a release's X.Y.Z) goes into its own folder with its own shortcuts and a copy of the settings, and its uninstall removes only itself; an install or update finishes when another program has the virtual camera's file loaded (the old file is moved aside and replaced), where it used to stop half-way with \"Copying files failed\"; a copy that does fail names the files and says the install is not complete.",
+   "guards": [
+    {
+     "file": "packaging/Install-PushFPS.ps1",
+     "ci": "Install-PushFPS.ps1",
+     "contains": "$OwnFolder = $TestBuild -and -not $PSBoundParameters.ContainsKey('InstallDir')"
+    },
+    {
+     "file": "packaging/Install-PushFPS.ps1",
+     "ci": "Install-PushFPS.ps1",
+     "contains": "[System.IO.File]::Move($dest, ($dest + '.replaced-'"
+    },
+    {
+     "file": "packaging/Install-PushFPS.ps1",
+     "ci": "Install-PushFPS.ps1",
+     "contains": "/XD (Join-Path $source 'virtualcam')"
+    },
+    {
+     "file": "packaging/Install-PushFPS.ps1",
+     "ci": "Install-PushFPS.ps1",
+     "contains": "so this install is NOT complete"
+    },
+    {
+     "file": ".github/workflows/build-windows.yml",
+     "ci": "Install-PushFPS.ps1",
+     "contains": "throw 'a test build did not install into its own folder'"
+    },
+    {
+     "file": ".github/workflows/build-windows.yml",
+     "ci": "Install-PushFPS.ps1",
+     "contains": "a test build changed the folder of the installed PushFPS"
+    },
+    {
+     "file": ".github/workflows/build-windows.yml",
+     "ci": "Install-PushFPS.ps1",
+     "contains": "throw 'a test build''s uninstall removed the installed PushFPS'"
+    },
+    {
+     "file": ".github/workflows/build-windows.yml",
+     "ci": "Install-PushFPS.ps1",
+     "contains": "throw 'the virtual camera file was not replaced while another program held it'"
+    },
+    {
+     "file": ".github/workflows/build-windows.yml",
+     "ci": "Install-PushFPS.ps1",
+     "contains": "was not installed\" }"
+    }
+   ],
+   "needs_hardware": ""
   }
  ]
 }

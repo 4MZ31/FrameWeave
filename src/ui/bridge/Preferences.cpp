@@ -745,7 +745,10 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
         const bool on = impl_->prefBool("pushCrosshairHold", false) && !pushflow2::emergencyOff();
         const bool changed = pipeline::overlay::wanted() != on;
         pipeline::overlay::setWanted(on);
-        if (changed && impl_->snapshot.running && settings().multiplier > 1) impl_->engine.refreshGraph();
+        const bool rebuilds = changed && impl_->snapshot.running && settings().multiplier > 1;
+        veyra::log::info("crosshair-hold", std::format("switch={} changed={} playing={} multiplier={} method={} rebuilds the graph now={}", on, changed,
+                                                       impl_->snapshot.running, int(settings().multiplier), int(settings().frameGenerationBackend), rebuilds));
+        if (rebuilds) impl_->engine.refreshGraph();
     }
     else if (key == QLatin1String("pushAudioTrimMs"))
         sink::setPushAudioTrimMs(impl_->prefInt("pushAudioTrimMs", 0));   // read by the sound session; a change re-anchors it once

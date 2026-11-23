@@ -96,8 +96,8 @@ jobs:
             echo
             echo "Built from $run."
             echo
-            echo "Install: unpack the zip and double-click Install-PushFPS.cmd. It installs over the PushFPS you have and keeps your settings."
-            echo "Back to the public version: install the latest release again."
+            echo "Install: unpack the zip and double-click Install-PushFPS.cmd. A test build gets its own folder (PushFPS-test) and its own shortcut, \"PushFPS test\", and starts with a copy of your settings. The PushFPS you have is not changed: close it while you test, and start the test build with its own shortcut."
+            echo "Remove the test build: delete the folder %LOCALAPPDATA%\\Programs\\PushFPS-test and the two \"PushFPS test\" shortcuts."
             echo
             echo "Leave this as a draft: do not press Publish."
             echo

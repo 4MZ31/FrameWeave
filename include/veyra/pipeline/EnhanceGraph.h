@@ -841,6 +841,11 @@ public:
     // (no frame generation in the graph, or a method that presents its own frames).
     // PushFPS Crosshair Hold: 0 not asked, 1 running, 2 asked but the pass could not be made, 3 not with this method or without frame generation.
     int crosshairHoldState() const { if(!pipeline::overlay::wanted())return 0; if(overlay_)return 1; if(!desc_.crosshairHold||!fgEnabled_||presentSinkFg())return 3; return 2; }
+    // How many pixels of its zone Crosshair Hold held in the frame it sampled last (0 = nothing found there), and
+    // how many real frames it has seen: a pass that runs and sees frames but holds nothing has found no crosshair.
+    // (Asking counts the sample taken last, if the card has written it; nothing waits.)
+    unsigned crosshairHoldPixels() { if(!overlay_)return 0u; overlay_->harvest(); return overlay_->maskedPixels(); }
+    uint64_t crosshairHoldFrames() const { return overlay_?overlay_->realFrames():0ull; }
     int hudStillState() const { if(!desc_.hudStill)return 0; if(hudLock_&&hudLock_->stillActive())return 1; if(!fgEnabled_||presentSinkFg())return 3; return 2; }
     // AMD FSR upscaling replaces the SR stage; it is a FidelityFX effect, not
     // an NGX feature, so it also works on non-NVIDIA adapters.

@@ -1027,7 +1027,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                 snapshot_.fsrMaxGeneratedFrames=fsrMaxGeneratedFramesCap_;
                 snapshot_.fsrProviderVersion=graph->fsrProviderVersion();
                 snapshot_.fsrSrProviderVersion=graph->fsrSrProviderVersion();
-                snapshot_.hudLockState=graph->hudLockState();snapshot_.hudStillState=graph->hudStillState();snapshot_.crosshairHoldState=graph->crosshairHoldState();
+                snapshot_.hudLockState=graph->hudLockState();snapshot_.hudStillState=graph->hudStillState();snapshot_.crosshairHoldState=graph->crosshairHoldState();snapshot_.crosshairHoldPixels=int(graph->crosshairHoldPixels());snapshot_.crosshairHoldFrames=graph->crosshairHoldFrames();
                 if(fgMultiFrameMaxCap_>0)veyra::log::info("settings",std::format("frame-generation capability: maxGeneratedFrames={} maxMultiplier={}",fgMultiFrameMaxCap_,fgMultiFrameMaxCap_+1));
                 veyra::log::info("settings",std::format("xess capability: active={} maxInterpolatedFrames={} unlockApplied={} (active context only)",presenter.xessActive(),xessMaxInterpolatedFramesCap_,xessState.applied));
                 if(fsrMaxGeneratedFramesCap_>0)veyra::log::info("settings",std::format("fsr capability: generatedPerPresent={} => maxMultiplier={}",fsrMaxGeneratedFramesCap_,fsrMaxGeneratedFramesCap_+1));
@@ -3572,6 +3572,8 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     snapshot_.pushFlowPredictMoving=pf.predictMoving;snapshot_.pushFlowPredictHeld=pf.predictHeld;snapshot_.pushFlowPredictSuperseded=predictSuperseded_;
                     snapshot_.pushFlowDual=pf.dual;snapshot_.pushFlowDualReal=dualRealGiven_;snapshot_.pushFlowDualBetween=dualBetweenGiven_;
                     snapshot_.pushFlowMotionPairs=pf.motionPairs;snapshot_.pushFlowAlignedApart=pf.alignedApart;
+                    // PushFPS Crosshair Hold: what it holds changes from second to second, so it is read here as well.
+                    snapshot_.crosshairHoldState=graph->crosshairHoldState();snapshot_.crosshairHoldPixels=int(graph->crosshairHoldPixels());snapshot_.crosshairHoldFrames=graph->crosshairHoldFrames();
                     // Asked for, and the source is a file: Predict is for live sources only, and says so.
                     if(snapshot_.pushFlowPredict.empty()&&!isCapture&&pushflow2::wanted(pushflow2::Experiment::Predict))snapshot_.pushFlowPredict="not-live";}
                     // Custom (format label): one name for what the source carries,
