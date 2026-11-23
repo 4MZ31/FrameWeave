@@ -90,6 +90,10 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["pacingFrames"] = QVariant::fromValue(qulonglong(s.pacingFrames));
     m["hudLockState"] = s.hudLockState;
     m["hudStillState"] = s.hudStillState;
+    // Crosshair Hold: 0 not asked, 1 running, 2 could not be set up, 3 not with this method or without frame generation.
+    m["crosshairHoldState"] = s.crosshairHoldState;
+    m["crosshairHoldPixels"] = s.crosshairHoldPixels;
+    m["crosshairHoldFrames"] = double(s.crosshairHoldFrames);
     // PushFPS 4.2.1: the FSR upscaler really running (quick setup's upscale row says it).
     m["fsrUpscalerVersion"] = QString::fromStdString(s.fsrSrProviderVersion);
     m["pushFlowPrecision"] = QString::fromStdString(s.pushFlowPrecision);

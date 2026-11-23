@@ -1561,6 +1561,15 @@ zh:当前补帧方式自行估算运动，不使用此选项|Ta metoda generowan
 zh:连接采集卡后打开专业模式|Otwórz tryb Pro po połączeniu karty przechwytującej
 zh:关闭时留在首页，画面显示在首页中间|Wyłączone: zostajesz na stronie Start, gdzie obraz jest odtwarzany pośrodku
 zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Pełny ekran po połączeniu" jest włączony: połączenie zawsze otwiera tryb Pro na pełnym ekranie
+zh:准星保持|Utrzymanie celownika
+zh:准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。|Gdy celownik stoi w miejscu, a obraz za nim się porusza, generowanie klatek przesuwa celownik razem z tłem: znika on ze swojego miejsca, a po obu stronach pojawia się jego bledsza kopia. Po włączeniu PushFPS znajduje celownik na środku ekranu, wyjmuje go z obrazu przed generowaniem klatek i potem wstawia z powrotem bez zmian. Celownik, który dopiero się pojawił albo którego linie jeszcze się rozsuwają lub zsuwają, musi chwilę postać nieruchomo, zanim zostanie rozpoznany.
+zh:已关闭：画面移动时准星可能闪烁或出现重影|Wyłączone: gdy obraz się porusza, celownik może migotać lub zostawiać powidoki
+zh:已开启：准星不交给补帧，补出的每一帧里都原样放回|Włączone: celownik nie trafia do generowania klatek i jest wstawiany bez zmian do każdej wygenerowanej klatki
+zh:当前补帧方式暂不支持：可用于 NVIDIA VFG、AMD FRC 和 PushFlow|Jeszcze nie z tą metodą generowania klatek: działa z NVIDIA VFG, AMD FRC i PushFlow
+zh:正在运行：已找到准星，补出的每一帧里都原样放回|Działa: znaleziono celownik. Wraca bez zmian do każdej wygenerowanej klatki
+zh:正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）|Działa: na środku obrazu nie znaleziono jeszcze celownika (jest wykrywany, gdy obraz za nim się porusza)
+zh:已开启：有画面播放并且补帧开启后开始运行|Włączone: zaczyna działać, gdy odtwarzany jest obraz z włączonym generowaniem klatek
+zh:这种补帧方式暂不支持，请换一种补帧方式|Jeszcze nie działa z tą metodą generowania klatek: wybierz inną
 zh:统计|Statystyki
 zh:返回|Wstecz
 zh:延迟|Opóźnienie

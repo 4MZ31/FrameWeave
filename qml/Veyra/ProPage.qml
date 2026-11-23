@@ -2096,6 +2096,39 @@ VPage {
                                     }
                                 }
                             }
+                            // PushFPS Crosshair Hold (preference pushCrosshairHold, off unless switched on): the quick setup
+                            // above leaves the HUD switches to this list in Professional mode.
+                            VRow {
+                                id: listCrosshair
+                                objectName: "list-fg-crosshair-row"
+                                label: qsTr("准星保持")
+                                visible: !veyra.presentationOwned
+                                readonly property bool on: veyra.preferences.pushCrosshairHold === true
+                                readonly property bool methodOk: ["vfg", "amdfrc", "pushflow", "dlss", "fsr3", "fsr4"].indexOf(veyra.fgBackendName) >= 0
+                                // What the engine says (read once a second while the switch is on and the row is shown):
+                                // whether the pass really runs, and whether it has a crosshair.
+                                property var stats: ({})
+                                readonly property int holdState: Number(stats.crosshairHoldState || 0)
+                                readonly property int holdPixels: Number(stats.crosshairHoldPixels || 0)
+                                Timer {
+                                    objectName: "list-fg-crosshair-timer"
+                                    interval: 1000; repeat: true; triggeredOnStart: true
+                                    running: listCrosshair.visible && listCrosshair.on
+                                    onTriggered: listCrosshair.stats = veyra.pushLiveStats() || ({})
+                                    onRunningChanged: if (!running) listCrosshair.stats = ({})
+                                }
+                                hint: on && !methodOk ? qsTr("这种补帧方式暂不支持，请换一种补帧方式")
+                                    : on && holdState === 2 ? qsTr("没能在这台电脑上启动，补帧照常运行（原因见日志）")
+                                    : on && holdState === 1 ? (holdPixels > 0 ? qsTr("正在运行：已找到准星，补出的每一帧里都原样放回")
+                                                                               : qsTr("正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）"))
+                                    : on ? qsTr("已开启：有画面播放并且补帧开启后开始运行")
+                                    : qsTr("已关闭：画面移动时准星可能闪烁或出现重影")
+                                VSwitch {
+                                    objectName: "list-fg-crosshair"
+                                    checked: listCrosshair.on
+                                    onToggled: checked => veyra.setPreference("pushCrosshairHold", checked)
+                                }
+                            }
                             VRow {
                                 objectName: "list-fg-hudlock-row"
                                 label: qsTr("实时 HUD 锁定")

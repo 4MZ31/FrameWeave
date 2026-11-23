@@ -300,6 +300,10 @@ jobs:
             @{ name = '162-pro-categories-folded'; size = '1600x900'; args = @('--page', 'pro', '--lang', 'en', '--pref', 'pushProFolded=quality,fg,audio') },
             @{ name = '163-pro-side-hidden'; size = '1600x900'; args = @('--page', 'pro', '--lang', 'en', '--pref', 'pushSideCollapsed=true') },
             @{ name = '164-home-connecting'; size = '1600x900'; args = @('--page', 'home', '--lang', 'en', '--scroll-to', 'pushfps-connect-pro-row') },
+            @{ name = '165-crosshair-hold'; size = '1600x900'; args = @('--page', 'home', '--lang', 'en', '--scroll-to', 'pushfps-crosshair-row') },
+            @{ name = '166-crosshair-hold-on'; size = '1600x900'; args = @('--page', 'home', '--lang', 'en', '--scroll-to', 'pushfps-crosshair-row', '--pref', 'pushCrosshairHold=true') },
+            @{ name = '167-crosshair-hold-legacy'; args = @('--page', 'home', '--lang', 'en', '--scroll-to', 'pushfps-crosshair-row', '--pref', 'pushDesign=legacy', '--pref', 'pushSunset=false') },
+            @{ name = '168-crosshair-hold-pro'; size = '1600x900'; args = @('--page', 'pro', '--lang', 'en', '--scroll-to', 'list-fg-crosshair-row', '--pref', 'pushCrosshairHold=true') },
             # The README's and the website's pictures (assets/screenshots/<name>.png, website/assets/shots): the
             # new design in English, 1440 x 900 as they always were. On the home page the three sections whose
             # rows read "Requires an NVIDIA RTX GPU" on this runner (it has no graphics card) are folded: that

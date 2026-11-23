@@ -168,6 +168,9 @@ struct PlayerSnapshot {
     uint64_t pacingFrames=0,pacingRepaired=0;
     int hudLockState=0;  // PushFPS Live HUD Lock: EnhanceGraph::hudLockState()
     int hudStillState=0; // PushFPS still rule: EnhanceGraph::hudStillState()
+    int crosshairHoldState=0; // PushFPS Crosshair Hold: EnhanceGraph::crosshairHoldState()
+    int crosshairHoldPixels=0; // pixels it held in the frame sampled last (0 = no crosshair found there)
+    uint64_t crosshairHoldFrames=0; // real frames the pass has seen since it was made
     // PushFlow while it runs: precision ("fp32"/"fp16"), full-resolution rebuild, inference p50/p95 (ms).
     std::string pushFlowPrecision; bool pushFlowRebuild=false; double pushFlowP50Ms=0, pushFlowP95Ms=0; uint32_t pushFlowMotionWidth=0, pushFlowMotionHeight=0;
     // PushFPS: PushFlow 2's encoder cache ("" not asked for, "on", or why it is not used) and what it did.

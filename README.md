@@ -115,6 +115,7 @@ that, PushFPS adds what console players need:
 | **Output presets** | Platform settings per resolution and frame rate for going live (Twitch, YouTube, Kick, Facebook, TikTok LIVE, Trovo) and for uploads (YouTube SDR and HDR, Shorts, TikTok, Instagram Reels, X, editing). Every value stays editable |
 | **Frame Pacing Repair** | Evens out the uneven frame timing many 30 FPS console games have before frames are generated |
 | **Keep the HUD sharp** | An option, off unless you switch it on: what stands still in front of a moving picture keeps its real pixels in generated frames. It can soften camera pans, so try it per game |
+| **Crosshair Hold** | Finds the crosshair in the middle of the screen, keeps it out of frame generation and puts it back untouched in every generated frame: no flicker and no ghost copies when the camera moves |
 | **Live HUD Lock** | Finds still text, crosshairs and bars on every frame and keeps them sharp in generated frames, no boxes needed |
 | **Lip sync by hand** | Move the sound earlier or later in steps of 10 ms on top of automatic sync, for the delay your capture card, screen or headphones add |
 | **Choose before you record** | Click Record and pick horizontal or vertical, fill or fit, the size (4K, 1440p, 1080p) and the quality, and see the bitrate before it starts |
@@ -525,6 +526,24 @@ capture refresh later; for the common 17/50 ms pattern about half a refresh. The
 picture it is re-timing. It needs automatic duplicate removal, which it turns on. It is a
 choice, off by default: for a locked 30 or 40 FPS game, duplicate removal alone already spaces the frames evenly,
 and a game whose frame time really varies should keep its own timing.
+
+## Crosshair Hold
+
+Frame generation works out one motion for every place of the picture. A crosshair stands still on the screen
+while the world behind it moves, so it gets the world's motion: in every generated frame it is gone from the
+middle and shows up twice, to either side. That is the flicker and the ghost copies on a crosshair the moment
+you turn the camera, worst in fast pans and while driving.
+
+**Crosshair Hold** (*Quick setup → HUD*, or the *Frame Gen* tab in Professional mode) deals with the cause. On
+every frame it finds the crosshair in the middle of the screen: lines, a dot or a ring that stand still while
+the picture round them moves. It hands frame generation a copy of the picture without it, and lays the
+crosshair back, untouched, over every generated frame. Nothing has to be drawn or set up, and with no crosshair
+on screen it does nothing: scenery is left alone.
+
+The row says what is happening: *Running: crosshair found* while it holds one. It works with NVIDIA VFG, DLSS
+frame generation, FSR, AMD FRC and PushFlow; not with XeSS or ANR. A crosshair is picked up once it has stood
+still over a moving picture for a moment, so right after you aim, while its lines are still closing in, it is
+not held yet, and a large solid dot with no outline is not picked up. It is off unless you switch it on.
 
 ## Live HUD Lock
 
@@ -1001,6 +1020,10 @@ panel in Professional mode), and the picture takes the room. In Professional mod
 home page plays there, beside quick setup; *Quick setup → Connecting → Open Pro mode when a capture card
 connects* brings back the jump to Professional mode.
 
+**Crosshair Hold (4.4).** *Quick setup → HUD → Crosshair Hold* keeps the crosshair out of frame generation and
+puts it back untouched in every generated frame, so it no longer flickers or doubles when the camera moves.
+Its row says when it has found one. More under [Crosshair Hold](#crosshair-hold).
+
 **Sunset City (Legacy).** In the Legacy design PushFPS opens with a three-second intro: a neon road out of the dark, the logo landing on the
 beat, the sky turning to sunset over a palm-lined city, and the logo gliding into place on the home page, where
 it stays filled with the sunset city. The music is the startup track that comes with Veyra's runtime package.
@@ -1210,6 +1233,8 @@ A measurement from your own card helps: [how to take one](docs/BENCHMARKING.md).
       mode and a new start-up animation; Legacy, the design of 4.2, one click away behind the palette
 - [x] 4.3.1: both sides of the new design fold with a button each, Professional mode's categories fold, and
       a capture card connected from the home page plays there
+- [x] 4.4: Crosshair Hold: the crosshair is kept out of frame generation and put back in every generated
+      frame; an update finishes while another program uses the virtual camera
 - [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)
