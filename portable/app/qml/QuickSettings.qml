@@ -46,6 +46,23 @@ ColumnLayout {
         opacity: enabled ? 1 : 0.5
         VSwitch { objectName: "home-hud"; checked: app.hudLock; onToggled: on => app.hudLock = on }
     }
+    // Crosshair Hold, as in the Windows build (the same rule, portable/core CrosshairHold.h): off unless switched on.
+    VRow {
+        id: crosshairRow
+        objectName: "home-crosshair-row"
+        label: qsTr("准星保持")
+        help: qsTr("准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。")
+        readonly property int holdState: app.running ? Number(app.stats.holdState || 0) : 0
+        readonly property int holdPixels: app.running ? Number(app.stats.holdPixels || 0) : 0
+        hint: !app.crosshairHold ? qsTr("已关闭：画面移动时准星可能闪烁或出现重影")
+            : holdState === 1 ? (holdPixels > 0 ? qsTr("正在运行：已找到准星，补出的每一帧里都原样放回")
+                                               : qsTr("正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）"))
+            : qsTr("已开启：有画面播放并且补帧开启后开始运行")
+        hintBelow: true
+        enabled: parent.generating
+        opacity: enabled ? 1 : 0.5
+        VSwitch { objectName: "home-crosshair"; checked: app.crosshairHold; onToggled: on => app.crosshairHold = on }
+    }
     VRow {
         label: qsTr("去除重复帧")
         hint: qsTr("30 FPS 的游戏在 60 Hz 信号里每张画面会发两次；补帧只看真正的新画面")

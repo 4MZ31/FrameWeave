@@ -205,6 +205,48 @@ Item {
 
         // Crosshair Hold has its switch in Professional mode's own list (the quick setup card leaves the HUD
         // switches to it there), off unless switched on.
+        // The half precision test needs the graphics card to itself. With something playing its button stops the
+        // playback and starts the test once that has ended (a user's report: it only ever said "stop playback
+        // first", also for a paused source, so the test could not be started from the interface).
+        function test_half_precision_test_stops_playback_itself() {
+            page.tab = "fg"
+            const was = veyra.fgBackendName, ran = veyra.running
+            veyra.fgBackendName = "pushflow"
+            const row = control(page, "list-pushflow-half-row"), button = control(page, "list-pushflow-half-test")
+            tryVerify(function() { return row.visible }, 3000)
+            // nothing plays: the test starts at once, as it always did
+            veyra.running = false
+            let tests = veyra.halfTests, stops = veyra.playbackStops
+            const idle = button.text
+            button.clicked()
+            compare(veyra.halfTests, tests + 1)
+            compare(veyra.playbackStops, stops)
+            verify(row.testing)
+            tryVerify(function() { return !row.testing }, 3000)        // the fixture's test is over at the next poll
+            // something plays: the button says so, stops it, waits, then tests
+            veyra.running = true
+            tryVerify(function() { return button.text !== idle }, 3000, "the button says it will stop playback")
+            tests = veyra.halfTests; stops = veyra.playbackStops
+            button.clicked()
+            compare(veyra.playbackStops, stops + 1)
+            compare(veyra.halfTests, tests, "no test while it still plays")
+            verify(row.stopping && !button.enabled)
+            wait(500)
+            compare(veyra.halfTests, tests, "still none")
+            veyra.running = false
+            tryVerify(function() { return veyra.halfTests === tests + 1 && !row.stopping }, 3000, "started once playback has ended")
+            tryVerify(function() { return !row.testing && button.text === idle }, 3000)
+            // a test whose result says half precision is not faster reads as that, not as a failure
+            const prefs = veyra.preferences
+            veyra.preferences = ({ pushFlowHalfProbe: JSON.stringify({ ok: false, reason: "probe-stopped" }) })
+            tryVerify(function() { return row.hint.length > 0 }, 3000)
+            const failed = row.hint
+            veyra.preferences = ({ pushFlowHalfProbe: JSON.stringify({ ok: false, reason: "not-faster" }) })
+            tryVerify(function() { return row.hint.length > 0 && row.hint !== failed }, 3000)
+            veyra.preferences = prefs
+            veyra.fgBackendName = was; veyra.running = ran
+        }
+
         function test_crosshair_hold_has_its_switch_in_the_frame_generation_list() {
             page.tab = "fg"
             const row = control(page, "list-fg-crosshair-row"), sw = control(page, "list-fg-crosshair")

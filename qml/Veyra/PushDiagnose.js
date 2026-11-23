@@ -72,8 +72,17 @@ function findings(s) {
     if (fgOn && !own && idle === 0 && m >= 2 && real >= 10 && gen >= 0) {
         var want = wantedOutput(real, m, num(s.outputCap, 0), num(s.refreshHz, 0))
         var expected = want - real
-        if (expected >= 10 && gen < expected * kBehind)
+        if (expected >= 10 && gen < expected * kBehind) {
             out.push({ id: "fg-behind", level: "problem", shown: Math.round(real + gen), wanted: Math.round(want) })
+            // 4.4.5: FSR is given motion that PushFPS estimates from the picture first (optical flow). On a card
+            // that is behind, that estimate can be made cheaper: its "performance" level, and at half the width
+            // and height where the estimate is AMD's. Offered only while the card is behind, never switched.
+            if ((s.method === "fsr3" || s.method === "fsr4") && s.motionFlow === true) {
+                var quality = Math.round(num(s.flowQuality, -1))
+                var half = s.flowHalfPossible === true && s.flowHalf === false
+                if (quality >= 1 || half) out.push({ id: "fsr-lighter", level: "try", quality: quality, half: half })
+            }
+        }
     }
 
     // "Keep the HUD sharp" puts the older frame's pixels over parts of generated frames while the camera moves.

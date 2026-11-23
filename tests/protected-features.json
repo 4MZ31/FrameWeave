@@ -1928,6 +1928,84 @@
     }
    ],
    "needs_hardware": ""
+  },
+  {
+   "id": "F66",
+   "what": "Live translation: a translated subtitle line stays to be read. The last translated line, with its original, is kept for a chosen time (0 to 5 s, 1.5 s unless chosen; 0 = gone with the original as before) after its original ended or the next one began, or until the next translation is there; a new source, a seek, a pause, closed captions and switching translation off keep nothing.",
+   "guards": [
+    {
+     "file": "tests/unit/PushCaptionHoldTests.cpp",
+     "ci": "veyra_push_caption_hold_tests",
+     "contains": "old pair shown, not the new original over the old translation"
+    },
+    {
+     "file": "tests/unit/PushCaptionHoldTests.cpp",
+     "ci": "veyra_push_caption_hold_tests",
+     "contains": "hold 0: gone with the original"
+    },
+    {
+     "file": "src/ui/LiveTranslation.cpp",
+     "ci": "veyra_qml_ui",
+     "contains": "if (!keepShown) hold_.drop();"
+    },
+    {
+     "file": "src/ui/bridge/Subtitles.cpp",
+     "ci": "veyra_qml_ui",
+     "contains": "liveTranslation_->shownTranslated()"
+    },
+    {
+     "file": "tests/qml/quick/tst_components.qml",
+     "ci": "tests/qml/quick",
+     "contains": "function test_liveTranslationHoldIsChosen()"
+    }
+   ]
+  },
+  {
+   "id": "F67",
+   "what": "The PushFlow half precision test can be started from the interface: with something playing its button stops the playback and starts the test once that has ended (it only said to stop playback first, and a paused source counted as playing). Check my setup offers FSR a cheaper motion estimate only while the graphics card is behind, never for a method that works its motion out itself, and puts back what was set on Undo.",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_",
+     "contains": "function test_half_precision_test_stops_playback_itself()"
+    },
+    {
+     "file": "qml/Veyra/ProPage.qml",
+     "ci": "tests/qml/quick",
+     "contains": "objectName: \"list-pushflow-half-stop-wait\""
+    },
+    {
+     "file": "tests/js/push_diagnose_test.js",
+     "ci": "tests/js",
+     "contains": "a card that keeps up is offered nothing"
+    },
+    {
+     "file": "tests/js/push_diagnose_test.js",
+     "ci": "tests/js",
+     "contains": "never for NVIDIA VFG, which works its motion out itself"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_diagnose.qml",
+     "ci": "tst_push_",
+     "contains": "function test_fsr_behind_is_offered_a_lighter_motion_estimate()"
+    }
+   ]
+  },
+  {
+   "id": "F68",
+   "what": "The interface files the Linux and macOS preview compiles straight from qml/Veyra read nothing from the bridge that the preview's own object does not answer (a new read works on Windows and is undefined in the preview, which only its own workflow builds).",
+   "guards": [
+    {
+     "file": "scripts/checks/portable_shared.py",
+     "ci": "portable_shared.py",
+     "contains": "which the preview's object (VeyraShim.h) does not have"
+    },
+    {
+     "file": "portable/app/CMakeLists.txt",
+     "ci": "portable_shared.py",
+     "contains": "set(pushfps_shared_names"
+    }
+   ]
   }
  ]
 }

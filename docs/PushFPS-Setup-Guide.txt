@@ -87,6 +87,8 @@ Change one thing at a time, play a minute, then decide.
                                               installer's experimental extras: run Install-PushFPS.cmd
                                               again and answer y when it asks)
   Frame rate drops with AI enhancement on     AI enhancement off, or a lower target
+  An AMD or Intel card cannot keep up (FSR)   "Check my setup" on the home page, then "Use the lighter
+                                              motion estimate" (Undo puts it back)
   Washed-out or too dark picture              Match the colour settings in the capture dialog to the
                                               console: HDR or SDR, Limited or Full range
   Black picture from a PlayStation            Turn HDCP off on the PS5 (see below)
@@ -150,7 +152,8 @@ Videos on your PC (YouTube in a browser, video apps, files): use Video playback 
 button in the top bar). Pick the window, switch on Smoother and Sharper, press F11.
 
 No capture card? Streaming sources work too (PS5 Remote Play, Moonlight from a Sunshine PC, Xbox).
-For PS5 Remote Play pick 1080p 60 FPS with H.265 (the default for new pairings).
+For PS5 Remote Play pick 1080p 60 FPS with H.265 (the default for new pairings). On a wired network
+a requested bitrate of 30 Mbps or more gives a sharper picture; lower it if the picture stutters.
 
 
 4. CAPTURE CARD SETTINGS
@@ -188,8 +191,9 @@ Which capture card
                  they capture less.
   PCIe ......... 4K60 HDR. AVerMedia GC573, Elgato 4K Pro
   Tested with PushFPS: Elgato 4K X, HD60 X and 4K S. Reported working by users: Elgato HD60 S,
-  Elgato HD60 Pro, AVerMedia Live Gamer Ultra 2.1 (GC553G2) and ezcap Game Link Raw. The other
-  models are Veyra's developer's picks. Any card that shows up as a camera in Windows works.
+  Elgato HD60 Pro, AVerMedia Live Gamer Ultra 2.1 (GC553G2), AVerMedia Live Streamer Ultra HD
+  (GC571) and ezcap Game Link Raw. The other models are Veyra's developer's picks. Any card that
+  shows up as a camera in Windows works.
 
 NVIDIA Video Frame Generation: Medium or High?
   For 30 FPS games it gives the least ghosting and wobble of the methods (RTX 40/50; RTX 30

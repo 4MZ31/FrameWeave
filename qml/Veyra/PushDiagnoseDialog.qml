@@ -59,6 +59,11 @@ DialogLayer {
             presentsOwnFrames: veyra.presentationOwned === true,
             multiplier: now >= 1 ? now : Number(veyra.fgMultiplier || 1),
             method: String(veyra.fgBackendName || ""),
+            // 4.4.5: the motion estimate FSR is given (PushDiagnose.js "fsr-lighter"). A setting nobody reported is never "can be lighter".
+            motionFlow: Number(veyra.fgMotionSource) === 1,
+            flowQuality: veyra.flowQuality !== undefined ? Number(veyra.flowQuality) : -1,
+            flowHalfPossible: Number(veyra.opticalFlowChoice) === 1 && veyra.amdFlowHalf !== undefined,
+            flowHalf: veyra.amdFlowHalf === true,
             vfgQuality: Number(veyra.vfgQuality),
             pushFlowTier: Number(veyra.vfgQuality),
             pushFlowMotion: Number(veyra.preferences.pushFlowMotion || 0),
@@ -133,6 +138,7 @@ DialogLayer {
         case "still-on": return qsTr("「保持 HUD 清晰」开着")
         case "enhance-small": return qsTr("AI 画质增强按 1080p 计算，画面是 %1p").arg(f.height)
         case "upscale-off": return qsTr("画面是 %1p，屏幕是 %2p").arg(f.height).arg(f.screen)
+        case "fsr-lighter": return qsTr("FSR 的运动估算可以更省")
         case "vfg-quality": return qsTr("NVIDIA VFG 用的是「%1」质量").arg(diag.tierName(f.tier))
         case "pushflow-room": return qsTr("PushFlow 还有余量：只用了每帧时间的 %1%").arg(f.percent)
         case "fg-off": return qsTr("补帧没有开")
@@ -150,6 +156,7 @@ DialogLayer {
         case "still-on": return qsTr("镜头移动时，它会把上一帧的像素盖在生成的画面上：物体边缘会破碎，画面会发糊。要保护 HUD，请用游戏预设或 HUD 保护")
         case "enhance-small": return qsTr("增强的结果被放大后贴回画面，所以会发糊、有颗粒。按画面的完整大小计算更清晰，也更吃显卡；帧率掉了就换回来")
         case "upscale-off": return qsTr("全屏时画面只是被拉大到屏幕大小，所以看起来发软。开启放大后由显卡把画面放大到屏幕分辨率，更清晰，也更吃显卡；帧率掉了就关掉")
+        case "fsr-lighter": return qsTr("FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销")
         case "vfg-quality": return qsTr("「高」在物体边缘、头部和细小物体上更稳，每帧也更吃显卡。帧率掉了就换回来")
         case "pushflow-room": return qsTr("可以试试「%1」档：运动在更大的画面上估算，物体边缘更干净。显卡跟不上时 PushFPS 会自己降回来").arg(diag.flowTierName(f.tier + 1))
         case "fg-off": return qsTr("现在看到的是主机原本的帧率。在快速设置里选一个目标帧率就会开启")
@@ -166,6 +173,7 @@ DialogLayer {
         case "still-on": return [{ label: qsTr("关闭"), arg: 0 }]
         case "enhance-small": return (f.offer || []).map(id => ({ label: id === 1 ? qsTr("完整大小") : "1440p", arg: id }))
         case "upscale-off": return [{ label: qsTr("开启放大"), arg: 1 }]
+        case "fsr-lighter": return [{ label: qsTr("改用更省的运动估算"), arg: 0 }]
         case "vfg-quality": return [{ label: qsTr("改用「高」"), arg: 2 }]
         case "pushflow-room": return [{ label: qsTr("试试「%1」").arg(diag.flowTierName(f.tier + 1)), arg: f.tier + 1 }]
         case "capture-compressed":
@@ -220,6 +228,13 @@ DialogLayer {
         case "enhance-small":
             if (diag.setEnhanceSize(arg)) diag.remember(f.id, 0)
             break
+        case "fsr-lighter": {
+            const before = { quality: Number(veyra.flowQuality), half: veyra.amdFlowHalf === true }
+            if (f.quality >= 1) veyra.flowQuality = 0
+            if (f.half === true) veyra.amdFlowHalf = true
+            diag.remember(f.id, before)
+            break
+        }
         case "vfg-quality":
         case "pushflow-room": {
             const before = Number(veyra.vfgQuality)
@@ -244,6 +259,10 @@ DialogLayer {
             if (before.target >= 1 && Number(veyra.srTargetIndex) !== before.target) veyra.srTargetIndex = before.target
         }
         else if (f.id === "vfg-quality" || f.id === "pushflow-room") veyra.vfgQuality = Number(before)
+        else if (f.id === "fsr-lighter") {
+            if (Number(veyra.flowQuality) !== before.quality) veyra.flowQuality = before.quality
+            if ((veyra.amdFlowHalf === true) !== before.half) veyra.amdFlowHalf = before.half
+        }
         diag.forget(f.id)
     }
 

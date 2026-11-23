@@ -1189,6 +1189,10 @@ target_include_directories(veyra_push_record_parts_tests PRIVATE ${CMAKE_CURRENT
 add_executable(veyra_push_compare_name_tests tests/unit/PushCompareNameTests.cpp)
 target_compile_features(veyra_push_compare_name_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_compare_name_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: how long a translated subtitle line stays after its original went away (ui/PushCaptionHold.h, pure; also builds with g++).
+add_executable(veyra_push_caption_hold_tests tests/unit/PushCaptionHoldTests.cpp)
+target_compile_features(veyra_push_caption_hold_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_caption_hold_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS: a fixed output cap fitted to the screen the window is on (engine/PushDisplayCap.h, pure; also builds with g++).
 add_executable(veyra_push_display_cap_tests tests/unit/PushDisplayCapTests.cpp)
 target_compile_features(veyra_push_display_cap_tests PRIVATE cxx_std_20)

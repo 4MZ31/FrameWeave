@@ -323,6 +323,177 @@ void testHudLock() {
 }
 
 // Simulated capture: 60 Hz transport, 30 FPS content, with optional 17/50 ms (1 then 3 refresh) pacing.
+// ---- Crosshair Hold ----------------------------------------------------------------------------
+// A panning picture of moderate brightness with a white crosshair standing at the screen centre: four
+// strokes two pixels thick (what a 4K reticle's four-pixel strokes are at 720 lines).
+bool onReticle(int x, int y, int w, int h) {
+    const int cx = w / 2, cy = h / 2, dx = x - cx, dy = y - cy;
+    const bool across = dy >= -1 && dy <= 0 && std::abs(dx) >= 5 && std::abs(dx) <= 13;
+    const bool down = dx >= -1 && dx <= 0 && std::abs(dy) >= 5 && std::abs(dy) <= 13;
+    return across || down;
+}
+Bgra renderAim(const Scene& bg, float shift, bool reticle) {
+    Bgra img(bg.w, bg.h);
+    for (int y = 0; y < bg.h; ++y)
+        for (int x = 0; x < bg.w; ++x) {
+            const float v = 40.f + bg.at(float(x) - shift, float(y)) * 0.45f;   // 40..155: the crosshair always stands out
+            float r = v, g = v * 0.9f + 8.f, b = 170.f - v * 0.5f;
+            if (reticle && onReticle(x, y, bg.w, bg.h)) { r = 250; g = 250; b = 250; }
+            uint8_t* p = img.pixel(x, y);
+            p[0] = uint8_t(std::clamp(b, 0.f, 255.f)); p[1] = uint8_t(std::clamp(g, 0.f, 255.f)); p[2] = uint8_t(std::clamp(r, 0.f, 255.f)); p[3] = 255;
+        }
+    return img;
+}
+// Mean and worst channel difference from the truth over the crosshair's own pixels, and over the two
+// places beside it where frame generation alone leaves its ghosts (half the motion to either side).
+struct AimError { double reticle = 0, ghost = 0; };
+AimError aimError(const Bgra& out, const Bgra& truth, int motion) {
+    AimError e; double rs = 0, gs = 0; int rn = 0, gn = 0;
+    for (int y = 0; y < out.height; ++y)
+        for (int x = 0; x < out.width; ++x) {
+            double d = 0;
+            for (int c = 0; c < 3; ++c) d = std::max(d, std::abs(double(out.pixel(x, y)[c]) - double(truth.pixel(x, y)[c])));
+            if (onReticle(x, y, out.width, out.height)) { rs += d; ++rn; }
+            else if (onReticle(x - motion / 2, y, out.width, out.height) || onReticle(x + motion / 2, y, out.width, out.height)) { gs += d; ++gn; }
+        }
+    e.reticle = rn ? rs / rn : 0; e.ghost = gn ? gs / gn : 0;
+    return e;
+}
+
+void testCrosshairHold() {
+    const int W = 1280, H = 720, motion = 12;
+    const Scene bg(W, H, 200, 31);
+    const MotionEstimator est;
+    {   // too small a picture has no zone and nothing is done
+        CrosshairHold tiny;
+        CHECK(tiny.frame(Bgra(160, 90)) == nullptr, "no zone in a tiny picture");
+        CHECK(tiny.frame(Bgra()) == nullptr, "an empty picture");
+    }
+    // The crosshair over a pan: found after it has stood while the picture moved, then held.
+    CrosshairHold hold;
+    std::vector<Bgra> frames;
+    std::vector<std::shared_ptr<const HoldFrame>> parts;
+    int firstHeld = -1;
+    for (int i = 0; i < 10; ++i) {
+        frames.push_back(renderAim(bg, float(i * motion), true));
+        parts.push_back(hold.frame(frames.back()));
+        CHECK(parts.back() != nullptr && parts.back()->size == 128, "the zone at 720 lines is 128 (got %d)", parts.back() ? parts.back()->size : -1);
+        if (parts.back() && parts.back()->masked > 0 && firstHeld < 0) firstHeld = i;
+    }
+    std::printf("  crosshair hold: held from frame %d, %d px in the mask\n", firstHeld, parts.back()->masked);
+    CHECK(firstHeld >= 3 && firstHeld <= 6, "held after it has stood four moving frames (frame %d)", firstHeld);
+    CHECK(parts.back()->masked >= 60 && parts.back()->masked < 1500, "the mask is the crosshair and little more (%d px)", parts.back()->masked);
+    CHECK(parts[0]->masked == 0 && CrosshairHold::pair(*parts[0], *parts[1]) == nullptr, "nothing is held before it is found, and no pair is made");
+    // The pair between the last two frames.
+    const Bgra &a = frames[8], &b = frames[9];
+    const auto pair = CrosshairHold::pair(*parts[8], *parts[9]);
+    CHECK(pair != nullptr && pair->held > 0 && pair->size == 128 && pair->x == (W - 128) / 2 && pair->y == (H - 128) / 2, "a pair for the generated frames");
+    if (!pair) return;
+    const Pyramid pa = Pyramid::of(lumaOf(a), 4), pb = Pyramid::of(lumaOf(b), 4);
+    const MotionField f = est.estimate(pa, pb), k = est.estimate(pb, pa);
+    const Bgra truth = renderAim(bg, 8.5f * float(motion), true);
+    Bgra plain, held, held1;
+    CHECK(interpolate(a, b, f, k, nullptr, 0.5f, plain, 3), "plain");
+    CHECK(interpolate(a, b, f, k, nullptr, 0.5f, held, 3, {}, pair.get()), "held");
+    const AimError before = aimError(plain, truth, motion), after = aimError(held, truth, motion);
+    std::printf("  crosshair's own pixels off by %.1f -> %.1f of 255, its ghosts beside it %.1f -> %.1f\n", before.reticle, after.reticle, before.ghost, after.ghost);
+    CHECK(before.reticle > 30.0, "without it the crosshair is gone from the middle (%.1f)", before.reticle);
+    CHECK(after.reticle < 8.0 && after.reticle * 6 < before.reticle, "with it the crosshair stands where it is (%.1f)", after.reticle);
+    CHECK(before.ghost > 20.0 && after.ghost < 8.0 && after.ghost * 3 < before.ghost, "and its ghosts beside it are gone (%.1f -> %.1f)", before.ghost, after.ghost);
+    // Far from the zone nothing is different.
+    int farDifferent = 0;
+    for (int y = 0; y < H; ++y)
+        for (int x = 0; x < W; ++x) {
+            const bool nearZone = x >= pair->x - 48 && x < pair->x + pair->size + 48 && y >= pair->y - 48 && y < pair->y + pair->size + 48;
+            if (!nearZone && std::memcmp(plain.pixel(x, y), held.pixel(x, y), 4) != 0) ++farDifferent;
+        }
+    CHECK(farDifferent == 0, "pixels away from the zone are what they were (%d differ)", farDifferent);
+    interpolate(a, b, f, k, nullptr, 0.5f, held1, 1, {}, pair.get());
+    CHECK(held1.px == held.px, "threads give the same picture");
+    Bgra real;
+    interpolate(a, b, f, k, nullptr, 0.f, real, 2, {}, pair.get());
+    CHECK(real.px == a.px, "a real frame is shown as it is");
+    interpolate(a, b, f, k, nullptr, 1.f, real, 2, {}, pair.get());
+    CHECK(real.px == b.px, "and so is the other");
+    {   // a pair that does not fit the picture is ignored, not read out of bounds
+        HoldPair bad = *pair; bad.x = W - 20;
+        Bgra o; interpolate(a, b, f, k, nullptr, 0.5f, o, 2, {}, &bad);
+        CHECK(o.px == plain.px, "a pair outside the picture changes nothing");
+        HoldPair cut = *pair; cut.filledA = Bgra(8, 8);
+        interpolate(a, b, f, k, nullptr, 0.5f, o, 2, {}, &cut);
+        CHECK(o.px == plain.px, "nor one whose pictures are not the zone's size");
+    }
+    {   // the faster pass decides exactly what the rule's own step() decides: the mask, every count, every memory
+        using namespace veyra::pipeline::overlay;
+        const Zone zone = zoneFor(uint32_t(W), uint32_t(H));
+        const Rule rule = ruleFor(uint32_t(H));
+        const int n = int(zone.size);
+        int different = 0, maskedSeen = 0;
+        for (int shape = 0; shape < 3; ++shape) {     // the crosshair, a ring (its inside is closed in), plain noise
+            State slow(n), fast(n);
+            std::mt19937 rng(77);
+            for (int i = 0; i < 12; ++i) {
+                Bgra frame = renderAim(bg, float(i * motion), shape == 0);
+                if (shape == 1)
+                    for (int y = H / 2 - 9; y <= H / 2 + 9; ++y)
+                        for (int x = W / 2 - 9; x <= W / 2 + 9; ++x) {
+                            const double d = std::hypot(double(x - W / 2), double(y - H / 2));
+                            if (d >= 5.0 && d <= 7.0) { uint8_t* p = frame.pixel(x, y); p[0] = p[1] = p[2] = 250; }
+                        }
+                Plane luma(n);
+                for (int y = 0; y < n; ++y)
+                    for (int x = 0; x < n; ++x) {
+                        const uint8_t* p = frame.pixel(int(zone.x) + x, int(zone.y) + y);
+                        float v = lumaOf(float(p[2]) / 255.0f, float(p[1]) / 255.0f, float(p[0]) / 255.0f, 0);
+                        if (shape == 2) v = float(rng() % 1000) / 999.0f;   // every pixel a bar candidate somewhere, edges included
+                        luma.at(x, y) = v;
+                    }
+                const Plane a = step(slow, luma, rule), b = stepFast(fast, luma, rule);
+                if (a.v != b.v || slow.moving != fast.moving) ++different;
+                for (int k = 0; k < kKinds; ++k) if (slow.count[k].v != fast.count[k].v || slow.memory[k].v != fast.memory[k].v) ++different;
+                for (const float v : a.v) if (v > 0) ++maskedSeen;
+            }
+        }
+        CHECK(different == 0, "the faster pass is the rule's own, to the pixel (%d differences)", different);
+        CHECK(maskedSeen > 500, "and the comparison saw masks (%d px)", maskedSeen);
+    }
+    {   // a plain pan with no crosshair: nothing is ever held
+        CrosshairHold none; int marked = 0;
+        for (int i = 0; i < 12; ++i) { const auto part = none.frame(renderAim(bg, float(i * motion), false)); marked += part ? part->masked : 0; }
+        CHECK(marked == 0, "a pan without a crosshair marks nothing (%d px)", marked);
+        // and a still picture with one: it stands, but nothing moves, so it is not taken for an overlay
+        CrosshairHold still; marked = 0;
+        for (int i = 0; i < 12; ++i) { const auto part = still.frame(renderAim(bg, 0, true)); marked += part ? part->masked : 0; }
+        CHECK(marked == 0, "a still picture marks nothing (%d px)", marked);
+    }
+    {   // through the engine: the switch off carries nothing, on it carries the pair with the generated frame
+        for (int on = 0; on < 2; ++on) {
+            EngineSettings s;
+            s.crosshairHold = on != 0;
+            s.removeDuplicates = false;
+            s.estimateBudgetMs = 6;
+            Engine e(s);
+            const int64_t T = 33'333'333;
+            int64_t now = 1'000'000'000;
+            int withHold = 0, generated = 0;
+            for (int i = 0; i < 12; ++i) {
+                e.push(renderAim(bg, float(i * motion), true), now);
+                e.waitIdle();
+                for (int step = 1; step <= 3; ++step) {
+                    const Pick p = e.pick(now + step * (T / 4));
+                    if (p.generated()) { ++generated; if (p.hold) ++withHold; CHECK(!p.hold || (p.hold->size == 128 && p.hold->held > 0), "a carried pair is whole"); }
+                    else CHECK(p.hold == nullptr, "a real frame carries no pair");
+                }
+                now += T;
+            }
+            const EngineStats st = e.stats();
+            std::printf("  engine, switch %s: %d generated picks, %d with the crosshair held, %d px held, state %d\n", on ? "on" : "off", generated, withHold, st.holdPixels, st.holdState);
+            if (on) { CHECK(st.holdState == 1 && st.holdPixels > 0, "the engine says it holds a crosshair"); CHECK(generated == 0 || withHold > 0, "generated frames carry the pair"); }
+            else CHECK(st.holdState == 0 && st.holdPixels == 0 && withHold == 0, "switched off nothing is held");
+        }
+    }
+}
+
 void testEngineTiming(bool uneven, bool repair, double target, int64_t refreshNs, double expectOut) {
     const Scene bg(160, 96, 420, 11), fg(16, 16, 2, 12);
     EngineSettings s;
@@ -568,6 +739,7 @@ int main(int argc, char** argv) {
     testInterpolate();
     testDedup();
     testHudLock();
+    testCrosshairHold();
     testEngineTiming(false, false, 0, 8333333, 120.0);   // 30 -> 120 Hz display, match display
     testEngineTiming(false, false, 60, 8333333, 60.0);   // capped at 60
     testEngineTiming(true, false, 0, 8333333, 120.0);    // uneven 17/50 ms, no repair

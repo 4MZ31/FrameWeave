@@ -65,6 +65,7 @@ QtObject {
         property string sourceLanguage: ""
         property string targetLanguage: "en"
         property bool showOriginal: true
+        property int holdMs: 1500
         property bool modelInstalled: false
         property bool downloading: false
         property real downloadProgress: 0
@@ -166,6 +167,10 @@ QtObject {
     signal replayChanged()
     // PushFPS optimiser, game presets, latency readout and sharing (src/ui/bridge/PushFps.cpp).
     property string fgBackendName: "dlss"
+    property int fgMotionSource: 1
+    property int flowQuality: 1
+    property int opticalFlowChoice: 0
+    property bool amdFlowHalf: false
     property var fgBackendChoices: [{id: "dlss", label: "DLSS"}]
     property string fgProviderText: ""
     property bool amdNrGpu: false

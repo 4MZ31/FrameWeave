@@ -1028,9 +1028,9 @@ struct LiveRecorder::Segment final : sink::RecordingAudioSink, MicrophoneSink, P
             if(!track.open())return false;
             ++trackCount;return true;
         };
-        if(sound&&microphone&&!microphoneTrack)return add(&soundLane,&micLane,"Veyra sound + microphone");
-        if(sound&&!add(&soundLane,nullptr,"Veyra sound"))return false;
-        if(microphone&&!add(&micLane,nullptr,"Veyra microphone"))return false;
+        if(sound&&microphone&&!microphoneTrack)return add(&soundLane,&micLane,"PushFPS sound + microphone");
+        if(sound&&!add(&soundLane,nullptr,"PushFPS sound"))return false;
+        if(microphone&&!add(&micLane,nullptr,"PushFPS microphone"))return false;
         if(aux&&trackCount==0){auxMix=nullptr;if(!add(&auxLane,nullptr,"PushFPS desktop audio"))return false;}
         return true;
     }

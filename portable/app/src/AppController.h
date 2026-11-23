@@ -39,6 +39,8 @@ class AppController : public QObject {
     Q_PROPERTY(int targetMode READ targetMode WRITE setTargetMode NOTIFY settingsChanged)
     Q_PROPERTY(bool pacingRepair READ pacingRepair WRITE setPacingRepair NOTIFY settingsChanged)
     Q_PROPERTY(bool hudLock READ hudLock WRITE setHudLock NOTIFY settingsChanged)
+    // Crosshair Hold (portable/core CrosshairHold.h): off unless switched on.
+    Q_PROPERTY(bool crosshairHold READ crosshairHold WRITE setCrosshairHold NOTIFY settingsChanged)
     Q_PROPERTY(bool removeDuplicates READ removeDuplicates WRITE setRemoveDuplicates NOTIFY settingsChanged)
     Q_PROPERTY(int quality READ quality WRITE setQuality NOTIFY settingsChanged)
     Q_PROPERTY(bool audioPassthrough READ audioPassthrough WRITE setAudioPassthrough NOTIFY settingsChanged)
@@ -94,6 +96,8 @@ public:
     void setPacingRepair(bool v);
     bool hudLock() const { return hud_; }
     void setHudLock(bool v);
+    bool crosshairHold() const { return crosshairHold_; }
+    void setCrosshairHold(bool v);
     bool removeDuplicates() const { return dedup_; }
     void setRemoveDuplicates(bool v);
     int quality() const { return quality_; }
@@ -183,6 +187,7 @@ private:
     int targetMode_ = 3, quality_ = 1;
     bool pacing_ = false, hud_ = false, dedup_ = true, audioOn_ = true, showStats_ = false, onTop_ = false;
     bool lowLatency_ = false, autoConnect_ = false, applyingLowLatency_ = false, savedCameraFound_ = false;
+    bool crosshairHold_ = false;
     bool autoConnectPending_ = false;
     QByteArray audioInId_, audioOutId_;
     QString audioInName_, audioOutName_;

@@ -107,7 +107,7 @@ DialogLayer {
         }
         VRow {
             label: qsTr("请求码率")
-            hint: qsTr("发给 PS5 的带宽请求，主机不保证达到")
+            hint: qsTr("发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低")
             VSelect { implicitWidth: 130; value: ps5Dialog.bitrates[veyra.ps5.bitrate || 0].label; options: ps5Dialog.bitrates; onPicked: id => veyra.ps5Set("bitrate", Number(id)) }
         }
         VRow {

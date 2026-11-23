@@ -42,6 +42,10 @@ T1, T2, T3 = (244, 247, 250), (183, 193, 205), (147, 160, 175)
 EDGE = (52, 64, 80)
 BASE_S = 0.93                           # the window as it stands in the frame
 BASE_CX, BASE_CY = 960, 478
+# The words that name the release: another film (make_tour_video.py) sets its own.
+INTRO_TAG = [("4.3", LIME), ("   a new design", T1)]
+ALSO_HEAD = [("Also new ", T1), ("since 4.2", LIME)]
+OUTRO_TAG = [("4.3", LIME), ("  is out", T1)]
 
 
 def beat(n):
@@ -385,7 +389,7 @@ def scene_intro(canvas, t):
             put(canvas, part, cx - sp.width / 2, cy + 26 * zoom, a * word_on)
     k = out_cubic(at(t, beat(6), beat(6) + 0.3))
     if k > 0.01:
-        sp = text_sprite([("4.3", LIME), ("   a new design", T1)], "title", 64)
+        sp = text_sprite(INTRO_TAG, "title", 64)
         put(canvas, sp, cx - sp.width / 2, cy + 176 + (1 - k) * 22, a * k)
     if edge > 0.01:
         fr = Image.new("RGBA", (W, H), (0, 0, 0, 0))
@@ -535,7 +539,7 @@ def scene_also(canvas, t):
     enter = out_cubic(at(t, beat(68), beat(68) + 0.3))
     leave = at(t, beat(80) - 0.2, beat(80))
     a = enter * (1 - leave)
-    head = text_sprite([("Also new ", T1), ("since 4.2", LIME)], "title", 78)
+    head = text_sprite(ALSO_HEAD, "title", 78)
     put(canvas, head, 960 - head.width / 2, 212 + (1 - enter) * 24, a)
     for i in range(6):
         b = 69 + i * 1.75
@@ -568,7 +572,7 @@ def scene_outro(canvas, t):
         put(canvas, ln, 960 - lwid / 2, 590, fade)
     k2 = out_cubic(at(t, beat(84), beat(84) + 0.35))
     if k2 > 0.01:
-        sp = text_sprite([("4.3", LIME), ("  is out", T1)], "title", 92)
+        sp = text_sprite(OUTRO_TAG, "title", 92)
         put(canvas, sp, 960 - sp.width / 2, 630 + (1 - k2) * 24, k2 * fade)
         k3 = out_cubic(at(t, beat(85.5), beat(85.5) + 0.35))
         sp2 = words("Free and open source   github.com/DosukaSOL/PushFPS", "body", 36, T2)

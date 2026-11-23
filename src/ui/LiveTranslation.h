@@ -1,5 +1,6 @@
 #pragma once
 
+#include "veyra/ui/PushCaptionHold.h"
 #include "TranslationAssets.h"
 #include <QElapsedTimer>
 #include <QSettings>
@@ -14,6 +15,8 @@ class LiveTranslation final : public QObject {
     Q_PROPERTY(QString sourceLanguage READ sourceLanguage WRITE setSourceLanguage NOTIFY changed)
     Q_PROPERTY(QString targetLanguage READ targetLanguage WRITE setTargetLanguage NOTIFY changed)
     Q_PROPERTY(bool showOriginal READ showOriginal WRITE setShowOriginal NOTIFY changed)
+    // PushFPS: how long a translated line stays after its original went away (ui/PushCaptionHold.h), 0 = not at all.
+    Q_PROPERTY(int holdMs READ holdMs WRITE setHoldMs NOTIFY changed)
     Q_PROPERTY(QString apiBase READ apiBase WRITE setApiBase NOTIFY changed)
     Q_PROPERTY(QString apiModel READ apiModel WRITE setApiModel NOTIFY changed)
     Q_PROPERTY(QString status READ status NOTIFY changed)
@@ -50,6 +53,10 @@ public:
     QString status() const;
     QString caption() const { return caption_; }
     QString translated() const { return translated_; }
+    // PushFPS: what the picture shows. The live pair, or the last translated pair while it is kept.
+    QString shownCaption() const { return hold_.shownCaption(caption_, translated_, clock_.elapsed()); }
+    QString shownTranslated() const { return hold_.shownTranslated(translated_, clock_.elapsed()); }
+    int holdMs() const { return hold_.holdMs(); }
     bool modelInstalled() const { return assets_.installed(); }
     bool downloading() const { return assets_.downloading(); }
     double downloadProgress() const { return double(assets_.received()) / double(assets_.totalBytes()); }
@@ -60,6 +67,7 @@ public:
     void setSourceLanguage(QString value);
     void setTargetLanguage(QString value);
     void setShowOriginal(bool value);
+    void setHoldMs(int value);
     void setApiBase(QString value);
     void setApiModel(QString value);
     Q_INVOKABLE void setApiKey(const QString& value);
@@ -85,7 +93,8 @@ private:
     void tick();
     void readCaptions();
     void acceptCaption(const QString& text);
-    void resetCaption();
+    void resetCaption(bool keepShown = false);
+    void shownChanged();
     void cancelRequest();
     void startLocal();
     void stopLocal();
@@ -108,6 +117,7 @@ private:
     qint64 newTextAt_ = 0, requestedAt_ = 0, serverStartedAt_ = 0, lastCaptionReadAt_ = 0;
     QByteArray captionBuffer_, serverKey_;
     QString raw_, caption_, translated_, requestedText_, status_;
+    CaptionHold<QString> hold_;
     QString sourceLanguage_, targetLanguage_, apiBase_, apiModel_;
     QByteArray apiKey_;
     // PushFPS: translateOnce. While `onceHoldUntil_` is set the local model is kept running for it,

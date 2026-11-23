@@ -8,6 +8,7 @@
 #  5. Every workflow file is valid YAML.
 #  6. The interface tests' bridge object has no doubled name (scripts/checks/qml_fixture.py).
 #  7. No settings row holds two controls of its own, which would be drawn on top of each other (scripts/checks/qml_rows.py).
+#  8. The interface files the Linux and macOS preview shares read nothing its bridge object lacks (scripts/checks/portable_shared.py).
 name: checks
 
 on:
@@ -77,6 +78,12 @@ jobs:
       # other (the update row's buttons, a user's screenshot of 22 November 2026).
       - name: No settings row has two controls on top of each other
         run: python3 -B scripts/checks/qml_rows.py
+
+      # The Linux and macOS preview compiles a list of files straight from qml/Veyra and answers their
+      # reads of the bridge with a small object of its own. A new read there works on Windows and is
+      # undefined in the preview, which only its own workflow builds.
+      - name: The files shared with the Linux and macOS preview read only what it answers
+        run: python3 -B scripts/checks/portable_shared.py
 
       - name: PowerShell scripts parse
         shell: pwsh

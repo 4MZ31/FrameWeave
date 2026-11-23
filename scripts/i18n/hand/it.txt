@@ -1580,3 +1580,13 @@ zh:去除的重复帧|Frame duplicati rimossi
 zh:镜头切换|Cambi di scena
 zh:没赶上的运动|Movimento non pronto in tempo
 zh:这台电脑的额外等待|Attesa aggiuntiva su questo computer
+zh:译文停留时间|La traduzione resta per
+zh:原字幕结束或换成下一句后，译文继续显示这么久，方便读完；下一句的译文一出来就换上。设为 0 就和原字幕一起消失|Quando la riga originale finisce o inizia la successiva, la traduzione resta per questo tempo così da poterla leggere; la traduzione successiva la sostituisce appena è pronta. Con 0 sparisce insieme alla riga originale
+zh:正在停止播放…|Arresto della riproduzione…
+zh:停止播放并测试|Ferma la riproduzione e prova
+zh:已测试：半精度在这块显卡上并不更快，继续使用全精度|Provato: la mezza precisione non è più veloce su questa scheda grafica, quindi resta in uso la precisione piena
+zh:先测试这块显卡；通过后才能开启。测试需要先停止播放|Prova prima questa scheda grafica; si può attivare dopo che la prova è stata superata. Per la prova bisogna prima fermare la riproduzione
+zh:FSR 的运动估算可以更省|La stima del movimento per FSR può essere più leggera
+zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|Prima che FSR generi un fotogramma, PushFPS stima il movimento dall'immagine. Una stima più leggera impegna meno la scheda grafica a ogni fotogramma e aiuta le schede di fascia media e bassa a tenere il passo; i bordi degli oggetti diventano un po' più grezzi. Annulla se l'immagine peggiora
+zh:改用更省的运动估算|Usa la stima del movimento più leggera
+zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|La banda richiesta alla PS5; la console non garantisce di raggiungerla. Su una rete cablata 30 Mbps o più danno un'immagine più nitida; abbassa il valore se l'immagine va a scatti

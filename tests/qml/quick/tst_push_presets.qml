@@ -364,6 +364,9 @@ Item {
             compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
             veyra.captureDeviceLabel = "ezcap Game Link RAW"
             compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
+            // Reported on 21 November 2026: an AVerMedia Live Streamer Ultra HD (GC571), by the name Windows gives it.
+            veyra.captureDeviceLabel = "Live Streamer Ultra HD-Video"
+            compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
             veyra.captureDeviceLabel = "AVerMedia Live Gamer Ultra-Video"
             verify(!findChild(quick, "pushfps-card-status").visible)
             veyra.captureDeviceLabel = "USB Video"

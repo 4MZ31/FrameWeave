@@ -144,7 +144,7 @@ int selftest(QGuiApplication& app, double seconds, const QString& sourceSpec, in
             const bool keep = references.empty() && !saveFrame.isEmpty();
             references.emplace_back([p, keep, &checked, &sample] {
                 Bgra out;
-                if (interpolate(*p.a, *p.b, p.fields->forward, p.fields->backward, p.fields->hudMask.get(), p.t, out, 1)) {
+                if (interpolate(*p.a, *p.b, p.fields->forward, p.fields->backward, p.fields->hudMask.get(), p.t, out, 1, {}, p.hold.get())) {
                     ++checked;
                     if (keep) sample = imageFromBgra(out);
                 }
@@ -193,8 +193,44 @@ int selftest(QGuiApplication& app, double seconds, const QString& sourceSpec, in
 // CPU reference.
 int gpucheck(QGuiApplication& app, const QString& savePath) {
     const int w = 640, h = 360;
-    const QImage ia = TestPattern::render(w, h, 2.0), ib = TestPattern::render(w, h, 2.0 + 1.0 / 30.0);
+    QImage ia = TestPattern::render(w, h, 2.0).convertToFormat(QImage::Format_RGB32);
+    QImage ib = TestPattern::render(w, h, 2.0 + 1.0 / 30.0).convertToFormat(QImage::Format_RGB32);
+    // A crosshair standing at the centre of both pictures, so the check also covers Crosshair Hold: what
+    // the shader samples in place of it, and how it lays it back (CrosshairHold.h, Interpolate.cpp).
+    const auto onCrosshair = [&](int x, int y) {
+        const int dx = x - w / 2, dy = y - h / 2;
+        return ((dy == 0 || dy == -1) && std::abs(dx) >= 4 && std::abs(dx) <= 10) || ((dx == 0 || dx == -1) && std::abs(dy) >= 4 && std::abs(dy) <= 10);
+    };
+    for (QImage* image : {&ia, &ib})
+        for (int y = h / 2 - 12; y <= h / 2 + 12; ++y)
+            for (int x = w / 2 - 12; x <= w / 2 + 12; ++x)
+                if (onCrosshair(x, y)) image->setPixel(x, y, qRgb(250, 250, 250));
     const Bgra a = bgraFromImage(ia), b = bgraFromImage(ib);
+    // Its part for this pair, with the mask set by hand (finding a crosshair is the core tests' matter).
+    using namespace veyra::pipeline::overlay;
+    const Zone zone = zoneFor(uint32_t(w), uint32_t(h));
+    const Rule rule = ruleFor(uint32_t(h));
+    const auto partOf = [&](const Bgra& frame) {
+        HoldFrame part;
+        const int n = int(zone.size);
+        part.x = int(zone.x); part.y = int(zone.y); part.size = n;
+        part.zone = Bgra(n, n);
+        part.mask = Plane(n);
+        Picture original(n);
+        for (int y = 0; y < n; ++y)
+            for (int x = 0; x < n; ++x) {
+                const uint8_t* p = frame.pixel(part.x + x, part.y + y);
+                std::copy(p, p + 4, part.zone.pixel(x, y));
+                original.at(x, y) = {float(p[2]) / 255.0f, float(p[1]) / 255.0f, float(p[0]) / 255.0f};
+                bool beside = false;
+                for (int j = -1; j <= 1 && !beside; ++j)
+                    for (int i = -1; i <= 1 && !beside; ++i) beside = onCrosshair(part.x + x + i, part.y + y + j);
+                if (beside) { part.mask.at(x, y) = 1.0f; ++part.masked; }
+            }
+        part.filled = fill(original, part.mask, rule);
+        return part;
+    };
+    const std::shared_ptr<const HoldPair> held = zone.size > 0 ? CrosshairHold::pair(partOf(a), partOf(b)) : nullptr;
     const Pyramid pa = Pyramid::of(lumaOf(a), 4), pb = Pyramid::of(lumaOf(b), 4);
     const MotionEstimator est;
     auto fields = std::make_shared<PairFields>();
@@ -209,10 +245,15 @@ int gpucheck(QGuiApplication& app, const QString& savePath) {
     pick->bId = 2;
     pick->t = 0.5f;
     pick->fields = fields;
+    pick->hold = held;
     FrameView::setFixedPick(pick);
-    Bgra reference;
-    interpolate(a, b, fields->forward, fields->backward, nullptr, 0.5f, reference, 2);
+    Bgra reference, withoutHold;
+    interpolate(a, b, fields->forward, fields->backward, nullptr, 0.5f, reference, 2, {}, held.get());
+    interpolate(a, b, fields->forward, fields->backward, nullptr, 0.5f, withoutHold, 2);
     const QImage ref = imageFromBgra(reference);
+    // The square round the crosshair, for the two comparisons that say the shader held it.
+    const QRect aim(w / 2 - 16, h / 2 - 16, 32, 32);
+    const QImage refAim = ref.copy(aim), plainAim = imageFromBgra(withoutHold).copy(aim);
 
     QQuickView view;
     view.setResizeMode(QQuickView::SizeRootObjectToView);
@@ -238,12 +279,18 @@ int gpucheck(QGuiApplication& app, const QString& savePath) {
             ref.save(QFileInfo(savePath).absolutePath() + QStringLiteral("/gpucheck-cpu.png"));
         }
         const bool software = api == QSGRendererInterface::Software;
-        code = !software && match > 38.0 && match > againstA + 3.0 ? 0 : 4;
+        // Crosshair Hold: round the crosshair the shader's picture is the reference with it held, and is
+        // clearly not the reference without it.
+        const QImage shotAim = shot.copy(aim);
+        const double aimHeld = psnr(shotAim, refAim, 0), aimPlain = psnr(shotAim, plainAim, 0);
+        const bool holdOk = held != nullptr && aimHeld > 32.0 && aimHeld > aimPlain + 3.0;
+        code = !software && match > 38.0 && match > againstA + 3.0 && holdOk ? 0 : 4;
         print(QStringLiteral("GPU CHECK RESULT\ngraphics api: %1\nGPU vs CPU reference: %2 dB\nGPU vs real frame A: %3 dB (CPU reference vs A: %4 dB)\n"
+                             "crosshair hold: round the crosshair %8 dB against the reference that holds it, %9 dB against the one that does not (%10 px held)\n"
                              "diagnostics: upside down vs reference %6 dB, GPU vs real frame B %7 dB\nresult: %5")
                   .arg(int(api)).arg(match, 0, 'f', 1).arg(againstA, 0, 'f', 1).arg(refVsA, 0, 'f', 1)
                   .arg(code == 0 ? QStringLiteral("PASS") : (software ? QStringLiteral("FAIL (software renderer, no shaders)") : QStringLiteral("FAIL (mismatch)")))
-                  .arg(flipped, 0, 'f', 1).arg(againstB, 0, 'f', 1));
+                  .arg(flipped, 0, 'f', 1).arg(againstB, 0, 'f', 1).arg(aimHeld, 0, 'f', 1).arg(aimPlain, 0, 'f', 1).arg(held ? held->held : 0));
         app.exit(code);
     });
     return app.exec();
