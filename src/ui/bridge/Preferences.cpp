@@ -11,6 +11,7 @@
 #include "veyra/sink/SoundProfile.h"
 #include "veyra/sink/PushAudioTrim.h"
 #include "veyra/pipeline/PushHudStill.h"
+#include "veyra/pipeline/PushOverlay.h"
 #include "veyra/pipeline/NisSettings.h"
 #include "veyra/pipeline/PushEnhanceShape.h"
 #include "veyra/pushflow/PushFlow2.h"
@@ -338,7 +339,7 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    // 设置 → 外观 → 启动音乐 and the music button (Main.qml); unset = off in PushFPS.
                                    "introMusic", "exclusionOverlay",
                                    // PushFPS: on-screen latency readout, fullscreen on connect, window on top.
-                                   "pushLatencyOverlay", "pushHudStill", "pushRecordAsk", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset",
+                                   "pushLatencyOverlay", "pushHudStill", "pushCrosshairHold", "pushRecordAsk", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset",
                                    // PushFPS ambient fill (engine/PushAmbient.h): the bars beside the picture.
                                    "pushAmbientFill",
                                    // PushFPS: the picture resized to the window with the fine path (engine/PushPresentScaling.h).
@@ -735,6 +736,15 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
         const bool on = impl_->prefBool("pushHudStill", false) && !pushflow2::emergencyOff();
         const bool changed = pipeline::hudstill::wanted() != on;
         pipeline::hudstill::setWanted(on);
+        if (changed && impl_->snapshot.running && settings().multiplier > 1) impl_->engine.refreshGraph();
+    }
+    else if (key == QLatin1String("pushCrosshairHold")) {
+        // Crosshair Hold (pipeline/PushOverlay.h): off unless switched on, and off for a run started with
+        // --safe-mode. Read when the graph is described; while frame generation plays, the engine is asked to
+        // describe the graph again.
+        const bool on = impl_->prefBool("pushCrosshairHold", false) && !pushflow2::emergencyOff();
+        const bool changed = pipeline::overlay::wanted() != on;
+        pipeline::overlay::setWanted(on);
         if (changed && impl_->snapshot.running && settings().multiplier > 1) impl_->engine.refreshGraph();
     }
     else if (key == QLatin1String("pushAudioTrimMs"))

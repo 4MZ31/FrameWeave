@@ -1561,3 +1561,8 @@ zh:当前补帧方式自行估算运动，不使用此选项|Este método de ger
 zh:连接采集卡后打开专业模式|Abrir o Modo Pro ao conectar uma placa de captura
 zh:关闭时留在首页，画面显示在首页中间|Desligado: você fica no Início, onde a imagem é reproduzida no centro
 zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Tela cheia ao conectar" está ligado: conectar sempre abre o Modo Pro em tela cheia
+zh:准星保持|Fixação da mira
+zh:准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。|Quando a mira fica parada e a imagem atrás dela se move, a geração de quadros move a mira junto com o fundo: ela some do lugar e uma cópia mais fraca aparece de cada lado. Com esta opção ligada, o PushFPS encontra a mira no centro da tela, tira-a da imagem antes da geração de quadros e a coloca de volta sem alterações depois. Uma mira que acabou de aparecer, ou cujas linhas ainda estão abrindo ou fechando, precisa ficar parada por um instante antes de ser reconhecida.
+zh:已关闭：画面移动时准星可能闪烁或出现重影|Desligado: a mira pode piscar ou deixar fantasmas quando a imagem se move
+zh:已开启：准星不交给补帧，补出的每一帧里都原样放回|Ligado: a mira fica fora da geração de quadros e é colocada de volta sem alterações em cada quadro gerado
+zh:当前补帧方式暂不支持：可用于 NVIDIA VFG、AMD FRC 和 PushFlow|Ainda não com este método de geração de quadros: funciona com NVIDIA VFG, AMD FRC e PushFlow

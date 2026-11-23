@@ -176,7 +176,7 @@ Item {
             for (const id of ids) { control("pushfps-section-" + id); verify(quick.sectionOpen(id), id + " is open until folded") }
             // Each row is in the section it belongs to.
             const where = { "pushfps-console-row": "setup", "pushfps-game-fps-row": "setup", "pushfps-target-row": "fg", "pushfps-smooth-row": "fg",
-                            "pushfps-enhance-row": "picture", "pushfps-crop-row": "picture", "pushfps-hudlock-row": "hud", "pushfps-hudstill-row": "hud",
+                            "pushfps-enhance-row": "picture", "pushfps-crop-row": "picture", "pushfps-hudlock-row": "hud", "pushfps-hudstill-row": "hud", "pushfps-crosshair-row": "hud",
                             "pushfps-lowest-latency-row": "latency", "pushfps-lipsync-row": "latency", "pushfps-auto-connect-row": "start" }
             for (const row in where) {
                 const section = quick.sectionItems.find(s => s.sectionId === where[row])
@@ -251,7 +251,7 @@ Item {
         }
         // Each page shows a setting once: what the page beside the quick setup has itself is left to that page.
         function test_each_page_shows_a_setting_once() {
-            const proOwned = ["pushfps-adaptive-row", "pushfps-pacing-row", "pushfps-hudstill-row", "pushfps-hudlock-row"]
+            const proOwned = ["pushfps-adaptive-row", "pushfps-pacing-row", "pushfps-hudstill-row", "pushfps-hudlock-row", "pushfps-crosshair-row"]
             for (const row of proOwned) verify(control(row).visible, row + " on its own")
             verify(control("pushfps-compare-clip").visible && control("pushfps-stream").visible)
             // Professional mode: its own list under the quick setup has these switches and the method.
@@ -1116,6 +1116,49 @@ Item {
             // Without frame generation there is nothing for it to do.
             veyra.fgEnabled = false
             verify(!sw.enabled)
+        }
+
+        // Crosshair Hold: off unless switched on, its own switch, and it says when the method chosen cannot use it.
+        function test_crosshair_hold_is_off_unless_switched_on() {
+            const was = veyra.fgBackendName
+            veyra.fgEnabled = true; veyra.fgMultiplier = 2; veyra.fgBackendName = "vfg"
+            const row = control("pushfps-crosshair-row"), sw = control("pushfps-crosshair")
+            verify(row.visible, "on the home page, in the HUD section")
+            // Nothing saved: off, and it says so.
+            verify(!row.on && !sw.checked, "off by default")
+            const off = row.hint
+            verify(off.length > 0 && row.help.length > 0)
+            // Switched on it is saved as on and says what it does.
+            sw.toggled(true)
+            compare(veyra.preferences.pushCrosshairHold, true); verify(row.on && sw.checked && row.hint !== off)
+            const running = row.hint
+            veyra.liveStats = ({ running: true, crosshairHoldState: 1 }); quick.liveStats = veyra.liveStats
+            compare(row.hint, running)
+            // A pass that could not be set up says that instead.
+            veyra.liveStats = ({ running: true, crosshairHoldState: 2 }); quick.liveStats = veyra.liveStats
+            verify(row.hint !== running && row.hint !== off, "a pass that could not start says so")
+            veyra.liveStats = ({ running: true, crosshairHoldState: 1 }); quick.liveStats = veyra.liveStats
+            // The methods that work out motion themselves take it; with any other it says which ones do.
+            for (const own of ["vfg", "amdfrc", "pushflow"]) { veyra.fgBackendName = own; verify(row.methodOk, own); compare(row.hint, running, own) }
+            let other = ""
+            for (const method of ["dlss", "fsr3", "fsr4", "anr"]) {
+                veyra.fgBackendName = method
+                verify(!row.methodOk, method)
+                verify(row.hint !== running && row.hint !== off && row.hint.indexOf("PushFlow") >= 0, method + ": it names the methods it works with")
+                if (other === "") other = row.hint; else compare(row.hint, other)
+                verify(sw.checked, method + ": the choice itself is kept")
+            }
+            veyra.fgBackendName = "vfg"
+            // It is its own switch: neither Live HUD Lock nor the still rule is touched by it.
+            compare(veyra.hudLock, false); verify(veyra.preferences.pushHudStill !== true)
+            // Switched off again it is saved as off.
+            sw.toggled(false)
+            compare(veyra.preferences.pushCrosshairHold, false); verify(!row.on && !sw.checked)
+            compare(row.hint, off)
+            // Without frame generation there is nothing for it to do.
+            veyra.fgEnabled = false
+            verify(!sw.enabled)
+            veyra.fgBackendName = was
         }
 
         // The size AI picture enhancement works at: 1080p (the standard), 1440p or the picture's full size,

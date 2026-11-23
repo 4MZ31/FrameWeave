@@ -1027,7 +1027,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                 snapshot_.fsrMaxGeneratedFrames=fsrMaxGeneratedFramesCap_;
                 snapshot_.fsrProviderVersion=graph->fsrProviderVersion();
                 snapshot_.fsrSrProviderVersion=graph->fsrSrProviderVersion();
-                snapshot_.hudLockState=graph->hudLockState();snapshot_.hudStillState=graph->hudStillState();
+                snapshot_.hudLockState=graph->hudLockState();snapshot_.hudStillState=graph->hudStillState();snapshot_.crosshairHoldState=graph->crosshairHoldState();
                 if(fgMultiFrameMaxCap_>0)veyra::log::info("settings",std::format("frame-generation capability: maxGeneratedFrames={} maxMultiplier={}",fgMultiFrameMaxCap_,fgMultiFrameMaxCap_+1));
                 veyra::log::info("settings",std::format("xess capability: active={} maxInterpolatedFrames={} unlockApplied={} (active context only)",presenter.xessActive(),xessMaxInterpolatedFramesCap_,xessState.applied));
                 if(fsrMaxGeneratedFramesCap_>0)veyra::log::info("settings",std::format("fsr capability: generatedPerPresent={} => maxMultiplier={}",fsrMaxGeneratedFramesCap_,fsrMaxGeneratedFramesCap_+1));
@@ -2084,7 +2084,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                        gd.srOutputWidth!=nextDesc.srOutputWidth||gd.srOutputHeight!=nextDesc.srOutputHeight||
                        // PushFPS: PushFlow's motion size (a preference, not a field of the settings) sizes its network.
                        gd.pushFlowMotion!=nextDesc.pushFlowMotion||gd.pushFlowEncoderCache!=nextDesc.pushFlowEncoderCache||gd.pushFlowGuard!=nextDesc.pushFlowGuard||gd.pushFlowPredict!=nextDesc.pushFlowPredict||gd.pushFlowDual!=nextDesc.pushFlowDual||
-                       gd.hudStill!=nextDesc.hudStill)rebuild=true;
+                       gd.hudStill!=nextDesc.hudStill||gd.crosshairHold!=nextDesc.crosshairHold)rebuild=true;
                     bool accepted=ring.drainQueue();out={};hasOutput=false;
                     resetRecord->rebuilt=rebuild;
                     markResetStage(diagnostics::ResetStage::Drain);

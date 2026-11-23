@@ -6,6 +6,7 @@
 #include "veyra/pushflow/PushFlow2.h"
 #include "veyra/pushflow/PushFlowMotion.h"
 #include "veyra/pipeline/PushHudStill.h"
+#include "veyra/pipeline/PushOverlay.h"
 
 namespace veyra::engine {
 // Shared by graph creation and drained live-parameter updates. Disabled list
@@ -209,6 +210,11 @@ inline pipeline::ResolutionPlan describeStages(const StageRequest& request,const
     desc.amdFlowHalfResolution=settings.amdFlowHalfResolution;desc.fgMotionRefine=settings.fgMotionRefine;desc.dlssgLite=settings.dlssgLite;desc.hudLock=settings.hudLock;
     // PushFPS: only while the graph generates frames, so the choice never rebuilds a graph it has no part in.
     desc.hudStill=desc.enableFg&&pipeline::hudstill::wanted();desc.vfgAutoRegulate=settings.vfgAutoRegulate;
+    // PushFPS Crosshair Hold: for the methods that find motion in the frames they are given, and never with
+    // PushFlow's Predict (its frames are forecasts after the real frame, not frames between two).
+    desc.crosshairHold=desc.enableFg&&pipeline::overlay::wanted()&&!desc.pushFlowPredict&&
+        (settings.frameGenerationBackend==FrameGenerationBackend::Vfg||settings.frameGenerationBackend==FrameGenerationBackend::AmdFrc||
+         settings.frameGenerationBackend==FrameGenerationBackend::PushFlow);
     desc.nrLayersExtent.clear();
     for(uint32_t i=0;i<chain.nodeCount;++i){
         auto& node=chain.nodes[i];

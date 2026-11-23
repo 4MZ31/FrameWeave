@@ -373,6 +373,10 @@ veyra_add_compute_shader(veyra_shader_push_hud_lock_update PushHudLockUpdate)
 veyra_add_compute_shader(veyra_shader_push_hud_lock_compose PushHudLockCompose)
 # PushFPS still rule (pipeline/PushHudStill.h): how much of each pixel's surrounding stands still.
 veyra_add_compute_shader(veyra_shader_push_hud_still PushHudStill)
+# PushFPS Crosshair Hold (pipeline/PushOverlay.h): the steps of a real frame, the fill, and the step of a generated frame.
+veyra_add_compute_shader(veyra_shader_push_overlay PushOverlay)
+veyra_add_compute_shader(veyra_shader_push_overlay_fill PushOverlayFill)
+veyra_add_compute_shader(veyra_shader_push_overlay_compose PushOverlayCompose)
 # PushFPS comparison clip, side-by-side layout (engine/RecordingCompare.cpp).
 veyra_add_compute_shader(veyra_shader_push_compare_sbs PushCompareSideBySide)
 veyra_add_compute_shader(veyra_shader_push_compare_vertical PushCompareVertical)
@@ -482,6 +486,7 @@ add_library(veyra_pipeline STATIC
   src/pipeline/AntiAliasPass.cpp
   src/pipeline/NisPass.cpp
   src/pipeline/PushHudLock.cpp
+  src/pipeline/PushOverlayPass.cpp
   src/pipeline/PushAmbientPass.cpp
   src/pushflow/PushFlowBackend.cpp
   src/pipeline/SmaaLookupTables.cpp
@@ -621,7 +626,7 @@ add_executable(veyra_push_gpu_tests tests/integration/PushGpuTests.cpp src/engin
 target_compile_features(veyra_push_gpu_tests PRIVATE cxx_std_20)
 target_compile_options(veyra_push_gpu_tests PRIVATE /utf-8)
 target_link_libraries(veyra_push_gpu_tests PRIVATE veyra_pipeline)
-add_dependencies(veyra_push_gpu_tests veyra_shader_push_guard veyra_shader_push_predict veyra_shader_nr_residual veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_hud_still veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_push_ambient_down veyra_shader_push_ambient_blur veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct)
+add_dependencies(veyra_push_gpu_tests veyra_shader_push_overlay veyra_shader_push_overlay_fill veyra_shader_push_overlay_compose veyra_shader_push_guard veyra_shader_push_predict veyra_shader_nr_residual veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_hud_still veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_push_ambient_down veyra_shader_push_ambient_blur veyra_shader_push_flow_pack veyra_shader_push_flow_unpack veyra_shader_push_flow_reconstruct)
 
 # PushFlowBench (tools/pushflow_bench): PushFlow timings on this PC's GPU, as JSON; shipped next to PushFPS.exe.
 add_executable(veyra_pushflow_bench tools/pushflow_bench/main.cpp)
@@ -849,7 +854,7 @@ if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avform
 
   # veyra_sources: product input sources (Playbook R3/R7). MediaFileSource
   # composes veyra_media; no second decode implementation exists.
-  add_dependencies(veyra_pipeline veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_hud_still veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_push_ambient_down veyra_shader_push_ambient_blur veyra_shader_effect_exclusion veyra_shader_sr_resolve veyra_shader_nr_downsample veyra_shader_nr_residual veyra_shader_nr_temporal veyra_shader_nr_hold veyra_shader_nr_reuse_compose veyra_shader_nr_reuse_warp veyra_shader_flow_adapt veyra_shader_flow_refine veyra_shader_flow_fill veyra_shader_flow_claim veyra_shader_vfg_shot_change)
+  add_dependencies(veyra_pipeline veyra_shader_push_overlay veyra_shader_push_overlay_fill veyra_shader_push_overlay_compose veyra_shader_push_hud_lock_update veyra_shader_push_hud_lock_compose veyra_shader_push_hud_still veyra_shader_push_compare_sbs veyra_shader_push_compare_vertical veyra_shader_push_compare_raw veyra_shader_push_compare_overlay veyra_shader_push_layer_blend veyra_shader_push_canvas_convert veyra_shader_push_ambient_down veyra_shader_push_ambient_blur veyra_shader_effect_exclusion veyra_shader_sr_resolve veyra_shader_nr_downsample veyra_shader_nr_residual veyra_shader_nr_temporal veyra_shader_nr_hold veyra_shader_nr_reuse_compose veyra_shader_nr_reuse_warp veyra_shader_flow_adapt veyra_shader_flow_refine veyra_shader_flow_fill veyra_shader_flow_claim veyra_shader_vfg_shot_change)
   add_library(veyra_sources STATIC
     src/source/NativeCaptureSink.cpp
     src/source/MediaFileSource.cpp
@@ -1160,6 +1165,10 @@ target_include_directories(veyra_push_compare_line_tests PRIVATE ${CMAKE_CURRENT
 add_executable(veyra_push_audio_trim_tests tests/unit/PushAudioTrimTests.cpp)
 target_compile_features(veyra_push_audio_trim_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_audio_trim_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS Crosshair Hold, the rule itself (pipeline/PushOverlay.h, pure; also builds with g++).
+add_executable(veyra_push_overlay_tests tests/unit/PushOverlayTests.cpp)
+target_compile_features(veyra_push_overlay_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_overlay_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS still rule (pipeline/PushHudStill.h, pure; also builds with g++).
 add_executable(veyra_push_hud_still_tests tests/unit/PushHudStillTests.cpp)
 target_compile_features(veyra_push_hud_still_tests PRIVATE cxx_std_20)

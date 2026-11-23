@@ -294,7 +294,7 @@ VGroup {
     property real pacingShare: -1
     Timer {
         interval: 1000; repeat: true
-        running: (quick.adaptive || quick.pacingOn || veyra.hudLock === true || veyra.fgBackendName === "pushflow") && veyra.hasSource && veyra.fgEnabled && quick.visible
+        running: (quick.adaptive || quick.pacingOn || veyra.hudLock === true || veyra.fgBackendName === "pushflow" || veyra.preferences.pushCrosshairHold === true) && veyra.hasSource && veyra.fgEnabled && quick.visible
         triggeredOnStart: true
         onTriggered: {
             const st = veyra.pushLiveStats()
@@ -1584,6 +1584,31 @@ VGroup {
         summary: quick.sectionSummary("hud")
         open: quick.sectionOpen("hud")
         onToggled: open => quick.setSectionOpen("hud", open)
+        // Crosshair Hold (pipeline/PushOverlay.h): off unless switched on. The crosshair is found in the middle of the
+        // screen, taken out of what frame generation is given and laid back over what it makes. For the methods that find
+        // motion in the frames themselves (NVIDIA VFG, AMD FRC, PushFlow).
+        VRow {
+            id: crosshairHold
+            objectName: "pushfps-crosshair-row"
+            visible: !quick.proPage   // Professional mode's own list has this switch
+            label: qsTr("准星保持")
+            help: qsTr("准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。")
+            readonly property int holdState: Number(quick.liveStats.crosshairHoldState || 0)
+            readonly property bool on: veyra.preferences.pushCrosshairHold === true
+            readonly property bool methodOk: ["vfg", "amdfrc", "pushflow"].indexOf(veyra.fgBackendName) >= 0
+            hint: !quick.ownTechPossible ? (quick.fgPossible ? qsTr("XeSS 自己生成画面，不能同时使用") : (Support.status(veyra, "frame-generation").reason || ""))
+                : on && !methodOk ? qsTr("当前补帧方式暂不支持：可用于 NVIDIA VFG、AMD FRC 和 PushFlow")
+                : on && holdState === 2 ? qsTr("没能在这台电脑上启动，补帧照常运行（原因见日志）")
+                : on ? qsTr("已开启：准星不交给补帧，补出的每一帧里都原样放回")
+                : qsTr("已关闭：画面移动时准星可能闪烁或出现重影")
+            VSwitch {
+                objectName: "pushfps-crosshair"
+                enabled: quick.ownTechPossible && veyra.fgEnabled
+                opacity: enabled ? 1 : 0.4
+                checked: quick.ownTechPossible && crosshairHold.on   // by id: a row's control is not the row's direct child
+                onToggled: checked => veyra.setPreference("pushCrosshairHold", checked)
+            }
+        }
         // The still rule (pipeline/PushHudStill.h): off unless switched on (since 4.0.1). What stands still in front of a
         // moving picture keeps its real pixels in generated frames, with every method the graph runs.
         VRow {

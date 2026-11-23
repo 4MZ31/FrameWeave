@@ -203,6 +203,31 @@ Item {
             veyra.fgBackendName = was
         }
 
+        // Crosshair Hold has its switch in Professional mode's own list (the quick setup card leaves the HUD
+        // switches to it there), off unless switched on.
+        function test_crosshair_hold_has_its_switch_in_the_frame_generation_list() {
+            page.tab = "fg"
+            const row = control(page, "list-fg-crosshair-row"), sw = control(page, "list-fg-crosshair")
+            const was = veyra.fgBackendName
+            veyra.fgBackendName = "vfg"
+            tryVerify(function() { return row.visible }, 3000)
+            verify(veyra.preferences.pushCrosshairHold !== true && !sw.checked, "off unless switched on")
+            const off = row.hint
+            verify(off.length > 0)
+            sw.toggled(true)
+            compare(veyra.preferences.pushCrosshairHold, true)
+            tryVerify(function() { return sw.checked && row.hint !== off }, 3000)
+            const on = row.hint
+            veyra.fgBackendName = "dlss"
+            tryVerify(function() { return row.hint !== on && row.hint !== off }, 3000, "a method it does not work with yet is said")
+            veyra.fgBackendName = "pushflow"
+            tryVerify(function() { return row.hint === on }, 3000)
+            sw.toggled(false)
+            compare(veyra.preferences.pushCrosshairHold, false)
+            tryVerify(function() { return !sw.checked && row.hint === off }, 3000)
+            veyra.fgBackendName = was
+        }
+
         function test_overlay_panel_is_as_wide_as_its_edge_is_dragged() {
             const panel = control(page, "pro-inspector"), grip = control(page, "pro-overlay-split")
             verify(!grip.visible, "docked beside the picture: the splitter between them is the handle")

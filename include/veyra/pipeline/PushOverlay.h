@@ -1,0 +1,290 @@
+#pragma once
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
+//
+// PushFPS Crosshair Hold: a crosshair that frame generation never sees.
+//
+// A crosshair stands still while the world behind it moves. Frame generation moves it with the world, so in
+// every generated frame it is gone from its place and stands twice, half as strong, half the motion to either
+// side; some methods also warp the picture round it. Putting its pixels back afterwards (Live HUD Lock, HUD
+// protection) leaves the two ghosts, and a crosshair that is partly see-through never "stays the same" at all:
+// its pixels change with what is behind it.
+//
+// So the crosshair is taken out of what frame generation is given, and laid back over what it makes:
+//   1. FIND (every real frame, in a zone round the screen centre). A crosshair is made of thin bars: pixels that
+//      are brighter (or darker) than something close by on both sides, whatever is behind them. A bar is counted
+//      while the zone's picture moves; a bar of the world moves with it and loses its count, a bar of an overlay
+//      keeps it. A bar whose every pixel has stood for kStand counted frames, and whose two ends stand still, is
+//      FOUND and remembered; a bar lying where one was found may then move its ends (a reticle spreads and
+//      narrows) and is FOLLOWED.
+//   2. FILL. The found bars and a few pixels round them are filled in from the pixels beside them, in a copy of
+//      the real frame that only frame generation gets. The frame that is shown is never changed.
+//   3. COMPOSE (every generated frame). On those pixels the generated frame becomes
+//          lerp(A, B, t) + m * (G - lerp(fA, fB, t))
+//      A, B the two real frames, fA, fB their filled copies, G what frame generation made of the copies, and m how
+//      much of the background shows through the overlay there, worked out from the two frames themselves
+//      (0 for a solid overlay: the real pixels; about a half for a half see-through reticle).
+//
+// Everything here is the rule itself, without graphics: the shaders (shaders/PushOverlay*.hlsl) are the same
+// statements, and tests/integration/PushGpuTests.cpp compares them with this file pixel by pixel. Change both
+// together. The numbers were found on real frames of a real game (four clips, 23 November 2026) and are not to
+// be changed without running that study again: a rule of this kind that is a little too eager draws artifacts
+// round everything that moves (PushHudStill.h says how that went).
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <vector>
+
+namespace veyra::pipeline::overlay {
+
+// What the rule measures in, for a picture of a given height (the numbers are for 2160 lines).
+struct Rule {
+    int flank = 5;       // a bar's flank is looked for this many pixels to each side
+    int stand = 4;       // counted frames in a row before a pixel has stood (the same at every size)
+    int longest = 110;   // a bar longer than this along its own direction is not an overlay's
+    int shortest = 4;    // nor one shorter than this
+    int fresh = 24;      // a followed bar may have this many pixels outside what is remembered
+    int memory = 60;     // real frames a place stays remembered after a bar was found there
+    int grow = 3;        // the mask is the bars and this many pixels round them
+    int reach = 24;      // how far the fill looks for a pixel outside the mask
+};
+inline constexpr float kContrast = 0.10f;       // a bar differs this much from its flanks (the picture as encoded, 0..1)
+inline constexpr float kMoveRatio = 2.0f;       // a block moves when its change is this many times its own detail
+inline constexpr float kMoveFloor = 0.004f * 0.004f;   // and more than this (mean square): below it there is nothing to judge
+inline constexpr int kMoveShareDivisor = 10;    // the zone moves when a tenth of its blocks do
+inline constexpr int kBlock = 16;
+inline constexpr float kWeightFloor = 1e-4f;    // added to the denominator of m
+inline constexpr int kKinds = 4;                // bright with flanks left/right, bright up/down, dark left/right, dark up/down
+inline constexpr int kMaxFlank = 8, kMaxGrow = 4, kMaxReach = 32, kMaxLongest = 160;
+
+inline int scaled(double value, uint32_t height, int low, int high) {
+    return std::clamp(int(std::floor(value * double(height) / 2160.0 + 0.5)), low, high);
+}
+inline Rule ruleFor(uint32_t height) {
+    Rule r;
+    r.flank = scaled(5, height, 2, kMaxFlank);
+    r.longest = scaled(110, height, 16, kMaxLongest);
+    r.shortest = scaled(4, height, 2, 8);
+    r.fresh = scaled(24, height, 4, 48);
+    r.grow = scaled(3, height, 1, kMaxGrow);
+    r.reach = scaled(24, height, 4, kMaxReach);
+    return r;
+}
+// The zone: a square round the screen centre, a whole number of blocks, on even pixels.
+struct Zone { uint32_t x = 0, y = 0, size = 0; };
+inline Zone zoneFor(uint32_t width, uint32_t height) {
+    uint32_t size = uint32_t(std::floor(400.0 * double(height) / 2160.0 + 0.5));
+    size = std::min({size, width, height}) / kBlock * kBlock;
+    Zone z;
+    if (size < 4 * kBlock) return z;     // too small a picture: nothing is done
+    z.size = size; z.x = ((width - size) / 2) & ~1u; z.y = ((height - size) / 2) & ~1u;
+    return z;
+}
+// How a frame's values become the 0..1 the thresholds are in (as Live HUD Lock): sRGB and PQ are used as
+// they are, scRGB is linear with 1 = 80 nits.
+inline float perceptual(float v, unsigned outputMode) { return outputMode == 1 ? std::sqrt(std::max(v, 0.0f) / 2.5f) : v; }
+inline float lumaOf(float r, float g, float b, unsigned outputMode) {
+    return 0.2126f * perceptual(r, outputMode) + 0.7152f * perceptual(g, outputMode) + 0.0722f * perceptual(b, outputMode);
+}
+inline bool kindRunsAcross(int kind) { return (kind & 1) != 0; }   // flanks above and below: the bar runs across
+inline float kindSign(int kind) { return kind < 2 ? 1.0f : -1.0f; }
+
+// A square picture of the zone, one value a pixel.
+struct Plane {
+    int size = 0; std::vector<float> v;
+    Plane() = default;
+    explicit Plane(int n, float fill = 0) : size(n), v(size_t(n) * n, fill) {}
+    float at(int x, int y) const { return v[size_t(y) * size + x]; }
+    float& at(int x, int y) { return v[size_t(y) * size + x]; }
+    bool inside(int x, int y) const { return x >= 0 && y >= 0 && x < size && y < size; }
+};
+struct Colour { float r = 0, g = 0, b = 0; };
+struct Picture {
+    int size = 0; std::vector<Colour> v;
+    Picture() = default;
+    explicit Picture(int n) : size(n), v(size_t(n) * n) {}
+    const Colour& at(int x, int y) const { return v[size_t(y) * size + x]; }
+    Colour& at(int x, int y) { return v[size_t(y) * size + x]; }
+};
+inline Plane lumaPlane(const Picture& p, unsigned outputMode) {
+    Plane l(p.size);
+    for (size_t i = 0; i < p.v.size(); ++i) l.v[i] = lumaOf(p.v[i].r, p.v[i].g, p.v[i].b, outputMode);
+    return l;
+}
+
+// 1a. Is this pixel a bar of this kind: it differs by kContrast from the least (for a bright bar; the greatest
+//     for a dark one) of the `flank` pixels on EACH side. A side with no pixel in the zone fails.
+inline bool barAt(const Plane& l, int x, int y, int kind, const Rule& r) {
+    const float sign = kindSign(kind);
+    const int dx = kindRunsAcross(kind) ? 0 : 1, dy = kindRunsAcross(kind) ? 1 : 0;
+    const float here = sign * l.at(x, y);
+    float a = 1e30f, b = 1e30f;
+    for (int i = 1; i <= r.flank; ++i) {
+        if (l.inside(x - i * dx, y - i * dy)) a = std::min(a, sign * l.at(x - i * dx, y - i * dy));
+        if (l.inside(x + i * dx, y + i * dy)) b = std::min(b, sign * l.at(x + i * dx, y + i * dy));
+    }
+    return here - a >= kContrast && here - b >= kContrast;
+}
+// 1b. Does the zone's picture move between two real frames: in a tenth of its blocks of 16 x 16 the change is
+//     more than the block's own detail explains (about two pixels of motion or more).
+inline bool blockMoves(const Plane& before, const Plane& now, int bx, int by) {
+    float change = 0, detail = 0;
+    for (int y = by * kBlock; y < (by + 1) * kBlock; ++y)
+        for (int x = bx * kBlock; x < (bx + 1) * kBlock; ++x) {
+            const float d = before.at(x, y) - now.at(x, y);
+            change += d * d;
+            float g = 0;
+            if (x > 0) { const float p = before.at(x, y) - before.at(x - 1, y), q = now.at(x, y) - now.at(x - 1, y); g += p * p + q * q; }
+            if (y > 0) { const float p = before.at(x, y) - before.at(x, y - 1), q = now.at(x, y) - now.at(x, y - 1); g += p * p + q * q; }
+            detail += g * 0.5f;
+        }
+    const float n = float(kBlock * kBlock);
+    change /= n; detail /= n;
+    return change > kMoveFloor && change >= kMoveRatio * (detail + 1e-7f);
+}
+inline bool zoneMoves(const Plane& before, const Plane& now) {
+    const int blocks = now.size / kBlock;
+    int moving = 0;
+    for (int by = 0; by < blocks; ++by)
+        for (int bx = 0; bx < blocks; ++bx) moving += blockMoves(before, now, bx, by) ? 1 : 0;
+    return moving * kMoveShareDivisor >= blocks * blocks;
+}
+// 1c. The count of one pixel and kind. Above 0: a bar, and 1 more than the counted frames it has been one;
+//     below 0: no bar, likewise; 0: never judged. Only a frame in which the zone moves counts.
+inline float nextCount(float count, bool bar, bool moving, const Rule& r) {
+    if (bar) {
+        const float c = count >= 1.0f ? count : 1.0f;
+        return moving ? std::min(c + 1.0f, 255.0f) : c;
+    }
+    const float c = count <= -1.0f ? count : -1.0f;
+    return moving ? std::max(c - 1.0f, -float(r.stand) - 1.0f) : c;
+}
+inline bool isBar(float count) { return count >= 1.0f; }
+inline bool hasStood(float count, const Rule& r) { return count >= float(r.stand) + 1.0f; }
+inline bool longNoBar(float count, const Rule& r) { return count <= -float(r.stand) - 1.0f; }
+
+// What the rule keeps from frame to frame, per kind.
+struct State {
+    int size = 0;
+    Plane count[kKinds], memory[kKinds];
+    Plane before;            // the luma of the frame before
+    bool hasBefore = false, moving = false;
+    explicit State(int n = 0) : size(n), before(n) { for (auto& c : count) c = Plane(n); for (auto& m : memory) m = Plane(n); }
+};
+struct Decision { bool accepted = false, found = false; };
+// 1d. One pixel of one kind: the unbroken run of bar pixels through it, along the bar's own direction.
+inline Decision judge(const Plane& count, const Plane& memory, int x, int y, int kind, const Rule& r) {
+    Decision d;
+    if (!isBar(count.at(x, y))) return d;
+    const int dx = kindRunsAcross(kind) ? 1 : 0, dy = kindRunsAcross(kind) ? 0 : 1;
+    const int n = count.size;
+    bool stood = hasStood(count.at(x, y), r);
+    int length = 1, known = memory.at(x, y) > 0 ? 1 : 0;
+    float beyond[2] = {0, 0};
+    for (int side = 0; side < 2; ++side) {
+        const int step = side ? 1 : -1;
+        int px = x, py = y;
+        for (;;) {
+            px += step * dx; py += step * dy;
+            if (px < 0 || py < 0 || px >= n || py >= n) return d;          // the bar reaches the zone's edge
+            const float c = count.at(px, py);
+            if (!isBar(c)) { beyond[side] = c; break; }
+            if (++length > r.longest) return d;
+            stood = stood && hasStood(c, r);
+            known += memory.at(px, py) > 0 ? 1 : 0;
+        }
+    }
+    if (length < r.shortest) return d;
+    if (stood && longNoBar(beyond[0], r) && longNoBar(beyond[1], r)) { d.accepted = d.found = true; return d; }
+    d.accepted = known >= r.shortest && length - known <= r.fresh;
+    return d;
+}
+inline bool within(int dx, int dy, int grow) { return dx * dx + dy * dy <= grow * grow + 1; }
+// One real frame: counts, memory, and the mask (1 where frame generation is not to see the picture).
+inline Plane step(State& s, const Plane& luma, const Rule& r) {
+    const int n = s.size;
+    s.moving = s.hasBefore && zoneMoves(s.before, luma);
+    for (int k = 0; k < kKinds; ++k)
+        for (int y = 0; y < n; ++y)
+            for (int x = 0; x < n; ++x) s.count[k].at(x, y) = nextCount(s.count[k].at(x, y), barAt(luma, x, y, k, r), s.moving, r);
+    Plane accepted(n);
+    for (int k = 0; k < kKinds; ++k) {
+        Plane memory(n);
+        for (int y = 0; y < n; ++y)
+            for (int x = 0; x < n; ++x) {
+                const Decision d = judge(s.count[k], s.memory[k], x, y, k, r);
+                if (d.accepted) accepted.at(x, y) = 1;
+                memory.at(x, y) = d.found ? float(r.memory) : std::max(s.memory[k].at(x, y) - 1.0f, 0.0f);
+            }
+        s.memory[k] = memory;
+    }
+    Plane mask(n);
+    for (int y = 0; y < n; ++y)
+        for (int x = 0; x < n; ++x) {
+            bool any = false;
+            for (int j = -r.grow; j <= r.grow && !any; ++j)
+                for (int i = -r.grow; i <= r.grow && !any; ++i)
+                    any = within(i, j, r.grow) && accepted.inside(x + i, y + j) && accepted.at(x + i, y + j) > 0;
+            mask.at(x, y) = any ? 1.0f : 0.0f;
+        }
+    s.before = luma; s.hasBefore = true;
+    return mask;
+}
+// 2. A masked pixel filled in from the nearest pixels outside the mask in eight directions, each weighted by
+//    one over its distance. A pixel with none within reach stays as it is.
+inline Colour fillAt(const Picture& frame, const Plane& mask, int x, int y, const Rule& r) {
+    if (!(mask.at(x, y) > 0)) return frame.at(x, y);
+    static constexpr int dirs[8][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+    float weight = 0; Colour sum;
+    for (const auto& d : dirs) {
+        const float unit = (d[0] != 0 && d[1] != 0) ? 1.41421356f : 1.0f;
+        for (int k = 1; k <= r.reach; ++k) {
+            const int px = x + d[0] * k, py = y + d[1] * k;
+            if (!mask.inside(px, py)) break;
+            if (mask.at(px, py) > 0) continue;
+            const float w = 1.0f / (float(k) * unit);
+            const Colour& c = frame.at(px, py);
+            sum.r += c.r * w; sum.g += c.g * w; sum.b += c.b * w; weight += w;
+            break;
+        }
+    }
+    if (!(weight > 0)) return frame.at(x, y);
+    return {sum.r / weight, sum.g / weight, sum.b / weight};
+}
+inline Picture fill(const Picture& frame, const Plane& mask, const Rule& r) {
+    Picture out(frame.size);
+    for (int y = 0; y < frame.size; ++y)
+        for (int x = 0; x < frame.size; ++x) out.at(x, y) = fillAt(frame, mask, x, y, r);
+    return out;
+}
+// 3. One pixel of a generated frame. a, b: the two real frames; fa, fb: what frame generation was given of them;
+//    g: what it made; maskA, maskB: the masks the two frames were filled with; t: where between a and b.
+inline float showsThrough(const Picture& a, const Picture& b, const Picture& fa, const Picture& fb,
+                          const Plane& maskA, const Plane& maskB, int x, int y) {
+    float num = 0, den = 0;
+    for (int j = -2; j <= 2; ++j)
+        for (int i = -2; i <= 2; ++i) {
+            const int px = x + i, py = y + j;
+            if (!maskA.inside(px, py) || !(maskA.at(px, py) > 0 || maskB.at(px, py) > 0)) continue;
+            const Colour& ca = a.at(px, py); const Colour& cb = b.at(px, py); const Colour& ua = fa.at(px, py); const Colour& ub = fb.at(px, py);
+            const float dr = ca.r - cb.r, dg = ca.g - cb.g, db = ca.b - cb.b;
+            const float er = ua.r - ub.r, eg = ua.g - ub.g, eb = ua.b - ub.b;
+            num += dr * er + dg * eg + db * eb; den += er * er + eg * eg + eb * eb;
+        }
+    return std::clamp(num / (den + kWeightFloor), 0.0f, 1.0f);
+}
+inline Colour composeAt(const Picture& a, const Picture& b, const Picture& fa, const Picture& fb, const Picture& g,
+                        const Plane& maskA, const Plane& maskB, int x, int y, float t) {
+    if (!(maskA.at(x, y) > 0 || maskB.at(x, y) > 0)) return g.at(x, y);
+    const float m = showsThrough(a, b, fa, fb, maskA, maskB, x, y);
+    const Colour& ca = a.at(x, y); const Colour& cb = b.at(x, y); const Colour& ua = fa.at(x, y); const Colour& ub = fb.at(x, y); const Colour& cg = g.at(x, y);
+    const auto one = [&](float pa, float pb, float qa, float qb, float pg) { return pa + (pb - pa) * t + m * (pg - (qa + (qb - qa) * t)); };
+    return {one(ca.r, cb.r, ua.r, ub.r, cg.r), one(ca.g, cb.g, ua.g, ub.g, cg.g), one(ca.b, cb.b, ua.b, ub.b, cg.b)};
+}
+
+// Whether the user wants it (process-wide, as the still rule's switch: not a field of the settings shared
+// with the engine release). Off unless switched on.
+inline bool& wantedStore() { static bool wanted = false; return wanted; }
+inline void setWanted(bool on) { wantedStore() = on; }
+inline bool wanted() { return wantedStore(); }
+}

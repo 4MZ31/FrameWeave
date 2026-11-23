@@ -1744,6 +1744,76 @@
      "contains": "backend!=FrameGenerationBackend::Vfg&&backend!=FrameGenerationBackend::AmdFrc&&backend!=FrameGenerationBackend::PushFlow"
     }
    ]
+  },
+  {
+   "id": "F64",
+   "what": "Crosshair Hold (off unless switched on): a crosshair that stands still in the middle of a moving picture is found, taken out of the frames NVIDIA VFG, AMD FRC and PushFlow are given, and laid back over what they make; a picture without one is never marked, so its generated frames are what they are without the switch; with the switch off the methods are given the real frames themselves; the shaders decide every pixel as the rule in plain C++ does.",
+   "guards": [
+    {
+     "file": "tests/unit/PushOverlayTests.cpp",
+     "ci": "veyra_push_overlay_tests",
+     "contains": "a moving picture without an overlay: no pixel is ever marked"
+    },
+    {
+     "file": "tests/unit/PushOverlayTests.cpp",
+     "ci": "veyra_push_overlay_tests",
+     "contains": ": the reticle is held after four counted frames"
+    },
+    {
+     "file": "tests/unit/PushOverlayTests.cpp",
+     "ci": "veyra_push_overlay_tests",
+     "contains": "a dash of the world sliding along itself with the pan is never marked"
+    },
+    {
+     "file": "tests/unit/PushOverlayTests.cpp",
+     "ci": "veyra_push_overlay_tests",
+     "contains": "Crosshair Hold is off unless switched on"
+    },
+    {
+     "file": "tests/integration/PushGpuTests.cpp",
+     "ci": "veyra_push_gpu_tests",
+     "contains": ": the shaders mark every pixel as the rule in plain C++ does"
+    },
+    {
+     "file": "tests/integration/PushGpuTests.cpp",
+     "ci": "veyra_push_gpu_tests",
+     "contains": ": the generated frame is composed as the rule composes it"
+    },
+    {
+     "file": "tests/integration/PushGpuTests.cpp",
+     "ci": "veyra_push_gpu_tests",
+     "contains": ": a moving picture without an overlay is never marked, filled or composed"
+    },
+    {
+     "file": "tests/integration/PushFlowGraphTests.cpp",
+     "ci": "veyra_push_flow_graph_tests",
+     "contains": ": a picture without a crosshair comes out as it does without Crosshair Hold, frame for frame ("
+    },
+    {
+     "file": "tests/integration/PushFlowGraphTests.cpp",
+     "ci": "veyra_push_flow_graph_tests",
+     "contains": "with Crosshair Hold the reticle is where it stands in every generated frame ("
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "function test_crosshair_hold_is_off_unless_switched_on()"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_pro_panel.qml",
+     "ci": "tst_push_pro_panel",
+     "contains": "function test_crosshair_hold_has_its_switch_in_the_frame_generation_list()"
+    },
+    {
+     "file": "src/ui/bridge/Preferences.cpp",
+     "contains": "prefBool(\"pushCrosshairHold\", false)"
+    },
+    {
+     "file": "src/pipeline/EnhanceGraph.cpp",
+     "contains": "return overlay_?overlay_->input(parity):videoFrame_[parity].Get();"
+    }
+   ],
+   "needs_hardware": "A real card and a real game: the rule was found on frames of a real game and measured in plain C++, and the shaders and the graph were compared with it on the software renderer. What NVIDIA VFG makes of frames with the crosshair taken out has been seen by nobody."
   }
  ]
 }

@@ -913,6 +913,7 @@ bool EnhanceGraph::initialize(const EnhanceGraphDesc& desc)
     if (!initAmfFrc()) return false;
     if (!initPushFlow()) return false;
     if (!initHudLock()) return false;
+    if (!initOverlay()) return false;
     if(nrEnabled_&&GetEnvironmentVariableW(L"VEYRA_TEST_NR_INIT_FAILURE",nullptr,0)){
         failedBackend_=engine::FailedBackend::Nr;
         veyra::log::error("backend-recovery-test","test-only NR initialization rejection before SDK call; not a hardware failure");return false;
@@ -1568,6 +1569,27 @@ bool EnhanceGraph::initHudLock() {
     }
     hudLock_=std::move(pass);
     return true;
+}
+// PushFPS: Crosshair Hold (PushOverlayPass). Only for the methods that work out motion from the frames they are
+// given (NVIDIA VFG, AMD FRC, PushFlow) and never with PushFlow's Predict; a pass that cannot be created leaves
+// frame generation exactly as it was. Without the pass, fgInput() is the real frame itself.
+bool EnhanceGraph::initOverlay() {
+    overlay_.reset();
+    if(!desc_.crosshairHold||!fgEnabled_||presentSinkFg())return true;
+    auto pass=std::make_unique<PushOverlayPass>();
+    if(!pass->initialize(context_.device(),workW_,workH_,outputFormat(),hdr10Output()?2u:desc_.hdrOutput?1u:0u)){
+        veyra::log::error("crosshair-hold",std::format("unavailable at {}x{}; frame generation runs without it",workW_,workH_));
+        return true;
+    }
+    overlay_=std::move(pass);
+    return true;
+}
+ID3D12Resource* EnhanceGraph::fgInput(unsigned parity) const {
+    return overlay_?overlay_->input(parity):videoFrame_[parity].Get();
+}
+void EnhanceGraph::composeOverlay(ID3D12GraphicsCommandList* list,unsigned generatedSlot,unsigned parity,float t){
+    if(overlay_&&overlay_->composes(generatedSlot)&&!overlay_->compose(list,tracker_,generatedSlot,parity,t))
+        veyra::log::warn("crosshair-hold",std::format("compose skipped slot={} parity={}",generatedSlot,parity));
 }
 void EnhanceGraph::composeHudLock(ID3D12GraphicsCommandList* list,unsigned generatedSlot,unsigned heldParity){
     if(hudLock_&&!hudLock_->compose(list,tracker_,generatedSlot,heldParity))
@@ -2342,6 +2364,12 @@ bool EnhanceGraph::createViews()
         std::array<ID3D12Resource*,kGeneratedPoolSlots> generated{};
         for(size_t i=0;i<kGeneratedPoolSlots;++i)generated[i]=genFrame_[i].Get();
         hudLock_->createViews(context_.device(),stager_,real,generated.data(),unsigned(generated.size()));
+    }
+    if(overlay_){
+        ID3D12Resource* const real[2]={videoFrame_[0].Get(),videoFrame_[1].Get()};
+        std::array<ID3D12Resource*,kGeneratedPoolSlots> generated{};
+        for(size_t i=0;i<kGeneratedPoolSlots;++i)generated[i]=genFrame_[i].Get();
+        overlay_->createViews(context_.device(),stager_,real,generated.data(),unsigned(generated.size()));
     }
     // Descriptor initialization is DEFAULT ON since the RAW-upload-SRV removal
     // (2026-09-06): texture SRV/UAV views keep the device alive and NVOF
@@ -4310,23 +4338,26 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
     // evaluation after it was the lone over-budget probe described at FgCostSettling.
     const bool pushFlowKeepsHistory=pushFlow_&&fgBackendAvailable&&!runFg&&historyValid;
     if(fgBackendAvailable&&!runFg){out.fgSkippedBeforeEval=out.fgCandidates;fgHistorySkipped_=!vfgRecordOnly&&!pushFlowKeepsHistory;}
+    // PushFPS Crosshair Hold: every real frame, before any method takes it. It makes fgInput(parity), the real
+    // frame with the overlay's bars filled in; the real frame itself stays as it is.
+    if(overlay_&&!overlay_->update(list,tracker_,parity,reset||!prevValid_))veyra::log::warn("crosshair-hold","update skipped");
     if((runFg||vfgRecordOnly)&&vfgBackend_){
         // First timestamp precedes the producer signal/CUDA dependency wait;
         // the matching end follows the consumer copy. The direct-queue span
         // therefore includes actual cross-queue work, not CPU wall time.
         if(runFg){gpuTimer_.mark(list,GpuStage::FgBatch);gpuTimer_.mark(list,GpuStage::Fg1);}
-        tracker_.transition(list,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COPY_SOURCE);
+        tracker_.transition(list,fgInput(parity),D3D12_RESOURCE_STATE_COPY_SOURCE);
         // The same list tests A/B for a shot change on the GPU (VfgBackend);
         // a reset pair has no valid A and is bypassed by ShotChange instead.
-        if(!vfgBackend_->capture(list,videoFrame_[parity].Get(),parity,!resetFg)){failedBackend_=engine::FailedBackend::Fg;return false;}
-        tracker_.transition(list,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COMMON);
+        if(!vfgBackend_->capture(list,fgInput(parity),parity,!resetFg)){failedBackend_=engine::FailedBackend::Fg;return false;}
+        tracker_.transition(list,fgInput(parity),D3D12_RESOURCE_STATE_COMMON);
     }
     if(runFg&&amfFrc_){
         // As for VFG, the span from here to the copy back brackets AMF's own queue work.
         gpuTimer_.mark(list,GpuStage::FgBatch);gpuTimer_.mark(list,GpuStage::Fg1);
-        tracker_.transition(list,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COPY_SOURCE);
-        if(!amfFrc_->capture(list,videoFrame_[parity].Get())){failedBackend_=engine::FailedBackend::Fg;return false;}
-        tracker_.transition(list,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COMMON);
+        tracker_.transition(list,fgInput(parity),D3D12_RESOURCE_STATE_COPY_SOURCE);
+        if(!amfFrc_->capture(list,fgInput(parity))){failedBackend_=engine::FailedBackend::Fg;return false;}
+        tracker_.transition(list,fgInput(parity),D3D12_RESOURCE_STATE_COMMON);
     }
     if(!composeExclusion(list,parity,parity,presentSinkFg()))return false;
     // Live HUD Lock learns from this real frame against the previous one (enhanced colours).
@@ -4434,24 +4465,26 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
             }
             auto* plist=ring_.acquireNext(slot,st);if(!plist)return false;
             if(sub==1){gpuTimer_.mark(plist,GpuStage::FgBatch);gpuTimer_.mark(plist,GpuStage::Fg1);}
-            tracker_.transition(plist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-            tracker_.transition(plist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+            // With Crosshair Hold the pair PushFlow sees is the filled pair (fgInput is the real frame otherwise).
+            tracker_.transition(plist,fgInput(1-parity),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+            tracker_.transition(plist,fgInput(parity),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
             // The pair is packed once; later subframes only rewrite the time plane.
             // The two real frames' numbers (this graph's own count, from 1) let the encoder cache keep the
             // second frame's features for the pair after this one, where it is the first.
-            if(!pushFlow_->pack(plist,videoFrame_[1-parity].Get(),videoFrame_[parity].Get(),float(sub)/float(outputMultiplier),sub>1,realFrameIndex_,realFrameIndex_+1)){failedBackend_=engine::FailedBackend::Fg;return false;}
-            tracker_.transition(plist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_COMMON);
-            tracker_.transition(plist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COMMON);
+            if(!pushFlow_->pack(plist,fgInput(1-parity),fgInput(parity),float(sub)/float(outputMultiplier),sub>1,realFrameIndex_,realFrameIndex_+1)){failedBackend_=engine::FailedBackend::Fg;return false;}
+            tracker_.transition(plist,fgInput(1-parity),D3D12_RESOURCE_STATE_COMMON);
+            tracker_.transition(plist,fgInput(parity),D3D12_RESOURCE_STATE_COMMON);
             if(!submitGraph(slot))return false;
             if(!pushFlow_->infer()){failedBackend_=engine::FailedBackend::Fg;return false;}
             auto* flist=ring_.acquireNext(slot,st);if(!flist)return false;
             tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_COPY_DEST);
             // The Fast tier rebuilds the picture from the full-resolution real frames.
-            tracker_.transition(flist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-            tracker_.transition(flist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-            if(!pushFlow_->resolve(flist,videoFrame_[1-parity].Get(),videoFrame_[parity].Get(),genFrame_[generatedSlot].Get())){failedBackend_=engine::FailedBackend::Fg;return false;}
-            tracker_.transition(flist,videoFrame_[1-parity].Get(),D3D12_RESOURCE_STATE_COMMON);
-            tracker_.transition(flist,videoFrame_[parity].Get(),D3D12_RESOURCE_STATE_COMMON);
+            tracker_.transition(flist,fgInput(1-parity),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+            tracker_.transition(flist,fgInput(parity),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+            if(!pushFlow_->resolve(flist,fgInput(1-parity),fgInput(parity),genFrame_[generatedSlot].Get())){failedBackend_=engine::FailedBackend::Fg;return false;}
+            tracker_.transition(flist,fgInput(1-parity),D3D12_RESOURCE_STATE_COMMON);
+            tracker_.transition(flist,fgInput(parity),D3D12_RESOURCE_STATE_COMMON);
+            composeOverlay(flist,generatedSlot,parity,float(sub)/float(outputMultiplier));
             composeHudLock(flist,generatedSlot,1-parity);
             if(!composeExclusion(flist,generatedSlot+2,1-parity,false))return false;
             tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_COMMON);
@@ -4476,6 +4509,7 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
             tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_COPY_DEST);
             const bool copied=amfFrc_->copyOutput(flist,genFrame_[generatedSlot].Get());
             if(!copied&&!resetFg){veyra::log::error("amf-frc","AMF returned no interpolated frame for this pair");failedBackend_=engine::FailedBackend::Fg;return false;}
+            if(copied&&!resetFg)composeOverlay(flist,generatedSlot,parity,0.5f);
             composeHudLock(flist,generatedSlot,resetFg?parity:1-parity);
             if(!composeExclusion(flist,generatedSlot+2,resetFg?parity:1-parity,false))return false;
             tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_COMMON);
@@ -4502,6 +4536,7 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
             auto* flist=ring_.acquireNext(slot,st);if(!flist)return false;
             tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_COPY_DEST);
             if(!vfgBackend_->copyOutput(flist,genFrame_[generatedSlot].Get(),generatedSlot)){failedBackend_=engine::FailedBackend::Fg;return false;}
+            if(!resetFg)composeOverlay(flist,generatedSlot,parity,float(sub)/float(outputMultiplier));
             composeHudLock(flist,generatedSlot,resetFg?parity:1-parity);
             if(!composeExclusion(flist,generatedSlot+2,resetFg?parity:1-parity,false))return false;
             tracker_.transition(flist,genFrame_[generatedSlot].Get(),D3D12_RESOURCE_STATE_COMMON);
@@ -5108,6 +5143,7 @@ void EnhanceGraph::shutdown()
     proxyTex_.Reset();
     exclusionPass_={};exclusionScratch_.Reset();
     hudLock_.reset();
+    overlay_.reset();
     for(auto& r:exclusionVideo_)r.Reset();
     for(auto& r:exclusionUi_)r.Reset();
     for(auto& r:sourceReferences_)r.Reset();for(auto& r:baseReferences_)r.Reset();workRgba_.Reset();

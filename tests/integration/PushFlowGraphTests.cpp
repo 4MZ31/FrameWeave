@@ -13,6 +13,7 @@
 //
 // usage: veyra_push_flow_graph_tests OUTDIR RUNTIMEDIR     (RUNTIMEDIR holds the "pushflow" folder)
 #include "veyra/pipeline/EnhanceGraph.h"
+#include "veyra/pipeline/PushOverlay.h"
 #include "veyra/gfx/D3D12DeviceContext.h"
 #include "veyra/gfx/CommandSlotRing.h"
 #include "veyra/sink/ImageExportSink.h"
@@ -73,6 +74,43 @@ std::vector<uint8_t> blend(const std::vector<uint8_t>& a, const std::vector<uint
     return out;
 }
 double squareAt(unsigned frame) { return double(Start + frame * Step); }
+
+// For Crosshair Hold: a picture that pans (smooth noise in whole numbers, the same on every machine) under a
+// small reticle that stands still in the middle: three strokes two pixels thick with a dark outline.
+int lattice(int x, int y, uint32_t salt) { uint32_t h = uint32_t(x) * 374761393u + uint32_t(y) * 668265263u + salt * 2246822519u; h = (h ^ (h >> 13)) * 1274126177u; return int((h ^ (h >> 16)) & 255); }
+int worldAt(int x, int y) {
+    int sum = 0, weight = 0;
+    for (int level = 0; level < 2; ++level) {
+        const int cell = 32 >> level, w = 2 - level;
+        const int ix = x >= 0 ? x / cell : -((-x + cell - 1) / cell), iy = y / cell, fx = x - ix * cell, fy = y - iy * cell;
+        const int a = lattice(ix, iy, uint32_t(level)), b = lattice(ix + 1, iy, uint32_t(level)), c = lattice(ix, iy + 1, uint32_t(level)), d = lattice(ix + 1, iy + 1, uint32_t(level));
+        sum += w * (((a * (cell - fx) + b * fx) * (cell - fy) + (c * (cell - fx) + d * fx) * fy) / (cell * cell)); weight += w;
+    }
+    return 50 + (sum / weight) * 110 / 255;
+}
+int reticleAt(int x, int y) {                      // 0 nothing, 1 outline, 2 core
+    struct Stroke { int y0, y1, x0, x1; };
+    const int cx = int(W) / 2, cy = int(H) / 2;
+    const Stroke strokes[3] = {{cy - 3, cy - 1, cx - 12, cx - 4}, {cy - 3, cy - 1, cx + 4, cx + 12}, {cy + 1, cy + 8, cx - 1, cx + 1}};
+    int kind = 0;
+    for (const auto& s : strokes) {
+        if (x >= s.x0 && x < s.x1 && y >= s.y0 && y < s.y1) return 2;
+        if (x >= s.x0 - 1 && x < s.x1 + 1 && y >= s.y0 - 1 && y < s.y1 + 1) kind = 1;
+    }
+    return kind;
+}
+// shift: how far the world has moved, in half pixels (so the picture half-way between two frames is exact).
+std::vector<uint8_t> panned(int shift, bool reticle) {
+    std::vector<uint8_t> px(size_t(W) * H * 4);
+    for (unsigned y = 0; y < H; ++y)
+        for (unsigned x = 0; x < W; ++x) {
+            int v = (shift & 1) ? (worldAt(int(x) - (shift - 1) / 2, int(y)) + worldAt(int(x) - (shift + 1) / 2, int(y)) + 1) / 2 : worldAt(int(x) - shift / 2, int(y));
+            if (reticle) { const int k = reticleAt(int(x), int(y)); if (k == 2) v = (v * 45 + 230 * 55) / 100; else if (k == 1) v = v * 30 / 100; }
+            uint8_t* p = &px[(size_t(y) * W + x) * 4];
+            p[0] = p[1] = p[2] = uint8_t(v); p[3] = 255;
+        }
+    return px;
+}
 }  // namespace
 
 int wmain(int argc, wchar_t** argv) {
@@ -111,12 +149,15 @@ int wmain(int argc, wchar_t** argv) {
     // The seventh is Predict with PushFlow 2's Dual at 2X: beside the forecasts each batch carries what a
     // recording takes instead, the real frame before this one and the true in-between frame of the pair,
     // which must be the plain 2X run's frame. (The 3X Predict run asks for Dual too: it does not act there.)
-    struct Run { unsigned multiplier; int motion; bool cache; bool guard = false; bool predict = false; bool dual = false; };
+    // The eighth is Crosshair Hold (opt-in) over the same frames at 2X: nothing in them is a crosshair, so the
+    // frames PushFlow is given are the real frames and every generated frame must be the plain 2X run's.
+    struct Run { unsigned multiplier; int motion; bool cache; bool guard = false; bool predict = false; bool dual = false; bool hold = false; };
     std::map<std::pair<unsigned, unsigned>, std::vector<uint8_t>> plain3x;   // (frame, subframe) -> picture without the cache
     std::map<std::pair<unsigned, unsigned>, std::vector<uint8_t>> plain2x;   // the same for 2X: what Dual's in-between frames must be
-    for (const Run run : {Run{2u, 0, false}, Run{3u, 0, false}, Run{2u, 540, false}, Run{3u, 0, true}, Run{3u, 0, false, true}, Run{3u, 0, false, false, true, true}, Run{2u, 0, false, false, true, true}}) {
+    for (const Run run : {Run{2u, 0, false}, Run{3u, 0, false}, Run{2u, 540, false}, Run{3u, 0, true}, Run{3u, 0, false, true}, Run{3u, 0, false, false, true, true}, Run{2u, 0, false, false, true, true},
+                          Run{2u, 0, false, false, false, false, true}}) {
         const unsigned multiplier = run.multiplier;
-        const std::string tag = std::to_string(multiplier) + "X" + (run.motion ? " at a chosen motion size" : "") + (run.cache ? " with the encoder cache" : "") + (run.guard ? " with Guard" : "") + (run.predict ? " with Predict" : "") + (run.dual ? " and Dual" : "");
+        const std::string tag = std::to_string(multiplier) + "X" + (run.motion ? " at a chosen motion size" : "") + (run.cache ? " with the encoder cache" : "") + (run.guard ? " with Guard" : "") + (run.predict ? " with Predict" : "") + (run.dual ? " and Dual" : "") + (run.hold ? " with Crosshair Hold" : "");
         const unsigned frames = run.motion ? 5 : multiplier == 2 ? 12 : 7;
         pipeline::EnhanceGraph graph(ctx, ring);
         pipeline::EnhanceGraphDesc desc; desc.sourceWidth = desc.workWidth = W; desc.sourceHeight = desc.workHeight = H;
@@ -128,6 +169,7 @@ int wmain(int argc, wchar_t** argv) {
         desc.pushFlowGuard = run.guard;
         desc.pushFlowPredict = run.predict;
         desc.pushFlowDual = run.dual;
+        desc.crosshairHold = run.hold; pipeline::overlay::setWanted(run.hold);   // the description flag is what the graph acts on; the switch is what its state reads
         desc.runtimeAbsPath = argv[2]; desc.settingsRevision = multiplier;
         const bool opened = graph.initialize(desc) && graph.createViews();
         if (!check(opened, tag + ": the graph opens with PushFlow") || !check(graph.pushFlowActive(), tag + ": PushFlow is ready")) {
@@ -135,6 +177,7 @@ int wmain(int argc, wchar_t** argv) {
             graph.shutdown(); continue;
         }
         check(graph.fgCreated(), tag + ": the graph counts PushFlow as a frame generation method");
+        check(graph.crosshairHoldState() == (run.hold ? 1 : 0), tag + (run.hold ? ": Crosshair Hold is running" : ": Crosshair Hold is not asked for and not in use") + " (" + std::to_string(graph.crosshairHoldState()) + ")");
         {
             // The size the motion is worked out at: Fast's own is half the picture; a chosen size is used
             // as far as the picture goes (never enlarged), so here the picture's own size.
@@ -233,12 +276,13 @@ int wmain(int argc, wchar_t** argv) {
                     const double flowDb = psnr(image.pixels, truth), blendDb = psnr(mix, truth);
                     ++checked; between += flowDb > blendDb + 2.0; worstMargin = std::min(worstMargin, flowDb - blendDb);
                     if (i <= 2) std::cout << "PUSHFLOW_GRAPH " << tag << " frame=" << i << " sub=" << sub << " generated " << flowDb << " dB, blend " << blendDb << " dB" << std::endl;
-                    if (multiplier == 3 && !run.motion && !run.cache && !run.guard) plain3x[{i, sub}] = image.pixels;
-                    if (multiplier == 2 && !run.motion && !run.cache && !run.guard) plain2x[{i, sub}] = image.pixels;
-                    if (run.cache || run.guard) {
-                        const auto found = plain3x.find({i, sub});
+                    if (multiplier == 3 && !run.motion && !run.cache && !run.guard && !run.hold) plain3x[{i, sub}] = image.pixels;
+                    if (multiplier == 2 && !run.motion && !run.cache && !run.guard && !run.hold) plain2x[{i, sub}] = image.pixels;
+                    if (run.cache || run.guard || run.hold) {
+                        const auto& plain = multiplier == 2 ? plain2x : plain3x;
+                        const auto found = plain.find({i, sub});
                         int worst = 255;
-                        if (found != plain3x.end() && found->second.size() == image.pixels.size()) {
+                        if (found != plain.end() && found->second.size() == image.pixels.size()) {
                             worst = 0;
                             for (size_t k = 0; k < image.pixels.size(); ++k) worst = std::max(worst, std::abs(int(image.pixels[k]) - int(found->second[k])));
                         }
@@ -292,6 +336,9 @@ int wmain(int argc, wchar_t** argv) {
             check(summary.guardFrames > 0 && summary.guardMended == 0 && summary.guardHeld == 0,
                   tag + ": judged " + std::to_string(summary.guardFrames) + " frames, mended " + std::to_string(summary.guardMended) + ", held " + std::to_string(summary.guardHeld));
         }
+        if (run.hold)
+            check(cacheChecked == checked && cacheChecked > 0 && cacheSame == cacheChecked, tag + ": a picture without a crosshair comes out as it does without Crosshair Hold, frame for frame (" + std::to_string(cacheSame) + "/" +
+                                                                                             std::to_string(cacheChecked) + ", worst difference " + std::to_string(cacheWorst) + " of 255)");
         if (run.cache) {
             const auto summary = graph.pushFlowSummary();
             check(cacheChecked == checked && cacheChecked > 0 && cacheSame == cacheChecked, tag + ": every generated frame is the one PushFlow makes without the cache (" + std::to_string(cacheSame) + "/" +
@@ -303,6 +350,70 @@ int wmain(int argc, wchar_t** argv) {
         }
         std::cout << "PUSHFLOW_GRAPH " << tag << " pairs=" << pairs << " offered=" << offered << " generated=" << generated << " checked=" << checked << " slowestFrameMs=" << slowestMs << std::endl;
         ring.drainQueue(); graph.shutdown();
+    }
+    pipeline::overlay::setWanted(false);
+    // Crosshair Hold with something to hold: the picture pans four pixels a frame under a reticle that stands
+    // still in the middle, half see-through. Without the switch PushFlow is given the frames as they are; with
+    // it the reticle is found after it has stood for four moving frames, taken out of what PushFlow is given and
+    // laid back over what PushFlow makes. From then on its pixels in every generated frame must be the reticle
+    // over the picture half-way between the two frames.
+    {
+        constexpr int Pan = 4;                    // pixels a frame; the half-way picture is then exact
+        constexpr unsigned Frames = 12, From = 6; // found at the fifth frame; measured from the pair after it
+        double meanOf[2] = {-1, -1}, worstOf[2] = {-1, -1};
+        for (int on = 0; on < 2; ++on) {
+            const std::string tag = on ? "a reticle over a panned picture with Crosshair Hold" : "a reticle over a panned picture without Crosshair Hold";
+            pipeline::EnhanceGraph graph(ctx, ring);
+            pipeline::EnhanceGraphDesc desc; desc.sourceWidth = desc.workWidth = W; desc.sourceHeight = desc.workHeight = H;
+            desc.rgbInput = true; desc.enableNr = desc.enableSr = false; desc.enableFg = true; desc.fgMultiplier = 2;
+            desc.frameGenerationBackend = engine::FrameGenerationBackend::PushFlow;
+            desc.vfgQuality = 0;
+            desc.crosshairHold = on != 0; pipeline::overlay::setWanted(on != 0);
+            desc.runtimeAbsPath = argv[2]; desc.settingsRevision = 20u + unsigned(on);
+            const bool opened = graph.initialize(desc) && graph.createViews();
+            if (!check(opened && graph.pushFlowActive(), tag + ": the graph opens with PushFlow")) { graph.shutdown(); continue; }
+            check(graph.crosshairHoldState() == (on ? 1 : 0), tag + ": its state is " + std::to_string(graph.crosshairHoldState()));
+            bool ok = true; unsigned pairs = 0, generated = 0, measured = 0; double sum = 0, worst = 0;
+            for (unsigned i = 0; ok && i < Frames; ++i) {
+                const auto now = panned(2 * Pan * int(i), true);
+                fill(now);
+                pipeline::EnhanceGraph::FrameOutputs out;
+                ok = graph.process(frame, double(i) * 1000.0 / 30.0, i == 0, out, i + 1);
+                if (!ok) { std::cout << "PUSHFLOW_GRAPH " << tag << " process failed frame=" << i << " failedBackend=" << int(graph.failedBackend()) << std::endl; break; }
+                ok = ctx.waitForFenceValue(std::max(out.videoFenceValue, out.genFenceValue), 120000) && graph.resolveGeneration(out);
+                if (!ok) { std::cout << "PUSHFLOW_GRAPH " << tag << " frame " << i << " did not finish" << std::endl; break; }
+                if (i == 0) continue;
+                ++pairs;
+                if (!out.hasGenerated || out.fgEvaluated != 1) continue;
+                ++generated;
+                sink::RgbaImage image;
+                if (!sink::readRgba8(ctx, ring, graph.generatedFrameResource(out.genSlot), image) || image.width != W || image.height != H) { ok = false; break; }
+                if (i == 8) sink::saveImage((std::filesystem::path(argv[1]) / (on ? L"reticle-with-hold.png" : L"reticle-without-hold.png")).wstring(), image);
+                if (i < From) continue;
+                // The picture half-way between the two frames, with the reticle where it stands.
+                const auto truth = panned(2 * Pan * int(i) - Pan, true);
+                double error = 0; unsigned pixels = 0;
+                for (unsigned y = H / 2 - 16; y < H / 2 + 16; ++y)
+                    for (unsigned x = W / 2 - 16; x < W / 2 + 16; ++x) {
+                        if (!reticleAt(int(x), int(y))) continue;
+                        const size_t k = (size_t(y) * W + x) * 4;
+                        error += (std::abs(int(image.pixels[k]) - int(truth[k])) + std::abs(int(image.pixels[k + 1]) - int(truth[k + 1])) + std::abs(int(image.pixels[k + 2]) - int(truth[k + 2]))) / 3.0;
+                        ++pixels;
+                    }
+                if (!pixels) continue;
+                error /= double(pixels);
+                ++measured; sum += error; worst = std::max(worst, error);
+            }
+            check(ok, tag + ": every frame processed");
+            check(pairs == Frames - 1 && generated == pairs, tag + ": every pair comes back with its generated frame (" + std::to_string(generated) + "/" + std::to_string(pairs) + ")");
+            if (measured) { meanOf[on] = sum / double(measured); worstOf[on] = worst; }
+            std::cout << "PUSHFLOW_GRAPH " << tag << ": the reticle's pixels in " << measured << " generated frames are off by " << meanOf[on] << " of 255 on average, " << worstOf[on] << " in the worst frame" << std::endl;
+            ring.drainQueue(); graph.shutdown();
+        }
+        pipeline::overlay::setWanted(false);
+        // Lost or doubled, the reticle is off by 70 of 255 here; held exactly, by about 1 (what filling it in costs).
+        check(meanOf[1] >= 0 && worstOf[1] < 16.0, "with Crosshair Hold the reticle is where it stands in every generated frame (" + std::to_string(meanOf[1]) + " of 255 on average, worst frame " +
+                                                    std::to_string(worstOf[1]) + "; without it " + std::to_string(meanOf[0]) + ")");
     }
     unsigned errors = 0;
     if (info) for (UINT64 m = 0; m < info->GetNumStoredMessagesAllowedByRetrievalFilter(); ++m) {

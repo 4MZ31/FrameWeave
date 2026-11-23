@@ -2096,6 +2096,24 @@ VPage {
                                     }
                                 }
                             }
+                            // PushFPS Crosshair Hold (preference pushCrosshairHold, off unless switched on): the quick setup
+                            // above leaves the HUD switches to this list in Professional mode.
+                            VRow {
+                                id: listCrosshair
+                                objectName: "list-fg-crosshair-row"
+                                label: qsTr("准星保持")
+                                visible: !veyra.presentationOwned
+                                readonly property bool on: veyra.preferences.pushCrosshairHold === true
+                                readonly property bool methodOk: ["vfg", "amdfrc", "pushflow"].indexOf(veyra.fgBackendName) >= 0
+                                hint: on && !methodOk ? qsTr("当前补帧方式暂不支持：可用于 NVIDIA VFG、AMD FRC 和 PushFlow")
+                                    : on ? qsTr("已开启：准星不交给补帧，补出的每一帧里都原样放回")
+                                    : qsTr("已关闭：画面移动时准星可能闪烁或出现重影")
+                                VSwitch {
+                                    objectName: "list-fg-crosshair"
+                                    checked: listCrosshair.on
+                                    onToggled: checked => veyra.setPreference("pushCrosshairHold", checked)
+                                }
+                            }
                             VRow {
                                 objectName: "list-fg-hudlock-row"
                                 label: qsTr("实时 HUD 锁定")

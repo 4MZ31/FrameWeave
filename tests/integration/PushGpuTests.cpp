@@ -26,6 +26,8 @@
 #include "veyra/engine/PushHudSampler.h"
 #include "veyra/pipeline/PushHudLock.h"
 #include "veyra/pipeline/PushHudStill.h"
+#include "veyra/pipeline/PushOverlay.h"
+#include "veyra/pipeline/PushOverlayPass.h"
 #include "veyra/pipeline/PushAmbientPass.h"
 #include "veyra/pipeline/PushEnhanceShape.h"
 #include "veyra/engine/PushAmbient.h"
@@ -2159,6 +2161,191 @@ void testPushFlowRuntime(Gpu& gpu, const wchar_t* dir, bool strict) {
     checkOr(!pushflow::crashedLastTime(), "pushflow: the crash marker is gone after a normal close");
 }
 
+// PushFPS Crosshair Hold (pipeline/PushOverlay.h): the three shaders against the rule in plain C++, step by
+// step and pixel by pixel. A picture panned under the reticle measured on real frames (three strokes, about
+// half see-through, with a dark outline): at 2160 lines, where the rule's numbers are the ones it was found
+// with (strokes four pixels thick, 20 pixels a frame), and at 1080 lines, where every number is halved. The
+// picture is narrow: only the zone round the centre matters.
+void testOverlayAt(Gpu& gpu, const uint32_t H) {
+    namespace ov = pipeline::overlay;
+    constexpr DXGI_FORMAT F = DXGI_FORMAT_R8G8B8A8_UNORM;
+    constexpr uint32_t W = 640;
+    const int unit = int(H) / 1080;         // 2 at 2160 lines, 1 at 1080
+    const std::string at = "crosshair hold at " + std::to_string(H) + " lines";
+    const ov::Zone zone = ov::zoneFor(W, H); const ov::Rule rule = ov::ruleFor(H);
+    const int Z = int(zone.size);
+    check(Z == 200 * unit / 16 * 16 && zone.x == (W - uint32_t(Z)) / 2 && zone.y == (H - uint32_t(Z)) / 2, at + ": the zone round the centre, in whole blocks (" + std::to_string(Z) + ")");
+    auto* device = gpu.device.Get();
+    Plane real[2]{{pipeline::makeTexture(device, W, H, F, true), F, W, H, 4}, {pipeline::makeTexture(device, W, H, F, true), F, W, H, 4}};
+    Plane generated{pipeline::makeTexture(device, W, H, F, true), F, W, H, 4};
+    check(real[0].texture && real[1].texture && generated.texture, "crosshair hold: textures created");
+    pipeline::PushOverlayPass pass;
+    check(pass.initialize(device, W, H, F, 0), "crosshair hold: the pass is created");
+    pipeline::DescriptorStager stager;
+    check(stager.initialize(device, 256), "crosshair hold: staging heap");
+    ID3D12Resource* reals[2] = {real[0].texture.Get(), real[1].texture.Get()};
+    ID3D12Resource* gens[1] = {generated.texture.Get()};
+    pass.createViews(device, stager, reals, gens, 1);
+    check(pass.composes(0) && pass.input(0) && pass.input(1), "crosshair hold: the generated frame can be written and both input frames exist");
+    Plane input[2]{{ComPtr<ID3D12Resource>(pass.input(0)), F, W, H, 4}, {ComPtr<ID3D12Resource>(pass.input(1)), F, W, H, 4}};
+    Plane mask[2]{{ComPtr<ID3D12Resource>(pass.maskTexture(0)), DXGI_FORMAT_R16_FLOAT, zone.size, zone.size, 2},
+                  {ComPtr<ID3D12Resource>(pass.maskTexture(1)), DXGI_FORMAT_R16_FLOAT, zone.size, zone.size, 2}};
+    Plane counts{ComPtr<ID3D12Resource>(pass.countTexture()), DXGI_FORMAT_R16G16B16A16_FLOAT, zone.size, zone.size, 8};
+    // The world: smooth noise in whole numbers, so that every machine draws the same picture.
+    const auto lattice = [](int x, int y, uint32_t salt) { uint32_t h = uint32_t(x) * 374761393u + uint32_t(y) * 668265263u + salt * 2246822519u; h = (h ^ (h >> 13)) * 1274126177u; return int((h ^ (h >> 16)) & 255); };
+    const auto world = [&](int x, int y) {
+        int sum = 0, weight = 0;
+        for (int level = 0; level < 4; ++level) {
+            const int cell = 48 >> level, w = 8 >> level;       // cells of 48, 24, 12, 6 pixels
+            const int ix = x >= 0 ? x / cell : -((-x + cell - 1) / cell), iy = y / cell, fx = x - ix * cell, fy = y - iy * cell;
+            const int a = lattice(ix, iy, level), b = lattice(ix + 1, iy, level), c = lattice(ix, iy + 1, level), d = lattice(ix + 1, iy + 1, level);
+            sum += w * (((a * (cell - fx) + b * fx) * (cell - fy) + (c * (cell - fx) + d * fx) * fy) / (cell * cell)); weight += w;
+        }
+        return 40 + (sum / weight) * 130 / 255;                  // 40..170
+    };
+    struct Stroke { int y0, y1, x0, x1; };
+    const int cx = int(W) / 2, cy = int(H) / 2;
+    const Stroke strokes[3] = {{cy - 6 * unit, cy - 4 * unit, cx - 18 * unit, cx - 6 * unit}, {cy - 6 * unit, cy - 4 * unit, cx + 6 * unit, cx + 18 * unit},
+                               {cy, cy + 10 * unit, cx - unit, cx + unit}};
+    const auto reticleAt = [&](int x, int y) {                   // 0 nothing, 1 outline, 2 core
+        int kind = 0;
+        for (const auto& s : strokes) {
+            if (x >= s.x0 && x < s.x1 && y >= s.y0 && y < s.y1) return 2;
+            if (x >= s.x0 - 1 && x < s.x1 + 1 && y >= s.y0 - 1 && y < s.y1 + 1) kind = 1;
+        }
+        return kind;
+    };
+    const auto picture = [&](int shift, bool withReticle) {
+        std::vector<uint8_t> px(size_t(W) * H * 4);
+        for (uint32_t y = 0; y < H; ++y)
+            for (uint32_t x = 0; x < W; ++x) {
+                int v = world(int(x) - shift, int(y));
+                if (withReticle) { const int k = reticleAt(int(x), int(y)); if (k == 2) v = (v * 48 + 220 * 52) / 100; else if (k == 1) v = v * 33 / 100; }
+                uint8_t* p = px.data() + (size_t(y) * W + x) * 4; p[0] = p[1] = p[2] = uint8_t(v); p[3] = 255;
+            }
+        return px;
+    };
+    const auto zoneOf = [&](const std::vector<uint8_t>& px) {
+        ov::Picture p(Z);
+        for (int y = 0; y < Z; ++y)
+            for (int x = 0; x < Z; ++x) {
+                const uint8_t* q = px.data() + (size_t(zone.y + y) * W + zone.x + x) * 4;
+                p.at(x, y) = {q[0] / 255.0f, q[1] / 255.0f, q[2] / 255.0f};
+            }
+        return p;
+    };
+    const auto toByte = [](float v) { return int(std::floor(std::clamp(v, 0.0f, 1.0f) * 255.0f + 0.5f)); };
+    pipeline::StateTracker states;
+    struct Seen { std::vector<uint8_t> input; std::vector<float> mask, count; };
+    const auto realFrame = [&](unsigned parity, const std::vector<uint8_t>& px, bool reset, Seen& seen) {
+        gpu.begin();
+        auto up = recordFill(gpu, real[parity], px, states.get(real[parity].texture.Get()), D3D12_RESOURCE_STATE_COMMON);
+        states.set(real[parity].texture.Get(), D3D12_RESOURCE_STATE_COMMON);
+        const bool ok = pass.update(gpu.list.Get(), states, parity, reset);
+        auto ri = recordRead(gpu, input[parity], states.get(input[parity].texture.Get()));
+        auto rm = recordRead(gpu, mask[parity], states.get(mask[parity].texture.Get()));
+        auto rc = recordRead(gpu, counts, states.get(counts.texture.Get()));
+        if (!ok || !gpu.submitAndWait()) return false;
+        seen.input = mapRead(input[parity], ri.Get());
+        const auto m = mapRead(mask[parity], rm.Get()), c = mapRead(counts, rc.Get());
+        seen.mask.resize(size_t(Z) * Z); seen.count.resize(size_t(Z) * Z * 4);
+        for (size_t i = 0; i < seen.mask.size(); ++i) seen.mask[i] = halfToFloat(uint16_t(m[i * 2] | (m[i * 2 + 1] << 8)));
+        for (size_t i = 0; i < seen.count.size(); ++i) seen.count[i] = halfToFloat(uint16_t(c[i * 2] | (c[i * 2 + 1] << 8)));
+        return true;
+    };
+    const auto generatedFrame = [&](unsigned parity, float t, const std::vector<uint8_t>& made, std::vector<uint8_t>& out) {
+        gpu.begin();
+        auto up = recordFill(gpu, generated, made, states.get(generated.texture.Get()), D3D12_RESOURCE_STATE_COMMON);
+        states.set(generated.texture.Get(), D3D12_RESOURCE_STATE_COMMON);
+        const bool ok = pass.compose(gpu.list.Get(), states, 0, parity, t);
+        auto rb = recordRead(gpu, generated, states.get(generated.texture.Get()));
+        if (!ok || !gpu.submitAndWait()) return false;
+        out = mapRead(generated, rb.Get());
+        return true;
+    };
+    // What frame generation "made": any picture will do to compare the two; this one is unlike both real frames.
+    std::vector<uint8_t> made(size_t(W) * H * 4);
+    for (uint32_t y = 0; y < H; ++y) for (uint32_t x = 0; x < W; ++x) { uint8_t* p = made.data() + (size_t(y) * W + x) * 4; p[0] = p[1] = p[2] = uint8_t(60 + lattice(int(x) / 3, int(y) / 3, 9u) / 3); p[3] = 255; }
+
+    for (int pass_ = 0; pass_ < 2; ++pass_) {
+        const bool withReticle = pass_ == 0;
+        const std::string name = std::to_string(H) + " lines, " + (withReticle ? "a reticle over a moving picture" : "a moving picture alone");
+        ov::State state(Z);
+        std::vector<uint8_t> beforePx; ov::Picture beforeFilled; ov::Plane beforeMask(Z);
+        size_t maskWrong = 0, countWrong = 0, fillWrong = 0, outsideTouched = 0, composeWrong = 0, composeOutside = 0, held = 0, composed = 0;
+        int firstHeld = -1; bool ran = true;
+        for (int k = 0; k < 9 && ran; ++k) {
+            const unsigned parity = unsigned(k & 1);
+            const std::vector<uint8_t> px = picture(10 * unit * k, withReticle);
+            Seen seen;
+            ran = realFrame(parity, px, k == 0, seen);
+            if (!ran) break;
+            const ov::Picture frame = zoneOf(px);
+            const ov::Plane expected = ov::step(state, ov::lumaPlane(frame, 0), rule);
+            const ov::Picture filled = ov::fill(frame, expected, rule);
+            size_t marked = 0;
+            for (int y = 0; y < Z; ++y)
+                for (int x = 0; x < Z; ++x) {
+                    const size_t i = size_t(y) * Z + x;
+                    maskWrong += (seen.mask[i] > 0.5f) != (expected.at(x, y) > 0);
+                    marked += expected.at(x, y) > 0;
+                    for (int kind = 0; kind < ov::kKinds; ++kind) countWrong += seen.count[i * 4 + kind] != state.count[kind].at(x, y);
+                    const uint8_t* got = seen.input.data() + (size_t(zone.y + y) * W + zone.x + x) * 4;
+                    const ov::Colour& want = filled.at(x, y);
+                    fillWrong += std::abs(int(got[0]) - toByte(want.r)) > 1 || std::abs(int(got[1]) - toByte(want.g)) > 1 || std::abs(int(got[2]) - toByte(want.b)) > 1;
+                }
+            for (uint32_t y = 0; y < H; ++y)
+                for (uint32_t x = 0; x < W; ++x) {
+                    const bool inZone = x >= zone.x && x < zone.x + zone.size && y >= zone.y && y < zone.y + zone.size;
+                    const size_t i = (size_t(y) * W + x) * 4;
+                    if (!inZone) outsideTouched += std::memcmp(seen.input.data() + i, px.data() + i, 4) != 0;
+                }
+            if (marked > size_t(60 * unit * unit) && firstHeld < 0) firstHeld = k;
+            held = std::max(held, marked);
+            if (k >= 1) {       // a generated frame between the frame before and this one
+                const float t = k == 6 ? 1.0f / 3.0f : 0.5f;
+                std::vector<uint8_t> out;
+                ran = generatedFrame(parity, t, made, out);
+                if (!ran) break;
+                const ov::Picture a = zoneOf(beforePx), g = zoneOf(made), fb = zoneOf(seen.input);
+                for (uint32_t y = 0; y < H; ++y)
+                    for (uint32_t x = 0; x < W; ++x) {
+                        const size_t i = (size_t(y) * W + x) * 4;
+                        const bool inZone = x >= zone.x && x < zone.x + zone.size && y >= zone.y && y < zone.y + zone.size;
+                        const int zx = int(x) - int(zone.x), zy = int(y) - int(zone.y);
+                        const bool masked = inZone && (beforeMask.at(zx, zy) > 0 || expected.at(zx, zy) > 0);
+                        if (!masked) { composeOutside += std::memcmp(out.data() + i, made.data() + i, 4) != 0; continue; }
+                        const ov::Colour want = ov::composeAt(a, frame, beforeFilled, fb, g, beforeMask, expected, zx, zy, t);
+                        ++composed;
+                        composeWrong += std::abs(int(out[i]) - toByte(want.r)) > 1 || std::abs(int(out[i + 1]) - toByte(want.g)) > 1 || std::abs(int(out[i + 2]) - toByte(want.b)) > 1 || out[i + 3] != made[i + 3];
+                    }
+            }
+            beforePx = px; beforeFilled = zoneOf(seen.input); beforeMask = expected;
+        }
+        std::printf("INFO crosshair hold, %s: held from frame %d, %zu pixels marked at most, %zu composed; differences from the rule in plain C++: mask %zu, counts %zu, fill %zu, compose %zu; touched outside: input %zu, generated %zu\n",
+                    name.c_str(), firstHeld, held, composed, maskWrong, countWrong, fillWrong, composeWrong, outsideTouched, composeOutside);
+        check(ran, std::string("crosshair hold, ") + name + ": every step runs");
+        check(maskWrong == 0, std::string("crosshair hold, ") + name + ": the shaders mark every pixel as the rule in plain C++ does");
+        check(countWrong == 0, std::string("crosshair hold, ") + name + ": and count every pixel as it does");
+        check(fillWrong == 0, std::string("crosshair hold, ") + name + ": the frame frame generation gets is filled as the rule fills it");
+        check(outsideTouched == 0, std::string("crosshair hold, ") + name + ": outside the zone that frame is the real frame, bit for bit");
+        check(composeWrong == 0, std::string("crosshair hold, ") + name + ": the generated frame is composed as the rule composes it");
+        check(composeOutside == 0, std::string("crosshair hold, ") + name + ": no pixel outside the mask is touched in the generated frame");
+        if (withReticle) {
+            check(firstHeld == 4, at + ": the reticle is held once it has stood for four counted frames (frame " + std::to_string(firstHeld) + ")");
+            check(held > size_t(150 * unit * unit) && composed > size_t(150 * unit * unit), at + ": all of it, and it is laid back over the generated frame");
+        } else {
+            check(held == 0 && composed == 0, at + ": a moving picture without an overlay is never marked, filled or composed");
+        }
+    }
+}
+void testOverlay(Gpu& gpu) {
+    testOverlayAt(gpu, 2160);
+    testOverlayAt(gpu, 1080);
+    pipeline::PushOverlayPass tiny;
+    check(!tiny.initialize(gpu.device.Get(), 160, 90, DXGI_FORMAT_R8G8B8A8_UNORM, 0), "crosshair hold: a picture too small for a zone gets no pass");
+}
+
 int main() {
     Gpu gpu;
     if (!gpu.create()) { std::printf("FAIL no D3D12 device\n"); return 1; }
@@ -2186,6 +2373,7 @@ int main() {
     testHudSampler(gpu);
     testHudLock(gpu);
     testHudStill(gpu);
+    testOverlay(gpu);
     testAmbient(gpu);
     testEnhanceShape(gpu);
     testPushFlowSizes();
