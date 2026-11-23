@@ -66,6 +66,8 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
     audioTrim_ = std::clamp(s.value(QStringLiteral("audioTrimMs"), 0).toInt(), -veyra::sink::kPushAudioTrimLimitMs, veyra::sink::kPushAudioTrimLimitMs);
     fillMode_ = std::clamp(s.value(QStringLiteral("fillMode"), 0).toInt(), 0, 2);
 
+    loadPreferences();
+
     engine_ = std::make_shared<veyra::portable::Engine>();
     applyEngineSettings();
     FrameView::setEngine(engine_);
@@ -328,6 +330,8 @@ void AppController::startCameraNow() {
     const auto list = device.videoFormats();
     const QCameraFormat format = formatIndex_ >= 0 && formatIndex_ < list.size() ? list[formatIndex_] : QCameraFormat();
     audio_->stop();
+    // Named before it starts: the start is what tells the interface to read the name.
+    sourceTitle_ = device.description();
     if (source_->startCamera(device, format)) {
         // The card connected is the one "Connect when PushFPS opens" connects next time, also when it
         // was never picked from the list (a single card stays on its first place and was never saved).
@@ -364,6 +368,7 @@ void AppController::startAudioIfWanted() {
 void AppController::startFile(const QUrl& url) {
     clearError();
     audio_->stop();
+    sourceTitle_ = url.fileName();
     if (source_->startFile(url, float(volume_))) startedAt_ = nowNs();
 }
 
@@ -372,6 +377,7 @@ void AppController::startTestPattern(bool uneven) {
     audio_->stop();
     TestPattern::Options o;
     o.uneven = uneven;
+    sourceTitle_ = tr("测试画面");
     if (source_->startTestPattern(o)) startedAt_ = nowNs();
 }
 
@@ -384,6 +390,58 @@ void AppController::stop() {
 }
 
 // ---- settings -----------------------------------------------------------------------------------
+
+namespace {
+// The interface preferences the preview keeps, each with the values it may take (the Windows build checks
+// the same names in Preferences.cpp). Anything else is refused, so a damaged settings file cannot hand the
+// interface a value it does not expect.
+const QStringList kThemes{QStringLiteral("default"), QStringLiteral("black"), QStringLiteral("light"), QStringLiteral("midnight"),
+                          QStringLiteral("plum"), QStringLiteral("forest"), QStringLiteral("contrast")};
+const QStringList kAccents{QStringLiteral("orange"), QStringLiteral("white"), QStringLiteral("ice"), QStringLiteral("blue"),
+                           QStringLiteral("violet"), QStringLiteral("rose"), QStringLiteral("amber")};
+const QStringList kFlags{QStringLiteral("pushNavCollapsed"), QStringLiteral("pushSideCollapsed"), QStringLiteral("reducedMotion")};
+const QStringList kFoldLists{QStringLiteral("pushQuickFolded"), QStringLiteral("pushProFolded")};
+
+// A preference's value as it may be kept, or an invalid QVariant when it may not.
+QVariant cleanPreference(const QString& key, const QVariant& value) {
+    if (key == QLatin1String("pushTheme")) return kThemes.contains(value.toString()) ? QVariant(value.toString()) : QVariant();
+    if (key == QLatin1String("accent")) return kAccents.contains(value.toString()) ? QVariant(value.toString()) : QVariant();
+    if (kFlags.contains(key)) return value.typeId() == QMetaType::Bool || value.canConvert<bool>() ? QVariant(value.toBool()) : QVariant();
+    if (kFoldLists.contains(key)) {
+        // Section or block ids with commas: lower-case letters only, each at most once.
+        QStringList ids;
+        for (const QString& id : value.toString().split(QLatin1Char(','), Qt::SkipEmptyParts)) {
+            const QString t = id.trimmed();
+            bool ok = !t.isEmpty() && t.size() <= 16;
+            for (const QChar c : t) ok = ok && c >= QLatin1Char('a') && c <= QLatin1Char('z');
+            if (ok && !ids.contains(t)) ids << t;
+        }
+        return ids.join(QLatin1Char(','));
+    }
+    return {};
+}
+}  // namespace
+
+void AppController::loadPreferences() {
+    QStringList keys{QStringLiteral("pushTheme"), QStringLiteral("accent")};
+    keys << kFlags << kFoldLists;
+    for (const QString& key : keys) {
+        const QVariant stored = settings_->value(QStringLiteral("ui/") + key);
+        if (!stored.isValid()) continue;
+        // QSettings gives back text for a flag kept in an INI file.
+        const QVariant value = kFlags.contains(key) ? QVariant(stored.toString() == QLatin1String("true")) : stored;
+        const QVariant clean = cleanPreference(key, value);
+        if (clean.isValid()) prefs_.insert(key, clean);
+    }
+}
+
+void AppController::setPreference(const QString& key, const QVariant& value) {
+    const QVariant clean = cleanPreference(key, value);
+    if (!clean.isValid() || prefs_.value(key) == clean) return;
+    prefs_.insert(key, clean);
+    save(QStringLiteral("ui/") + key, clean);
+    emit preferencesChanged();
+}
 
 void AppController::setTargetMode(int m) {
     m = std::clamp(m, 0, 3);

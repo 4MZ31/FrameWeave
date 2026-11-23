@@ -1570,3 +1570,13 @@ zh:正在运行：已找到准星，补出的每一帧里都原样放回|In funz
 zh:正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）|In funzione: nessun mirino trovato finora al centro dell'immagine (viene riconosciuto quando l'immagine dietro si muove)
 zh:已开启：有画面播放并且补帧开启后开始运行|Attivo: parte quando un'immagine è in riproduzione con la generazione di fotogrammi attiva
 zh:这种补帧方式暂不支持，请换一种补帧方式|Non ancora con questo metodo di generazione di fotogrammi: scegline un altro
+zh:统计|Statistiche
+zh:返回|Indietro
+zh:延迟|Latenza
+zh:画面尺寸|Dimensioni immagine
+zh:输出帧率|Frame rate in uscita
+zh:声音延迟|Ritardo audio
+zh:去除的重复帧|Frame duplicati rimossi
+zh:镜头切换|Cambi di scena
+zh:没赶上的运动|Movimento non pronto in tempo
+zh:这台电脑的额外等待|Attesa aggiuntiva su questo computer

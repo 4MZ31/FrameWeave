@@ -1570,3 +1570,13 @@ zh:正在运行：已找到准星，补出的每一帧里都原样放回|Actief:
 zh:正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）|Actief: nog geen vizier gevonden in het midden van het beeld (het wordt herkend zodra het beeld erachter beweegt)
 zh:已开启：有画面播放并且补帧开启后开始运行|Aan: het begint zodra er beeld speelt met framegeneratie aan
 zh:这种补帧方式暂不支持，请换一种补帧方式|Nog niet met deze methode voor framegeneratie: kies een andere
+zh:统计|Statistieken
+zh:返回|Terug
+zh:延迟|Vertraging
+zh:画面尺寸|Beeldgrootte
+zh:输出帧率|Framerate van de uitvoer
+zh:声音延迟|Geluidsvertraging
+zh:去除的重复帧|Verwijderde dubbele frames
+zh:镜头切换|Scènewissels
+zh:没赶上的运动|Beweging niet op tijd klaar
+zh:这台电脑的额外等待|Extra wachttijd op deze computer

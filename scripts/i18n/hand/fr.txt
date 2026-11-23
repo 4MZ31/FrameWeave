@@ -1570,3 +1570,13 @@ zh:正在运行：已找到准星，补出的每一帧里都原样放回|En cour
 zh:正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）|En cours : pas encore de réticule trouvé au centre de l'image (il est détecté dès que l'image derrière lui bouge)
 zh:已开启：有画面播放并且补帧开启后开始运行|Activé : démarre dès qu'une image est lue avec la génération d'images activée
 zh:这种补帧方式暂不支持，请换一种补帧方式|Pas encore avec cette méthode de génération d'images : choisissez-en une autre
+zh:统计|Statistiques
+zh:返回|Retour
+zh:延迟|Latence
+zh:画面尺寸|Taille de l'image
+zh:输出帧率|FPS en sortie
+zh:声音延迟|Retard du son
+zh:去除的重复帧|Images en double supprimées
+zh:镜头切换|Changements de plan
+zh:没赶上的运动|Mouvement pas prêt à temps
+zh:这台电脑的额外等待|Attente supplémentaire sur cet ordinateur

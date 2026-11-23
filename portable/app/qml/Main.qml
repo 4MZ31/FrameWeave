@@ -1,50 +1,276 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
-// PushFPS for Linux and macOS: home (sources and quick setup), player, settings.
+//
+// PushFPS for Linux and macOS: the Windows build's new design around the preview's pages. A title bar,
+// the navigation and a status strip (the Windows build's own files, qml/Veyra) stand around four pages:
+// home, Professional mode, the picture alone (min) and settings.
+//
+// There is one picture item. It is put into the page being shown, at the place that page keeps for it
+// (`videoViewport`); a page without one (settings) leaves it hidden. So going from page to page never
+// stops what plays: only Disconnect does.
 import QtQuick
+import QtQuick.Controls.Basic
+import QtQuick.Dialogs
+import QtQuick.Effects
 import QtQuick.Layouts
+import QtQuick.Shapes
 import QtQuick.Window
+import PushFPS
+import "PushShell.js" as PushShell
 
 Window {
-    id: win
-    width: 1180
+    id: root
+    width: 1280
     height: 800
     minimumWidth: 720
     minimumHeight: 520
     visible: true
-    color: Theme.bgDeep
     title: "PushFPS"
-    flags: app.alwaysOnTop ? (Qt.Window | Qt.WindowStaysOnTopHint) : Qt.Window
+    color: Theme.bgOuter
+    flags: Qt.Window | Qt.FramelessWindowHint | (app.alwaysOnTop ? Qt.WindowStaysOnTopHint : 0)
 
-    property string page: app.startPage === "player" || app.startPage === "settings" ? app.startPage : "home"
-    function go(p) { page = p; if (p !== "player" && visibility === Window.FullScreen) showNormal() }
-    function toggleFullscreen() { if (visibility === Window.FullScreen) showNormal(); else showFullScreen() }
+    // The interface choices (Settings → Appearance), under the Windows build's names.
+    readonly property var prefs: veyra.preferences || ({})
+    Binding { target: Theme; property: "design"; value: "new" }
+    Binding { target: Theme; property: "mode"; value: root.prefs.pushTheme || "default" }
+    Binding { target: Theme; property: "accentName"; value: root.prefs.accent || "orange" }
+    Binding { target: Theme; property: "reduced"; value: root.prefs.reducedMotion === true }
 
+    // ---- pages ----
+    readonly property var startPages: ["home", "pro", "min", "set"]
+    property string page: startPages.indexOf(app.startPage) >= 0 ? app.startPage : "home"
+    // Where the picture alone goes back to.
+    property string pageBefore: "home"
+    function go(p) {
+        if (p === page) return
+        if (p === "min" && page !== "min") pageBefore = page
+        if (p !== "min" && fullscreen) showNormal()
+        page = p
+    }
+    function pageName(p) {
+        switch (p) {
+        case "home": return qsTr("首页")
+        case "pro": return qsTr("专业模式")
+        case "min": return qsTr("极简")
+        case "set": return qsTr("设置")
+        }
+        return ""
+    }
+
+    readonly property bool fullscreen: visibility === Window.FullScreen
+    readonly property bool maximized: visibility === Window.Maximized
+    function toggleMaximized() { visibility = maximized ? Window.Windowed : Window.Maximized }
+    // Full screen is the picture alone, as in the Windows build.
+    function toggleFullscreen() {
+        if (fullscreen) { showNormal(); return }
+        go("min")
+        showFullScreen()
+    }
+    function leavePicture() {
+        if (fullscreen) showNormal()
+        page = pageBefore === "min" ? "home" : pageBefore
+    }
+
+    // A source connected from a page without a picture (the home page in one column) shows the picture alone.
     Connections {
         target: app
-        function onRunningChanged() { if (app.running) win.go("player") }
-    }
-
-    StackLayout {
-        anchors.fill: parent
-        currentIndex: win.page === "player" ? 1 : (win.page === "settings" ? 2 : 0)
-        HomePage { onOpenSettings: win.go("settings"); onOpenPlayer: win.go("player") }
-        PlayerPage {
-            active: win.page === "player"
-            fullscreen: win.visibility === Window.FullScreen
-            onBack: { app.stop(); win.go("home") }
-            onToggleFullscreen: win.toggleFullscreen()
+        function onRunningChanged() {
+            if (app.running && root.page === "home" && !homePage.threePane) root.go("min")
         }
-        SettingsPage { onBack: win.go("home") }
     }
 
-    Shortcut { sequences: ["F11", "Ctrl+F"]; onActivated: win.toggleFullscreen() }
+    // ---- the shell ----
+    readonly property bool shellShown: !fullscreen && page !== "min"
+    readonly property bool navForcedSlim: PushShell.navForcedSlim(width)
+    readonly property bool navCollapsed: prefs.pushNavCollapsed === true
+    readonly property bool navSlim: PushShell.navSlim(width, prefs)
+    readonly property bool sideCollapsed: PushShell.sideCollapsed(prefs)
+    readonly property bool sideOffered: PushShell.sideOffered(page, homePage.threePane)
+    readonly property real shellLeft: shellShown ? (navSlim ? Theme.shellNavSlim : Theme.shellNav) : 0
+    readonly property real shellTop: shellShown ? Theme.shellHeader : 0
+    readonly property real shellBottom: shellShown ? Theme.shellStatus : 0
+
+    // The window's outline (frameless, as in the Windows build).
+    Rectangle {
+        anchors.fill: parent
+        visible: !root.fullscreen && !root.maximized
+        color: "transparent"
+        border.width: 1
+        border.color: Theme.stroke2
+        z: 120
+    }
+
+    Item {
+        id: pages
+        anchors.fill: parent
+        anchors.leftMargin: root.shellLeft + (root.shellShown ? 0 : 0)
+        anchors.topMargin: root.shellTop
+        anchors.bottomMargin: root.shellBottom
+        anchors.rightMargin: root.shellShown ? 1 : 0
+        HomePage {
+            id: homePage
+            anchors.fill: parent
+            visible: root.page === "home"
+            sideCollapsed: root.sideCollapsed
+            onRequestFullscreen: root.toggleFullscreen()
+            onRequestScreenshot: root.screenshot()
+        }
+        ProPage {
+            id: proPage
+            anchors.fill: parent
+            visible: root.page === "pro"
+            sideCollapsed: root.sideCollapsed
+            onRequestFullscreen: root.toggleFullscreen()
+            onRequestScreenshot: root.screenshot()
+            onRequestSources: root.go("home")
+        }
+        MinimalPage {
+            id: minPage
+            anchors.fill: parent
+            visible: root.page === "min"
+            fullscreen: root.fullscreen
+            onRequestBack: root.leavePicture()
+            onRequestFullscreen: root.toggleFullscreen()
+            onRequestScreenshot: root.screenshot()
+        }
+        SettingsPage {
+            id: setPage
+            anchors.fill: parent
+            visible: root.page === "set"
+        }
+    }
+
+    // ---- the one picture ----
+    readonly property Item viewport: page === "home" ? homePage.videoViewport
+                                   : page === "pro" ? proPage.videoViewport
+                                   : page === "min" ? minPage.videoViewport : null
+    Item { id: pictureHolder; visible: false }
+    FrameView {
+        id: picture
+        objectName: "player-view"
+        parent: root.viewport || pictureHolder
+        anchors.fill: parent
+        z: 0
+        running: root.viewport !== null && app.running
+        brightness: app.brightness
+        contrast: app.contrast
+        saturation: app.saturation
+        gamma: app.gamma
+        fill: app.fillMode
+    }
+    function screenshot() {
+        if (!app.running || root.viewport === null) return
+        const path = app.newScreenshotPath()
+        picture.grabToImage(function(result) { if (result.saveToFile(path)) savedNote.show() })
+    }
+
+    PushTitleBar {
+        id: shellBar
+        visible: root.shellShown
+        x: 1; y: 1
+        width: parent.width - 2
+        height: Theme.shellHeader - 1
+        pageName: root.pageName(root.page)
+        maximized: root.maximized
+        onRequestMinimize: root.showMinimized()
+        onRequestMaximize: root.toggleMaximized()
+        onRequestClose: root.close()
+        onRequestMove: root.startSystemMove()
+        navCollapsed: root.navCollapsed
+        navToggleShown: !root.navForcedSlim
+        sideCollapsed: root.sideCollapsed
+        sideToggleShown: root.sideOffered
+        onRequestToggleNav: veyra.setPreference("pushNavCollapsed", !root.navCollapsed)
+        onRequestToggleSide: veyra.setPreference("pushSideCollapsed", !root.sideCollapsed)
+    }
+    PushSidebar {
+        id: shellNav
+        visible: root.shellShown
+        x: 1; y: Theme.shellHeader
+        width: root.shellLeft - 1
+        height: parent.height - Theme.shellHeader - 1
+        slim: root.navSlim
+        currentPage: root.page
+        entries: [
+            { id: "home", icon: "home",     label: qsTr("首页") },
+            { id: "pro",  icon: "sliders",  label: qsTr("专业模式") },
+            { id: "min",  icon: "tv",       label: qsTr("极简") },
+            { id: "set",  icon: "settings", label: qsTr("设置") }
+        ]
+        onRequestPage: p => root.go(p)
+        onRequestAppearance: { root.go("set"); setPage.showAppearance() }
+    }
+    PushStatusStrip {
+        id: shellStatus
+        visible: root.shellShown
+        x: root.shellLeft; y: parent.height - Theme.shellStatus
+        width: parent.width - root.shellLeft - 1
+        height: Theme.shellStatus - 1
+    }
+
+    // "Screenshot saved": a press opens the folder.
+    Rectangle {
+        id: savedNote
+        objectName: "screenshot-saved"
+        function show() { opacity = 1; noteTimer.restart() }
+        z: 110
+        opacity: 0
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: Theme.d(200) } }
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: root.shellBottom + 24
+        anchors.horizontalCenter: parent.horizontalCenter
+        radius: 8
+        color: Qt.rgba(0, 0, 0, 0.75)
+        implicitWidth: note.implicitWidth + 24
+        implicitHeight: note.implicitHeight + 12
+        Text {
+            id: note
+            anchors.centerIn: parent
+            color: "white"
+            font.family: Theme.fontUi
+            font.pixelSize: 13
+            text: qsTr("截图已保存")
+        }
+        TapHandler { onTapped: app.openScreenshotFolder() }
+        HoverHandler { cursorShape: Qt.PointingHandCursor }
+        Timer { id: noteTimer; interval: 2500; onTriggered: savedNote.opacity = 0 }
+    }
+
+    // Resizing the frameless window from its edges and corners.
+    Repeater {
+        model: [
+            { e: Qt.LeftEdge, c: Qt.SizeHorCursor }, { e: Qt.RightEdge, c: Qt.SizeHorCursor },
+            { e: Qt.TopEdge, c: Qt.SizeVerCursor }, { e: Qt.BottomEdge, c: Qt.SizeVerCursor },
+            { e: Qt.LeftEdge | Qt.TopEdge, c: Qt.SizeFDiagCursor }, { e: Qt.RightEdge | Qt.BottomEdge, c: Qt.SizeFDiagCursor },
+            { e: Qt.RightEdge | Qt.TopEdge, c: Qt.SizeBDiagCursor }, { e: Qt.LeftEdge | Qt.BottomEdge, c: Qt.SizeBDiagCursor }
+        ]
+        delegate: MouseArea {
+            required property var modelData
+            readonly property bool l: (modelData.e & Qt.LeftEdge) !== 0
+            readonly property bool r: (modelData.e & Qt.RightEdge) !== 0
+            readonly property bool t: (modelData.e & Qt.TopEdge) !== 0
+            readonly property bool b: (modelData.e & Qt.BottomEdge) !== 0
+            readonly property bool corner: (l || r) && (t || b)
+            z: 130
+            enabled: !root.fullscreen && !root.maximized
+            visible: enabled
+            width: corner ? 12 : (l || r) ? 6 : root.width - 24
+            height: corner ? 12 : (t || b) ? 6 : root.height - 24
+            x: l ? 0 : r ? root.width - width : 12
+            y: t ? 0 : b ? root.height - height : 12
+            cursorShape: modelData.c
+            onPressed: root.startSystemResize(modelData.e)
+        }
+    }
+
+    Shortcut { sequences: ["F11", "Ctrl+F"]; onActivated: root.toggleFullscreen() }
     Shortcut {
         sequence: "Escape"
         onActivated: {
-            if (win.visibility === Window.FullScreen) win.showNormal()
-            else if (win.page === "settings") win.go("home")
+            if (root.fullscreen) root.showNormal()
+            else if (root.page === "min") root.leavePicture()
         }
     }
-    Shortcut { sequence: "Tab"; enabled: win.page === "player"; onActivated: app.showStats = !app.showStats }
+    Shortcut { sequence: "Tab"; enabled: root.page === "min"; onActivated: app.showStats = !app.showStats }
 }

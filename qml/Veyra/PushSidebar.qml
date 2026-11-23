@@ -21,7 +21,8 @@ Rectangle {
     signal requestAppearance()
 
     // The same pages, in the same order, as the legacy dock (TopDock.qml), with the home page first.
-    readonly property var entries: [
+    // (Not read-only: the Linux and macOS preview, which shares this file, has fewer pages.)
+    property var entries: [
         { id: "home",  icon: "home",     label: qsTr("首页") },
         { id: "pro",   icon: "sliders",  label: qsTr("专业模式") },
         { id: "live",  icon: "cast",     label: qsTr("直播模式") },
