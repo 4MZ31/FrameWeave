@@ -168,6 +168,24 @@ Item {
             control(diag, "pushfps-diagnose-fix-no-sound-0").clicked()
             compare(root.navigated, "capture", "the capture dialog has the one-tap choice")
         }
+        // 4.4.5: FSR on a card that is behind is offered the cheaper motion estimate, with Undo.
+        function test_fsr_behind_is_offered_a_lighter_motion_estimate() {
+            const before = { method: veyra.fgBackendName, quality: veyra.flowQuality, choice: veyra.opticalFlowChoice, half: veyra.amdFlowHalf, motion: veyra.fgMotionSource }
+            veyra.fgBackendName = "fsr3"; veyra.fgMotionSource = 1; veyra.flowQuality = 1; veyra.opticalFlowChoice = 1; veyra.amdFlowHalf = false
+            veyra.nrLayers = [{ index: 1, sizePolicy: 1, runtime: 2 }]
+            veyra.liveStats = ({ running: true, contentFps: 30, realFps: 30, generatedFps: 45, fgIdle: 0, fgMultiplierNow: 4 })
+            open()
+            compare(ids(), ["fg-behind", "fsr-lighter"])
+            tryVerify(function() { return findChild(diag, "pushfps-diagnose-fix-fsr-lighter-0") !== null }, 3000)
+            control(diag, "pushfps-diagnose-fix-fsr-lighter-0").clicked()
+            compare(veyra.flowQuality, 0, "the performance level")
+            compare(veyra.amdFlowHalf, true, "and half size, where the estimate is AMD's")
+            verify(ids().indexOf("fsr-lighter") >= 0, "the row stays so the change can be undone")
+            diag.undo(diag.found[ids().indexOf("fsr-lighter")])
+            compare(veyra.flowQuality, 1); compare(veyra.amdFlowHalf, false)
+            veyra.fgBackendName = before.method; veyra.flowQuality = before.quality; veyra.opticalFlowChoice = before.choice
+            veyra.amdFlowHalf = before.half; veyra.fgMotionSource = before.motion
+        }
         function test_checking_again_reads_again() {
             open()
             compare(ids().length, 2)
