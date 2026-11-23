@@ -330,6 +330,7 @@
       <li>GeForce RTX 5070 <small>NVIDIA</small></li>
       <li>GeForce RTX 4090 <small>NVIDIA</small></li>
       <li>GeForce RTX 4080 <small>NVIDIA</small></li>
+      <li>GeForce RTX 4070 SUPER <small>NVIDIA, a user's report</small></li>
       <li>GeForce RTX 4070 <small>NVIDIA</small></li>
       <li>GeForce RTX 3060 <small>NVIDIA</small></li>
       <li>Radeon RX 9070 XT <small>AMD</small></li>
@@ -380,6 +381,7 @@
           <tr><th scope="row">Not sure which setting is wrong</th><td data-label="Try"><b>Check my setup</b> on the home page, with the game on screen</td></tr>
           <tr><th scope="row">Sharp in a window, soft in full screen</th><td data-label="Try">The capture is smaller than your screen: turn on <b>Upscale to my screen</b> in quick setup, under Picture</td></tr>
           <tr><th scope="row">Crosshair flickers or doubles when the camera moves</th><td data-label="Try"><b>Crosshair Hold</b> on, in quick setup under HUD</td></tr>
+          <tr><th scope="row">An AMD or Intel card cannot keep up with FSR</th><td data-label="Try"><b>Check my setup</b>, then <b>Use the lighter motion estimate</b></td></tr>
           <tr><th scope="row">Smeared HUD or text in fast motion</th><td data-label="Try">The game preset or Automatic HUD detection, Live HUD Lock on, the Keep the HUD sharp option, or a lower target (60 instead of 120)</td></tr>
           <tr><th scope="row">Wobbly edges in fast motion</th><td data-label="Try">A lower target, or a higher frame generation quality (in quick setup with NVIDIA's frame generation: Low, Medium, High)</td></tr>
           <tr><th scope="row">Stutter or uneven motion</th><td data-label="Try">Smooth frame pacing on, G-SYNC/FreeSync on in your driver, capture card at exactly 60&nbsp;FPS, fullscreen (F11)</td></tr>
@@ -567,7 +569,7 @@
       <details><summary>Can I use it without a capture card?</summary><p>Yes. PS5 streaming (Remote Play over your home network), PC streaming from a Sunshine host and Xbox streaming are built in. A capture card still gives the sharpest picture and the lowest delay.</p></details>
       <details><summary>Does it work with 60 FPS games?</summary><p>Yes. Set the game frame rate to 60 and pick 120&nbsp;FPS or <em>Match monitor</em>.</p></details>
       <details><summary>Can I stream or record it?</summary><p>Yes. PushFPS records, keeps an instant replay and goes live itself: to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or your own RTMP server, several at once. Streaming mode lays it out like OBS, with a layout editor, platform presets and an audio mixer for game sound, your microphone, desktop audio and an extra input. The OBS Studio plugin adds the boosted picture to your OBS scenes if you prefer OBS.</p></details>
-      <details><summary>Is there a macOS or Linux version?</summary><p>Yes, as a preview. It has PushFPS's own frame generation, Frame Pacing Repair and Live HUD Lock on Vulkan, OpenGL or Metal, without NVIDIA, AMD or Intel components (those exist only for Windows). Linux comes as an AppImage, macOS as one app for Apple Silicon and Intel. Recording and going live are Windows-only for now.</p></details>
+      <details><summary>Is there a macOS or Linux version?</summary><p>Yes, as a preview, in the same new design as the Windows build. It has PushFPS's own frame generation, Crosshair Hold, Frame Pacing Repair and Live HUD Lock on Vulkan, OpenGL or Metal, without NVIDIA, AMD or Intel components (those exist only for Windows). Linux comes as an AppImage, macOS as one app for Apple Silicon and Intel. Recording and going live are Windows-only for now.</p></details>
       <details><summary>Does PushFPS collect any data?</summary><p>No. There's no telemetry or analytics. It only goes online for the update check on GitHub, when you share a clip to your own Discord webhook, when you connect a streaming source and when you go live (only to the platforms you chose). See the <a href="https://github.com/DosukaSOL/PushFPS/blob/main/PRIVACY.md">privacy policy</a>.</p></details>
       <details><summary>Where do I get help or report a problem?</summary><p>Ask on the <a href="https://discord.gg/N88znNpSgC" rel="noopener">PushFPS Discord</a>, where other players and the developer answer. For a bug, <em>Settings, Report a problem</em> in the app copies diagnostic information and opens <a href="https://github.com/DosukaSOL/PushFPS/issues">GitHub Issues</a>. Read it before pasting.</p></details>
     </div>

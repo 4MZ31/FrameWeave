@@ -136,7 +136,7 @@ that, PushFPS adds what console players need:
 | **Your colours** | Six backgrounds (graphite, black for OLED screens, light, midnight, plum, forest), seven accent colours and a high contrast look |
 | **Plug and play** | Connects to your capture card when PushFPS opens and goes fullscreen when the picture appears (both optional) |
 | **Measure total delay** | A guided slow-motion phone test that shows the whole delay PushFPS adds over your capture card's passthrough |
-| **Linux and macOS (preview)** | PushFPS's own frame generation, Frame Pacing Repair and Live HUD Lock on Vulkan, OpenGL or Metal, with no vendor components |
+| **Linux and macOS (preview)** | PushFPS's own frame generation, Crosshair Hold, Frame Pacing Repair and Live HUD Lock on Vulkan, OpenGL or Metal, in the new design, with no vendor components |
 
 ## How it works
 
@@ -272,6 +272,7 @@ the extras.
 | GeForce RTX 5070 | NVIDIA | Tested |
 | GeForce RTX 4090 | NVIDIA | Tested |
 | GeForce RTX 4080 | NVIDIA | Tested |
+| GeForce RTX 4070 SUPER | NVIDIA | Reported by a user: 30 → 120 FPS at 4K with NVIDIA VFG |
 | GeForce RTX 4070 | NVIDIA | Tested |
 | GeForce RTX 3060 | NVIDIA | Tested |
 | Radeon RX 9070 XT | AMD | Tested |
@@ -397,7 +398,8 @@ mode or in streaming mode.
   down one tier and says why, where it used to sit at the game's frame rate without a word.
 - **Half precision, tested safely**: *Professional → Frame generation → PushFlow half precision → Test* tries
   the faster fp16 model in a separate process and turns it on only when the picture matches and it really
-  is faster on your card. A driver fault in that test can't touch PushFPS.
+  is faster on your card. A driver fault in that test can't touch PushFPS. With something playing, the button
+  stops it first and starts the test by itself.
 - **Measure your card**: `PushFlowBench.exe`, next to `PushFPS.exe`, writes PushFlow's timings on your card
   as JSON. Details: [docs/PUSHFLOW.md](docs/PUSHFLOW.md).
 - Works with HUD protection, Live HUD Lock, the adaptive multiplier, recording and going live.
@@ -444,7 +446,8 @@ Most reports of a soft or broken picture come down to a setting nobody chose. **
 home page, and in *Settings*) looks at the picture that is running for a few seconds and lists what it finds,
 each with the one change that answers it:
 
-- frame generation that is on but shows no generated frames, or cannot keep up;
+- frame generation that is on but shows no generated frames, or cannot keep up (with FSR on an AMD or Intel
+  card it then offers FSR's lighter motion estimate);
 - AI picture enhancement worked out at 1080p on a 1440p or 4K picture;
 - NVIDIA's frame generation on a lower quality than the card has room for, or PushFlow on a lower tier;
 - a target the screen cannot show, or one that cannot be paced evenly;
@@ -540,7 +543,8 @@ the picture round them moves. It hands frame generation a copy of the picture wi
 crosshair back, untouched, over every generated frame. Nothing has to be drawn or set up, and with no crosshair
 on screen it does nothing: scenery is left alone.
 
-The row says what is happening: *Running: crosshair found* while it holds one. It works with NVIDIA VFG, DLSS
+The row says what is happening: *Running: crosshair found* while it holds one. Since 4.4.5 the Linux and
+macOS preview has it too. It works with NVIDIA VFG, DLSS
 frame generation, FSR, AMD FRC and PushFlow; not with XeSS or ANR. A crosshair is picked up once it has stood
 still over a moving picture for a moment, so right after you aim, while its lines are still closing in, it is
 not held yet, and a large solid dot with no outline is not picked up. It is off unless you switch it on.
@@ -864,7 +868,8 @@ streams may stay black.
 Since 4.1 it also plays **Dolby Vision** files (profiles 5, 7, 8 and 10, converted for your screen), network
 streams over **RTP and UDP**, lets you go back in a running stream (**live timeshift**), and can show **live
 translated subtitles** on Windows 11: what is said is read by Windows' live captions and translated on the
-picture, with a model that runs on your PC unless you choose an online engine.
+picture, with a model that runs on your PC unless you choose an online engine. A translated line stays for a
+time you choose after its original ended (1.5 seconds unless you change it), so there is time to read it.
 
 ## Read the text on the picture
 
@@ -1052,7 +1057,8 @@ motion is estimated, as with every method in PushFPS: results can differ from wh
 
 PushFPS for Linux and macOS is a separate, smaller app (`portable/` in this repository) with PushFPS's own frame
 generation: block motion estimation on the processor and motion-compensated interpolation on the graphics card
-(Vulkan or OpenGL on Linux, Metal on macOS), plus Frame Pacing Repair, duplicate-frame removal and Live HUD Lock.
+(Vulkan or OpenGL on Linux, Metal on macOS), plus Crosshair Hold, Frame Pacing Repair, duplicate-frame removal
+and Live HUD Lock.
 It needs no NVIDIA, AMD or Intel components, so it runs on any graphics card that supports OpenGL 3.3, Vulkan or
 Metal.
 
@@ -1064,6 +1070,17 @@ Metal.
 | Portable | Put an empty `portable.txt` next to the program | Put an empty `portable.txt` next to PushFPS.app |
 
 Try it without a capture card: **Home → Test picture**. `PushFPS --selftest 6` checks the whole chain.
+
+Since 4.4.5 (preview 0.2) it has the **new design** of the Windows build: the title bar, the named navigation
+and the status strip round four pages. *Home* has the sources, the picture, picture and sound and quick setup
+side by side; *Professional mode* has the picture large and every setting in one panel, with an *All* tab whose
+blocks fold; *Minimal* is the picture alone; *Settings* has the same themes and accent colours. The picture
+keeps playing when you change page; only *Disconnect* stops it. The design and the pages were contributed by
+[ShyVortex](https://github.com/DosukaSOL/PushFPS/pull/18).
+
+**Crosshair Hold** is there too, with the same rule as on Windows: the crosshair is found in the middle of the
+screen, kept out of frame generation and laid back over every generated frame. Switch it on in *Quick setup*;
+its row says when a crosshair is held.
 
 Since 4.1 the picture waits less: the motion of a pair of frames starts while the newer frame is still being
 converted to colour, the first seconds of a session no longer run late, and a margin the app gave itself after
@@ -1153,8 +1170,9 @@ No. PushFPS only processes the video coming out of the capture card. Nothing is 
 Yes. PushFPS is free and open source under the GPL-3.0, like Veyra.
 
 **Is there a macOS or Linux version?**
-Yes, as a preview: see [Linux and macOS (preview)](#linux-and-macos-preview). It has PushFPS's own frame
-generation instead of the NVIDIA, AMD and Intel methods, which only exist for Windows.
+Yes, as a preview: see [Linux and macOS (preview)](#linux-and-macos-preview). It has the new design,
+PushFPS's own frame generation and Crosshair Hold, instead of the NVIDIA, AMD and Intel methods, which only
+exist for Windows.
 
 **Where are my settings and profiles stored?**
 Inside the PushFPS folder itself (`%LOCALAPPDATA%\Programs\PushFPS` unless you chose another one), with the
@@ -1236,6 +1254,9 @@ A measurement from your own card helps: [how to take one](docs/BENCHMARKING.md).
       a capture card connected from the home page plays there
 - [x] 4.4: Crosshair Hold: the crosshair is kept out of frame generation and put back in every generated
       frame; an update finishes while another program uses the virtual camera
+- [x] 4.4.5: a translated subtitle stays long enough to read, the PushFlow half precision test starts from the
+      interface, a lighter FSR offered to cards that fall behind; Linux and macOS get the new design and
+      Crosshair Hold
 - [ ] PushFlow timings on real NVIDIA, AMD and Intel cards
 - [ ] Linux and macOS: tested capture cards, recording and going live
 - [ ] Code signing (SignPath Foundation application)

@@ -133,6 +133,17 @@ between them (the recorder starts a new encoder between parts).
 - The installer finishes an update while another program has the virtual camera's file loaded, and a copy
   that fails names the files.
 
+## Done in 4.4.5
+
+- Live translation: a translated line stays for a chosen time (0 to 5 s, 1.5 unless chosen) after its original
+  ended or the next one began, or until the next translation is there.
+- The PushFlow half precision test starts from the interface: with something playing the button stops it and
+  starts the test by itself.
+- Check my setup offers FSR's lighter motion estimate to a card that shows fewer generated frames than asked
+  for, with Undo.
+- Linux and macOS (preview 0.2): the Windows build's new design round four pages, with the picture kept
+  playing across them (a contribution, pull request 18), and Crosshair Hold with the Windows build's rule.
+
 ## Next: can be built now, ships after it is measured
 
 These need card test results and performance reports from real cards before they are switched on by default.
