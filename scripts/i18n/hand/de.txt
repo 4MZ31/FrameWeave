@@ -1561,3 +1561,12 @@ zh:当前补帧方式自行估算运动，不使用此选项|Diese Methode der F
 zh:连接采集卡后打开专业模式|Pro-Modus öffnen, wenn eine Capture-Karte verbunden wird
 zh:关闭时留在首页，画面显示在首页中间|Aus: Du bleibst auf der Startseite, wo das Bild in der Mitte läuft
 zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Vollbild beim Verbinden" ist an: Beim Verbinden öffnet sich immer der Pro-Modus im Vollbild
+zh:准星保持|Crosshair Hold
+zh:准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。|Steht das Fadenkreuz still, während sich das Bild dahinter bewegt, verschiebt die Frame-Generierung das Fadenkreuz mit dem Hintergrund: Es verschwindet von seinem Platz, und links und rechts erscheint eine blassere Kopie. Ist die Option an, findet PushFPS das Fadenkreuz in der Bildschirmmitte, nimmt es vor der Frame-Generierung aus dem Bild und setzt es danach unverändert wieder ein. Ein Fadenkreuz, das gerade erst erschienen ist oder dessen Linien sich noch öffnen oder schließen, muss erst einen Moment ruhen, bevor es erkannt wird.
+zh:已关闭：画面移动时准星可能闪烁或出现重影|Aus: Das Fadenkreuz kann flimmern oder Geisterbilder zeigen, wenn sich das Bild bewegt
+zh:已开启：准星不交给补帧，补出的每一帧里都原样放回|An: Das Fadenkreuz bleibt aus der Frame-Generierung heraus und wird in jedem generierten Frame unverändert wieder eingesetzt
+zh:当前补帧方式暂不支持：可用于 NVIDIA VFG、AMD FRC 和 PushFlow|Mit dieser Frame-Generierungsmethode noch nicht: Es funktioniert mit NVIDIA VFG, AMD FRC und PushFlow
+zh:正在运行：已找到准星，补出的每一帧里都原样放回|Aktiv: Fadenkreuz gefunden. Es wird in jedem generierten Frame unverändert wieder eingesetzt
+zh:正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）|Aktiv: in der Bildmitte noch kein Fadenkreuz gefunden (es wird erkannt, sobald sich das Bild dahinter bewegt)
+zh:已开启：有画面播放并且补帧开启后开始运行|Ein: startet, sobald ein Bild läuft und die Frame-Generierung eingeschaltet ist
+zh:这种补帧方式暂不支持，请换一种补帧方式|Mit dieser Methode der Frame-Generierung noch nicht möglich: Wähle eine andere

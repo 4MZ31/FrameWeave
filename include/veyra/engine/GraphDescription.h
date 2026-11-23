@@ -6,6 +6,7 @@
 #include "veyra/pushflow/PushFlow2.h"
 #include "veyra/pushflow/PushFlowMotion.h"
 #include "veyra/pipeline/PushHudStill.h"
+#include "veyra/pipeline/PushOverlay.h"
 
 namespace veyra::engine {
 // Shared by graph creation and drained live-parameter updates. Disabled list
@@ -95,6 +96,16 @@ inline pipeline::SrOutput runningSrOutput(const EnhancementSettings& s,bool nvid
 // Fills the stage, size and parameter fields of `desc` from `settings`.
 // Source-format fields (hdrInput, rgbInput, packedInput, ...), hdrOutput and
 // host hooks are left untouched: the caller owns those.
+// PushFPS Crosshair Hold (pipeline/PushOverlay.h): the methods it serves. The interface's rows hold the same
+// list by name ("vfg", "amdfrc", "pushflow", "dlss", "fsr3", "fsr4"): change them together.
+constexpr bool crosshairHoldMethod(FrameGenerationBackend backend){
+    return backend==FrameGenerationBackend::Vfg||backend==FrameGenerationBackend::AmdFrc||backend==FrameGenerationBackend::PushFlow||
+        backend==FrameGenerationBackend::Dlss||fsrFrameGeneration(backend);
+}
+static_assert(crosshairHoldMethod(FrameGenerationBackend::Vfg)&&crosshairHoldMethod(FrameGenerationBackend::AmdFrc)&&crosshairHoldMethod(FrameGenerationBackend::PushFlow)&&
+    crosshairHoldMethod(FrameGenerationBackend::Dlss)&&crosshairHoldMethod(FrameGenerationBackend::Fsr)&&crosshairHoldMethod(FrameGenerationBackend::Fsr4)&&
+    !crosshairHoldMethod(FrameGenerationBackend::Anr)&&!crosshairHoldMethod(FrameGenerationBackend::XeSS),
+    "Crosshair Hold: every method the graph runs itself, never ANR (its output exists only after the list is submitted) nor XeSS (it presents its own frames)");
 inline pipeline::ResolutionPlan describeStages(const StageRequest& request,const EnhancementSettings& savedSettings,
                                                pipeline::EnhanceGraphDesc& desc) {
     desc.fixedExecutionPlan.reset();desc.fixedExecutionPlanError.clear();
@@ -209,6 +220,12 @@ inline pipeline::ResolutionPlan describeStages(const StageRequest& request,const
     desc.amdFlowHalfResolution=settings.amdFlowHalfResolution;desc.fgMotionRefine=settings.fgMotionRefine;desc.dlssgLite=settings.dlssgLite;desc.hudLock=settings.hudLock;
     // PushFPS: only while the graph generates frames, so the choice never rebuilds a graph it has no part in.
     desc.hudStill=desc.enableFg&&pipeline::hudstill::wanted();desc.vfgAutoRegulate=settings.vfgAutoRegulate;
+    // PushFPS Crosshair Hold: for every method the graph itself runs and whose output it can write to before it is
+    // shown: NVIDIA VFG, AMD FRC and PushFlow (which find motion in the frames they are given), and DLSS frame
+    // generation and FSR (given the filled frame as their picture). Never with PushFlow's Predict (its frames are
+    // forecasts after the real frame, not frames between two), never ANR (its output exists only after the
+    // list is submitted) and never XeSS (it presents its own frames).
+    desc.crosshairHold=desc.enableFg&&pipeline::overlay::wanted()&&!desc.pushFlowPredict&&crosshairHoldMethod(settings.frameGenerationBackend);
     desc.nrLayersExtent.clear();
     for(uint32_t i=0;i<chain.nodeCount;++i){
         auto& node=chain.nodes[i];

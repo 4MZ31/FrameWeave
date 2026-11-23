@@ -29,6 +29,8 @@ set these in the Quick setup (Home or Pro mode):
   Frame Pacing Repair .... OFF (default). Turn it on only if a game locked at 30 or 40 FPS still
                            judders: it evens out uneven frame delivery before frames are generated
   Live HUD Lock .......... ON: keeps text, crosshairs and the minimap sharp
+  Crosshair Hold ......... ON for shooters (Quick setup, HUD): the crosshair is kept out of frame
+                           generation, so it does not flicker or double when the camera moves
   Adaptive multiplier .... ON for games that dip below their frame rate
   AI picture enhancement . OFF to start (it uses a lot of GPU). Turn it on later if you have headroom
   Lowest latency ......... ON for action games. It changes nothing about picture quality
@@ -68,6 +70,8 @@ Which target for your monitor
 Change one thing at a time, play a minute, then decide.
 
   If you see ...                              Try ...
+  Crosshair flickers or doubles when the      Crosshair Hold on (Quick setup, HUD)
+  camera moves
   Smeared HUD or text in fast motion          Live HUD Lock on, use the game preset or Automatic HUD
                                               detection, or a lower target (60 instead of 120)
   Wobbly edges or artifacts in fast motion    A lower target, or a higher frame generation quality in Pro mode

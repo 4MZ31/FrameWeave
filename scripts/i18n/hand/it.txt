@@ -1561,3 +1561,12 @@ zh:当前补帧方式自行估算运动，不使用此选项|Questo metodo di ge
 zh:连接采集卡后打开专业模式|Apri la Modalità Pro alla connessione di una scheda di acquisizione
 zh:关闭时留在首页，画面显示在首页中间|Disattivato: resti nella Home, dove l'immagine viene riprodotta al centro
 zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Schermo intero alla connessione" è attivo: la connessione apre sempre la Modalità Pro a schermo intero
+zh:准星保持|Blocco del mirino
+zh:准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。|Quando il mirino è fermo e l'immagine dietro si muove, la generazione di fotogrammi sposta il mirino insieme allo sfondo: sparisce dal suo posto e ai due lati compare una copia più tenue. Con questa opzione attiva, PushFPS trova il mirino al centro dello schermo, lo toglie dall'immagine prima della generazione di fotogrammi e lo rimette invariato subito dopo. Un mirino appena comparso, o le cui linee si stanno ancora aprendo o chiudendo, deve restare fermo un istante prima di essere riconosciuto.
+zh:已关闭：画面移动时准星可能闪烁或出现重影|Disattivato: il mirino può sfarfallare o lasciare immagini fantasma quando l'immagine si muove
+zh:已开启：准星不交给补帧，补出的每一帧里都原样放回|Attivo: il mirino resta fuori dalla generazione di fotogrammi e viene rimesso invariato in ogni fotogramma generato
+zh:当前补帧方式暂不支持：可用于 NVIDIA VFG、AMD FRC 和 PushFlow|Non ancora con questo metodo di generazione di fotogrammi: funziona con NVIDIA VFG, AMD FRC e PushFlow
+zh:正在运行：已找到准星，补出的每一帧里都原样放回|In funzione: mirino trovato. Viene rimesso invariato in ogni fotogramma generato
+zh:正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）|In funzione: nessun mirino trovato finora al centro dell'immagine (viene riconosciuto quando l'immagine dietro si muove)
+zh:已开启：有画面播放并且补帧开启后开始运行|Attivo: parte quando un'immagine è in riproduzione con la generazione di fotogrammi attiva
+zh:这种补帧方式暂不支持，请换一种补帧方式|Non ancora con questo metodo di generazione di fotogrammi: scegline un altro

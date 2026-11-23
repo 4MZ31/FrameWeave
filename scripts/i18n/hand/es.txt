@@ -1561,3 +1561,12 @@ zh:当前补帧方式自行估算运动，不使用此选项|Este método de gen
 zh:连接采集卡后打开专业模式|Abrir el Modo Pro al conectar una capturadora
 zh:关闭时留在首页，画面显示在首页中间|Desactivado: te quedas en Inicio, donde la imagen se reproduce en el centro
 zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Pantalla completa al conectar" está activado: al conectar siempre se abre el Modo Pro a pantalla completa
+zh:准星保持|Retención de la mira
+zh:准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。|Cuando la mira está quieta y la imagen de detrás se mueve, la generación de fotogramas mueve la mira junto con el fondo: desaparece de su sitio y aparece una copia más tenue a cada lado. Con esta opción activada, PushFPS busca la mira en el centro de la pantalla, la saca de la imagen antes de la generación de fotogramas y la vuelve a poner sin cambios después. Una mira que acaba de aparecer, o cuyas líneas aún se abren o se cierran, tiene que quedarse quieta un momento antes de ser reconocida.
+zh:已关闭：画面移动时准星可能闪烁或出现重影|Desactivado: la mira puede parpadear o dejar imágenes fantasma cuando la imagen se mueve
+zh:已开启：准星不交给补帧，补出的每一帧里都原样放回|Activado: la mira queda fuera de la generación de fotogramas y se vuelve a poner sin cambios en cada fotograma generado
+zh:当前补帧方式暂不支持：可用于 NVIDIA VFG、AMD FRC 和 PushFlow|Todavía no con este método de generación de fotogramas: funciona con NVIDIA VFG, AMD FRC y PushFlow
+zh:正在运行：已找到准星，补出的每一帧里都原样放回|En marcha: mira encontrada. Se vuelve a poner sin cambios en cada fotograma generado
+zh:正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）|En marcha: aún no se ha encontrado una mira en el centro de la imagen (se detecta cuando la imagen de detrás se mueve)
+zh:已开启：有画面播放并且补帧开启后开始运行|Activado: empieza cuando hay imagen en reproducción con la generación de fotogramas activada
+zh:这种补帧方式暂不支持，请换一种补帧方式|Aún no funciona con este método de generación de fotogramas: elige otro

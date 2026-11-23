@@ -11,6 +11,10 @@
                         [-ExperimentalExtras Ask|Yes|No]
     Install-PushFPS.ps1 -Uninstall [-InstallDir <folder>]
 
+  A test build (a version that is not a release's X.Y.Z) never installs over the PushFPS that is there:
+  unless -InstallDir names a folder, it goes to %LOCALAPPDATA%\Programs\PushFPS-test, its shortcuts are
+  called "PushFPS test", and it starts with a copy of the installed PushFPS's settings.
+
   Works with Windows PowerShell 5.1 and PowerShell 7.
 #>
 [CmdletBinding()]
@@ -55,8 +59,18 @@ $UpstreamSha256 = @{
 
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $filesDir = Join-Path $here 'PushFPS-files'
-$startMenu = Join-Path ([Environment]::GetFolderPath('Programs')) 'PushFPS.lnk'
-$desktop = Join-Path ([Environment]::GetFolderPath('Desktop')) 'PushFPS.lnk'
+# A test build (its version is not a release's X.Y.Z) never installs over the PushFPS that is there. Unless a
+# folder is named it goes into a folder of its own; its shortcuts have their own name whatever the folder; and
+# in its own folder it starts with a copy of the installed PushFPS's settings, which is only read.
+# (23 November 2026: a private test build, double-clicked, replaced the owner's own PushFPS.)
+$TestBuild = $PushFpsVersion -notmatch '^\d+\.\d+\.\d+$'
+$MainDir = Join-Path $env:LOCALAPPDATA 'Programs\PushFPS'
+$OwnFolder = $TestBuild -and -not $PSBoundParameters.ContainsKey('InstallDir')
+if ($OwnFolder) { $InstallDir = Join-Path $env:LOCALAPPDATA 'Programs\PushFPS-test' }
+$linkName = 'PushFPS.lnk'
+if ($TestBuild) { $linkName = 'PushFPS test.lnk' }
+$startMenu = Join-Path ([Environment]::GetFolderPath('Programs')) $linkName
+$desktop = Join-Path ([Environment]::GetFolderPath('Desktop')) $linkName
 
 function Step([string]$text) { Write-Host ''; Write-Host "  $text" -ForegroundColor Green }
 function Info([string]$text) { Write-Host "    $text" }
@@ -82,12 +96,21 @@ trap { Fail ("Unexpected error: " + $_.Exception.Message) }
 Write-Host ''
 Write-Host "  PushFPS $PushFpsVersion" -ForegroundColor Green
 Write-Host '  Based on Veyra by Likely7 (GPL-3.0)'
+if ($OwnFolder) {
+    Write-Host ''
+    Write-Host '  This is a test build. It gets its own folder and its own shortcut ("PushFPS test").' -ForegroundColor Yellow
+    Write-Host '  The PushFPS you have is not changed.' -ForegroundColor Yellow
+}
 
 if ($Uninstall) {
     Step 'Removing PushFPS'
     foreach ($link in @($startMenu, $desktop)) { if (Test-Path $link) { Remove-Item $link -Force } }
-    if (Test-Path (Join-Path $InstallDir 'PushFPS.exe')) {
-        Remove-Item $InstallDir -Recurse -Force
+    # A PushFPS folder, or what an earlier removal could not delete of one (the virtual camera's file, loaded by
+    # another program): never any other folder.
+    $isPushFps = (Test-Path (Join-Path $InstallDir 'PushFPS.exe')) -or (Test-Path (Join-Path $InstallDir 'PushFPS-VERSION.txt')) -or (Test-Path (Join-Path $InstallDir 'virtualcam\pushfps-virtualcam64.dll'))
+    if ($isPushFps) {
+        try { Remove-Item $InstallDir -Recurse -Force -ErrorAction Stop }
+        catch { Fail "Not everything in $InstallDir could be removed: a file is in use. If the virtual camera was ever switched on, the programs that list cameras (a browser, Discord, OBS) have its file loaded. Close them, then run this again." }
         Info "Removed $InstallDir"
     } else {
         Info "Nothing installed in $InstallDir"
@@ -214,17 +237,63 @@ try {
         $old = Get-Process -Id $WaitForPid -ErrorAction SilentlyContinue
         if ($old) { Info 'Waiting for PushFPS to close'; $old.WaitForExit(60000) | Out-Null }
     }
-    $running = Get-Process -Name 'PushFPS' -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($InstallDir, [StringComparison]::OrdinalIgnoreCase) }
+    # Only a PushFPS running from this very folder: "...\PushFPS" is also how "...\PushFPS-test" begins.
+    $installRoot = $InstallDir.TrimEnd('\') + '\'
+    $running = Get-Process -Name 'PushFPS' -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($installRoot, [StringComparison]::OrdinalIgnoreCase) }
     if ($running) { Fail 'PushFPS is running. Close it, then run the installer again.' }
+    # A test build in its own folder takes a copy of the installed PushFPS's settings, once: never again when
+    # the test folder has settings of its own. Decided before anything is copied into the folder.
+    $mainData = Join-Path $MainDir 'runtime_local\user-data-2.0.0'
+    $ownData = Join-Path $InstallDir 'runtime_local\user-data-2.0.0'
+    $copySettings = $OwnFolder -and (Test-Path $mainData) -and -not (Test-Path $ownData)
     New-Item -ItemType Directory -Force $InstallDir | Out-Null
     # /E copies every folder; files already there are replaced, your settings folder
     # (runtime_local\user-data-2.0.0) and other extra files stay.
+    # A file that another program holds open cannot be replaced: the folder is then half old and half new, so
+    # say which files and that the install has to be run again (it used to say only an exit code).
+    # The virtual camera's files are left out here and copied on their own below: they are the one part of
+    # this folder that other programs load.
     foreach ($source in @($runtimeRoot, $filesDir)) {
-        & robocopy $source $InstallDir /E /R:2 /W:2 /NFL /NDL /NJH /NJS /NP | Out-Null
-        if ($LASTEXITCODE -ge 8) { Fail "Copying files failed (robocopy exit $LASTEXITCODE)." }
+        $copyLog = & robocopy $source $InstallDir /E /XD (Join-Path $source 'virtualcam') /R:2 /W:2 /NFL /NDL /NJH /NJS /NP
+        if ($LASTEXITCODE -ge 8) {
+            $copyCode = $LASTEXITCODE
+            @($copyLog) | Where-Object { $_ -match '\(0x[0-9A-Fa-f]{8}\)' } | Select-Object -First 6 | ForEach-Object { Info ([string]$_).Trim() }
+            Fail "Copying files failed (robocopy exit $copyCode), so this install is NOT complete. Close every program that has a file of $InstallDir open (a restart of the PC does it), then run the installer again."
+        }
+    }
+    # The virtual camera. Once it has been switched on, every program that lists cameras (a browser, Discord, OBS)
+    # loads its file from this folder and keeps it loaded while that program runs. A loaded file cannot be
+    # written over, and until 23 November 2026 that ended the whole install with "Copying files failed", the
+    # folder half old and half new. It can be renamed: the old file is moved aside (and removed by a later
+    # install, once nothing holds it) and the new one takes its name. A file that cannot even be moved stays as
+    # it is, and the install goes on: it is said below.
+    $cameraKept = @()
+    $cameraFrom = Join-Path $filesDir 'virtualcam'
+    if (Test-Path $cameraFrom) {
+        $cameraTo = Join-Path $InstallDir 'virtualcam'
+        New-Item -ItemType Directory -Force $cameraTo | Out-Null
+        foreach ($old in @(Get-ChildItem -LiteralPath $cameraTo -File | Where-Object { $_.Name -like '*.replaced-*' })) {
+            try { Remove-Item -LiteralPath $old.FullName -Force -ErrorAction Stop } catch { }
+        }
+        foreach ($file in @(Get-ChildItem -LiteralPath $cameraFrom -File)) {
+            $dest = Join-Path $cameraTo $file.Name
+            try { Copy-Item -LiteralPath $file.FullName -Destination $dest -Force -ErrorAction Stop }
+            catch {
+                try {
+                    [System.IO.File]::Move($dest, ($dest + '.replaced-' + [guid]::NewGuid().ToString('N').Substring(0, 8)))
+                    Copy-Item -LiteralPath $file.FullName -Destination $dest -Force -ErrorAction Stop
+                    Info "In use by another program, so the old file was moved aside: virtualcam\$($file.Name)"
+                } catch { $cameraKept += $file.Name }
+            }
+        }
+        foreach ($name in $cameraKept) { Info "Not updated (in use by another program): virtualcam\$name. Close the programs that use a camera and run the installer again." }
     }
     # One program, one name: PushFPS.exe replaces Veyra's launcher in this folder.
     Remove-Item (Join-Path $InstallDir 'veyra_qml_ui.exe') -Force -ErrorAction SilentlyContinue
+    if ($copySettings) {
+        & robocopy $mainData $ownData /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
+        if ($LASTEXITCODE -ge 8) { Info 'Your settings could not be copied: the test build starts with settings of its own.' } else { Info 'Copied the settings of your PushFPS for the test build.' }
+    }
     $versionLines = @(
         "PushFPS $PushFpsVersion",
         "Runtime: $asset from https://github.com/$UpstreamRepo/releases/tag/$UpstreamTag",
@@ -245,6 +314,7 @@ if (-not $NoShortcuts) {
         $s.WorkingDirectory = $InstallDir
         $s.IconLocation = "$target,0"
         $s.Description = 'PushFPS: console frame generation'
+        if ($TestBuild) { $s.Description = 'PushFPS test build' }
         $s.Save()
     }
 }
@@ -262,6 +332,7 @@ try {
 Step 'PushFPS is installed.'
 Info "Program: $target"
 Info "Remove it any time with: Install-PushFPS.cmd -Uninstall"
+if ($OwnFolder) { Info "Your own PushFPS in $MainDir was not changed. Start this test build with the shortcut ""PushFPS test""." }
 Info "The downloaded package stays in $cacheDir for quick reinstalls; you can delete it."
 
 if (-not $NoLaunch) { Start-Process -FilePath $target -WorkingDirectory $InstallDir }

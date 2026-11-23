@@ -363,7 +363,7 @@ jobs:
             Write-Host "$t exit $code"
             if ($code -ne 0) { $failed++ }
           }
-          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_audio_mix_tests', 'veyra_push_studio_sources_tests', 'veyra_push_benchmark_tests', 'veyra_push_hud_tests', 'veyra_push_adaptive_fg_tests', 'veyra_push_pacing_repair_tests', 'veyra_push_archive_paths_tests', 'veyra_push_crash_note_tests', 'veyra_push_compare_plan_tests', 'veyra_push_fg_health_tests', 'veyra_push_half_rate_tests', 'veyra_push_record_parts_tests', 'veyra_push_capture_audio_suggest_tests', 'veyra_push_record_quality_tests', 'veyra_push_compare_name_tests', 'veyra_push_display_cap_tests', 'veyra_push_remote_sync_tests', 'veyra_push_capture_device_pick_tests', 'veyra_push_capture_sharper_tests', 'veyra_push_gpu_load_tests', 'veyra_push_ocr_tests', 'veyra_push_ocr_windows_tests', 'veyra_push_control_tests', 'veyra_push_clip_markers_tests', 'veyra_push_present_scaling_tests', 'veyra_push_hud_still_tests', 'veyra_push_audio_trim_tests', 'veyra_push_compare_line_tests', 'veyra_push_display_peak_tests', 'veyra_push_dolby_vision_tests', 'veyra_remoteplay_core_tests', 'veyra_push_perf_report_tests', 'veyra_push_half_approval_tests', 'veyra_push_view_crop_tests', 'veyra_push_flow_motion_tests', 'veyra_push_flow2_tests', 'veyra_push_flow_guard_tests', 'veyra_push_flow_predict_tests', 'veyra_push_response_tests', 'veyra_remoteplay_feedback_wire_tests', 'veyra_frame_input_tests', 'veyra_push_quality_tests', 'veyra_push_input_latency_tests', 'veyra_vrr_profile_tests') {
+          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_audio_mix_tests', 'veyra_push_studio_sources_tests', 'veyra_push_benchmark_tests', 'veyra_push_hud_tests', 'veyra_push_adaptive_fg_tests', 'veyra_push_pacing_repair_tests', 'veyra_push_archive_paths_tests', 'veyra_push_crash_note_tests', 'veyra_push_compare_plan_tests', 'veyra_push_fg_health_tests', 'veyra_push_half_rate_tests', 'veyra_push_record_parts_tests', 'veyra_push_capture_audio_suggest_tests', 'veyra_push_record_quality_tests', 'veyra_push_compare_name_tests', 'veyra_push_display_cap_tests', 'veyra_push_remote_sync_tests', 'veyra_push_capture_device_pick_tests', 'veyra_push_capture_sharper_tests', 'veyra_push_gpu_load_tests', 'veyra_push_ocr_tests', 'veyra_push_ocr_windows_tests', 'veyra_push_control_tests', 'veyra_push_clip_markers_tests', 'veyra_push_present_scaling_tests', 'veyra_push_hud_still_tests', 'veyra_push_overlay_tests', 'veyra_push_audio_trim_tests', 'veyra_push_compare_line_tests', 'veyra_push_display_peak_tests', 'veyra_push_dolby_vision_tests', 'veyra_remoteplay_core_tests', 'veyra_push_perf_report_tests', 'veyra_push_half_approval_tests', 'veyra_push_view_crop_tests', 'veyra_push_flow_motion_tests', 'veyra_push_flow2_tests', 'veyra_push_flow_guard_tests', 'veyra_push_flow_predict_tests', 'veyra_push_response_tests', 'veyra_remoteplay_feedback_wire_tests', 'veyra_frame_input_tests', 'veyra_push_quality_tests', 'veyra_push_input_latency_tests', 'veyra_vrr_profile_tests') {
             cmake --build $env:BUILD --target $t --parallel
             if ($LASTEXITCODE -ne 0) { Write-Host "::error::$t did not build"; $failed++; continue }
             $exe = Get-ChildItem $env:BUILD -Recurse -Filter "$t.exe" | Select-Object -First 1
@@ -655,6 +655,10 @@ jobs:
           & D:\pf-zip\Install-PushFPS.ps1 -Gpu NVIDIA -InstallDir D:\pf-install -NoShortcuts -NoLaunch -ExperimentalExtras No
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path D:\pf-install\PushFPS.exe)) { throw "PushFPS.exe missing after install" }
+          # The virtual camera's files are copied apart from the rest (Install-PushFPS.ps1): they have to arrive.
+          foreach ($f in @(Get-ChildItem D:\pf-zip\PushFPS-files\virtualcam -File -ErrorAction SilentlyContinue)) {
+            if (-not (Test-Path (Join-Path D:\pf-install\virtualcam $f.Name))) { throw "the virtual camera file $($f.Name) was not installed" }
+          }
           # Licensing check: every installed file that says it is from NVIDIA is an NVIDIA-signed original.
           $bad = Get-ChildItem D:\pf-install -Recurse -File -Include *.dll, *.exe | Where-Object { $_.VersionInfo.CompanyName -match 'NVIDIA' } |
             Where-Object { $sig = Get-AuthenticodeSignature $_.FullName; -not ($sig.Status -eq 'Valid' -and $sig.SignerCertificate.Subject -match 'NVIDIA') }
@@ -719,6 +723,12 @@ jobs:
           if (-not (Test-Path D:\pf-update\files\Install-PushFPS.ps1)) { throw 'the installer is not at the top of the release zip' }
           Set-Content D:\pf-install\PushFPS-update-marker.txt 'kept'
           Set-Content D:\pf-update\empty.txt ''
+          # The virtual camera's file as it is while another program has it loaded: it cannot be written over, it
+          # can be renamed. Until 23 November 2026 that ended an install with "Copying files failed" and left the
+          # folder half old and half new (the owner's PC, with a browser open). The install must finish, with the
+          # new file under the old name and the old one moved aside.
+          $cam = 'D:\pf-install\virtualcam\pushfps-virtualcam64.dll'; $camHeld = $null
+          if (Test-Path $cam) { $camHeld = [System.IO.File]::Open($cam, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]'Read, Delete') }
           $u = Start-Process powershell.exe -PassThru -Wait -RedirectStandardInput D:\pf-update\empty.txt -RedirectStandardOutput D:\pf-update\out.txt -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'D:\pf-update\files\Install-PushFPS.ps1',
             '-Gpu', 'NVIDIA', '-InstallDir', 'D:\pf-install', '-NoShortcuts', '-ExperimentalExtras', 'No', '-WaitForPid', "$($old.Id)", '-NoLaunch')
           Get-Content D:\pf-update\out.txt -ErrorAction SilentlyContinue | Out-Host
@@ -726,7 +736,48 @@ jobs:
           if (-not $old.HasExited) { throw 'the installer did not wait for the running PushFPS' }
           if (-not (Test-Path D:\pf-install\PushFPS-update-marker.txt)) { throw 'the update removed a file it should have kept' }
           if ((Get-Content D:\pf-install\PushFPS-VERSION.txt -Raw) -notmatch "PushFPS $([regex]::Escape($env:PUSHFPS_VERSION))") { throw 'PushFPS-VERSION.txt does not name this version after the update' }
+          if ($camHeld) {
+            $camHeld.Dispose()
+            if (@(Get-ChildItem D:\pf-install\virtualcam -Filter 'pushfps-virtualcam64.dll.replaced-*').Count -ne 1) { throw 'the virtual camera file that another program held was not moved aside' }
+            if ((Get-FileHash $cam -Algorithm SHA256).Hash -ne (Get-FileHash D:\pf-update\files\PushFPS-files\virtualcam\pushfps-virtualcam64.dll -Algorithm SHA256).Hash) { throw 'the virtual camera file was not replaced while another program held it' }
+            Write-Host 'Update path: a virtual camera file held by another program is moved aside and replaced; the install finishes.'
+          } else { Write-Host '::warning::no virtual camera file in this package: the held-file path of the installer was not run' }
           Write-Host 'Update path: tar unpack, install over the old copy while it closes, version record written.'
+          # A build that is not a release never installs over the PushFPS that is there (Install-PushFPS.ps1,
+          # $OwnFolder; 23 November 2026: a private test build, double-clicked, replaced the owner's own PushFPS).
+          # Run the way a double click runs it, with no folder named: its own folder, its own shortcuts, a copy of
+          # the settings, and the installed PushFPS's folder exactly as it was. A release build keeps the default.
+          if ($env:PUSHFPS_VERSION -notmatch '^\d+\.\d+\.\d+$') {
+            $main = "$env:LOCALAPPDATA\Programs\PushFPS"; $own = "$env:LOCALAPPDATA\Programs\PushFPS-test"
+            if ((Test-Path $main) -or (Test-Path $own)) { throw 'the runner already has a PushFPS folder: this test would not be its own' }
+            $desk = [Environment]::GetFolderPath('Desktop'); $menu = [Environment]::GetFolderPath('Programs')
+            New-Item -ItemType Directory -Force $desk, $menu, "$main\runtime_local\user-data-2.0.0" | Out-Null
+            Set-Content "$main\runtime_local\user-data-2.0.0\ci-settings.txt" 'from the installed PushFPS'
+            Set-Content "$main\ci-main.txt" 'the installed PushFPS'
+            & D:\pf-zip\Install-PushFPS.ps1 -Gpu NVIDIA -NoLaunch -ExperimentalExtras No
+            if ($LASTEXITCODE -ne 0) { throw "a test build's install into its own folder failed (exit $LASTEXITCODE)" }
+            if (-not (Test-Path "$own\PushFPS.exe")) { throw 'a test build did not install into its own folder' }
+            $mainFiles = @(Get-ChildItem $main -Recurse -File | ForEach-Object { $_.FullName.Substring($main.Length) } | Sort-Object)
+            if (($mainFiles -join '|') -ne '\ci-main.txt|\runtime_local\user-data-2.0.0\ci-settings.txt') { throw "a test build changed the folder of the installed PushFPS: $($mainFiles -join ', ')" }
+            if ((Get-Content "$own\runtime_local\user-data-2.0.0\ci-settings.txt" -Raw) -notmatch 'from the installed PushFPS') { throw 'a test build did not take a copy of the settings' }
+            foreach ($folder in $desk, $menu) {
+              if (Test-Path (Join-Path $folder 'PushFPS.lnk')) { throw "a test build wrote the installed PushFPS's shortcut in $folder" }
+              if (-not (Test-Path (Join-Path $folder 'PushFPS test.lnk'))) { throw "a test build has no shortcut of its own in $folder" }
+            }
+            # Installed again: the settings it has by then are its own and stay.
+            Set-Content "$own\runtime_local\user-data-2.0.0\ci-settings.txt" 'changed in the test build'
+            Set-Content "$main\runtime_local\user-data-2.0.0\ci-settings.txt" 'changed in the installed PushFPS'
+            & D:\pf-zip\Install-PushFPS.ps1 -Gpu NVIDIA -NoShortcuts -NoLaunch -ExperimentalExtras No
+            if ($LASTEXITCODE -ne 0) { throw "a test build's second install failed (exit $LASTEXITCODE)" }
+            if ((Get-Content "$own\runtime_local\user-data-2.0.0\ci-settings.txt" -Raw) -notmatch 'changed in the test build') { throw 'a second install replaced the test build''s own settings' }
+            & D:\pf-zip\Install-PushFPS.ps1 -Uninstall
+            if ($LASTEXITCODE -ne 0) { throw "a test build's uninstall failed (exit $LASTEXITCODE)" }
+            if (Test-Path $own) { throw 'the uninstall left the test build''s folder' }
+            if (-not (Test-Path "$main\ci-main.txt")) { throw 'a test build''s uninstall removed the installed PushFPS' }
+            foreach ($folder in $desk, $menu) { if (Test-Path (Join-Path $folder 'PushFPS test.lnk')) { throw "the uninstall left a shortcut in $folder" } }
+            Remove-Item $main -Recurse -Force
+            Write-Host 'Test build: its own folder and shortcuts, a copy of the settings once, the installed PushFPS untouched; uninstall removes only itself.'
+          }
 
       # Corresponding source of the streaming libraries compiled into PushFPS.exe: Chiaki-ng with
       # Veyra's patches applied (AGPL-3.0 with the OpenSSL exception), moonlight-common-c with ENet
@@ -873,7 +924,9 @@ jobs:
           $zip = Get-ChildItem art -Recurse -Filter 'PushFPS-*-win64.zip' | Where-Object Name -notmatch 'OBS-Plugin' | Select-Object -First 1
           $obsZip = Get-ChildItem art -Recurse -Filter 'PushFPS-OBS-Plugin-*.zip' | Select-Object -First 1
           Expand-Archive $zip.FullName D:\pf-zip
-          & D:\pf-zip\Install-PushFPS.ps1 -Gpu NVIDIA -NoShortcuts -NoLaunch -ExperimentalExtras No
+          # The folder is named: a build that is not a release would otherwise go to its own folder (PushFPS-test),
+          # and the OBS plugin looks for PushFPS where a release installs it.
+          & D:\pf-zip\Install-PushFPS.ps1 -Gpu NVIDIA -InstallDir "$env:LOCALAPPDATA\Programs\PushFPS" -NoShortcuts -NoLaunch -ExperimentalExtras No
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path "$env:LOCALAPPDATA\Programs\PushFPS\PushFPS.exe")) { throw 'PushFPS.exe not in the default folder' }
           Expand-Archive $obsZip.FullName D:\obs-pkg

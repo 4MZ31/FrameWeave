@@ -1561,3 +1561,12 @@ zh:当前补帧方式自行估算运动，不使用此选项|Deze methode voor f
 zh:连接采集卡后打开专业模式|Pro-modus openen bij verbinden van een capturekaart
 zh:关闭时留在首页，画面显示在首页中间|Uit: je blijft op Start, waar het beeld in het midden speelt
 zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Volledig scherm bij verbinden" staat aan: verbinden opent altijd de Pro-modus op volledig scherm
+zh:准星保持|Crosshair Hold
+zh:准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。|Als het vizier stilstaat terwijl het beeld erachter beweegt, schuift framegeneratie het vizier met de achtergrond mee: het verdwijnt van zijn plek en aan weerszijden verschijnt een vagere kopie. Met deze optie aan zoekt PushFPS het vizier in het midden van het scherm, haalt het vóór de framegeneratie uit het beeld en zet het er daarna ongewijzigd weer in. Een vizier dat net is verschenen, of waarvan de lijnen nog in- of uitschuiven, moet eerst even stilstaan voordat het wordt herkend.
+zh:已关闭：画面移动时准星可能闪烁或出现重影|Uit: het vizier kan flikkeren of nabeelden geven als het beeld beweegt
+zh:已开启：准星不交给补帧，补出的每一帧里都原样放回|Aan: het vizier blijft buiten de framegeneratie en wordt in elk gegenereerd frame ongewijzigd teruggezet
+zh:当前补帧方式暂不支持：可用于 NVIDIA VFG、AMD FRC 和 PushFlow|Nog niet met deze framegeneratiemethode: het werkt met NVIDIA VFG, AMD FRC en PushFlow
+zh:正在运行：已找到准星，补出的每一帧里都原样放回|Actief: vizier gevonden. Het wordt in elk gegenereerd frame ongewijzigd teruggezet
+zh:正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）|Actief: nog geen vizier gevonden in het midden van het beeld (het wordt herkend zodra het beeld erachter beweegt)
+zh:已开启：有画面播放并且补帧开启后开始运行|Aan: het begint zodra er beeld speelt met framegeneratie aan
+zh:这种补帧方式暂不支持，请换一种补帧方式|Nog niet met deze methode voor framegeneratie: kies een andere

@@ -1561,3 +1561,12 @@ zh:当前补帧方式自行估算运动，不使用此选项|Bu kare oluşturma 
 zh:连接采集卡后打开专业模式|Yakalama kartı bağlanınca Pro modunu aç
 zh:关闭时留在首页，画面显示在首页中间|Kapalıyken ana sayfada kalırsınız; görüntü ortada oynar
 zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Bağlanınca tam ekran" açık: bağlanınca her zaman Pro modu tam ekran açılır
+zh:准星保持|Nişangâh Sabitleme
+zh:准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。|Nişangâh sabit dururken arkasındaki görüntü hareket ederse kare üretimi nişangâhı arka planla birlikte kaydırır: yerinden kaybolur ve iki yanında daha soluk birer kopyası belirir. Bu seçenek açıkken PushFPS nişangâhı ekranın ortasında bulur, kare üretiminden önce görüntüden çıkarır ve sonrasında olduğu gibi geri koyar. Yeni beliren ya da çizgileri hâlâ açılıp kapanan bir nişangâhın tanınması için önce kısa bir süre sabit durması gerekir.
+zh:已关闭：画面移动时准星可能闪烁或出现重影|Kapalı: görüntü hareket ederken nişangâh titreyebilir veya hayalet iz bırakabilir
+zh:已开启：准星不交给补帧，补出的每一帧里都原样放回|Açık: nişangâh kare üretimine verilmez ve üretilen her kareye olduğu gibi geri konur
+zh:当前补帧方式暂不支持：可用于 NVIDIA VFG、AMD FRC 和 PushFlow|Bu kare üretimi yöntemiyle henüz değil: NVIDIA VFG, AMD FRC ve PushFlow ile çalışır
+zh:正在运行：已找到准星，补出的每一帧里都原样放回|Çalışıyor: nişangâh bulundu. Üretilen her kareye değiştirilmeden geri konur
+zh:正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）|Çalışıyor: görüntünün ortasında henüz nişangâh bulunamadı (arkasındaki görüntü hareket edince algılanır)
+zh:已开启：有画面播放并且补帧开启后开始运行|Açık: kare üretimi açıkken bir görüntü oynatılınca çalışmaya başlar
+zh:这种补帧方式暂不支持，请换一种补帧方式|Bu kare üretimi yöntemiyle henüz çalışmıyor: başka bir yöntem seçin

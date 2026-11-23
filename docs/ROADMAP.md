@@ -124,6 +124,15 @@ between them (the recorder starts a new encoder between parts).
 - Linux and macOS preview 0.1.1 (a contribution by ShyVortex): connecting at start works with a single
   capture card, the sound devices are remembered, and the interface always draws with its theme.
 
+## Done in 4.4
+
+- Crosshair Hold: the crosshair (lines, a dot, a ring) is found in the middle of the screen, kept out of what
+  frame generation is given and laid back over every generated frame, so it does not flicker or double when
+  the camera moves. A switch in quick setup's HUD section, with NVIDIA VFG, DLSS frame generation, FSR, AMD
+  FRC and PushFlow; its row says when a crosshair is held.
+- The installer finishes an update while another program has the virtual camera's file loaded, and a copy
+  that fails names the files.
+
 ## Next: can be built now, ships after it is measured
 
 These need card test results and performance reports from real cards before they are switched on by default.

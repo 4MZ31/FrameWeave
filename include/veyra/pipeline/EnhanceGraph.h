@@ -7,6 +7,7 @@
 #include "veyra/pipeline/AntiAliasPass.h"
 #include "veyra/pipeline/NisPass.h"
 #include "veyra/pipeline/PushHudLock.h"
+#include "veyra/pipeline/PushOverlayPass.h"
 #include "veyra/pipeline/BeautyPass.h"
 #include "veyra/beauty/FaceTracker.h"
 #include "veyra/pipeline/NrInstance.h"
@@ -182,6 +183,7 @@ struct EnhanceGraphDesc {
     bool dlssgLite=false;
     bool hudLock=false; // PushFPS Live HUD Lock (PushHudLock.h), graph frame generation only
     bool hudStill=false; // PushFPS still rule (PushHudStill.h): what stands still in front of a moving picture keeps its real pixels
+    bool crosshairHold=false; // PushFPS Crosshair Hold (PushOverlay.h): the crosshair is taken out of what frame generation is given
     engine::ContentRate contentRate=engine::ContentRate::Transport;
     engine::NrSettings model;
     engine::ResidualSettings residual;
@@ -837,6 +839,13 @@ public:
     int hudLockState() const { if(!desc_.hudLock)return 0; if(hudLock_&&hudLock_->lockActive())return 1; if(!fgEnabled_||presentSinkFg())return 3; return 2; }
     // The still rule the same way: 0 not asked for, 1 running, 2 could not start, 3 nothing for it to do
     // (no frame generation in the graph, or a method that presents its own frames).
+    // PushFPS Crosshair Hold: 0 not asked, 1 running, 2 asked but the pass could not be made, 3 not with this method or without frame generation.
+    int crosshairHoldState() const { if(!pipeline::overlay::wanted())return 0; if(overlay_)return 1; if(!desc_.crosshairHold||!fgEnabled_||presentSinkFg())return 3; return 2; }
+    // How many pixels of its zone Crosshair Hold held in the frame it sampled last (0 = nothing found there), and
+    // how many real frames it has seen: a pass that runs and sees frames but holds nothing has found no crosshair.
+    // (Asking counts the sample taken last, if the card has written it; nothing waits.)
+    unsigned crosshairHoldPixels() { if(!overlay_)return 0u; overlay_->harvest(); return overlay_->maskedPixels(); }
+    uint64_t crosshairHoldFrames() const { return overlay_?overlay_->realFrames():0ull; }
     int hudStillState() const { if(!desc_.hudStill)return 0; if(hudLock_&&hudLock_->stillActive())return 1; if(!fgEnabled_||presentSinkFg())return 3; return 2; }
     // AMD FSR upscaling replaces the SR stage; it is a FidelityFX effect, not
     // an NGX feature, so it also works on non-NVIDIA adapters.
@@ -1253,8 +1262,13 @@ private:
     std::unique_ptr<gfx::FsrSrBackend> fsrSrBackend_;
     std::unique_ptr<NisPass> nisPass_;  // PushFPS: NVIDIA Image Scaling SR
     std::unique_ptr<PushHudLock> hudLock_;  // PushFPS: Live HUD Lock
+    std::unique_ptr<PushOverlayPass> overlay_;  // PushFPS: Crosshair Hold
     bool initHudLock();
     void composeHudLock(ID3D12GraphicsCommandList* list,unsigned generatedSlot,unsigned heldParity);
+    // PushFPS Crosshair Hold: the frame a method is given for real frame `parity` (the real frame itself without the pass).
+    bool initOverlay();
+    ID3D12Resource* fgInput(unsigned parity) const;
+    void composeOverlay(ID3D12GraphicsCommandList* list,unsigned generatedSlot,unsigned parity,float t);
     // Double SR first passes on DLSS SR / FSR (the final pass keeps the members above).
     std::unique_ptr<ngx::DlssSrBackend> firstDlssSrBackend_;
     std::unique_ptr<gfx::FsrSrBackend> firstFsrSrBackend_;
