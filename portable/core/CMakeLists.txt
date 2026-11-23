@@ -4,6 +4,7 @@ add_library(pushfps_portable_core STATIC
   src/Convert.cpp
   src/Motion.cpp
   src/Interpolate.cpp
+  src/CrosshairHold.cpp
   src/Engine.cpp)
 target_include_directories(pushfps_portable_core PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include

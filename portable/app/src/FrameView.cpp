@@ -45,8 +45,10 @@ struct Uniforms {
     float saturation;
     float gamma;
     float pad0;
+    float holdZone[4];   // Crosshair Hold: x, y, size of its square in picture pixels; [3] > 0.5 = held
 };
-static_assert(sizeof(Uniforms) == 128, "std140 layout of frame.vert/frame.frag");
+static_assert(sizeof(Uniforms) == 144, "std140 layout of frame.vert/frame.frag");
+static_assert(offsetof(Uniforms, holdZone) == 128, "vec4 alignment");
 static_assert(offsetof(Uniforms, frameSize) == 80, "vec2 alignment");
 
 class FrameMaterial : public QSGMaterial {
@@ -58,7 +60,7 @@ public:
         // One node, one material: never batched with anything else.
         return this == other ? 0 : (this < other ? -1 : 1);
     }
-    QSGTexture* textures[5] = {};
+    QSGTexture* textures[8] = {};
     Uniforms u{};
 };
 
@@ -80,7 +82,7 @@ public:
     }
     void updateSampledImage(RenderState& state, int binding, QSGTexture** texture, QSGMaterial* newMaterial, QSGMaterial*) override {
         auto* m = static_cast<FrameMaterial*>(newMaterial);
-        if (binding < 1 || binding > 5) return;
+        if (binding < 1 || binding > 8) return;
         QSGTexture* t = m->textures[binding - 1];
         if (!t) return;
         t->commitTextureOperations(state.rhi(), state.resourceUpdateBatch());
@@ -123,6 +125,15 @@ QImage frameImage(const std::shared_ptr<const Bgra>& b) {
     auto* keep = new std::shared_ptr<const Bgra>(b);
     return QImage(const_cast<uchar*>(b->px.data()), b->width, b->height, b->width * 4, QImage::Format_RGB32,
                   [](void* p) { delete static_cast<std::shared_ptr<const Bgra>*>(p); }, keep);
+}
+
+// Crosshair Hold: the square of one real frame as frame generation takes it. Wraps the pair's picture
+// without copying; the QImage keeps the pair alive.
+QImage holdImage(const std::shared_ptr<const HoldPair>& pair, bool second) {
+    const Bgra& z = second ? pair->filledB : pair->filledA;
+    auto* keep = new std::shared_ptr<const HoldPair>(pair);
+    return QImage(const_cast<uchar*>(z.px.data()), z.width, z.height, z.width * 4, QImage::Format_RGB32,
+                  [](void* p) { delete static_cast<std::shared_ptr<const HoldPair>*>(p); }, keep);
 }
 
 QImage maskImage(const Gray& g) {
@@ -203,8 +214,8 @@ QSGTexture* FrameView::cached(quint64 key, const std::function<QImage()>& make, 
     t->setMipmapFiltering(QSGTexture::None);
     t->setHorizontalWrapMode(QSGTexture::ClampToEdge);
     t->setVerticalWrapMode(QSGTexture::ClampToEdge);
-    // Keep the newest few: two frames, their fields and mask, and the next pair coming in.
-    if (cache_.size() >= 12) {
+    // Keep the newest few: two frames, their fields, mask and Crosshair Hold's three, and the next pair coming in.
+    if (cache_.size() >= 18) {
         auto oldest = std::min_element(cache_.begin(), cache_.end(), [](const CachedTexture& a, const CachedTexture& b) { return a.lastUse < b.lastUse; });
         delete oldest->texture;
         cache_.erase(oldest);
@@ -294,12 +305,27 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
         }
         if (!tf || !tk) { tf = tk = black_; }
     }
+    // Crosshair Hold's part of this pair, when a crosshair is held (CrosshairHold.h).
+    QSGTexture *tha = black_, *thb = black_, *ths = black_;
+    bool holding = false;
+    if (generate && tf != black_ && pick.hold && pick.hold->size > 1 && pick.hold->filledA.width == pick.hold->size &&
+        pick.hold->filledB.width == pick.hold->size && pick.hold->shows.width == pick.hold->size) {
+        const quint64 pairKey = ((pick.aId * 1000003ULL) ^ pick.bId) << 3;
+        tha = cached(pairKey | 4, [&] { return holdImage(pick.hold, false); }, false);
+        thb = cached(pairKey | 5, [&] { return holdImage(pick.hold, true); }, false);
+        ths = cached(pairKey | 6, [&] { return maskImage(pick.hold->shows); }, false);
+        holding = tha && thb && ths;
+        if (!holding) tha = thb = ths = black_;
+    }
     const bool interpolating = generate && tf != black_ && tk != black_;
     m.textures[0] = ta ? ta : black_;
     m.textures[1] = tb ? tb : black_;
     m.textures[2] = tf;
     m.textures[3] = tk;
     m.textures[4] = tm ? tm : black_;
+    m.textures[5] = tha;
+    m.textures[6] = thb;
+    m.textures[7] = ths;
     Uniforms& u = m.u;
     u.phase = pick.t;
     u.mode = interpolating ? 1.f : 0.f;
@@ -315,6 +341,11 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
     u.contrast = float(contrast_);
     u.saturation = float(saturation_);
     u.gamma = float(gamma_);
+    const bool held = interpolating && holding;
+    u.holdZone[0] = held ? float(pick.hold->x) : 0.f;
+    u.holdZone[1] = held ? float(pick.hold->y) : 0.f;
+    u.holdZone[2] = held ? float(pick.hold->size) : 1.f;
+    u.holdZone[3] = held ? 1.f : 0.f;
     QSGGeometry::updateTexturedRectGeometry(&node->geometry_, rect, source);
     node->markDirty(QSGNode::DirtyGeometry | QSGNode::DirtyMaterial);
     return node;

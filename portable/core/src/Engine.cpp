@@ -77,6 +77,7 @@ void Engine::setSettings(const EngineSettings& settings) {
     std::lock_guard lk(m_);
     const bool rebuild = settings.quality != s_.quality || settings.hudLock != s_.hudLock;
     if (settings.pacingRepair != s_.pacingRepair) pacing_->repair.reset();
+    if (settings.crosshairHold != s_.crosshairHold) holdReset_ = true;
     s_ = settings;
     if (rebuild) {
         // Fields of the old quality / masks stay valid for display; the next pair uses the new ones.
@@ -113,6 +114,7 @@ void Engine::resetLocked() {
     slackSeenB_ = 0;
     pacing_->repair.reset();
     hudReset_ = true;
+    holdReset_ = true;
     lastForward_ = {};
     lastBackward_ = {};
     shownTimes_.clear();
@@ -145,6 +147,10 @@ void Engine::push(Gray&& luma, const std::function<Bgra()>& makeImage, int64_t a
     bool boundary = false;
     uint64_t id = 0, generation = 0;
     bool queued = false;
+    // Crosshair Hold: whether it is wanted for this frame, whether to start it over, and the frame before's part.
+    bool holdWanted = false, holdStartOver = false;
+    std::shared_ptr<const HoldFrame> holdBefore;
+    uint64_t holdBeforeId = 0;
     {
         std::lock_guard lk(m_);
         ++st_.framesIn;
@@ -173,6 +179,13 @@ void Engine::push(Gray&& luma, const std::function<Bgra()>& makeImage, int64_t a
                    double(arrivalNs - lastKeptArrival_) > 250.0 * kMs;
         id = nextId_++;
         generation = generation_;
+        holdWanted = s_.crosshairHold && s_.frameGeneration;
+        holdStartOver = holdReset_;
+        holdReset_ = false;
+        if (holdWanted && !frames_.empty() && !boundary) {
+            holdBefore = frames_.back()->hold;
+            holdBeforeId = frames_.back()->id;
+        }
         if (!frames_.empty() && !boundary && s_.frameGeneration) {
             // Only the newest pair matters: a worker that fell behind skips the older ones (they show the
             // nearer real frame instead of a generated one).
@@ -185,6 +198,16 @@ void Engine::push(Gray&& luma, const std::function<Bgra()>& makeImage, int64_t a
     // The colour picture only for real frames (the conversion costs more than everything above).
     auto frameImage = std::make_shared<const Bgra>(makeImage());
     if (frameImage->width != width || frameImage->height != height) return;
+
+    // Crosshair Hold, on the colour picture (hold_ belongs to this thread). Every kept frame is looked at in
+    // order; with the switch off nothing is kept from one frame to the next.
+    std::shared_ptr<const HoldFrame> holdFrame;
+    std::shared_ptr<const HoldPair> holdPair;
+    if (holdStartOver || !holdWanted) hold_.reset();
+    if (holdWanted) {
+        holdFrame = hold_.frame(*frameImage);
+        if (holdFrame && holdBefore) holdPair = CrosshairHold::pair(*holdBefore, *holdFrame);
+    }
 
     std::lock_guard lk(m_);
     // Started over meanwhile (another size, a reset): this frame belongs to what was thrown away.
@@ -209,6 +232,11 @@ void Engine::push(Gray&& luma, const std::function<Bgra()>& makeImage, int64_t a
     frame->arrival = arrivalNs;
     frame->image = std::move(frameImage);
     frame->pyramid = std::move(pyramid);
+    frame->hold = holdFrame;
+    frame->holdPair = holdPair;
+    frame->holdPairWith = holdPair ? holdBeforeId : 0;
+    st_.holdState = holdWanted && holdFrame ? 1 : 0;
+    st_.holdPixels = holdFrame ? holdFrame->masked : 0;
     ++st_.kept;
     frames_.push_back(frame);
     while (frames_.size() > kMaxFrames) frames_.pop_front();
@@ -380,7 +408,8 @@ Pick Engine::pick(int64_t displayNs) {
                 p.bId = B->id;
                 p.t = t;
                 p.fields = fields;
-                if (t <= 0.f) { p.b = p.a; p.bId = p.aId; p.fields = nullptr; }
+                p.hold = B->holdPairWith == A->id ? B->holdPair : nullptr;
+                if (t <= 0.f) { p.b = p.a; p.bId = p.aId; p.fields = nullptr; p.hold = nullptr; }
                 {
                     const double less = lateMarginMs_ - std::max(0.0, lateMarginMs_ - 0.002);
                     lateMarginMs_ -= less;
