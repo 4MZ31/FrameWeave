@@ -28,6 +28,7 @@
 #include <QIcon>
 #include <QMediaDevices>
 #include <QQmlApplicationEngine>
+#include <memory>
 #include <QQmlContext>
 #include <QQuickView>
 #include <QQuickWindow>
@@ -291,7 +292,10 @@ int main(int argc, char** argv) {
     }
     app.installTranslator(&translator);
 
-    QQmlApplicationEngine qml;
+    // The engine is closed before `controller` and `shim` go (see the end): the interface reads both while
+    // it is taken down, and they are declared after it.
+    auto engine = std::make_unique<QQmlApplicationEngine>();
+    QQmlApplicationEngine& qml = *engine;
     // The pages: home, pro, min (the picture alone) and set. "player" and "settings" are their names before 0.2.
     QString startPage = cli.isSet(shot) ? cli.value(page) : QStringLiteral("home");
     if (startPage == QLatin1String("player")) startPage = QStringLiteral("min");
@@ -318,5 +322,7 @@ int main(int argc, char** argv) {
             app.exit(ok ? 0 : 1);
         });
     }
-    return app.exec();
+    const int result = app.exec();
+    engine.reset();
+    return result;
 }
