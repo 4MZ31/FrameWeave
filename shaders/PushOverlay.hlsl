@@ -5,9 +5,9 @@
 // textures in t0..t2 and u0..u1 are what that step needs:
 //   0 blocks   t0 this real frame, t1 the one before          u0 per block of 16 x 16: 1 when its picture moves
 //   1 decide   t0 the blocks                                  u0 one texel: 1 when the zone moves
-//   2 count    t0 this real frame, t1 that texel              u0 the counts, four kinds a pixel (read and written)
+//   2 count    t0 this real frame, t1 that texel, t2 blocks   u0 the counts, four kinds a pixel (read and written)
 //   3 judge    t0 the counts, t1 the memory before            u0 1 where a bar is accepted, u1 the memory after
-//   4 mask     t0 the accepted bars                           u0 the mask: the bars and a few pixels round them
+//   4 mask     t0 the accepted bars                           u0 the mask: the bars, a few pixels round them, and the inside of a small closed shape
 // Everything but the two frames is the size of the zone and addressed in the zone's own pixels. (The fill is
 // PushOverlayFill.hlsl: it writes a frame, and a texture of a frame's format is only ever written here, never read
 // back through the same view.)
@@ -20,14 +20,15 @@ cbuffer Constants : register(b0) {
     uint zoneX, zoneY, zoneSize, stage;
     uint outputMode, reset, flank, stand;      // outputMode: 0 sRGB, 1 scRGB (linear), 2 PQ
     uint longest, shortest, fresh, memory;
-    uint grow, reach, blocks, pad0;
+    uint grow, reach, blocks, hole;
 };
 static const float kContrast = 0.10;
 static const float kMoveRatio = 2.0;
 static const float kMoveFloor = 0.004 * 0.004;
 static const int kMoveShareDivisor = 10;
 static const int kBlock = 16;
-static const int kMaxFlank = 8, kMaxGrow = 4, kMaxLongest = 160;
+static const int kNearBlocks = 1;      // a frame counts for a pixel when a block this near to its own moves
+static const int kMaxFlank = 8, kMaxGrow = 4, kMaxLongest = 160, kMaxHole = 12;
 
 float perceptual1(float v) { return outputMode == 1 ? sqrt(max(v, 0) / 2.5) : v; }
 float lumaOf(float3 c) { return 0.2126 * perceptual1(c.r) + 0.7152 * perceptual1(c.g) + 0.0722 * perceptual1(c.b); }
@@ -122,8 +123,14 @@ void main(uint3 id : SV_DispatchThreadID) {
         return;
     }
     if (id.x >= zoneSize || id.y >= zoneSize) return;
-    if (stage == 2) {                       // the counts
-        const bool moving = reset == 0 && texB[int2(0, 0)].x > 0.5;
+    if (stage == 2) {                       // the counts: a frame counts when the zone moves, and the picture near this pixel with it
+        bool moving = false;
+        if (reset == 0 && texB[int2(0, 0)].x > 0.5) {
+            const int2 b = min(p / kBlock, int(blocks) - 1);
+            [loop] for (int j = max(b.y - kNearBlocks, 0); j <= min(b.y + kNearBlocks, int(blocks) - 1); ++j)
+                [loop] for (int i = max(b.x - kNearBlocks, 0); i <= min(b.x + kNearBlocks, int(blocks) - 1); ++i)
+                    if (texC[int2(i, j)].x > 0.5) moving = true;
+        }
         const float4 c = reset != 0 ? float4(0, 0, 0, 0) : outA[p];
         outA[p] = float4(nextCount(c.x, barAt(p, 0), moving), nextCount(c.y, barAt(p, 1), moving),
                          nextCount(c.z, barAt(p, 2), moving), nextCount(c.w, barAt(p, 3), moving));
@@ -151,6 +158,20 @@ void main(uint3 id : SV_DispatchThreadID) {
                 const int2 q = p + int2(i, j);
                 if (i * i + j * j <= g * g + 1 && inZone(q) && texA[q].x > 0.5) any = true;
             }
+        if (!any) {                         // inside a small closed shape: an accepted bar near on all four sides
+            static const int2 dirs[4] = {int2(1, 0), int2(-1, 0), int2(0, 1), int2(0, -1)};
+            const int h = min(int(hole), kMaxHole);
+            bool all = true;
+            [loop] for (int n = 0; n < 4; ++n) {
+                bool hit = false;
+                [loop] for (int k = 1; k <= h; ++k) {
+                    const int2 q = p + dirs[n] * k;
+                    if (inZone(q) && texA[q].x > 0.5) { hit = true; break; }
+                }
+                if (!hit) { all = false; break; }
+            }
+            any = all;
+        }
         outA[p] = float4(any ? 1 : 0, 0, 0, 0);
         return;
     }

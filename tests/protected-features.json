@@ -1747,7 +1747,7 @@
   },
   {
    "id": "F64",
-   "what": "Crosshair Hold (off unless switched on): a crosshair that stands still in the middle of a moving picture is found, taken out of the frames NVIDIA VFG, AMD FRC and PushFlow are given, and laid back over what they make; a picture without one is never marked, so its generated frames are what they are without the switch; with the switch off the methods are given the real frames themselves; the shaders decide every pixel as the rule in plain C++ does.",
+   "what": "Crosshair Hold (off unless switched on): a crosshair (strokes, a dot, a ring) that stands still in the middle of a moving picture is found, taken out of the frames NVIDIA VFG, AMD FRC and PushFlow are given, and laid back over what they make; a picture without one is never marked, nor is scenery that stands still while something passes elsewhere in the zone, so its generated frames are what they are without the switch; with the switch off the methods are given the real frames themselves; the shaders decide every pixel as the rule in plain C++ does.",
    "guards": [
     {
      "file": "tests/unit/PushOverlayTests.cpp",
@@ -1763,6 +1763,21 @@
      "file": "tests/unit/PushOverlayTests.cpp",
      "ci": "veyra_push_overlay_tests",
      "contains": "a dash of the world sliding along itself with the pan is never marked"
+    },
+    {
+     "file": "tests/unit/PushOverlayTests.cpp",
+     "ci": "veyra_push_overlay_tests",
+     "contains": "a bar that stands still far from what moves is never marked"
+    },
+    {
+     "file": "tests/unit/PushOverlayTests.cpp",
+     "ci": "veyra_push_overlay_tests",
+     "contains": "a dot 12 pixels across with an outline"
+    },
+    {
+     "file": "tests/unit/PushOverlayTests.cpp",
+     "ci": "veyra_push_overlay_tests",
+     "contains": ": held like the strokes"
     },
     {
      "file": "tests/unit/PushOverlayTests.cpp",
@@ -1811,6 +1826,11 @@
     {
      "file": "src/pipeline/EnhanceGraph.cpp",
      "contains": "return overlay_?overlay_->input(parity):videoFrame_[parity].Get();"
+    },
+    {
+     "file": "tests/integration/PushGpuTests.cpp",
+     "ci": "veyra_push_gpu_tests",
+     "contains": ": a dot with an outline inside what moves is taken out whole, its inside with its outline"
     }
    ],
    "needs_hardware": "A real card and a real game: the rule was found on frames of a real game and measured in plain C++, and the shaders and the graph were compared with it on the software renderer. What NVIDIA VFG makes of frames with the crosshair taken out has been seen by nobody."

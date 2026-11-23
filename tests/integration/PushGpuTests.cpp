@@ -2225,6 +2225,29 @@ void testOverlayAt(Gpu& gpu, const uint32_t H) {
             }
         return px;
     };
+    // The third picture: it stands still but for a band across the lower part of the zone, which pans; a bright bar
+    // stands still far above the band, and a dot with an outline stands still inside it. The bar is scenery (nothing
+    // moves near it), the dot is a crosshair, and it is too wide to be a bar: it is found by its outline and its
+    // inside goes with it.
+    const int bandTop = int(zone.y) + Z * 6 / 10, bandBottom = int(zone.y) + Z * 85 / 100;
+    const int barY = int(zone.y) + Z * 15 / 100, barX0 = int(zone.x) + Z * 4 / 10, barX1 = int(zone.x) + Z / 2;
+    const int dotX = int(zone.x) + Z / 2, dotY = int(zone.y) + Z * 72 / 100;
+    const auto dotAt = [&](int x, int y) {                       // 0 nothing, 1 outline, 2 core (twice the distance from its middle, squared)
+        const int dx = 2 * (x - dotX) + 1, dy = 2 * (y - dotY) + 1, q = dx * dx + dy * dy;
+        return q <= (6 * unit) * (6 * unit) ? 2 : q <= (8 * unit) * (8 * unit) ? 1 : 0;
+    };
+    const auto barAtPixel = [&](int x, int y) { return y >= barY && y < barY + 2 * unit && x >= barX0 && x < barX1; };
+    const auto bandFrame = [&](int shift) {
+        std::vector<uint8_t> px(size_t(W) * H * 4);
+        for (uint32_t y = 0; y < H; ++y)
+            for (uint32_t x = 0; x < W; ++x) {
+                int v = world(int(y) >= bandTop && int(y) < bandBottom ? int(x) - shift : int(x), int(y));
+                if (barAtPixel(int(x), int(y))) v = 235;
+                const int k = dotAt(int(x), int(y)); if (k == 2) v = 235; else if (k == 1) v = v * 30 / 100;
+                uint8_t* p = px.data() + (size_t(y) * W + x) * 4; p[0] = p[1] = p[2] = uint8_t(v); p[3] = 255;
+            }
+        return px;
+    };
     const auto zoneOf = [&](const std::vector<uint8_t>& px) {
         ov::Picture p(Z);
         for (int y = 0; y < Z; ++y)
@@ -2267,16 +2290,17 @@ void testOverlayAt(Gpu& gpu, const uint32_t H) {
     std::vector<uint8_t> made(size_t(W) * H * 4);
     for (uint32_t y = 0; y < H; ++y) for (uint32_t x = 0; x < W; ++x) { uint8_t* p = made.data() + (size_t(y) * W + x) * 4; p[0] = p[1] = p[2] = uint8_t(60 + lattice(int(x) / 3, int(y) / 3, 9u) / 3); p[3] = 255; }
 
-    for (int pass_ = 0; pass_ < 2; ++pass_) {
-        const bool withReticle = pass_ == 0;
-        const std::string name = std::to_string(H) + " lines, " + (withReticle ? "a reticle over a moving picture" : "a moving picture alone");
+    for (int pass_ = 0; pass_ < 3; ++pass_) {
+        const bool withReticle = pass_ == 0, band = pass_ == 2;
+        const std::string name = std::to_string(H) + " lines, " + (withReticle ? "a reticle over a moving picture" : band ? "a band that moves, a bar far from it and a dot in it" : "a moving picture alone");
+        size_t barMarked = 0, dotMarked = 0, dotPixels = 0;
         ov::State state(Z);
         std::vector<uint8_t> beforePx; ov::Picture beforeFilled; ov::Plane beforeMask(Z);
         size_t maskWrong = 0, countWrong = 0, fillWrong = 0, outsideTouched = 0, composeWrong = 0, composeOutside = 0, held = 0, composed = 0;
         int firstHeld = -1; bool ran = true;
         for (int k = 0; k < 9 && ran; ++k) {
             const unsigned parity = unsigned(k & 1);
-            const std::vector<uint8_t> px = picture(10 * unit * k, withReticle);
+            const std::vector<uint8_t> px = band ? bandFrame(10 * unit * k) : picture(10 * unit * k, withReticle);
             Seen seen;
             ran = realFrame(parity, px, k == 0, seen);
             if (!ran) break;
@@ -2301,6 +2325,17 @@ void testOverlayAt(Gpu& gpu, const uint32_t H) {
                     if (!inZone) outsideTouched += std::memcmp(seen.input.data() + i, px.data() + i, 4) != 0;
                 }
             if (marked > size_t(60 * unit * unit) && firstHeld < 0) firstHeld = k;
+            if (band) {
+                dotMarked = 0; dotPixels = 0;
+                for (int y = 0; y < Z; ++y)
+                    for (int x = 0; x < Z; ++x) {
+                        const int X = int(zone.x) + x, Y = int(zone.y) + y; const bool dot = dotAt(X, Y) != 0;
+                        dotPixels += dot;
+                        if (!(expected.at(x, y) > 0)) continue;
+                        dotMarked += dot;
+                        barMarked += Y >= barY - 6 && Y < barY + 2 * unit + 6 && X >= barX0 - 6 && X < barX1 + 6;
+                    }
+            }
             held = std::max(held, marked);
             if (k >= 1) {       // a generated frame between the frame before and this one
                 const float t = k == 6 ? 1.0f / 3.0f : 0.5f;
@@ -2334,6 +2369,10 @@ void testOverlayAt(Gpu& gpu, const uint32_t H) {
         if (withReticle) {
             check(firstHeld == 4, at + ": the reticle is held once it has stood for four counted frames (frame " + std::to_string(firstHeld) + ")");
             check(held > size_t(150 * unit * unit) && composed > size_t(150 * unit * unit), at + ": all of it, and it is laid back over the generated frame");
+        } else if (band) {
+            std::printf("INFO crosshair hold, %s: the dot %zu of %zu px, the bar %zu px\n", name.c_str(), dotMarked, dotPixels, barMarked);
+            check(barMarked == 0, at + ": a bar that stands still far from what moves is never marked");
+            check(firstHeld == 4 && dotPixels > 0 && dotMarked == dotPixels, at + ": a dot with an outline inside what moves is taken out whole, its inside with its outline");
         } else {
             check(held == 0 && composed == 0, at + ": a moving picture without an overlay is never marked, filled or composed");
         }

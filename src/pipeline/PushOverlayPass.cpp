@@ -11,6 +11,7 @@ constexpr DXGI_FORMAT kFlagFormat = DXGI_FORMAT_R16_FLOAT;             // 0 or 1
 // The track shader (PushOverlay.hlsl) has five steps a real frame; each has its own set of views per parity:
 // { t0, t1, t2, u0, u1 }. A view a step does not read is given a texture that is in the right state anyway
 // (the mask of the frame before as a texture to read; the accepted bars or this frame's memory to write).
+// The count step reads three: the frame, whether the zone moves, and which blocks do.
 constexpr UINT kStages = 5, kTrackStride = 5;
 // The fill shader: per parity { t0 real frame, t1 its mask, u0 the frame frame generation gets }.
 constexpr UINT kFillStride = 3;
@@ -62,6 +63,7 @@ void PushOverlayPass::createViews(ID3D12Device* device, DescriptorStager& stager
         // step:                             0 blocks           1 decide           2 count        3 judge                    4 mask
         ID3D12Resource* const t0[kStages] = {real_[parity], blockMoves_.Get(), real_[parity], state_.Get(), accept_.Get()};
         ID3D12Resource* const t1[kStages] = {real_[1 - parity], spareRead, moving_.Get(), memory_[1 - parity].Get(), spareRead};
+        ID3D12Resource* const t2[kStages] = {spareRead, spareRead, blockMoves_.Get(), spareRead, spareRead};
         ID3D12Resource* const u0[kStages] = {blockMoves_.Get(), moving_.Get(), state_.Get(), accept_.Get(), mask_[parity].Get()};
         ID3D12Resource* const u1[kStages] = {accept_.Get(), accept_.Get(), accept_.Get(), memory_[parity].Get(), memory_[parity].Get()};
         const DXGI_FORMAT f0[kStages] = {kFlagFormat, kFlagFormat, kCountFormat, kFlagFormat, kFlagFormat};
@@ -70,7 +72,7 @@ void PushOverlayPass::createViews(ID3D12Device* device, DescriptorStager& stager
             const UINT base = (parity * kStages + stage) * kTrackStride;
             stager.stageSrv(t0[stage], nullptr, track_.heap.Get(), base);
             stager.stageSrv(t1[stage], nullptr, track_.heap.Get(), base + 1);
-            stager.stageSrv(spareRead, nullptr, track_.heap.Get(), base + 2);
+            stager.stageSrv(t2[stage], nullptr, track_.heap.Get(), base + 2);
             makeUav(device, u0[stage], f0[stage], cpuHandleOf(track_, base + 3));
             makeUav(device, u1[stage], f1[stage], cpuHandleOf(track_, base + 4));
         }
@@ -102,7 +104,7 @@ void PushOverlayPass::createViews(ID3D12Device* device, DescriptorStager& stager
 void PushOverlayPass::constants(float* c, unsigned stage, bool reset) const {
     const uint32_t values[kConstants] = {zone_.x, zone_.y, zone_.size, stage, outputMode_, reset ? 1u : 0u, uint32_t(rule_.flank), uint32_t(rule_.stand),
                                          uint32_t(rule_.longest), uint32_t(rule_.shortest), uint32_t(rule_.fresh), uint32_t(rule_.memory),
-                                         uint32_t(rule_.grow), uint32_t(rule_.reach), blocks_, 0u};
+                                         uint32_t(rule_.grow), uint32_t(rule_.reach), blocks_, uint32_t(rule_.hole)};
     for (UINT i = 0; i < kConstants; ++i) c[i] = std::bit_cast<float>(values[i]);
 }
 

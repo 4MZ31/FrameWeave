@@ -8,6 +8,7 @@
 // about half see-through). The shaders are compared with these same functions on a graphics card in
 // tests/integration/PushGpuTests.cpp. Pure: builds anywhere.
 #include "veyra/pipeline/PushOverlay.h"
+#include <cmath>
 #include <cstdio>
 #include <string>
 using namespace veyra::pipeline::overlay;
@@ -150,8 +151,8 @@ static Run pan(const World& world, int vx, int vy, float coreAlpha, bool reticle
 int main() {
     {   // sizes
         const Rule a = ruleFor(2160), b = ruleFor(1080), c = ruleFor(720);
-        check(a.flank == 5 && a.longest == 110 && a.shortest == 4 && a.fresh == 24 && a.grow == 3 && a.reach == 24 && a.stand == 4 && a.memory == 60, "the rule's numbers at 2160 lines");
-        check(b.flank == 3 && b.longest == 55 && b.shortest == 2 && b.fresh == 12 && b.grow == 2 && b.reach == 12 && b.stand == 4, "half of them at 1080 lines; the frames to stand are the same");
+        check(a.flank == 5 && a.longest == 110 && a.shortest == 4 && a.fresh == 24 && a.grow == 3 && a.reach == 24 && a.hole == 9 && a.stand == 4 && a.memory == 60, "the rule's numbers at 2160 lines");
+        check(b.flank == 3 && b.longest == 55 && b.shortest == 2 && b.fresh == 12 && b.grow == 2 && b.reach == 12 && b.hole == 5 && b.stand == 4, "half of them at 1080 lines; the frames to stand are the same");
         check(c.flank == 2 && c.grow == 1 && c.reach == 8, "and a floor under them at 720");
         const Zone z = zoneFor(3840, 2160), s = zoneFor(1920, 1080), tiny = zoneFor(160, 90);
         check(z.size == 400 && z.x == 1720 && z.y == 880, "the zone at 4K: 400 pixels round the centre");
@@ -215,6 +216,85 @@ int main() {
             marked = std::max(marked, countOf(step(state, lumaPlane(frame, 0), r)));
         }
         check(marked == 0, "a dash of the world sliding along itself with the pan is never marked");
+    }
+    {   // what stands still while something passes elsewhere in the zone is scenery, not an overlay
+        const int n = 400; const Rule r = ruleFor(2160); State far(n), beside(n); int farMarked = 0, besideMarked = 0, zoneMoved = 0;
+        for (int k = 0; k < 14; ++k) {
+            // The picture stands still, except a band across the lower part that pans 12 px a frame (traffic passing).
+            Picture frame = busy.view(n, 0, 0);
+            const Picture band = busy.view(n, 2 * 12 * k, 0);
+            for (int y = 256; y < 352; ++y) for (int x = 0; x < n; ++x) frame.at(x, y) = band.at(x, y);
+            Picture one = frame, two = frame;
+            // a bright bar that stands still far above the band (a lamp post's arm), and one inside the band
+            for (int y = 60; y < 64; ++y) for (int x = 150; x < 190; ++x) one.at(x, y) = {0.95f, 0.95f, 0.95f};
+            for (int y = 300; y < 304; ++y) for (int x = 150; x < 190; ++x) two.at(x, y) = {0.95f, 0.95f, 0.95f};
+            farMarked = std::max(farMarked, countOf(step(far, lumaPlane(one, 0), r)));
+            besideMarked = std::max(besideMarked, countOf(step(beside, lumaPlane(two, 0), r)));
+            zoneMoved += far.moving ? 1 : 0;
+        }
+        check(zoneMoved >= 12, "a band of the zone that moves makes the zone count as moving");
+        check(farMarked == 0, "a bar that stands still far from what moves is never marked");
+        check(besideMarked > 200, "a bar that stands still in the middle of what moves is held");
+        // the neighbourhood itself
+        const int blocks = 25; std::vector<unsigned char> flags(size_t(blocks) * blocks, 0);
+        flags[size_t(10) * blocks + 10] = 1;
+        check(movesNear(flags, blocks, 10 * 16 + 3, 10 * 16 + 3) && movesNear(flags, blocks, 9 * 16, 11 * 16 + 15) && movesNear(flags, blocks, 11 * 16 + 15, 9 * 16),
+              "near: the moving block itself and the blocks round it");
+        check(!movesNear(flags, blocks, 12 * 16, 10 * 16) && !movesNear(flags, blocks, 10 * 16, 8 * 16 + 15), "and no further");
+        flags.assign(flags.size(), 0); flags[0] = 1; flags[flags.size() - 1] = 1;
+        check(movesNear(flags, blocks, 0, 0) && movesNear(flags, blocks, 399, 399) && !movesNear(flags, blocks, 399, 0), "the zone's corners have fewer blocks round them");
+    }
+    {   // crosshairs of other shapes: a dot, a ring, a dot with an outline that is too wide to be a bar itself
+        const int n = 400; const Rule r = ruleFor(2160); const float c = 199.5f;
+        struct Shape { const char* name; float inner, outer; int edge; int least; bool insideStays; };
+        // inner..outer: the bright part's radii (a dot has inner 0); edge: a dark outline this wide
+        for (const Shape& shape : {Shape{"a dot 6 pixels across", 0, 3, 0, 100, false}, Shape{"a dot 8 pixels across with an outline", 0, 4, 2, 100, false},
+                                   Shape{"a dot 12 pixels across with an outline", 0, 6, 2, 100, false}, Shape{"a ring 32 across, 2 thick", 15, 17, 0, 97, true},
+                                   Shape{"a ring 48 across, 3 thick, with an outline", 22.5f, 25.5f, 1, 97, true}, Shape{"a ring 96 across, 4 thick", 46, 50, 0, 97, true}}) {
+            std::vector<float> alpha(size_t(n) * n, 0), colour(size_t(n) * n, 0);
+            int total = 0;
+            for (int y = 0; y < n; ++y)
+                for (int x = 0; x < n; ++x) {
+                    const float q = std::hypot(float(x) - c, float(y) - c);
+                    if (q >= shape.inner && q <= shape.outer) { alpha[size_t(y) * n + x] = 0.9f; colour[size_t(y) * n + x] = 0.9f; ++total; }
+                    else if (shape.edge > 0 && q > shape.inner - float(shape.edge) && q < shape.outer + float(shape.edge)) { alpha[size_t(y) * n + x] = 0.67f; ++total; }
+                }
+            bool everyPan = true; int worstShare = 100, elsewhere = 0, first = -1, insideMarked = 0;
+            for (const auto& v : {std::pair{20, 0}, {13, 7}, {0, 9}}) {
+                State state(n); int covered = 0;
+                for (int k = 0; k < 9; ++k) {
+                    Picture p = busy.view(n, 2 * v.first * k, 2 * v.second * k);
+                    for (size_t i = 0; i < p.v.size(); ++i) { const float a = alpha[i], q = colour[i]; Colour& b = p.v[i]; b = {b.r * (1 - a) + q * a, b.g * (1 - a) + q * a, b.b * (1 - a) + q * a}; }
+                    const Plane m = step(state, lumaPlane(p, 0), r);
+                    covered = 0; int far = 0; insideMarked = 0;
+                    for (int y = 0; y < n; ++y)
+                        for (int x = 0; x < n; ++x) {
+                            if (!(m.at(x, y) > 0)) continue;
+                            const float q = std::hypot(float(x) - c, float(y) - c);
+                            if (alpha[size_t(y) * n + x] > 0) ++covered;
+                            else if (q > shape.outer + float(shape.edge) + 5.0f) ++far;
+                            else if (q < shape.inner - float(shape.edge) - 5.0f) ++insideMarked;
+                        }
+                    elsewhere = std::max(elsewhere, far);
+                    if (covered > 0 && first < 0) first = k;
+                }
+                worstShare = std::min(worstShare, covered * 100 / total);
+                everyPan = everyPan && covered * 100 / total >= shape.least;
+            }
+            std::printf("  %-44s %3d %% of its %4d px taken out, from frame %d; %d px elsewhere, %d inside it\n", shape.name, worstShare, total, first, elsewhere, insideMarked);
+            check(everyPan && first == 4, std::string(shape.name) + ": held like the strokes");
+            check(elsewhere == 0, std::string(shape.name) + ": nothing of the moving picture is marked");
+            if (shape.insideStays) check(insideMarked == 0, std::string(shape.name) + ": the picture inside it is left to frame generation");
+        }
+        // the inside of a small closed shape, one pixel at a time
+        Plane ring(64);
+        for (int y = 0; y < 64; ++y) for (int x = 0; x < 64; ++x) { const float q = std::hypot(float(x) - 31.5f, float(y) - 31.5f); if (q >= 7 && q <= 9) ring.at(x, y) = 1; }
+        check(enclosed(ring, 31, 31, 9) && enclosed(ring, 33, 30, 9), "inside a ring 16 across: an accepted bar near on all four sides");
+        check(!enclosed(ring, 34, 29, 9), "a pixel whose far side is further than the reach is left to the pixels grown round the bars");
+        check(!enclosed(ring, 31, 31, 6), "but not when the ring is wider than the reach");
+        check(!enclosed(ring, 45, 31, 9) && !enclosed(ring, 31, 10, 9), "and never outside it");
+        Plane open(64); for (int y = 20; y < 44; ++y) { open.at(22, y) = 1; open.at(40, y) = 1; } for (int x = 22; x <= 40; ++x) open.at(x, 20) = 1;
+        check(!enclosed(open, 31, 30, 9), "a shape open on one side encloses nothing");
     }
     {   // a reticle whose strokes move after it was found is followed
         const Run moving = pan(busy, 20, 0, 0.52f, true, 16, 8);

@@ -13,10 +13,11 @@
 // So the crosshair is taken out of what frame generation is given, and laid back over what it makes:
 //   1. FIND (every real frame, in a zone round the screen centre). A crosshair is made of thin bars: pixels that
 //      are brighter (or darker) than something close by on both sides, whatever is behind them. A bar is counted
-//      while the zone's picture moves; a bar of the world moves with it and loses its count, a bar of an overlay
-//      keeps it. A bar whose every pixel has stood for kStand counted frames, and whose two ends stand still, is
+//      while the zone's picture moves and the picture near the bar with it; a bar of the world moves with it and
+//      loses its count, a bar of an overlay keeps it. A bar whose every pixel has stood for kStand counted frames, and whose two ends stand still, is
 //      FOUND and remembered; a bar lying where one was found may then move its ends (a reticle spreads and
-//      narrows) and is FOLLOWED.
+//      narrows) and is FOLLOWED. A ring is found as the short bars it is made of, a dot as one short bar or,
+//      when it is wider, by its outline (the inside of a small closed shape goes with it).
 //   2. FILL. The found bars and a few pixels round them are filled in from the pixels beside them, in a copy of
 //      the real frame that only frame generation gets. The frame that is shown is never changed.
 //   3. COMPOSE (every generated frame). On those pixels the generated frame becomes
@@ -27,7 +28,7 @@
 //
 // Everything here is the rule itself, without graphics: the shaders (shaders/PushOverlay*.hlsl) are the same
 // statements, and tests/integration/PushGpuTests.cpp compares them with this file pixel by pixel. Change both
-// together. The numbers were found on real frames of a real game (four clips, 23 November 2026) and are not to
+// together. The numbers were found on real frames of a real game (five clips, 23 November 2026) and are not to
 // be changed without running that study again: a rule of this kind that is a little too eager draws artifacts
 // round everything that moves (PushHudStill.h says how that went).
 #include <algorithm>
@@ -47,15 +48,17 @@ struct Rule {
     int memory = 60;     // real frames a place stays remembered after a bar was found there
     int grow = 3;        // the mask is the bars and this many pixels round them
     int reach = 24;      // how far the fill looks for a pixel outside the mask
+    int hole = 9;        // a pixel with an accepted bar this near on all four sides is inside a small shape, and masked
 };
 inline constexpr float kContrast = 0.10f;       // a bar differs this much from its flanks (the picture as encoded, 0..1)
 inline constexpr float kMoveRatio = 2.0f;       // a block moves when its change is this many times its own detail
 inline constexpr float kMoveFloor = 0.004f * 0.004f;   // and more than this (mean square): below it there is nothing to judge
 inline constexpr int kMoveShareDivisor = 10;    // the zone moves when a tenth of its blocks do
 inline constexpr int kBlock = 16;
+inline constexpr int kNearBlocks = 1;           // a frame counts for a pixel when a block this near to its own moves
 inline constexpr float kWeightFloor = 1e-4f;    // added to the denominator of m
 inline constexpr int kKinds = 4;                // bright with flanks left/right, bright up/down, dark left/right, dark up/down
-inline constexpr int kMaxFlank = 8, kMaxGrow = 4, kMaxReach = 32, kMaxLongest = 160;
+inline constexpr int kMaxFlank = 8, kMaxGrow = 4, kMaxReach = 32, kMaxLongest = 160, kMaxHole = 12;
 
 inline int scaled(double value, uint32_t height, int low, int high) {
     return std::clamp(int(std::floor(value * double(height) / 2160.0 + 0.5)), low, high);
@@ -68,6 +71,7 @@ inline Rule ruleFor(uint32_t height) {
     r.fresh = scaled(24, height, 4, 48);
     r.grow = scaled(3, height, 1, kMaxGrow);
     r.reach = scaled(24, height, 4, kMaxReach);
+    r.hole = scaled(9, height, 2, kMaxHole);
     return r;
 }
 // The zone: a square round the screen centre, a whole number of blocks, on even pixels.
@@ -142,15 +146,34 @@ inline bool blockMoves(const Plane& before, const Plane& now, int bx, int by) {
     change /= n; detail /= n;
     return change > kMoveFloor && change >= kMoveRatio * (detail + 1e-7f);
 }
-inline bool zoneMoves(const Plane& before, const Plane& now) {
+// Which blocks move (row by row), and whether a tenth of them do.
+inline std::vector<unsigned char> movingBlocks(const Plane& before, const Plane& now) {
     const int blocks = now.size / kBlock;
-    int moving = 0;
+    std::vector<unsigned char> flags(size_t(blocks) * blocks, 0);
     for (int by = 0; by < blocks; ++by)
-        for (int bx = 0; bx < blocks; ++bx) moving += blockMoves(before, now, bx, by) ? 1 : 0;
-    return moving * kMoveShareDivisor >= blocks * blocks;
+        for (int bx = 0; bx < blocks; ++bx) flags[size_t(by) * blocks + bx] = blockMoves(before, now, bx, by) ? 1 : 0;
+    return flags;
+}
+inline bool zoneMoves(const std::vector<unsigned char>& flags) {
+    int moving = 0;
+    for (const unsigned char f : flags) moving += f ? 1 : 0;
+    return moving * kMoveShareDivisor >= int(flags.size());
+}
+inline bool zoneMoves(const Plane& before, const Plane& now) { return zoneMoves(movingBlocks(before, now)); }
+// Does the picture move NEAR this pixel: in its own block or one of the blocks round it. A crosshair is a bar
+// that stands while the picture round it moves; a pole that stands while a car passes elsewhere in the zone is
+// scenery (on the driving clip this took the pixels marked outside the crosshair from 162 000 to 8 000, and
+// what is left stands right beside what moves).
+inline bool movesNear(const std::vector<unsigned char>& flags, int blocks, int x, int y) {
+    const int bx = std::min(x / kBlock, blocks - 1), by = std::min(y / kBlock, blocks - 1);
+    for (int j = std::max(by - kNearBlocks, 0); j <= std::min(by + kNearBlocks, blocks - 1); ++j)
+        for (int i = std::max(bx - kNearBlocks, 0); i <= std::min(bx + kNearBlocks, blocks - 1); ++i)
+            if (flags[size_t(j) * blocks + i]) return true;
+    return false;
 }
 // 1c. The count of one pixel and kind. Above 0: a bar, and 1 more than the counted frames it has been one;
-//     below 0: no bar, likewise; 0: never judged. Only a frame in which the zone moves counts.
+//     below 0: no bar, likewise; 0: never judged. Only a frame in which the zone moves, and the picture near
+//     this pixel with it, counts.
 inline float nextCount(float count, bool bar, bool moving, const Rule& r) {
     if (bar) {
         const float c = count >= 1.0f ? count : 1.0f;
@@ -200,13 +223,28 @@ inline Decision judge(const Plane& count, const Plane& memory, int x, int y, int
     return d;
 }
 inline bool within(int dx, int dy, int grow) { return dx * dx + dy * dy <= grow * grow + 1; }
+// Is this pixel inside a small closed shape: an accepted bar within `hole` pixels to its left, to its right,
+// above and below. A dot with an outline is found by its outline, a thin ring, and its middle is too wide to be a
+// bar: without this the outline was taken out and the middle left for frame generation to move (a dot 16 pixels
+// across lost a third of itself). A ring wider than twice `hole` keeps its inside.
+inline bool enclosed(const Plane& accepted, int x, int y, int hole) {
+    static constexpr int dirs[4][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+    for (const auto& d : dirs) {
+        bool hit = false;
+        for (int k = 1; k <= hole && !hit; ++k) hit = accepted.inside(x + d[0] * k, y + d[1] * k) && accepted.at(x + d[0] * k, y + d[1] * k) > 0;
+        if (!hit) return false;
+    }
+    return true;
+}
 // One real frame: counts, memory, and the mask (1 where frame generation is not to see the picture).
 inline Plane step(State& s, const Plane& luma, const Rule& r) {
-    const int n = s.size;
-    s.moving = s.hasBefore && zoneMoves(s.before, luma);
+    const int n = s.size, blocks = n / kBlock;
+    const std::vector<unsigned char> flags = s.hasBefore ? movingBlocks(s.before, luma) : std::vector<unsigned char>(size_t(blocks) * blocks, 0);
+    s.moving = s.hasBefore && zoneMoves(flags);
     for (int k = 0; k < kKinds; ++k)
         for (int y = 0; y < n; ++y)
-            for (int x = 0; x < n; ++x) s.count[k].at(x, y) = nextCount(s.count[k].at(x, y), barAt(luma, x, y, k, r), s.moving, r);
+            for (int x = 0; x < n; ++x)
+                s.count[k].at(x, y) = nextCount(s.count[k].at(x, y), barAt(luma, x, y, k, r), s.moving && movesNear(flags, blocks, x, y), r);
     Plane accepted(n);
     for (int k = 0; k < kKinds; ++k) {
         Plane memory(n);
@@ -225,7 +263,7 @@ inline Plane step(State& s, const Plane& luma, const Rule& r) {
             for (int j = -r.grow; j <= r.grow && !any; ++j)
                 for (int i = -r.grow; i <= r.grow && !any; ++i)
                     any = within(i, j, r.grow) && accepted.inside(x + i, y + j) && accepted.at(x + i, y + j) > 0;
-            mask.at(x, y) = any ? 1.0f : 0.0f;
+            mask.at(x, y) = any || enclosed(accepted, x, y, r.hole) ? 1.0f : 0.0f;
         }
     s.before = luma; s.hasBefore = true;
     return mask;
