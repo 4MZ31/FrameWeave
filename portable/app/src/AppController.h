@@ -64,6 +64,11 @@ class AppController : public QObject {
     Q_PROPERTY(QString version READ version CONSTANT)
     Q_PROPERTY(QString platformName READ platformName CONSTANT)
     Q_PROPERTY(QString startPage READ startPage CONSTANT)
+    // What is playing, by name (the capture card, the file, the test picture); empty with nothing playing.
+    Q_PROPERTY(QString sourceTitle READ sourceTitle NOTIFY runningChanged)
+    // The interface's own choices, under the Windows build's preference names so the QML the two share
+    // reads them the same way (theme, accent, folded sides and sections). Checked in setPreference.
+    Q_PROPERTY(QVariantMap preferences READ preferences NOTIFY preferencesChanged)
 public:
     AppController(QQmlEngine* qml, CatalogTranslator* translator, QString startPage, QObject* parent = nullptr);
     ~AppController() override;
@@ -127,6 +132,9 @@ public:
     QString version() const;
     QString platformName() const;
     QString startPage() const { return startPage_; }
+    QString sourceTitle() const { return running() ? sourceTitle_ : QString(); }
+    QVariantMap preferences() const { return prefs_; }
+    Q_INVOKABLE void setPreference(const QString& key, const QVariant& value);
 
     Q_INVOKABLE void refreshDevices();
     Q_INVOKABLE void startCamera();
@@ -147,6 +155,7 @@ signals:
     void settingsChanged();
     void statsChanged();
     void errorTextChanged();
+    void preferencesChanged();
 
 private:
     void applyEngineSettings();
@@ -180,6 +189,9 @@ private:
     int audioTrim_ = 0, fillMode_ = 0;
     qreal volume_ = 1.0, brightness_ = 0, contrast_ = 1, saturation_ = 1, gamma_ = 1;
     QString language_ = QStringLiteral("auto");
+    QString sourceTitle_;
+    QVariantMap prefs_;
+    void loadPreferences();
     QVariantMap stats_;
     QString error_;
     QTimer statsTimer_;

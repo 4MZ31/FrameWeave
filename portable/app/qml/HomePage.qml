@@ -1,250 +1,282 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
+//
+// The home page, laid out as the Windows build's new design: sources on the left, the picture in the
+// middle with picture and sound under it, quick setup on the right. The picture plays here (the shell
+// puts its one picture item into `videoViewport`). Under 900 pixels wide the page is one column, without
+// a picture: a connection then shows the picture alone (the shell decides, Main.qml).
 import QtQuick
 import QtQuick.Controls.Basic
-import QtQuick.Dialogs
 import QtQuick.Layouts
 
 Rectangle {
-    id: home
-    signal openSettings()
-    signal openPlayer()
-    color: Theme.bgDeep
-    gradient: Gradient {
-        GradientStop { position: 0; color: Theme.bg }
-        GradientStop { position: 1; color: Theme.bgDeep }
+    id: root
+    objectName: "page-home"
+    color: Theme.bgMid
+    property bool sideCollapsed: false
+    signal requestFullscreen()
+    signal requestScreenshot()
+
+    readonly property bool threePane: width >= 900
+    // Where the shell draws the picture on this page (null: the page has none).
+    readonly property Item videoViewport: threePane ? viewport : null
+
+    // The same numbers as the Windows home page.
+    readonly property real paneMargin: 16
+    readonly property real paneGap: 14
+    readonly property real leftWidth: Math.round(Math.max(236, Math.min(290, width * 0.21)))
+    readonly property real rightWidth: Math.round(Math.max(336, Math.min(410, width * 0.30)))
+    readonly property real midX: paneMargin + leftWidth + paneGap
+    readonly property real midWidth: Math.max(1, width - 2 * paneMargin - leftWidth - paneGap - (sideCollapsed ? 0 : rightWidth + paneGap))
+    readonly property real actionHeight: 44
+    readonly property real previewHeight: Math.round(Math.max(120, Math.min(midWidth * 9 / 16, height - 2 * paneMargin - actionHeight - 2 * paneGap - 60)))
+
+    // Folded quick setup sections (preference pushQuickFolded, as in the Windows build).
+    readonly property var folded: String((veyra.preferences || {}).pushQuickFolded || "").split(",").filter(s => s.length > 0)
+    function isOpen(id) { return folded.indexOf(id) < 0 }
+    function setOpen(id, open) {
+        const next = folded.filter(s => s !== id)
+        if (!open) next.push(id)
+        veyra.setPreference("pushQuickFolded", next.join(","))
     }
 
-    FileDialog {
-        id: fileDialog
-        title: qsTr("打开视频")
-        nameFilters: [qsTr("视频文件") + " (*.mp4 *.mkv *.mov *.webm *.avi *.ts)"]
-        onAccepted: app.startFile(selectedFile)
+    // ---- quick setup: one item, shown in the right pane or in the one column ----
+    ColumnLayout {
+        id: quick
+        objectName: "home-quick"
+        parent: root.threePane ? rightSlot : columnQuickSlot
+        width: parent ? parent.width : 0
+        spacing: 0
+        PushSection {
+            sectionId: "fg"
+            title: qsTr("补帧")
+            first: true
+            summary: app.targetMode === 0 ? qsTr("关") : app.targetMode === 1 ? "60 FPS" : app.targetMode === 2 ? "120 FPS" : qsTr("匹配显示器")
+            open: root.isOpen("fg")
+            onToggled: open => root.setOpen("fg", open)
+            QuickSettings {}
+        }
+        PushSection {
+            sectionId: "start"
+            title: qsTr("连接与启动")
+            open: root.isOpen("start")
+            onToggled: open => root.setOpen("start", open)
+            VRow {
+                label: qsTr("打开时自动连接")
+                hint: qsTr("打开 PushFPS 时直接连接上次使用的采集卡")
+                VSwitch { objectName: "quick-autoconnect"; checked: app.autoConnect; onToggled: on => app.autoConnect = on }
+            }
+        }
     }
 
-    ScrollView {
-        id: scroll
+    // ---- picture and sound: one item, under the picture or in the one column ----
+    ColumnLayout {
+        id: tuning
+        objectName: "home-tuning"
+        parent: root.threePane ? midSlot : columnTuningSlot
+        width: parent ? parent.width : 0
+        spacing: root.paneGap
+        VCard {
+            Layout.fillWidth: true
+            PanelTitle { text: qsTr("画面") }
+            PictureSettings {}
+        }
+        VCard {
+            Layout.fillWidth: true
+            PanelTitle { text: qsTr("声音") }
+            SoundSettings {}
+        }
+    }
+
+    // ---- the three panes ----
+    Item {
+        id: desk
         anchors.fill: parent
-        contentWidth: availableWidth
+        visible: root.threePane
+
+        Flickable {
+            id: leftFlick
+            x: root.paneMargin; y: root.paneMargin
+            width: root.leftWidth
+            height: parent.height - 2 * root.paneMargin
+            contentHeight: leftColumn.height
+            interactive: contentHeight > height + 1
+            boundsBehavior: Flickable.StopAtBounds
+            clip: true
+            ScrollBar.vertical: VScrollBar {}
+            ColumnLayout {
+                id: leftColumn
+                width: leftFlick.width - 8
+                spacing: 0
+                Text {
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: 10
+                    text: qsTr("片源")
+                    color: Theme.t1
+                    font.family: Theme.fontUi
+                    font.pixelSize: Theme.fsH3
+                    font.weight: Font.DemiBold; font.variableAxes: Theme.axesDemiBold
+                }
+                SourcesPanel { id: sourcesWide; Layout.fillWidth: true }
+                Text {
+                    Layout.fillWidth: true
+                    Layout.topMargin: 18
+                    text: qsTr("免费开源 · 基于 Veyra 构建")
+                    color: Theme.t3
+                    font.family: Theme.fontUi
+                    font.pixelSize: Theme.fsSmall
+                    wrapMode: Text.WordWrap
+                }
+            }
+        }
+
+        // Middle: the picture.
+        Rectangle {
+            id: previewCard
+            objectName: "home-desk-preview"
+            x: root.midX; y: root.paneMargin
+            width: root.midWidth
+            height: root.previewHeight
+            radius: 4
+            color: "black"
+            border.width: 1
+            border.color: Theme.stroke
+            Item {
+                id: viewport
+                objectName: "home-viewport"
+                anchors.fill: parent
+                anchors.margins: 1
+                clip: true
+                PicturePlaceholder {
+                    anchors.fill: parent
+                    z: 1
+                    onOpenFile: sourcesWide.openFile()
+                }
+            }
+        }
+        RowLayout {
+            id: previewActions
+            objectName: "home-desk-actions"
+            x: root.midX
+            y: root.paneMargin + root.previewHeight + root.paneGap
+            width: root.midWidth
+            height: root.actionHeight
+            spacing: 8
+            VDot { off: !app.running }
+            Text {
+                Layout.fillWidth: true
+                text: app.running ? (app.sourceTitle.length > 0 ? app.sourceTitle : qsTr("已连接")) : qsTr("未连接")
+                color: app.running ? Theme.t1 : Theme.t3
+                font.family: Theme.fontUi
+                font.pixelSize: Theme.fsBody
+                elide: Text.ElideMiddle
+            }
+            VButton {
+                objectName: "home-desk-screenshot"
+                visible: app.running
+                icon: true
+                iconName: "camera"
+                tip: qsTr("截图")
+                onClicked: root.requestScreenshot()
+            }
+            VButton {
+                objectName: "home-desk-stop"
+                visible: app.running
+                ghost: true
+                text: qsTr("断开")
+                onClicked: app.stop()
+            }
+            VButton {
+                objectName: "home-desk-fullscreen"
+                primary: app.running
+                enabled: app.running
+                iconName: "max"
+                text: qsTr("全屏")
+                onClicked: root.requestFullscreen()
+            }
+        }
+        Flickable {
+            id: midFlick
+            x: root.midX
+            y: previewActions.y + root.actionHeight + root.paneGap
+            width: root.midWidth
+            height: Math.max(0, desk.height - y - root.paneMargin)
+            contentHeight: midSlot.height
+            interactive: contentHeight > height + 1
+            boundsBehavior: Flickable.StopAtBounds
+            clip: true
+            ScrollBar.vertical: VScrollBar {}
+            Item { id: midSlot; width: midFlick.width - 10; height: tuning.parent === midSlot ? tuning.implicitHeight : 0 }
+        }
+
+        // Right: quick setup.
+        Rectangle {
+            id: rightPane
+            objectName: "home-desk-settings"
+            visible: !root.sideCollapsed
+            x: desk.width - root.paneMargin - root.rightWidth
+            y: root.paneMargin
+            width: root.rightWidth
+            height: desk.height - 2 * root.paneMargin
+            radius: Theme.rCard
+            color: Theme.card2
+            border.width: 1
+            border.color: Theme.stroke
+            Text {
+                id: rightTitle
+                x: 14; y: 12
+                text: qsTr("快速设置")
+                color: Theme.t1
+                font.family: Theme.fontUi
+                font.pixelSize: Theme.fsH3
+                font.weight: Font.DemiBold; font.variableAxes: Theme.axesDemiBold
+            }
+            Flickable {
+                id: rightFlick
+                objectName: "home-desk-settings-list"
+                x: 14; y: rightTitle.y + rightTitle.height + 6
+                width: parent.width - 18
+                height: parent.height - y - 8
+                contentHeight: rightSlot.height
+                interactive: contentHeight > height + 1
+                boundsBehavior: Flickable.StopAtBounds
+                clip: true
+                ScrollBar.vertical: VScrollBar {}
+                Item { id: rightSlot; width: rightFlick.width - 12; height: quick.parent === rightSlot ? quick.implicitHeight : 0 }
+            }
+        }
+    }
+
+    // ---- one column (a narrow window) ----
+    Flickable {
+        id: columnFlick
+        anchors.fill: parent
+        visible: !root.threePane
+        contentHeight: column.height + 48
+        boundsBehavior: Flickable.StopAtBounds
         clip: true
+        ScrollBar.vertical: VScrollBar {}
         ColumnLayout {
             id: column
-            width: Math.min(640, scroll.availableWidth - 48)
-            x: (scroll.availableWidth - width) / 2
+            width: Math.min(640, columnFlick.width - 32)
+            x: (columnFlick.width - width) / 2
+            y: 24
             spacing: 14
-
-            Item { Layout.preferredHeight: 28 }
-            Image {
-                Layout.alignment: Qt.AlignHCenter
-                source: "logo.png"
-                sourceSize.height: 72
-                fillMode: Image.PreserveAspectFit
-            }
-            Row {
-                Layout.alignment: Qt.AlignHCenter
-                spacing: 0
-                Text { text: "Push"; color: Theme.t1; font.pixelSize: 36; font.italic: true; font.bold: true; font.family: Theme.fontBrand }
-                Text { text: "FPS"; color: Theme.accent; font.pixelSize: 36; font.italic: true; font.bold: true; font.family: Theme.fontBrand }
-            }
-            RowLayout {
-                Layout.alignment: Qt.AlignHCenter
-                spacing: 8
-                Text { text: qsTr("主机画面经采集卡接入，由电脑补帧到 60 或 120 FPS"); color: Theme.t2; font.pixelSize: Theme.fsBody; font.family: Theme.fontUi }
-                Rectangle {
-                    radius: 6; color: Theme.accentSoft; implicitWidth: badge.implicitWidth + 12; implicitHeight: badge.implicitHeight + 4
-                    Text { id: badge; anchors.centerIn: parent; text: qsTr("预览版"); color: Theme.accent; font.pixelSize: Theme.fsHint; font.bold: true; font.family: Theme.fontUi }
-                }
-            }
-
-            // Errors stay until the next action.
-            Rectangle {
-                visible: app.errorText.length > 0
+            SourcesPanel { Layout.fillWidth: true }
+            VCard {
                 Layout.fillWidth: true
-                radius: 10
-                color: Theme.errSoft
-                border.color: Theme.err
-                implicitHeight: errorText.implicitHeight + 20
-                Text {
-                    id: errorText
-                    x: 12; y: 10; width: parent.width - 48
-                    text: app.errorText; color: Theme.t1; wrapMode: Text.WordWrap; font.pixelSize: Theme.fsBody; font.family: Theme.fontUi
-                }
-                Text {
-                    anchors.right: parent.right; anchors.rightMargin: 12; anchors.verticalCenter: parent.verticalCenter
-                    text: "✕"; color: Theme.t2
-                    MouseArea { anchors.fill: parent; anchors.margins: -8; onClicked: app.clearError() }
-                }
+                PanelTitle { text: qsTr("快速设置") }
+                Item { id: columnQuickSlot; Layout.fillWidth: true; implicitHeight: quick.parent === columnQuickSlot ? quick.implicitHeight : 0 }
             }
-
-            Card {
+            Item { id: columnTuningSlot; Layout.fillWidth: true; implicitHeight: tuning.parent === columnTuningSlot ? tuning.implicitHeight : 0 }
+            Text {
                 Layout.fillWidth: true
-                title: qsTr("采集卡")
-                subtitle: qsTr("HDMI 采集设备")
-                SettingRow {
-                    label: qsTr("设备")
-                    Choice {
-                        objectName: "home-device"
-                        model: app.videoDevices.length > 0 ? app.videoDevices : [qsTr("未检测到采集设备")]
-                        enabled: app.videoDevices.length > 0
-                        currentIndex: app.videoDevices.length > 0 ? app.videoDeviceIndex : 0
-                        onActivated: index => app.videoDeviceIndex = index
-                    }
-                }
-                SettingRow {
-                    label: qsTr("格式")
-                    visible: app.formats.length > 0
-                    Choice {
-                        model: app.formats
-                        currentIndex: app.formatIndex
-                        onActivated: index => app.formatIndex = index
-                    }
-                }
-                SettingRow {
-                    label: qsTr("打开时自动连接")
-                    hint: qsTr("打开 PushFPS 时直接连接上次使用的采集卡")
-                    Toggle { objectName: "home-autoconnect"; checked: app.autoConnect; onToggled: on => app.autoConnect = on }
-                }
-                RowLayout {
-                    Layout.fillWidth: true
-                    Item { Layout.fillWidth: true }
-                    Button2 { text: qsTr("刷新"); onClicked: app.refreshDevices() }
-                    Button2 { objectName: "home-connect"; text: qsTr("连接"); primary: true; enabled2: app.videoDevices.length > 0; onClicked: app.startCamera() }
-                }
+                text: qsTr("免费开源 · 基于 Veyra 构建")
+                color: Theme.t3
+                font.family: Theme.fontUi
+                font.pixelSize: Theme.fsSmall
+                wrapMode: Text.WordWrap
             }
-
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                Card {
-                    Layout.fillWidth: true
-                    title: qsTr("打开视频")
-                    subtitle: "MP4 · MKV · MOV"
-                    Button2 { text: qsTr("选择文件"); onClicked: fileDialog.open() }
-                }
-                Card {
-                    Layout.fillWidth: true
-                    title: qsTr("测试画面")
-                    subtitle: qsTr("没有采集卡也能看看补帧效果")
-                    RowLayout {
-                        spacing: 8
-                        Button2 { objectName: "home-test"; text: qsTr("开始"); onClicked: app.startTestPattern(false) }
-                        Button2 { text: qsTr("不均匀出帧"); onClicked: app.startTestPattern(true) }
-                    }
-                }
-            }
-
-            Card {
-                Layout.fillWidth: true
-                title: qsTr("快速设置")
-                SettingRow {
-                    label: qsTr("目标帧率")
-                    hint: app.targetMode === 0 ? qsTr("补帧关闭：每一帧到达后立刻显示，延迟最低")
-                                               : qsTr("补出来的帧夹在两张真实画面之间，画面会晚一张真实画面显示")
-                    Segmented {
-                        objectName: "home-target"
-                        options: [qsTr("关"), "60 FPS", "120 FPS", qsTr("匹配显示器")]
-                        currentIndex: app.targetMode
-                        onPicked: index => app.targetMode = index
-                    }
-                }
-                SettingRow {
-                    label: qsTr("最低延迟")
-                    hint: app.lowLatency ? qsTr("已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置")
-                                         : qsTr("一键减少等待：补帧照常，每对画面的运动更快算好，画面少等一会儿")
-                    Toggle { objectName: "home-lowlatency"; checked: app.lowLatency; enabled2: app.targetMode !== 0; onToggled: on => app.lowLatency = on }
-                }
-                SettingRow {
-                    label: qsTr("帧节奏修复")
-                    hint: qsTr("把出帧不均匀的锁帧游戏重新对齐到均匀的时间，每帧最多晚一次刷新。需要开启自动去重")
-                    Toggle { objectName: "home-pacing"; checked: app.pacingRepair; enabled2: app.targetMode !== 0; onToggled: on => app.pacingRepair = on }
-                }
-                SettingRow {
-                    label: qsTr("实时 HUD 锁定")
-                    hint: qsTr("每一帧自动找出 HUD，文字和准星在补出来的帧里保持清晰")
-                    Toggle { objectName: "home-hud"; checked: app.hudLock; enabled2: app.targetMode !== 0; onToggled: on => app.hudLock = on }
-                }
-                SettingRow {
-                    label: qsTr("去除重复帧")
-                    hint: qsTr("30 FPS 的游戏在 60 Hz 信号里每张画面会发两次；补帧只看真正的新画面")
-                    Toggle { checked: app.removeDuplicates; onToggled: on => app.removeDuplicates = on }
-                }
-                SettingRow {
-                    label: qsTr("运动估计")
-                    hint: qsTr("精细：按 16 像素找运动，更准；快速：按 32 像素，占用更少")
-                    Segmented { options: [qsTr("快速"), qsTr("精细")]; currentIndex: app.quality; onPicked: index => app.quality = index }
-                }
-                SettingRow {
-                    label: qsTr("在画面上显示延迟")
-                    hint: qsTr("游戏帧率、输出帧率和延迟（按 Tab 切换）")
-                    Toggle { checked: app.showStats; onToggled: on => app.showStats = on }
-                }
-            }
-
-            Card {
-                Layout.fillWidth: true
-                title: qsTr("声音")
-                subtitle: qsTr("采集卡的声音与画面同步延迟后播放")
-                SettingRow {
-                    label: qsTr("播放采集卡声音")
-                    Toggle { checked: app.audioPassthrough; onToggled: on => app.audioPassthrough = on }
-                }
-                SettingRow {
-                    label: qsTr("音量")
-                    Slider2 { from: 0; to: 1; value: app.volume; neutral: 1; decimals: 2; onMoved: v => app.volume = v }
-                }
-                SettingRow {
-                    label: qsTr("手动对口型")
-                    hint: app.audioTrimMs === 0 ? qsTr("声音自动跟着画面延迟。人声比嘴型早就调晚，比嘴型晚就调早")
-                                                : qsTr("在自动延迟之上再调 %1 毫秒").arg((app.audioTrimMs > 0 ? "+" : "") + app.audioTrimMs)
-                    RowLayout {
-                        spacing: 8
-                        Button2 { objectName: "home-lipsync-earlier"; text: qsTr("提前"); enabled2: app.audioTrimMs > -250; onClicked: app.audioTrimMs = app.audioTrimMs - 10 }
-                        Text {
-                            objectName: "home-lipsync-value"
-                            text: (app.audioTrimMs > 0 ? "+" : "") + app.audioTrimMs + " ms"
-                            color: Theme.t1; font.pixelSize: Theme.fsBody; font.family: Theme.fontUi
-                            horizontalAlignment: Text.AlignHCenter
-                            Layout.preferredWidth: 64
-                        }
-                        Button2 { objectName: "home-lipsync-later"; text: qsTr("延后"); enabled2: app.audioTrimMs < 250; onClicked: app.audioTrimMs = app.audioTrimMs + 10 }
-                        Button2 { visible: app.audioTrimMs !== 0; text: qsTr("重置"); onClicked: app.audioTrimMs = 0 }
-                    }
-                }
-                SettingRow {
-                    label: qsTr("输入")
-                    Choice { model: app.audioInputs; currentIndex: app.audioInputIndex; onActivated: index => app.audioInputIndex = index }
-                }
-                SettingRow {
-                    label: qsTr("输出")
-                    Choice { model: app.audioOutputs; currentIndex: app.audioOutputIndex; onActivated: index => app.audioOutputIndex = index }
-                }
-            }
-
-            Card {
-                Layout.fillWidth: true
-                title: qsTr("画面")
-                SettingRow {
-                    label: qsTr("画面比例")
-                    hint: qsTr("窗口和画面形状不同时：保留黑边、裁掉两侧铺满，或拉伸铺满")
-                    Segmented { objectName: "home-fill"; options: [qsTr("黑边"), qsTr("裁切铺满"), qsTr("拉伸")]; currentIndex: app.fillMode; onPicked: index => app.fillMode = index }
-                }
-                SettingRow { label: qsTr("亮度"); Slider2 { from: -0.5; to: 0.5; value: app.brightness; neutral: 0; onMoved: v => app.brightness = v } }
-                SettingRow { label: qsTr("对比度"); Slider2 { from: 0.5; to: 1.5; value: app.contrast; neutral: 1; onMoved: v => app.contrast = v } }
-                SettingRow { label: qsTr("饱和度"); Slider2 { from: 0; to: 2; value: app.saturation; neutral: 1; onMoved: v => app.saturation = v } }
-                SettingRow { label: qsTr("伽马"); Slider2 { from: 0.5; to: 2; value: app.gamma; neutral: 1; onMoved: v => app.gamma = v } }
-                RowLayout { Item { Layout.fillWidth: true } Button2 { text: qsTr("重置"); onClicked: app.resetPicture() } }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Text {
-                    Layout.fillWidth: true
-                    text: qsTr("基于开源项目 Veyra（GPL-3.0）打造，感谢原作者 Likely7")
-                    color: Theme.t3; font.pixelSize: Theme.fsHint; font.family: Theme.fontUi; wrapMode: Text.WordWrap
-                }
-                Button2 { text: qsTr("设置"); onClicked: home.openSettings() }
-            }
-            Item { Layout.preferredHeight: 24 }
         }
     }
 }

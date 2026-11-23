@@ -1561,3 +1561,13 @@ zh:当前补帧方式自行估算运动，不使用此选项|Deze methode voor f
 zh:连接采集卡后打开专业模式|Pro-modus openen bij verbinden van een capturekaart
 zh:关闭时留在首页，画面显示在首页中间|Uit: je blijft op Start, waar het beeld in het midden speelt
 zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Volledig scherm bij verbinden" staat aan: verbinden opent altijd de Pro-modus op volledig scherm
+zh:统计|Statistieken
+zh:返回|Terug
+zh:延迟|Vertraging
+zh:画面尺寸|Beeldgrootte
+zh:输出帧率|Framerate van de uitvoer
+zh:声音延迟|Geluidsvertraging
+zh:去除的重复帧|Verwijderde dubbele frames
+zh:镜头切换|Scènewissels
+zh:没赶上的运动|Beweging niet op tijd klaar
+zh:这台电脑的额外等待|Extra wachttijd op deze computer

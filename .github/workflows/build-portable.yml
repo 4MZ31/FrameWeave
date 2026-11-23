@@ -140,7 +140,7 @@ jobs:
           QSG_RHI_BACKEND: opengl
         run: |
           mkdir -p shots
-          for p in home settings player; do
+          for p in home pro min set; do
             xvfb-run -a -s "-screen 0 1920x1080x24" ./build/app/PushFPS --screenshot shots/linux-$p.png --page $p --lang en
           done
           cp build/gpucheck.png shots/linux-gpucheck.png
@@ -345,7 +345,7 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p shots
-          for p in home settings player; do
+          for p in home pro min set; do
             build/app/PushFPS.app/Contents/MacOS/PushFPS --screenshot shots/macos-$p.png --page $p --lang en || true
           done
           cp build/gpucheck.png shots/macos-gpucheck.png 2>/dev/null || true

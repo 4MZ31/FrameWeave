@@ -1561,3 +1561,13 @@ zh:当前补帧方式自行估算运动，不使用此选项|Questo metodo di ge
 zh:连接采集卡后打开专业模式|Apri la Modalità Pro alla connessione di una scheda di acquisizione
 zh:关闭时留在首页，画面显示在首页中间|Disattivato: resti nella Home, dove l'immagine viene riprodotta al centro
 zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Schermo intero alla connessione" è attivo: la connessione apre sempre la Modalità Pro a schermo intero
+zh:统计|Statistiche
+zh:返回|Indietro
+zh:延迟|Latenza
+zh:画面尺寸|Dimensioni immagine
+zh:输出帧率|Frame rate in uscita
+zh:声音延迟|Ritardo audio
+zh:去除的重复帧|Frame duplicati rimossi
+zh:镜头切换|Cambi di scena
+zh:没赶上的运动|Movimento non pronto in tempo
+zh:这台电脑的额外等待|Attesa aggiuntiva su questo computer

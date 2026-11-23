@@ -12,7 +12,8 @@ qt_add_executable(pushfps_portable
   src/Settings.cpp src/Settings.h
   src/TestPattern.cpp src/TestPattern.h
   src/Translator.cpp src/Translator.h
-  src/VideoFrames.cpp src/VideoFrames.h)
+  src/VideoFrames.cpp src/VideoFrames.h
+  src/VeyraShim.cpp src/VeyraShim.h)
 set_target_properties(pushfps_portable PROPERTIES
   OUTPUT_NAME PushFPS
   MACOSX_BUNDLE TRUE
@@ -32,16 +33,30 @@ endif()
 # The QML type registration (generated) includes FrameView.h by name.
 target_include_directories(pushfps_portable PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
-# The files are kept in qml/ here but must sit next to the module's qmldir in the resources: in a
-# folder of their own, that folder is also an implicit import that offers Theme.qml as a plain type,
-# and Qt picks one or the other at random on each start (Qt 6.12: about four starts in five drew the
-# whole interface without its colours, sizes and fonts).
-set(pushfps_qml_files
-    qml/Main.qml qml/HomePage.qml qml/PlayerPage.qml qml/SettingsPage.qml qml/Theme.qml qml/Card.qml
-    qml/SettingRow.qml qml/Segmented.qml qml/Toggle.qml qml/Choice.qml qml/Slider2.qml qml/Button2.qml
-    qml/GpuCheck.qml)
+# The interface parts shared with the Windows build: the same files, compiled into this module, so a
+# change to the design reaches both. They read a few things from the Windows bridge, which the preview
+# answers with its own `veyra` object (src/VeyraShim.h).
+set(pushfps_shared_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../qml/Veyra)
+set(pushfps_shared_names
+    Theme.qml IconData.js PushShell.js VIcon.qml VAccentFill.qml VButton.qml VSwitch.qml VSeg.qml VSelect.qml VMenu.qml
+    VRow.qml VHelp.qml VSliderValue.qml VSlider.qml VCard.qml VDot.qml VTag.qml VScrollBar.qml PushFoldHead.qml
+    PushSection.qml PushSidebar.qml PushTitleBar.qml PushStatusStrip.qml PushWordmark.qml)
+set(pushfps_shared_files)
+foreach(name IN LISTS pushfps_shared_names)
+  list(APPEND pushfps_shared_files ${pushfps_shared_dir}/${name})
+endforeach()
+set_source_files_properties(${pushfps_shared_dir}/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+# The preview's own pages and panels.
+set(pushfps_own_files
+    qml/Main.qml qml/HomePage.qml qml/ProPage.qml qml/MinimalPage.qml qml/SettingsPage.qml qml/GpuCheck.qml
+    qml/SourcesPanel.qml qml/QuickSettings.qml qml/PictureSettings.qml qml/SoundSettings.qml qml/LiveFigures.qml
+    qml/PicturePlaceholder.qml qml/PanelTitle.qml)
 set(pushfps_qml_resources qml/logo.png qml/icon.png)
+# Every file sits next to the module's qmldir in the resources: in a folder of its own, that folder is
+# also an implicit import that offers Theme.qml as a plain type, and Qt picks one or the other at random
+# on each start (Qt 6.12: about four starts in five drew the whole interface without its colours, sizes
+# and fonts).
+set(pushfps_qml_files ${pushfps_own_files} ${pushfps_shared_files})
 foreach(file IN LISTS pushfps_qml_files pushfps_qml_resources)
   get_filename_component(name "${file}" NAME)
   set_source_files_properties(${file} PROPERTIES QT_RESOURCE_ALIAS ${name})

@@ -9,13 +9,14 @@
 //                                    block; exit 0 ok, 2 source failed, 3 no frames, 1 other
 //   PushFPS --gpucheck [--save <png>] draws a known generated frame on the GPU and compares it with the
 //                                    CPU reference; exit 0 match, 4 mismatch or no GPU renderer
-//   PushFPS --screenshot <png> [--page home|player|settings] [--lang <code>]
+//   PushFPS --screenshot <png> [--page home|pro|min|set] [--lang <code>]
 #include "MacActivity.h"
 #include "AppController.h"
 #include "FrameView.h"
 #include "Settings.h"
 #include "TestPattern.h"
 #include "Translator.h"
+#include "VeyraShim.h"
 #include "VideoFrames.h"
 
 #include "veyra/portable/Interpolate.h"
@@ -272,7 +273,7 @@ int main(int argc, char** argv) {
     QCommandLineOption gpu(QStringLiteral("gpucheck"), QStringLiteral("Compare the GPU shader with the CPU reference."));
     QCommandLineOption save(QStringLiteral("save"), QStringLiteral("Save a picture (self-test / GPU check)."), QStringLiteral("png"));
     QCommandLineOption shot(QStringLiteral("screenshot"), QStringLiteral("Open the interface, save a screenshot, quit."), QStringLiteral("png"));
-    QCommandLineOption page(QStringLiteral("page"), QStringLiteral("Start page: home, player or settings."), QStringLiteral("page"), QStringLiteral("home"));
+    QCommandLineOption page(QStringLiteral("page"), QStringLiteral("Start page: home, pro, min or set."), QStringLiteral("page"), QStringLiteral("home"));
     QCommandLineOption lang(QStringLiteral("lang"), QStringLiteral("Interface language code."), QStringLiteral("code"));
     cli.addOptions({list, self, src, target, pacing, hud, gpu, save, shot, page, lang});
     cli.process(app);
@@ -291,17 +292,23 @@ int main(int argc, char** argv) {
     app.installTranslator(&translator);
 
     QQmlApplicationEngine qml;
-    const QString startPage = cli.isSet(shot) ? cli.value(page) : QStringLiteral("home");
+    // The pages: home, pro, min (the picture alone) and set. "player" and "settings" are their names before 0.2.
+    QString startPage = cli.isSet(shot) ? cli.value(page) : QStringLiteral("home");
+    if (startPage == QLatin1String("player")) startPage = QStringLiteral("min");
+    if (startPage == QLatin1String("settings")) startPage = QStringLiteral("set");
     AppController controller(&qml, &translator, startPage);
     if (cli.isSet(lang)) translator.load(cli.value(lang));  // a one-off choice, not saved
     qml.rootContext()->setContextProperty(QStringLiteral("app"), &controller);
+    // What the interface parts shared with the Windows build read as `veyra` (VeyraShim.h).
+    VeyraShim shim(&controller);
+    qml.rootContext()->setContextProperty(QStringLiteral("veyra"), &shim);
     QObject::connect(&qml, &QQmlApplicationEngine::objectCreationFailed, &app, [] { QCoreApplication::exit(1); }, Qt::QueuedConnection);
     qml.loadFromModule(QStringLiteral("PushFPS"), QStringLiteral("Main"));
     if (qml.rootObjects().isEmpty()) return 1;
 
     if (cli.isSet(shot)) {
         auto* window = qobject_cast<QQuickWindow*>(qml.rootObjects().first());
-        if (startPage == QStringLiteral("player")) controller.startTestPattern(false);
+        if (startPage == QStringLiteral("min") || startPage == QStringLiteral("pro")) controller.startTestPattern(false);
         const QString path = cli.value(shot);
         QTimer::singleShot(2500, &app, [&, window, path] {
             const QImage image = window ? window->grabWindow() : QImage();

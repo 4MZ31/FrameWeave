@@ -2270,7 +2270,7 @@
   },
   {
    "zh": "30 FPS 的游戏在 60 Hz 信号里每张画面会发两次；补帧只看真正的新画面",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/QuickSettings.qml",
    "zh-TW": "30 FPS 的遊戲在 60 Hz 訊號裡每張畫面會發兩次；補幀只看真正的新畫面",
    "en": "A 30 FPS game on a 60 Hz signal sends every picture twice; frame generation only looks at the new ones",
    "ja": "60 Hz 信号の 30 FPS ゲームは同じ画面を 2 回送ります。フレーム生成は本当に新しい画面だけを使います",
@@ -10226,7 +10226,7 @@
   },
   {
    "zh": "一键减少等待：补帧照常，每对画面的运动更快算好，画面少等一会儿",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/QuickSettings.qml",
    "zh-TW": "一鍵減少等待：補幀照常，每對畫面的運動更快算好，畫面少等一會兒",
    "en": "One tap for less waiting: frame generation stays on, the motion of each pair of pictures is worked out sooner, and the picture waits less",
    "ja": "ワンタップで待ち時間を短く：フレーム生成はそのまま、各ペアの動きをより速く求め、映像の待ちが減ります",
@@ -11144,7 +11144,7 @@
   },
   {
    "zh": "不均匀出帧",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/SourcesPanel.qml",
    "zh-TW": "不均勻出幀",
    "en": "Uneven pacing",
    "ja": "不均一なペース",
@@ -15266,7 +15266,7 @@
   },
   {
    "zh": "信号 %1 Hz · 延迟 %2 ms · 运动估计 %3 ms",
-   "src": "portable/app/qml/PlayerPage.qml",
+   "src": "portable/app/qml/MinimalPage.qml",
    "zh-TW": "訊號 %1 Hz · 延遲 %2 ms · 運動估計 %3 ms",
    "en": "Signal %1 Hz · latency %2 ms · motion estimation %3 ms",
    "ja": "信号 %1 Hz · 遅延 %2 ms · 動き推定 %3 ms",
@@ -20648,6 +20648,24 @@
    "ru": "Удаление дубликатов выключено"
   },
   {
+   "zh": "去除的重复帧",
+   "src": "portable/app/qml/LiveFigures.qml",
+   "zh-TW": "去除的重複幀",
+   "en": "Duplicate frames removed",
+   "ja": "除去した重複フレーム",
+   "ko": "제거된 중복 프레임",
+   "nl": "Verwijderde dubbele frames",
+   "de": "Entfernte doppelte Frames",
+   "es": "Fotogramas duplicados eliminados",
+   "fr": "Images en double supprimées",
+   "it": "Frame duplicati rimossi",
+   "pt-BR": "Quadros duplicados removidos",
+   "tr": "Kaldırılan yinelenen kareler",
+   "ar": "الإطارات المكررة المحذوفة",
+   "pl": "Usunięte powtórzone klatki",
+   "ru": "Удалённые повторяющиеся кадры"
+  },
+  {
    "zh": "去除重复帧",
    "src": "qml/DedupModeRow.qml",
    "zh-TW": "去除重複幀",
@@ -24321,7 +24339,7 @@
   },
   {
    "zh": "在自动延迟之上再调 %1 毫秒",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/SoundSettings.qml",
    "zh-TW": "在自動延遲之上再調 %1 毫秒",
    "en": "%1 ms on top of the automatic delay",
    "ja": "自動の遅延に加えて %1 ms",
@@ -24609,7 +24627,7 @@
   },
   {
    "zh": "基于开源项目 Veyra（GPL-3.0）打造，感谢原作者 Likely7",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/SettingsPage.qml",
    "zh-TW": "基於開源專案 Veyra（GPL-3.0）打造，感謝原作者 Likely7",
    "en": "Built on the open-source project Veyra (GPL-3.0). Thanks to its author, Likely7",
    "ja": "オープンソースプロジェクト Veyra（GPL-3.0）をベースにしています。作者の Likely7 に感謝します",
@@ -25310,6 +25328,24 @@
    "ru": "Синхронизация губ"
   },
   {
+   "zh": "声音延迟",
+   "src": "portable/app/qml/LiveFigures.qml",
+   "zh-TW": "聲音延遲",
+   "en": "Sound delay",
+   "ja": "音声の遅延",
+   "ko": "소리 지연",
+   "nl": "Geluidsvertraging",
+   "de": "Tonverzögerung",
+   "es": "Retraso del sonido",
+   "fr": "Retard du son",
+   "it": "Ritardo audio",
+   "pt-BR": "Atraso do som",
+   "tr": "Ses gecikmesi",
+   "ar": "تأخير الصوت",
+   "pl": "Opóźnienie dźwięku",
+   "ru": "Задержка звука"
+  },
+  {
    "zh": "声音比自动再晚 %1 毫秒",
    "src": "qml/PushQuickSetup.qml",
    "zh-TW": "聲音比自動再晚 %1 毫秒",
@@ -25347,7 +25383,7 @@
   },
   {
    "zh": "声音自动跟着画面延迟。人声比嘴型早就调晚，比嘴型晚就调早",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/SoundSettings.qml",
    "zh-TW": "聲音自動跟著畫面延遲。人聲比嘴型早就調晚，比嘴型晚就調早",
    "en": "Sound is delayed with the picture automatically. Voices before the mouths move: later. Voices after: earlier",
    "ja": "音は映像に合わせて自動で遅らせます。声が口の動きより早ければ「遅く」、遅ければ「早く」",
@@ -31593,7 +31629,7 @@
   },
   {
    "zh": "已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/QuickSettings.qml",
    "zh-TW": "已開啟：運動估計用「快速」，幀節奏修復關閉。關閉後恢復原來的設定",
    "en": "On: motion is found the fast way and Frame Pacing Repair is off. Switching it off brings back what was set before",
    "ja": "オン：動き推定は「高速」、フレームペーシング修復はオフ。オフにすると元の設定に戻ります",
@@ -33267,7 +33303,7 @@
   },
   {
    "zh": "延后",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/SoundSettings.qml",
    "zh-TW": "延後",
    "en": "Later",
    "ja": "遅く",
@@ -33282,6 +33318,24 @@
    "ar": "لاحقًا",
    "pl": "Później",
    "ru": "Позже"
+  },
+  {
+   "zh": "延迟",
+   "src": "portable/app/qml/LiveFigures.qml",
+   "zh-TW": "延遲",
+   "en": "Latency",
+   "ja": "遅延",
+   "ko": "지연",
+   "nl": "Vertraging",
+   "de": "Latenz",
+   "es": "Latencia",
+   "fr": "Latence",
+   "it": "Latenza",
+   "pt-BR": "Latência",
+   "tr": "Gecikme",
+   "ar": "زمن الاستجابة",
+   "pl": "Opóźnienie",
+   "ru": "Задержка"
   },
   {
    "zh": "延迟 %1 ms",
@@ -37264,7 +37318,7 @@
   },
   {
    "zh": "截图已保存",
-   "src": "portable/app/qml/PlayerPage.qml",
+   "src": "portable/app/qml/Main.qml",
    "zh-TW": "截圖已儲存",
    "en": "Screenshot saved",
    "ja": "スクリーンショットを保存しました",
@@ -37624,7 +37678,7 @@
   },
   {
    "zh": "手动对口型",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/SoundSettings.qml",
    "zh-TW": "手動對口型",
    "en": "Lip sync by hand",
    "ja": "リップシンクの手動調整",
@@ -40090,7 +40144,7 @@
   },
   {
    "zh": "提前",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/SoundSettings.qml",
    "zh-TW": "提前",
    "en": "Earlier",
    "ja": "早く",
@@ -40793,7 +40847,7 @@
   },
   {
    "zh": "播放采集卡声音",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/SoundSettings.qml",
    "zh-TW": "播放擷取卡聲音",
    "en": "Play capture card sound",
    "ja": "キャプチャーカードの音声を再生",
@@ -44790,7 +44844,7 @@
   },
   {
    "zh": "显示统计",
-   "src": "portable/app/qml/PlayerPage.qml",
+   "src": "portable/app/qml/MinimalPage.qml",
    "zh-TW": "顯示統計",
    "en": "Show stats",
    "ja": "統計を表示",
@@ -48066,7 +48120,7 @@
   },
   {
    "zh": "格式",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/SourcesPanel.qml",
    "zh-TW": "格式",
    "en": "Format",
    "ja": "フォーマット",
@@ -50262,7 +50316,7 @@
   },
   {
    "zh": "正在等待画面…",
-   "src": "portable/app/qml/PlayerPage.qml",
+   "src": "portable/app/qml/PicturePlaceholder.qml",
    "zh-TW": "正在等待畫面…",
    "en": "Waiting for a picture…",
    "ja": "映像を待っています…",
@@ -52458,7 +52512,7 @@
   },
   {
    "zh": "没有采集卡也能看看补帧效果",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/SourcesPanel.qml",
    "zh-TW": "沒有擷取卡也能看看補幀效果",
    "en": "See frame generation without a capture card",
    "ja": "キャプチャーカードがなくてもフレーム生成を試せます",
@@ -52617,6 +52671,24 @@
    "ar": "لا يمكن مواصلة آخر مجرى Xbox؛ والاختيار مرة أخرى في Xbox نافذة التدفق",
    "pl": "Nie można kontynuować ostatniego strumienia Xbox; wybierz ponownie w oknie Xbox strumieniowania",
    "ru": "Не смог продолжить последний поток Xbox; выберите снова в Xbox"
+  },
+  {
+   "zh": "没赶上的运动",
+   "src": "portable/app/qml/LiveFigures.qml",
+   "zh-TW": "沒趕上的運動",
+   "en": "Motion not ready in time",
+   "ja": "間に合わなかった動き",
+   "ko": "제때 계산되지 못한 움직임",
+   "nl": "Beweging niet op tijd klaar",
+   "de": "Nicht rechtzeitig berechnete Bewegung",
+   "es": "Movimiento que no llegó a tiempo",
+   "fr": "Mouvement pas prêt à temps",
+   "it": "Movimento non pronto in tempo",
+   "pt-BR": "Movimento que não ficou pronto a tempo",
+   "tr": "Zamanında hazır olmayan hareket",
+   "ar": "حركة لم تجهز في الوقت",
+   "pl": "Ruch niegotowy na czas",
+   "ru": "Движение, не готовое вовремя"
   },
   {
    "zh": "洋红",
@@ -52980,7 +53052,7 @@
   },
   {
    "zh": "测试画面",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/PicturePlaceholder.qml",
    "zh-TW": "測試畫面",
    "en": "Test picture",
    "ja": "テスト映像",
@@ -53628,7 +53700,7 @@
   },
   {
    "zh": "游戏 %1 FPS → 输出 %2 FPS",
-   "src": "portable/app/qml/PlayerPage.qml",
+   "src": "portable/app/qml/MinimalPage.qml",
    "zh-TW": "遊戲 %1 FPS → 輸出 %2 FPS",
    "en": "Game %1 FPS → output %2 FPS",
    "ja": "ゲーム %1 FPS → 出力 %2 FPS",
@@ -53808,7 +53880,7 @@
   },
   {
    "zh": "游戏帧率、输出帧率和延迟（按 Tab 切换）",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/QuickSettings.qml",
    "zh-TW": "遊戲幀率、輸出幀率和延遲（按 Tab 切換）",
    "en": "Game frame rate, output frame rate and latency (Tab toggles)",
    "ja": "ゲームのフレームレート、出力フレームレート、遅延（Tab で切り替え）",
@@ -55893,6 +55965,24 @@
    "ar": "مقارنة الصور",
    "pl": "Porównanie obrazów · generacja frame paused",
    "ru": "Сравнение изображений · генерация кадров приостановлена"
+  },
+  {
+   "zh": "画面尺寸",
+   "src": "portable/app/qml/LiveFigures.qml",
+   "zh-TW": "畫面尺寸",
+   "en": "Picture size",
+   "ja": "映像のサイズ",
+   "ko": "화면 크기",
+   "nl": "Beeldgrootte",
+   "de": "Bildgröße",
+   "es": "Tamaño de imagen",
+   "fr": "Taille de l'image",
+   "it": "Dimensioni immagine",
+   "pt-BR": "Tamanho da imagem",
+   "tr": "Görüntü boyutu",
+   "ar": "حجم الصورة",
+   "pl": "Rozmiar obrazu",
+   "ru": "Размер изображения"
   },
   {
    "zh": "画面尺寸或 HDR 模式变化，已接着写入新文件",
@@ -58236,7 +58326,7 @@
   },
   {
    "zh": "窗口和画面形状不同时：保留黑边、裁掉两侧铺满，或拉伸铺满",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/PictureSettings.qml",
    "zh-TW": "視窗和畫面形狀不同時：保留黑邊、裁掉兩側鋪滿，或拉伸鋪滿",
    "en": "When the window and the picture have different shapes: keep bars, fill the window and cut the sides, or stretch",
    "ja": "ウィンドウと映像の形が違うとき：黒帯を残す、両端を切って埋める、または引き伸ばす",
@@ -59154,7 +59244,7 @@
   },
   {
    "zh": "精细：按 16 像素找运动，更准；快速：按 32 像素，占用更少",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/QuickSettings.qml",
    "zh-TW": "精細：按 16 像素找運動，更準；快速：按 32 像素，佔用更少",
    "en": "Fine: motion per 16 pixels, more accurate; Fast: per 32 pixels, lighter",
    "ja": "精細：16 ピクセル単位で動きを探し、より正確。高速：32 ピクセル単位で、負荷が軽い",
@@ -59799,6 +59889,24 @@
    "ar": "كلاسيكي",
    "pl": "Klasyczny",
    "ru": "Классика"
+  },
+  {
+   "zh": "统计",
+   "src": "portable/app/qml/ProPage.qml",
+   "zh-TW": "統計",
+   "en": "Statistics",
+   "ja": "統計",
+   "ko": "통계",
+   "nl": "Statistieken",
+   "de": "Statistik",
+   "es": "Estadísticas",
+   "fr": "Statistiques",
+   "it": "Statistiche",
+   "pt-BR": "Estatísticas",
+   "tr": "İstatistikler",
+   "ar": "الإحصاءات",
+   "pl": "Statystyki",
+   "ru": "Статистика"
   },
   {
    "zh": "继续上次",
@@ -63816,7 +63924,7 @@
   },
   {
    "zh": "补出来的帧夹在两张真实画面之间，画面会晚一张真实画面显示",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/QuickSettings.qml",
    "zh-TW": "補出來的幀夾在兩張真實畫面之間，畫面會晚一張真實畫面顯示",
    "en": "Generated frames sit between two real pictures, so the picture shows one real frame later",
    "ja": "生成フレームは 2 枚の実画面の間に入るため、映像は実画面 1 枚分遅れて表示されます",
@@ -63979,7 +64087,7 @@
   },
   {
    "zh": "补帧关闭：每一帧到达后立刻显示，延迟最低",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/QuickSettings.qml",
    "zh-TW": "補幀關閉：每一幀到達後立刻顯示，延遲最低",
    "en": "Frame generation off: every frame shows as soon as it arrives, lowest latency",
    "ja": "フレーム生成オフ：各フレームは届いた瞬間に表示され、遅延は最小です",
@@ -64465,7 +64573,7 @@
   },
   {
    "zh": "裁切铺满",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/PictureSettings.qml",
    "zh-TW": "裁切鋪滿",
    "en": "Fill",
    "ja": "切り抜いて埋める",
@@ -69577,6 +69685,24 @@
    "ru": "Результат уже существует; не перезаписывание"
   },
   {
+   "zh": "输出帧率",
+   "src": "portable/app/qml/LiveFigures.qml",
+   "zh-TW": "輸出幀率",
+   "en": "Output frame rate",
+   "ja": "出力のフレームレート",
+   "ko": "출력 프레임률",
+   "nl": "Framerate van de uitvoer",
+   "de": "Ausgabe-Bildrate",
+   "es": "Fotogramas de salida",
+   "fr": "FPS en sortie",
+   "it": "Frame rate in uscita",
+   "pt-BR": "Taxa de quadros de saída",
+   "tr": "Çıkış kare hızı",
+   "ar": "معدل الإطارات الناتج",
+   "pl": "Wyjściowa liczba klatek",
+   "ru": "Выходная частота кадров"
+  },
+  {
    "zh": "输出文件已存在，请选择新文件名",
    "src": "src/engine/ExportJobManager.cpp",
    "zh-TW": "輸出檔案已存在，請選擇新檔名",
@@ -69938,7 +70064,7 @@
   },
   {
    "zh": "运动估计",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/LiveFigures.qml",
    "zh-TW": "運動估計",
    "en": "Motion estimation",
    "ja": "動き推定",
@@ -70151,6 +70277,24 @@
    "ar": "شبه عديم الفقد",
    "pl": "Prawie bezstratna",
    "ru": "Почти без потерь"
+  },
+  {
+   "zh": "返回",
+   "src": "portable/app/qml/MinimalPage.qml",
+   "zh-TW": "返回",
+   "en": "Back",
+   "ja": "戻る",
+   "ko": "뒤로",
+   "nl": "Terug",
+   "de": "Zurück",
+   "es": "Atrás",
+   "fr": "Retour",
+   "it": "Indietro",
+   "pt-BR": "Voltar",
+   "tr": "Geri",
+   "ar": "رجوع",
+   "pl": "Wstecz",
+   "ru": "Назад"
   },
   {
    "zh": "返回列表",
@@ -70801,8 +70945,26 @@
    "ru": "Это PC и хозяин все еще в паре; нет необходимости в паре снова."
   },
   {
+   "zh": "这台电脑的额外等待",
+   "src": "portable/app/qml/LiveFigures.qml",
+   "zh-TW": "這台電腦的額外等待",
+   "en": "Extra wait on this computer",
+   "ja": "この PC での追加の待ち",
+   "ko": "이 컴퓨터에서 추가로 기다리는 시간",
+   "nl": "Extra wachttijd op deze computer",
+   "de": "Zusätzliche Wartezeit auf diesem Computer",
+   "es": "Espera adicional en este equipo",
+   "fr": "Attente supplémentaire sur cet ordinateur",
+   "it": "Attesa aggiuntiva su questo computer",
+   "pt-BR": "Espera extra neste computador",
+   "tr": "Bu bilgisayardaki ek bekleme",
+   "ar": "انتظار إضافي على هذا الحاسوب",
+   "pl": "Dodatkowe oczekiwanie na tym komputerze",
+   "ru": "Дополнительное ожидание на этом компьютере"
+  },
+  {
    "zh": "这台电脑的额外等待：%1 ms",
-   "src": "portable/app/qml/PlayerPage.qml",
+   "src": "portable/app/qml/MinimalPage.qml",
    "zh-TW": "這台電腦的額外等待：%1 ms",
    "en": "Extra wait on this computer: %1 ms",
    "ja": "この PC での追加の待ち：%1 ms",
@@ -71540,7 +71702,7 @@
   },
   {
    "zh": "退出全屏",
-   "src": "portable/app/qml/PlayerPage.qml",
+   "src": "portable/app/qml/MinimalPage.qml",
    "zh-TW": "退出全螢幕",
    "en": "Exit fullscreen",
    "ja": "全画面を終了",
@@ -71936,7 +72098,7 @@
   },
   {
    "zh": "选择文件",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/SourcesPanel.qml",
    "zh-TW": "選擇檔案",
    "en": "Choose file",
    "ja": "ファイルを選択",
@@ -72818,7 +72980,7 @@
   },
   {
    "zh": "采集卡的声音与画面同步延迟后播放",
-   "src": "portable/app/qml/HomePage.qml",
+   "src": "portable/app/qml/SoundSettings.qml",
    "zh-TW": "擷取卡的聲音與畫面同步延遲後播放",
    "en": "The capture card’s sound plays delayed with the picture, so it stays in sync",
    "ja": "キャプチャーカードの音声は映像に合わせて遅らせて再生されます",
@@ -74023,6 +74185,24 @@
    "ru": "Зеркало"
   },
   {
+   "zh": "镜头切换",
+   "src": "portable/app/qml/LiveFigures.qml",
+   "zh-TW": "鏡頭切換",
+   "en": "Scene cuts",
+   "ja": "シーンの切り替え",
+   "ko": "장면 전환",
+   "nl": "Scènewissels",
+   "de": "Szenenwechsel",
+   "es": "Cambios de escena",
+   "fr": "Changements de plan",
+   "it": "Cambi di scena",
+   "pt-BR": "Cortes de cena",
+   "tr": "Sahne geçişleri",
+   "ar": "تغييرات المشهد",
+   "pl": "Zmiany sceny",
+   "ru": "Смены сцены"
+  },
+  {
    "zh": "镜头移动时，它会把上一帧的像素盖在生成的画面上：物体边缘会破碎，画面会发糊。要保护 HUD，请用游戏预设或 HUD 保护",
    "src": "qml/PushDiagnoseDialog.qml",
    "zh-TW": "鏡頭移動時，它會把上一幀的像素蓋在生成的畫面上：物體邊緣會破碎，畫面會發糊。要保護 HUD，請用遊戲預設或 HUD 保護",
@@ -74330,7 +74510,7 @@
   },
   {
    "zh": "隐藏统计",
-   "src": "portable/app/qml/PlayerPage.qml",
+   "src": "portable/app/qml/MinimalPage.qml",
    "zh-TW": "隱藏統計",
    "en": "Hide stats",
    "ja": "統計を隠す",
@@ -75713,24 +75893,6 @@
    "ar": "Preview and drag",
    "pl": "Podgląd i przeciąganie",
    "ru": "Предварительный просмотр и перетаскивание"
-  },
-  {
-   "zh": "预览版",
-   "src": "portable/app/qml/HomePage.qml",
-   "zh-TW": "預覽版",
-   "en": "Preview",
-   "ja": "プレビュー版",
-   "ko": "미리 보기",
-   "nl": "Voorbeeld",
-   "de": "Vorschau",
-   "es": "Vista previa",
-   "fr": "Aperçu",
-   "it": "Anteprima",
-   "pt-BR": "Prévia",
-   "tr": "Önizleme",
-   "ar": "معاينة",
-   "pl": "Podgląd",
-   "ru": "Предпросмотр"
   },
   {
    "zh": "预览：SDR 转 HDR 已运行",
