@@ -50,6 +50,7 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
     targetMode_ = std::clamp(s.value(QStringLiteral("targetMode"), 3).toInt(), 0, 3);
     pacing_ = s.value(QStringLiteral("pacingRepair"), false).toBool();
     hud_ = s.value(QStringLiteral("hudLock"), false).toBool();
+    crosshairHold_ = s.value(QStringLiteral("crosshairHold"), false).toBool();
     dedup_ = s.value(QStringLiteral("removeDuplicates"), true).toBool();
     quality_ = std::clamp(s.value(QStringLiteral("quality"), 1).toInt(), 0, 1);
     audioOn_ = s.value(QStringLiteral("audioPassthrough"), true).toBool();
@@ -166,6 +167,7 @@ void AppController::applyEngineSettings() {
     s.targetFps = targetMode_ == 1 ? 60.0 : (targetMode_ == 2 ? 120.0 : 0.0);
     s.pacingRepair = pacing_;
     s.hudLock = hud_;
+    s.crosshairHold = crosshairHold_;
     s.removeDuplicates = dedup_;
     s.quality = quality_;
     if (engine_) engine_->setSettings(s);
@@ -472,6 +474,14 @@ void AppController::setHudLock(bool v) {
     emit settingsChanged();
 }
 
+void AppController::setCrosshairHold(bool v) {
+    if (v == crosshairHold_) return;
+    crosshairHold_ = v;
+    save(QStringLiteral("crosshairHold"), v);
+    applyEngineSettings();
+    emit settingsChanged();
+}
+
 void AppController::setRemoveDuplicates(bool v) {
     if (v == dedup_) return;
     dedup_ = v;
@@ -640,6 +650,9 @@ void AppController::updateStats() {
     m[QStringLiteral("duplicates")] = qulonglong(st.duplicates);
     m[QStringLiteral("sceneCuts")] = qulonglong(st.sceneCuts);
     m[QStringLiteral("lateFields")] = qulonglong(st.lateFields);
+    // Crosshair Hold: whether it runs, and how many pixels the newest real frame holds (0 = no crosshair found).
+    m[QStringLiteral("holdState")] = st.holdState;
+    m[QStringLiteral("holdPixels")] = st.holdPixels;
     m[QStringLiteral("pacingShare")] = st.kept > 0 ? double(st.pacingRepaired) / double(st.kept) : 0.0;
     m[QStringLiteral("width")] = st.width;
     m[QStringLiteral("height")] = st.height;

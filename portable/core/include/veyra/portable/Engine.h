@@ -28,6 +28,7 @@
 //     before it was needed its motion was ready (the slack), and while the least slack of the last
 //     pairs stays above a guard, the margin comes down by that excess, half a millisecond a pair at
 //     most. It never probes by running late; the old slow giving back is still there under it.
+#include "veyra/portable/CrosshairHold.h"
 #include "veyra/portable/HudLock.h"
 #include "veyra/portable/Image.h"
 #include "veyra/portable/Motion.h"
@@ -48,6 +49,7 @@ struct EngineSettings {
     bool removeDuplicates = true;
     bool pacingRepair = false;
     bool hudLock = false;
+    bool crosshairHold = false;  // Crosshair Hold (CrosshairHold.h); off unless switched on
     int quality = 1;             // 0 fast (vectors from the quarter-size picture), 1 balanced (half size)
     double estimateBudgetMs = 0; // headroom for motion estimation in the display delay; 0 = measured
 };
@@ -58,6 +60,11 @@ struct ContentFrame {
     int64_t arrival = 0;  // when the capture delivered it
     std::shared_ptr<const Bgra> image;
     std::shared_ptr<const Pyramid> pyramid;
+    // Crosshair Hold: this frame's part, and what a generated frame between the frame before
+    // (holdPairWith) and this one needs. Both null with the switch off or no crosshair on screen.
+    std::shared_ptr<const HoldFrame> hold;
+    std::shared_ptr<const HoldPair> holdPair;
+    uint64_t holdPairWith = 0;
 };
 
 struct PairFields {
@@ -71,6 +78,7 @@ struct PairFields {
 struct Pick {
     std::shared_ptr<const Bgra> a, b;          // b == a when only one real frame is shown
     std::shared_ptr<const PairFields> fields;  // null: show the nearer real frame (no generation)
+    std::shared_ptr<const HoldPair> hold;      // Crosshair Hold's part for this pair; null: nothing is held
     uint64_t aId = 0, bId = 0;
     float t = 0;                               // 0 = a, 1 = b
     bool generated() const { return fields && t > 0.f && t < 1.f && a != b; }
@@ -90,6 +98,9 @@ struct EngineStats {
     double slackMs = 0;        // least time before it was needed that a recent pair's motion was ready
     uint64_t picks = 0;        // refreshes asked for
     int width = 0, height = 0;
+    // Crosshair Hold: 0 not asked for, 1 running; and how many pixels the newest real frame holds.
+    int holdState = 0;
+    int holdPixels = 0;
 };
 
 class Engine {
@@ -163,6 +174,8 @@ private:
     struct Pacing;
     std::unique_ptr<Pacing> pacing_;
     HudLock hud_;  // worker thread only
+    CrosshairHold hold_;      // the thread that pushes frames only; others ask for a reset through holdReset_
+    bool holdReset_ = false;
     MotionField lastForward_, lastBackward_;
     std::thread worker_;
 };
