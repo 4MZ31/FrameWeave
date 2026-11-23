@@ -1570,3 +1570,13 @@ zh:正在运行：已找到准星，补出的每一帧里都原样放回|Działa
 zh:正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）|Działa: na środku obrazu nie znaleziono jeszcze celownika (jest wykrywany, gdy obraz za nim się porusza)
 zh:已开启：有画面播放并且补帧开启后开始运行|Włączone: zaczyna działać, gdy odtwarzany jest obraz z włączonym generowaniem klatek
 zh:这种补帧方式暂不支持，请换一种补帧方式|Jeszcze nie działa z tą metodą generowania klatek: wybierz inną
+zh:统计|Statystyki
+zh:返回|Wstecz
+zh:延迟|Opóźnienie
+zh:画面尺寸|Rozmiar obrazu
+zh:输出帧率|Wyjściowa liczba klatek
+zh:声音延迟|Opóźnienie dźwięku
+zh:去除的重复帧|Usunięte powtórzone klatki
+zh:镜头切换|Zmiany sceny
+zh:没赶上的运动|Ruch niegotowy na czas
+zh:这台电脑的额外等待|Dodatkowe oczekiwanie na tym komputerze
