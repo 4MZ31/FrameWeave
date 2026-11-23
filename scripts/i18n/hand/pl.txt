@@ -1580,3 +1580,13 @@ zh:去除的重复帧|Usunięte powtórzone klatki
 zh:镜头切换|Zmiany sceny
 zh:没赶上的运动|Ruch niegotowy na czas
 zh:这台电脑的额外等待|Dodatkowe oczekiwanie na tym komputerze
+zh:译文停留时间|Tłumaczenie pozostaje przez
+zh:原字幕结束或换成下一句后，译文继续显示这么久，方便读完；下一句的译文一出来就换上。设为 0 就和原字幕一起消失|Gdy oryginalna linia się kończy albo zaczyna się następna, tłumaczenie pozostaje przez ten czas, żeby można je było doczytać; następne tłumaczenie zastępuje je, gdy tylko jest gotowe. Przy 0 znika razem z oryginalną linią
+zh:正在停止播放…|Zatrzymywanie odtwarzania…
+zh:停止播放并测试|Zatrzymaj odtwarzanie i testuj
+zh:已测试：半精度在这块显卡上并不更快，继续使用全精度|Przetestowano: połowiczna precyzja nie jest szybsza na tej karcie graficznej, więc nadal używana jest pełna precyzja
+zh:先测试这块显卡；通过后才能开启。测试需要先停止播放|Najpierw przetestuj tę kartę graficzną; po zaliczeniu testu można to włączyć. Test wymaga wcześniejszego zatrzymania odtwarzania
+zh:FSR 的运动估算可以更省|Szacowanie ruchu dla FSR może być lżejsze
+zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|Zanim FSR wygeneruje klatkę, PushFPS szacuje ruch na podstawie obrazu. Lżejsze szacowanie mniej obciąża kartę graficzną w każdej klatce, dzięki czemu karty ze średniej i niższej półki łatwiej nadążają; krawędzie obiektów stają się nieco bardziej zgrubne. Cofnij, jeśli obraz wygląda gorzej
+zh:改用更省的运动估算|Użyj lżejszego szacowania ruchu
+zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|Przepustowość, o którą prosi się PS5; konsola nie gwarantuje jej osiągnięcia. W sieci przewodowej 30 Mb/s lub więcej daje ostrzejszy obraz; zmniejsz, jeśli obraz się zacina

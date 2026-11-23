@@ -1580,3 +1580,13 @@ zh:去除的重复帧|Verwijderde dubbele frames
 zh:镜头切换|Scènewissels
 zh:没赶上的运动|Beweging niet op tijd klaar
 zh:这台电脑的额外等待|Extra wachttijd op deze computer
+zh:译文停留时间|Vertaling blijft staan
+zh:原字幕结束或换成下一句后，译文继续显示这么久，方便读完；下一句的译文一出来就换上。设为 0 就和原字幕一起消失|Nadat de oorspronkelijke regel eindigt of de volgende begint, blijft de vertaling zo lang staan dat je hem kunt uitlezen; de volgende vertaling vervangt hem zodra die er is. Bij 0 verdwijnt hij samen met de oorspronkelijke regel
+zh:正在停止播放…|Afspelen wordt gestopt…
+zh:停止播放并测试|Afspelen stoppen en testen
+zh:已测试：半精度在这块显卡上并不更快，继续使用全精度|Getest: halve precisie is op deze grafische kaart niet sneller, dus volledige precisie blijft in gebruik
+zh:先测试这块显卡；通过后才能开启。测试需要先停止播放|Test eerst deze grafische kaart; daarna kan het worden ingeschakeld. Voor de test moet het afspelen eerst stoppen
+zh:FSR 的运动估算可以更省|De bewegingsschatting voor FSR kan lichter
+zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|Voordat FSR een frame genereert, schat PushFPS de beweging uit het beeld. Een lichtere schatting vraagt per frame minder van de grafische kaart, waardoor midrange- en instapkaarten het makkelijker bijhouden; randen van objecten worden iets ruwer. Maak het ongedaan als het er slechter uitziet
+zh:改用更省的运动估算|Lichtere bewegingsschatting gebruiken
+zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|De bandbreedte die aan de PS5 wordt gevraagd; de console belooft niet die te halen. Op een bekabeld netwerk is 30 Mbps of meer scherper; zet het lager als het beeld hapert

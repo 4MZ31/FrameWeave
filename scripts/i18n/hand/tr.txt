@@ -1580,3 +1580,13 @@ zh:去除的重复帧|Kaldırılan yinelenen kareler
 zh:镜头切换|Sahne geçişleri
 zh:没赶上的运动|Zamanında hazır olmayan hareket
 zh:这台电脑的额外等待|Bu bilgisayardaki ek bekleme
+zh:译文停留时间|Çevirinin kalma süresi
+zh:原字幕结束或换成下一句后，译文继续显示这么久，方便读完；下一句的译文一出来就换上。设为 0 就和原字幕一起消失|Özgün satır bittikten veya sonraki satır başladıktan sonra çeviri, okunabilmesi için bu süre kadar ekranda kalır; sonraki çeviri hazır olur olmaz onun yerini alır. 0 seçilirse özgün satırla birlikte kaybolur
+zh:正在停止播放…|Oynatma durduruluyor…
+zh:停止播放并测试|Oynatmayı durdur ve test et
+zh:已测试：半精度在这块显卡上并不更快，继续使用全精度|Test edildi: yarı duyarlık bu ekran kartında daha hızlı değil, bu yüzden tam duyarlık kullanılmaya devam ediyor
+zh:先测试这块显卡；通过后才能开启。测试需要先停止播放|Önce bu ekran kartını test edin; test geçildikten sonra açılabilir. Test için önce oynatmanın durması gerekir
+zh:FSR 的运动估算可以更省|FSR'nin hareket kestirimi daha hafif olabilir
+zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|FSR bir kare üretmeden önce PushFPS hareketi görüntüden kestirir. Daha hafif bir kestirim her karede ekran kartını daha az yorar; orta ve giriş seviyesi kartların yetişmesi kolaylaşır. Nesnelerin kenarları biraz kabalaşır. Görüntü kötüleşirse geri alın
+zh:改用更省的运动估算|Daha hafif hareket kestirimini kullan
+zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|PS5'ten istenen bant genişliği; konsol buna ulaşmayı garanti etmez. Kablolu ağda 30 Mbps veya üzeri daha net görünür; görüntü takılırsa düşürün
