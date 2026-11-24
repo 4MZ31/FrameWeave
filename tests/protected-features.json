@@ -2236,6 +2236,18 @@
     }
    ],
    "needs_hardware": "a capture card session measured before and after (PS5 latency test or a camera)"
+  },
+  {
+   "id": "F80",
+   "what": "Listing capture devices never waits for ever on one driver: each device's sound check is asked on its own thread and waited for at most 3 s, a device still waiting is not asked again, a late answer is used at the next list",
+   "guards": [
+    {
+     "file": "tests/unit/PushTimedProbeTests.cpp",
+     "ci": "veyra_push_timed_probe_tests",
+     "contains": "the whole list is bounded"
+    }
+   ],
+   "needs_hardware": "a PC with a capture card whose driver does not answer (the two-Elgato report, issue 1)"
   }
  ]
 }
