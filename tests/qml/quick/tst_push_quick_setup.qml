@@ -28,6 +28,7 @@ Item {
         name: "PushQuickSetup"
         when: windowShown
         function init() {
+            quick.keepsProfiles = false; quick.profileQuietUntil = 0
             Theme.design = "legacy"; quick.compact = false   // (a test that left the new design or the short form on would change every later one)
             veyra.preferences = ({exportStopsPlayback: false})
             veyra.fgMultiplier = 1
@@ -655,6 +656,36 @@ Item {
             quick.deleteGame("GTA VI")
             compare(quick.games.length, 0)
             compare(quick.activeGame, "")
+        }
+        function test_a_chosen_profile_keeps_what_is_changed_afterwards() {
+            quick.setGameFps("30")
+            quick.applyTarget("120")
+            verify(quick.saveGame("Racer"))
+            quick.keepsProfiles = true
+            // A change made while the profile is chosen is written back to it (after a short wait).
+            quick.applyTarget("60")
+            tryVerify(function() { return quick.games.length === 1 && quick.games[0].target === "60" }, 5000)
+            compare(quick.games[0].name, "Racer")
+            compare(quick.games[0].console, "ps5")
+            compare(quick.profiles.consoles.ps5.target, "60", "the console's own profile follows too")
+            // Another choice in quick succession: what was waiting is kept first.
+            quick.applyTarget("off")
+            quick.applyGame("")
+            compare(quick.games[0].target, "off")
+            compare(quick.activeGame, "")
+            // With no game chosen, the game profile is left alone.
+            quick.applyTarget("120")
+            tryVerify(function() { return quick.profiles.consoles.ps5.target === "120" }, 8000)
+            compare(quick.games[0].target, "off")
+            // A target set by hand in Professional mode (none of the quick choices) keeps the profile's own.
+            quick.applyGame("Racer")
+            veyra.outputCustomFps = 75
+            veyra.fgEnabled = true; veyra.fgMultiplier = 3; veyra.outputRateMode = 2
+            compare(quick.currentTarget, "")
+            wait(4800)
+            compare(quick.games[0].target, "off")
+            quick.keepsProfiles = false
+            quick.deleteGame("Racer")
         }
         function test_game_profile_applies_its_preset() {
             veyra.presets = [{index: 0, name: "Default"}, {index: 3, name: "Sharp"}]

@@ -51719,6 +51719,24 @@
    "ru": "Этот пакет не включает в себя DLSS Frame Generation 310.9.16 время выполнения в режиме производительности"
   },
   {
+   "zh": "此配置会记住你接下来做的更改",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "此設定檔會記住你接下來做的變更",
+   "en": "This profile keeps the changes you make next",
+   "ja": "このプロファイルは、この後の変更を記憶します",
+   "ko": "이 프로필은 이후에 바꾸는 설정을 기억합니다",
+   "nl": "Dit profiel onthoudt de wijzigingen die je hierna maakt",
+   "de": "Dieses Profil merkt sich die Änderungen, die Sie als Nächstes vornehmen",
+   "es": "Este perfil guarda los cambios que hagas a continuación",
+   "fr": "Ce profil retient les modifications que vous faites ensuite",
+   "it": "Questo profilo ricorda le modifiche che fai d'ora in poi",
+   "pt-BR": "Este perfil guarda as alterações que você fizer a seguir",
+   "tr": "Bu profil bundan sonra yaptığınız değişiklikleri hatırlar",
+   "ar": "يحتفظ هذا الملف الشخصي بالتغييرات التي تجريها بعد ذلك",
+   "pl": "Ten profil zapamiętuje zmiany, które wprowadzisz dalej",
+   "ru": "Этот профиль запоминает изменения, которые вы вносите дальше"
+  },
+  {
    "zh": "此采集卡无此格式，请重新选择分辨率、帧率和像素格式。",
    "src": "src/source/CaptureCardSource.cpp",
    "zh-TW": "此擷取卡無此格式，請重新選擇解析度、幀率和像素格式。",
