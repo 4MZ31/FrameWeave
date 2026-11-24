@@ -191,6 +191,11 @@ bool AmfFrcBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue, 
     if (result != AMF_OK || !p.frc) { log::error("amf-frc", std::format("CreateComponent(AMFFRC) failed result={} runtime={}", int(result), p.version)); shutdown(); return false; }
     // AMD's guidance: the SUPER motion-search profile from 1440p up, HIGH below.
     const bool large = uint64_t(width) * height > uint64_t(2560) * 1440;
+    // PushFPS: a graphics card with its own memory takes SUPER at every size. On a 1080p console capture
+    // HIGH loses a fast camera turn and falls back to blending the two frames (a double picture); SUPER
+    // follows it for a fraction of a millisecond more on a dedicated card. An APU (under 2 GiB of its own
+    // memory, `lowPower` as asked by the graph) keeps HIGH below 1440p.
+    const bool superProfile = large || !lowPower;
     // The downscaled (performance) search returned the previous frame unchanged at
     // 640x360 while it interpolated from 960x540 up (probe on the Radeon iGPU,
     // 2026-11-14); small frames are cheap with the full-resolution search anyway.
@@ -199,7 +204,7 @@ bool AmfFrcBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue, 
     p.frc->SetProperty(AMF_FRC_MODE, amf_int64(FRC_ONLY_INTERPOLATED));
     p.frc->SetProperty(AMF_FRC_ENABLE_FALLBACK, true); // blend, not repeat, where the motion is unsure
     p.frc->SetProperty(AMF_FRC_INDICATOR, false);
-    p.frc->SetProperty(AMF_FRC_PROFILE, amf_int64(large ? FRC_PROFILE_SUPER : FRC_PROFILE_HIGH));
+    p.frc->SetProperty(AMF_FRC_PROFILE, amf_int64(superProfile ? FRC_PROFILE_SUPER : FRC_PROFILE_HIGH));
     p.frc->SetProperty(AMF_FRC_MV_SEARCH_MODE, amf_int64(lowPower ? FRC_MV_SEARCH_PERFORMANCE : FRC_MV_SEARCH_NATIVE));
     // The future frame would add one more frame of delay and shift the output a pair later.
     p.frc->SetProperty(AMF_FRC_USE_FUTURE_FRAME, false);
@@ -222,7 +227,7 @@ bool AmfFrcBackend::initialize(ID3D12Device* device, ID3D12CommandQueue* queue, 
     }
     p.queue = queue; p.width = width; p.height = height; p.ready = true;
     log::info("amf-frc", std::format("ready runtime={} {}x{} format={} profile={} motionSearch={} futureFrame=0 mode=only-interpolated initMs={:.1f}",
-        p.version, width, height, int(format), large ? "super" : "high", lowPower ? "performance" : "native",
+        p.version, width, height, int(format), superProfile ? "super" : "high", lowPower ? "performance" : "native",
         std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count()));
     return true;
 #else
