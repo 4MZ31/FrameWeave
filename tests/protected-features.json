@@ -2153,7 +2153,7 @@
     },
     {
      "file": "tests/qml/quick/tst_dedup_modes.qml",
-     "ci": "tst_dedup_modes",
+     "ci": "Get-ChildItem qml-tests -Filter 'tst_*.qml'",
      "contains": "test_the_original_60_to_30_is_chosen_and_kept"
     }
    ],
