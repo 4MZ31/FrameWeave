@@ -1595,3 +1595,4 @@ zh:画面显示得不比原尺寸大，现在不需要放大|Obraz nie jest wyś
 zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 OpenGL 4.3|Interfejs graficzny tego komputera nie obsługuje skalowania: wymagany jest Vulkan, Metal lub OpenGL 4.3
 zh:放大没能在这块显卡上启动，画面照常显示|Skalowanie nie uruchomiło się na tej karcie graficznej; obraz jest wyświetlany normalnie
 zh:放大到屏幕分辨率|Skaluje do rozdzielczości ekranu
+zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 powiększa bez wyostrzania; 50 to domyślna wartość NVIDIA. NIS powiększa do 2× w jednym przebiegu; większe współczynniki kończy zwykłe skalowanie.

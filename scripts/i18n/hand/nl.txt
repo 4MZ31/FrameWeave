@@ -1594,3 +1594,4 @@ zh:有画面播放时开始放大|Upscalen begint zodra er beeld wordt afgespeel
 zh:画面显示得不比原尺寸大，现在不需要放大|Het beeld wordt niet groter getoond dan het is: nu valt er niets te upscalen
 zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 OpenGL 4.3|De grafische interface van deze computer kan geen upscaling uitvoeren: daarvoor is Vulkan, Metal of OpenGL 4.3 nodig
 zh:放大没能在这块显卡上启动，画面照常显示|Upscaling kon niet starten op deze videokaart; het beeld wordt gewoon getoond
+zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 vergroot zonder te verscherpen; 50 is de standaard van NVIDIA. NIS vergroot per keer tot 2×; grotere factoren worden met gewone schaling afgemaakt.

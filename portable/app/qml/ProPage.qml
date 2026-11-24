@@ -2,7 +2,7 @@
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 //
 // Professional mode: the picture large on the left, every setting of the preview in the panel on the
-// right. The panel starts on All, where each block stands under a title that folds it (preference
+// right (Quality, Frame Gen, Picture, Audio, Statistics). The panel starts on All, where each block stands under a title that folds it (preference
 // pushProFolded, as in the Windows build); the tabs show one block alone.
 import QtQuick
 import QtQuick.Controls.Basic
@@ -25,6 +25,7 @@ Rectangle {
 
     // The blocks, in the order All shows them.
     readonly property var blocks: [
+        { id: "quality", label: qsTr("画质") },
         { id: "fg", label: qsTr("补帧") },
         { id: "color", label: qsTr("画面") },
         { id: "audio", label: qsTr("声音") },
@@ -196,8 +197,14 @@ Rectangle {
                 width: listFlick.width - 12
                 spacing: 4
 
+                // Quality, as the Windows build's tab: "Upscale to my screen" and the Super resolution card.
+                Block {
+                    blockId: "quality"; title: qsTr("画质"); tab: root.tab; shown: root.blockShown("quality"); onFoldToggled: open => root.setFolded("quality", !open)
+                    UpscaleRow {}
+                    SuperResolutionCard { Layout.topMargin: 6; Layout.bottomMargin: 6 }
+                }
                 Block { blockId: "fg"; title: qsTr("补帧"); tab: root.tab; shown: root.blockShown("fg"); onFoldToggled: open => root.setFolded("fg", !open); QuickSettings {} }
-                Block { blockId: "color"; title: qsTr("画面"); tab: root.tab; shown: root.blockShown("color"); onFoldToggled: open => root.setFolded("color", !open); PictureSettings {} }
+                Block { blockId: "color"; title: qsTr("画面"); tab: root.tab; shown: root.blockShown("color"); onFoldToggled: open => root.setFolded("color", !open); PictureSettings { showUpscale: false } }
                 Block { blockId: "audio"; title: qsTr("声音"); tab: root.tab; shown: root.blockShown("audio"); onFoldToggled: open => root.setFolded("audio", !open); SoundSettings {} }
                 Block { blockId: "stats"; title: qsTr("统计"); tab: root.tab; shown: root.blockShown("stats"); onFoldToggled: open => root.setFolded("stats", !open); LiveFigures {} }
             }

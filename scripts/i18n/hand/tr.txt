@@ -1594,3 +1594,4 @@ zh:有画面播放时开始放大|Bir görüntü oynatılmaya başlayınca yüks
 zh:画面显示得不比原尺寸大，现在不需要放大|Görüntü kendi boyutundan büyük gösterilmiyor: şu an yükseltilecek bir şey yok
 zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 OpenGL 4.3|Bu bilgisayarın grafik arayüzü yükseltmeyi çalıştıramıyor: Vulkan, Metal veya OpenGL 4.3 gerekir
 zh:放大没能在这块显卡上启动，画面照常显示|Yükseltme bu ekran kartında başlatılamadı; görüntü her zamanki gibi gösteriliyor
+zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 keskinleştirmeden büyütür; 50 NVIDIA'nın varsayılanıdır. NIS her geçişte en fazla 2× büyütür; daha büyük oranlar normal ölçeklemeyle tamamlanır.

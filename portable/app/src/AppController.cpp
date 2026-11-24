@@ -27,6 +27,9 @@
 namespace pushfps {
 
 namespace {
+// The upscaling algorithms the preview has, by the Windows build's numbers: 6 = NVIDIA Image Scaling.
+const QList<int> kSrAlgorithms{6};
+
 QString formatLabel(const QCameraFormat& f) {
     QString pixel;
     switch (f.pixelFormat()) {
@@ -68,6 +71,8 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
     fillMode_ = std::clamp(s.value(QStringLiteral("fillMode"), 0).toInt(), 0, 2);
     srEnabled_ = s.value(QStringLiteral("srEnabled"), false).toBool();
     srTarget_ = std::clamp(s.value(QStringLiteral("srTargetIndex"), 2).toInt(), 1, 2);
+    const int algorithm = s.value(QStringLiteral("videoSrQuality"), 6).toInt();
+    srAlgorithm_ = kSrAlgorithms.contains(algorithm) ? algorithm : 6;
 
     loadPreferences();
 
@@ -561,6 +566,13 @@ void AppController::setSrTargetIndex(int v) {
     if (v == srTarget_) return;
     srTarget_ = v;
     save(QStringLiteral("srTargetIndex"), v);
+    emit settingsChanged();
+}
+
+void AppController::setVideoSrQuality(int v) {
+    if (!kSrAlgorithms.contains(v) || v == srAlgorithm_) return;
+    srAlgorithm_ = v;
+    save(QStringLiteral("videoSrQuality"), v);
     emit settingsChanged();
 }
 

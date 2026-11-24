@@ -1595,3 +1595,4 @@ zh:画面显示得不比原尺寸大，现在不需要放大|La imagen no se mue
 zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 OpenGL 4.3|La interfaz gráfica de este ordenador no puede ejecutar el escalado: necesita Vulkan, Metal u OpenGL 4.3
 zh:放大没能在这块显卡上启动，画面照常显示|El escalado no pudo iniciarse en esta tarjeta gráfica; la imagen se muestra como siempre
 zh:放大到屏幕分辨率|Escala a la resolución de tu pantalla
+zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 escala sin enfocar; 50 es el valor predeterminado de NVIDIA. NIS amplía hasta 2× por pasada; los factores mayores se completan con el escalado normal.

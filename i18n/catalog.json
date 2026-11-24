@@ -1879,16 +1879,16 @@
    "en": "0 upscales without sharpening; 50 is NVIDIA's default. NIS enlarges up to 2× per pass; larger factors are finished with regular scaling.",
    "ja": "0 は拡大のみでシャープ化なし、50 が NVIDIA の既定値です。1 回で最大 2 倍まで拡大し、それ以上は通常の拡大で補います。",
    "ko": "0은 선명화 없이 확대하고, 50은 NVIDIA의 기본값입니다. NIS는 한 번에 최대 2×까지 확대하며, 그보다 큰 배율은 일반 스케일링으로 마무리합니다.",
-   "nl": "0 opschalen zonder verscherping; 50 is NVIDIA 's standaard. NIS vergroot tot 2× per pas; grotere factoren worden afgewerkt met regelmatige schaalvergroting.",
-   "de": "0 Upscales ohne Schärfen; 50 ist NVIDIA 's Standard. NIS vergrößert sich bis zu 2x pro Durchgang; größere Faktoren werden mit regelmäßiger Skalierung abgeschlossen.",
-   "es": "0 escalas sin afilar; 50 es NVIDIA 's predeterminado. NIS aumenta hasta 2× por paso; los factores más grandes se terminan con el escalado regular.",
-   "fr": "0 haut de gamme sans aiguiser; 50 est NVIDIA 's par défaut. NIS agrandit jusqu'à 2× par passe; les facteurs plus importants sont terminés par une échelle régulière.",
-   "it": "0 upscales senza affilare; 50 è NVIDIA di default. NIS amplia fino a 2× per passaggio; i fattori più grandi sono finiti con scaling regolare.",
-   "pt-BR": "0 upscales sem afiar; 50 é o padrão de NVIDIA. NIS aumenta até 2× por passe; fatores maiores são terminados com escala regular.",
-   "tr": "0 keskinleştirme olmadan ölçekler; 50 NVIDIA 's varsayılan. NIS geçiş başına 2×'a kadar övgüler; daha büyük faktörler düzenli ölçeklendirme ile tamamlandı.",
-   "ar": "0 upscales without sharpening; 50 is NVIDIA's default. NIS enlarges up to 2× per pass; larger factors are finished with regular scaling.",
-   "pl": "0 ulepszeń bez ostrzenia; 50 jest domyślne NVIDIA. NIS powiększa się do 2 × na przełęcz; większe czynniki kończą się regularnym skalowaniem.",
-   "ru": "0 отверстий без заточки; 50 - по умолчанию NVIDIA. NIS увеличивается до 2х на проход; более крупные факторы заканчиваются регулярным масштабированием."
+   "nl": "0 vergroot zonder te verscherpen; 50 is de standaard van NVIDIA. NIS vergroot per keer tot 2×; grotere factoren worden met gewone schaling afgemaakt.",
+   "de": "0 vergrößert ohne Schärfen; 50 ist NVIDIAs Standard. NIS vergrößert pro Durchgang bis zu 2×; größere Faktoren werden mit normaler Skalierung fertiggestellt.",
+   "es": "0 escala sin enfocar; 50 es el valor predeterminado de NVIDIA. NIS amplía hasta 2× por pasada; los factores mayores se completan con el escalado normal.",
+   "fr": "0 agrandit sans netteté ; 50 est la valeur par défaut de NVIDIA. NIS agrandit jusqu'à 2× par passe ; les facteurs plus grands sont complétés par une mise à l'échelle classique.",
+   "it": "0 ingrandisce senza nitidezza; 50 è il valore predefinito di NVIDIA. NIS ingrandisce fino a 2× per passaggio; i fattori più grandi vengono completati con il ridimensionamento normale.",
+   "pt-BR": "0 amplia sem nitidez; 50 é o padrão da NVIDIA. O NIS amplia até 2× por passagem; fatores maiores são concluídos com o redimensionamento comum.",
+   "tr": "0 keskinleştirmeden büyütür; 50 NVIDIA'nın varsayılanıdır. NIS her geçişte en fazla 2× büyütür; daha büyük oranlar normal ölçeklemeyle tamamlanır.",
+   "ar": "0 يكبّر دون توضيح؛ 50 هي القيمة الافتراضية من NVIDIA. يكبّر NIS حتى 2× في كل مرة؛ وتُستكمل النسب الأكبر بالتحجيم العادي.",
+   "pl": "0 powiększa bez wyostrzania; 50 to domyślna wartość NVIDIA. NIS powiększa do 2× w jednym przebiegu; większe współczynniki kończy zwykłe skalowanie.",
+   "ru": "0 — увеличение без повышения резкости; 50 — значение NVIDIA по умолчанию. NIS увеличивает до 2× за проход; большие коэффициенты доводит обычное масштабирование."
   },
   {
    "zh": "0% 关闭曲线；峰值保护与元数据独立",
@@ -41369,7 +41369,7 @@
   },
   {
    "zh": "放大没能在这块显卡上启动，画面照常显示",
-   "src": "portable/app/qml/PictureSettings.qml",
+   "src": "portable/app/qml/UpscaleRow.qml",
    "zh-TW": "放大無法在這張顯示卡上啟動，畫面照常顯示",
    "en": "Upscaling couldn't start on this graphics card; the picture is shown as usual",
    "ja": "このグラフィックカードではアップスケールを開始できませんでした。映像は通常どおり表示されます",
@@ -46428,7 +46428,7 @@
   },
   {
    "zh": "有画面播放时开始放大",
-   "src": "portable/app/qml/PictureSettings.qml",
+   "src": "portable/app/qml/UpscaleRow.qml",
    "zh-TW": "有畫面播放時開始放大",
    "en": "Upscaling starts once a picture is playing",
    "ja": "映像の再生が始まるとアップスケールを開始します",
@@ -56346,7 +56346,7 @@
   },
   {
    "zh": "画面显示得不比原尺寸大，现在不需要放大",
-   "src": "portable/app/qml/PictureSettings.qml",
+   "src": "portable/app/qml/UpscaleRow.qml",
    "zh-TW": "畫面顯示得不比原尺寸大，現在不需要放大",
    "en": "The picture isn't shown larger than its own size: nothing to upscale now",
    "ja": "映像は元のサイズより大きく表示されていないため、今はアップスケール不要です",
@@ -71252,7 +71252,7 @@
   },
   {
    "zh": "这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 OpenGL 4.3",
-   "src": "portable/app/qml/PictureSettings.qml",
+   "src": "portable/app/qml/UpscaleRow.qml",
    "zh-TW": "這台電腦的圖形介面無法執行放大：需要 Vulkan、Metal 或 OpenGL 4.3",
    "en": "This computer's graphics interface can't run upscaling: it needs Vulkan, Metal or OpenGL 4.3",
    "ja": "このコンピューターのグラフィックスAPIではアップスケールを実行できません。Vulkan、Metal、または OpenGL 4.3 が必要です",

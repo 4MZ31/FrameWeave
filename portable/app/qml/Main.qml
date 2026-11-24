@@ -158,7 +158,7 @@ Window {
         gamma: app.gamma
         fill: app.fillMode
         // Upscaling with NVIDIA Image Scaling (NisNode.h); the Windows build's names.
-        upscale: app.srEnabled
+        upscale: app.srEnabled && app.videoSrQuality === 6
         upscaleTarget: app.srTargetIndex
         sharpness: (root.prefs.nisSharpness === undefined ? 50 : Number(root.prefs.nisSharpness)) / 100
     }

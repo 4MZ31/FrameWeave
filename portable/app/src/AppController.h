@@ -61,6 +61,9 @@ class AppController : public QObject {
     // upscales towards (1 = 2560 x 1440, 2 = 3840 x 2160). Its sharpening is the preference nisSharpness.
     Q_PROPERTY(bool srEnabled READ srEnabled WRITE setSrEnabled NOTIFY settingsChanged)
     Q_PROPERTY(int srTargetIndex READ srTargetIndex WRITE setSrTargetIndex NOTIFY settingsChanged)
+    // The upscaling algorithm, by the Windows build's numbers (engine::kVideoSrNis = 6). The preview has
+    // NVIDIA Image Scaling only; another value is never kept.
+    Q_PROPERTY(int videoSrQuality READ videoSrQuality WRITE setVideoSrQuality NOTIFY settingsChanged)
     // What the picture's upscaling does now (FrameView::UpscaleState) and its sizes; Main.qml hands them
     // over from the picture, which is drawn on another thread. Not saved.
     Q_PROPERTY(int upscaleState READ upscaleState WRITE setUpscaleState NOTIFY upscaleChanged)
@@ -138,6 +141,8 @@ public:
     void setSrEnabled(bool v);
     int srTargetIndex() const { return srTarget_; }
     void setSrTargetIndex(int v);
+    int videoSrQuality() const { return srAlgorithm_; }
+    void setVideoSrQuality(int v);
     int upscaleState() const { return upscaleState_; }
     void setUpscaleState(int v) { if (v != upscaleState_) { upscaleState_ = v; emit upscaleChanged(); } }
     QString upscaleSizes() const { return upscaleSizes_; }
@@ -204,7 +209,7 @@ private:
     int targetMode_ = 3, quality_ = 1;
     bool pacing_ = false, hud_ = false, dedup_ = true, audioOn_ = true, showStats_ = false, onTop_ = false;
     bool srEnabled_ = false;
-    int srTarget_ = 2, upscaleState_ = 0;
+    int srTarget_ = 2, srAlgorithm_ = 6, upscaleState_ = 0;
     QString upscaleSizes_;
     bool lowLatency_ = false, autoConnect_ = false, applyingLowLatency_ = false, savedCameraFound_ = false;
     bool crosshairHold_ = false;
