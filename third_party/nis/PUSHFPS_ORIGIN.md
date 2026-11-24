@@ -17,5 +17,7 @@ third-party libraries are not copied.
 
 PushFPS compiles `NIS_Scaler.h` through its own wrapper `shaders/NisScaler.hlsl` (registers chosen to fit
 PushFPS's compute pass helper) and uses `NIS_Config.h` on the CPU for the shader constants and the
-filter coefficient tables (`src/pipeline/NisPass.cpp`). NIS is offered as the "NVIDIA Image Scaling"
+filter coefficient tables (`src/pipeline/NisPass.cpp`). The Linux and macOS preview compiles the same file in
+its GLSL form (`portable/app/shaders/nis.comp.in`, put together with it by `portable/app/CMakeLists.txt`) and
+uses `NIS_Config.h` the same way, with the half-float tables (`portable/app/src/NisNode.cpp`). NIS is offered as the "NVIDIA Image Scaling"
 choice of the super-resolution stage.

@@ -57,6 +57,18 @@ class AppController : public QObject {
     Q_PROPERTY(bool autoConnect READ autoConnect WRITE setAutoConnect NOTIFY settingsChanged)
     Q_PROPERTY(int fillMode READ fillMode WRITE setFillMode NOTIFY settingsChanged)
     Q_PROPERTY(bool alwaysOnTop READ alwaysOnTop WRITE setAlwaysOnTop NOTIFY settingsChanged)
+    // Upscaling with NVIDIA Image Scaling, under the Windows build's names: on or off, and the size it
+    // upscales towards (1 = 2K, 2 = 4K, 4 = 5K, 5 = 6K: FrameView::upscaleTargetSize). Its sharpening is the
+    // preference nisSharpness.
+    Q_PROPERTY(bool srEnabled READ srEnabled WRITE setSrEnabled NOTIFY settingsChanged)
+    Q_PROPERTY(int srTargetIndex READ srTargetIndex WRITE setSrTargetIndex NOTIFY settingsChanged)
+    // The upscaling algorithm, by the Windows build's numbers (engine::kVideoSrNis = 6). The preview has
+    // NVIDIA Image Scaling only; another value is never kept.
+    Q_PROPERTY(int videoSrQuality READ videoSrQuality WRITE setVideoSrQuality NOTIFY settingsChanged)
+    // What the picture's upscaling does now (FrameView::UpscaleState) and its sizes; Main.qml hands them
+    // over from the picture, which is drawn on another thread. Not saved.
+    Q_PROPERTY(int upscaleState READ upscaleState WRITE setUpscaleState NOTIFY upscaleChanged)
+    Q_PROPERTY(QString upscaleSizes READ upscaleSizes WRITE setUpscaleSizes NOTIFY upscaleChanged)
     Q_PROPERTY(QString language READ language WRITE setLanguage NOTIFY settingsChanged)
     Q_PROPERTY(QStringList languageCodes READ languageCodes CONSTANT)
     Q_PROPERTY(QStringList languageNames READ languageNames CONSTANT)
@@ -126,6 +138,16 @@ public:
     void setFillMode(int m);
     bool alwaysOnTop() const { return onTop_; }
     void setAlwaysOnTop(bool v);
+    bool srEnabled() const { return srEnabled_; }
+    void setSrEnabled(bool v);
+    int srTargetIndex() const { return srTarget_; }
+    void setSrTargetIndex(int v);
+    int videoSrQuality() const { return srAlgorithm_; }
+    void setVideoSrQuality(int v);
+    int upscaleState() const { return upscaleState_; }
+    void setUpscaleState(int v) { if (v != upscaleState_) { upscaleState_ = v; emit upscaleChanged(); } }
+    QString upscaleSizes() const { return upscaleSizes_; }
+    void setUpscaleSizes(const QString& v) { if (v != upscaleSizes_) { upscaleSizes_ = v; emit upscaleChanged(); } }
     QString language() const { return language_; }
     void setLanguage(const QString& code);
     QStringList languageCodes() const;
@@ -160,6 +182,7 @@ signals:
     void statsChanged();
     void errorTextChanged();
     void preferencesChanged();
+    void upscaleChanged();
 
 private:
     void applyEngineSettings();
@@ -186,6 +209,9 @@ private:
     int videoIndex_ = 0, formatIndex_ = -1, audioInIndex_ = 0, audioOutIndex_ = 0;
     int targetMode_ = 3, quality_ = 1;
     bool pacing_ = false, hud_ = false, dedup_ = true, audioOn_ = true, showStats_ = false, onTop_ = false;
+    bool srEnabled_ = false;
+    int srTarget_ = 2, srAlgorithm_ = 6, upscaleState_ = 0;
+    QString upscaleSizes_;
     bool lowLatency_ = false, autoConnect_ = false, applyingLowLatency_ = false, savedCameraFound_ = false;
     bool crosshairHold_ = false;
     bool autoConnectPending_ = false;

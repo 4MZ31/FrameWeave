@@ -1212,7 +1212,11 @@ https://github.com/NVIDIAGameWorks/NVIDIAImageScaling commit `35e13ba316c98eeecf
 (MIT License, Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES); file hashes in
 `third_party/nis/PUSHFPS_ORIGIN.md`. The licence text ships as `licenses/NVIDIA_Image_Scaling_SDK_MIT.txt`.
 PushFPS compiles the shader through its own wrapper `shaders/NisScaler.hlsl` and adds its own colour
-boundary `shaders/NisColor.hlsl` and host `src/pipeline/NisPass.cpp` (GPL-3.0-or-later). Source code only:
+boundary `shaders/NisColor.hlsl` and host `src/pipeline/NisPass.cpp` (GPL-3.0-or-later). The Linux and
+macOS preview compiles the same unchanged `NIS_Scaler.h` in its GLSL form through its own wrapper
+`portable/app/shaders/nis.comp.in` and host `portable/app/src/NisNode.cpp` (GPL-3.0-or-later), and ships the
+licence text with the program (`usr/share/doc/pushfps` in the AppImage and folder, the app bundle's
+`Resources/licenses`, and beside `LICENSE.txt` in each download). Source code only:
 no NVIDIA binary is included, and MIT is compatible with GPL-3.0. PushFPS's use of NIS is not endorsed by
 NVIDIA.
 

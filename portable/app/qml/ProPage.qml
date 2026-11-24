@@ -2,7 +2,8 @@
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 //
 // Professional mode: the picture large on the left, every setting of the preview in the panel on the
-// right. The panel starts on All, where each block stands under a title that folds it (preference
+// right (Quality, Frame Gen, Colour, Audio, Display, the Windows build's tabs), and the engine's
+// figures in cards under the picture. The panel starts on All, where each block stands under a title that folds it (preference
 // pushProFolded, as in the Windows build); the tabs show one block alone.
 import QtQuick
 import QtQuick.Controls.Basic
@@ -20,15 +21,17 @@ Rectangle {
     readonly property Item videoViewport: viewport
     readonly property real margin: 16
     readonly property real gap: 14
-    readonly property real panelWidth: Math.round(Math.max(340, Math.min(420, width * 0.32)))
+    // Wide enough for the tabs in this language (they are scrolled only when that would pass 45 % of the page).
+    readonly property real panelWidth: Math.round(Math.min(Math.max(340, Math.min(420, width * 0.32), tabs.implicitWidth + 24), width * 0.45))
     readonly property real actionHeight: 44
 
     // The blocks, in the order All shows them.
     readonly property var blocks: [
+        { id: "quality", label: qsTr("画质") },
         { id: "fg", label: qsTr("补帧") },
-        { id: "color", label: qsTr("画面") },
+        { id: "color", label: qsTr("色彩") },
         { id: "audio", label: qsTr("声音") },
-        { id: "stats", label: qsTr("统计") }
+        { id: "display", label: qsTr("显示") }
     ]
     property string tab: "all"
     readonly property var folded: String((veyra.preferences || {}).pushProFolded || "").split(",").filter(s => s.length > 0)
@@ -71,12 +74,17 @@ Rectangle {
 
     // ---- the picture ----
     readonly property real videoWidth: Math.max(1, width - 2 * margin - (sideCollapsed ? 0 : panelWidth + gap))
+    // The engine's figures in cards under the picture (LiveFigures.qml), as Windows has its meters: while
+    // something plays, and only when the picture keeps some height.
+    readonly property real metersHeight: Math.max(172, meters.implicitHeight)
+    readonly property real pictureSpace: height - 2 * margin - actionHeight - gap
+    readonly property bool metersShown: app.running && pictureSpace >= metersHeight + gap + 120
     Rectangle {
         id: videoCard
         objectName: "pro-video"
         x: root.margin; y: root.margin
         width: root.videoWidth
-        height: Math.max(80, parent.height - 2 * root.margin - root.actionHeight - root.gap)
+        height: Math.max(80, root.pictureSpace - (root.metersShown ? root.metersHeight + root.gap : 0))
         radius: 4
         color: "black"
         border.width: 1
@@ -150,6 +158,16 @@ Rectangle {
         }
     }
 
+    LiveFigures {
+        id: meters
+        objectName: "pro-meters"
+        visible: root.metersShown
+        x: root.margin
+        y: videoCard.y + videoCard.height + root.gap + root.actionHeight + root.gap
+        width: root.videoWidth
+        height: root.metersHeight
+    }
+
     // ---- the panel ----
     Rectangle {
         id: panel
@@ -196,10 +214,30 @@ Rectangle {
                 width: listFlick.width - 12
                 spacing: 4
 
+                // Quality, as the Windows build's tab: "Upscale to my screen" and the Super resolution card.
+                Block {
+                    blockId: "quality"; title: qsTr("画质"); tab: root.tab; shown: root.blockShown("quality"); onFoldToggled: open => root.setFolded("quality", !open)
+                    UpscaleRow {}
+                    SuperResolutionCard { Layout.topMargin: 6; Layout.bottomMargin: 6 }
+                }
                 Block { blockId: "fg"; title: qsTr("补帧"); tab: root.tab; shown: root.blockShown("fg"); onFoldToggled: open => root.setFolded("fg", !open); QuickSettings {} }
-                Block { blockId: "color"; title: qsTr("画面"); tab: root.tab; shown: root.blockShown("color"); onFoldToggled: open => root.setFolded("color", !open); PictureSettings {} }
+                Block { blockId: "color"; title: qsTr("色彩"); tab: root.tab; shown: root.blockShown("color"); onFoldToggled: open => root.setFolded("color", !open); PictureSettings { showShape: false } }
                 Block { blockId: "audio"; title: qsTr("声音"); tab: root.tab; shown: root.blockShown("audio"); onFoldToggled: open => root.setFolded("audio", !open); SoundSettings {} }
-                Block { blockId: "stats"; title: qsTr("统计"); tab: root.tab; shown: root.blockShown("stats"); onFoldToggled: open => root.setFolded("stats", !open); LiveFigures {} }
+                // Display, as the Windows build's tab: how the picture fills the window, under its names.
+                Block {
+                    blockId: "display"; title: qsTr("显示"); tab: root.tab; shown: root.blockShown("display"); onFoldToggled: open => root.setFolded("display", !open)
+                    VRow {
+                        label: qsTr("画面比例")
+                        hint: app.fillMode === 1 ? qsTr("填满窗口，超出部分裁掉") : ""
+                        VSelect {
+                            objectName: "display-aspect"
+                            // The preview's three ways (FrameView::fill) under the Windows build's names.
+                            options: [{ id: "0", label: qsTr("适应") }, { id: "1", label: qsTr("填充裁切") }, { id: "2", label: qsTr("拉伸铺满") }]
+                            value: (options.find(o => o.id === String(app.fillMode)) || options[0]).label
+                            onPicked: id => app.fillMode = Number(id)
+                        }
+                    }
+                }
             }
         }
     }
