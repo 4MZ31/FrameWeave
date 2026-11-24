@@ -2202,6 +2202,40 @@
     }
    ],
    "needs_hardware": "an AMD card with a FreeSync display (on and off in AMD Software)"
+  },
+  {
+   "id": "F78",
+   "what": "A chosen game profile and the current console's profile keep what is changed after they were chosen; what this PC cannot run right now and a target set by hand keep the profile's own value",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_a_chosen_profile_keeps_what_is_changed_afterwards"
+    }
+   ],
+   "needs_hardware": "none (a restart and an update with a profile chosen, on Windows)"
+  },
+  {
+   "id": "F79",
+   "what": "Latency: a frame generation pair's learned phase is kept through a gap in readings; Check my setup offers full screen for a composed picture, low latency, Frame Pacing Repair off and smooth frame pacing off on a slow screen without VRR, each with Undo",
+   "guards": [
+    {
+     "file": "tests/unit/PushPairPhaseTests.cpp",
+     "ci": "veyra_push_pair_phase_tests",
+     "contains": "was: the legacy delay"
+    },
+    {
+     "file": "tests/js/push_diagnose_test.js",
+     "ci": "tests/js/*_test.js",
+     "contains": "a picture the desktop composes is offered full screen"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_diagnose.qml",
+     "ci": "tst_push_diagnose",
+     "contains": "test_latency_is_checked_and_each_change_taken_back"
+    }
+   ],
+   "needs_hardware": "a capture card session measured before and after (PS5 latency test or a camera)"
   }
  ]
 }

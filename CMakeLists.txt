@@ -1202,6 +1202,10 @@ target_include_directories(veyra_push_display_cap_tests PRIVATE ${CMAKE_CURRENT_
 add_executable(veyra_push_remote_sync_tests tests/unit/PushRemoteSyncTests.cpp)
 target_compile_features(veyra_push_remote_sync_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_remote_sync_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: a frame generation pair's learned phase is kept through a gap in readings (engine/LivePairLatency.h, pure; also builds with g++).
+add_executable(veyra_push_pair_phase_tests tests/unit/PushPairPhaseTests.cpp)
+target_compile_features(veyra_push_pair_phase_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_pair_phase_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS: volume above 100 % turns loud peaks down where they were cut off (sink/PushBoostLimiter.h, pure; also builds with g++).
 add_executable(veyra_push_boost_limiter_tests tests/unit/PushBoostLimiterTests.cpp)
 target_compile_features(veyra_push_boost_limiter_tests PRIVATE cxx_std_20)

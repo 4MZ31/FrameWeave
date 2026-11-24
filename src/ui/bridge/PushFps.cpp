@@ -83,6 +83,12 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["latencyMs"] = optionalNumber(flow.softwareLatencyMs);
     m["latencyP95Ms"] = optionalNumber(flow.softwareLatencyP95Ms);
     m["latencySamples"] = QVariant::fromValue(qulonglong(flow.latencySamples));
+    // 4.5.1 (Check my setup's latency findings): how the desktop shows the picture (0 composed by the desktop,
+    // 1 overlay, 2 direct, -1 not known; DXGI's frame statistics) and the Present call to the refresh that
+    // showed it. Null when Windows did not say.
+    m["displayPath"] = s.compositionMode >= 0 && s.compositionMode <= 2 ? QVariant(s.compositionMode) : QVariant();
+    m["presentToScreenMs"] = s.presentToScanoutMs >= 0 ? optionalNumber(s.presentToScanoutMs) : QVariant();
+    m["fullscreen"] = impl_->presentation.fullscreen;
     m["fgActive"] = s.fgActive;
     // The multiplier the last pair used (adaptive mode, output cap or a reduced group).
     m["fgMultiplierNow"] = s.previewFgMultiplier;

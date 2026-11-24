@@ -1211,6 +1211,8 @@ Window {
             onboarding.close()
             // PushFPS: the first-run tour, asked for from anywhere.
             if (p === "tour") { root.startTour("navigate"); return }
+            // (4.5.1) Check my setup's "full screen" for lower latency: the shortcut's own step, dialogs closed.
+            if (p === "fullscreen") { dialogs.close(); if (!root.fullscreen) root.toggleFullscreen(); return }
             // (4.3.1) A capture card was connected from the home page: the bridge asks where the
             // picture goes. The new home page shows it; everywhere else it is Professional mode.
             if (p === "afterconnect") {
