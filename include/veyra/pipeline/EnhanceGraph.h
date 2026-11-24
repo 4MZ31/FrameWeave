@@ -1280,6 +1280,7 @@ private:
     void composeHudLock(ID3D12GraphicsCommandList* list,unsigned generatedSlot,unsigned heldParity);
     // PushFPS Crosshair Hold: the frame a method is given for real frame `parity` (the real frame itself without the pass).
     bool initOverlay();
+    bool initCrosshairPass();
     ID3D12Resource* fgInput(unsigned parity) const;
     void composeOverlay(ID3D12GraphicsCommandList* list,unsigned generatedSlot,unsigned parity,float t);
     // Double SR first passes on DLSS SR / FSR (the final pass keeps the members above).
