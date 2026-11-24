@@ -625,6 +625,67 @@ void testEngineStartBudget() {
     e.waitIdle();
 }
 
+// The readout's three rates (the footer's "game -> shown FPS"): they follow the picture, and fall off
+// when it stands still or stops instead of keeping the last rate they had (they did: a menu showed the
+// rate of the last moving second for as long as it stood).
+void testEngineLiveRates() {
+    const Scene bg(64, 48, 40, 31), fg(8, 8, 1, 32);
+    EngineSettings s;
+    s.frameGeneration = false;
+    Engine e(s);
+    int64_t now = 1'000'000'000;
+    const int64_t frame = 33'333'333;
+    for (int i = 0; i < 30; ++i) {
+        e.push(render(bg, fg, float(i * 4), 0, 10, 10, 8), now);
+        (void)e.pick(now);
+        now += frame;
+    }
+    EngineStats st = e.stats(now);
+    CHECK(std::abs(st.transportFps - 30) < 1.5 && std::abs(st.contentFps - 30) < 1.5 && std::abs(st.outputFps - 30) < 1.5,
+          "a moving picture at 30: signal %.1f game %.1f shown %.1f", st.transportFps, st.contentFps, st.outputFps);
+    // The same picture again and again (a paused game): the signal goes on, the game and what is shown
+    // fall off, and read 0 a second after the last new picture.
+    const Bgra still = render(bg, fg, 200, 0, 10, 10, 8);
+    for (int i = 0; i < 18; ++i) { e.push(Bgra(still), now); (void)e.pick(now); now += frame; }
+    st = e.stats(now);
+    CHECK(std::abs(st.transportFps - 30) < 1.5, "a still picture: the signal still arrives (%.1f)", st.transportFps);
+    CHECK(st.contentFps < 20 && st.outputFps < 20, "a still picture for 0.6 s: game %.1f shown %.1f fall off (they kept 30 before)", st.contentFps, st.outputFps);
+    CHECK(e.stats().contentFps > 29, "the rate pacing reads is unchanged (%.1f)", e.stats().contentFps);
+    for (int i = 0; i < 15; ++i) { e.push(Bgra(still), now); (void)e.pick(now); now += frame; }
+    st = e.stats(now);
+    CHECK(st.contentFps == 0 && st.outputFps == 0 && std::abs(st.transportFps - 30) < 1.5, "a still picture for 1.1 s: game %.1f shown %.1f signal %.1f",
+          st.contentFps, st.outputFps, st.transportFps);
+    // A card whose frames come over USB in bunches: 60 a second, each handed over up to 30 ms late (in order).
+    // The signal reads 60, where a rate over the last half second read up to 64.
+    {
+        Engine b(s);
+        std::mt19937 rng(77);
+        std::uniform_int_distribution<int64_t> held(0, 30'000'000);
+        int64_t t = 1'000'000'000, last = 0;
+        double worst = 0, worstBefore = 0;
+        for (int i = 0; i < 600; ++i) {
+            const int64_t at = std::max(last + 1, t + held(rng));
+            last = at;
+            b.push(render(bg, fg, float(i % 40), 0, 10, 10, 8), at);
+            t += 16'666'667;
+            if (i > 150 && i % 7 == 0) {
+                worst = std::max(worst, std::abs(b.stats(at).transportFps - 60));
+                worstBefore = std::max(worstBefore, std::abs(b.stats().transportFps - 60));
+            }
+        }
+        std::printf("  bunched 60 Hz card: signal off by at most %.2f FPS (over half a second: %.2f)\n", worst, worstBefore);
+        CHECK(worst < 1.0 && worstBefore > worst, "bunched 60 Hz card: signal off by %.2f FPS (half a second: %.2f)", worst, worstBefore);
+    }
+    // Nothing arrives at all: everything falls off, then reads 0.
+    for (int i = 0; i < 25; ++i) { e.push(render(bg, fg, float(300 + i * 4), 0, 10, 10, 8), now); (void)e.pick(now); now += frame; }
+    now += 400'000'000;
+    st = e.stats(now);
+    CHECK(st.transportFps > 0 && st.transportFps < 25, "0.4 s without frames: the signal falls off (%.1f)", st.transportFps);
+    now += 700'000'000;
+    st = e.stats(now);
+    CHECK(st.transportFps == 0 && st.contentFps == 0 && st.outputFps == 0, "1.1 s without frames: %.1f %.1f %.1f", st.transportFps, st.contentFps, st.outputFps);
+}
+
 void testEngineOff() {
     const Scene bg(64, 48, 40, 21), fg(8, 8, 1, 22);
     EngineSettings s;
@@ -748,6 +809,7 @@ int main(int argc, char** argv) {
     testEngineMargin();
     testEngineStartBudget();
     testEngineOff();
+    testEngineLiveRates();
     testEngineHardContent();
     testEngineAbuse();
     if (bench) benchmark();

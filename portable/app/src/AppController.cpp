@@ -674,7 +674,8 @@ void AppController::openScreenshotFolder() const {
 
 void AppController::updateStats() {
     if (!running()) return;
-    const auto st = engine_->stats();
+    // The readout's rates fall off when the picture stands still, instead of keeping the last rate (Engine.h).
+    const auto st = engine_->stats(nowNs());
     QVariantMap m;
     m[QStringLiteral("transportFps")] = st.transportFps;
     m[QStringLiteral("contentFps")] = st.contentFps;
