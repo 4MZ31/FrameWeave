@@ -68,6 +68,9 @@ Item {
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: Theme.d(200) } }
         TapHandler { onTapped: host.close() }
+        // PushFPS: the dimmed page is not hovered either (no tooltips or lit edges from behind a dialog).
+        // It takes no button, so a tap still closes the dialog.
+        MouseArea { anchors.fill: parent; acceptedButtons: Qt.NoButton; hoverEnabled: true }
     }
     // For the motion probe: the open dialog's scale.
     property real motionScale: 1

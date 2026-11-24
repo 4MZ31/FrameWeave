@@ -97,6 +97,7 @@ class QProcess;
 #include "veyra/remoteplay/ControllerInput.h"
 #include "veyra/remoteplay/Discovery.h"
 #include "veyra/remoteplay/ProfileStore.h"
+#include "veyra/remoteplay/PushPairingInput.h"
 #include "veyra/source/RemotePlaySource.h"
 #endif
 #ifdef VEYRA_ENABLE_XBOX
@@ -558,6 +559,7 @@ struct QmlPlayerBridge::Impl {
     // source that just ended never cuts off the pad the next source started using.
     enum PadUser : unsigned { PadPs5 = 1, PadPs5Control = 2, PadMoonlight = 4, PadXbox = 8 };
     unsigned padUsers = 0;
+    remoteplay::PadMissing padMissing;       // PushFPS: says once that a stream plays without a controller
     bool acquirePad(unsigned user) {
         const bool ok = controller.start(); // no-op once initialized
         padUsers |= user;

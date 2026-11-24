@@ -19,14 +19,27 @@ DialogLayer {
         if (label === qsTr("断开")) { veyra.ps5Cancel(); return }
         if (label === qsTr("取消")) { if (veyra.ps5.busy) veyra.ps5Cancel(); else dialogHost.close(); return }
         if (veyra.ps5Connect()) { dialogHost.close(); dialogHost.startPs5() }
+        else ps5Dialog.showStatus()
     }
+    // PushFPS: an answer that names a field to fix is at the top, with the fields: bring it into view.
+    function showStatus() { ps5Dialog.bodyViewport.contentY = 0 }
     Connections {
         target: dialogHost
-        function onDialogChanged() { if (dialogHost.dialog === "ps5") veyra.ps5Load() }
+        function onDialogChanged() {
+            if (dialogHost.dialog !== "ps5") return
+            veyra.ps5Load()
+            // PushFPS: with nothing paired and no address yet, look for the PS5 straight away (what Search
+            // does), so the address is filled in before the first field is touched.
+            if (veyra.ps5.available === true && veyra.ps5Profiles.length === 0 && (veyra.ps5.host || "").length === 0 && veyra.ps5.busy !== true)
+                veyra.ps5Scan()
+        }
     }
     readonly property var qualities: [{ id: "0", label: "720p · 30 fps" }, { id: "1", label: "720p · 60 fps" }, { id: "2", label: "1080p · 30 fps" }, { id: "3", label: "1080p · 60 fps" }]
     readonly property var bitrates: [5, 10, 15, 20, 30, 50, 80, 100].map((m, i) => ({ id: String(i), label: m + " Mbps" }))
 
+    // PushFPS: what to do next, and what went wrong, stands first. At the bottom it was under the last row of a
+    // long dialog: people pressed Connect, read the line there and never saw the fields it was about.
+    DialogNote { objectName: "ps5-status"; visible: (veyra.ps5.status || "").length > 0; text: (veyra.ps5.busy ? qsTr("处理中 · ") : "") + (veyra.ps5.status || "") }
     DialogSection { text: qsTr("主机") }
     DialogGroup {
         VRow {
@@ -76,11 +89,13 @@ DialogLayer {
         }
         VRow {
             label: qsTr("8 位配对码")
-            hint: qsTr("PS5 设置 → 系统 → 远程游玩 → 关联设备")
+            hint: qsTr("PS5 设置 → 系统 → 远程游玩 → 配对设备（旧版系统软件叫“关联设备”）")
             RowLayout {
                 spacing: 6
-                DialogTextField { id: pairPin; implicitWidth: 120; placeholder: "••••••••" }
-                VButton { objectName: "ps5-pair"; text: qsTr("配对并保存"); enabled: !veyra.ps5.busy; onClicked: { veyra.ps5Pair(pairPin.text); pairPin.text = "" } }
+                // PushFPS: the number stays in its field when pairing did not start (an address or an account ID
+                // to fix first): it is good for five minutes, and typing it again cost people the pairing.
+                DialogTextField { id: pairPin; objectName: "ps5-pair-code"; implicitWidth: 120; placeholder: "1234 5678" }
+                VButton { objectName: "ps5-pair"; text: qsTr("配对并保存"); enabled: !veyra.ps5.busy; onClicked: { veyra.ps5Pair(pairPin.text); if (veyra.ps5.busy === true) pairPin.text = ""; else ps5Dialog.showStatus() } }
             }
         }
         VRow {
@@ -159,5 +174,4 @@ DialogLayer {
             }
         }
     }
-    DialogNote { visible: (veyra.ps5.status || "").length > 0; text: (veyra.ps5.busy ? qsTr("处理中 · ") : "") + (veyra.ps5.status || "") }
 }

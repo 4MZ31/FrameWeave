@@ -1201,6 +1201,11 @@ target_include_directories(veyra_push_display_cap_tests PRIVATE ${CMAKE_CURRENT_
 add_executable(veyra_push_remote_sync_tests tests/unit/PushRemoteSyncTests.cpp)
 target_compile_features(veyra_push_remote_sync_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_remote_sync_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: the PS5 pairing fields as people type them, which controller is read, and the no-controller notice
+# (remoteplay/PushPairingInput.h, PushPadChoice.h; pure with Validation.cpp; also builds with g++).
+add_executable(veyra_push_pairing_input_tests tests/unit/PushPairingInputTests.cpp src/remoteplay/Validation.cpp)
+target_compile_features(veyra_push_pairing_input_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_pairing_input_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS: which video device is the capture card (source/PushCaptureDevicePick.h, pure; also builds with g++).
 add_executable(veyra_push_capture_device_pick_tests tests/unit/PushCaptureDevicePickTests.cpp)
 target_compile_features(veyra_push_capture_device_pick_tests PRIVATE cxx_std_20)
