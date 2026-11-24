@@ -162,7 +162,7 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;
     m["fgBudgetLimited"] = s.fgBudgetLimited;
-    m["backendWarning"] = QString::fromStdWString(s.backendWarning);
+    m["backendWarning"] = uiText(s.backendWarning);   // PushFPS: the engine writes it in Chinese; translated like every other engine text
     // What is really shown, a second: the game's own frames and the generated ones (FrameFlowWindow.h).
     m["realFps"] = flow.realPresentFps;
     m["generatedFps"] = flow.generatedPresentFps;
