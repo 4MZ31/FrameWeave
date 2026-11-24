@@ -257,7 +257,7 @@ def ps5(folder):
              path=["Settings", "System", "Remote Play", "Pair Device"], code="1234 5678", code_note="8 digits")
     y = group(ImageDraw.Draw(img), y + px(6), "In PushFPS")
     y = step(img, y, 3, "Open PS5 streaming, press Search", "It finds your PS5 and fills in its address.")
-    y = step(img, y, 4, "Press Get Account ID", "Look up your PSN name on the page that opens and copy the *Account ID* into PushFPS. Your PSN name itself does not work.")
+    y = step(img, y, 4, "Get your Account ID", "Through *Sony's own sign-in*: see the PushFPS guide. Not your PSN name. Never paste an *NPSSO* code anywhere.")
     y = step(img, y, 5, "Type the 8 digits, press Pair and save", "Type them without the space.")
     y = step(img, y, 6, "Press Connect", "Controller: plug it into the *PC* with a USB cable, or pair it with the PC's Bluetooth.")
     save(img, "remote-play-ps5", folder)
@@ -283,7 +283,7 @@ def help_card(folder):
     img, d, y = base("Setup guide", "Remote Play not working?", ["What to check, quickest first."])
     y += px(4)
     y = checks(img, y, "The PS5 will not pair", [
-        "*Account ID* is the number from *Get Account ID*, not your PSN name.",
+        "*Account ID* comes from Sony's sign-in, not your PSN name.",
         "The 8 digits: no space, and a new number once 5 minutes have passed.",
         "No address? Press *Search*, or type the PS5's IP address.",
         "PS5 and PC on the same network. No guest Wi-Fi, no VPN."])
