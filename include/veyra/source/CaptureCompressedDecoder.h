@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "veyra/source/CaptureCodec.h"
 
@@ -72,6 +73,10 @@ public:
     const char* backendName() const;
     const std::string& lastError() const;
     uint64_t framesDecoded() const;
+    // PushFPS: the size of the last picture the software decoder produced, before it was scaled into the
+    // caller's target (0 x 0 before the first). A stream source that guessed its size uses it to give the next
+    // target the stream's real size.
+    std::pair<int, int> lastCodedSize() const;
     uint64_t decodeFailures() const;
     uint64_t hardwareFallbacks() const;
     // Running averages of the two halves of a software decode() call.

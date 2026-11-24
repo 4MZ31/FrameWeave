@@ -562,6 +562,20 @@ void XboxSessionSource::decodeLoop() {
             p.width = unsigned(frame->width);
             p.height = unsigned(frame->height);
         }
+        // PushFPS: decoded on the processor, the picture was scaled into a target of the size guessed at the
+        // start. The next target takes the stream's real size, so a 720p stream is not blown up to the guess
+        // (or a 1080p one squeezed into it).
+        if (!hardware) {
+            const auto [codedWidth, codedHeight] = p.decoder.lastCodedSize();
+            if (codedWidth > 0 && codedHeight > 0 && codedWidth % 2 == 0 && codedHeight % 2 == 0 &&
+                codedWidth <= 8192 && codedHeight <= 8192 &&
+                (unsigned(codedWidth) != p.width || unsigned(codedHeight) != p.height)) {
+                log::info("xbox", std::format("software decode: stream is {}x{}, target was {}x{}; next frames use the stream's size",
+                    codedWidth, codedHeight, p.width, p.height));
+                p.width = unsigned(codedWidth);
+                p.height = unsigned(codedHeight);
+            }
+        }
 
         Impl::Meta frameMeta{pts,unit.arrival,unit.rtp,host100ns(),host100ns()};
         int64_t arrival = unit.arrival;

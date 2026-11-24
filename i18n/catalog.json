@@ -12061,6 +12061,24 @@
    "ru": "Средний: стандарт. Если края предметов распадаются, попробуйте High"
   },
   {
+   "zh": "串流中断。PS5 需要先释放上一个会话，{} 秒后重新连接（{}/3）…",
+   "src": "src/source/RemotePlaySessionSource.cpp",
+   "zh-TW": "串流中斷。PS5 需要先釋放上一個工作階段，{} 秒後重新連線（{}/3）…",
+   "en": "The stream stopped. The PS5 has to release the previous session first; reconnecting in {} s ({}/3)…",
+   "ja": "ストリームが途切れました。PS5 が前のセッションを解放するまで待ち、{} 秒後に再接続します（{}/3）…",
+   "ko": "스트림이 끊겼습니다. PS5가 이전 세션을 먼저 해제해야 하므로 {}초 후 다시 연결합니다({}/3)…",
+   "nl": "De stream is gestopt. De PS5 moet eerst de vorige sessie vrijgeven; opnieuw verbinden over {} s ({}/3)…",
+   "de": "Der Stream ist abgebrochen. Die PS5 muss zuerst die vorige Sitzung freigeben; neue Verbindung in {} s ({}/3) …",
+   "es": "La transmisión se cortó. La PS5 debe liberar antes la sesión anterior; reconectando en {} s ({}/3)…",
+   "fr": "Le flux s'est arrêté. La PS5 doit d'abord libérer la session précédente ; reconnexion dans {} s ({}/3)…",
+   "it": "Lo streaming si è interrotto. La PS5 deve prima liberare la sessione precedente; nuova connessione tra {} s ({}/3)…",
+   "pt-BR": "A transmissão parou. O PS5 precisa liberar a sessão anterior antes; reconectando em {} s ({}/3)…",
+   "tr": "Akış durdu. PS5'in önce önceki oturumu bırakması gerekiyor; {} sn sonra yeniden bağlanılacak ({}/3)…",
+   "ar": "توقّف البث. يجب أن يحرّر PS5 الجلسة السابقة أولاً؛ إعادة الاتصال بعد {} ث ({}/3)…",
+   "pl": "Strumień się zatrzymał. PS5 musi najpierw zwolnić poprzednią sesję; ponowne połączenie za {} s ({}/3)…",
+   "ru": "Трансляция прервалась. PS5 должна сначала освободить прошлый сеанс; повторное подключение через {} с ({}/3)…"
+  },
+  {
    "zh": "串流中断，正在重新连接（{}/3）…",
    "src": "src/source/RemotePlaySessionSource.cpp",
    "zh-TW": "串流中斷，正在重新連接（{}/3）…",

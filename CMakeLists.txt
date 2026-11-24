@@ -754,6 +754,7 @@ endif()
 # ---------------------------------------------------------------------------
 if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avformat.h")
   add_library(veyra_media STATIC
+    src/media/PushFfmpegLog.cpp
     src/media/FFmpegDemuxer.cpp
     src/media/DemuxSession.cpp
     src/media/FFmpegVideoDecoder.cpp
@@ -1214,6 +1215,14 @@ target_include_directories(veyra_push_pairing_input_tests PRIVATE ${CMAKE_CURREN
 add_executable(veyra_push_psn_sign_in_tests tests/unit/PushPsnSignInTests.cpp src/remoteplay/Validation.cpp)
 target_compile_features(veyra_push_psn_sign_in_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_psn_sign_in_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: how long a PS5 reconnect waits (remoteplay/PushRetryWait.h) and FFmpeg's lines in the log
+# (media/PushLogLimiter.h); both pure, also build with g++.
+add_executable(veyra_push_retry_wait_tests tests/unit/PushRetryWaitTests.cpp)
+target_compile_features(veyra_push_retry_wait_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_retry_wait_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_executable(veyra_push_log_limiter_tests tests/unit/PushLogLimiterTests.cpp)
+target_compile_features(veyra_push_log_limiter_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_log_limiter_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS: which video device is the capture card (source/PushCaptureDevicePick.h, pure; also builds with g++).
 add_executable(veyra_push_capture_device_pick_tests tests/unit/PushCaptureDevicePickTests.cpp)
 target_compile_features(veyra_push_capture_device_pick_tests PRIVATE cxx_std_20)

@@ -2124,6 +2124,23 @@
     }
    ],
    "needs_hardware": "a PS5 and a PSN account: the exchange with Sony has not been run"
+  },
+  {
+   "id": "F74",
+   "what": "PS5 Remote Play reconnects: a stream that was playing waits for the console to release its session (no retries inside the ~20 s window that end in error 2004); FFmpeg's warnings reach the log, rate-limited",
+   "guards": [
+    {
+     "file": "tests/unit/PushRetryWaitTests.cpp",
+     "ci": "veyra_push_retry_wait_tests",
+     "contains": "Never inside the window"
+    },
+    {
+     "file": "tests/unit/PushLogLimiterTests.cpp",
+     "ci": "veyra_push_log_limiter_tests",
+     "contains": "The same line 500 times"
+    }
+   ],
+   "needs_hardware": "a PS5 whose stream drops mid-session"
   }
  ]
 }
