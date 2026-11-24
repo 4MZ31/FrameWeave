@@ -98,6 +98,11 @@ class QProcess;
 #include "veyra/remoteplay/Discovery.h"
 #include "veyra/remoteplay/ProfileStore.h"
 #include "veyra/remoteplay/PushPairingInput.h"
+#include "veyra/remoteplay/PushPsnSignIn.h"
+#include <QLocale>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include "veyra/source/RemotePlaySource.h"
 #endif
 #ifdef VEYRA_ENABLE_XBOX
@@ -533,6 +538,10 @@ struct QmlPlayerBridge::Impl {
     Ps5Outcome ps5Outcome;
     std::atomic<bool> ps5Done{false};
     bool ps5Busy = false;
+    // PushFPS: Sony sign-in for the Account ID. waiting = Sony's page was opened and an address is expected;
+    // asking = the code is being traded at Sony. Nothing of the exchange is kept.
+    bool ps5SignInWaiting = false;
+    bool ps5SignInAsking = false;
     QTimer* controllerTimer = nullptr;
     // PushFPS Remote Play latency test (PushLatencyTest.cpp): while it runs, its own presses replace
     // the pad (the controller timer sends latencyPress instead of the pad's state).

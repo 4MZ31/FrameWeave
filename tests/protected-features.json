@@ -2107,6 +2107,23 @@
     }
    ],
    "needs_hardware": "A sound device: the renderer's two calls (WasapiAudioSink.cpp copyPcm) are in no automated test, and nobody has listened to a game at 150 % or 300 % with it."
+  },
+  {
+   "id": "F73",
+   "what": "PS5 Account ID through Sony's own sign-in: no lookup website, the pasted address checked to be Sony's redirect, the code traded at Sony and never kept",
+   "guards": [
+    {
+     "file": "tests/unit/PushPsnSignInTests.cpp",
+     "ci": "veyra_push_psn_sign_in_tests",
+     "contains": "Another site's address"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_ps5_pairing.qml",
+     "ci": "tst_push_ps5_pairing",
+     "contains": "test_sign_in_with_playstation_fills_the_account_id"
+    }
+   ],
+   "needs_hardware": "a PS5 and a PSN account: the exchange with Sony has not been run"
   }
  ]
 }

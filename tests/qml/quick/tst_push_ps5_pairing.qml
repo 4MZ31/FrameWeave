@@ -22,7 +22,11 @@ Item {
         property bool pairingStarts: false
         function ps5Load() {}
         function ps5Scan() { scans += 1 }
-        function ps5OpenAccountChecker() {}
+        property int signIns: 0
+        property string finished: ""
+        // As the bridge: Sony's page opened, an address is expected.
+        function ps5OpenAccountChecker() { signIns += 1; const next=Object.assign({},ps5); next.signInWaiting=true; ps5=next }
+        function ps5FinishSignIn(pasted) { finished = pasted; const next=Object.assign({},ps5); next.signInAsking=true; ps5=next }
         function ps5Set(key,value) { const next=Object.assign({},ps5);next[key]=String(value).trim();ps5=next;return true }
         // As the bridge: reads the form, then a status refresh re-emits the form.
         function ps5Pair(pin) {
@@ -126,6 +130,28 @@ Item {
             panel.showStatus()
             compare(panel.bodyViewport.contentY, 0)
         }
+        // Get Account ID opens Sony's own sign-in; the address the page lands on is pasted into a row that is
+        // only there while it is expected, handed over once, and never left in its box.
+        function test_sign_in_with_playstation_fills_the_account_id() {
+            const row = findChild(panel, "ps5-signin-row")
+            verify(row)
+            backend.ps5 = Object.assign({}, backend.ps5, {signInWaiting: false, signInAsking: false})
+            tryVerify(function() { return !row.visible }, 3000)
+            mouseClick(findChild(panel, "ps5-account-lookup"))
+            compare(backend.signIns, 1)
+            tryVerify(function() { return row.visible }, 3000)
+            const paste = findChild(panel, "ps5-signin-paste")
+            paste.text = "https://remoteplay.dl.playstation.net/remoteplay/redirect?code=v3.abc"
+            mouseClick(findChild(panel, "ps5-signin-finish"))
+            compare(backend.finished, "https://remoteplay.dl.playstation.net/remoteplay/redirect?code=v3.abc")
+            compare(paste.text, "")
+            // While Sony is asked, neither button starts another exchange.
+            verify(!findChild(panel, "ps5-signin-finish").enabled)
+            verify(!findChild(panel, "ps5-account-lookup").enabled)
+            backend.ps5 = Object.assign({}, backend.ps5, {signInWaiting: false, signInAsking: false, account: ""})
+            tryVerify(function() { return !row.visible }, 3000)
+        }
+
         // The way to the Account ID stands out until the box holds something shaped like one: a PSN name is not.
         function test_get_account_id_stands_out_until_an_id_is_there() {
             const lookup = findChild(panel, "ps5-account-lookup")

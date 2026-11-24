@@ -83,7 +83,9 @@ DialogLayer {
             label: "PSN Account ID"
             // PushFPS: in plain words, and the button stands out until the box holds something shaped like an ID.
             // People typed their PSN name here with the old hint right under the box and never pressed the button.
-            hint: qsTr("点“获取 Account ID”，在打开的网页里查询你的 PSN 昵称，把页面显示的 Account ID 复制到这里：一长串数字，或以 = 结尾的 12 个字符。直接填 PSN 昵称不行。")
+            // Since 4.4.6 the button opens Sony's own sign-in page (never a lookup website) and the row under this
+            // one takes back the address the page lands on.
+            hint: qsTr("点“获取 Account ID”，在索尼自己的页面登录，PushFPS 会替你填入。不是 PSN 昵称。不要在任何地方粘贴 NPSSO 码：它就是你的 PSN 登录。")
             hintBelow: true
             RowLayout {
                 spacing: 6
@@ -96,7 +98,25 @@ DialogLayer {
                 VButton {
                     objectName: "ps5-account-lookup"; text: qsTr("获取 Account ID")
                     primary: !ps5Dialog.accountLooksRight; ghost: ps5Dialog.accountLooksRight
+                    enabled: veyra.ps5.signInAsking !== true
                     onClicked: veyra.ps5OpenAccountChecker()
+                }
+            }
+        }
+        VRow {
+            objectName: "ps5-signin-row"
+            visible: veyra.ps5.signInWaiting === true || veyra.ps5.signInAsking === true
+            label: qsTr("登录后的地址")
+            hint: qsTr("登录后浏览器停下的页面以 remoteplay.dl.playstation.net 开头，可能是空白或报错。把地址栏里的完整地址粘贴到这里。")
+            hintBelow: true
+            RowLayout {
+                spacing: 6
+                DialogTextField { id: signInPaste; objectName: "ps5-signin-paste"; implicitWidth: 240; placeholder: "https://remoteplay.dl.playstation.net/…" }
+                VButton {
+                    objectName: "ps5-signin-finish"; text: qsTr("填入"); primary: true
+                    enabled: veyra.ps5.signInAsking !== true
+                    // The pasted address holds a one-time code: it leaves the box as soon as it is handed over.
+                    onClicked: { const pasted = signInPaste.text; signInPaste.text = ""; veyra.ps5FinishSignIn(pasted); ps5Dialog.showStatus() }
                 }
             }
         }

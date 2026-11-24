@@ -502,6 +502,8 @@ QtObject {
     function openMoonlightDialog() {}
     function openNetworkDialog() {}
     function openPs5Dialog() {}
+    function ps5OpenAccountChecker() {}
+    function ps5FinishSignIn(pasted) {}
     function openScreenCaptureDialog() {}
     function openXboxDialog() {}
     function resumeLastSource() {}

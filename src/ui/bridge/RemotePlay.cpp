@@ -13,6 +13,8 @@ QVariantMap QmlPlayerBridge::ps5() const {
     QVariantMap out = impl_->ps5Form;
     out["status"] = impl_->ps5Status;
     out["busy"] = impl_->ps5Busy;
+    out["signInWaiting"] = impl_->ps5SignInWaiting;
+    out["signInAsking"] = impl_->ps5SignInAsking;
     out["profile"] = QString::fromStdWString(impl_->ps5Profile);
 #ifdef VEYRA_ENABLE_REMOTEPLAY
     out["available"] = true;
@@ -537,12 +539,110 @@ void QmlPlayerBridge::ps5Forget() {
 #endif
 }
 void QmlPlayerBridge::ps5OpenAccountChecker() {
-    // Fixed public URL; no account IDs, pairing credentials or login tokens leave Veyra.
-    const bool opened=QDesktopServices::openUrl(QUrl(QStringLiteral("https://www.psntools.com/psn/checker")));
-    impl_->ps5Status=opened
-        ? tr("在网页获取 PSN Account ID 后，复制到配对栏，再填写主机的 8 位配对码。")
+#ifdef VEYRA_ENABLE_REMOTEPLAY
+    // PushFPS: Sony's own sign-in page, never a lookup website (those ask for the NPSSO session cookie).
+    // The password is typed only on Sony's page; PushFPS gets back a one-time code through the address the
+    // page lands on, which the user pastes into the PS5 window.
+    if (impl_->ps5SignInAsking) return;
+    QString locale = QLocale(veyra::ui::i18n::current()).name();
+    if (locale.size() != 5) locale = QStringLiteral("en_US");
+    const auto url = remoteplay::psn::signInUrl(locale.toStdString());
+    const bool opened = QDesktopServices::openUrl(QUrl(QString::fromStdString(url), QUrl::StrictMode));
+    impl_->ps5SignInWaiting = opened;
+    impl_->ps5Status = opened
+        ? tr("索尼的登录页已在浏览器中打开。登录后，浏览器会停在一个以 remoteplay.dl.playstation.net 开头的页面（可能是空白或报错，这是正常的）。把地址栏里的完整地址复制到下面的框里，再点“填入”。")
         : tr("无法打开浏览器，请检查默认浏览器设置。");
     emit ps5Changed();
+#endif
+}
+void QmlPlayerBridge::ps5FinishSignIn(const QString& pasted) {
+#ifdef VEYRA_ENABLE_REMOTEPLAY
+    auto& i = *impl_;
+    if (i.ps5SignInAsking) return;
+    auto paste = remoteplay::psn::readPaste(pasted.toStdString());
+    using remoteplay::psn::Pasted;
+    if (paste.what != Pasted::Code) {
+        i.ps5Status = paste.what == Pasted::Empty ? tr("先登录索尼的页面，再把浏览器停下的完整地址粘贴到框里。")
+            : paste.what == Pasted::OtherAddress ? tr("这不是索尼登录后停下的地址。它应以 https://remoteplay.dl.playstation.net/remoteplay/redirect?code= 开头。")
+            : paste.what == Pasted::NoCode ? tr("这个地址里没有登录码。请重新点“获取 Account ID”，登录后复制完整地址。")
+            : tr("这看起来不是登录码。请复制地址栏里的完整地址。");
+        emit ps5Changed();
+        return;
+    }
+    auto* network = findChild<QNetworkAccessManager*>(QStringLiteral("pushfps-psn-signin"));
+    if (!network) { network = new QNetworkAccessManager(this); network->setObjectName(QStringLiteral("pushfps-psn-signin")); }
+    const QByteArray basic = "Basic " + QByteArray(std::string(remoteplay::psn::kClientId).append(":").append(remoteplay::psn::kClientSecret).c_str()).toBase64();
+    auto request = [basic](const QString& url) {
+        QNetworkRequest r{QUrl(url)};
+        r.setRawHeader("Authorization", basic);
+        r.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("PushFPS"));
+        r.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
+        r.setTransferTimeout(20000);
+        return r;
+    };
+    const QString host = QString::fromUtf8(remoteplay::psn::kAuthHost.data(), int(remoteplay::psn::kAuthHost.size()));
+    auto tokenRequest = request(host + QStringLiteral("/2.0/oauth/token"));
+    tokenRequest.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/x-www-form-urlencoded"));
+    std::string body = remoteplay::psn::tokenRequestBody(paste.code);
+    SecureZeroMemory(paste.code.data(), paste.code.size());
+    i.ps5SignInAsking = true;
+    i.ps5Status = tr("正在向索尼查询 Account ID……");
+    emit ps5Changed();
+    QPointer<QmlPlayerBridge> self(this);
+    auto fail = [self](const QString& message) {
+        if (!self) return;
+        self->impl_->ps5SignInAsking = false;
+        self->impl_->ps5Status = message;
+        emit self->ps5Changed();
+    };
+    auto* reply = network->post(tokenRequest, QByteArray(body.data(), int(body.size())));
+    SecureZeroMemory(body.data(), body.size());
+    connect(reply, &QNetworkReply::finished, this, [self, reply, network, request, host, fail]() {
+        reply->deleteLater();
+        if (!self) return;
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        QByteArray answer = reply->readAll();
+        if (reply->error() != QNetworkReply::NoError && status != 400 && status != 401) {
+            fail(status > 0 ? tr("索尼返回了错误（HTTP %1），请稍后再试。").arg(status) : tr("无法连接索尼，请检查网络。"));
+            return;
+        }
+        if (status == 400 || status == 401) {
+            fail(tr("索尼没有接受这个登录码。每个登录码只能用一次，几分钟后就会失效：请重新点“获取 Account ID”，登录后尽快粘贴。"));
+            return;
+        }
+        QString token = QJsonDocument::fromJson(answer).object().value(QStringLiteral("access_token")).toString();
+        answer.fill('\0');
+        if (token.isEmpty() || token.size() > 4096) { fail(tr("索尼没有返回访问令牌，请重新登录。")); return; }
+        auto info = network->get(request(host + QStringLiteral("/2.0/oauth/token/") + QString::fromLatin1(QUrl::toPercentEncoding(token))));
+        token.fill(QChar(u'0'));
+        connect(info, &QNetworkReply::finished, self.data(), [self, info, fail]() {
+            info->deleteLater();
+            if (!self) return;
+            QByteArray answer = info->readAll();
+            const auto object = QJsonDocument::fromJson(answer).object();
+            answer.fill('\0');
+            if (info->error() != QNetworkReply::NoError) { fail(tr("索尼没有返回账号信息，请重新登录。")); return; }
+            const auto raw = object.value(QStringLiteral("user_id"));
+            const QString digits = raw.isString() ? raw.toString() : QString();  // a number as JSON could have lost digits
+            const auto checked = remoteplay::psn::userIdDigits(digits.toStdString());
+            const auto id = checked ? remoteplay::accountIdFromDecimal(*checked) : std::nullopt;
+            if (!id) { fail(tr("索尼没有返回账号编号，请重新登录。")); return; }
+            const QString account = QString::fromStdString(remoteplay::accountIdToBase64(*id));
+            const QString name = object.value(QStringLiteral("online_id")).toString().left(32);
+            auto& i = *self->impl_;
+            i.ps5SignInAsking = false;
+            i.ps5SignInWaiting = false;
+            i.ps5Form["account"] = account;
+            i.ps5Status = name.isEmpty()
+                ? tr("已填入 Account ID。现在输入 PS5 上的 8 位配对码，再点“配对并保存”。")
+                : tr("已填入 %1 的 Account ID。确认这是在 PS5 上登录的账号，然后输入 8 位配对码，再点“配对并保存”。").arg(name);
+            emit self->ps5Changed();
+            veyra::log::info("remoteplay", "psn sign-in: account id filled in");
+        });
+    });
+#else
+    Q_UNUSED(pasted);
+#endif
 }
 void QmlPlayerBridge::ps5SendLoginPin(const QString& pin) {
 #ifdef VEYRA_ENABLE_REMOTEPLAY

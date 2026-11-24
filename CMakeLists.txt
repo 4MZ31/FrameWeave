@@ -1210,6 +1210,10 @@ target_include_directories(veyra_push_boost_limiter_tests PRIVATE ${CMAKE_CURREN
 add_executable(veyra_push_pairing_input_tests tests/unit/PushPairingInputTests.cpp src/remoteplay/Validation.cpp)
 target_compile_features(veyra_push_pairing_input_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_pairing_input_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: the PSN Account ID through Sony's own sign-in (remoteplay/PushPsnSignIn.h; pure with Validation.cpp).
+add_executable(veyra_push_psn_sign_in_tests tests/unit/PushPsnSignInTests.cpp src/remoteplay/Validation.cpp)
+target_compile_features(veyra_push_psn_sign_in_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_psn_sign_in_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS: which video device is the capture card (source/PushCaptureDevicePick.h, pure; also builds with g++).
 add_executable(veyra_push_capture_device_pick_tests tests/unit/PushCaptureDevicePickTests.cpp)
 target_compile_features(veyra_push_capture_device_pick_tests PRIVATE cxx_std_20)
