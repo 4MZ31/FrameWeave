@@ -170,6 +170,8 @@ struct PlayerSnapshot {
     int hudStillState=0; // PushFPS still rule: EnhanceGraph::hudStillState()
     int crosshairHoldState=0; // PushFPS Crosshair Hold: EnhanceGraph::crosshairHoldState()
     int crosshairHoldPixels=0; // pixels it held in the frame sampled last (0 = no crosshair found there)
+    int subtitleHoldState=0;  // PushFPS Subtitle Hold: EnhanceGraph::subtitleHoldState()
+    int subtitleHoldPixels=0; // pixels of the subtitle band it held in the frame sampled last
     uint64_t crosshairHoldFrames=0; // real frames the pass has seen since it was made
     // PushFlow while it runs: precision ("fp32"/"fp16"), full-resolution rebuild, inference p50/p95 (ms).
     std::string pushFlowPrecision; bool pushFlowRebuild=false; double pushFlowP50Ms=0, pushFlowP95Ms=0; uint32_t pushFlowMotionWidth=0, pushFlowMotionHeight=0;

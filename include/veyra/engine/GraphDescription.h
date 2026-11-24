@@ -226,6 +226,8 @@ inline pipeline::ResolutionPlan describeStages(const StageRequest& request,const
     // forecasts after the real frame, not frames between two), never ANR (its output exists only after the
     // list is submitted) and never XeSS (it presents its own frames).
     desc.crosshairHold=desc.enableFg&&pipeline::overlay::wanted()&&!desc.pushFlowPredict&&crosshairHoldMethod(settings.frameGenerationBackend);
+    // PushFPS Subtitle Hold: the same pass in the subtitle band, for the same methods; its own switch.
+    desc.subtitleHold=desc.enableFg&&pipeline::overlay::subtitlesWanted()&&!desc.pushFlowPredict&&crosshairHoldMethod(settings.frameGenerationBackend);
     desc.nrLayersExtent.clear();
     for(uint32_t i=0;i<chain.nodeCount;++i){
         auto& node=chain.nodes[i];

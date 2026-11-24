@@ -1574,7 +1574,28 @@ bool EnhanceGraph::initHudLock() {
 // PushFlow, DLSS frame generation, FSR) and never with PushFlow's Predict; a pass that cannot be created leaves
 // frame generation exactly as it was. Without the pass, fgInput() is the real frame itself.
 bool EnhanceGraph::initOverlay() {
+    subtitles_.reset();
     overlay_.reset();
+    initCrosshairPass();
+    // PushFPS Subtitle Hold: its own pass in the subtitle band. With Crosshair Hold running it fills the same
+    // copy of the frame (the two zones do not overlap), so frame generation is still given one frame.
+    if(!desc_.subtitleHold||!fgEnabled_||presentSinkFg()){
+        if(pipeline::overlay::subtitlesWanted())veyra::log::info("subtitle-hold",std::format("asked for, not in this graph: described={} frameGeneration={} method={} presentsItself={}",
+            desc_.subtitleHold,fgEnabled_,int(desc_.frameGenerationBackend),presentSinkFg()));
+        return true;
+    }
+    const auto band=overlay::subtitleZoneFor(workW_,workH_);
+    const auto centre=overlay::zoneFor(workW_,workH_);
+    const bool overlaps=overlay_&&band.x<centre.x+centre.w&&centre.x<band.x+band.w&&band.y<centre.y+centre.h&&centre.y<band.y+band.h;
+    auto pass=std::make_unique<PushOverlayPass>();
+    if(overlaps||!pass->initialize(context_.device(),workW_,workH_,outputFormat(),hdr10Output()?2u:desc_.hdrOutput?1u:0u,&band,overlay_.get(),"subtitle-hold")){
+        veyra::log::error("subtitle-hold",std::format("unavailable at {}x{}{}; frame generation runs without it",workW_,workH_,overlaps?" (the band meets the crosshair's zone)":""));
+        return true;
+    }
+    subtitles_=std::move(pass);
+    return true;
+}
+bool EnhanceGraph::initCrosshairPass() {
     if(!desc_.crosshairHold||!fgEnabled_||presentSinkFg()){
         // Asked for and not part of this graph: the log says which of the conditions it was (a field log has to
         // answer "the switch is on and nothing changed" without a second session).
@@ -1591,11 +1612,13 @@ bool EnhanceGraph::initOverlay() {
     return true;
 }
 ID3D12Resource* EnhanceGraph::fgInput(unsigned parity) const {
-    return overlay_?overlay_->input(parity):videoFrame_[parity].Get();
+    return overlay_?overlay_->input(parity):subtitles_?subtitles_->input(parity):videoFrame_[parity].Get();
 }
 void EnhanceGraph::composeOverlay(ID3D12GraphicsCommandList* list,unsigned generatedSlot,unsigned parity,float t){
     if(overlay_&&overlay_->composes(generatedSlot)&&!overlay_->compose(list,tracker_,generatedSlot,parity,t))
         veyra::log::warn("crosshair-hold",std::format("compose skipped slot={} parity={}",generatedSlot,parity));
+    if(subtitles_&&subtitles_->composes(generatedSlot)&&!subtitles_->compose(list,tracker_,generatedSlot,parity,t))
+        veyra::log::warn("subtitle-hold",std::format("compose skipped slot={} parity={}",generatedSlot,parity));
 }
 void EnhanceGraph::composeHudLock(ID3D12GraphicsCommandList* list,unsigned generatedSlot,unsigned heldParity){
     if(hudLock_&&!hudLock_->compose(list,tracker_,generatedSlot,heldParity))
@@ -2376,6 +2399,12 @@ bool EnhanceGraph::createViews()
         std::array<ID3D12Resource*,kGeneratedPoolSlots> generated{};
         for(size_t i=0;i<kGeneratedPoolSlots;++i)generated[i]=genFrame_[i].Get();
         overlay_->createViews(context_.device(),stager_,real,generated.data(),unsigned(generated.size()));
+    }
+    if(subtitles_){
+        ID3D12Resource* const real[2]={videoFrame_[0].Get(),videoFrame_[1].Get()};
+        std::array<ID3D12Resource*,kGeneratedPoolSlots> generated{};
+        for(size_t i=0;i<kGeneratedPoolSlots;++i)generated[i]=genFrame_[i].Get();
+        subtitles_->createViews(context_.device(),stager_,real,generated.data(),unsigned(generated.size()));
     }
     // Descriptor initialization is DEFAULT ON since the RAW-upload-SRV removal
     // (2026-09-06): texture SRV/UAV views keep the device alive and NVOF
@@ -4347,6 +4376,8 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
     // PushFPS Crosshair Hold: every real frame, before any method takes it. It makes fgInput(parity), the real
     // frame with the overlay's bars filled in; the real frame itself stays as it is.
     if(overlay_&&!overlay_->update(list,tracker_,parity,reset||!prevValid_))veyra::log::warn("crosshair-hold","update skipped");
+    // Subtitle Hold after it: with Crosshair Hold it fills the copy that pass has just made.
+    if(subtitles_&&!subtitles_->update(list,tracker_,parity,reset||!prevValid_))veyra::log::warn("subtitle-hold","update skipped");
     if((runFg||vfgRecordOnly)&&vfgBackend_){
         // First timestamp precedes the producer signal/CUDA dependency wait;
         // the matching end follows the consumer copy. The direct-queue span
@@ -5160,6 +5191,7 @@ void EnhanceGraph::shutdown()
     proxyTex_.Reset();
     exclusionPass_={};exclusionScratch_.Reset();
     hudLock_.reset();
+    subtitles_.reset();
     overlay_.reset();
     for(auto& r:exclusionVideo_)r.Reset();
     for(auto& r:exclusionUi_)r.Reset();

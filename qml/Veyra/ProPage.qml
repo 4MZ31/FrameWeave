@@ -2129,6 +2129,36 @@ VPage {
                                     onToggled: checked => veyra.setPreference("pushCrosshairHold", checked)
                                 }
                             }
+                            // PushFPS Subtitle Hold (preference pushSubtitleHold, off unless switched on).
+                            VRow {
+                                id: listSubtitles
+                                objectName: "list-fg-subtitle-row"
+                                label: qsTr("字幕保持")
+                                visible: !veyra.presentationOwned
+                                readonly property bool on: veyra.preferences.pushSubtitleHold === true
+                                readonly property bool methodOk: ["vfg", "amdfrc", "pushflow", "dlss", "fsr3", "fsr4"].indexOf(veyra.fgBackendName) >= 0
+                                property var stats: ({})
+                                readonly property int holdState: Number(stats.subtitleHoldState || 0)
+                                readonly property int holdPixels: Number(stats.subtitleHoldPixels || 0)
+                                Timer {
+                                    objectName: "list-fg-subtitle-timer"
+                                    interval: 1000; repeat: true; triggeredOnStart: true
+                                    running: listSubtitles.visible && listSubtitles.on
+                                    onTriggered: listSubtitles.stats = veyra.pushLiveStats() || ({})
+                                    onRunningChanged: if (!running) listSubtitles.stats = ({})
+                                }
+                                hint: on && !methodOk ? qsTr("这种补帧方式暂不支持，请换一种补帧方式")
+                                    : on && holdState === 2 ? qsTr("没能在这台电脑上启动，补帧照常运行（原因见日志）")
+                                    : on && holdState === 1 ? (holdPixels > 0 ? qsTr("正在运行：已找到字幕，补出的每一帧里都原样放回")
+                                                                               : qsTr("正在运行：屏幕下方还没有找到字幕（背后的画面动起来才会识别）"))
+                                    : on ? qsTr("已开启：有画面播放并且补帧开启后开始运行")
+                                    : qsTr("已关闭：画面快速移动时字幕可能拖影")
+                                VSwitch {
+                                    objectName: "list-fg-subtitle"
+                                    checked: listSubtitles.on
+                                    onToggled: checked => veyra.setPreference("pushSubtitleHold", checked)
+                                }
+                            }
                             VRow {
                                 objectName: "list-fg-hudlock-row"
                                 label: qsTr("实时 HUD 锁定")

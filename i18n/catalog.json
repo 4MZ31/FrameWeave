@@ -26840,6 +26840,24 @@
    "ru": "Субтитры и скриншоты"
   },
   {
+   "zh": "字幕保持",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "字幕保持",
+   "en": "Subtitle Hold",
+   "ja": "字幕ホールド",
+   "ko": "자막 고정",
+   "nl": "Ondertitels vasthouden",
+   "de": "Untertitel halten",
+   "es": "Retener subtítulos",
+   "fr": "Maintien des sous-titres",
+   "it": "Blocco sottotitoli",
+   "pt-BR": "Manter legendas",
+   "tr": "Altyazı sabitleme",
+   "ar": "تثبيت الترجمة",
+   "pl": "Utrzymanie napisów",
+   "ru": "Удержание субтитров"
+  },
+  {
    "zh": "字幕原字体",
    "src": "qml/SubtitleSettingsDialog.qml",
    "zh-TW": "字幕原字型",
@@ -27126,6 +27144,24 @@
    "ar": "ترجمة {}",
    "pl": "Ścieżka podtytułowa {}",
    "ru": "Трек субтитров {}"
+  },
+  {
+   "zh": "字幕静止而背后的画面在动时（例如高速开车），补帧会把字幕当成背景一起拉动，文字会上下拖影、出现重影。开启后，PushFPS 在屏幕下方找出字幕，补帧前先把它从画面里取出，补帧后再原样放回。新的一行字幕出现时，需要先静止片刻才会被识别。不用字幕时不必开启。",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "字幕靜止而背後的畫面在動時（例如高速開車），補幀會把字幕當成背景一起拉動，文字會上下拖影、出現重影。開啟後，PushFPS 在螢幕下方找出字幕，補幀前先把它從畫面裡取出，補幀後再原樣放回。新的一行字幕出現時，需要先靜止片刻才會被識別。不用字幕時不必開啟。",
+   "en": "When subtitles stand still while the picture behind them moves (driving fast, for example), frame generation drags them along with the background: the text smears up and down and doubles. With this on, PushFPS finds the subtitles at the bottom of the screen, takes them out of the picture before frame generation and puts them back exactly as they were afterwards. A new subtitle line has to stand still for a moment before it is found. Not needed if you don't use subtitles.",
+   "ja": "字幕が止まっていて背景だけが動くとき（高速で運転しているときなど）、フレーム生成は字幕も背景と一緒に動かしてしまい、文字が上下に流れて二重に見えます。オンにすると、PushFPS が画面下部の字幕を見つけ、フレーム生成の前に取り除き、生成後にそのまま戻します。新しい字幕の行は、少し止まっていてから見つかります。字幕を使わないならオンにする必要はありません。",
+   "ko": "자막은 멈춰 있고 뒤의 화면이 움직일 때(예: 빠르게 운전할 때) 프레임 생성은 자막을 배경과 함께 끌고 가서 글자가 위아래로 번지고 겹쳐 보입니다. 켜면 PushFPS가 화면 아래쪽의 자막을 찾아 프레임 생성 전에 꺼내 두었다가, 생성 후 그대로 다시 놓습니다. 새 자막 줄은 잠시 멈춰 있어야 인식됩니다. 자막을 쓰지 않으면 켤 필요가 없습니다.",
+   "nl": "Als ondertitels stilstaan terwijl het beeld erachter beweegt (bijvoorbeeld bij hard rijden), sleept framegeneratie ze mee met de achtergrond: de tekst vlekt op en neer en staat dubbel. Met deze optie zoekt PushFPS de ondertitels onderaan het scherm, haalt ze vóór de framegeneratie uit het beeld en zet ze er daarna precies zo weer in. Een nieuwe regel moet even stilstaan voordat hij wordt gevonden. Niet nodig als je geen ondertitels gebruikt.",
+   "de": "Stehen Untertitel still, während sich das Bild dahinter bewegt (etwa bei schneller Fahrt), zieht die Bildgenerierung sie mit dem Hintergrund mit: Die Schrift verschmiert nach oben und unten und erscheint doppelt. Mit dieser Option findet PushFPS die Untertitel am unteren Bildrand, nimmt sie vor der Bildgenerierung heraus und setzt sie danach unverändert wieder ein. Eine neue Untertitelzeile muss kurz stillstehen, bevor sie erkannt wird. Ohne Untertitel nicht nötig.",
+   "es": "Cuando los subtítulos están quietos y la imagen de detrás se mueve (al conducir rápido, por ejemplo), la generación de fotogramas los arrastra con el fondo: el texto se emborrona hacia arriba y abajo y se duplica. Con esto activado, PushFPS encuentra los subtítulos en la parte inferior de la pantalla, los saca de la imagen antes de generar fotogramas y los vuelve a poner tal cual después. Una línea nueva tiene que estar quieta un momento antes de detectarse. No hace falta si no usa subtítulos.",
+   "fr": "Quand les sous-titres restent immobiles alors que l'image derrière bouge (en roulant vite, par exemple), la génération d'images les entraîne avec le fond : le texte bave vers le haut et le bas et se dédouble. Avec cette option, PushFPS repère les sous-titres en bas de l'écran, les retire de l'image avant la génération d'images et les remet tels quels ensuite. Une nouvelle ligne doit rester immobile un instant avant d'être repérée. Inutile si vous n'utilisez pas de sous-titres.",
+   "it": "Quando i sottotitoli restano fermi mentre l'immagine dietro si muove (guidando veloce, per esempio), la generazione di fotogrammi li trascina con lo sfondo: il testo si sbava in alto e in basso e si sdoppia. Con questa opzione PushFPS trova i sottotitoli in basso, li toglie dall'immagine prima della generazione e li rimette identici dopo. Una nuova riga deve restare ferma un attimo prima di essere riconosciuta. Non serve se non usi i sottotitoli.",
+   "pt-BR": "Quando as legendas ficam paradas enquanto a imagem atrás se move (dirigindo rápido, por exemplo), a geração de quadros as arrasta junto com o fundo: o texto borra para cima e para baixo e aparece duplicado. Com isto ligado, o PushFPS encontra as legendas na parte de baixo da tela, tira-as da imagem antes da geração de quadros e as coloca de volta exatamente como eram depois. Uma linha nova precisa ficar parada um instante antes de ser reconhecida. Não é preciso se você não usa legendas.",
+   "tr": "Altyazılar dururken arkadaki görüntü hareket ettiğinde (örneğin hızlı sürerken) kare oluşturma altyazıları arka planla birlikte sürükler: yazı yukarı aşağı bulaşır ve çift görünür. Açıkken PushFPS ekranın altındaki altyazıları bulur, kare oluşturmadan önce görüntüden çıkarır ve sonra olduğu gibi geri koyar. Yeni bir altyazı satırı tanınmadan önce kısa bir süre durmalıdır. Altyazı kullanmıyorsanız gerekmez.",
+   "ar": "عندما تبقى الترجمة ثابتة بينما تتحرك الصورة خلفها (أثناء القيادة بسرعة مثلاً)، يسحبها توليد الإطارات مع الخلفية: فيتلطّخ النص صعوداً وهبوطاً ويظهر مزدوجاً. عند التشغيل، يجد PushFPS الترجمة أسفل الشاشة، ويخرجها من الصورة قبل توليد الإطارات ثم يعيدها كما كانت بعده. يجب أن يثبت سطر الترجمة الجديد لحظة قبل أن يُكتشف. لا حاجة إليه إن لم تستخدم الترجمة.",
+   "pl": "Gdy napisy stoją w miejscu, a obraz za nimi się porusza (na przykład podczas szybkiej jazdy), generowanie klatek ciągnie je razem z tłem: tekst rozmazuje się w górę i w dół i jest podwójny. Po włączeniu PushFPS znajduje napisy na dole ekranu, wyjmuje je z obrazu przed generowaniem klatek i wstawia z powrotem bez zmian. Nowa linia napisów musi chwilę postać, zanim zostanie znaleziona. Niepotrzebne, jeśli nie używasz napisów.",
+   "ru": "Когда субтитры стоят на месте, а картинка за ними движется (например, при быстрой езде), генерация кадров тянет их вместе с фоном: текст размазывается вверх и вниз и двоится. Если включить, PushFPS находит субтитры внизу экрана, убирает их из картинки перед генерацией кадров и возвращает как были после неё. Новая строка субтитров распознаётся, когда немного постоит на месте. Не нужно, если вы не пользуетесь субтитрами."
   },
   {
    "zh": "字幕默认字号",
@@ -30618,6 +30654,24 @@
    "ar": "إيقاف: لا يوجد منفذ مفتوح",
    "pl": "Wył.: żaden port nie jest otwarty",
    "ru": "Выкл.: ни один порт не открыт"
+  },
+  {
+   "zh": "已关闭：画面快速移动时字幕可能拖影",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "已關閉：畫面快速移動時字幕可能拖影",
+   "en": "Off: subtitles may smear when the picture moves fast",
+   "ja": "オフ：画面が速く動くと字幕が流れて見えることがあります",
+   "ko": "꺼짐: 화면이 빠르게 움직일 때 자막이 번질 수 있습니다",
+   "nl": "Uit: ondertitels kunnen vlekken als het beeld snel beweegt",
+   "de": "Aus: Untertitel können bei schneller Bewegung verschmieren",
+   "es": "Desactivado: los subtítulos pueden emborronarse cuando la imagen se mueve rápido",
+   "fr": "Désactivé : les sous-titres peuvent baver quand l'image bouge vite",
+   "it": "Disattivato: i sottotitoli possono sbavare quando l'immagine si muove veloce",
+   "pt-BR": "Desligado: as legendas podem borrar quando a imagem se move rápido",
+   "tr": "Kapalı: görüntü hızlı hareket ettiğinde altyazılar bulaşabilir",
+   "ar": "متوقف: قد تتلطّخ الترجمة عندما تتحرك الصورة بسرعة",
+   "pl": "Wyłączone: napisy mogą się rozmazywać, gdy obraz szybko się porusza",
+   "ru": "Выключено: при быстром движении картинки субтитры могут размазываться"
   },
   {
    "zh": "已关闭：画面移动时准星可能闪烁或出现重影",
@@ -51071,6 +51125,24 @@
    "ru": "Бег в %1 × %2"
   },
   {
+   "zh": "正在运行：屏幕下方还没有找到字幕（背后的画面动起来才会识别）",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "正在執行：螢幕下方還沒有找到字幕（背後的畫面動起來才會識別）",
+   "en": "Running: no subtitles found at the bottom yet (they are found once the picture behind them moves)",
+   "ja": "実行中：画面下部にまだ字幕が見つかりません（背景が動くと見つかります）",
+   "ko": "실행 중: 아직 화면 아래쪽에서 자막을 찾지 못했습니다(뒤의 화면이 움직여야 인식됩니다)",
+   "nl": "Actief: nog geen ondertitels onderaan gevonden (ze worden gevonden zodra het beeld erachter beweegt)",
+   "de": "Aktiv: unten noch keine Untertitel gefunden (sie werden erkannt, sobald sich das Bild dahinter bewegt)",
+   "es": "En marcha: aún no hay subtítulos abajo (se detectan cuando la imagen de detrás se mueve)",
+   "fr": "En cours : aucun sous-titre trouvé en bas pour l'instant (ils sont repérés dès que l'image derrière bouge)",
+   "it": "In esecuzione: nessun sottotitolo trovato in basso per ora (vengono trovati quando l'immagine dietro si muove)",
+   "pt-BR": "Em execução: nenhuma legenda encontrada embaixo ainda (elas são reconhecidas quando a imagem atrás se move)",
+   "tr": "Çalışıyor: altta henüz altyazı bulunamadı (arkadaki görüntü hareket edince bulunur)",
+   "ar": "قيد التشغيل: لم يُعثر بعد على ترجمة في الأسفل (تُكتشف عندما تتحرك الصورة خلفها)",
+   "pl": "Działa: na dole nie znaleziono jeszcze napisów (zostaną znalezione, gdy obraz za nimi się poruszy)",
+   "ru": "Работает: внизу субтитры пока не найдены (их видно, когда картинка за ними движется)"
+  },
+  {
    "zh": "正在运行：已找到准星，补出的每一帧里都原样放回",
    "src": "qml/ProPage.qml",
    "zh-TW": "正在執行：已找到準星，補出的每一幀裡都原樣放回",
@@ -51087,6 +51159,24 @@
    "ar": "يعمل: تم العثور على علامة التصويب. تُعاد كما هي في كل إطار مُولَّد",
    "pl": "Działa: znaleziono celownik. Wraca bez zmian do każdej wygenerowanej klatki",
    "ru": "Работает: прицел найден. Он возвращается без изменений в каждый созданный кадр"
+  },
+  {
+   "zh": "正在运行：已找到字幕，补出的每一帧里都原样放回",
+   "src": "qml/ProPage.qml",
+   "zh-TW": "正在執行：已找到字幕，補出的每一幀裡都原樣放回",
+   "en": "Running: subtitles found and put back in every generated frame",
+   "ja": "実行中：字幕を見つけ、生成した各フレームにそのまま戻しています",
+   "ko": "실행 중: 자막을 찾았고, 생성된 모든 프레임에 그대로 되돌려 놓습니다",
+   "nl": "Actief: ondertitels gevonden en in elk gegenereerd frame teruggezet",
+   "de": "Aktiv: Untertitel gefunden und in jedes generierte Bild zurückgesetzt",
+   "es": "En marcha: subtítulos encontrados y devueltos en cada fotograma generado",
+   "fr": "En cours : sous-titres trouvés et remis dans chaque image générée",
+   "it": "In esecuzione: sottotitoli trovati e rimessi in ogni fotogramma generato",
+   "pt-BR": "Em execução: legendas encontradas e recolocadas em cada quadro gerado",
+   "tr": "Çalışıyor: altyazılar bulundu ve her oluşturulan kareye geri kondu",
+   "ar": "قيد التشغيل: تم العثور على الترجمة وإعادتها في كل إطار مُولَّد",
+   "pl": "Działa: napisy znalezione i wstawiane z powrotem w każdej wygenerowanej klatce",
+   "ru": "Работает: субтитры найдены и возвращаются в каждый сгенерированный кадр"
   },
   {
    "zh": "正在运行：文字和准星在补出来的帧里保持清晰",

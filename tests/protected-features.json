@@ -1825,7 +1825,7 @@
     },
     {
      "file": "src/pipeline/EnhanceGraph.cpp",
-     "contains": "return overlay_?overlay_->input(parity):videoFrame_[parity].Get();"
+     "contains": "return overlay_?overlay_->input(parity):subtitles_?subtitles_->input(parity):videoFrame_[parity].Get();"
     },
     {
      "file": "tests/integration/PushGpuTests.cpp",
@@ -2158,6 +2158,28 @@
     }
    ],
    "needs_hardware": "a capture card at 60 with a 30 FPS game"
+  },
+  {
+   "id": "F76",
+   "what": "Subtitle Hold: Crosshair Hold's rule in the subtitle band along the bottom (a rectangular zone), its own switch, off unless switched on; the crosshair's square zone unchanged",
+   "guards": [
+    {
+     "file": "tests/unit/PushOverlayTests.cpp",
+     "ci": "veyra_push_overlay_tests",
+     "contains": "a line of text standing over a moving road is held"
+    },
+    {
+     "file": "tests/unit/PushOverlayTests.cpp",
+     "ci": "veyra_push_overlay_tests",
+     "contains": "the crosshair's zone is still its square"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_subtitle_hold_is_off_unless_switched_on"
+    }
+   ],
+   "needs_hardware": "a game with subtitles over fast motion, and the WARP comparison of the rectangular shaders in a Windows build"
   }
  ]
 }
