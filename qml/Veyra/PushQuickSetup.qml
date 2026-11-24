@@ -994,7 +994,7 @@ VGroup {
     property bool gsyncWanted: false     // the button was pressed; the check is running
     property bool gsyncChecked: false    // a check has finished since the button was pressed
     readonly property bool gsyncUnconfirmed: quick.gsyncTools !== null && veyra.hasSource === true && quick.smoothPacing
-                                             && Number(veyra.vrrState || 0) === 3
+                                             && Number(veyra.vrrState || 0) === 3 && veyra.vrrAmd !== true
     Connections {
         target: quick.gsyncTools
         ignoreUnknownSignals: true

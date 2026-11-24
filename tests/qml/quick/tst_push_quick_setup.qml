@@ -955,6 +955,24 @@ Item {
             tools.destroy()
         }
 
+        // FreeSync: a level answered by the AMD driver never offers NVIDIA's G-SYNC set-up.
+        function test_gsync_row_is_not_offered_for_amd_freesync() {
+            const tools = gsyncMock.createObject(root)
+            veyra.nvidiaVrrProfile = tools
+            veyra.hasSource = true
+            veyra.displaySync = 1; veyra.variableRefresh = true; veyra.outputRateMode = 1
+            veyra.vrrState = 3; veyra.vrrAmd = true
+            const row = findChild(root, "pushfps-gsync-row")
+            verify(row, "the row exists")
+            wait(50)
+            verify(!row.visible, "FreeSync requested: no G-SYNC set-up")
+            veyra.vrrAmd = false
+            tryVerify(() => row.visible, 2000, "the same level from the NVIDIA driver shows it")
+            veyra.vrrState = 0; veyra.displaySync = 2; veyra.variableRefresh = false
+            veyra.nvidiaVrrProfile = null
+            tools.destroy()
+        }
+
         // The look of AI picture enhancement: presets, two sliders, reset, every layer.
         function test_look_presets_sliders_and_reset() {
             verify(!quick.lookShown, "enhancement off: no look controls")

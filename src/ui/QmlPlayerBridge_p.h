@@ -614,6 +614,7 @@ struct QmlPlayerBridge::Impl {
     // presenting monitor, or of the main window's monitor while idle.
     QString fgDisplayHint;
     int vrrState=0;
+    bool vrrAmd=false; // vrrState was answered by the AMD driver (FreeSync)
     // The shown monitor's Windows HDR (-1 unknown) and refresh rate.
     int displayHdr=-1;double displayRefreshHz=0;
     // 刷新显示器状态: the display generation it asked for, until the shown monitor

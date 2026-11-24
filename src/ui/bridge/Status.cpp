@@ -399,6 +399,7 @@ void QmlPlayerBridge::updateRunStatus() {
     if(host)displays.request(host,i.displayRecheckPending?"manual":"ui");
     const auto display=host?displays.state(displays.monitorOf(host)):std::nullopt;
     const int vrrLevel=s.running?int(s.displayVrr):display?int(gfx::vrrLevel(display->vrr)):0;
+    const bool vrrAmd=vrrLevel>0&&(s.running?s.displayVrrAmd:display&&display->vrr.amd);
     const int hdr=display&&display->color.hdr?int(*display->color.hdr):-1;
     const double refreshHz=display?display->refreshHz:0;
     QString recheckNotice;bool recheckFailed=false;
@@ -527,10 +528,10 @@ void QmlPlayerBridge::updateRunStatus() {
     const double gpu = i.gpuUtil.load();
     const double target=active&&f.rateWindowReady&&rate.targetFps>0?rate.targetFps:-1;
     const bool changed = ratioChanged || active || status != i.runStatus || level != i.runLevel || text != i.runDetail || options!=i.runOptions || std::abs(target-i.effectiveOutputFps)>.05 || std::abs(gpu - i.gpuPublished) > 0.05 ||
-                         fgHint != i.fgDisplayHint || vrrLevel != i.vrrState || displayChecking != i.displayChecking ||
+                         fgHint != i.fgDisplayHint || vrrLevel != i.vrrState || vrrAmd != i.vrrAmd || displayChecking != i.displayChecking ||
                          hdr != i.displayHdr || std::abs(refreshHz - i.displayRefreshHz) > .01;
     i.runStatus = status; i.runLevel = level; i.runDetail = text; i.gpuPublished = gpu;
-    i.runOptions=options;i.effectiveOutputFps=target;i.fgDisplayHint=fgHint;i.vrrState=vrrLevel;i.displayChecking=displayChecking;
+    i.runOptions=options;i.effectiveOutputFps=target;i.fgDisplayHint=fgHint;i.vrrState=vrrLevel;i.vrrAmd=vrrAmd;i.displayChecking=displayChecking;
     i.displayHdr=hdr;i.displayRefreshHz=refreshHz;
     if (changed) emit perfChanged();
     if (!recheckNotice.isEmpty()) emit notice(recheckNotice, recheckFailed);

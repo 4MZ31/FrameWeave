@@ -505,6 +505,7 @@ class QmlPlayerBridge : public QObject {
     Q_PROPERTY(QObject* nvidiaVrrProfile READ nvidiaVrrProfile CONSTANT)
     Q_PROPERTY(QObject* liveTranslation READ liveTranslation CONSTANT)
     Q_PROPERTY(int vrrState READ vrrState NOTIFY perfChanged)
+    Q_PROPERTY(bool vrrAmd READ vrrAmd NOTIFY perfChanged)
     Q_PROPERTY(QString vrrHint READ vrrHint NOTIFY perfChanged)
     // Display state of the shown monitor for the 信号 card: Windows HDR (-1
     // unknown, 0 off, 1 on), refresh rate (0 unknown) and a short VRR summary.
@@ -1209,6 +1210,7 @@ public:
     QObject* liveTranslation() const;
     void setVariableRefresh(bool value);
     int vrrState() const;
+    bool vrrAmd() const;
     QString vrrHint() const;
     int displayHdr() const;
     double displayRefreshHz() const;

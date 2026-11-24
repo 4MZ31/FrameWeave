@@ -44,7 +44,12 @@ concurrency:
 
 env:
   UPSTREAM_REPO: Likely7/Veyra-NRVideo
-  UPSTREAM_TAG: v2.1.9
+  # The runtime package (Qt, FFmpeg, the vendors' runtimes) the installer downloads. 2.2.1's has the same
+  # vendor runtimes as 2.1.9's (upstream-inspect, 24 November 2026: every file under runtime\ has the same
+  # name and size) and FFmpeg 9.0.1 rebuilt with FFmpeg's fix for the d3d12va reference-only surface pool
+  # (bcd2c69e087a: PS5 hardware decoding stopped after about 71 frames on cards such as the RX 9070 XT).
+  # Its program sits under versions\2.2.1\; the installer finds the runtime by the program's folder.
+  UPSTREAM_TAG: v2.2.1
   VCPKG_COMMIT: 30ef65cad98f08e7197c9a1656fbd871bcb72f2d   # builtin-baseline in vcpkg.json: FFmpeg 9.0.1
   DLSS_TAG: v310.7.0
   NVCODEC_TAG: n13.0.19.0
@@ -363,7 +368,7 @@ jobs:
             Write-Host "$t exit $code"
             if ($code -ne 0) { $failed++ }
           }
-          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_audio_mix_tests', 'veyra_push_studio_sources_tests', 'veyra_push_benchmark_tests', 'veyra_push_hud_tests', 'veyra_push_adaptive_fg_tests', 'veyra_push_pacing_repair_tests', 'veyra_push_archive_paths_tests', 'veyra_push_crash_note_tests', 'veyra_push_compare_plan_tests', 'veyra_push_fg_health_tests', 'veyra_push_half_rate_tests', 'veyra_push_record_parts_tests', 'veyra_push_capture_audio_suggest_tests', 'veyra_push_record_quality_tests', 'veyra_push_compare_name_tests', 'veyra_push_caption_hold_tests', 'veyra_push_display_cap_tests', 'veyra_push_remote_sync_tests', 'veyra_push_pairing_input_tests', 'veyra_push_psn_sign_in_tests', 'veyra_push_retry_wait_tests', 'veyra_push_log_limiter_tests', 'veyra_push_boost_limiter_tests', 'veyra_push_capture_device_pick_tests', 'veyra_push_capture_sharper_tests', 'veyra_push_gpu_load_tests', 'veyra_push_ocr_tests', 'veyra_push_ocr_windows_tests', 'veyra_push_control_tests', 'veyra_push_clip_markers_tests', 'veyra_push_present_scaling_tests', 'veyra_push_hud_still_tests', 'veyra_push_overlay_tests', 'veyra_push_audio_trim_tests', 'veyra_push_compare_line_tests', 'veyra_push_display_peak_tests', 'veyra_push_dolby_vision_tests', 'veyra_remoteplay_core_tests', 'veyra_push_perf_report_tests', 'veyra_push_half_approval_tests', 'veyra_push_view_crop_tests', 'veyra_push_flow_motion_tests', 'veyra_push_flow2_tests', 'veyra_push_flow_guard_tests', 'veyra_push_flow_predict_tests', 'veyra_push_response_tests', 'veyra_remoteplay_feedback_wire_tests', 'veyra_frame_input_tests', 'veyra_push_quality_tests', 'veyra_push_input_latency_tests', 'veyra_vrr_profile_tests') {
+          foreach ($t in 'veyra_sound_profile_tests', 'veyra_push_audio_mix_tests', 'veyra_push_studio_sources_tests', 'veyra_push_benchmark_tests', 'veyra_push_hud_tests', 'veyra_push_adaptive_fg_tests', 'veyra_push_pacing_repair_tests', 'veyra_push_archive_paths_tests', 'veyra_push_crash_note_tests', 'veyra_push_compare_plan_tests', 'veyra_push_fg_health_tests', 'veyra_push_half_rate_tests', 'veyra_push_record_parts_tests', 'veyra_push_capture_audio_suggest_tests', 'veyra_push_record_quality_tests', 'veyra_push_compare_name_tests', 'veyra_push_caption_hold_tests', 'veyra_push_display_cap_tests', 'veyra_push_remote_sync_tests', 'veyra_push_pairing_input_tests', 'veyra_push_psn_sign_in_tests', 'veyra_push_retry_wait_tests', 'veyra_push_free_sync_tests', 'veyra_push_log_limiter_tests', 'veyra_push_boost_limiter_tests', 'veyra_push_capture_device_pick_tests', 'veyra_push_capture_sharper_tests', 'veyra_push_gpu_load_tests', 'veyra_push_ocr_tests', 'veyra_push_ocr_windows_tests', 'veyra_push_control_tests', 'veyra_push_clip_markers_tests', 'veyra_push_present_scaling_tests', 'veyra_push_hud_still_tests', 'veyra_push_overlay_tests', 'veyra_push_audio_trim_tests', 'veyra_push_compare_line_tests', 'veyra_push_display_peak_tests', 'veyra_push_dolby_vision_tests', 'veyra_remoteplay_core_tests', 'veyra_push_perf_report_tests', 'veyra_push_half_approval_tests', 'veyra_push_view_crop_tests', 'veyra_push_flow_motion_tests', 'veyra_push_flow2_tests', 'veyra_push_flow_guard_tests', 'veyra_push_flow_predict_tests', 'veyra_push_response_tests', 'veyra_remoteplay_feedback_wire_tests', 'veyra_frame_input_tests', 'veyra_push_quality_tests', 'veyra_push_input_latency_tests', 'veyra_vrr_profile_tests') {
             cmake --build $env:BUILD --target $t --parallel
             if ($LASTEXITCODE -ne 0) { Write-Host "::error::$t did not build"; $failed++; continue }
             $exe = Get-ChildItem $env:BUILD -Recurse -Filter "$t.exe" | Select-Object -First 1
@@ -655,6 +660,9 @@ jobs:
           & D:\pf-zip\Install-PushFPS.ps1 -Gpu NVIDIA -InstallDir D:\pf-install -NoShortcuts -NoLaunch -ExperimentalExtras No
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path D:\pf-install\PushFPS.exe)) { throw "PushFPS.exe missing after install" }
+          # The runtime package's own launcher and updater update Veyra, not PushFPS: never left in the folder.
+          foreach ($n in 'veyra_qml_ui.exe', 'veyra_update_worker.exe') { if (Test-Path "D:\pf-install\$n") { throw "$n was left in the install" } }
+          if (-not (Test-Path D:\pf-install\avcodec-63.dll)) { throw 'FFmpeg (avcodec-63.dll) missing after install' }
           # The virtual camera's files are copied apart from the rest (Install-PushFPS.ps1): they have to arrive.
           foreach ($f in @(Get-ChildItem D:\pf-zip\PushFPS-files\virtualcam -File -ErrorAction SilentlyContinue)) {
             if (-not (Test-Path (Join-Path D:\pf-install\virtualcam $f.Name))) { throw "the virtual camera file $($f.Name) was not installed" }

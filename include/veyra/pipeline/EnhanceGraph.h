@@ -1020,6 +1020,14 @@ private:
     // pixels (first result), a second FSR pass in its render pixels (SR input).
     ComPtr<ID3D12Resource> firstSrFlow_,secondSrFlow_;
     UINT firstSrFlowSet()const{return 3+UINT(nrInstances_.size());}
+    // The extent firstSrFlow_ is made at: a first DLSS pass of double SR takes
+    // motion in its output pixels; FSR reading the source (single FSR, or the
+    // first pass of double SR) takes it in source pixels, so flow worked out at
+    // another size is resized for it. Empty = no such texture.
+    Extent firstSrFlowExtent()const;
+    // Motion for an FSR pass that reads the source: the flow itself when it is
+    // the source's size, the resized copy otherwise, null without flow.
+    ID3D12Resource* fsrSourceMotion(bool haveFlow)const;
     UINT secondSrFlowSet()const{return 4+UINT(nrInstances_.size());}
     UINT dlaaFlowSet(UINT index)const{return secondSrFlowSet()+1+index;}
     ComPtr<ID3D12Resource> videoHdrInput_,videoHdrOutput_;

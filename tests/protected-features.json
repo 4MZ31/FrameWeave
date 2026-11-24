@@ -2180,6 +2180,28 @@
     }
    ],
    "needs_hardware": "a game with subtitles over fast motion, and the WARP comparison of the rectangular shaders in a Windows build"
+  },
+  {
+   "id": "F77",
+   "what": "AMD FreeSync detection: displays NVAPI does not answer are asked of the AMD driver (read only); FreeSync switched off or a mode without it never requests VRR, nothing is reported active, and NVIDIA's G-SYNC set-up is not offered for a FreeSync answer",
+   "guards": [
+    {
+     "file": "tests/unit/PushFreeSyncTests.cpp",
+     "ci": "veyra_push_free_sync_tests",
+     "contains": "a refused capability query is the answer: no FreeSync"
+    },
+    {
+     "file": "tests/unit/PushFreeSyncTests.cpp",
+     "ci": "veyra_push_free_sync_tests",
+     "contains": "FreeSync switched off in AMD Software is not on"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_gsync_row_is_not_offered_for_amd_freesync"
+    }
+   ],
+   "needs_hardware": "an AMD card with a FreeSync display (on and off in AMD Software)"
   }
  ]
 }
