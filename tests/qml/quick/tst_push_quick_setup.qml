@@ -1365,7 +1365,10 @@ Item {
             veyra.fgMultiplier = 3; veyra.nrAnyEnabled = true; veyra.hudLock = true; veyra.pacingRepair = true
             const sw = control("pushfps-lowest-latency")
             verify(!sw.checked)
+            const nav = Qt.createQmlObject('import QtTest; SignalSpy { signalName: "navigate" }', quick)
+            nav.target = veyra
             sw.toggled(true)
+            compare(nav.count, 0, "nothing playing: full screen waits for the next connection")
             compare(veyra.nvidiaLowLatency, 1, "NVIDIA low latency: one-frame queue")
             compare(veyra.preferences.pushAutoFullscreen, true, "fullscreen on connect")
             compare(veyra.displaySync, 1); compare(veyra.variableRefresh, true); compare(veyra.outputRateMode, 1)
@@ -1386,6 +1389,14 @@ Item {
             verify(quick.lowestLatency)
             sw.toggled(false)
             compare(veyra.fgLowQueue, false)
+            // With a picture playing it goes full screen now, not only at the next connection.
+            veyra.running = true
+            sw.toggled(true)
+            compare(nav.count, 1); compare(nav.signalArguments[0][0], "fullscreen")
+            sw.toggled(false)
+            compare(nav.count, 1, "turning it off leaves the window as it is")
+            veyra.running = false
+            nav.destroy()
             veyra.vrrState = 0
         }
     }

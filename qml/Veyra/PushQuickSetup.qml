@@ -71,7 +71,11 @@ VGroup {
             else veyra.fgLowQueue = true
             veyra.setPreference("pushAutoFullscreen", true)
             if (quick.vrrCapable) quick.setSmoothPacing(true)
-            veyra.logUi("push-latency", "lowest latency on nvidia=" + nvidia + " vrr=" + quick.vrrCapable)
+            // Full screen on connect only acts at the next connection; with a picture playing the
+            // window goes full screen now (Main.qml leaves it alone when it already is), or the
+            // switch seems to do nothing (a report after 4.5.0).
+            if (veyra.running === true) veyra.navigate("fullscreen")
+            veyra.logUi("push-latency", "lowest latency on nvidia=" + nvidia + " vrr=" + quick.vrrCapable + " playing=" + (veyra.running === true))
             return
         }
         let saved = null
