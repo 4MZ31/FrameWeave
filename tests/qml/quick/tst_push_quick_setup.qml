@@ -965,9 +965,11 @@ Item {
             const row = findChild(root, "pushfps-gsync-row")
             verify(row, "the row exists")
             wait(50)
+            verify(!quick.gsyncUnconfirmed, "FreeSync requested: nothing for NVIDIA's profile tools to set")
             verify(!row.visible, "FreeSync requested: no G-SYNC set-up")
             veyra.vrrAmd = false
-            tryVerify(() => row.visible, 2000, "the same level from the NVIDIA driver shows it")
+            // (the row itself may stay hidden: an earlier test remembered pushGsyncChecked)
+            tryVerify(() => quick.gsyncUnconfirmed, 2000, "the same level from the NVIDIA driver asks for the set-up")
             veyra.vrrState = 0; veyra.displaySync = 2; veyra.variableRefresh = false
             veyra.nvidiaVrrProfile = null
             tools.destroy()
