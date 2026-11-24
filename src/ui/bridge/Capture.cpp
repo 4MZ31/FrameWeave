@@ -14,6 +14,9 @@ namespace veyra::ui {
 // --- capture dialog ----------------------------------------------------------
 // PushFPS: how long a device query may run before the dialog says the devices have not answered.
 static constexpr int kCaptureQuerySlowSeconds = 10;
+// PushFPS: a query still waiting this long is set aside when another one is asked for (a different
+// device chosen, the list refreshed), so one device whose driver never answers cannot hold the dialog.
+static constexpr int kCaptureQueryAsideSeconds = 15;
 static std::vector<source::CaptureDevice> captureAudioDeviceDetails() {
     auto devices = source::CaptureCardSource::deviceDetails(true);
     for (auto& endpoint : source::WasapiAudioInput::devices(true))
@@ -428,6 +431,16 @@ void QmlPlayerBridge::tickCapture() {
             i.captureStatus = tr("采集设备还没有响应。如果一直这样：关闭其他正在使用采集卡或摄像头的软件，把设备拔下再插回，然后重新启动 PushFPS。");
             veyra::log::warn("capture-ui", std::format("query kind={} still waiting after {} s", i.captureQueryKind, kCaptureQuerySlowSeconds));
             emit captureChanged();
+        }
+        // A query set aside keeps its thread until the driver answers; its future is kept on purpose
+        // (std::async's future waits for the thread when destroyed) and its answer is never used.
+        if (i.captureNextQuery && std::chrono::steady_clock::now() - i.captureQueryStarted >= std::chrono::seconds(kCaptureQueryAsideSeconds)) {
+            static auto* setAside = new std::vector<std::future<Impl::CaptureQuery>>();
+            setAside->push_back(std::move(i.captureQuery));
+            i.captureBusy = false;
+            veyra::log::warn("capture-ui", std::format("query kind={} set aside after {} s without an answer; {} set aside in all", i.captureQueryKind, kCaptureQueryAsideSeconds, setAside->size()));
+            auto next = std::move(*i.captureNextQuery); i.captureNextQuery.reset();
+            queryCapture(next.first, std::move(next.second));
         }
         return;
     }

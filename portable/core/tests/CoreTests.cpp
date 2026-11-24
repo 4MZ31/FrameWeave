@@ -494,6 +494,145 @@ void testCrosshairHold() {
     }
 }
 
+// Subtitle Hold: a line of "text" (thin strokes of letters) in the subtitle band over a panning picture.
+bool onText(int x, int y, int W, int H) {
+    const auto zone = veyra::pipeline::overlay::subtitleZoneFor(uint32_t(W), uint32_t(H));
+    if (zone.size == 0) return false;
+    const int top = int(zone.y + zone.h / 2) - 8, left = int(zone.x) + 40;
+    const int lx = x - left, ly = y - top;
+    if (ly < 0 || ly >= 16 || lx < 0 || lx >= 12 * 14) return false;
+    const int letter = lx / 14, cx = lx % 14;
+    if (cx >= 10) return false;                       // the gap between letters
+    const bool vertical = (cx < 2) || (letter % 3 == 0 && cx >= 8);
+    const bool horizontal = (ly < 2) || (letter % 2 == 0 && ly >= 7 && ly < 9) || (letter % 3 != 1 && ly >= 14);
+    return vertical || horizontal;
+}
+Bgra renderText(const Scene& bg, float shift, bool text) {
+    Bgra img = renderAim(bg, shift, false);
+    if (text)
+        for (int y = 0; y < bg.h; ++y)
+            for (int x = 0; x < bg.w; ++x)
+                if (onText(x, y, bg.w, bg.h)) { uint8_t* p = img.pixel(x, y); p[0] = p[1] = p[2] = 250; }
+    return img;
+}
+void testSubtitleHold() {
+    using namespace veyra::pipeline::overlay;
+    const int W = 1280, H = 720, motion = 12;
+    const Scene bg(W, H, 200, 37);
+    const Zone zone = subtitleZoneFor(uint32_t(W), uint32_t(H));
+    CHECK(zone.size > 0 && zone.h < zone.w, "a band at 720 lines");
+    CrosshairHold hold(HoldKind::Subtitles);
+    std::vector<Bgra> frames;
+    std::vector<std::shared_ptr<const HoldFrame>> parts;
+    for (int i = 0; i < 10; ++i) {
+        frames.push_back(renderText(bg, float(i * motion), true));
+        parts.push_back(hold.frame(frames.back()));
+        CHECK(parts.back() && parts.back()->w == int(zone.w) && parts.back()->h == int(zone.h) && parts.back()->x == int(zone.x) && parts.back()->y == int(zone.y),
+              "the band's place and size");
+    }
+    int textPixels = 0, maskedText = 0;
+    for (int y = 0; y < H; ++y) for (int x = 0; x < W; ++x) if (onText(x, y, W, H)) {
+        ++textPixels;
+        const int zx = x - int(zone.x), zy = y - int(zone.y);
+        if (parts.back()->mask.at(zx, zy) > 0) ++maskedText;
+    }
+    std::printf("  subtitle hold: %d of %d text pixels masked, %d px in the mask\n", maskedText, textPixels, parts.back()->masked);
+    CHECK(maskedText * 10 >= textPixels * 9, "the line is held (%d of %d)", maskedText, textPixels);
+    const auto pair = CrosshairHold::pair(*parts[8], *parts[9]);
+    CHECK(pair && pair->held > 0 && pair->w == int(zone.w) && pair->h == int(zone.h), "a pair for the band");
+    if (!pair) return;
+    const Bgra &a = frames[8], &b = frames[9];
+    const MotionEstimator est;
+    const Pyramid pa = Pyramid::of(lumaOf(a), 4), pb = Pyramid::of(lumaOf(b), 4);
+    const MotionField f = est.estimate(pa, pb), k = est.estimate(pb, pa);
+    const Bgra truth = renderText(bg, 8.5f * float(motion), true);
+    Bgra plain, held;
+    interpolate(a, b, f, k, nullptr, 0.5f, plain, 3);
+    interpolate(a, b, f, k, nullptr, 0.5f, held, 3, {}, nullptr, pair.get());
+    double before = 0, after = 0; int n = 0;
+    for (int y = 0; y < H; ++y) for (int x = 0; x < W; ++x) if (onText(x, y, W, H)) {
+        double d0 = 0, d1 = 0;
+        for (int c = 0; c < 3; ++c) {
+            d0 = std::max(d0, std::abs(double(plain.pixel(x, y)[c]) - truth.pixel(x, y)[c]));
+            d1 = std::max(d1, std::abs(double(held.pixel(x, y)[c]) - truth.pixel(x, y)[c]));
+        }
+        before += d0; after += d1; ++n;
+    }
+    before /= std::max(1, n); after /= std::max(1, n);
+    std::printf("  subtitle text off by %.1f -> %.1f of 255\n", before, after);
+    CHECK(before > 10.0 && after < 6.0 && after * 3 < before, "the text stands where it is (%.1f -> %.1f)", before, after);
+    // Both zones at once: a crosshair and a line of text; each held in its own zone, nothing else touched.
+    {
+        CrosshairHold aim, sub(HoldKind::Subtitles);
+        std::shared_ptr<const HoldFrame> pa0, pa1, ps0, ps1;
+        Bgra f0, f1;
+        for (int i = 0; i < 10; ++i) {
+            Bgra fr = renderAim(bg, float(i * motion), true);
+            for (int y = 0; y < H; ++y) for (int x = 0; x < W; ++x) if (onText(x, y, W, H)) { uint8_t* p = fr.pixel(x, y); p[0] = p[1] = p[2] = 250; }
+            pa0 = pa1; ps0 = ps1; f0 = f1;
+            pa1 = aim.frame(fr); ps1 = sub.frame(fr); f1 = fr;
+        }
+        const auto ha = CrosshairHold::pair(*pa0, *pa1), hs = CrosshairHold::pair(*ps0, *ps1);
+        CHECK(ha && hs, "both zones make a pair");
+        Bgra one, both;
+        const Pyramid q0 = Pyramid::of(lumaOf(f0), 4), q1 = Pyramid::of(lumaOf(f1), 4);
+        const MotionField g = est.estimate(q0, q1), gk = est.estimate(q1, q0);
+        interpolate(f0, f1, g, gk, nullptr, 0.5f, one, 2, {}, ha.get());
+        interpolate(f0, f1, g, gk, nullptr, 0.5f, both, 2, {}, ha.get(), hs.get());
+        int outsideBand = 0;
+        for (int y = 0; y < H; ++y) for (int x = 0; x < W; ++x) {
+            const bool inBand = x >= hs->x && y >= hs->y && x < hs->x + hs->w && y < hs->y + hs->h;
+            if (!inBand && std::memcmp(one.pixel(x, y), both.pixel(x, y), 3) != 0) ++outsideBand;
+        }
+        CHECK(outsideBand < 200, "the band changes nothing far from itself (%d px)", outsideBand);
+    }
+    {   // the faster pass in the band is the rule's own step(), to the pixel
+        const Rule rule = ruleFor(uint32_t(H));
+        State slow(int(zone.w), int(zone.h)), fast(int(zone.w), int(zone.h));
+        int different = 0, seen = 0;
+        for (int i = 0; i < 10; ++i) {
+            const Bgra fr = renderText(bg, float(i * motion), true);
+            Plane luma(int(zone.w), int(zone.h), 0.0f);
+            for (int y = 0; y < int(zone.h); ++y)
+                for (int x = 0; x < int(zone.w); ++x) {
+                    const uint8_t* p = fr.pixel(int(zone.x) + x, int(zone.y) + y);
+                    luma.at(x, y) = lumaOf(float(p[2]) / 255.0f, float(p[1]) / 255.0f, float(p[0]) / 255.0f, 0);
+                }
+            const Plane m0 = step(slow, luma, rule), m1 = stepFast(fast, luma, rule);
+            if (m0.v != m1.v || slow.moving != fast.moving) ++different;
+            for (int kk = 0; kk < kKinds; ++kk) if (slow.count[kk].v != fast.count[kk].v || slow.memory[kk].v != fast.memory[kk].v) ++different;
+            for (const float v : m0.v) if (v > 0) ++seen;
+        }
+        CHECK(different == 0 && seen > 500, "the faster pass in the band is the rule's own (%d differences, %d px seen)", different, seen);
+    }
+    {   // through the engine, its own switch
+        for (int on = 0; on < 2; ++on) {
+            EngineSettings s;
+            s.subtitleHold = on != 0;
+            s.removeDuplicates = false;
+            s.estimateBudgetMs = 6;
+            Engine e(s);
+            const int64_t T = 33'333'333;
+            int64_t now = 1'000'000'000;
+            int withSub = 0, withAim = 0;
+            for (int i = 0; i < 12; ++i) {
+                e.push(renderText(bg, float(i * motion), true), now);
+                e.waitIdle();
+                for (int st = 1; st <= 3; ++st) {
+                    const Pick p = e.pick(now + st * (T / 4));
+                    if (p.generated() && p.subHold) ++withSub;
+                    if (p.hold) ++withAim;
+                }
+                now += T;
+            }
+            const EngineStats st = e.stats();
+            if (on) CHECK(st.subHoldState == 1 && st.subHoldPixels > 0 && withSub > 0, "the engine holds the line (%d picks)", withSub);
+            else CHECK(st.subHoldState == 0 && withSub == 0, "switched off nothing is held");
+            CHECK(withAim == 0 && st.holdState == 0, "Crosshair Hold's own switch is not touched");
+        }
+    }
+}
+
 void testEngineTiming(bool uneven, bool repair, double target, int64_t refreshNs, double expectOut) {
     const Scene bg(160, 96, 420, 11), fg(16, 16, 2, 12);
     EngineSettings s;
@@ -801,6 +940,7 @@ int main(int argc, char** argv) {
     testDedup();
     testHudLock();
     testCrosshairHold();
+    testSubtitleHold();
     testEngineTiming(false, false, 0, 8333333, 120.0);   // 30 -> 120 Hz display, match display
     testEngineTiming(false, false, 60, 8333333, 60.0);   // capped at 60
     testEngineTiming(true, false, 0, 8333333, 120.0);    // uneven 17/50 ms, no repair

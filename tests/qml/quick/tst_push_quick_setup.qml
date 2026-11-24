@@ -28,6 +28,7 @@ Item {
         name: "PushQuickSetup"
         when: windowShown
         function init() {
+            quick.keepsProfiles = false; quick.profileQuietUntil = 0
             Theme.design = "legacy"; quick.compact = false   // (a test that left the new design or the short form on would change every later one)
             veyra.preferences = ({exportStopsPlayback: false})
             veyra.fgMultiplier = 1
@@ -656,6 +657,36 @@ Item {
             compare(quick.games.length, 0)
             compare(quick.activeGame, "")
         }
+        function test_a_chosen_profile_keeps_what_is_changed_afterwards() {
+            quick.setGameFps("30")
+            quick.applyTarget("120")
+            verify(quick.saveGame("Racer"))
+            quick.keepsProfiles = true
+            // A change made while the profile is chosen is written back to it (after a short wait).
+            quick.applyTarget("60")
+            tryVerify(function() { return quick.games.length === 1 && quick.games[0].target === "60" }, 5000)
+            compare(quick.games[0].name, "Racer")
+            compare(quick.games[0].console, "ps5")
+            compare(quick.profiles.consoles.ps5.target, "60", "the console's own profile follows too")
+            // Another choice in quick succession: what was waiting is kept first.
+            quick.applyTarget("off")
+            quick.applyGame("")
+            compare(quick.games[0].target, "off")
+            compare(quick.activeGame, "")
+            // With no game chosen, the game profile is left alone.
+            quick.applyTarget("120")
+            tryVerify(function() { return quick.profiles.consoles.ps5.target === "120" }, 8000)
+            compare(quick.games[0].target, "off")
+            // A target set by hand in Professional mode (none of the quick choices) keeps the profile's own.
+            quick.applyGame("Racer")
+            veyra.outputCustomFps = 75
+            veyra.fgEnabled = true; veyra.fgMultiplier = 3; veyra.outputRateMode = 2
+            compare(quick.currentTarget, "")
+            wait(4800)
+            compare(quick.games[0].target, "off")
+            quick.keepsProfiles = false
+            quick.deleteGame("Racer")
+        }
         function test_game_profile_applies_its_preset() {
             veyra.presets = [{index: 0, name: "Default"}, {index: 3, name: "Sharp"}]
             veyra.currentPresetName = "Sharp"
@@ -839,6 +870,35 @@ Item {
             veyra.effectCapabilities = before
             verify(quick.nrPossible)
             verify(row.hint.indexOf(how) < 0)
+        }
+        function test_missing_enhancement_files_are_installed_with_one_button() {
+            const row = control("pushfps-enhance-row")
+            const button = control("pushfps-enhance-install")
+            const before = veyra.effectCapabilities
+            const asked = veyra.updates.extrasAsked
+            veyra.effectCapabilities = ({ nr: { available: false, reason: "missing files", missingFiles: true } })
+            // Not an installed copy that can repeat its install (portable, or the extras are there): the old words.
+            veyra.updates.canInstallExtras = false
+            verify(!row.extrasOffered, "no button without an install to repeat")
+            verify(row.hint.indexOf("Install-PushFPS.cmd") > 0)
+            veyra.updates.canInstallExtras = true
+            verify(row.extrasOffered)
+            verify(button.enabled)
+            verify(row.hint.indexOf("Install-PushFPS.cmd") < 0, "the button says it: " + row.hint)
+            button.clicked()
+            compare(veyra.updates.extrasAsked, asked + 1)
+            veyra.updates.installState = "downloading"
+            veyra.updates.installProgress = 0.42
+            verify(!button.enabled, "one install at a time")
+            verify(row.hint.indexOf("42") >= 0, "the progress is shown: " + row.hint)
+            veyra.updates.installState = "idle"
+            veyra.updates.installProgress = 0
+            // A card that cannot run it: no button, whatever the installer could do.
+            veyra.effectCapabilities = ({ nr: { available: false, reason: "needs another card", missingFiles: false } })
+            verify(!row.extrasOffered)
+            veyra.effectCapabilities = before
+            verify(!row.extrasOffered, "nothing to install once it runs")
+            veyra.updates.canInstallExtras = false
         }
         function test_frame_generation_that_shows_no_frames_is_said_with_its_cause() {
             // engine/PushFgHealth.h reports it through pushLiveStats: 2 the method is not running,
@@ -1334,7 +1394,10 @@ Item {
             veyra.fgMultiplier = 3; veyra.nrAnyEnabled = true; veyra.hudLock = true; veyra.pacingRepair = true
             const sw = control("pushfps-lowest-latency")
             verify(!sw.checked)
+            const nav = Qt.createQmlObject('import QtTest; SignalSpy { signalName: "navigate" }', quick)
+            nav.target = veyra
             sw.toggled(true)
+            compare(nav.count, 0, "nothing playing: full screen waits for the next connection")
             compare(veyra.nvidiaLowLatency, 1, "NVIDIA low latency: one-frame queue")
             compare(veyra.preferences.pushAutoFullscreen, true, "fullscreen on connect")
             compare(veyra.displaySync, 1); compare(veyra.variableRefresh, true); compare(veyra.outputRateMode, 1)
@@ -1355,6 +1418,14 @@ Item {
             verify(quick.lowestLatency)
             sw.toggled(false)
             compare(veyra.fgLowQueue, false)
+            // With a picture playing it goes full screen now, not only at the next connection.
+            veyra.running = true
+            sw.toggled(true)
+            compare(nav.count, 1); compare(nav.signalArguments[0][0], "fullscreen")
+            sw.toggled(false)
+            compare(nav.count, 1, "turning it off leaves the window as it is")
+            veyra.running = false
+            nav.destroy()
             veyra.vrrState = 0
         }
     }

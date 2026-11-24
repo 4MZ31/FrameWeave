@@ -95,6 +95,7 @@ void Engine::setSettings(const EngineSettings& settings) {
     const bool rebuild = settings.quality != s_.quality || settings.hudLock != s_.hudLock;
     if (settings.pacingRepair != s_.pacingRepair) pacing_->repair.reset();
     if (settings.crosshairHold != s_.crosshairHold) holdReset_ = true;
+    if (settings.subtitleHold != s_.subtitleHold) subHoldReset_ = true;
     s_ = settings;
     if (rebuild) {
         // Fields of the old quality / masks stay valid for display; the next pair uses the new ones.
@@ -133,6 +134,7 @@ void Engine::resetLocked() {
     pacing_->repair.reset();
     hudReset_ = true;
     holdReset_ = true;
+    subHoldReset_ = true;
     lastForward_ = {};
     lastBackward_ = {};
     shownTimes_.clear();
@@ -169,6 +171,9 @@ void Engine::push(Gray&& luma, const std::function<Bgra()>& makeImage, int64_t a
     bool holdWanted = false, holdStartOver = false;
     std::shared_ptr<const HoldFrame> holdBefore;
     uint64_t holdBeforeId = 0;
+    // Subtitle Hold: the same, in the subtitle band.
+    bool subWanted = false, subStartOver = false;
+    std::shared_ptr<const HoldFrame> subBefore;
     {
         std::lock_guard lk(m_);
         ++st_.framesIn;
@@ -202,8 +207,12 @@ void Engine::push(Gray&& luma, const std::function<Bgra()>& makeImage, int64_t a
         holdWanted = s_.crosshairHold && s_.frameGeneration;
         holdStartOver = holdReset_;
         holdReset_ = false;
-        if (holdWanted && !frames_.empty() && !boundary) {
+        subWanted = s_.subtitleHold && s_.frameGeneration;
+        subStartOver = subHoldReset_;
+        subHoldReset_ = false;
+        if ((holdWanted || subWanted) && !frames_.empty() && !boundary) {
             holdBefore = frames_.back()->hold;
+            subBefore = frames_.back()->subHold;
             holdBeforeId = frames_.back()->id;
         }
         if (!frames_.empty() && !boundary && s_.frameGeneration) {
@@ -227,6 +236,13 @@ void Engine::push(Gray&& luma, const std::function<Bgra()>& makeImage, int64_t a
     if (holdWanted) {
         holdFrame = hold_.frame(*frameImage);
         if (holdFrame && holdBefore) holdPair = CrosshairHold::pair(*holdBefore, *holdFrame);
+    }
+    std::shared_ptr<const HoldFrame> subFrame;
+    std::shared_ptr<const HoldPair> subPair;
+    if (subStartOver || !subWanted) subHold_.reset();
+    if (subWanted) {
+        subFrame = subHold_.frame(*frameImage);
+        if (subFrame && subBefore) subPair = CrosshairHold::pair(*subBefore, *subFrame);
     }
 
     std::lock_guard lk(m_);
@@ -254,9 +270,13 @@ void Engine::push(Gray&& luma, const std::function<Bgra()>& makeImage, int64_t a
     frame->pyramid = std::move(pyramid);
     frame->hold = holdFrame;
     frame->holdPair = holdPair;
-    frame->holdPairWith = holdPair ? holdBeforeId : 0;
+    frame->subHold = subFrame;
+    frame->subHoldPair = subPair;
+    frame->holdPairWith = holdPair || subPair ? holdBeforeId : 0;
     st_.holdState = holdWanted && holdFrame ? 1 : 0;
     st_.holdPixels = holdFrame ? holdFrame->masked : 0;
+    st_.subHoldState = subWanted && subFrame ? 1 : 0;
+    st_.subHoldPixels = subFrame ? subFrame->masked : 0;
     ++st_.kept;
     frames_.push_back(frame);
     while (frames_.size() > kMaxFrames) frames_.pop_front();
@@ -429,7 +449,8 @@ Pick Engine::pick(int64_t displayNs) {
                 p.t = t;
                 p.fields = fields;
                 p.hold = B->holdPairWith == A->id ? B->holdPair : nullptr;
-                if (t <= 0.f) { p.b = p.a; p.bId = p.aId; p.fields = nullptr; p.hold = nullptr; }
+                p.subHold = B->holdPairWith == A->id ? B->subHoldPair : nullptr;
+                if (t <= 0.f) { p.b = p.a; p.bId = p.aId; p.fields = nullptr; p.hold = nullptr; p.subHold = nullptr; }
                 {
                     const double less = lateMarginMs_ - std::max(0.0, lateMarginMs_ - 0.002);
                     lateMarginMs_ -= less;

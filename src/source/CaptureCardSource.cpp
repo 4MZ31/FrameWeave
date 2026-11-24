@@ -10,6 +10,7 @@
 #include "veyra/pipeline/CaptureUploadFrame.h"
 #include "veyra/source/NativeCaptureSink.h"
 #include <unordered_set>
+#include "veyra/source/PushTimedProbe.h"
 #include <avrt.h>
 #include "veyra/source/CaptureBuffer.h"
 #include "veyra/source/CaptureFormatRank.h"
@@ -785,6 +786,49 @@ struct CaptureCardSource::Impl:ISampleGrabberCB {
     }
     HRESULT STDMETHODCALLTYPE BufferCB(double,BYTE*,long)override{return E_NOTIMPL;}
 };
+// PushFPS: whether a video device also carries sound is found by opening its filter, the one step of
+// listing devices that waits on the device's driver. A driver that never answers (a report of the
+// capture dialog waiting for ever with two Elgato cards) used to hold the whole list. Each device is
+// now asked on a thread of its own and waited for kEmbeddedAudioWaitMs; one that has not answered by
+// then is listed without the sound mark (the dialog still offers "try the device's own sound") and
+// the list goes on with the next device. The thread is left to finish when the driver answers; while
+// it waits the same device is not asked again, and an answer that comes late is used next time.
+// Devices are still asked one after another, never all at once. Logged before and after, by name.
+static constexpr int kEmbeddedAudioWaitMs=3000;
+struct EmbeddedAudioAnswer{bool audio=false;HRESULT hr=E_FAIL;};
+static PushTimedProbes<std::wstring,EmbeddedAudioAnswer>& embeddedAudioProbes(){static PushTimedProbes<std::wstring,EmbeddedAudioAnswer> probes;return probes;}
+static bool embeddedAudioOf(const ComPtr<IMoniker>& moniker,const std::wstring& name,const std::wstring& path){
+    using Outcome=PushTimedProbes<std::wstring,EmbeddedAudioAnswer>::Outcome;
+    const auto asked=std::chrono::steady_clock::now();
+    log::info("capture-devices",std::format("asking name=\"{}\" pathTag={}",narrowForLog(name),pathTag(path)));
+    const auto result=embeddedAudioProbes().ask(path.empty()?L"name:"+name:path,[moniker]{
+        EmbeddedAudioAnswer answer;
+        const auto com=CoInitializeEx(nullptr,COINIT_MULTITHREADED);
+        {ComPtr<IBaseFilter> filter;ComPtr<IPin> audioPin;
+         answer.hr=moniker->BindToObject(nullptr,nullptr,IID_PPV_ARGS(&filter));
+         if(SUCCEEDED(answer.hr)&&SUCCEEDED(findAudioOutputPin(filter.Get(),audioPin)))answer.audio=true;}
+        if(SUCCEEDED(com))CoUninitialize();
+        return answer;
+    },std::chrono::milliseconds(kEmbeddedAudioWaitMs));
+    const auto ms=std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()-asked).count();
+    switch(result.outcome){
+    case Outcome::Answered:
+        log::info("capture-devices",std::format("answered pathTag={} bindHr=0x{:08X} embeddedAudio={} ms={}",pathTag(path),uint32_t(result.value.hr),result.value.audio?1:0,ms));
+        return result.value.audio;
+    case Outcome::AnsweredEarlier:
+        log::info("capture-devices",std::format("answered after an earlier list pathTag={} embeddedAudio={}",pathTag(path),result.value.audio?1:0));
+        return result.value.audio;
+    case Outcome::StillWaiting:
+        log::warn("capture-devices",std::format("still no answer from an earlier list pathTag={}: listed without its sound mark",pathTag(path)));
+        return false;
+    case Outcome::NoThread:
+        log::warn("capture-devices",std::format("no thread to ask pathTag={} on: listed without its sound mark",pathTag(path)));
+        return false;
+    case Outcome::NoAnswer:break;
+    }
+    log::warn("capture-devices",std::format("no answer pathTag={} after ms={}: listed without its sound mark, the list goes on",pathTag(path),ms));
+    return false;
+}
 CaptureCardSource::CaptureCardSource():p_(std::make_unique<Impl>()){}
 HANDLE CaptureCardSource::frameEvent()const{return p_->frameEvent;}
 CaptureCardSource::~CaptureCardSource(){close();if(p_->frameEvent){CloseHandle(p_->frameEvent);p_->frameEvent=nullptr;}}
@@ -794,17 +838,7 @@ std::vector<CaptureDevice> CaptureCardSource::deviceDetails(bool audio){
         CaptureDevice device;device.name=propertyString(moniker.Get(),L"FriendlyName");
         if(device.name.empty())device.name=L"Unknown capture device";
         device.path=monikerPath(moniker.Get());
-        if(!audio){ComPtr<IBaseFilter> filter;ComPtr<IPin> audioPin;
-            // PushFPS: opening a device's filter is the one step of this list that waits on the device's
-            // driver. Logged before and after, so a log that ends at "asking" names the device that did
-            // not answer (a report of the capture dialog waiting for ever, with nothing in the log).
-            const auto asked=std::chrono::steady_clock::now();
-            log::info("capture-devices",std::format("asking name=\"{}\" pathTag={}",narrowForLog(device.name),pathTag(device.path)));
-            const HRESULT bound=moniker->BindToObject(nullptr,nullptr,IID_PPV_ARGS(&filter));
-            if(SUCCEEDED(bound)&&SUCCEEDED(findAudioOutputPin(filter.Get(),audioPin)))device.hasEmbeddedAudio=true;
-            log::info("capture-devices",std::format("answered pathTag={} bindHr=0x{:08X} embeddedAudio={} ms={}",pathTag(device.path),uint32_t(bound),
-                device.hasEmbeddedAudio?1:0,std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()-asked).count()));
-        }
+        if(!audio)device.hasEmbeddedAudio=embeddedAudioOf(moniker,device.name,device.path);
         result.push_back(std::move(device));
     }
     if(!audio)for(auto& device:decklink::devices())result.push_back({std::move(device.name),std::move(device.path),true,false});

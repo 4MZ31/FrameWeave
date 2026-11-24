@@ -628,7 +628,13 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         emit notice(tr("偏好保存失败，已保留原设置"), true);
         return false;
     }
-    veyra::log::info("ui-prefs", std::format("{}={}", key.toStdString(), stored.toString().toStdString()));
+    // The JSON values (profiles, presets, scenes) are logged by size only: they hold names people typed, and
+    // the chosen profile now writes itself back as settings change (4.5.1).
+    const QString shownValue = stored.toString();
+    if (shownValue.startsWith(QLatin1Char('{')) || shownValue.startsWith(QLatin1Char('[')))
+        veyra::log::info("ui-prefs", std::format("{}=<{} characters>", key.toStdString(), shownValue.size()));
+    else
+        veyra::log::info("ui-prefs", std::format("{}={}", key.toStdString(), shownValue.toStdString()));
     applyPreference(key);
     emit preferencesChanged();
     return true;

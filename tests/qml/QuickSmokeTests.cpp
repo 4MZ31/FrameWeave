@@ -58,6 +58,14 @@ QtObject {
     property string nrAutoStatus: ""
     property var nodeTimings: ({})
     property var preferences: ({exportStopsPlayback:false})
+    // UpdateChecker as quick setup reads it (4.5.2: installing the optional extras afterwards).
+    property QtObject updates: QtObject {
+        property bool canInstallExtras: false
+        property string installState: "idle"
+        property real installProgress: 0
+        property int extrasAsked: 0
+        function installExtras() { extrasAsked++ }
+    }
     property QtObject liveTranslation: QtObject {
         property bool supported: true
         property bool enabled: false

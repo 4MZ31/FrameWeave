@@ -73,6 +73,23 @@ ColumnLayout {
         opacity: enabled ? 1 : 0.5
         VSwitch { objectName: "home-crosshair"; checked: app.crosshairHold; onToggled: on => app.crosshairHold = on }
     }
+    // Subtitle Hold, as in the Windows build (the same rule in the subtitle band): off unless switched on.
+    VRow {
+        visible: quick.shows("hud")
+        objectName: "home-subtitle-row"
+        label: qsTr("字幕保持")
+        help: qsTr("字幕静止而背后的画面在动时（例如高速开车），补帧会把字幕当成背景一起拉动，文字会上下拖影、出现重影。开启后，PushFPS 在屏幕下方找出字幕，补帧前先把它从画面里取出，补帧后再原样放回。新的一行字幕出现时，需要先静止片刻才会被识别。不用字幕时不必开启。")
+        readonly property int holdState: app.running ? Number(app.stats.subHoldState || 0) : 0
+        readonly property int holdPixels: app.running ? Number(app.stats.subHoldPixels || 0) : 0
+        hint: !app.subtitleHold ? qsTr("已关闭：画面快速移动时字幕可能拖影")
+            : holdState === 1 ? (holdPixels > 0 ? qsTr("正在运行：已找到字幕，补出的每一帧里都原样放回")
+                                               : qsTr("正在运行：屏幕下方还没有找到字幕（背后的画面动起来才会识别）"))
+            : qsTr("已开启：有画面播放并且补帧开启后开始运行")
+        hintBelow: true
+        enabled: quick.generating
+        opacity: enabled ? 1 : 0.5
+        VSwitch { objectName: "home-subtitle"; checked: app.subtitleHold; onToggled: on => app.subtitleHold = on }
+    }
     VRow {
         visible: quick.shows("fg")
         label: qsTr("去除重复帧")
