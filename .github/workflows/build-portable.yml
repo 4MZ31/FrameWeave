@@ -18,7 +18,7 @@ name: build-portable
 on:
   push:
     branches: [main, 'p/**']
-    paths:
+    paths: &portable_paths
       - 'portable/**'
       - 'include/veyra/engine/PushPacingRepair.h'
       - 'include/veyra/sink/PushAudioTrim.h'
@@ -29,9 +29,7 @@ on:
       - 'i18n/catalog.json'
       - '.github/workflows/build-portable.yml'
   pull_request:
-    paths:
-      - 'portable/**'
-      - '.github/workflows/build-portable.yml'
+    paths: *portable_paths
   workflow_dispatch:
     inputs:
       release_tag:
@@ -57,6 +55,18 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+      - &verify_release_tag
+        name: Verify the release tag points to the checked-out commit
+        if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+        run: |
+          git check-ref-format "refs/tags/$RELEASE_TAG"
+          git fetch --no-tags --depth=1 origin "refs/tags/$RELEASE_TAG"
+          tag_commit=$(git rev-parse --verify 'FETCH_HEAD^{commit}')
+          build_commit=$(git rev-parse --verify HEAD)
+          if [[ "$tag_commit" != "$build_commit" ]]; then
+            echo "::error::Tag $RELEASE_TAG is at $tag_commit; this build uses $build_commit"
+            exit 1
+          fi
 
       - name: System packages
         run: |
@@ -123,10 +133,15 @@ jobs:
           ffmpeg -loglevel error -f lavfi -i testsrc2=size=1280x720:rate=30 -t 6 -c:v libx264 -pix_fmt yuv420p build/test.mp4
           ./build/app/PushFPS --selftest 6 --source file:build/test.mp4
           # Abuse: a camera that is not there, a missing file, an unknown source.
-          set +e
-          ./build/app/PushFPS --selftest 2 --source camera:7; test $? -eq 2
-          ./build/app/PushFPS --selftest 3 --source file:build/missing.mp4; code=$?; test $code -eq 2 -o $code -eq 3
-          ./build/app/PushFPS --selftest 2 --source nonsense; test $? -eq 1
+          code=0
+          ./build/app/PushFPS --selftest 2 --source camera:7 || code=$?
+          [[ $code == 2 ]]
+          code=0
+          ./build/app/PushFPS --selftest 3 --source file:build/missing.mp4 || code=$?
+          [[ $code == 2 || $code == 3 ]]
+          code=0
+          ./build/app/PushFPS --selftest 2 --source nonsense || code=$?
+          [[ $code == 1 ]]
 
       - name: GPU check (Mesa llvmpipe under Xvfb)
         env:
@@ -221,6 +236,9 @@ jobs:
           done
           echo "::warning::screenshots not published"
 
+      # Check again in case the tag moved during the build.
+      - *verify_release_tag
+
       - name: Attach to release
         if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
         env:
@@ -237,6 +255,7 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+      - *verify_release_tag
 
       - name: Core tests (clang, ASan + UBSan)
         run: |
@@ -320,7 +339,12 @@ jobs:
           set -e
           mkdir -p /tmp/t && ditto -x -k PushFPS-$PORTABLE_VERSION-macos-universal.zip /tmp/t
           # Make sure nothing still points at the Qt install on this machine.
-          if [ -n "$QT_ROOT_DIR" ]; then ! otool -L /tmp/t/PushFPS.app/Contents/MacOS/PushFPS | grep -q "$QT_ROOT_DIR"; fi
+          : "${QT_ROOT_DIR:?Qt installation path is missing}"
+          linked_libraries=$(otool -L /tmp/t/PushFPS.app/Contents/MacOS/PushFPS)
+          if [[ "$linked_libraries" == *"${QT_ROOT_DIR%/}/"* ]]; then
+            echo "::error::The packaged PushFPS executable links to the runner's Qt installation"
+            exit 1
+          fi
           # This checks the packaged bundle (Qt frameworks, plugins, shaders, QML), not speed: the 120 FPS
           # self-test already ran on the build. Shared macOS runners sometimes stall for a moment under load,
           # so the bundle is checked at 60 FPS, where a stall cannot decide the result.
@@ -369,6 +393,9 @@ jobs:
             cd ..
             sleep 10
           done
+
+      # Check again in case the tag moved during the build.
+      - *verify_release_tag
 
       - name: Attach to release
         if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
