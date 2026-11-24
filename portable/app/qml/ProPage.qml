@@ -221,7 +221,7 @@ Rectangle {
                     SuperResolutionCard { Layout.topMargin: 6; Layout.bottomMargin: 6 }
                 }
                 Block { blockId: "fg"; title: qsTr("补帧"); tab: root.tab; shown: root.blockShown("fg"); onFoldToggled: open => root.setFolded("fg", !open); QuickSettings {} }
-                Block { blockId: "color"; title: qsTr("色彩"); tab: root.tab; shown: root.blockShown("color"); onFoldToggled: open => root.setFolded("color", !open); PictureSettings { showUpscale: false; showShape: false } }
+                Block { blockId: "color"; title: qsTr("色彩"); tab: root.tab; shown: root.blockShown("color"); onFoldToggled: open => root.setFolded("color", !open); PictureSettings { showShape: false } }
                 Block { blockId: "audio"; title: qsTr("声音"); tab: root.tab; shown: root.blockShown("audio"); onFoldToggled: open => root.setFolded("audio", !open); SoundSettings {} }
                 // Display, as the Windows build's tab: how the picture fills the window, under its names.
                 Block {

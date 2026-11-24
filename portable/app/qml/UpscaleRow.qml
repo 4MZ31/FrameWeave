@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 //
-// "Upscale to my screen": the switch of the super resolution stage, as the Windows build has it in the
-// picture part of quick setup (home page) and at the top of Professional mode's Quality tab. Its hint
+// "Upscale to my screen": the switch of the super resolution stage, as the Windows build has it in quick
+// setup's Picture section (home page) and at the top of Professional mode's Quality tab. Its hint
 // says what upscaling does now (FrameView::UpscaleState, handed to `app` by Main.qml). The algorithm, the
 // target size and the sharpening are in the Super resolution card (SuperResolutionCard.qml).
 import QtQuick
@@ -32,5 +32,20 @@ VRow {
         }
         return qsTr("有画面播放时开始放大")
     }
-    VSwitch { objectName: "pushfps-upscale"; checked: app.srEnabled; onToggled: on => app.srEnabled = on }
+    // As the Windows build's setUpscale (PushQuickSetup.qml) with PushUpscale.js targetIndex: switched on,
+    // the size follows the screen, 2K for one up to 1440 lines and 4K above, but only between those two:
+    // a 5K or 6K chosen in the Super resolution card is left alone.
+    function targetFor(screenHigh, now) {
+        if (!(screenHigh > 0) || (now !== 1 && now !== 2)) return 0
+        const want = screenHigh <= 1440 ? 1 : 2
+        return want === now ? 0 : want
+    }
+    function setUpscale(on) {
+        if (on) {
+            const size = row.targetFor(row.screenHigh, app.srTargetIndex)
+            if (size > 0) app.srTargetIndex = size
+        }
+        app.srEnabled = on
+    }
+    VSwitch { objectName: "pushfps-upscale"; checked: app.srEnabled; onToggled: on => row.setUpscale(on) }
 }

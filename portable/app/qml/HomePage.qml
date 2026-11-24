@@ -56,6 +56,15 @@ Rectangle {
             onToggled: open => root.setOpen("fg", open)
             QuickSettings {}
         }
+        // Picture, as the Windows build's quick setup has it: "Upscale to my screen" (the algorithm, the
+        // size and the sharpening are in Professional mode's Quality tab, as on Windows).
+        PushSection {
+            sectionId: "picture"
+            title: qsTr("画面")
+            open: root.isOpen("picture")
+            onToggled: open => root.setOpen("picture", open)
+            UpscaleRow {}
+        }
         PushSection {
             sectionId: "start"
             title: qsTr("连接与启动")
