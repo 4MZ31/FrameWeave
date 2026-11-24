@@ -13,6 +13,8 @@ ColumnLayout {
     // "Upscale to my screen" (UpscaleRow.qml), as in the Windows build's quick setup. Professional mode
     // has it in its Quality tab instead, with the Super resolution card.
     property bool showUpscale: true
+    // The picture's shape in the window. Professional mode has it in its Display tab, as on Windows.
+    property bool showShape: true
 
     component Control: VRow {
         id: row
@@ -32,6 +34,7 @@ ColumnLayout {
     }
 
     VRow {
+        visible: picture.showShape
         label: qsTr("画面比例")
         hint: qsTr("窗口和画面形状不同时：保留黑边、裁掉两侧铺满，或拉伸铺满")
         hintBelow: true

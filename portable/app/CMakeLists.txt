@@ -50,7 +50,7 @@ target_include_directories(pushfps_portable PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/
 set(pushfps_shared_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../qml/Veyra)
 set(pushfps_shared_names
     Theme.qml IconData.js PushShell.js VIcon.qml VAccentFill.qml VButton.qml VSwitch.qml VSeg.qml VSelect.qml VMenu.qml
-    VRow.qml VHelp.qml VSliderValue.qml VSlider.qml VCard.qml VDot.qml VTag.qml VScrollBar.qml VAccordion.qml VSubGroup.qml PushFoldHead.qml
+    VRow.qml VHelp.qml VSliderValue.qml VSlider.qml VCard.qml VDot.qml VTag.qml VScrollBar.qml VAccordion.qml VSubGroup.qml VEyebrow.qml PushFoldHead.qml
     PushSection.qml PushSidebar.qml PushTitleBar.qml PushStatusStrip.qml PushWordmark.qml)
 set(pushfps_shared_files)
 foreach(name IN LISTS pushfps_shared_names)

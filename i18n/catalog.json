@@ -60179,24 +60179,6 @@
    "ru": "Классика"
   },
   {
-   "zh": "统计",
-   "src": "portable/app/qml/ProPage.qml",
-   "zh-TW": "統計",
-   "en": "Statistics",
-   "ja": "統計",
-   "ko": "통계",
-   "nl": "Statistieken",
-   "de": "Statistik",
-   "es": "Estadísticas",
-   "fr": "Statistiques",
-   "it": "Statistiche",
-   "pt-BR": "Estatísticas",
-   "tr": "İstatistikler",
-   "ar": "الإحصاءات",
-   "pl": "Statystyki",
-   "ru": "Статистика"
-  },
-  {
    "zh": "继续上次",
    "src": "qml/HomePage.qml",
    "zh-TW": "繼續上次",
