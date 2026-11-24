@@ -20,7 +20,12 @@ void main(uint3 p : SV_DispatchThreadID) {
     if(p.x>=width||p.y>=height)return;
     const float4 pair=packedYuy2[uint2(p.x/2,p.y)];
     float y=(p.x&1)?pair.z:pair.x;
-    float2 uv=pair.yw-128.0/255.0;
+    // PushFPS: 4:2:2 has one colour sample per two pixels, sited on the even one. The odd pixel lies halfway to
+    // the next pair's sample, so it takes the mean of the two instead of a copy of its own pair's: a copy made
+    // every coloured edge a 2-pixel step. The last pair has no right neighbour and keeps its own.
+    float2 chroma=pair.yw;
+    if((p.x&1)&&p.x/2+1<(width+1)/2)chroma=0.5*(chroma+packedYuy2[uint2(p.x/2+1,p.y)].yw);
+    float2 uv=chroma-128.0/255.0;
     if(limited>0.5){y=(y-16.0/255.0)*(255.0/219.0);uv*=255.0/224.0;}
     // Preserve head/footroom until the final RGB gamut clamp. Clipping Y
     // before the matrix changes saturated pixels with below-black luma.

@@ -1812,11 +1812,11 @@ VPage {
                         }
                         VRow {
                             label: qsTr("PSN 账号")
-                            hint: qsTr("在 PSNTools 网页获取 Account ID，再到 PS5 串流窗口填写并配对。")
+                            hint: qsTr("“获取 Account ID”会打开 PS5 串流窗口，并在索尼自己的页面登录后替你填入 Account ID。")
                             hintBelow: true
                             RowLayout {
                                 spacing: 6
-                                VButton { objectName: "set-ps5-account-lookup"; text: qsTr("获取 Account ID"); ghost: true; onClicked: veyra.ps5OpenAccountChecker() }
+                                VButton { objectName: "set-ps5-account-lookup"; text: qsTr("获取 Account ID"); ghost: true; onClicked: { veyra.openPs5Dialog(); veyra.ps5OpenAccountChecker() } }
                                 VButton { objectName: "set-ps5-pairing"; text: qsTr("配对设置"); ghost: true; onClicked: veyra.openPs5Dialog() }
                             }
                         }

@@ -754,6 +754,7 @@ endif()
 # ---------------------------------------------------------------------------
 if(VEYRA_FFMPEG_ROOT AND EXISTS "${VEYRA_FFMPEG_ROOT}/include/libavformat/avformat.h")
   add_library(veyra_media STATIC
+    src/media/PushFfmpegLog.cpp
     src/media/FFmpegDemuxer.cpp
     src/media/DemuxSession.cpp
     src/media/FFmpegVideoDecoder.cpp
@@ -1201,6 +1202,30 @@ target_include_directories(veyra_push_display_cap_tests PRIVATE ${CMAKE_CURRENT_
 add_executable(veyra_push_remote_sync_tests tests/unit/PushRemoteSyncTests.cpp)
 target_compile_features(veyra_push_remote_sync_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_remote_sync_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: volume above 100 % turns loud peaks down where they were cut off (sink/PushBoostLimiter.h, pure; also builds with g++).
+add_executable(veyra_push_boost_limiter_tests tests/unit/PushBoostLimiterTests.cpp)
+target_compile_features(veyra_push_boost_limiter_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_boost_limiter_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: the PS5 pairing fields as people type them, which controller is read, and the no-controller notice
+# (remoteplay/PushPairingInput.h, PushPadChoice.h; pure with Validation.cpp; also builds with g++).
+add_executable(veyra_push_pairing_input_tests tests/unit/PushPairingInputTests.cpp src/remoteplay/Validation.cpp)
+target_compile_features(veyra_push_pairing_input_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_pairing_input_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: the PSN Account ID through Sony's own sign-in (remoteplay/PushPsnSignIn.h; pure with Validation.cpp).
+add_executable(veyra_push_psn_sign_in_tests tests/unit/PushPsnSignInTests.cpp src/remoteplay/Validation.cpp)
+target_compile_features(veyra_push_psn_sign_in_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_psn_sign_in_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: how long a PS5 reconnect waits (remoteplay/PushRetryWait.h) and FFmpeg's lines in the log
+# (media/PushLogLimiter.h); both pure, also build with g++.
+add_executable(veyra_push_retry_wait_tests tests/unit/PushRetryWaitTests.cpp)
+target_compile_features(veyra_push_retry_wait_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_retry_wait_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_executable(veyra_push_free_sync_tests tests/unit/PushFreeSyncTests.cpp)
+target_compile_features(veyra_push_free_sync_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_free_sync_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_executable(veyra_push_log_limiter_tests tests/unit/PushLogLimiterTests.cpp)
+target_compile_features(veyra_push_log_limiter_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_log_limiter_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS: which video device is the capture card (source/PushCaptureDevicePick.h, pure; also builds with g++).
 add_executable(veyra_push_capture_device_pick_tests tests/unit/PushCaptureDevicePickTests.cpp)
 target_compile_features(veyra_push_capture_device_pick_tests PRIVATE cxx_std_20)

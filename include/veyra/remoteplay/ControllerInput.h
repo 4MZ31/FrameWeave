@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "TriggerFilter.h"
+#include "PushPadChoice.h"
 #include <deque>
 #include <string>
 #include <vector>
@@ -15,7 +16,8 @@ public:
     void stop(); // also turns follow mode off
     // 谁按键就用谁 (PS5 手柄控制): every pad is opened and the one whose button went
     // down last is the one read, so a streaming tool's virtual pad that appears
-    // after a local pad still works. Off (default): the first pad found.
+    // after a local pad still works. Off (default): the first pad found, and until a
+    // button was pressed on it, the pad a button is pressed on (PushFPS: PushPadChoice.h).
     void setFollowLastPressed(bool on);
     ControllerState poll(bool focused);
     void feedback(ControllerFeedback,bool focused);
@@ -30,8 +32,9 @@ private:
     void applyLights();
     bool opened(uint32_t id)const;
     SDL_Gamepad* gamepad_=nullptr;
-    std::vector<SDL_Gamepad*> others_; // follow mode: open, not read
+    std::vector<SDL_Gamepad*> others_; // open, not read: follow mode, or nothing pressed yet on the pad read
     bool follow_=false;
+    PadChoice choice_; // PushFPS: which pad is read when there are several
     bool initialized_=false;
     HostTime enumerateAt_=0;uint32_t preferredDevice_=0;
     std::array<int8_t,2> touchIds_{-1,-1};uint8_t nextTouchId_=0;

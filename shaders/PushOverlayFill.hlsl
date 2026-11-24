@@ -9,13 +9,14 @@ Texture2D<float4> maskTex : register(t1);    // the mask (the zone's size)
 RWTexture2D<float4> outTex : register(u0);   // the frame frame generation gets: only masked pixels are written
 cbuffer Constants : register(b0) {
     uint zoneX, zoneY, zoneSize, reach;
+    uint zoneHeight, pad0, pad1, pad2;     // PushFPS Subtitle Hold: a zone may be a rectangle (zoneSize = its width)
 };
 static const int kMaxReach = 32;
-bool inZone(int2 p) { return p.x >= 0 && p.y >= 0 && p.x < int(zoneSize) && p.y < int(zoneSize); }
+bool inZone(int2 p) { return p.x >= 0 && p.y >= 0 && p.x < int(zoneSize) && p.y < int(zoneHeight); }
 
 [numthreads(8, 8, 1)]
 void main(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= zoneSize || id.y >= zoneSize) return;
+    if (id.x >= zoneSize || id.y >= zoneHeight) return;
     const int2 p = int2(id.xy);
     if (!(maskTex[p].x > 0.5)) return;
     const int2 zone = int2(zoneX, zoneY);

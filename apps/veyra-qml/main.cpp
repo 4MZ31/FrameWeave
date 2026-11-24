@@ -39,6 +39,7 @@
 #include <QStandardPaths>
 
 #include <windows.h>
+#include <cstdio>
 #include <shellapi.h>
 #include <shobjidl.h>
 #include <dbghelp.h>
@@ -468,6 +469,49 @@ LONG WINAPI crashFilter(EXCEPTION_POINTERS* info) {
         WriteFile(marker, note.data(), DWORD(note.size() * sizeof(wchar_t)), &written, nullptr);
         CloseHandle(marker);
     }
+    // PushFPS: the callers too, as module file name + offset (no folder, so no user name), walked from the
+    // faulting instruction's own context: the faulting module alone often only says "the graphics driver",
+    // and the frames above it say which part of PushFPS called in. x64 only; nothing is allocated. Last, after
+    // the dump and the note are written: a broken stack must not cost them.
+#if defined(_M_X64)
+    if (info && info->ContextRecord) {
+        CONTEXT context = *info->ContextRecord;
+        char trace[1536]{};
+        size_t used = 0;
+        for (int depth = 0; depth < 24 && context.Rip; ++depth) {
+            HMODULE frameModule = nullptr;
+            wchar_t framePath[MAX_PATH]{};
+            const auto rip = uintptr_t(context.Rip);
+            const bool named = GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                                                  reinterpret_cast<LPCWSTR>(rip), &frameModule) && frameModule &&
+                GetModuleFileNameW(frameModule, framePath, MAX_PATH);
+            const wchar_t* file = framePath;
+            for (const wchar_t* c = framePath; *c; ++c) if (*c == L'\\' || *c == L'/') file = c + 1;
+            char narrow[96]{};
+            if (named) WideCharToMultiByte(CP_UTF8, 0, file, -1, narrow, int(sizeof(narrow)) - 1, nullptr, nullptr);
+            const int wrote = named
+                ? std::snprintf(trace + used, sizeof(trace) - used, "%s%s+0x%llX", used ? " " : "", narrow,
+                                static_cast<unsigned long long>(rip - reinterpret_cast<uintptr_t>(frameModule)))
+                : std::snprintf(trace + used, sizeof(trace) - used, "%s0x%llX", used ? " " : "", static_cast<unsigned long long>(rip));
+            if (wrote <= 0 || size_t(wrote) >= sizeof(trace) - used) break;
+            used += size_t(wrote);
+            DWORD64 imageBase = 0;
+            const auto* function = RtlLookupFunctionEntry(context.Rip, &imageBase, nullptr);
+            if (!function) {
+                // A leaf function: the return address is on top of the stack.
+                if (!context.Rsp) break;
+                context.Rip = *reinterpret_cast<const DWORD64*>(context.Rsp);
+                context.Rsp += 8;
+            } else {
+                void* handlerData = nullptr;
+                DWORD64 establisher = 0;
+                RtlVirtualUnwind(UNW_FLAG_NHANDLER, imageBase, context.Rip, const_cast<PRUNTIME_FUNCTION>(function), &context,
+                                 &handlerData, &establisher, nullptr);
+            }
+        }
+        if (used) veyra::log::error("crash", std::string("callers: ") + trace);
+    }
+#endif
     veyra::Logger::instance().flush();
     return EXCEPTION_CONTINUE_SEARCH;
 }

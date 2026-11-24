@@ -30,6 +30,8 @@ var cards = [
       note: "Reported working by a user: Xbox Series X over USB 3.0 with a Radeon RX 9060 XT." },
     { name: "AVerMedia Live Streamer Ultra HD (GC571)", match: ["live streamer ultra hd", "gc571"], status: "reported",
       note: "Reported working by a user: PS5 at 1440p60 NV12 over PCIe with an RTX 3060 Ti (PushFPS 4.0.0)." },
+    { name: "FEELWORLD C4K", match: ["feelworld"], status: "reported",
+      note: "Reported working by a user: PS5 Pro at 4K 30 FPS with an RTX 5080, 30 to 120 FPS (PushFPS 4.4.5)." },
     { name: "Elgato 4K Pro / 4K60 Pro", match: ["4k pro", "4k60 pro"], status: "untested", note: "" },
     { name: "AVerMedia Live Gamer 4K 2.1 (GC575)", match: ["gc575", "live gamer 4k"], status: "untested", note: "" },
     { name: "AVerMedia Live Gamer Ultra 2.1 (GC553G2)", match: ["gc553g2", "ultra 2.1"], status: "reported",

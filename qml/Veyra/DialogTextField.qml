@@ -12,6 +12,8 @@ Rectangle {
     // Every keystroke. editingFinished alone needs Enter or a focus change: typing a
     // value and clicking 连接 (which takes no focus) or closing the dialog lost it.
     signal typed(string text)
+    // PushFPS: puts the caret in the box with its text selected, so an address can be pasted at once.
+    function focusEditor() { field.forceActiveFocus(); field.selectAll() }
     implicitHeight: 30
     radius: 9
     color: Theme.ink(0.04)

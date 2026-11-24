@@ -183,6 +183,7 @@ struct EnhanceGraphDesc {
     bool dlssgLite=false;
     bool hudLock=false; // PushFPS Live HUD Lock (PushHudLock.h), graph frame generation only
     bool hudStill=false; // PushFPS still rule (PushHudStill.h): what stands still in front of a moving picture keeps its real pixels
+    bool subtitleHold=false;  // PushFPS Subtitle Hold: the same pass in the subtitle band (overlay::subtitleZoneFor)
     bool crosshairHold=false; // PushFPS Crosshair Hold (PushOverlay.h): the crosshair is taken out of what frame generation is given
     engine::ContentRate contentRate=engine::ContentRate::Transport;
     engine::NrSettings model;
@@ -846,6 +847,9 @@ public:
     // (Asking counts the sample taken last, if the card has written it; nothing waits.)
     unsigned crosshairHoldPixels() { if(!overlay_)return 0u; overlay_->harvest(); return overlay_->maskedPixels(); }
     uint64_t crosshairHoldFrames() const { return overlay_?overlay_->realFrames():0ull; }
+    // PushFPS Subtitle Hold, as Crosshair Hold: 0 not asked, 1 running, 2 could not be made, 3 not with this method.
+    int subtitleHoldState() const { if(!pipeline::overlay::subtitlesWanted())return 0; if(subtitles_)return 1; if(!desc_.subtitleHold||!fgEnabled_||presentSinkFg())return 3; return 2; }
+    unsigned subtitleHoldPixels() { if(!subtitles_)return 0u; subtitles_->harvest(); return subtitles_->maskedPixels(); }
     int hudStillState() const { if(!desc_.hudStill)return 0; if(hudLock_&&hudLock_->stillActive())return 1; if(!fgEnabled_||presentSinkFg())return 3; return 2; }
     // AMD FSR upscaling replaces the SR stage; it is a FidelityFX effect, not
     // an NGX feature, so it also works on non-NVIDIA adapters.
@@ -1016,6 +1020,14 @@ private:
     // pixels (first result), a second FSR pass in its render pixels (SR input).
     ComPtr<ID3D12Resource> firstSrFlow_,secondSrFlow_;
     UINT firstSrFlowSet()const{return 3+UINT(nrInstances_.size());}
+    // The extent firstSrFlow_ is made at: a first DLSS pass of double SR takes
+    // motion in its output pixels; FSR reading the source (single FSR, or the
+    // first pass of double SR) takes it in source pixels, so flow worked out at
+    // another size is resized for it. Empty = no such texture.
+    Extent firstSrFlowExtent()const;
+    // Motion for an FSR pass that reads the source: the flow itself when it is
+    // the source's size, the resized copy otherwise, null without flow.
+    ID3D12Resource* fsrSourceMotion(bool haveFlow)const;
     UINT secondSrFlowSet()const{return 4+UINT(nrInstances_.size());}
     UINT dlaaFlowSet(UINT index)const{return secondSrFlowSet()+1+index;}
     ComPtr<ID3D12Resource> videoHdrInput_,videoHdrOutput_;
@@ -1263,10 +1275,12 @@ private:
     std::unique_ptr<NisPass> nisPass_;  // PushFPS: NVIDIA Image Scaling SR
     std::unique_ptr<PushHudLock> hudLock_;  // PushFPS: Live HUD Lock
     std::unique_ptr<PushOverlayPass> overlay_;  // PushFPS: Crosshair Hold
+    std::unique_ptr<PushOverlayPass> subtitles_; // PushFPS: Subtitle Hold (fills overlay_'s input when both run)
     bool initHudLock();
     void composeHudLock(ID3D12GraphicsCommandList* list,unsigned generatedSlot,unsigned heldParity);
     // PushFPS Crosshair Hold: the frame a method is given for real frame `parity` (the real frame itself without the pass).
     bool initOverlay();
+    bool initCrosshairPass();
     ID3D12Resource* fgInput(unsigned parity) const;
     void composeOverlay(ID3D12GraphicsCommandList* list,unsigned generatedSlot,unsigned parity,float t);
     // Double SR first passes on DLSS SR / FSR (the final pass keeps the members above).

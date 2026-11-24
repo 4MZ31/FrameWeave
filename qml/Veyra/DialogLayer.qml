@@ -94,7 +94,9 @@ Rectangle {
     height: implicitHeight
     // Swallow presses on the panel itself so they never reach the scrim
     // below (a passive tap on a control used to close the whole dialog).
-    MouseArea { anchors.fill: parent; acceptedButtons: Qt.AllButtons; z: -1 }
+    // PushFPS: and the pointer. Without hoverEnabled what lies behind the panel was still hovered, so a tool
+    // tile's tooltip came up over the PS5 pairing fields (a user's screenshot, 24 November 2026).
+    MouseArea { objectName: "dialog-pointer-block"; anchors.fill: parent; acceptedButtons: Qt.AllButtons; hoverEnabled: true; z: -1 }
     radius: 16
     color: Theme.dialog
     border.width: 1

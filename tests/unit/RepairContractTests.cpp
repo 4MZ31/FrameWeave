@@ -68,6 +68,16 @@ int main(){
         check(gfx::vrrLevel(state)==4,"only real activity flags report VRR active");
         state={};
         check(gfx::vrrLevel(state)==0,"unanswered VRR query remains unknown");
+        // AMD FreeSync (PushFreeSync.h): on = may request, off or wrong mode = supported only,
+        // none = unsupported; never reported active, and never by the caps-only rule.
+        check(gfx::vrrLevel(gfx::vrrFromFreeSync(gfx::pushFreeSyncFrom(0,0xf,0,7)))==3,"FreeSync on can request VRR");
+        check(gfx::vrrLevel(gfx::vrrFromFreeSync(gfx::pushFreeSyncFrom(0,0xf,0,0)))==2,"FreeSync off in AMD Software does not request VRR");
+        check(gfx::vrrLevel(gfx::vrrFromFreeSync(gfx::pushFreeSyncFrom(0,0x7,0,7)))==2,"FreeSync in a mode without it does not request VRR");
+        check(gfx::vrrLevel(gfx::vrrFromFreeSync(gfx::pushFreeSyncFrom(-1,0,-1,0)))==1,"a display without FreeSync is unsupported");
+        check(gfx::vrrFromFreeSync(gfx::pushFreeSyncFrom(-1,0,-1,0)).status==0,"no FreeSync is an answer, not a failure to retry");
+        check(gfx::vrrFromFreeSync(gfx::pushFreeSyncFrom(0,0xf,0,7)).amd,"a FreeSync answer says it is AMD's");
+        check(!gfx::vrrFromFreeSync(gfx::pushFreeSyncFrom(0,0xf,0,7)).enabled&&!gfx::vrrFromFreeSync(gfx::pushFreeSyncFrom(0,0xf,0,7)).inVrrMode,"FreeSync is never reported active");
+        check(gfx::vrrLevel(gfx::vrrFromFreeSync(gfx::PushFreeSync{}))==0,"no AMD answer stays unknown");
     }
     {
         engine::PreviewView v;v.displayAspect=16.0/9;

@@ -835,7 +835,7 @@ bool EnhanceGraph::initialize(const EnhanceGraphDesc& desc)
     }
     const bool firstVideoSr=desc_.dualSr&&engine::rtxVideoSr(desc_.videoSrQuality);
     const uint64_t dualBytes=desc_.dualSr?uint64_t(desc_.firstSrWidth)*desc_.firstSrHeight*(firstVideoSr?12u:8u)+(firstVideoSr?uint64_t(srcW_)*srcH_*4u:0)+
-        (desc_.firstSrRuns(0)?uint64_t(desc_.firstSrWidth)*desc_.firstSrHeight*4u:0)+(desc_.dualSrQuality==engine::kVideoSrFsr?uint64_t(srInW_)*srInH_*4u:0)+
+        (desc_.dualSrQuality==engine::kVideoSrFsr?uint64_t(srInW_)*srInH_*4u:0)+
         (temporalDual?uint64_t(fsrAuxW_)*fsrAuxH_*8u:0):0;
     // Supersampling keeps the larger RGBA8 SR result beside the work textures.
     const uint64_t supersampleBytes=!desc_.dualSr&&srResolveActive()?uint64_t(srOutW_)*srOutH_*4u:0;
@@ -863,7 +863,9 @@ bool EnhanceGraph::initialize(const EnhanceGraphDesc& desc)
     const bool reuseRequested=desc_.nrReusePreview&&desc_.enableNr&&desc_.nrReuse!=engine::NrReuseMode::Off;
     const uint64_t reuseBytes=reuseRequested?uint64_t(desc_.finalNrAfterSr()?workW_:srcW_)*(desc_.finalNrAfterSr()?workH_:srcH_)*16u+
         uint64_t(nvofW_)*nvofH_*20u:0;
-    const uint64_t estimate=reuseBytes+temporalHdrBytes+dlaaBytes+vfxSrBytes+dualBytes+supersampleBytes+uint64_t(workW_)*workH_*(76u+4u*generatedTextures)+vfgSharedBytes
+    const Extent firstSrFlowSize=firstSrFlowExtent();
+    const uint64_t firstSrFlowBytes=uint64_t(firstSrFlowSize.width)*firstSrFlowSize.height*4u;
+    const uint64_t estimate=firstSrFlowBytes+reuseBytes+temporalHdrBytes+dlaaBytes+vfxSrBytes+dualBytes+supersampleBytes+uint64_t(workW_)*workH_*(76u+4u*generatedTextures)+vfgSharedBytes
         +nrTextureBytes+fullLayerBytes
         +uint64_t(srcW_)*srcH_*(32u+(desc_.protectionBeforeSr()?8u:0u))+temporalBytes+tailColorBytes+interProtectionBytes
         +(flowRefine_?uint64_t(nvofW_)*nvofH_*(flowConsistency_?13u:flowClaims_?18u:12u)+uint64_t(workW_)*workH_*4u:0)
@@ -1000,8 +1002,15 @@ bool EnhanceGraph::createResources()
             firstSrOutput_=makeTexture(context_.device(),desc_.firstSrWidth,desc_.firstSrHeight,DXGI_FORMAT_R8G8B8A8_UNORM,true);
             if(!firstSrInput_||!firstSrOutput_)return false;
         }
-        if(desc_.firstSrRuns(0)&&!(firstSrFlow_=makeTexture(context_.device(),desc_.firstSrWidth,desc_.firstSrHeight,DXGI_FORMAT_R16G16_FLOAT,true)))return false;
         if(desc_.dualSrQuality==engine::kVideoSrFsr&&!(secondSrFlow_=makeTexture(context_.device(),srInW_,srInH_,DXGI_FORMAT_R16G16_FLOAT,true)))return false;
+    }
+    if(const Extent extent=firstSrFlowExtent();extent.width&&extent.height){
+        firstSrFlow_=makeTexture(context_.device(),extent.width,extent.height,DXGI_FORMAT_R16G16_FLOAT,true);
+        // A first DLSS pass cannot run without it. For FSR it only replaces
+        // flow of the wrong size, and FSR then runs on zero motion as before.
+        if(!firstSrFlow_&&desc_.firstSrRuns(0))return false;
+        if(!firstSrFlow_)log::warn("fsr-sr",std::format("no memory for motion at {}x{}; FSR upscaling runs without motion",extent.width,extent.height));
+        else if(!desc_.firstSrRuns(0))log::info("fsr-sr",std::format("motion worked out at {}x{} is resized to the picture's {}x{} for FSR upscaling",nvofW_,nvofH_,extent.width,extent.height));
     }
     // FSR upscaling needs a render-extent depth; Veyra has no source-resolution
     // depth source, so this is the same explicit constant far depth the
@@ -1290,6 +1299,24 @@ bool EnhanceGraph::initZeroAndDepthTextures()
     return true;
 }
 
+Extent EnhanceGraph::firstSrFlowExtent() const
+{
+    if(!srEnabled_)return {};
+    if(desc_.firstSrRuns(0))return {desc_.firstSrWidth,desc_.firstSrHeight};
+    const bool fsrReadsSource=desc_.dualSr?desc_.firstSrRuns(engine::kVideoSrFsr):desc_.videoSrQuality==engine::kVideoSrFsr;
+    if(fsrReadsSource&&desc_.srUsesFlow()&&(nvofW_!=srcW_||nvofH_!=srcH_))return {srcW_,srcH_};
+    return {};
+}
+
+ID3D12Resource* EnhanceGraph::fsrSourceMotion(bool haveFlow) const
+{
+    if(!haveFlow||!desc_.srUsesFlow())return nullptr;
+    if(nvofW_==srcW_&&nvofH_==srcH_)return flowTex_.Get();
+    // Until 4.4.5 the flow went to FSR as it was, at its own size and in its own
+    // pixels; FSR reads motion in source pixels over the source's extent.
+    return firstSrFlow_.Get();
+}
+
 bool EnhanceGraph::initNvof()
 {
     if(desc_.stillImage){mvecSource_="single-image (no temporal motion)";return true;}
@@ -1574,7 +1601,28 @@ bool EnhanceGraph::initHudLock() {
 // PushFlow, DLSS frame generation, FSR) and never with PushFlow's Predict; a pass that cannot be created leaves
 // frame generation exactly as it was. Without the pass, fgInput() is the real frame itself.
 bool EnhanceGraph::initOverlay() {
+    subtitles_.reset();
     overlay_.reset();
+    initCrosshairPass();
+    // PushFPS Subtitle Hold: its own pass in the subtitle band. With Crosshair Hold running it fills the same
+    // copy of the frame (the two zones do not overlap), so frame generation is still given one frame.
+    if(!desc_.subtitleHold||!fgEnabled_||presentSinkFg()){
+        if(pipeline::overlay::subtitlesWanted())veyra::log::info("subtitle-hold",std::format("asked for, not in this graph: described={} frameGeneration={} method={} presentsItself={}",
+            desc_.subtitleHold,fgEnabled_,int(desc_.frameGenerationBackend),presentSinkFg()));
+        return true;
+    }
+    const auto band=overlay::subtitleZoneFor(workW_,workH_);
+    const auto centre=overlay::zoneFor(workW_,workH_);
+    const bool overlaps=overlay_&&band.x<centre.x+centre.w&&centre.x<band.x+band.w&&band.y<centre.y+centre.h&&centre.y<band.y+band.h;
+    auto pass=std::make_unique<PushOverlayPass>();
+    if(overlaps||!pass->initialize(context_.device(),workW_,workH_,outputFormat(),hdr10Output()?2u:desc_.hdrOutput?1u:0u,&band,overlay_.get(),"subtitle-hold")){
+        veyra::log::error("subtitle-hold",std::format("unavailable at {}x{}{}; frame generation runs without it",workW_,workH_,overlaps?" (the band meets the crosshair's zone)":""));
+        return true;
+    }
+    subtitles_=std::move(pass);
+    return true;
+}
+bool EnhanceGraph::initCrosshairPass() {
     if(!desc_.crosshairHold||!fgEnabled_||presentSinkFg()){
         // Asked for and not part of this graph: the log says which of the conditions it was (a field log has to
         // answer "the switch is on and nothing changed" without a second session).
@@ -1591,11 +1639,13 @@ bool EnhanceGraph::initOverlay() {
     return true;
 }
 ID3D12Resource* EnhanceGraph::fgInput(unsigned parity) const {
-    return overlay_?overlay_->input(parity):videoFrame_[parity].Get();
+    return overlay_?overlay_->input(parity):subtitles_?subtitles_->input(parity):videoFrame_[parity].Get();
 }
 void EnhanceGraph::composeOverlay(ID3D12GraphicsCommandList* list,unsigned generatedSlot,unsigned parity,float t){
     if(overlay_&&overlay_->composes(generatedSlot)&&!overlay_->compose(list,tracker_,generatedSlot,parity,t))
         veyra::log::warn("crosshair-hold",std::format("compose skipped slot={} parity={}",generatedSlot,parity));
+    if(subtitles_&&subtitles_->composes(generatedSlot)&&!subtitles_->compose(list,tracker_,generatedSlot,parity,t))
+        veyra::log::warn("subtitle-hold",std::format("compose skipped slot={} parity={}",generatedSlot,parity));
 }
 void EnhanceGraph::composeHudLock(ID3D12GraphicsCommandList* list,unsigned generatedSlot,unsigned heldParity){
     if(hudLock_&&!hudLock_->compose(list,tracker_,generatedSlot,heldParity))
@@ -2376,6 +2426,12 @@ bool EnhanceGraph::createViews()
         std::array<ID3D12Resource*,kGeneratedPoolSlots> generated{};
         for(size_t i=0;i<kGeneratedPoolSlots;++i)generated[i]=genFrame_[i].Get();
         overlay_->createViews(context_.device(),stager_,real,generated.data(),unsigned(generated.size()));
+    }
+    if(subtitles_){
+        ID3D12Resource* const real[2]={videoFrame_[0].Get(),videoFrame_[1].Get()};
+        std::array<ID3D12Resource*,kGeneratedPoolSlots> generated{};
+        for(size_t i=0;i<kGeneratedPoolSlots;++i)generated[i]=genFrame_[i].Get();
+        subtitles_->createViews(context_.device(),stager_,real,generated.data(),unsigned(generated.size()));
     }
     // Descriptor initialization is DEFAULT ON since the RAW-upload-SRV removal
     // (2026-09-06): texture SRV/UAV views keep the device alive and NVOF
@@ -3686,7 +3742,7 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
         adapt(nrFlow_.Get(),nrW_,nrH_,1);adapt(baseFlow_.Get(),workW_,workH_,2);
         // Double SR temporal passes: a first DLSS SR pass in first-result pixels,
         // a second FSR pass in SR-input (render) pixels.
-        if(firstSrFlow_)adapt(firstSrFlow_.Get(),desc_.firstSrWidth,desc_.firstSrHeight,firstSrFlowSet());
+        if(firstSrFlow_){const Extent e=firstSrFlowExtent();adapt(firstSrFlow_.Get(),e.width,e.height,firstSrFlowSet());}
         if(secondSrFlow_)adapt(secondSrFlow_.Get(),srInW_,srInH_,secondSrFlowSet());
         for(UINT i=0;i<dlaa_.size();++i){
             const auto& d=dlaa_[i];
@@ -3746,7 +3802,6 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
     auto runMixedDualSr=[&]()->bool{
         gpuTimer_.mark(list,GpuStage::Sr);
         const bool validMotion=desc_.srUsesFlow()&&haveFlow;
-        const bool fsrReset=reset||(desc_.srUsesFlow()&&!haveFlow);
         const double deltaMs=(prevPtsMs_>=0.0&&ptsMs>prevPtsMs_)?(ptsMs-prevPtsMs_):16.6;
         auto readable=[&](std::initializer_list<ID3D12Resource*> resources){for(auto* r:resources)tracker_.transition(list,r,D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);};
         auto written=[&](ID3D12Resource* output){tracker_.uavBarrier(list,output);tracker_.transition(list,output,D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);};
@@ -3763,6 +3818,8 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
             const bool first=output==firstSrLinear_.Get();
             auto& restore=first?firstSrHdrRestore_:srHdrRestore_;
             auto* target=restore.raw?restore.raw.Get():output;
+            // Without motion the pass starts its history again, as without flow.
+            const bool fsrReset=reset||(desc_.srUsesFlow()&&motion==fsrSrZeroMotion_.Get());
             readable({color,motion,fsrSrDepth_.Get()});tracker_.transition(list,target,D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
             if(!backend.evaluate(list,color,motion,fsrSrDepth_.Get(),target,inW,inH,outW,outH,fsrReset,float(deltaMs))){
                 failedBackend_=engine::FailedBackend::Sr;veyra::log::error("dual-sr","FSR evaluate failed");return false;
@@ -3784,7 +3841,8 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
             }else if(firstDlssSrBackend_){
                 if(!dlss(*firstDlssSrBackend_,input,validMotion?firstSrFlow_.Get():zero,firstSrLinear_.Get()))return false;
             }else if(firstFsrSrBackend_&&firstFsrSrBackend_->created()){
-                if(!fsr(*firstFsrSrBackend_,input,validMotion?flowTex_.Get():zero,firstSrLinear_.Get(),srcW_,srcH_,desc_.firstSrWidth,desc_.firstSrHeight))return false;
+                auto* motion=fsrSourceMotion(haveFlow);
+                if(!fsr(*firstFsrSrBackend_,input,motion?motion:zero,firstSrLinear_.Get(),srcW_,srcH_,desc_.firstSrWidth,desc_.firstSrHeight))return false;
             }else{failedBackend_=engine::FailedBackend::Sr;veyra::log::error("dual-sr","first SR pass has no backend");return false;}
             ++metrics_.srEvaluateCount;
         }
@@ -3831,14 +3889,14 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
         // split-node/color output. Reading srcRgba_ here discards completed NR.
         auto* srInput=srStageInput();
         tracker_.transition(list,srInput,D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-        const bool validMotion=desc_.srUsesFlow()&&haveFlow;
-        auto* srMotion=validMotion?flowTex_.Get():fsrSrZeroMotion_.Get();
+        auto* sourceMotion=fsrSourceMotion(haveFlow);
+        auto* srMotion=sourceMotion?sourceMotion:fsrSrZeroMotion_.Get();
         tracker_.transition(list,srMotion,D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
         tracker_.transition(list,fsrSrDepth_.Get(),D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
         auto* fsrTarget=srHdrRestore_.raw?srHdrRestore_.raw.Get():workRgba_.Get();
         tracker_.transition(list,fsrTarget,D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         if(!fsrSrBackend_->evaluate(list,srInput,srMotion,fsrSrDepth_.Get(),fsrTarget,
-                                    srcW_,srcH_,workW_,workH_,reset||(desc_.srUsesFlow()&&!haveFlow),float(deltaMs))){
+                                    srcW_,srcH_,workW_,workH_,reset||(desc_.srUsesFlow()&&!sourceMotion),float(deltaMs))){
             failedBackend_=engine::FailedBackend::Sr;
             return false;
         }
@@ -4347,6 +4405,8 @@ bool EnhanceGraph::process(const AVFrame* frame, double ptsMs, bool reset, Frame
     // PushFPS Crosshair Hold: every real frame, before any method takes it. It makes fgInput(parity), the real
     // frame with the overlay's bars filled in; the real frame itself stays as it is.
     if(overlay_&&!overlay_->update(list,tracker_,parity,reset||!prevValid_))veyra::log::warn("crosshair-hold","update skipped");
+    // Subtitle Hold after it: with Crosshair Hold it fills the copy that pass has just made.
+    if(subtitles_&&!subtitles_->update(list,tracker_,parity,reset||!prevValid_))veyra::log::warn("subtitle-hold","update skipped");
     if((runFg||vfgRecordOnly)&&vfgBackend_){
         // First timestamp precedes the producer signal/CUDA dependency wait;
         // the matching end follows the consumer copy. The direct-queue span
@@ -5160,6 +5220,7 @@ void EnhanceGraph::shutdown()
     proxyTex_.Reset();
     exclusionPass_={};exclusionScratch_.Reset();
     hudLock_.reset();
+    subtitles_.reset();
     overlay_.reset();
     for(auto& r:exclusionVideo_)r.Reset();
     for(auto& r:exclusionUi_)r.Reset();

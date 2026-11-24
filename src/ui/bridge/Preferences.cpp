@@ -339,7 +339,7 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
                                    // 设置 → 外观 → 启动音乐 and the music button (Main.qml); unset = off in PushFPS.
                                    "introMusic", "exclusionOverlay",
                                    // PushFPS: on-screen latency readout, fullscreen on connect, window on top.
-                                   "pushLatencyOverlay", "pushHudStill", "pushCrosshairHold", "pushRecordAsk", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset",
+                                   "pushLatencyOverlay", "pushHudStill", "pushCrosshairHold", "pushSubtitleHold", "pushRecordAsk", "pushAutoFullscreen", "pushAlwaysOnTop", "pushSunset",
                                    // PushFPS ambient fill (engine/PushAmbient.h): the bars beside the picture.
                                    "pushAmbientFill",
                                    // PushFPS: the picture resized to the window with the fine path (engine/PushPresentScaling.h).
@@ -748,6 +748,15 @@ void QmlPlayerBridge::applyPreference(const QString& key) {
         const bool rebuilds = changed && impl_->snapshot.running && settings().multiplier > 1;
         veyra::log::info("crosshair-hold", std::format("switch={} changed={} playing={} multiplier={} method={} rebuilds the graph now={}", on, changed,
                                                        impl_->snapshot.running, int(settings().multiplier), int(settings().frameGenerationBackend), rebuilds));
+        if (rebuilds) impl_->engine.refreshGraph();
+    }
+    else if (key == QLatin1String("pushSubtitleHold")) {
+        // Subtitle Hold (pipeline/PushOverlay.h, the subtitle band): as Crosshair Hold, its own switch.
+        const bool on = impl_->prefBool("pushSubtitleHold", false) && !pushflow2::emergencyOff();
+        const bool changed = pipeline::overlay::subtitlesWanted() != on;
+        pipeline::overlay::setSubtitlesWanted(on);
+        const bool rebuilds = changed && impl_->snapshot.running && settings().multiplier > 1;
+        veyra::log::info("subtitle-hold", std::format("switch={} changed={} playing={} rebuilds the graph now={}", on, changed, impl_->snapshot.running, rebuilds));
         if (rebuilds) impl_->engine.refreshGraph();
     }
     else if (key == QLatin1String("pushAudioTrimMs"))

@@ -19,14 +19,33 @@ DialogLayer {
         if (label === qsTr("断开")) { veyra.ps5Cancel(); return }
         if (label === qsTr("取消")) { if (veyra.ps5.busy) veyra.ps5Cancel(); else dialogHost.close(); return }
         if (veyra.ps5Connect()) { dialogHost.close(); dialogHost.startPs5() }
+        else ps5Dialog.showStatus()
     }
+    // PushFPS: whether the Account ID box holds something shaped like an ID (digits, or the 12 characters
+    // ending in =). Only for how loud the Get Account ID button is; pairing itself decides what is valid.
+    readonly property bool accountLooksRight: {
+        const typed = String(veyra.ps5.account || "").replace(/\s/g, "")
+        return /^[0-9]{6,20}$/.test(typed) || /^[A-Za-z0-9+\/]{11}=$/.test(typed)
+    }
+    // PushFPS: an answer that names a field to fix is at the top, with the fields: bring it into view.
+    function showStatus() { ps5Dialog.bodyViewport.contentY = 0 }
     Connections {
         target: dialogHost
-        function onDialogChanged() { if (dialogHost.dialog === "ps5") veyra.ps5Load() }
+        function onDialogChanged() {
+            if (dialogHost.dialog !== "ps5") return
+            veyra.ps5Load()
+            // PushFPS: with nothing paired and no address yet, look for the PS5 straight away (what Search
+            // does), so the address is filled in before the first field is touched.
+            if (veyra.ps5.available === true && veyra.ps5Profiles.length === 0 && (veyra.ps5.host || "").length === 0 && veyra.ps5.busy !== true)
+                veyra.ps5Scan()
+        }
     }
     readonly property var qualities: [{ id: "0", label: "720p · 30 fps" }, { id: "1", label: "720p · 60 fps" }, { id: "2", label: "1080p · 30 fps" }, { id: "3", label: "1080p · 60 fps" }]
     readonly property var bitrates: [5, 10, 15, 20, 30, 50, 80, 100].map((m, i) => ({ id: String(i), label: m + " Mbps" }))
 
+    // PushFPS: what to do next, and what went wrong, stands first. At the bottom it was under the last row of a
+    // long dialog: people pressed Connect, read the line there and never saw the fields it was about.
+    DialogNote { objectName: "ps5-status"; visible: (veyra.ps5.status || "").length > 0; text: (veyra.ps5.busy ? qsTr("处理中 · ") : "") + (veyra.ps5.status || "") }
     DialogSection { text: qsTr("主机") }
     DialogGroup {
         VRow {
@@ -62,25 +81,54 @@ DialogLayer {
     DialogGroup {
         VRow {
             label: "PSN Account ID"
-            hint: qsTr("点击获取 Account ID，在网页查询后复制到这里。支持数字 ID 或 8 字节 Base64，不是 PSN 昵称。")
+            // PushFPS: in plain words, and the button stands out until the box holds something shaped like an ID.
+            // People typed their PSN name here with the old hint right under the box and never pressed the button.
+            // Since 4.4.6 the button opens Sony's own sign-in page (never a lookup website) and the row under this
+            // one takes back the address the page lands on.
+            hint: qsTr("点“获取 Account ID”，在索尼自己的页面登录，PushFPS 会替你填入。不是 PSN 昵称。不要在任何地方粘贴 NPSSO 码：它就是你的 PSN 登录。")
             hintBelow: true
             RowLayout {
                 spacing: 6
                 DialogTextField {
                     objectName: "ps5-account-id"; implicitWidth: 240; text: veyra.ps5.account || ""
+                    placeholder: qsTr("数字 ID，不是昵称")
                     onEdited: text => veyra.ps5Set("account", text)
                     onTyped: text => { if (text === text.trim()) veyra.ps5Set("account", text) }
                 }
-                VButton { objectName: "ps5-account-lookup"; text: qsTr("获取 Account ID"); ghost: true; onClicked: veyra.ps5OpenAccountChecker() }
+                VButton {
+                    objectName: "ps5-account-lookup"; text: qsTr("获取 Account ID")
+                    primary: !ps5Dialog.accountLooksRight; ghost: ps5Dialog.accountLooksRight
+                    enabled: veyra.ps5.signInAsking !== true
+                    onClicked: veyra.ps5OpenAccountChecker()
+                }
+            }
+        }
+        VRow {
+            objectName: "ps5-signin-row"
+            visible: veyra.ps5.signInWaiting === true || veyra.ps5.signInAsking === true
+            label: qsTr("登录后的地址")
+            hint: qsTr("登录后浏览器停下的页面以 remoteplay.dl.playstation.net 开头，可能是空白或报错。把地址栏里的完整地址粘贴到这里。")
+            hintBelow: true
+            RowLayout {
+                spacing: 6
+                DialogTextField { id: signInPaste; objectName: "ps5-signin-paste"; implicitWidth: 240; placeholder: "https://remoteplay.dl.playstation.net/…" }
+                VButton {
+                    objectName: "ps5-signin-finish"; text: qsTr("填入"); primary: true
+                    enabled: veyra.ps5.signInAsking !== true
+                    // The pasted address holds a one-time code: it leaves the box as soon as it is handed over.
+                    onClicked: { const pasted = signInPaste.text; signInPaste.text = ""; veyra.ps5FinishSignIn(pasted); ps5Dialog.showStatus() }
+                }
             }
         }
         VRow {
             label: qsTr("8 位配对码")
-            hint: qsTr("PS5 设置 → 系统 → 远程游玩 → 关联设备")
+            hint: qsTr("PS5 设置 → 系统 → 远程游玩 → 配对设备（旧版系统软件叫“关联设备”）")
             RowLayout {
                 spacing: 6
-                DialogTextField { id: pairPin; implicitWidth: 120; placeholder: "••••••••" }
-                VButton { objectName: "ps5-pair"; text: qsTr("配对并保存"); enabled: !veyra.ps5.busy; onClicked: { veyra.ps5Pair(pairPin.text); pairPin.text = "" } }
+                // PushFPS: the number stays in its field when pairing did not start (an address or an account ID
+                // to fix first): it is good for five minutes, and typing it again cost people the pairing.
+                DialogTextField { id: pairPin; objectName: "ps5-pair-code"; implicitWidth: 120; placeholder: "1234 5678" }
+                VButton { objectName: "ps5-pair"; text: qsTr("配对并保存"); enabled: !veyra.ps5.busy; onClicked: { veyra.ps5Pair(pairPin.text); if (veyra.ps5.busy === true) pairPin.text = ""; else ps5Dialog.showStatus() } }
             }
         }
         VRow {
@@ -159,5 +207,4 @@ DialogLayer {
             }
         }
     }
-    DialogNote { visible: (veyra.ps5.status || "").length > 0; text: (veyra.ps5.busy ? qsTr("处理中 · ") : "") + (veyra.ps5.status || "") }
 }

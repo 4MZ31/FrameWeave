@@ -173,7 +173,12 @@ enum class FlowQuality { Performance, Balanced, Quality };
 enum class OpticalFlowBackend { Nvidia, AmdFidelityFx, GpuDis };
 // Persisted IDs must stay stable. 2..4 are legacy identification hints, no longer
 // offered by the UI; importing/applying one uses automatic duplicate removal.
-enum class ContentRate { Transport=0, Auto=1, Fps30=2, Fps50=3, Fps60=4, Capture60To30=5 };
+// 6 (PushFPS, after 4.4.5): "60 -> 30 original", the plain every-second-sample grid (CaptureHalfRate with
+// repeat skipping off); 5 is the 60 -> 30 that waits for a new picture after a hitch. Both are the same graph.
+enum class ContentRate { Transport=0, Auto=1, Fps30=2, Fps50=3, Fps60=4, Capture60To30=5, Capture60To30Original=6 };
+constexpr bool isCaptureHalfRate(ContentRate mode) {
+    return mode==ContentRate::Capture60To30||mode==ContentRate::Capture60To30Original;
+}
 constexpr ContentRate currentContentRate(ContentRate mode) {
     return mode>=ContentRate::Fps30&&mode<=ContentRate::Fps60?ContentRate::Auto:mode;
 }
@@ -734,7 +739,7 @@ struct EnhancementSettings {
             if(auto error=additionalBeauty[i].validate();!error.empty())return error;
         if(auto error=beautyDetection.validate();!error.empty())return error;
         if(!pipeline::validNrSizePolicy(nrPolicy))return "invalid NR size policy";
-        if(flow<FlowQuality::Performance||flow>FlowQuality::Quality||content<ContentRate::Transport||content>ContentRate::Capture60To30)return "invalid flow/content mode";
+        if(flow<FlowQuality::Performance||flow>FlowQuality::Quality||content<ContentRate::Transport||content>ContentRate::Capture60To30Original)return "invalid flow/content mode";
         return {};
     }
 };

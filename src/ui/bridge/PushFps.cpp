@@ -93,6 +93,8 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     // Crosshair Hold: 0 not asked, 1 running, 2 could not be set up, 3 not with this method or without frame generation.
     m["crosshairHoldState"] = s.crosshairHoldState;
     m["crosshairHoldPixels"] = s.crosshairHoldPixels;
+    m["subtitleHoldState"] = s.subtitleHoldState;
+    m["subtitleHoldPixels"] = s.subtitleHoldPixels;
     m["crosshairHoldFrames"] = double(s.crosshairHoldFrames);
     // PushFPS 4.2.1: the FSR upscaler really running (quick setup's upscale row says it).
     m["fsrUpscalerVersion"] = QString::fromStdString(s.fsrSrProviderVersion);
@@ -160,7 +162,7 @@ QVariantMap QmlPlayerBridge::pushLiveStats() const {
     m["srActive"] = s.srActive;
     m["nrActive"] = s.nrActive;
     m["fgBudgetLimited"] = s.fgBudgetLimited;
-    m["backendWarning"] = QString::fromStdWString(s.backendWarning);
+    m["backendWarning"] = uiText(s.backendWarning);   // PushFPS: the engine writes it in Chinese; translated like every other engine text
     // What is really shown, a second: the game's own frames and the generated ones (FrameFlowWindow.h).
     m["realFps"] = flow.realPresentFps;
     m["generatedFps"] = flow.generatedPresentFps;
