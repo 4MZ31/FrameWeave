@@ -41,6 +41,7 @@
 #include <QPointer>
 
 #include <QDateTime>
+#include <QThread>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -723,22 +724,70 @@ struct QmlPlayerBridge::Impl {
     // The file exists but was not read (locked by antivirus/OneDrive, or damaged):
     // saving the in-memory defaults would replace every saved setting with them.
     bool prefsUnreadable = false;
+    // 4.5.1: what the user is told at start when the file could not be used (QmlPlayerBridge.cpp words it once
+    // the interface language is known): 0 nothing, 1 held by another program, 2 damaged and not moved,
+    // 3 damaged, last good copy restored, 4 damaged, defaults.
+    int prefsLoadNotice = 0;
+    // The last copy that was read whole: written once a session after a good read, used when the file
+    // itself is damaged (a cut-off write, a sync program's conflict copy, a disk that filled up).
+    std::filesystem::path prefsBackupFile() const { return dataDir / L"pushfps-preferences-last-good.json"; }
+    static bool readPrefsObject(const QString& path, QVariantMap& out) {
+        QFile file(path);
+        if (!file.open(QIODevice::ReadOnly)) return false;
+        QJsonParseError error{};
+        const auto doc = QJsonDocument::fromJson(file.readAll(), &error);
+        if (error.error != QJsonParseError::NoError || !doc.isObject()) return false;
+        out = doc.object().toVariantMap();
+        return true;
+    }
     void loadPrefs() {
-        QFile file(QString::fromStdWString(prefsFile().wstring()));
+        const QString path = QString::fromStdWString(prefsFile().wstring());
+        QFile file(path);
         if (!file.exists()) return;
-        if (!file.open(QIODevice::ReadOnly)) {
+        // A file another program holds for a moment (an antivirus scan, a sync program) is tried again
+        // for about half a second before it counts as unreadable.
+        bool opened = false;
+        for (int attempt = 0; attempt < 6 && !(opened = file.open(QIODevice::ReadOnly)); ++attempt) QThread::msleep(100);
+        if (!opened) {
             prefsUnreadable = true;
+            prefsLoadNotice = 1;
             veyra::log::warn("ui-prefs", "qml preferences unreadable; defaults used, file kept, saving disabled this session");
             return;
         }
         QJsonParseError error{};
         const auto doc = QJsonDocument::fromJson(file.readAll(), &error);
-        if (error.error != QJsonParseError::NoError || !doc.isObject()) {
-            prefsUnreadable = true;
-            veyra::log::warn("ui-prefs", "qml preferences damaged; defaults used, file kept, saving disabled this session");
+        file.close();
+        if (error.error == QJsonParseError::NoError && doc.isObject()) {
+            prefs = doc.object().toVariantMap();
+            // Keep this good copy for a later damaged file (once a session; a failure costs nothing).
+            const QString backup = QString::fromStdWString(prefsBackupFile().wstring());
+            QFile::remove(backup + QStringLiteral(".tmp"));
+            if (QFile::copy(path, backup + QStringLiteral(".tmp"))) { QFile::remove(backup); QFile::rename(backup + QStringLiteral(".tmp"), backup); }
             return;
         }
-        prefs = doc.object().toVariantMap();
+        // Damaged. Until 4.5.1 the defaults were used and saving was switched off for the session, every
+        // session, so nothing changed was ever kept again ("my profiles and settings don't save"). The
+        // damaged file is moved aside (never deleted) and the last good copy taken, or the defaults.
+        const QString aside = path + QStringLiteral(".damaged-") + QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss"));
+        if (!QFile::rename(path, aside)) {
+            prefsUnreadable = true;
+            prefsLoadNotice = 2;
+            veyra::log::warn("ui-prefs", "qml preferences damaged and could not be moved aside; defaults used, saving disabled this session");
+            return;
+        }
+        QVariantMap restored;
+        if (readPrefsObject(QString::fromStdWString(prefsBackupFile().wstring()), restored)) {
+            prefs = restored;
+            prefsLoadNotice = 3;
+            veyra::log::warn("ui-prefs", "qml preferences damaged; moved aside, the last good copy restored");
+        } else {
+            prefsLoadNotice = 4;
+            veyra::log::warn("ui-prefs", "qml preferences damaged; moved aside, no good copy, defaults used");
+        }
+        if (!savePrefs()) {
+            prefsUnreadable = true;
+            veyra::log::warn("ui-prefs", "qml preferences could not be written after the damaged file was moved aside; saving disabled this session");
+        }
     }
     bool savePrefs() {
         if (prefsUnreadable) return false;

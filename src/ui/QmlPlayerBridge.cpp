@@ -95,6 +95,15 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     // The compute GPU decides which effects exist, so it is settled before
     // anything below samples the capabilities or restores the saved chain.
     impl_->loadPrefs();
+    if (impl_->prefsLoadNotice != 0) {
+        const int kind = impl_->prefsLoadNotice;
+        QTimer::singleShot(1500, this, [this, kind] {
+            emit notice(kind == 1 ? tr("设置文件被其他程序占用，本次使用默认设置，更改不会保存。请关闭同步或杀毒软件对该文件的锁定后重新打开 PushFPS")
+                      : kind == 2 ? tr("设置文件已损坏，本次使用默认设置，更改不会保存")
+                      : kind == 3 ? tr("设置文件已损坏，已恢复上一次完好的设置。损坏的文件保留在数据文件夹里")
+                                  : tr("设置文件已损坏，已改用默认设置。损坏的文件保留在数据文件夹里"), true);
+        });
+    }
     impl_->engine.setCaptureAudioMonitoring(impl_->prefBool("captureAudioMonitor",true));
     // Keep main's established key; also read the PR's key for users of its build.
     // Missing/invalid settings stay at unity, never an automatic boost.

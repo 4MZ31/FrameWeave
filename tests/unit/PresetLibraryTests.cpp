@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string_view>
+#include <vector>
 
 using namespace veyra::engine;
 
@@ -173,8 +174,9 @@ __declspec(noinline) void testNodeEditorSession() {
           "editor session: invalid detached parameters cannot overwrite session");
     { std::ofstream file(sidecar, std::ios::binary | std::ios::trunc); file << validBytes << "unexpected"; }
     ChainSessionStore corrupt(path);
-    check(!corrupt.load(*restored) && *restored == *session && !corrupt.save(*session),
-          "editor session: corrupt sidecar retained without falling back or half-loading");
+    // PushFPS 4.5.1: the unreadable file is moved aside whole and saving goes on (it blocked every later save).
+    check(!corrupt.load(*restored) && *restored == *session, "editor session: corrupt sidecar not half-loaded");
+    check(corrupt.save(*session), "editor session: saving goes on after a corrupt sidecar was moved aside");
     std::filesystem::remove(sidecar);
 }
 
@@ -657,7 +659,27 @@ __declspec(noinline) int testExistingPresets() {
         ChainSessionStore corrupt(path);
         const auto before = restored;
         check(!corrupt.load(restored) && restored == before, "corrupt session does not partially mutate live state");
-        check(!corrupt.save(session) && read().find("999") != std::string::npos, "corrupt source is never overwritten");
+        {
+            // PushFPS 4.5.1: never overwritten: moved aside whole, and saving goes on to a fresh file.
+            bool kept = false;
+            for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::path(path).parent_path()))
+                if (entry.path().filename().wstring().find(std::filesystem::path(path).filename().wstring() + L".unreadable-") == 0) {
+                    std::ifstream aside(entry.path(), std::ios::binary);
+                    const std::string bytes((std::istreambuf_iterator<char>(aside)), std::istreambuf_iterator<char>());
+                    kept = kept || bytes.find("999") != std::string::npos;
+                    aside.close();
+                    std::filesystem::remove(entry.path());
+                }
+            check(kept, "a corrupt session is kept whole under another name");
+            check(corrupt.save(session), "saving goes on after a corrupt session");
+            // What that save wrote (a newer session format goes to a file of its own) is taken away again, so
+            // the next check reads the base file alone.
+            const auto base = std::filesystem::path(path).filename().wstring();
+            std::vector<std::filesystem::path> written;
+            for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::path(path).parent_path()))
+                if (entry.path().filename().wstring().rfind(base + L".", 0) == 0) written.push_back(entry.path());
+            for (const auto& file : written) std::filesystem::remove(file);
+        }
         { std::ofstream file(path, std::ios::binary | std::ios::trunc); file << validBytes << "trailing"; }
         ChainSessionStore trailing(path);
         check(!trailing.load(restored) && restored == before, "trailing session data is rejected transactionally");
