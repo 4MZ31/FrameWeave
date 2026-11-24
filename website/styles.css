@@ -513,3 +513,25 @@ html[data-theme="light"] .pf-dark { display: none !important; }
 .credit-line a, .credit-note a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .credit-note { color: var(--muted); font-size: 15px; max-width: 52em; margin: 12px 0 18px; }
 .credits-strip .strip-row { padding: 8px 0; }
+
+/* Remote Play setup: the steps beside their graphic */
+.rp-panel { padding: 8px 24px 22px; }
+.rp-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 34px; align-items: start; }
+.rp-h { font: 700 italic 22px/1.15 var(--display); margin: 22px 0 0; color: var(--accent-text); }
+.rp-steps, .rp-checks { margin: 10px 0 0; padding: 0 0 0 1.5em; color: var(--muted); font-size: 16px; }
+.rp-steps li, .rp-checks li { padding: 7px 0 7px 4px; }
+.rp-steps li::marker { color: var(--accent-text); font-weight: 700; }
+.rp-checks li::marker { color: var(--accent-text); }
+.rp-steps b, .rp-checks b { color: var(--text); font-weight: 600; }
+.rp-steps small { display: block; margin-top: 3px; color: var(--faint); font-size: 14px; }
+.rp-path { display: block; margin: 3px 0; color: var(--text); font-size: 15px; }
+.rp-path b { color: var(--accent-text); }
+.rp-shot { display: block; width: 100%; margin-top: 22px; position: sticky; top: 92px; }
+.rp-shot img { aspect-ratio: 4 / 5; object-fit: contain; width: 100%; display: block; }
+.rp-text .guide-note { font-size: 15.5px; }
+@media (max-width: 900px) { .rp-grid { grid-template-columns: 1fr; gap: 8px; } .rp-shot { position: static; max-width: 420px; } }
+@media (max-width: 560px) { .rp-panel { padding: 4px 14px 16px; } }
+/* Six links: closer together on a narrower window, and gone before they would wrap. */
+@media (max-width: 1260px) { .nav-links { gap: 17px; } .nav-links a { font-size: 14.5px; } }
+@media (max-width: 1080px) { .nav nav { display: none; } .nav-actions { margin-left: auto; } }
+.rp-text .guide-note b { color: var(--text); font-weight: 600; }
