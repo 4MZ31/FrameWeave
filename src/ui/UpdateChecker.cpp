@@ -119,27 +119,34 @@ void UpdateChecker::finish() {
             || !obj.value(QStringLiteral("prerelease")).isBool() || obj.value(QStringLiteral("prerelease")).toBool()
             || local.segmentCount() != 3 || remote.segmentCount() != 3 || !validUrl) {
             failure_ = QStringLiteral("invalid-release");
-        } else if (QVersionNumber::compare(remote, local) > 0) {
-            latestVersion_ = remote.toString(); releaseUrl_ = url; tag_ = tag;
-            // Signed-update assets (checked again after download against the signed list).
-            sumsUrl_.clear(); sigUrl_.clear(); zipUrl_.clear(); zipName_.clear();
-            const QString wantZip = QStringLiteral("PushFPS-%1-win64.zip").arg(latestVersion_);
-            for (const auto& v : obj.value(QStringLiteral("assets")).toArray()) {
-                const auto a = v.toObject();
-                const QString name = a.value(QStringLiteral("name")).toString();
-                const QUrl link(a.value(QStringLiteral("browser_download_url")).toString());
-                if (!assetUrlOk(link) || link.fileName() != name) continue;
-                if (name == QStringLiteral("SHA256SUMS.txt")) sumsUrl_ = link;
-                else if (name == QStringLiteral("SHA256SUMS.txt.sig")) sigUrl_ = link;
-                else if (name == wantZip) { zipUrl_ = link; zipName_ = name; }
-            }
-            emit releaseChanged();
-            emit updateAvailable(latestVersion_);
-            result = QStringLiteral("available");
         } else {
-            latestVersion_.clear(); releaseUrl_.clear(); sumsUrl_.clear(); sigUrl_.clear(); zipUrl_.clear(); emit releaseChanged();
-            if (manual_) emit notice(tr("当前已是最新版本"), false);
-            result = QStringLiteral("current");
+            // Signed assets (checked again after download against the signed list). Kept for the installed
+            // version too: installing the optional extras later repeats this install from its own release.
+            const bool newer = QVersionNumber::compare(remote, local) > 0;
+            tag_ = tag; packageVersion_ = remote.toString();
+            sumsUrl_.clear(); sigUrl_.clear(); zipUrl_.clear(); zipName_.clear();
+            if (newer || QVersionNumber::compare(remote, local) == 0) {
+                const QString wantZip = QStringLiteral("PushFPS-%1-win64.zip").arg(packageVersion_);
+                for (const auto& v : obj.value(QStringLiteral("assets")).toArray()) {
+                    const auto a = v.toObject();
+                    const QString name = a.value(QStringLiteral("name")).toString();
+                    const QUrl link(a.value(QStringLiteral("browser_download_url")).toString());
+                    if (!assetUrlOk(link) || link.fileName() != name) continue;
+                    if (name == QStringLiteral("SHA256SUMS.txt")) sumsUrl_ = link;
+                    else if (name == QStringLiteral("SHA256SUMS.txt.sig")) sigUrl_ = link;
+                    else if (name == wantZip) { zipUrl_ = link; zipName_ = name; }
+                }
+            }
+            if (newer) {
+                latestVersion_ = packageVersion_; releaseUrl_ = url;
+                emit releaseChanged();
+                emit updateAvailable(latestVersion_);
+                result = QStringLiteral("available");
+            } else {
+                latestVersion_.clear(); releaseUrl_.clear(); emit releaseChanged();
+                if (manual_) emit notice(tr("当前已是最新版本"), false);
+                result = QStringLiteral("current");
+            }
         }
     }
     if (!failure_.isEmpty()) {
@@ -150,6 +157,11 @@ void UpdateChecker::finish() {
     qInfo().noquote() << "[update-check]" << result + versions;
     emit checkingChanged();
     emit completed(result);
+    if (extrasPending_) {
+        extrasPending_ = false;
+        if (sumsUrl_.isEmpty() || sigUrl_.isEmpty() || zipUrl_.isEmpty()) failInstall(QStringLiteral("no-package"));
+        else startInstall();
+    }
 }
 void UpdateChecker::openRelease() {
     if (!releaseUrl_.isEmpty()) QDesktopServices::openUrl(releaseUrl_);
@@ -167,6 +179,7 @@ bool UpdateChecker::assetUrlOk(const QUrl& url) const {
     return url.scheme() == QStringLiteral("https") && url.host() == QStringLiteral("github.com") && url.port(-1) == -1;
 }
 bool UpdateChecker::canInstall() const {
+    if (latestVersion_.isEmpty()) return false;   // assets of the installed version are for the extras only
     if (publicKeyPem_.isEmpty() || sumsUrl_.isEmpty() || sigUrl_.isEmpty() || zipUrl_.isEmpty() || installDir_.isEmpty()) return false;
     QFile f(QDir(installDir_).filePath(QStringLiteral("PushFPS-VERSION.txt")));
     if (!f.open(QIODevice::ReadOnly)) return false;   // a portable or development copy: the release page instead
@@ -180,6 +193,13 @@ void UpdateChecker::failInstall(const QString& reason) {
     if (download_) { download_->disconnect(this); download_->abort(); download_->deleteLater(); download_ = nullptr; }
     qInfo().noquote() << "[update-install] failed" << reason;
     setInstall(QStringLiteral("failed"));
+    if (extrasMode_) {
+        emit notice(reason == QStringLiteral("no-package")
+                        ? tr("没有找到这个版本的已签名安装包，请稍后再试，或重新运行 Install-PushFPS.cmd 并在询问时回答 y")
+                        : tr("附加组件没有安装完成，当前版本未改动；可以重新运行 Install-PushFPS.cmd 并在询问时回答 y"), true);
+        emit installFinished(reason);
+        return;
+    }
     emit notice(reason == QStringLiteral("signature-mismatch") || reason == QStringLiteral("sha256-mismatch")
                     ? tr("更新文件没有通过签名或校验，已停止安装，当前版本未改动")
                     : tr("更新没有完成，当前版本未改动；可以在发布页手动下载"), true);
@@ -222,10 +242,39 @@ void UpdateChecker::download(const QUrl& url, qint64 limit, std::function<void(Q
         else { hash->addData(rest); out->write(rest); out->close(); done(hash->result().toHex()); }
     });
 }
+bool UpdateChecker::canInstallExtras() const {
+    if (publicKeyPem_.isEmpty() || installDir_.isEmpty()) return false;
+    QFile f(QDir(installDir_).filePath(QStringLiteral("PushFPS-VERSION.txt")));
+    if (!f.open(QIODevice::ReadOnly)) return false;   // a portable or development copy has no installer record
+    const auto installed = parseInstalledVersionFile(f.read(64 * 1024));
+    return installed && !installed->extras;
+}
+namespace {
+bool installBusy(const QString& state) {
+    return state == QStringLiteral("downloading") || state == QStringLiteral("verifying") || state == QStringLiteral("installing");
+}
+}
 void UpdateChecker::installUpdate() {
-    if (installState_ == QStringLiteral("downloading") || installState_ == QStringLiteral("verifying") || installState_ == QStringLiteral("installing")) return;
+    if (installBusy(installState_) || extrasPending_) return;
     if (!canInstall()) { openRelease(); return; }
-    qInfo().noquote() << "[update-install] start" << latestVersion_;
+    extrasMode_ = false;
+    startInstall();
+}
+void UpdateChecker::installExtras() {
+    if (installBusy(installState_) || extrasPending_ || !canInstallExtras()) return;
+    extrasMode_ = true;
+    qInfo().noquote() << "[update-install] optional extras asked for";
+    if (sumsUrl_.isEmpty() || sigUrl_.isEmpty() || zipUrl_.isEmpty()) {
+        // No release read yet (the automatic check is off, or failed): ask now, then go on.
+        extrasPending_ = true;
+        setInstall(QStringLiteral("verifying"));
+        check(false);
+        return;
+    }
+    startInstall();
+}
+void UpdateChecker::startInstall() {
+    qInfo().noquote() << "[update-install] start" << packageVersion_ << (extrasMode_ ? "with optional extras" : "");
     setInstall(QStringLiteral("verifying"));
     download(sumsUrl_, kMaxSums, [this](QByteArray sums) {
         sums_ = std::move(sums);
@@ -233,8 +282,10 @@ void UpdateChecker::installUpdate() {
             QString why;
             if (!verifyUpdateSignature(publicKeyPem_, sums_, signature, &why)) { failInstall(why); return; }
             const auto package = updatePackageIn(sums_);
-            if (!package || package->fileName != zipName_ || package->version != QVersionNumber::fromString(latestVersion_) ||
-                QVersionNumber::compare(package->version, localVersion()) <= 0) {
+            // An update must be newer; the extras may repeat the installed version, never an older one.
+            const int against = QVersionNumber::compare(package ? package->version : QVersionNumber{}, localVersion());
+            if (!package || package->fileName != zipName_ || package->version != QVersionNumber::fromString(packageVersion_) ||
+                (extrasMode_ ? against < 0 : against <= 0)) {
                 failInstall(QStringLiteral("package-mismatch")); return;
             }
             expectedZipSha_ = package->sha256;
@@ -243,7 +294,7 @@ void UpdateChecker::installUpdate() {
     });
 }
 void UpdateChecker::verifyAndDownloadZip() {
-    stageDir_ = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).filePath(QStringLiteral("PushFPS-update-") + latestVersion_);
+    stageDir_ = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).filePath(QStringLiteral("PushFPS-update-") + packageVersion_);
     QDir(stageDir_).removeRecursively();
     if (!QDir().mkpath(stageDir_)) { failInstall(QStringLiteral("cannot-write")); return; }
     const QString zip = QDir(stageDir_).filePath(zipName_);
@@ -271,10 +322,10 @@ void UpdateChecker::unpackAndLaunch() {
         const QStringList args{QStringLiteral("-NoProfile"), QStringLiteral("-ExecutionPolicy"), QStringLiteral("Bypass"), QStringLiteral("-File"),
                                QDir::toNativeSeparators(script), QStringLiteral("-Gpu"), installed->gpu, QStringLiteral("-InstallDir"),
                                QDir::toNativeSeparators(installDir_), QStringLiteral("-NoShortcuts"), QStringLiteral("-ExperimentalExtras"),
-                               installed->extras ? QStringLiteral("Yes") : QStringLiteral("No"), QStringLiteral("-WaitForPid"),
+                               installed->extras || extrasMode_ ? QStringLiteral("Yes") : QStringLiteral("No"), QStringLiteral("-WaitForPid"),
                                QString::number(QCoreApplication::applicationPid())};
         if (!launch_(QStringLiteral("powershell.exe"), args)) { failInstall(QStringLiteral("launch")); return; }
-        qInfo().noquote() << "[update-install] installer started for" << latestVersion_;
+        qInfo().noquote() << "[update-install] installer started for" << packageVersion_;
         emit installFinished(QStringLiteral("started"));
         emit quitForUpdate();
     });

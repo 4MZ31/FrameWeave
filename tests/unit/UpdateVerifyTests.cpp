@@ -185,6 +185,69 @@ private slots:
             QCOMPARE(checker.installState(), QStringLiteral("failed"));
         }
     }
+    // 4.5.2: the optional extras installed afterwards, from the release of the version installed. The release
+    // read first (no earlier check), the same signed path, no update offered, the installer told Yes.
+    void extrasRepeatTheInstalledVersion() {
+        Server server;
+        const QByteArray dl = "/DosukaSOL/PushFPS/releases/download/v9.9.9/";
+        auto asset = [&](const char* name) { return QJsonObject{{"name", name}, {"browser_download_url", QString::fromLatin1(server.base() + dl + name)}}; };
+        server.files["/latest"] = QJsonDocument(QJsonObject{
+            {"tag_name", "v9.9.9"}, {"draft", false}, {"prerelease", false},
+            {"html_url", "https://github.com/DosukaSOL/PushFPS/releases/tag/v9.9.9"},
+            {"assets", QJsonArray{asset("SHA256SUMS.txt"), asset("SHA256SUMS.txt.sig"), asset("PushFPS-9.9.9-win64.zip")}}}).toJson();
+        server.files[dl + "SHA256SUMS.txt"] = fixture("SHA256SUMS.txt");
+        server.files[dl + "SHA256SUMS.txt.sig"] = fixture("SHA256SUMS.txt.sig");
+        server.files[dl + "PushFPS-9.9.9-win64.zip"] = fixture("PushFPS-9.9.9-win64.zip");
+        QTemporaryDir install;
+        auto record = [&](const QByteArray& text) {
+            QFile rec(install.filePath("PushFPS-VERSION.txt"));
+            QVERIFY(rec.open(QIODevice::WriteOnly | QIODevice::Truncate));
+            rec.write(text);
+        };
+        record("PushFPS 9.9.9\r\nRuntime: Veyra-2.2.1-NVIDIA-win64-portable.zip from x\r\n");
+        UpdateChecker checker(QStringLiteral("9.9.9"), nullptr, QUrl(QString::fromLatin1(server.base() + "/latest")));
+        checker.setAllowHttpForTests(true);
+        checker.setUpdateKeyForTests(fixture("test-only-public.pem"));
+        checker.setInstallDirForTests(install.path());
+        QVERIFY2(!checker.canInstallExtras(), "the extras are installed already");
+        record("PushFPS 9.9.9\r\nRuntime: Veyra-2.2.1-NVIDIA-win64-portable.zip from x\r\nNot installed: runtime\\nr-ampere\\nvngx_dlssnr.dll (x)\r\n");
+        QVERIFY(checker.canInstallExtras());
+        QString program; QStringList args;
+        checker.setLaunchInstallerForTests([&](const QString& p, const QStringList& a) { program = p; args = a; return true; });
+        QSignalSpy available(&checker, &UpdateChecker::updateAvailable), finished(&checker, &UpdateChecker::installFinished), quit(&checker, &UpdateChecker::quitForUpdate);
+        checker.installExtras();
+        QVERIFY(finished.wait(20000));
+        QCOMPARE(finished.first().first().toString(), QStringLiteral("started"));
+        QCOMPARE(available.count(), 0);
+        QVERIFY2(!checker.canInstall(), "the version installed is never offered as an update");
+        QCOMPARE(quit.count(), 1);
+        QCOMPARE(program, QStringLiteral("powershell.exe"));
+        QCOMPARE(args.at(args.indexOf(QStringLiteral("-ExperimentalExtras")) + 1), QStringLiteral("Yes"));
+        QCOMPARE(args.at(args.indexOf(QStringLiteral("-Gpu")) + 1), QStringLiteral("NVIDIA"));
+    }
+    // An older release (a build newer than the latest release) is never installed for the extras.
+    void extrasNeverInstallAnOlderVersion() {
+        Server server;
+        server.files["/latest"] = QJsonDocument(QJsonObject{
+            {"tag_name", "v9.9.9"}, {"draft", false}, {"prerelease", false},
+            {"html_url", "https://github.com/DosukaSOL/PushFPS/releases/tag/v9.9.9"}, {"assets", QJsonArray{}}}).toJson();
+        QTemporaryDir install;
+        QFile rec(install.filePath("PushFPS-VERSION.txt"));
+        QVERIFY(rec.open(QIODevice::WriteOnly));
+        rec.write("PushFPS 10.0.0\r\nRuntime: Veyra-2.2.1-AMD-win64-portable.zip from x\r\nNot installed: runtime\\amd-nr (x)\r\n");
+        rec.close();
+        UpdateChecker checker(QStringLiteral("10.0.0"), nullptr, QUrl(QString::fromLatin1(server.base() + "/latest")));
+        checker.setAllowHttpForTests(true);
+        checker.setUpdateKeyForTests(fixture("test-only-public.pem"));
+        checker.setInstallDirForTests(install.path());
+        bool launched = false;
+        checker.setLaunchInstallerForTests([&](const QString&, const QStringList&) { launched = true; return true; });
+        QSignalSpy finished(&checker, &UpdateChecker::installFinished);
+        checker.installExtras();
+        QVERIFY(finished.wait(10000));
+        QCOMPARE(finished.first().first().toString(), QStringLiteral("no-package"));
+        QVERIFY(!launched);
+    }
     void unsignedReleaseOnlyOpensThePage() {
         UpdateChecker checker(QStringLiteral("3.2.0"));
         checker.setUpdateKeyForTests(QByteArray());

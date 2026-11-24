@@ -871,6 +871,35 @@ Item {
             verify(quick.nrPossible)
             verify(row.hint.indexOf(how) < 0)
         }
+        function test_missing_enhancement_files_are_installed_with_one_button() {
+            const row = control("pushfps-enhance-row")
+            const button = control("pushfps-enhance-install")
+            const before = veyra.effectCapabilities
+            const asked = veyra.updates.extrasAsked
+            veyra.effectCapabilities = ({ nr: { available: false, reason: "missing files", missingFiles: true } })
+            // Not an installed copy that can repeat its install (portable, or the extras are there): the old words.
+            veyra.updates.canInstallExtras = false
+            verify(!row.extrasOffered, "no button without an install to repeat")
+            verify(row.hint.indexOf("Install-PushFPS.cmd") > 0)
+            veyra.updates.canInstallExtras = true
+            verify(row.extrasOffered)
+            verify(button.enabled)
+            verify(row.hint.indexOf("Install-PushFPS.cmd") < 0, "the button says it: " + row.hint)
+            button.clicked()
+            compare(veyra.updates.extrasAsked, asked + 1)
+            veyra.updates.installState = "downloading"
+            veyra.updates.installProgress = 0.42
+            verify(!button.enabled, "one install at a time")
+            verify(row.hint.indexOf("42") >= 0, "the progress is shown: " + row.hint)
+            veyra.updates.installState = "idle"
+            veyra.updates.installProgress = 0
+            // A card that cannot run it: no button, whatever the installer could do.
+            veyra.effectCapabilities = ({ nr: { available: false, reason: "needs another card", missingFiles: false } })
+            verify(!row.extrasOffered)
+            veyra.effectCapabilities = before
+            verify(!row.extrasOffered, "nothing to install once it runs")
+            veyra.updates.canInstallExtras = false
+        }
         function test_frame_generation_that_shows_no_frames_is_said_with_its_cause() {
             // engine/PushFgHealth.h reports it through pushLiveStats: 2 the method is not running,
             // 3 the card does not keep up, 4 nothing generated is shown.

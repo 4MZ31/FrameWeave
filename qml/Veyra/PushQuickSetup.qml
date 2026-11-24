@@ -1409,16 +1409,40 @@ VGroup {
             // Not possible: the reason, and when the card could run it but its files were left out at
             // installation (they are the installer's optional extras), how to get them.
             readonly property var support: Support.status(veyra, "nr")
+            // (4.5.2) Its files left out at installation: one button installs them (UpdateChecker::installExtras,
+            // the signed update path for the version installed, with the installer's optional extras).
+            readonly property var updates: veyra.updates || null
+            readonly property bool extrasOffered: !quick.nrPossible && support.missingFiles === true
+                                                  && updates !== null && updates.canInstallExtras === true
+            readonly property string installing: updates ? String(updates.installState || "") : ""
+            readonly property bool busy: installing === "verifying" || installing === "downloading" || installing === "installing"
             hint: quick.nrPossible ? qsTr("关闭时只做补帧。开启后每帧都经过 NVIDIA 神经渲染（DLSS 5 NR）增强，画面更清晰，但更耗 GPU")
-                                   : (support.reason || "") + (support.missingFiles === true
-                                       ? " " + qsTr("它属于安装时可选的实验性附加组件：重新运行 Install-PushFPS.cmd，询问时回答 y 即可，设置会保留") : "")
+                  : extrasOffered && busy ? (installing === "downloading"
+                        ? qsTr("正在下载… %1%").arg(Math.round(Number(updates.installProgress || 0) * 100))
+                        : installing === "installing" ? qsTr("正在启动安装程序；PushFPS 会自动关闭，装好后重新打开")
+                        : qsTr("正在验证签名…"))
+                  : extrasOffered ? qsTr("安装时没有选择它的组件。点「安装」即可补装：PushFPS 会关闭，下载并安装组件后重新打开，设置会保留")
+                  : (support.reason || "") + (support.missingFiles === true
+                        ? " " + qsTr("它属于安装时可选的实验性附加组件：重新运行 Install-PushFPS.cmd，询问时回答 y 即可，设置会保留") : "")
             hintBelow: !quick.nrPossible && support.missingFiles === true
-            VSwitch {
-                objectName: "pushfps-enhance"
-                enabled: quick.nrPossible
-                opacity: enabled ? 1 : 0.4
-                checked: veyra.nrAnyEnabled
-                onToggled: checked => quick.setEnhancement(checked)
+            RowLayout {
+                spacing: 8
+                VButton {
+                    objectName: "pushfps-enhance-install"
+                    visible: enhanceRow.extrasOffered
+                    text: qsTr("安装")
+                    primary: true
+                    enabled: !enhanceRow.busy
+                    opacity: enabled ? 1 : 0.5
+                    onClicked: enhanceRow.updates.installExtras()
+                }
+                VSwitch {
+                    objectName: "pushfps-enhance"
+                    enabled: quick.nrPossible
+                    opacity: enabled ? 1 : 0.4
+                    checked: veyra.nrAnyEnabled
+                    onToggled: checked => quick.setEnhancement(checked)
+                }
             }
         }
         // The enhancement's look (shown while AI picture enhancement is on).

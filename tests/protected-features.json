@@ -2248,6 +2248,28 @@
     }
    ],
    "needs_hardware": "a PC with a capture card whose driver does not answer (the two-Elgato report, issue 1)"
+  },
+  {
+   "id": "F81",
+   "what": "AI picture enhancement whose files were left out at installation is installed afterwards with one button: the signed update path repeats the installed version with the installer's optional extras, never an older version, never offered as an update",
+   "guards": [
+    {
+     "file": "tests/unit/UpdateVerifyTests.cpp",
+     "ci": "veyra_update_verify_tests",
+     "contains": "extrasRepeatTheInstalledVersion"
+    },
+    {
+     "file": "tests/unit/UpdateVerifyTests.cpp",
+     "ci": "veyra_update_verify_tests",
+     "contains": "extrasNeverInstallAnOlderVersion"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_missing_enhancement_files_are_installed_with_one_button"
+    }
+   ],
+   "needs_hardware": "an installed PushFPS without the optional extras on an RTX card"
   }
  ]
 }

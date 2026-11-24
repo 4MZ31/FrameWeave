@@ -27398,6 +27398,24 @@
    "ru": "В пределах диапазона"
   },
   {
+   "zh": "安装",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "安裝",
+   "en": "Install",
+   "ja": "インストール",
+   "ko": "설치",
+   "nl": "Installeren",
+   "de": "Installieren",
+   "es": "Instalar",
+   "fr": "Installer",
+   "it": "Installa",
+   "pt-BR": "Instalar",
+   "tr": "Yükle",
+   "ar": "تثبيت",
+   "pl": "Zainstaluj",
+   "ru": "Установить"
+  },
+  {
    "zh": "安装 PushFPS 虚拟扬声器",
    "src": "qml/CaptureSourceDialog.qml",
    "zh-TW": "安裝 PushFPS 虛擬揚聲器",
@@ -27450,6 +27468,24 @@
    "ar": "الإنشاء مغلق إذا اكتمل التركيب أو الإزالة، اتبع تعليمات شركة VB-Audio إلى إعادة التشغيل Windows.",
    "pl": "Rozkład zamknięty. Jeśli instalacja lub usunięcie zakończone, postępuj zgodnie z instrukcjami VB- Audio do ponownego uruchomienia Windows.",
    "ru": "Настройка закрыта. Если установка или удаление завершены, следуйте инструкциям VB-Audio для перезапуска Windows."
+  },
+  {
+   "zh": "安装时没有选择它的组件。点「安装」即可补装：PushFPS 会关闭，下载并安装组件后重新打开，设置会保留",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "安裝時沒有選擇它的元件。點「安裝」即可補裝：PushFPS 會關閉，下載並安裝元件後重新開啟，設定會保留",
+   "en": "Its files were not chosen when PushFPS was installed. Press Install to add them: PushFPS closes, downloads and installs them, and opens again. Your settings stay.",
+   "ja": "インストール時にこの機能のファイルが選ばれていません。「インストール」を押すと追加できます。PushFPS がいったん閉じ、ファイルをダウンロードしてインストールしたあと再び開きます。設定はそのまま残ります。",
+   "ko": "설치할 때 이 기능의 파일을 선택하지 않았습니다. '설치'를 누르면 추가할 수 있습니다. PushFPS가 닫히고 파일을 내려받아 설치한 뒤 다시 열립니다. 설정은 그대로 유지됩니다.",
+   "nl": "De bestanden hiervoor zijn bij het installeren van PushFPS niet gekozen. Druk op Installeren om ze toe te voegen: PushFPS sluit, downloadt en installeert ze, en opent weer. Je instellingen blijven bewaard.",
+   "de": "Die Dateien dafür wurden bei der Installation von PushFPS nicht gewählt. Drücken Sie auf Installieren, um sie hinzuzufügen: PushFPS schließt sich, lädt sie herunter, installiert sie und öffnet sich wieder. Ihre Einstellungen bleiben erhalten.",
+   "es": "Sus archivos no se eligieron al instalar PushFPS. Pulse Instalar para añadirlos: PushFPS se cierra, los descarga e instala, y se vuelve a abrir. Su configuración se conserva.",
+   "fr": "Ses fichiers n'ont pas été choisis à l'installation de PushFPS. Appuyez sur Installer pour les ajouter : PushFPS se ferme, les télécharge et les installe, puis se rouvre. Vos réglages sont conservés.",
+   "it": "I suoi file non sono stati scelti durante l'installazione di PushFPS. Premi Installa per aggiungerli: PushFPS si chiude, li scarica e li installa, poi si riapre. Le impostazioni restano.",
+   "pt-BR": "Os arquivos deste recurso não foram escolhidos na instalação do PushFPS. Clique em Instalar para adicioná-los: o PushFPS fecha, baixa e instala os arquivos e abre de novo. Suas configurações são mantidas.",
+   "tr": "Bu özelliğin dosyaları PushFPS kurulurken seçilmedi. Eklemek için Yükle'ye basın: PushFPS kapanır, dosyaları indirip kurar ve yeniden açılır. Ayarlarınız korunur.",
+   "ar": "لم تُختر ملفات هذه الميزة عند تثبيت PushFPS. اضغط «تثبيت» لإضافتها: يُغلق PushFPS، وينزّلها ويثبّتها، ثم يُفتح من جديد. تبقى إعداداتك كما هي.",
+   "pl": "Jego pliki nie zostały wybrane podczas instalacji PushFPS. Naciśnij Zainstaluj, aby je dodać: PushFPS zamknie się, pobierze i zainstaluje je, a potem otworzy ponownie. Ustawienia zostaną zachowane.",
+   "ru": "Его файлы не были выбраны при установке PushFPS. Нажмите «Установить», чтобы добавить их: PushFPS закроется, скачает и установит их и снова откроется. Настройки сохранятся."
   },
   {
    "zh": "安装更新",
@@ -49613,6 +49649,24 @@
    "ru": "Положительные значения задерживают звук"
   },
   {
+   "zh": "正在下载… %1%",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "正在下載… %1%",
+   "en": "Downloading… %1%",
+   "ja": "ダウンロード中… %1%",
+   "ko": "다운로드 중… %1%",
+   "nl": "Downloaden… %1%",
+   "de": "Wird heruntergeladen … %1%",
+   "es": "Descargando… %1%",
+   "fr": "Téléchargement… %1%",
+   "it": "Download in corso… %1%",
+   "pt-BR": "Baixando… %1%",
+   "tr": "İndiriliyor… %1%",
+   "ar": "جارٍ التنزيل… %1%",
+   "pl": "Pobieranie… %1%",
+   "ru": "Загрузка… %1%"
+  },
+  {
    "zh": "正在下载更新… %1%",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "正在下載更新… %1%",
@@ -50115,6 +50169,24 @@
    "ar": "بدء...",
    "pl": "Zaczynając...",
    "ru": "Начать..."
+  },
+  {
+   "zh": "正在启动安装程序；PushFPS 会自动关闭，装好后重新打开",
+   "src": "qml/PushQuickSetup.qml",
+   "zh-TW": "正在啟動安裝程式；PushFPS 會自動關閉，裝好後重新開啟",
+   "en": "Starting the installer; PushFPS closes by itself and opens again when it is done.",
+   "ja": "インストーラーを起動しています。PushFPS は自動で閉じ、終わると再び開きます。",
+   "ko": "설치 프로그램을 시작하는 중입니다. PushFPS가 자동으로 닫히고, 끝나면 다시 열립니다.",
+   "nl": "Het installatieprogramma start; PushFPS sluit vanzelf en opent weer als het klaar is.",
+   "de": "Das Installationsprogramm wird gestartet; PushFPS schließt sich selbst und öffnet sich wieder, wenn es fertig ist.",
+   "es": "Iniciando el instalador; PushFPS se cierra solo y se vuelve a abrir cuando termina.",
+   "fr": "Lancement du programme d'installation ; PushFPS se ferme tout seul et se rouvre une fois terminé.",
+   "it": "Avvio del programma di installazione; PushFPS si chiude da solo e si riapre al termine.",
+   "pt-BR": "Iniciando o instalador; o PushFPS fecha sozinho e abre de novo quando terminar.",
+   "tr": "Kurulum programı başlatılıyor; PushFPS kendiliğinden kapanır ve bitince yeniden açılır.",
+   "ar": "جارٍ تشغيل برنامج التثبيت؛ يُغلق PushFPS تلقائيًا ويُفتح من جديد عند الانتهاء.",
+   "pl": "Uruchamianie instalatora; PushFPS zamknie się sam i otworzy ponownie po zakończeniu.",
+   "ru": "Запуск установщика; PushFPS закроется сам и снова откроется, когда всё будет готово."
   },
   {
    "zh": "正在唤醒主机并准备串流…",
@@ -51684,7 +51756,7 @@
   },
   {
    "zh": "正在验证签名…",
-   "src": "qml/SettingsPage.qml",
+   "src": "qml/PushQuickSetup.qml",
    "zh-TW": "正在驗證簽署…",
    "en": "Checking the signature…",
    "ja": "署名を検証中…",
@@ -52887,6 +52959,24 @@
    "ar": "لا يوجد تطبيق يرسل صورة الآن",
    "pl": "Żadna aplikacja nie wysyła teraz zdjęcia",
    "ru": "Ни одно приложение не отправляет фотографию прямо сейчас."
+  },
+  {
+   "zh": "没有找到这个版本的已签名安装包，请稍后再试，或重新运行 Install-PushFPS.cmd 并在询问时回答 y",
+   "src": "src/ui/UpdateChecker.cpp",
+   "zh-TW": "沒有找到這個版本的已簽署安裝包，請稍後再試，或重新執行 Install-PushFPS.cmd 並在詢問時回答 y",
+   "en": "No signed package for this version was found. Try again later, or run Install-PushFPS.cmd again and answer y when asked.",
+   "ja": "このバージョンの署名済みパッケージが見つかりません。しばらくしてからもう一度試すか、Install-PushFPS.cmd をもう一度実行して、質問に y と答えてください。",
+   "ko": "이 버전의 서명된 패키지를 찾지 못했습니다. 잠시 후 다시 시도하거나, Install-PushFPS.cmd를 다시 실행하고 질문에 y라고 답하세요.",
+   "nl": "Geen ondertekend pakket voor deze versie gevonden. Probeer het later opnieuw, of voer Install-PushFPS.cmd opnieuw uit en antwoord y als het gevraagd wordt.",
+   "de": "Für diese Version wurde kein signiertes Paket gefunden. Versuchen Sie es später erneut, oder führen Sie Install-PushFPS.cmd noch einmal aus und antworten Sie bei der Frage mit y.",
+   "es": "No se encontró un paquete firmado para esta versión. Inténtelo más tarde, o vuelva a ejecutar Install-PushFPS.cmd y responda y cuando se le pregunte.",
+   "fr": "Aucun paquet signé trouvé pour cette version. Réessayez plus tard, ou relancez Install-PushFPS.cmd et répondez y à la question.",
+   "it": "Nessun pacchetto firmato trovato per questa versione. Riprova più tardi, oppure esegui di nuovo Install-PushFPS.cmd e rispondi y alla domanda.",
+   "pt-BR": "Nenhum pacote assinado desta versão foi encontrado. Tente de novo mais tarde, ou execute Install-PushFPS.cmd outra vez e responda y quando perguntado.",
+   "tr": "Bu sürüm için imzalı paket bulunamadı. Daha sonra yeniden deneyin ya da Install-PushFPS.cmd'yi yeniden çalıştırıp sorulduğunda y yanıtını verin.",
+   "ar": "لم يُعثر على حزمة موقّعة لهذا الإصدار. حاول لاحقًا، أو شغّل Install-PushFPS.cmd من جديد وأجب بـ y عند السؤال.",
+   "pl": "Nie znaleziono podpisanego pakietu dla tej wersji. Spróbuj później albo uruchom ponownie Install-PushFPS.cmd i odpowiedz y na pytanie.",
+   "ru": "Подписанный пакет для этой версии не найден. Попробуйте позже или снова запустите Install-PushFPS.cmd и ответьте y на вопрос."
   },
   {
    "zh": "没有找到采集卡：列表里只有其他程序的虚拟摄像头。接上采集卡后点刷新。",
@@ -75569,6 +75659,24 @@
    "ar": "الجيروسكوب",
    "pl": "Żyroskop",
    "ru": "Гироскоп"
+  },
+  {
+   "zh": "附加组件没有安装完成，当前版本未改动；可以重新运行 Install-PushFPS.cmd 并在询问时回答 y",
+   "src": "src/ui/UpdateChecker.cpp",
+   "zh-TW": "附加元件沒有安裝完成，目前版本未改動；可以重新執行 Install-PushFPS.cmd 並在詢問時回答 y",
+   "en": "The optional files were not installed; nothing was changed. You can run Install-PushFPS.cmd again and answer y when asked.",
+   "ja": "追加ファイルはインストールされませんでした。何も変更されていません。Install-PushFPS.cmd をもう一度実行して、質問に y と答えることもできます。",
+   "ko": "추가 파일이 설치되지 않았습니다. 아무것도 바뀌지 않았습니다. Install-PushFPS.cmd를 다시 실행하고 질문에 y라고 답해도 됩니다.",
+   "nl": "De extra bestanden zijn niet geïnstalleerd; er is niets veranderd. Je kunt Install-PushFPS.cmd opnieuw uitvoeren en y antwoorden als het gevraagd wordt.",
+   "de": "Die zusätzlichen Dateien wurden nicht installiert; nichts wurde geändert. Sie können Install-PushFPS.cmd noch einmal ausführen und bei der Frage mit y antworten.",
+   "es": "Los archivos opcionales no se instalaron; no se cambió nada. Puede volver a ejecutar Install-PushFPS.cmd y responder y cuando se le pregunte.",
+   "fr": "Les fichiers optionnels n'ont pas été installés ; rien n'a été modifié. Vous pouvez relancer Install-PushFPS.cmd et répondre y à la question.",
+   "it": "I file opzionali non sono stati installati; non è cambiato nulla. Puoi eseguire di nuovo Install-PushFPS.cmd e rispondere y alla domanda.",
+   "pt-BR": "Os arquivos opcionais não foram instalados; nada foi alterado. Você pode executar Install-PushFPS.cmd de novo e responder y quando perguntado.",
+   "tr": "İsteğe bağlı dosyalar kurulmadı; hiçbir şey değişmedi. Install-PushFPS.cmd'yi yeniden çalıştırıp sorulduğunda y yanıtını verebilirsiniz.",
+   "ar": "لم تُثبَّت الملفات الاختيارية؛ لم يتغيّر شيء. يمكنك تشغيل Install-PushFPS.cmd من جديد والإجابة بـ y عند السؤال.",
+   "pl": "Dodatkowe pliki nie zostały zainstalowane; nic nie zmieniono. Możesz uruchomić ponownie Install-PushFPS.cmd i odpowiedzieć y na pytanie.",
+   "ru": "Дополнительные файлы не установлены; ничего не изменено. Можно снова запустить Install-PushFPS.cmd и ответить y на вопрос."
   },
   {
    "zh": "降低的是基础超分后的画面，不是原始输入；选项必须小于基础结果和第二次超分目标。",
