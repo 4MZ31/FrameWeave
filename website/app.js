@@ -576,27 +576,30 @@
   ready(() => { startThemes(); startSky(); startFlow(); startLab(); startTabs(); startGallery(); startNav(); loadRelease(); });
 })();
 
-// Setup guide: console tabs (arrow keys move between them).
+// Tab lists in the guides (arrow keys move between tabs). Each list minds its own tabs and panels.
 (function () {
-  var tabs = Array.prototype.slice.call(document.querySelectorAll(".ctabs [role=tab]"));
-  if (!tabs.length) return;
-  function pick(tab, focus) {
-    tabs.forEach(function (t) {
-      var on = t === tab;
-      t.setAttribute("aria-selected", on ? "true" : "false");
-      t.tabIndex = on ? 0 : -1;
-      var panel = document.getElementById(t.getAttribute("aria-controls"));
-      if (panel) panel.hidden = !on;
-    });
-    if (focus) tab.focus();
-  }
-  tabs.forEach(function (t, i) {
-    t.addEventListener("click", function () { pick(t, false); });
-    t.addEventListener("keydown", function (e) {
-      var n = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-      if (!n) return;
-      e.preventDefault();
-      pick(tabs[(i + n + tabs.length) % tabs.length], true);
+  var lists = Array.prototype.slice.call(document.querySelectorAll(".ctabs"));
+  lists.forEach(function (list) {
+    var tabs = Array.prototype.slice.call(list.querySelectorAll("[role=tab]"));
+    if (!tabs.length) return;
+    function pick(tab, focus) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute("aria-selected", on ? "true" : "false");
+        t.tabIndex = on ? 0 : -1;
+        var panel = document.getElementById(t.getAttribute("aria-controls"));
+        if (panel) panel.hidden = !on;
+      });
+      if (focus) tab.focus();
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener("click", function () { pick(t, false); });
+      t.addEventListener("keydown", function (e) {
+        var n = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (!n) return;
+        e.preventDefault();
+        pick(tabs[(i + n + tabs.length) % tabs.length], true);
+      });
     });
   });
 })();

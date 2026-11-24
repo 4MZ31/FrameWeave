@@ -44,6 +44,7 @@
         <li><a href="#features">Features</a></li>
         <li><a href="#requirements">Requirements</a></li>
         <li><a href="#guide">Setup guide</a></li>
+        <li><a href="#remote-play">Remote Play</a></li>
         <li><a href="#faq">FAQ</a></li>
       </ul>
     </nav>
@@ -335,7 +336,7 @@
       <li>GeForce RTX 3060 <small>NVIDIA</small></li>
       <li>Radeon RX 9070 XT <small>AMD</small></li>
     </ul>
-    <p class="fine">PushFPS has been run on these cards with real games. It is a compatibility list, not a speed ranking, and other DirectX&nbsp;12 cards should work too. The RTX&nbsp;3060 is the smallest NVIDIA card it has been run on: frame generation and AI picture enhancement both work there. To add yours, copy the performance report in <em>Settings</em> after a session and <a href="https://github.com/DosukaSOL/PushFPS/issues/new?template=hardware-report.yml">send a hardware report</a>.</p>
+    <p class="fine">PushFPS has been run on these cards with real games. It is a compatibility list, not a speed ranking, and other DirectX&nbsp;12 cards should work too. The RTX&nbsp;3060 is the smallest NVIDIA card it has been run on: frame generation and AI picture enhancement both work there. Users have since reported every GeForce RTX card from the RTX&nbsp;3060 to the RTX&nbsp;5090 working, Crosshair Hold and the other features included. To add yours, copy the performance report in <em>Settings</em> after a session and <a href="https://github.com/DosukaSOL/PushFPS/issues/new?template=hardware-report.yml">send a hardware report</a>.</p>
   </div>
 </section>
 
@@ -523,6 +524,98 @@
   </div>
 </section>
 
+<!-- Remote Play: PS5 and Xbox without a capture card. The steps are also in the README and on the graphics
+     (scripts/brand/make_remote_play_guide.py): change the three together. -->
+<section class="section" id="remote-play">
+  <div class="wrap">
+    <h2>Remote Play setup: no capture card</h2>
+    <p class="section-lede">Play your PS5 or Xbox on your PC monitor over your home network, with the same frame generation. You set it up once.</p>
+    <div class="console-tabs rp-tabs">
+      <div class="ctabs" role="tablist" aria-label="Remote Play setup">
+        <button role="tab" id="rt-ps5" aria-controls="rp-ps5" aria-selected="true">PS5</button>
+        <button role="tab" id="rt-xbox" aria-controls="rp-xbox" aria-selected="false" tabindex="-1">Xbox</button>
+        <button role="tab" id="rt-help" aria-controls="rp-help" aria-selected="false" tabindex="-1">Not working?</button>
+      </div>
+
+      <div class="cpanel rp-panel" role="tabpanel" id="rp-ps5" aria-labelledby="rt-ps5">
+        <div class="rp-grid">
+          <div class="rp-text">
+            <h3 class="rp-h">On your PS5</h3>
+            <ol class="rp-steps">
+              <li><b>Turn Remote Play on.</b> <span class="rp-path">Settings → System → Remote Play → <b>Enable Remote Play</b></span></li>
+              <li><b>Get the pairing number.</b> <span class="rp-path">Settings → System → Remote Play → <b>Pair Device</b></span> The PS5 shows 8 digits for 5 minutes. Leave them on screen. <small>Older system software calls it <em>Link Device</em>.</small></li>
+            </ol>
+            <h3 class="rp-h">In PushFPS</h3>
+            <ol class="rp-steps" start="3">
+              <li><b>Open PS5 streaming and press Search.</b> It finds your PS5 and fills in its address. <small>Nothing found? Type the IP address the PS5 shows under Settings → Network → Connection Status → View Connection Status.</small></li>
+              <li><b>Press Get Account ID.</b> A page opens in your browser. Look up your PSN name there and copy the Account ID into PushFPS: a long number, or 12 characters ending in <code>=</code>. Your PSN name itself does not work.</li>
+              <li><b>Type the 8 digits and press Pair and save.</b> Type them without the space.</li>
+              <li><b>Press Connect.</b> If the PS5 asks for the sign-in PIN of your PS5 user, type it under <em>Sign-in PIN</em> in the same window.</li>
+            </ol>
+            <p class="guide-note"><b>Controller:</b> connect it to the <b>PC</b> with a USB cable, or pair it with the PC's Bluetooth. PushFPS passes it on to the PS5 while its window is in front.</p>
+            <p class="guide-note">You pair once. Next time: open PS5 streaming and press Connect. To start a PS5 that is in rest mode with the <em>Wake</em> button, also turn on <em>Stay Connected to the Internet</em> and <em>Enable Turning On PS5 from Network</em> under Settings → System → Power Saving → Features Available in Rest Mode.</p>
+          </div>
+          <button type="button" class="shot rp-shot" data-src="assets/guides/remote-play-ps5.webp" data-cap="PS5 Remote Play setup, step by step"><img src="assets/guides/remote-play-ps5.webp" alt="PS5 Remote Play setup in six steps: two on the PS5, four in PushFPS" loading="lazy" width="1200" height="1500"></button>
+        </div>
+      </div>
+
+      <div class="cpanel rp-panel" role="tabpanel" id="rp-xbox" aria-labelledby="rt-xbox" hidden>
+        <div class="rp-grid">
+          <div class="rp-text">
+            <h3 class="rp-h">On your Xbox</h3>
+            <ol class="rp-steps">
+              <li><b>Turn remote features on.</b> <span class="rp-path">Settings → Devices &amp; connections → Remote features → <b>Enable remote features</b></span></li>
+              <li><b>Set the power option to Sleep.</b> <span class="rp-path">Settings → General → Power options → <b>Sleep</b></span></li>
+            </ol>
+            <h3 class="rp-h">In PushFPS</h3>
+            <ol class="rp-steps" start="3">
+              <li><b>Open Xbox streaming and press Sign in.</b> PushFPS shows a code. Enter it at <b>microsoft.com/link</b> and sign in with the Microsoft account your Xbox uses. PushFPS never sees your password.</li>
+              <li><b>Pick your console and press Start streaming.</b> <small>Not in the list? Press Refresh. The Xbox has to be signed in with the same account.</small></li>
+              <li><b>Use this PC's controller.</b> Connect it to the <b>PC</b> (USB cable, wireless adapter or Bluetooth) and leave the <em>Controller</em> switch on.</li>
+            </ol>
+            <p class="guide-note">Xbox streaming is unofficial and experimental: it connects the way open-source clients do and can stop working when Microsoft changes its service. Only for your own account and console.</p>
+          </div>
+          <button type="button" class="shot rp-shot" data-src="assets/guides/remote-play-xbox.webp" data-cap="Xbox Remote Play setup, step by step"><img src="assets/guides/remote-play-xbox.webp" alt="Xbox Remote Play setup in five steps: two on the Xbox, three in PushFPS" loading="lazy" width="1200" height="1500"></button>
+        </div>
+      </div>
+
+      <div class="cpanel rp-panel" role="tabpanel" id="rp-help" aria-labelledby="rt-help" hidden>
+        <div class="rp-grid">
+          <div class="rp-text">
+            <h3 class="rp-h">The PS5 will not pair</h3>
+            <ul class="rp-checks">
+              <li><b>Account ID</b> is the number from <em>Get Account ID</em>, not your PSN name.</li>
+              <li>The 8 digits: no space, and a new number once 5 minutes have passed.</li>
+              <li>No address? Press <em>Search</em>, or type the PS5's IP address.</li>
+              <li>PS5 and PC on the same network: no guest Wi-Fi, no VPN. If Windows asks whether PushFPS may use the network, allow it.</li>
+            </ul>
+            <h3 class="rp-h">The controller does nothing</h3>
+            <ul class="rp-checks">
+              <li>Connect it to the <b>PC</b>, not to the console.</li>
+              <li>Keep PushFPS in front: click its window once. It only passes the controller on while it is the active window.</li>
+              <li>PS5: <em>View only</em> off. Xbox: <em>Controller</em> on.</li>
+              <li>More than one controller or wheel connected? Unplug the others and connect again.</li>
+            </ul>
+            <h3 class="rp-h">The Xbox is not in the list</h3>
+            <ul class="rp-checks">
+              <li>Sign in on the console with the same Microsoft account.</li>
+              <li>Remote features on, power option <em>Sleep</em>, then press <em>Refresh</em>.</li>
+            </ul>
+            <h3 class="rp-h">It stutters, drops out or closes</h3>
+            <ul class="rp-checks">
+              <li>Use a network cable for the console, and for the PC if you can.</li>
+              <li>PS5: lower <em>Requested bitrate</em>, or set <em>Decoding</em> to CPU software.</li>
+              <li>Xbox: turn on <em>Software video decoding</em>.</li>
+              <li>Still stuck? <em>Settings → About → Report a problem</em> copies what we need to help, or ask on the <a href="https://discord.gg/N88znNpSgC" rel="noopener">Discord</a>.</li>
+            </ul>
+          </div>
+          <button type="button" class="shot rp-shot" data-src="assets/guides/remote-play-help.webp" data-cap="Remote Play not working? What to check"><img src="assets/guides/remote-play-help.webp" alt="What to check when Remote Play does not work: pairing, the controller, the Xbox list, and stutter" loading="lazy" width="1200" height="1500"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Download -->
 <section class="section download" id="download">
   <div class="wrap">
@@ -566,7 +659,7 @@
       <details><summary>Do I need an NVIDIA card?</summary><p>No. PushFlow, PushFPS's own frame generation (2× to 4×), and AMD FSR frame generation (2×) run on any DirectX 12 card, and ANR by Apex Compute supports GTX 16 and newer, Radeon RX 5000 and newer and Intel Arc. AMD cards also get AMD FRC through the AMD driver. NVIDIA RTX 40 and 50 cards get the most options, including up to 8× frame generation.</p></details>
       <details><summary>AI picture enhancement says the package lacks the runtime components. Why?</summary><p>AI picture enhancement on NVIDIA RTX and Radeon RX 7000 / 9000 cards uses community-built runtime files. The installer treats them as <em>experimental extras</em>: it asks, and the default is no. Run <code>Install-PushFPS.cmd</code> again and answer <b>y</b> when it asks about the experimental extras. Your settings are kept, and updates from inside PushFPS keep the extras. Frame generation doesn't need them.</p></details>
       <details><summary>Which capture cards work?</summary><p>Any card that Windows shows as a camera and that sends 1080p at 60&nbsp;FPS without compression. The Elgato 4K X, HD60 X and 4K S are tested, and users report the Elgato HD60 S, Elgato HD60 Pro, AVerMedia Live Gamer Ultra 2.1, AVerMedia Live Streamer Ultra HD and ezcap Game Link Raw working. The app shows each card's status and has a report form for yours.</p></details>
-      <details><summary>Can I use it without a capture card?</summary><p>Yes. PS5 streaming (Remote Play over your home network), PC streaming from a Sunshine host and Xbox streaming are built in. A capture card still gives the sharpest picture and the lowest delay.</p></details>
+      <details><summary>Can I use it without a capture card?</summary><p>Yes. PS5 streaming (Remote Play over your home network), PC streaming from a Sunshine host and Xbox streaming are built in: <a href="#remote-play">how to set up Remote Play</a>. A capture card still gives the sharpest picture and the lowest delay.</p></details>
       <details><summary>Does it work with 60 FPS games?</summary><p>Yes. Set the game frame rate to 60 and pick 120&nbsp;FPS or <em>Match monitor</em>.</p></details>
       <details><summary>Can I stream or record it?</summary><p>Yes. PushFPS records, keeps an instant replay and goes live itself: to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or your own RTMP server, several at once. Streaming mode lays it out like OBS, with a layout editor, platform presets and an audio mixer for game sound, your microphone, desktop audio and an extra input. The OBS Studio plugin adds the boosted picture to your OBS scenes if you prefer OBS.</p></details>
       <details><summary>Is there a macOS or Linux version?</summary><p>Yes, as a preview, in the same new design as the Windows build. It has PushFPS's own frame generation, Crosshair Hold, Frame Pacing Repair and Live HUD Lock on Vulkan, OpenGL or Metal, without NVIDIA, AMD or Intel components (those exist only for Windows). Linux comes as an AppImage, macOS as one app for Apple Silicon and Intel. Recording and going live are Windows-only for now.</p></details>

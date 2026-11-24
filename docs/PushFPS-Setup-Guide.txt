@@ -12,6 +12,7 @@ Contents
   5. Windows settings
   6. When to use HDR (playing, recording, streaming)
   7. Quick checklist
+  8. Remote Play setup (PS5 and Xbox, without a capture card)
 
 
 1. START HERE: RECOMMENDED PUSHFPS SETTINGS
@@ -151,7 +152,8 @@ Nintendo Switch 2
 Videos on your PC (YouTube in a browser, video apps, files): use Video playback mode (the play
 button in the top bar). Pick the window, switch on Smoother and Sharper, press F11.
 
-No capture card? Streaming sources work too (PS5 Remote Play, Moonlight from a Sunshine PC, Xbox).
+No capture card? Streaming sources work too (PS5 Remote Play, Moonlight from a Sunshine PC, Xbox):
+section 8 sets up Remote Play step by step.
 For PS5 Remote Play pick 1080p 60 FPS with H.265 (the default for new pairings). On a wired network
 a requested bitrate of 30 Mbps or more gives a sharper picture; lower it if the picture stutters.
 
@@ -277,7 +279,78 @@ Tips
   [ ] G-SYNC/FreeSync on, monitor at its highest refresh rate, fullscreen (F11)
   [ ] HDR only when every step is HDR; SDR for streams and shared clips
 
-Problems? In PushFPS: Settings > Report a problem copies diagnostic information.
+8. REMOTE PLAY SETUP (PS5 AND XBOX, WITHOUT A CAPTURE CARD)
+-----------------------------------------------------------
+
+Console and PC on the same home network. You set it up once.
+
+PS5
+
+  On your PS5
+  1. Turn Remote Play on: Settings > System > Remote Play > Enable Remote Play.
+  2. Get the pairing number: Settings > System > Remote Play > Pair Device (older system software
+     calls it Link Device). The PS5 shows 8 digits for 5 minutes. Leave them on screen.
+
+  In PushFPS
+  3. Open PS5 streaming and press Search. It finds your PS5 and fills in its address. Nothing found?
+     Type the IP address the PS5 shows under Settings > Network > Connection Status > View
+     Connection Status.
+  4. Press Get Account ID. A page opens in your browser. Look up your PSN name there and copy the
+     Account ID into PushFPS: a long number, or 12 characters ending in =. Your PSN name itself does
+     not work.
+  5. Type the 8 digits and press Pair and save. Type them without the space.
+  6. Press Connect. If the PS5 asks for the sign-in PIN of your PS5 user, type it under Sign-in PIN
+     in the same window.
+
+  Controller: connect it to the PC with a USB cable, or pair it with the PC's Bluetooth. PushFPS
+  passes it on to the PS5 while its window is in front.
+
+  You pair once. Next time: open PS5 streaming and press Connect. To start a PS5 that is in rest
+  mode with the Wake button, also turn on Stay Connected to the Internet and Enable Turning On PS5
+  from Network under Settings > System > Power Saving > Features Available in Rest Mode.
+
+Xbox (unofficial and experimental: it can stop working when Microsoft changes its service)
+
+  On your Xbox
+  1. Turn remote features on: Settings > Devices & connections > Remote features > Enable remote
+     features.
+  2. Set the power option to Sleep: Settings > General > Power options > Sleep.
+
+  In PushFPS
+  3. Open Xbox streaming and press Sign in. PushFPS shows a code. Enter it at microsoft.com/link and
+     sign in with the Microsoft account your Xbox uses. PushFPS never sees your password.
+  4. Pick your console and press Start streaming. Not in the list? Press Refresh. The Xbox has to be
+     signed in with the same account.
+  5. Use this PC's controller: connect it to the PC (USB cable, wireless adapter or Bluetooth) and
+     leave the Controller switch on.
+
+Not working?
+
+  The PS5 will not pair
+  - Account ID is the number from Get Account ID, not your PSN name.
+  - The 8 digits: no space, and a new number once 5 minutes have passed.
+  - No address? Press Search, or type the PS5's IP address.
+  - PS5 and PC on the same network: no guest Wi-Fi, no VPN. If Windows asks whether PushFPS may use
+    the network, allow it.
+
+  The controller does nothing
+  - Connect it to the PC, not to the console.
+  - Keep PushFPS in front: click its window once. It only passes the controller on while it is the
+    active window.
+  - PS5: View only off. Xbox: Controller on.
+  - More than one controller or wheel connected? Unplug the others and connect again.
+
+  The Xbox is not in the list
+  - Sign in on the console with the same Microsoft account.
+  - Remote features on, power option Sleep, then press Refresh.
+
+  It stutters, drops out or closes
+  - Use a network cable for the console, and for the PC if you can.
+  - PS5: lower Requested bitrate, or set Decoding to CPU software.
+  - Xbox: turn on Software video decoding.
+
+
+Problems? In PushFPS: Settings > About > Report a problem copies diagnostic information.
 Questions? Ask on the PushFPS Discord: https://discord.gg/N88znNpSgC
 Website: https://dosukasol.github.io/PushFPS/    Source: https://github.com/DosukaSOL/PushFPS
 PushFPS is free software under the GNU GPL-3.0, a modified version of Veyra by Likely7.
