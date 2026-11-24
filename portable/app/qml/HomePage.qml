@@ -54,7 +54,7 @@ Rectangle {
             summary: app.targetMode === 0 ? qsTr("关") : app.targetMode === 1 ? "60 FPS" : app.targetMode === 2 ? "120 FPS" : qsTr("匹配显示器")
             open: root.isOpen("fg")
             onToggled: open => root.setOpen("fg", open)
-            QuickSettings {}
+            QuickSettings { part: "fg" }
         }
         // Picture, as the Windows build's quick setup has it: "Upscale to my screen" (the algorithm, the
         // size and the sharpening are in Professional mode's Quality tab, as on Windows).
@@ -64,6 +64,22 @@ Rectangle {
             open: root.isOpen("picture")
             onToggled: open => root.setOpen("picture", open)
             UpscaleRow {}
+        }
+        // HUD and Latency and sound, as the Windows build's quick setup sections (their rows are written
+        // once, in QuickSettings.qml).
+        PushSection {
+            sectionId: "hud"
+            title: qsTr("HUD")
+            open: root.isOpen("hud")
+            onToggled: open => root.setOpen("hud", open)
+            QuickSettings { part: "hud" }
+        }
+        PushSection {
+            sectionId: "latency"
+            title: qsTr("延迟与声音")
+            open: root.isOpen("latency")
+            onToggled: open => root.setOpen("latency", open)
+            QuickSettings { part: "latency" }
         }
         PushSection {
             sectionId: "start"
