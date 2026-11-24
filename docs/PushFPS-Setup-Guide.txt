@@ -295,11 +295,11 @@ PS5
   3. Open PS5 streaming and press Search. It finds your PS5 and fills in its address. Nothing found?
      Type the IP address the PS5 shows under Settings > Network > Connection Status > View
      Connection Status.
-  4. Get your Account ID through Sony's own sign-in and copy it into the PSN Account ID box: 12
-     characters ending in =, or a long number. Your PSN name itself does not work. How:
-     https://github.com/DosukaSOL/PushFPS/blob/main/docs/PSN-ACCOUNT-ID.md
+  4. Press Get Account ID. Sony's own sign-in page opens in your browser. Sign in, copy the address
+     the browser ends on (it starts with https://remoteplay.dl.playstation.net) into the box under it
+     and press Fill in: PushFPS fills in your Account ID. Your PSN name itself does not work.
      Never paste an "NPSSO" code anywhere: it is your signed-in PSN session.
-  5. Type the 8 digits and press Pair and save. Type them without the space.
+  5. Type the 8 digits and press Pair and save.
   6. Press Connect. If the PS5 asks for the sign-in PIN of your PS5 user, type it under Sign-in PIN
      in the same window.
 
@@ -328,7 +328,7 @@ Xbox (unofficial and experimental: it can stop working when Microsoft changes it
 Not working?
 
   The PS5 will not pair
-  - Account ID is the ID from Sony's sign-in (see step 4), not your PSN name.
+  - Account ID comes from Get Account ID (Sony's sign-in, step 4), not your PSN name.
   - The 8 digits: no space, and a new number once 5 minutes have passed.
   - No address? Press Search, or type the PS5's IP address.
   - PS5 and PC on the same network: no guest Wi-Fi, no VPN. If Windows asks whether PushFPS may use
