@@ -23,6 +23,8 @@ layout(std140, binding = 0) uniform buf {
     float gamma;
     float pad0;
     vec4 holdZone;     // Crosshair Hold: x, y and size of its square in picture pixels; w > 0.5 = a crosshair is held
+    vec4 subZone;      // Subtitle Hold: x, y, width and height of its band in picture pixels
+    vec4 subFlags;     // x > 0.5 = something is held in the band
 };
 
 layout(binding = 1) uniform sampler2D texA;
@@ -36,6 +38,10 @@ layout(binding = 5) uniform sampler2D hudMask;
 layout(binding = 6) uniform sampler2D holdA;
 layout(binding = 7) uniform sampler2D holdB;
 layout(binding = 8) uniform sampler2D holdShows;
+// Subtitle Hold: the same for the subtitle band.
+layout(binding = 9) uniform sampler2D subA;
+layout(binding = 10) uniform sampler2D subB;
+layout(binding = 11) uniform sampler2D subShows;
 
 vec2 fetchVector(sampler2D f, ivec2 ij) {
     vec4 x = floor(texelFetch(f, ivec2(ij.x * 2, ij.y), 0) * 255.0 + 0.5);
@@ -62,18 +68,25 @@ vec3 sampleAt(sampler2D t, vec2 p) {
     return texture(t, p / frameSize).rgb * 255.0;
 }
 
-// Do the four pixels of a bilinear sample at q all lie in the square?
-bool inHold(vec2 q) {
-    vec2 z = q - 0.5 - holdZone.xy;
-    return z.x >= 0.0 && z.y >= 0.0 && z.x <= holdZone.z - 1.0 && z.y <= holdZone.z - 1.0;
+// Do the four pixels of a bilinear sample at q all lie in the zone (x, y, width, height)?
+bool inZone(vec2 q, vec4 zone) {
+    vec2 z = q - 0.5 - zone.xy;
+    return z.x >= 0.0 && z.y >= 0.0 && z.x <= zone.z - 1.0 && z.y <= zone.w - 1.0;
 }
-// A real frame as frame generation takes it: the filled square inside it, the frame itself everywhere else.
+vec4 holdRect() { return vec4(holdZone.xy, holdZone.z, holdZone.z); }
+// A real frame as frame generation takes it: the filled zone inside each zone, the frame itself everywhere else.
 // (Explicit level 0 and a select, no branch: the choice differs from pixel to pixel.)
-vec3 takeFrom(sampler2D frame, sampler2D filled, vec2 q) {
+vec3 takeFrom(sampler2D frame, sampler2D filled, sampler2D filledSub, vec2 q) {
     vec3 own = sampleAt(frame, q);
-    if (holdZone.w < 0.5) return own;
-    vec3 given = textureLod(filled, (q - holdZone.xy) / holdZone.z, 0.0).rgb * 255.0;
-    return inHold(q) ? given : own;
+    if (holdZone.w > 0.5) {
+        vec3 given = textureLod(filled, (q - holdZone.xy) / holdZone.z, 0.0).rgb * 255.0;
+        own = inZone(q, holdRect()) ? given : own;
+    }
+    if (subFlags.x > 0.5) {
+        vec3 given = textureLod(filledSub, (q - subZone.xy) / subZone.zw, 0.0).rgb * 255.0;
+        own = inZone(q, subZone) ? given : own;
+    }
+    return own;
 }
 
 void main() {
@@ -85,10 +98,10 @@ void main() {
         float t = phase;
         vec2 vf = vectorAt(fieldF, p);
         vec2 vk = -vectorAt(fieldK, p);
-        vec3 a1 = takeFrom(texA, holdA, p - t * vf);
-        vec3 b1 = takeFrom(texB, holdB, p + (1.0 - t) * vf);
-        vec3 a2 = takeFrom(texA, holdA, p - t * vk);
-        vec3 b2 = takeFrom(texB, holdB, p + (1.0 - t) * vk);
+        vec3 a1 = takeFrom(texA, holdA, subA, p - t * vf);
+        vec3 b1 = takeFrom(texB, holdB, subB, p + (1.0 - t) * vf);
+        vec3 a2 = takeFrom(texA, holdA, subA, p - t * vk);
+        vec3 b2 = takeFrom(texB, holdB, subB, p + (1.0 - t) * vk);
         float e1 = dot(abs(a1 - b1), vec3(1.0 / 3.0));
         float e2 = dot(abs(a2 - b2), vec3(1.0 / 3.0));
         float w1 = 1.0 / ((e1 + 4.0) * (e1 + 4.0));
@@ -107,7 +120,15 @@ void main() {
             float shows = textureLod(holdShows, uv, 0.0).r;
             vec3 real = mix(sampleAt(texA, p), sampleAt(texB, p), t);
             vec3 heldPixel = real + shows * (c - given);
-            c = inHold(p) ? heldPixel : c;
+            c = inZone(p, holdRect()) ? heldPixel : c;
+        }
+        if (subFlags.x > 0.5) {
+            vec2 uv = (p - subZone.xy) / subZone.zw;
+            vec3 given = mix(textureLod(subA, uv, 0.0).rgb, textureLod(subB, uv, 0.0).rgb, t) * 255.0;
+            float shows = textureLod(subShows, uv, 0.0).r;
+            vec3 real = mix(sampleAt(texA, p), sampleAt(texB, p), t);
+            vec3 heldPixel = real + shows * (c - given);
+            c = inZone(p, subZone) ? heldPixel : c;
         }
         if (hudOn > 0.5) {
             float lockWeight = texture(hudMask, vTex).r;

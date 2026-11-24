@@ -54,6 +54,7 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
     pacing_ = s.value(QStringLiteral("pacingRepair"), false).toBool();
     hud_ = s.value(QStringLiteral("hudLock"), false).toBool();
     crosshairHold_ = s.value(QStringLiteral("crosshairHold"), false).toBool();
+    subtitleHold_ = s.value(QStringLiteral("subtitleHold"), false).toBool();
     dedup_ = s.value(QStringLiteral("removeDuplicates"), true).toBool();
     quality_ = std::clamp(s.value(QStringLiteral("quality"), 1).toInt(), 0, 1);
     audioOn_ = s.value(QStringLiteral("audioPassthrough"), true).toBool();
@@ -176,6 +177,7 @@ void AppController::applyEngineSettings() {
     s.pacingRepair = pacing_;
     s.hudLock = hud_;
     s.crosshairHold = crosshairHold_;
+    s.subtitleHold = subtitleHold_;
     s.removeDuplicates = dedup_;
     s.quality = quality_;
     if (engine_) engine_->setSettings(s);
@@ -497,6 +499,14 @@ void AppController::setCrosshairHold(bool v) {
     emit settingsChanged();
 }
 
+void AppController::setSubtitleHold(bool v) {
+    if (v == subtitleHold_) return;
+    subtitleHold_ = v;
+    save(QStringLiteral("subtitleHold"), v);
+    applyEngineSettings();
+    emit settingsChanged();
+}
+
 void AppController::setRemoveDuplicates(bool v) {
     if (v == dedup_) return;
     dedup_ = v;
@@ -689,6 +699,8 @@ void AppController::updateStats() {
     // Crosshair Hold: whether it runs, and how many pixels the newest real frame holds (0 = no crosshair found).
     m[QStringLiteral("holdState")] = st.holdState;
     m[QStringLiteral("holdPixels")] = st.holdPixels;
+    m[QStringLiteral("subHoldState")] = st.subHoldState;
+    m[QStringLiteral("subHoldPixels")] = st.subHoldPixels;
     m[QStringLiteral("pacingShare")] = st.kept > 0 ? double(st.pacingRepaired) / double(st.kept) : 0.0;
     m[QStringLiteral("width")] = st.width;
     m[QStringLiteral("height")] = st.height;
