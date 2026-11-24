@@ -21,6 +21,12 @@ DialogLayer {
         if (veyra.ps5Connect()) { dialogHost.close(); dialogHost.startPs5() }
         else ps5Dialog.showStatus()
     }
+    // PushFPS: whether the Account ID box holds something shaped like an ID (digits, or the 12 characters
+    // ending in =). Only for how loud the Get Account ID button is; pairing itself decides what is valid.
+    readonly property bool accountLooksRight: {
+        const typed = String(veyra.ps5.account || "").replace(/\s/g, "")
+        return /^[0-9]{6,20}$/.test(typed) || /^[A-Za-z0-9+\/]{11}=$/.test(typed)
+    }
     // PushFPS: an answer that names a field to fix is at the top, with the fields: bring it into view.
     function showStatus() { ps5Dialog.bodyViewport.contentY = 0 }
     Connections {
@@ -75,16 +81,23 @@ DialogLayer {
     DialogGroup {
         VRow {
             label: "PSN Account ID"
-            hint: qsTr("点击获取 Account ID，在网页查询后复制到这里。支持数字 ID 或 8 字节 Base64，不是 PSN 昵称。")
+            // PushFPS: in plain words, and the button stands out until the box holds something shaped like an ID.
+            // People typed their PSN name here with the old hint right under the box and never pressed the button.
+            hint: qsTr("点“获取 Account ID”，在打开的网页里查询你的 PSN 昵称，把页面显示的 Account ID 复制到这里：一长串数字，或以 = 结尾的 12 个字符。直接填 PSN 昵称不行。")
             hintBelow: true
             RowLayout {
                 spacing: 6
                 DialogTextField {
                     objectName: "ps5-account-id"; implicitWidth: 240; text: veyra.ps5.account || ""
+                    placeholder: qsTr("数字 ID，不是昵称")
                     onEdited: text => veyra.ps5Set("account", text)
                     onTyped: text => { if (text === text.trim()) veyra.ps5Set("account", text) }
                 }
-                VButton { objectName: "ps5-account-lookup"; text: qsTr("获取 Account ID"); ghost: true; onClicked: veyra.ps5OpenAccountChecker() }
+                VButton {
+                    objectName: "ps5-account-lookup"; text: qsTr("获取 Account ID")
+                    primary: !ps5Dialog.accountLooksRight; ghost: ps5Dialog.accountLooksRight
+                    onClicked: veyra.ps5OpenAccountChecker()
+                }
             }
         }
         VRow {

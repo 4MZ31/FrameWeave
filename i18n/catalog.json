@@ -41512,6 +41512,24 @@
    "ru": "Более высокие значения дают более мягкий переход"
   },
   {
+   "zh": "数字 ID，不是昵称",
+   "src": "qml/Ps5SourceDialog.qml",
+   "zh-TW": "數字 ID，不是暱稱",
+   "en": "A number, not your PSN name",
+   "ja": "数字の ID（名前ではありません）",
+   "ko": "숫자 ID (닉네임 아님)",
+   "nl": "Een getal, niet je PSN-naam",
+   "de": "Eine Zahl, nicht Ihr PSN-Name",
+   "es": "Un número, no su nombre de PSN",
+   "fr": "Un nombre, pas votre nom PSN",
+   "it": "Un numero, non il nome PSN",
+   "pt-BR": "Um número, não o nome da PSN",
+   "tr": "Bir sayı, PSN adınız değil",
+   "ar": "رقم، وليس اسمك على PSN",
+   "pl": "Liczba, nie nazwa PSN",
+   "ru": "Число, а не имя PSN"
+  },
+  {
    "zh": "整个屏幕",
    "src": "qml/WatchPage.qml",
    "zh-TW": "整個螢幕",
@@ -54743,6 +54761,24 @@
    "ru": "Сила отката (%)"
   },
   {
+   "zh": "点“获取 Account ID”，在打开的网页里查询你的 PSN 昵称，把页面显示的 Account ID 复制到这里：一长串数字，或以 = 结尾的 12 个字符。直接填 PSN 昵称不行。",
+   "src": "qml/Ps5SourceDialog.qml",
+   "zh-TW": "點「取得 Account ID」，在開啟的網頁中查詢你的 PSN 暱稱，把頁面顯示的 Account ID 複製到這裡：一長串數字，或以 = 結尾的 12 個字元。直接填 PSN 暱稱不行。",
+   "en": "Press Get Account ID, look up your PSN name on the page that opens and copy the Account ID it shows into this box: a long number, or 12 characters ending in =. Your PSN name itself does not work.",
+   "ja": "「Account ID を取得」を押し、開いたページで自分の PSN の名前を調べて、表示された Account ID をここにコピーしてください。長い数字、または = で終わる 12 文字です。PSN の名前そのものは使えません。",
+   "ko": "'계정 ID 받기'를 누르고, 열리는 페이지에서 PSN 닉네임을 조회한 다음 표시되는 계정 ID를 이 칸에 복사하세요. 긴 숫자 또는 =로 끝나는 12자입니다. PSN 닉네임 자체는 사용할 수 없습니다.",
+   "nl": "Druk op Account-ID ophalen, zoek op de pagina die opent je PSN-naam op en kopieer het Account-ID dat daar staat naar dit vak: een lang getal, of 12 tekens die eindigen op =. Je PSN-naam zelf werkt niet.",
+   "de": "Drücken Sie Konto-ID abrufen, schlagen Sie auf der Seite, die sich öffnet, Ihren PSN-Namen nach und kopieren Sie die dort gezeigte Konto-ID in dieses Feld: eine lange Zahl oder 12 Zeichen, die auf = enden. Ihr PSN-Name selbst funktioniert nicht.",
+   "es": "Pulse Obtener ID de cuenta, busque su nombre de PSN en la página que se abre y copie en este cuadro el ID de cuenta que muestra: un número largo, o 12 caracteres que terminan en =. Su nombre de PSN no sirve.",
+   "fr": "Appuyez sur Obtenir l'ID de compte, recherchez votre nom PSN sur la page qui s'ouvre et copiez dans cette case l'ID de compte affiché : un long nombre, ou 12 caractères se terminant par =. Votre nom PSN lui-même ne fonctionne pas.",
+   "it": "Premi Ottieni ID account, cerca il tuo nome PSN nella pagina che si apre e copia in questa casella l'ID account mostrato: un numero lungo, oppure 12 caratteri che terminano con =. Il nome PSN in sé non funziona.",
+   "pt-BR": "Pressione Obter ID da conta, procure seu nome da PSN na página que abrir e copie para esta caixa o ID da conta mostrado: um número longo, ou 12 caracteres terminados em =. O nome da PSN em si não funciona.",
+   "tr": "Hesap kimliğini al'a basın, açılan sayfada PSN adınızı aratın ve gösterilen hesap kimliğini bu kutuya kopyalayın: uzun bir sayı veya = ile biten 12 karakter. PSN adınızın kendisi çalışmaz.",
+   "ar": "اضغط «الحصول على معرّف الحساب»، وابحث عن اسمك على PSN في الصفحة التي تُفتح، ثم انسخ معرّف الحساب المعروض إلى هذا الحقل: رقم طويل، أو 12 حرفاً تنتهي بـ =. اسمك على PSN نفسه لا يعمل.",
+   "pl": "Naciśnij Pobierz ID konta, wyszukaj swoją nazwę PSN na stronie, która się otworzy, i skopiuj do tego pola pokazany tam identyfikator konta: długą liczbę albo 12 znaków kończących się na =. Sama nazwa PSN nie zadziała.",
+   "ru": "Нажмите «Получить ID учётной записи», найдите своё имя PSN на открывшейся странице и скопируйте показанный там ID учётной записи в это поле: длинное число или 12 символов, оканчивающихся на =. Само имя PSN не подходит."
+  },
+  {
    "zh": "点一下滑块后用 ← → 调整，每次的幅度；Esc 或单击画面交还方向键给快进快退",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "點一下滑塊後用 ← → 調整，每次的幅度；Esc 或單擊畫面交還方向鍵給快進快退",
@@ -54849,24 +54885,6 @@
    "ar": "إلعق صورة اللعبة أو مصدر لتكييفها",
    "pl": "Kliknij obrazek gry lub źródło, aby go dostosować",
    "ru": "Нажмите на изображение игры или источник, чтобы настроить его"
-  },
-  {
-   "zh": "点击获取 Account ID，在网页查询后复制到这里。支持数字 ID 或 8 字节 Base64，不是 PSN 昵称。",
-   "src": "qml/Ps5SourceDialog.qml",
-   "zh-TW": "點選取得 Account ID，在網頁查詢後複製到這裡。支援數字 ID 或 8 位元組 Base64，不是 PSN 暱稱。",
-   "en": "Click Get Account ID and copy the result here. Accepts a numeric ID or 8-byte Base64, not your PSN nickname.",
-   "ja": "「Account ID を取得」から調べた ID をここに貼り付けてください。数字の ID または8バイトの Base64 に対応しています。PSN のニックネームではありません。",
-   "ko": "‘계정 ID 받기’를 눌러 얻은 값을 입력하세요. PSN 닉네임이 아니라 숫자 ID 또는 8바이트 Base64 값이어야 합니다.",
-   "nl": "Klik op Account-ID ophalen en kopieer het resultaat hier. Accepteert een numerieke ID of 8-byte Base64, niet uw PSN-bijnaam.",
-   "de": "Click Get Account ID and copy the result here. Accepts a numeric ID or 8-byte Base64, not your PSN nickname.",
-   "es": "Haga clic en Obtener ID de cuenta y copiar el resultado aquí. Acepta un ID numérico o Base64 de 8 bytes, no su apodo PSN.",
-   "fr": "Click Get Account ID and copy the result here. Accepts a numeric ID or 8-byte Base64, not your PSN nickname.",
-   "it": "Fare clic su Ottieni ID account e copia il risultato qui. Accetta un ID numerico o Base64 da 8 byte, non il tuo soprannome PSN.",
-   "pt-BR": "Clique em Obter ID da conta e copie o resultado aqui. Aceita um ID numérico ou 8-byte Base64, não o seu apelido PSN.",
-   "tr": "Hesap kimlik alın ve sonucu buraya kopyalayın. numeric ID veya 8-byte Base64 kabul, PSN takmanız değil.",
-   "ar": "اضغطي على هوية الحساب ونسخي النتيجة هنا تقبل هويّة رقميّة أو بـ8 باوند 64، وليس لقب الشرطة الخاصة بك.",
-   "pl": "Kliknij Pobierz ID konta i skopiuj wynik tutaj. Akceptuje numeryczny identyfikator lub 8-bajtowy Base64, a nie pseudonim PSN.",
-   "ru": "Нажмите Получить идентификатор учетной записи и скопируйте результат здесь. Принимает цифровой идентификатор или 8-байтовый Base64, а не ваш псевдоним PSN."
   },
   {
    "zh": "点左侧文件可重新预览（会和导出抢显卡）",

@@ -2040,6 +2040,11 @@
      "file": "tests/qml/quick/tst_push_ps5_pairing.qml",
      "ci": "tst_push_ps5_pairing",
      "contains": "test_the_status_line_stands_first_and_is_shown"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_ps5_pairing.qml",
+     "ci": "tst_push_ps5_pairing",
+     "contains": "test_get_account_id_stands_out_until_an_id_is_there"
     }
    ],
    "needs_hardware": "A PS5: that a pairing made with a number typed with its space is accepted by the console, and what the page Get Account ID opens shows."

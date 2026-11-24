@@ -126,6 +126,27 @@ Item {
             panel.showStatus()
             compare(panel.bodyViewport.contentY, 0)
         }
+        // The way to the Account ID stands out until the box holds something shaped like one: a PSN name is not.
+        function test_get_account_id_stands_out_until_an_id_is_there() {
+            const lookup = findChild(panel, "ps5-account-lookup")
+            verify(lookup)
+            function account(text) { backend.ps5 = Object.assign({}, backend.ps5, {account: text}) }
+            account("")
+            verify(lookup.primary && !lookup.ghost)
+            account("SomePlayers")
+            verify(lookup.primary && !lookup.ghost)
+            account("Player_One-99")
+            verify(lookup.primary)
+            account("1234567890123456789")
+            verify(!lookup.primary && lookup.ghost)
+            account(" 1234 5678 9012 3456 789 ")
+            verify(!lookup.primary)
+            account("AAAAAAAAAAA=")
+            verify(!lookup.primary && lookup.ghost)
+            account("AAAAAAAAAAA")
+            verify(lookup.primary)
+            account("")
+        }
         // What lies behind a dialog is not under the pointer: a tool tile's tooltip came up over these fields.
         function test_the_page_behind_the_dialog_is_not_hovered() {
             tryVerify(function() { return panel.visible && panel.width > 100 }, 3000)
