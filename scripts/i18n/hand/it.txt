@@ -1596,3 +1596,10 @@ zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 Ope
 zh:放大没能在这块显卡上启动，画面照常显示|L'upscaling non è partito su questa scheda grafica; l'immagine viene mostrata come al solito
 zh:放大到屏幕分辨率|Upscaling alla risoluzione del tuo schermo
 zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 ingrandisce senza nitidezza; 50 è il valore predefinito di NVIDIA. NIS ingrandisce fino a 2× per passaggio; i fattori più grandi vengono completati con il ridimensionamento normale.
+zh:帧节奏修复|Correzione del ritmo dei fotogrammi
+zh:Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 PushFPS 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。|Anteprima per Linux e macOS: la generazione dei fotogrammi, la Correzione del ritmo dei fotogrammi e Live HUD Lock sono tecnologie di PushFPS e non richiedono componenti NVIDIA, AMD o Intel.
+zh:一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置|Attiva in un colpo tutte le impostazioni a bassa latenza che non costano qualità d'immagine: la scheda grafica mette in coda un solo fotogramma (NVIDIA Low Latency sulle schede NVIDIA), schermo intero alla connessione (salta il compositore del desktop, un aggiornamento di attesa in meno) e sincronizzazione a frequenza variabile sugli schermi G-SYNC/FreeSync (niente tearing né fotogrammi saltati). Generazione dei fotogrammi, miglioramento IA, blocco dell'HUD e Correzione del ritmo dei fotogrammi restano come sono. Disattivandola tornano le impostazioni di prima
+zh:已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置|Attivo: il movimento viene stimato in modo veloce e la Correzione del ritmo dei fotogrammi è disattivata. Disattivandolo torna quello che era impostato prima
+zh:帧节奏修复 · 已重排 %1%|Correzione del ritmo dei fotogrammi · %1% riallineato
+zh:帧节奏修复 · 等待去重测出帧率|Correzione del ritmo dei fotogrammi · in attesa che la rimozione dei duplicati misuri il frame rate
+zh:引擎未接受帧节奏修复，原设置保留|Il motore non ha accettato la Correzione del ritmo dei fotogrammi; resta l'impostazione precedente

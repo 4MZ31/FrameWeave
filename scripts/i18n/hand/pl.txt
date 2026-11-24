@@ -1596,3 +1596,11 @@ zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 Ope
 zh:放大没能在这块显卡上启动，画面照常显示|Skalowanie nie uruchomiło się na tej karcie graficznej; obraz jest wyświetlany normalnie
 zh:放大到屏幕分辨率|Skaluje do rozdzielczości ekranu
 zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 powiększa bez wyostrzania; 50 to domyślna wartość NVIDIA. NIS powiększa do 2× w jednym przebiegu; większe współczynniki kończy zwykłe skalowanie.
+zh:帧节奏修复|Korekta rytmu klatek
+zh:实时 HUD 锁定|Blokada HUD na żywo
+zh:Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 PushFPS 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。|Wersja zapoznawcza dla Linuksa i macOS: generowanie klatek, Korekta rytmu klatek i Blokada HUD na żywo to własne technologie PushFPS, które nie wymagają komponentów NVIDIA, AMD ani Intel.
+zh:一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置|Włącza naraz wszystkie ustawienia niskiego opóźnienia, które nie kosztują jakości obrazu: karta graficzna kolejkuje tylko jedną klatkę (NVIDIA Low Latency na kartach NVIDIA), pełny ekran po połączeniu (omija kompozytor pulpitu, o jedno odświeżenie mniej czekania) i synchronizacja ze zmiennym odświeżaniem na ekranach G-SYNC/FreeSync (bez rozrywania i pomijanych klatek). Generowanie klatek, ulepszanie AI, blokada HUD i Korekta rytmu klatek pozostają bez zmian. Wyłączenie przywraca poprzednie ustawienia
+zh:已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置|Włączone: ruch jest wyznaczany szybkim sposobem, a Korekta rytmu klatek jest wyłączona. Wyłączenie przywraca poprzednie ustawienia
+zh:帧节奏修复 · 已重排 %1%|Korekta rytmu klatek · %1% przestawionych
+zh:帧节奏修复 · 等待去重测出帧率|Korekta rytmu klatek · czeka, aż usuwanie duplikatów zmierzy liczbę klatek
+zh:引擎未接受帧节奏修复，原设置保留|Silnik nie przyjął Korekty rytmu klatek; poprzednie ustawienie zostaje

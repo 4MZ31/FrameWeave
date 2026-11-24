@@ -1596,3 +1596,10 @@ zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 Ope
 zh:放大没能在这块显卡上启动，画面照常显示|La mise à l'échelle n'a pas pu démarrer sur cette carte graphique ; l'image s'affiche normalement
 zh:放大到屏幕分辨率|Met à l'échelle de la résolution de votre écran
 zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 agrandit sans netteté ; 50 est la valeur par défaut de NVIDIA. NIS agrandit jusqu'à 2× par passe ; les facteurs plus grands sont complétés par une mise à l'échelle classique.
+zh:帧节奏修复|Correction de la cadence d'images
+zh:Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 PushFPS 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。|Préversion Linux et macOS : la génération d'images, la Correction de la cadence d'images et le Verrouillage HUD en direct sont des technologies propres à PushFPS et ne nécessitent aucun composant NVIDIA, AMD ou Intel.
+zh:一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置|Active en une fois tous les réglages de faible latence qui ne coûtent pas de qualité d'image : la carte graphique ne met qu'une image en file d'attente (NVIDIA Low Latency sur les cartes NVIDIA), plein écran à la connexion (contourne le compositeur du bureau, un rafraîchissement d'attente en moins) et synchronisation à fréquence variable sur les écrans G-SYNC/FreeSync (sans déchirement ni image sautée). La génération d'images, l'amélioration par IA, le verrouillage du HUD et la Correction de la cadence d'images restent inchangés. Le désactiver rétablit vos réglages précédents
+zh:已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置|Activé : le mouvement est calculé de la façon rapide et la Correction de la cadence d'images est désactivée. La désactiver rétablit ce qui était réglé avant
+zh:帧节奏修复 · 已重排 %1%|Correction de la cadence d'images · %1% recadencé
+zh:帧节奏修复 · 等待去重测出帧率|Correction de la cadence d'images · en attente de la mesure de la fréquence par la suppression des doublons
+zh:引擎未接受帧节奏修复，原设置保留|Le moteur n'a pas accepté la Correction de la cadence d'images ; le réglage précédent est conservé

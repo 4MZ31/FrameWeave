@@ -21,7 +21,8 @@ Rectangle {
     readonly property Item videoViewport: viewport
     readonly property real margin: 16
     readonly property real gap: 14
-    readonly property real panelWidth: Math.round(Math.max(340, Math.min(420, width * 0.32)))
+    // Wide enough for the tabs in this language (they are scrolled only when that would pass 45 % of the page).
+    readonly property real panelWidth: Math.round(Math.min(Math.max(340, Math.min(420, width * 0.32), tabs.implicitWidth + 24), width * 0.45))
     readonly property real actionHeight: 44
 
     // The blocks, in the order All shows them.
