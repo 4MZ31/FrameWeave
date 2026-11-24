@@ -21,6 +21,13 @@ public:
         while(!samples_.empty()&&(samples_.size()>=64||samples_.front().time<now-10000000))samples_.pop_front();
         samples_.push_back({now,requiredDelay});
     }
+    // PushFPS 4.5.1 (admission floor): a pair whose own deadline would come before it can be ready raises
+    // the phase to what it needs, never past the limit select() keeps, instead of being turned away. A kept
+    // phase that is too small (after a pause with no readings) is corrected by the very next pair.
+    int64_t enforceAdmissionFloor(int64_t need,int64_t limit){
+        selected_=std::min(std::max(selected_,need),limit);
+        return selected_;
+    }
     int64_t select(int64_t now,int64_t legacyDelay,int64_t interval,unsigned multiplier,int64_t samplingAllowance=0){
         std::vector<int64_t> current;
         for(const auto& sample:samples_)if(sample.time>=now-10000000)current.push_back(sample.delay);
