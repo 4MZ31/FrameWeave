@@ -58,7 +58,8 @@ class AppController : public QObject {
     Q_PROPERTY(int fillMode READ fillMode WRITE setFillMode NOTIFY settingsChanged)
     Q_PROPERTY(bool alwaysOnTop READ alwaysOnTop WRITE setAlwaysOnTop NOTIFY settingsChanged)
     // Upscaling with NVIDIA Image Scaling, under the Windows build's names: on or off, and the size it
-    // upscales towards (1 = 2560 x 1440, 2 = 3840 x 2160). Its sharpening is the preference nisSharpness.
+    // upscales towards (1 = 2K, 2 = 4K, 4 = 5K, 5 = 6K: FrameView::upscaleTargetSize). Its sharpening is the
+    // preference nisSharpness.
     Q_PROPERTY(bool srEnabled READ srEnabled WRITE setSrEnabled NOTIFY settingsChanged)
     Q_PROPERTY(int srTargetIndex READ srTargetIndex WRITE setSrTargetIndex NOTIFY settingsChanged)
     // The upscaling algorithm, by the Windows build's numbers (engine::kVideoSrNis = 6). The preview has

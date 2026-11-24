@@ -18,13 +18,15 @@ VAccordion {
     title: qsTr("超分辨率")
 
     readonly property var algorithms: [{ id: "6", label: "NVIDIA Image Scaling" }]
-    readonly property var targets: [{ id: "1", label: "2K" }, { id: "2", label: "4K" }]
+    // The Windows build's ids and order; 7K and 8K are left out (no capture card sends more than 4K).
+    readonly property var targets: [{ id: "1", label: "2K" }, { id: "2", label: "4K" }, { id: "4", label: "5K" }, { id: "5", label: "6K" }]
+    readonly property string targetLabel: (targets.find(o => o.id === String(app.srTargetIndex)) || targets[1]).label
     readonly property string algorithmLabel: (algorithms.find(o => o.id === String(app.videoSrQuality)) || algorithms[0]).label
     readonly property bool nis: app.videoSrQuality === 6
     readonly property int sharpness: (veyra.preferences || {}).nisSharpness === undefined ? 50 : Number(veyra.preferences.nisSharpness)
 
     // As on Windows: the algorithm (or "off"), then the target size.
-    summary: (app.srEnabled ? card.algorithmLabel : qsTr("已关闭")) + " · " + (app.srTargetIndex === 1 ? "2K" : "4K")
+    summary: (app.srEnabled ? card.algorithmLabel : qsTr("已关闭")) + " · " + card.targetLabel
     on: app.srEnabled
     open: true
     onToggled: on => app.srEnabled = on

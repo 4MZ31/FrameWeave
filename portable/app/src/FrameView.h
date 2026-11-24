@@ -29,7 +29,7 @@ class FrameView : public QQuickItem {
     // and the picture's sides cut, 2 stretched.
     Q_PROPERTY(int fill READ fill WRITE setFill NOTIFY pictureChanged)
     // Upscaling with NVIDIA Image Scaling (NisNode.h): on or off, the size it upscales towards (the
-    // Windows build's srTargetIndex: 1 = 2560 x 1440, 2 = 3840 x 2160) and its sharpening (0..1).
+    // Windows build's srTargetIndex: upscaleTargetSize) and its sharpening (0..1).
     Q_PROPERTY(bool upscale READ upscale WRITE setUpscale NOTIFY pictureChanged)
     Q_PROPERTY(int upscaleTarget READ upscaleTarget WRITE setUpscaleTarget NOTIFY pictureChanged)
     Q_PROPERTY(qreal sharpness READ sharpness WRITE setSharpness NOTIFY pictureChanged)
@@ -70,6 +70,10 @@ public:
     void setUpscale(bool v);
     void setUpscaleTarget(int v);
     void setSharpness(qreal v);
+    // The sizes upscaling can aim at, by the Windows build's srTargetIndex and with its sizes
+    // (ResolutionPlan.h srTargetExtent): 1 = 2K 2560 x 1440, 2 = 4K 3840 x 2160, 4 = 5K 5120 x 2880,
+    // 5 = 6K 6144 x 3456. Any other index (3 = 8K, 6 = 7K on Windows) gives an empty size.
+    static QSize upscaleTargetSize(int index);
 
     // The engine every FrameView draws from (set once by the application).
     static void setEngine(std::shared_ptr<veyra::portable::Engine> engine);

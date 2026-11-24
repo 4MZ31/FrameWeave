@@ -70,7 +70,8 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
     audioTrim_ = std::clamp(s.value(QStringLiteral("audioTrimMs"), 0).toInt(), -veyra::sink::kPushAudioTrimLimitMs, veyra::sink::kPushAudioTrimLimitMs);
     fillMode_ = std::clamp(s.value(QStringLiteral("fillMode"), 0).toInt(), 0, 2);
     srEnabled_ = s.value(QStringLiteral("srEnabled"), false).toBool();
-    srTarget_ = std::clamp(s.value(QStringLiteral("srTargetIndex"), 2).toInt(), 1, 2);
+    srTarget_ = s.value(QStringLiteral("srTargetIndex"), 2).toInt();
+    if (FrameView::upscaleTargetSize(srTarget_).isEmpty()) srTarget_ = 2;
     const int algorithm = s.value(QStringLiteral("videoSrQuality"), 6).toInt();
     srAlgorithm_ = kSrAlgorithms.contains(algorithm) ? algorithm : 6;
 
@@ -562,8 +563,7 @@ void AppController::setSrEnabled(bool v) {
 }
 
 void AppController::setSrTargetIndex(int v) {
-    v = std::clamp(v, 1, 2);
-    if (v == srTarget_) return;
+    if (FrameView::upscaleTargetSize(v).isEmpty() || v == srTarget_) return;
     srTarget_ = v;
     save(QStringLiteral("srTargetIndex"), v);
     emit settingsChanged();

@@ -172,8 +172,18 @@ void FrameView::setFill(int v) {
     update();
 }
 void FrameView::setUpscale(bool v) { if (v != upscale_) { upscale_ = v; emit pictureChanged(); update(); } }
+QSize FrameView::upscaleTargetSize(int index) {
+    switch (index) {
+    case 1: return {2560, 1440};
+    case 2: return {3840, 2160};
+    case 4: return {5120, 2880};
+    case 5: return {6144, 3456};
+    }
+    return {};
+}
+
 void FrameView::setUpscaleTarget(int v) {
-    v = std::clamp(v, 1, 2);
+    if (upscaleTargetSize(v).isEmpty()) v = 2;
     if (v != upscaleTarget_) { upscaleTarget_ = v; emit pictureChanged(); update(); }
 }
 void FrameView::setSharpness(qreal v) {
@@ -368,7 +378,8 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
     // above 2 the window scales as it always did.
     const qreal dpr = win->effectiveDevicePixelRatio();
     const double shown = std::min(rect.width() * dpr / (source.width() * fw), rect.height() * dpr / (source.height() * fh));
-    const double targetW = upscaleTarget_ == 1 ? 2560.0 : 3840.0, targetH = upscaleTarget_ == 1 ? 1440.0 : 2160.0;
+    const QSize target = upscaleTargetSize(upscaleTarget_);
+    const double targetW = target.width(), targetH = target.height();
     const double scale = std::min({2.0, shown, std::min(targetW / fw, targetH / fh)});
     const QSize output(int(std::lround(fw * scale)), int(std::lround(fh * scale)));
     int state = UpscaleOff;
