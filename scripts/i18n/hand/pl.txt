@@ -1590,3 +1590,8 @@ zh:FSR 的运动估算可以更省|Szacowanie ruchu dla FSR może być lżejsze
 zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|Zanim FSR wygeneruje klatkę, PushFPS szacuje ruch na podstawie obrazu. Lżejsze szacowanie mniej obciąża kartę graficzną w każdej klatce, dzięki czemu karty ze średniej i niższej półki łatwiej nadążają; krawędzie obiektów stają się nieco bardziej zgrubne. Cofnij, jeśli obraz wygląda gorzej
 zh:改用更省的运动估算|Użyj lżejszego szacowania ruchu
 zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|Przepustowość, o którą prosi się PS5; konsola nie gwarantuje jej osiągnięcia. W sieci przewodowej 30 Mb/s lub więcej daje ostrzejszy obraz; zmniejsz, jeśli obraz się zacina
+zh:有画面播放时开始放大|Skalowanie zacznie się, gdy będzie odtwarzany obraz
+zh:画面显示得不比原尺寸大，现在不需要放大|Obraz nie jest wyświetlany w większym rozmiarze niż własny: teraz nie ma czego skalować
+zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 OpenGL 4.3|Interfejs graficzny tego komputera nie obsługuje skalowania: wymagany jest Vulkan, Metal lub OpenGL 4.3
+zh:放大没能在这块显卡上启动，画面照常显示|Skalowanie nie uruchomiło się na tej karcie graficznej; obraz jest wyświetlany normalnie
+zh:放大到屏幕分辨率|Skaluje do rozdzielczości ekranu

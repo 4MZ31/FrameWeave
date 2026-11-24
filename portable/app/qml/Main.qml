@@ -157,7 +157,14 @@ Window {
         saturation: app.saturation
         gamma: app.gamma
         fill: app.fillMode
+        // Upscaling with NVIDIA Image Scaling (NisNode.h); the Windows build's names.
+        upscale: app.srEnabled
+        upscaleTarget: app.srTargetIndex
+        sharpness: (root.prefs.nisSharpness === undefined ? 50 : Number(root.prefs.nisSharpness)) / 100
     }
+    // What upscaling does, for the picture panel's hint (the picture is drawn on another thread).
+    Binding { target: app; property: "upscaleState"; value: picture.upscaleState }
+    Binding { target: app; property: "upscaleSizes"; value: picture.upscaleSizes }
     function screenshot() {
         if (!app.running || root.viewport === null) return
         const path = app.newScreenshotPath()

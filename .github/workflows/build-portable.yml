@@ -134,6 +134,13 @@ jobs:
           QSG_RHI_BACKEND: opengl
         run: xvfb-run -a -s "-screen 0 1920x1080x24" ./build/app/PushFPS --gpucheck --save build/gpucheck.png
 
+      # Upscaling with NVIDIA Image Scaling: a compute shader, which llvmpipe runs (OpenGL 4.5).
+      - name: NIS check (Mesa llvmpipe under Xvfb)
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+          QSG_RHI_BACKEND: opengl
+        run: xvfb-run -a -s "-screen 0 1920x1080x24" ./build/app/PushFPS --nischeck --save build/nischeck.png
+
       - name: Screenshots
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
@@ -145,6 +152,8 @@ jobs:
           done
           cp build/gpucheck.png shots/linux-gpucheck.png
           cp build/gpucheck-cpu.png shots/linux-gpucheck-cpu.png
+          cp build/nischeck.png shots/linux-nischeck.png
+          cp build/nischeck-sharp.png shots/linux-nischeck-sharp.png
           cp build/selftest-frame.png shots/linux-selftest-frame.png
 
       - name: Package (folder and AppImage)
@@ -184,6 +193,7 @@ jobs:
           # The same folder as a portable download: unpack, run ./PushFPS (AppRun).
           cp -r AppDir PushFPS-$version-linux-x86_64
           cp LICENSE PushFPS-$version-linux-x86_64/LICENSE.txt
+          cp licenses/NVIDIA_Image_Scaling_SDK_MIT.txt PushFPS-$version-linux-x86_64/
           cp portable/app/packaging/README-linux.txt PushFPS-$version-linux-x86_64/README.txt
           ln -sf AppRun PushFPS-$version-linux-x86_64/PushFPS
           tar -czf PushFPS-$version-linux-x86_64.tar.gz PushFPS-$version-linux-x86_64
@@ -293,6 +303,10 @@ jobs:
         continue-on-error: true
         run: build/app/PushFPS.app/Contents/MacOS/PushFPS --gpucheck --save build/gpucheck.png
 
+      - name: NIS check (Metal)
+        continue-on-error: true
+        run: build/app/PushFPS.app/Contents/MacOS/PushFPS --nischeck --save build/nischeck.png
+
       - name: Package (app bundle, zip)
         run: |
           set -e
@@ -309,6 +323,7 @@ jobs:
           mkdir -p dist
           ditto build/app/PushFPS.app dist/PushFPS.app
           cp LICENSE dist/LICENSE.txt
+          cp licenses/NVIDIA_Image_Scaling_SDK_MIT.txt dist/
           cp portable/app/packaging/README-macos.txt dist/README.txt
           ditto -c -k --sequesterRsrc dist PushFPS-$version-macos-universal.zip
           ls -la *.zip
@@ -349,6 +364,7 @@ jobs:
             build/app/PushFPS.app/Contents/MacOS/PushFPS --screenshot shots/macos-$p.png --page $p --lang en || true
           done
           cp build/gpucheck.png shots/macos-gpucheck.png 2>/dev/null || true
+          cp build/nischeck.png shots/macos-nischeck.png 2>/dev/null || true
 
       - name: Publish screenshots
         if: github.event_name != 'pull_request'

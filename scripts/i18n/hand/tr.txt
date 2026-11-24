@@ -1590,3 +1590,7 @@ zh:FSR 的运动估算可以更省|FSR'nin hareket kestirimi daha hafif olabilir
 zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|FSR bir kare üretmeden önce PushFPS hareketi görüntüden kestirir. Daha hafif bir kestirim her karede ekran kartını daha az yorar; orta ve giriş seviyesi kartların yetişmesi kolaylaşır. Nesnelerin kenarları biraz kabalaşır. Görüntü kötüleşirse geri alın
 zh:改用更省的运动估算|Daha hafif hareket kestirimini kullan
 zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|PS5'ten istenen bant genişliği; konsol buna ulaşmayı garanti etmez. Kablolu ağda 30 Mbps veya üzeri daha net görünür; görüntü takılırsa düşürün
+zh:有画面播放时开始放大|Bir görüntü oynatılmaya başlayınca yükseltme başlar
+zh:画面显示得不比原尺寸大，现在不需要放大|Görüntü kendi boyutundan büyük gösterilmiyor: şu an yükseltilecek bir şey yok
+zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 OpenGL 4.3|Bu bilgisayarın grafik arayüzü yükseltmeyi çalıştıramıyor: Vulkan, Metal veya OpenGL 4.3 gerekir
+zh:放大没能在这块显卡上启动，画面照常显示|Yükseltme bu ekran kartında başlatılamadı; görüntü her zamanki gibi gösteriliyor

@@ -1590,3 +1590,7 @@ zh:FSR 的运动估算可以更省|De bewegingsschatting voor FSR kan lichter
 zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|Voordat FSR een frame genereert, schat PushFPS de beweging uit het beeld. Een lichtere schatting vraagt per frame minder van de grafische kaart, waardoor midrange- en instapkaarten het makkelijker bijhouden; randen van objecten worden iets ruwer. Maak het ongedaan als het er slechter uitziet
 zh:改用更省的运动估算|Lichtere bewegingsschatting gebruiken
 zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|De bandbreedte die aan de PS5 wordt gevraagd; de console belooft niet die te halen. Op een bekabeld netwerk is 30 Mbps of meer scherper; zet het lager als het beeld hapert
+zh:有画面播放时开始放大|Upscalen begint zodra er beeld wordt afgespeeld
+zh:画面显示得不比原尺寸大，现在不需要放大|Het beeld wordt niet groter getoond dan het is: nu valt er niets te upscalen
+zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 OpenGL 4.3|De grafische interface van deze computer kan geen upscaling uitvoeren: daarvoor is Vulkan, Metal of OpenGL 4.3 nodig
+zh:放大没能在这块显卡上启动，画面照常显示|Upscaling kon niet starten op deze videokaart; het beeld wordt gewoon getoond

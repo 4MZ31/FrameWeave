@@ -28,7 +28,25 @@ class FrameView : public QQuickItem {
     // How a picture of another shape than the window is shown: 0 whole with bars, 1 the window filled
     // and the picture's sides cut, 2 stretched.
     Q_PROPERTY(int fill READ fill WRITE setFill NOTIFY pictureChanged)
+    // Upscaling with NVIDIA Image Scaling (NisNode.h): on or off, the size it upscales towards (the
+    // Windows build's srTargetIndex: 1 = 2560 x 1440, 2 = 3840 x 2160) and its sharpening (0..1).
+    Q_PROPERTY(bool upscale READ upscale WRITE setUpscale NOTIFY pictureChanged)
+    Q_PROPERTY(int upscaleTarget READ upscaleTarget WRITE setUpscaleTarget NOTIFY pictureChanged)
+    Q_PROPERTY(qreal sharpness READ sharpness WRITE setSharpness NOTIFY pictureChanged)
+    // What upscaling does now (UpscaleState) and, while it runs, the sizes ("1280 × 720 → 2560 × 1440").
+    Q_PROPERTY(int upscaleState READ upscaleState NOTIFY upscaleStateChanged)
+    Q_PROPERTY(QString upscaleSizes READ upscaleSizes NOTIFY upscaleStateChanged)
 public:
+    enum UpscaleState {
+        UpscaleOff = 0,          // switched off
+        UpscaleRunning = 1,      // the picture is upscaled
+        UpscaleNotNeeded = 2,    // the picture is not shown larger than it is (or already at the target)
+        UpscaleUnsupported = 3,  // this renderer cannot run a compute shader (OpenGL before 4.3, software)
+        UpscaleFailed = 4,       // something could not be made on this graphics card
+        UpscaleWaiting = 5,      // nothing is playing
+    };
+    Q_ENUM(UpscaleState)
+
     explicit FrameView(QQuickItem* parent = nullptr);
     ~FrameView() override;
 
@@ -44,6 +62,14 @@ public:
     void setSaturation(qreal v);
     void setGamma(qreal v);
     void setRunning(bool v);
+    bool upscale() const { return upscale_; }
+    int upscaleTarget() const { return upscaleTarget_; }
+    qreal sharpness() const { return sharpness_; }
+    int upscaleState() const { return upscaleState_; }
+    QString upscaleSizes() const { return upscaleSizes_; }
+    void setUpscale(bool v);
+    void setUpscaleTarget(int v);
+    void setSharpness(qreal v);
 
     // The engine every FrameView draws from (set once by the application).
     static void setEngine(std::shared_ptr<veyra::portable::Engine> engine);
@@ -53,6 +79,7 @@ public:
 signals:
     void pictureChanged();
     void runningChanged();
+    void upscaleStateChanged();
 
 protected:
     QSGNode* updatePaintNode(QSGNode* old, UpdatePaintNodeData*) override;
@@ -67,10 +94,21 @@ private:
     };
     QSGTexture* cached(quint64 key, const std::function<QImage()>& make, bool nearest);
     void dropTextures();
+    // From the render thread: what upscaling does, handed to the GUI thread.
+    void reportUpscale(int state, const QString& sizes);
 
     qreal brightness_ = 0, contrast_ = 1, saturation_ = 1, gamma_ = 1;
     bool running_ = true;
     int fill_ = 0;
+    bool upscale_ = false;
+    int upscaleTarget_ = 2;
+    qreal sharpness_ = 0.5;
+    int upscaleState_ = UpscaleOff;
+    QString upscaleSizes_;
+    // Render thread: the last state handed over, and whether NIS failed on this window.
+    int reportedState_ = -1;
+    QString reportedSizes_;
+    bool nisFailed_ = false;
     std::vector<CachedTexture> cache_;
     quint64 frameCounter_ = 0;
     QSGTexture* black_ = nullptr;

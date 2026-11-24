@@ -2,6 +2,7 @@
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 #include "FrameView.h"
 
+#include "NisNode.h"
 #include "VideoFrames.h"
 
 #include <QMutex>
@@ -18,6 +19,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+#include <array>
 
 using namespace veyra::portable;
 
@@ -169,6 +171,28 @@ void FrameView::setFill(int v) {
     emit pictureChanged();
     update();
 }
+void FrameView::setUpscale(bool v) { if (v != upscale_) { upscale_ = v; emit pictureChanged(); update(); } }
+void FrameView::setUpscaleTarget(int v) {
+    v = std::clamp(v, 1, 2);
+    if (v != upscaleTarget_) { upscaleTarget_ = v; emit pictureChanged(); update(); }
+}
+void FrameView::setSharpness(qreal v) {
+    v = std::isfinite(v) ? std::clamp(v, 0.0, 1.0) : 0.5;
+    if (v != sharpness_) { sharpness_ = v; emit pictureChanged(); update(); }
+}
+
+void FrameView::reportUpscale(int state, const QString& sizes) {
+    if (state == reportedState_ && sizes == reportedSizes_) return;
+    reportedState_ = state;
+    reportedSizes_ = sizes;
+    QMetaObject::invokeMethod(this, [this, state, sizes] {
+        if (state == upscaleState_ && sizes == upscaleSizes_) return;
+        upscaleState_ = state;
+        upscaleSizes_ = sizes;
+        emit upscaleStateChanged();
+    }, Qt::QueuedConnection);
+}
+
 void FrameView::setRunning(bool v) {
     if (v == running_) return;
     running_ = v;
@@ -246,6 +270,7 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
     if (!pick.valid() || width() <= 0 || height() <= 0) {
         delete old;
         if (!pick.valid()) dropTextures();
+        reportUpscale(upscale_ ? UpscaleWaiting : UpscaleOff, {});
         return nullptr;
     }
     // The picture in the item: whole with black bars, filling it with the sides cut, or stretched.
@@ -267,6 +292,7 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
 
     const bool software = win->rendererInterface()->graphicsApi() == QSGRendererInterface::Software;
     if (software) {
+        reportUpscale(upscale_ ? UpscaleUnsupported : UpscaleOff, {});
         // No shaders on the software renderer: the nearer real frame.
         auto* node = dynamic_cast<QSGImageNode*>(old);
         if (!node) { delete old; node = win->createImageNode(); }
@@ -282,14 +308,11 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
         return node;
     }
 
-    auto* node = dynamic_cast<FrameNode*>(old);
-    if (!node) { delete old; node = new FrameNode; }
     if (!black_) {
         QImage b(1, 1, QImage::Format_RGBA8888);
         b.fill(Qt::black);
         black_ = win->createTextureFromImage(b);
     }
-    FrameMaterial& m = node->material_;
     QSGTexture* ta = cached(keyA, [&] { return frameImage(pick.a); }, false);
     QSGTexture* tb = pick.b != pick.a ? cached(keyB, [&] { return frameImage(pick.b); }, false) : ta;
     const bool generate = pick.generated() && ta && tb;
@@ -318,15 +341,8 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
         if (!holding) tha = thb = ths = black_;
     }
     const bool interpolating = generate && tf != black_ && tk != black_;
-    m.textures[0] = ta ? ta : black_;
-    m.textures[1] = tb ? tb : black_;
-    m.textures[2] = tf;
-    m.textures[3] = tk;
-    m.textures[4] = tm ? tm : black_;
-    m.textures[5] = tha;
-    m.textures[6] = thb;
-    m.textures[7] = ths;
-    Uniforms& u = m.u;
+    const std::array<QSGTexture*, 8> textures{ta ? ta : black_, tb ? tb : black_, tf, tk, tm ? tm : black_, tha, thb, ths};
+    Uniforms u{};
     u.phase = pick.t;
     u.mode = interpolating ? 1.f : 0.f;
     u.hudOn = interpolating && hud ? 1.f : 0.f;
@@ -346,6 +362,47 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
     u.holdZone[1] = held ? float(pick.hold->y) : 0.f;
     u.holdZone[2] = held ? float(pick.hold->size) : 1.f;
     u.holdZone[3] = held ? 1.f : 0.f;
+
+    // Upscaling: by how much the shown part of the picture is enlarged on screen, never more than NIS's
+    // 2 per side nor past the size chosen (fitted to the picture's shape, as on Windows). What is left
+    // above 2 the window scales as it always did.
+    const qreal dpr = win->effectiveDevicePixelRatio();
+    const double shown = std::min(rect.width() * dpr / (source.width() * fw), rect.height() * dpr / (source.height() * fh));
+    const double targetW = upscaleTarget_ == 1 ? 2560.0 : 3840.0, targetH = upscaleTarget_ == 1 ? 1440.0 : 2160.0;
+    const double scale = std::min({2.0, shown, std::min(targetW / fw, targetH / fh)});
+    const QSize output(int(std::lround(fw * scale)), int(std::lround(fh * scale)));
+    int state = UpscaleOff;
+    if (upscale_) {
+        if (auto* nis = dynamic_cast<NisNode*>(old); nis && nis->failed()) nisFailed_ = true;
+        if (nisFailed_) state = UpscaleFailed;
+        else if (!NisNode::supported(win)) state = UpscaleUnsupported;
+        else if (scale < 1.05) state = UpscaleNotNeeded;  // a few per cent larger is not worth the work
+        else state = UpscaleRunning;
+    }
+    reportUpscale(state, state == UpscaleRunning ? QStringLiteral("%1 × %2 → %3 × %4").arg(int(fw)).arg(int(fh)).arg(output.width()).arg(output.height())
+                                                 : QString());
+
+    if (state == UpscaleRunning) {
+        auto* nis = dynamic_cast<NisNode*>(old);
+        if (!nis) { delete old; nis = new NisNode(win); }
+        NisFrame frame;
+        frame.textures = textures;
+        frame.nearest = {false, false, true, true, false, false, false, false};  // the two motion fields
+        frame.uniforms = QByteArray(reinterpret_cast<const char*>(&u), sizeof(Uniforms));
+        frame.picture = QSize(int(fw), int(fh));
+        frame.output = output;
+        frame.rect = rect;
+        frame.source = source;
+        frame.sharpness = float(sharpness_);
+        nis->set(frame);
+        return nis;
+    }
+
+    auto* node = dynamic_cast<FrameNode*>(old);
+    if (!node) { delete old; node = new FrameNode; }
+    FrameMaterial& m = node->material_;
+    for (size_t i = 0; i < textures.size(); ++i) m.textures[i] = textures[i];
+    m.u = u;
     QSGGeometry::updateTexturedRectGeometry(&node->geometry_, rect, source);
     node->markDirty(QSGNode::DirtyGeometry | QSGNode::DirtyMaterial);
     return node;
