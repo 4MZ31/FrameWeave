@@ -793,7 +793,11 @@ bool AudioPipeline::rewindSession(double target)
 bool AudioRenderer::copyPcm(BYTE* destination,const float* input,size_t frames,bool boosted){
     if(!channelMix_){
         std::memcpy(destination,input,frames*outputFormat_.channels*sizeof(float));
-        if(boosted)limitPcmPeaks(reinterpret_cast<float*>(destination),frames,outputFormat_.channels);
+        // PushFPS (PushBoostLimiter.h): above 100 % a loud peak is turned down and keeps its shape; the clamp
+        // after it only catches what arithmetic rounding could leave. Up to 100 % nothing is touched (finish() only
+        // lets a signal that is still turned down glide back when the boost has just ended).
+        if(boosted){boostLimiter_.process(reinterpret_cast<float*>(destination),frames,outputFormat_.channels);limitPcmPeaks(reinterpret_cast<float*>(destination),frames,outputFormat_.channels);}
+        else boostLimiter_.finish(reinterpret_cast<float*>(destination),frames,outputFormat_.channels);
         return true;
     }
     mixed_.resize(frames*outputFormat_.channels);
@@ -802,7 +806,8 @@ bool AudioRenderer::copyPcm(BYTE* destination,const float* input,size_t frames,b
     if(converted!=int(frames))return checked(E_FAIL,"Channel mapping unexpectedly changed frame count");
     // Limit after mapping: clipping individual input channels before a downmix
     // would distort signals which fit the final endpoint's range.
-    if(boosted)limitPcmPeaks(mixed_.data(),frames,outputFormat_.channels);
+    if(boosted){boostLimiter_.process(mixed_.data(),frames,outputFormat_.channels);limitPcmPeaks(mixed_.data(),frames,outputFormat_.channels);}
+    else boostLimiter_.finish(mixed_.data(),frames,outputFormat_.channels);
     std::memcpy(destination,mixed_.data(),frames*outputFormat_.channels*sizeof(float));return true;
 }
 

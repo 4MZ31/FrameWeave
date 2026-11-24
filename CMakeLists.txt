@@ -1201,6 +1201,10 @@ target_include_directories(veyra_push_display_cap_tests PRIVATE ${CMAKE_CURRENT_
 add_executable(veyra_push_remote_sync_tests tests/unit/PushRemoteSyncTests.cpp)
 target_compile_features(veyra_push_remote_sync_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_remote_sync_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# PushFPS: volume above 100 % turns loud peaks down where they were cut off (sink/PushBoostLimiter.h, pure; also builds with g++).
+add_executable(veyra_push_boost_limiter_tests tests/unit/PushBoostLimiterTests.cpp)
+target_compile_features(veyra_push_boost_limiter_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_boost_limiter_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS: the PS5 pairing fields as people type them, which controller is read, and the no-controller notice
 # (remoteplay/PushPairingInput.h, PushPadChoice.h; pure with Validation.cpp; also builds with g++).
 add_executable(veyra_push_pairing_input_tests tests/unit/PushPairingInputTests.cpp src/remoteplay/Validation.cpp)

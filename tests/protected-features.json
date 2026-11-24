@@ -2075,6 +2075,33 @@
     }
    ],
    "needs_hardware": "Two controllers on a PC with a console streaming: the reader itself (ControllerInput.cpp over SDL) is in no automated test; it was run over a stand-in for SDL before the build."
+  },
+  {
+   "id": "F72",
+   "what": "With the volume above 100 % a loud peak is turned down and keeps its shape (it was cut off flat, which is heard as crackling); nothing passes the ceiling; up to 100 % the samples pass bit for bit, and a boost that ends glides back without a step.",
+   "guards": [
+    {
+     "file": "tests/unit/PushBoostLimiterTests.cpp",
+     "ci": "veyra_push_boost_limiter_tests",
+     "contains": "turned down instead, under a thousandth is"
+    },
+    {
+     "file": "tests/unit/PushBoostLimiterTests.cpp",
+     "ci": "veyra_push_boost_limiter_tests",
+     "contains": "sound under the ceiling passes bit for bit"
+    },
+    {
+     "file": "tests/unit/PushBoostLimiterTests.cpp",
+     "ci": "veyra_push_boost_limiter_tests",
+     "contains": "a volume that was never above 100 % touches nothing at all"
+    },
+    {
+     "file": "tests/unit/PushBoostLimiterTests.cpp",
+     "ci": "veyra_push_boost_limiter_tests",
+     "contains": "right after the boost ends the sound is as loud as it was: no jump"
+    }
+   ],
+   "needs_hardware": "A sound device: the renderer's two calls (WasapiAudioSink.cpp copyPcm) are in no automated test, and nobody has listened to a game at 150 % or 300 % with it."
   }
  ]
 }
