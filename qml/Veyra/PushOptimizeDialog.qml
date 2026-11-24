@@ -288,7 +288,7 @@ DialogLayer {
             if (s.gpuUtilization !== undefined && s.gpuUtilization !== null) opt.gpuSamples.push(Number(s.gpuUtilization))
             if (!s.settled) { veyra.pushBenchmarkEnd(); opt.finishStep({ ok: false, reason: qsTr("测量中设置被改变") }); return }
             if (t - opt.stepStarted >= opt.measureSeconds) {
-                const res = opt.evaluate(veyra.pushBenchmarkEnd(), opt.startStats, s)
+                const res = opt.evaluate(veyra.pushBenchmarkEnd(), opt.startStats, s, t - opt.stepStarted)
                 if (res.ok && opt.qualityWanted(opt.steps[opt.current]) && veyra.pushQualityBegin(opt.qualitySeconds)) {
                     opt.pendingResult = res
                     opt.stepState = "quality"
@@ -326,7 +326,7 @@ DialogLayer {
         if (of && of.result && of.result.quality && of.result.quality.samples > 0) return of.result.quality.score / 100 * 6
         return opt.qualityRank[step.config.backend] || 0
     }
-    function evaluate(r, before, after) {
+    function evaluate(r, before, after, windowSeconds) {
         const step = opt.steps[opt.current]
         const c = step.config
         const received = Number(after.captureReceived || 0) - Number(before.captureReceived || 0)
@@ -336,7 +336,13 @@ DialogLayer {
                       latencyP95: r.latencyP95Ms || 0, jitter: r.jitterMs || 0, generated: Number(r.generatedPresents || 0),
                       presents: Number(r.presents || 0), dropRate: received > 0 ? Math.max(0, dropped) / received : 0, gpu: gpu,
                       backendWarning: String(after.backendWarning || "") }
-        if (!r.valid) { res.reason = qsTr("帧数不足，无法测量"); return res }
+        // The probe omits pauses from its FPS and lows. Include both edges of the
+        // timed run: a stall before the first or after the last present has no gap entry.
+        // Allow 5% for the partial frame intervals at those edges.
+        if (!r.valid || Number(r.gaps) !== 0 || !(r.seconds >= windowSeconds * 0.95)) {
+            res.reason = qsTr("帧数不足，无法测量")
+            return res
+        }
         if (c.kind === "baseline") {
             const content = Number(after.contentFps || 0)
             res.content = content
