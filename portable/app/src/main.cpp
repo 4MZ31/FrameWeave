@@ -350,7 +350,7 @@ int nischeck(QGuiApplication& app, const QString& savePath) {
             const QImage sharp = grab();
             const QImage smooth = ia.scaled(soft.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
             const auto api = view.rendererInterface()->graphicsApi();
-            const double match = psnr(soft, smooth, 4), flipped = psnr(soft.flipped(Qt::Vertical), smooth, 4);
+            const double match = psnr(soft, smooth, 4), flipped = psnr(soft.mirrored(false, true), smooth, 4);
             const double sharpVsSoft = psnr(sharp, soft, 4), sharpMatch = psnr(sharp, smooth, 4);
             if (!savePath.isEmpty()) {
                 soft.save(savePath);
