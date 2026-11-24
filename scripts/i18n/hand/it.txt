@@ -1590,3 +1590,16 @@ zh:FSR 的运动估算可以更省|La stima del movimento per FSR può essere pi
 zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|Prima che FSR generi un fotogramma, PushFPS stima il movimento dall'immagine. Una stima più leggera impegna meno la scheda grafica a ogni fotogramma e aiuta le schede di fascia media e bassa a tenere il passo; i bordi degli oggetti diventano un po' più grezzi. Annulla se l'immagine peggiora
 zh:改用更省的运动估算|Usa la stima del movimento più leggera
 zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|La banda richiesta alla PS5; la console non garantisce di raggiungerla. Su una rete cablata 30 Mbps o più danno un'immagine più nitida; abbassa il valore se l'immagine va a scatti
+zh:有画面播放时开始放大|L'upscaling parte quando un'immagine è in riproduzione
+zh:画面显示得不比原尺寸大，现在不需要放大|L'immagine non è mostrata più grande della sua dimensione: per ora non c'è nulla da ingrandire
+zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 OpenGL 4.3|L'interfaccia grafica di questo computer non può eseguire l'upscaling: servono Vulkan, Metal o OpenGL 4.3
+zh:放大没能在这块显卡上启动，画面照常显示|L'upscaling non è partito su questa scheda grafica; l'immagine viene mostrata come al solito
+zh:放大到屏幕分辨率|Upscaling alla risoluzione del tuo schermo
+zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 ingrandisce senza nitidezza; 50 è il valore predefinito di NVIDIA. NIS ingrandisce fino a 2× per passaggio; i fattori più grandi vengono completati con il ridimensionamento normale.
+zh:帧节奏修复|Correzione del ritmo dei fotogrammi
+zh:Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 PushFPS 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。|Anteprima per Linux e macOS: la generazione dei fotogrammi, la Correzione del ritmo dei fotogrammi e Live HUD Lock sono tecnologie di PushFPS e non richiedono componenti NVIDIA, AMD o Intel.
+zh:一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置|Attiva in un colpo tutte le impostazioni a bassa latenza che non costano qualità d'immagine: la scheda grafica mette in coda un solo fotogramma (NVIDIA Low Latency sulle schede NVIDIA), schermo intero alla connessione (salta il compositore del desktop, un aggiornamento di attesa in meno) e sincronizzazione a frequenza variabile sugli schermi G-SYNC/FreeSync (niente tearing né fotogrammi saltati). Generazione dei fotogrammi, miglioramento IA, blocco dell'HUD e Correzione del ritmo dei fotogrammi restano come sono. Disattivandola tornano le impostazioni di prima
+zh:已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置|Attivo: il movimento viene stimato in modo veloce e la Correzione del ritmo dei fotogrammi è disattivata. Disattivandolo torna quello che era impostato prima
+zh:帧节奏修复 · 已重排 %1%|Correzione del ritmo dei fotogrammi · %1% riallineato
+zh:帧节奏修复 · 等待去重测出帧率|Correzione del ritmo dei fotogrammi · in attesa che la rimozione dei duplicati misuri il frame rate
+zh:引擎未接受帧节奏修复，原设置保留|Il motore non ha accettato la Correzione del ritmo dei fotogrammi; resta l'impostazione precedente

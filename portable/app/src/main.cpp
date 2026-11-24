@@ -9,6 +9,9 @@
 //                                    block; exit 0 ok, 2 source failed, 3 no frames, 1 other
 //   PushFPS --gpucheck [--save <png>] draws a known generated frame on the GPU and compares it with the
 //                                    CPU reference; exit 0 match, 4 mismatch or no GPU renderer
+//   PushFPS --nischeck [--save <png>] upscales a known picture 2x with NIS (FrameView's upscaling) and
+//                                    checks it is that picture, upright, and that sharpening reaches the
+//                                    shader; exit 0 pass, 4 fail or no compute
 //   PushFPS --screenshot <png> [--page home|pro|min|set] [--lang <code>]
 #include "MacActivity.h"
 #include "AppController.h"
@@ -30,6 +33,7 @@
 #include <QQmlApplicationEngine>
 #include <memory>
 #include <QQmlContext>
+#include <QQuickItem>
 #include <QQuickView>
 #include <QQuickWindow>
 #include <QSGRendererInterface>
@@ -296,6 +300,76 @@ int gpucheck(QGuiApplication& app, const QString& savePath) {
     return app.exec();
 }
 
+
+// Upscales the test picture with NIS (twice its size when the window gets the size asked for) (FrameView's upscaling, NisNode.cpp) and
+// checks what comes out. There is no CPU reference of NIS here: what is checked is that the picture drawn
+// is the picture (close to a plain smooth enlargement of it, far from it upside down), that upscaling
+// says it runs, and that the sharpening reaches the shader (0 and 1 give different pictures).
+int nischeck(QGuiApplication& app, const QString& savePath) {
+    const int w = 640, h = 360;
+    const QImage ia = TestPattern::render(w, h, 2.0).convertToFormat(QImage::Format_RGB32);
+    auto pick = std::make_shared<Pick>();
+    pick->a = std::make_shared<const Bgra>(bgraFromImage(ia));
+    pick->b = pick->a;
+    pick->aId = pick->bId = 1;
+    pick->t = 0.0f;
+    FrameView::setFixedPick(pick);
+
+    QQuickView view;
+    view.setResizeMode(QQuickView::SizeRootObjectToView);
+    view.setColor(Qt::black);
+    view.loadFromModule(QStringLiteral("PushFPS"), QStringLiteral("GpuCheck"));
+    FrameView* frame = view.rootObject() ? view.rootObject()->findChild<FrameView*>() : nullptr;
+    if (view.status() != QQuickView::Ready || !frame) {
+        print(QStringLiteral("NIS CHECK RESULT\nresult: FAIL (GpuCheck.qml did not load)"));
+        return 1;
+    }
+    frame->setUpscale(true);
+    frame->setUpscaleTarget(2);
+    frame->setSharpness(0.0);
+    view.resize(2 * w, 2 * h);
+    view.show();
+    // The window manager may not give the window the size asked for: the picture is cut out where
+    // FrameView puts it (whole, with bars), and the smooth enlargement made at that size.
+    const auto grab = [&] {
+        const QImage shot = view.grabWindow().convertToFormat(QImage::Format_RGB32);
+        const double scale = std::min(double(shot.width()) / w, double(shot.height()) / h);
+        const int pw = int(std::lround(w * scale)), ph = int(std::lround(h * scale));
+        return shot.copy((shot.width() - pw) / 2, (shot.height() - ph) / 2, pw, ph);
+    };
+    int code = 4;
+    QImage soft;
+    int softState = -1;
+    QString softSizes;
+    QTimer::singleShot(1500, &app, [&] {
+        soft = grab();
+        softState = frame->upscaleState();
+        softSizes = frame->upscaleSizes();
+        frame->setSharpness(1.0);
+        QTimer::singleShot(800, &app, [&] {
+            const QImage sharp = grab();
+            const QImage smooth = ia.scaled(soft.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+            const auto api = view.rendererInterface()->graphicsApi();
+            const double match = psnr(soft, smooth, 4), flipped = psnr(soft.mirrored(false, true), smooth, 4);
+            const double sharpVsSoft = psnr(sharp, soft, 4), sharpMatch = psnr(sharp, smooth, 4);
+            if (!savePath.isEmpty()) {
+                soft.save(savePath);
+                sharp.save(QFileInfo(savePath).absolutePath() + QStringLiteral("/nischeck-sharp.png"));
+                smooth.save(QFileInfo(savePath).absolutePath() + QStringLiteral("/nischeck-smooth.png"));
+            }
+            const bool running = softState == FrameView::UpscaleRunning && frame->upscaleState() == FrameView::UpscaleRunning;
+            code = running && match > 28.0 && match > flipped + 6.0 && sharpMatch > 24.0 && sharpVsSoft < 50.0 ? 0 : 4;
+            print(QStringLiteral("NIS CHECK RESULT\ngraphics api: %1\nupscaling state: %2 (%3)\nNIS at sharpness 0 vs a smooth enlargement: %4 dB (upside down: %5 dB)\n"
+                                 "NIS at sharpness 1 vs the smooth enlargement: %6 dB, vs sharpness 0: %7 dB\nresult: %8")
+                      .arg(int(api)).arg(softState).arg(softSizes).arg(match, 0, 'f', 1).arg(flipped, 0, 'f', 1)
+                      .arg(sharpMatch, 0, 'f', 1).arg(sharpVsSoft, 0, 'f', 1)
+                      .arg(code == 0 ? QStringLiteral("PASS") : running ? QStringLiteral("FAIL (picture)") : QStringLiteral("FAIL (upscaling did not run)")));
+            app.exit(code);
+        });
+    });
+    return app.exec();
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -319,11 +393,12 @@ int main(int argc, char** argv) {
     QCommandLineOption pacing(QStringLiteral("pacing"), QStringLiteral("Frame Pacing Repair on."));
     QCommandLineOption hud(QStringLiteral("hud"), QStringLiteral("Live HUD Lock on."));
     QCommandLineOption gpu(QStringLiteral("gpucheck"), QStringLiteral("Compare the GPU shader with the CPU reference."));
+    QCommandLineOption nis(QStringLiteral("nischeck"), QStringLiteral("Check upscaling with NVIDIA Image Scaling."));
     QCommandLineOption save(QStringLiteral("save"), QStringLiteral("Save a picture (self-test / GPU check)."), QStringLiteral("png"));
     QCommandLineOption shot(QStringLiteral("screenshot"), QStringLiteral("Open the interface, save a screenshot, quit."), QStringLiteral("png"));
     QCommandLineOption page(QStringLiteral("page"), QStringLiteral("Start page: home, pro, min or set."), QStringLiteral("page"), QStringLiteral("home"));
     QCommandLineOption lang(QStringLiteral("lang"), QStringLiteral("Interface language code."), QStringLiteral("code"));
-    cli.addOptions({list, self, src, target, pacing, hud, gpu, save, shot, page, lang});
+    cli.addOptions({list, self, src, target, pacing, hud, gpu, nis, save, shot, page, lang});
     cli.process(app);
 
     if (cli.isSet(list)) return listDevices();
@@ -331,6 +406,7 @@ int main(int argc, char** argv) {
         return selftest(app, std::clamp(cli.value(self).toDouble(), 1.0, 600.0), cli.value(src), cli.value(target).toInt(),
                         cli.isSet(pacing), cli.isSet(hud), cli.value(save));
     if (cli.isSet(gpu)) return gpucheck(app, cli.value(save));
+    if (cli.isSet(nis)) return nischeck(app, cli.value(save));
 
     CatalogTranslator translator;
     {
