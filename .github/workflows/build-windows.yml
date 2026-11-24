@@ -681,6 +681,7 @@ jobs:
           & D:\pf-zip\Install-PushFPS.ps1 -Gpu NVIDIA -InstallDir D:\pf-install-nvx -NoShortcuts -NoLaunch -ExperimentalExtras Yes
           if ($LASTEXITCODE -ne 0) { throw "NVIDIA install with extras exit $LASTEXITCODE" }
           if (-not (Test-Path D:\pf-install-nvx\runtime\experimental\nr-ampere\nvngx_dlssnr.dll)) { throw 'opt-in RTX 30 extra was not installed' }
+          ./tests/installer/Uninstall.ps1 -Installer D:\pf-zip\Install-PushFPS.ps1 -InstalledDir D:\pf-install-nvx
           Remove-Item D:\pf-install-nvx -Recurse -Force
           Write-Host 'Default installs carry only licensed files; the experimental extras install on request.' 
           # Start it and make sure Windows resolves every DLL and the program reaches its QML session.
@@ -772,10 +773,11 @@ jobs:
             if ((Get-Content "$own\runtime_local\user-data-2.0.0\ci-settings.txt" -Raw) -notmatch 'changed in the test build') { throw 'a second install replaced the test build''s own settings' }
             & D:\pf-zip\Install-PushFPS.ps1 -Uninstall
             if ($LASTEXITCODE -ne 0) { throw "a test build's uninstall failed (exit $LASTEXITCODE)" }
-            if (Test-Path $own) { throw 'the uninstall left the test build''s folder' }
+            if ((Test-Path "$own\PushFPS.exe") -or (Test-Path "$own\PushFPS-installed-files.txt")) { throw "Uninstall left the test build active" }
+            if ((Get-Content "$own\runtime_local\user-data-2.0.0\ci-settings.txt" -Raw) -notmatch 'changed in the test build') { throw "Uninstall removed the test build's settings" }
             if (-not (Test-Path "$main\ci-main.txt")) { throw 'a test build''s uninstall removed the installed PushFPS' }
             foreach ($folder in $desk, $menu) { if (Test-Path (Join-Path $folder 'PushFPS test.lnk')) { throw "the uninstall left a shortcut in $folder" } }
-            Remove-Item $main -Recurse -Force
+            Remove-Item $main, $own -Recurse -Force
             Write-Host 'Test build: its own folder and shortcuts, a copy of the settings once, the installed PushFPS untouched; uninstall removes only itself.'
           }
 
@@ -951,7 +953,7 @@ jobs:
   # full_release for a one-off pre-release.
   release:
     if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
-    needs: [build, obs-plugin]
+    needs: [build, obs-plugin, obs-integration]
     runs-on: ubuntu-24.04
     permissions:
       contents: write

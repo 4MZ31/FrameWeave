@@ -28,6 +28,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Release provenance (offline)
+        run: bash tests/release/provenance.sh
+
       - name: Translations complete
         run: |
           out=$(python3 -B scripts/i18n/extract.py --check)
