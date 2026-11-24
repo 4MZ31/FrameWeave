@@ -202,6 +202,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     }
     applyPreference(QStringLiteral("pushHudStill"));
     applyPreference(QStringLiteral("pushCrosshairHold"));
+    applyPreference(QStringLiteral("pushSubtitleHold"));
     // 3.2.3, once: until then a card scene muted the game by writing the mixer's own mute, and closing
     // PushFPS on a card left it on. Every later recording, comparison clip, replay and stream was then
     // silent while the game still played normally (field report, 19 November 2026). The card's mute is
@@ -382,7 +383,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
         }
         if (!defaultFlowApplied && p.contains(QStringLiteral("contentRate"))) {
             const int rate = p.value(QStringLiteral("contentRate")).toInt();
-            if(rate>=0&&rate<=int(engine::ContentRate::Capture60To30)){
+            if(rate>=0&&rate<=int(engine::ContentRate::Capture60To30Original)){
                 const auto mode=engine::currentContentRate(static_cast<engine::ContentRate>(rate));
                 if(s.content!=mode){s.content=mode;changed=true;}
                 if(rate!=int(mode)){

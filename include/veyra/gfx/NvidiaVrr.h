@@ -1,4 +1,5 @@
 #pragma once
+#include "veyra/gfx/PushAmdAdl.h"
 #include <windows.h>
 #include <algorithm>
 #include <cstdint>
@@ -7,8 +8,8 @@
 #include <mutex>
 #include <string>
 namespace veyra::gfx {
-// Variable refresh (G-SYNC / G-SYNC Compatible) state of the monitor showing
-// a window. This query never changes driver settings. The user enables G-SYNC
+// Variable refresh (G-SYNC / G-SYNC Compatible, or AMD FreeSync through
+// PushAmdAdl.h) state of the monitor showing a window. This query never changes driver settings. The user enables G-SYNC
 // in the NVIDIA Control Panel; the separate explicit profile setup can adjust
 // only Veyra's scope. The 可变刷新 switch only decides how Veyra presents when
 // it is available (VideoPresenter::configurePresentation).
@@ -29,6 +30,7 @@ struct VrrState {
     bool currentlyCapable=false; // ... with the applied display settings
     bool trueGsync=false;        // G-SYNC module, not adaptive sync
     bool simulated=false;        // VEYRA_TEST_VRR_LEVEL override
+    bool amd=false;              // answered by the AMD driver (FreeSync), not NVAPI
     int status=0;          // last NvAPI status (0 = OK)
     bool operator==(const VrrState&)const=default;
 };
@@ -50,6 +52,20 @@ constexpr unsigned vrrLevel(const VrrState& s){
     if(s.supportsVrr||s.currentlyCapable)return 2;
     return 1;
 }
+// The AMD driver's FreeSync answer in these terms (PushFreeSync.h says what
+// it can and cannot know). capsKnown stays false on purpose: the caps-only rule
+// above lets a display request VRR from its capabilities alone, and with AMD the
+// switch in AMD Software is known, so a display with FreeSync switched off must
+// not request it. Nothing is ever reported active.
+constexpr VrrState vrrFromFreeSync(const PushFreeSync& f){
+    VrrState s;
+    if(!f.answered)return s;
+    s.known=true;s.amd=true;
+    s.supportsVrr=f.supported;s.currentlyCapable=f.usableInMode;
+    s.possible=s.requested=f.switchedOn;
+    return s;
+}
+inline VrrState queryNvidiaVrr(HWND window);
 inline VrrState queryVrr(HWND window){
     // Test hook (VEYRA_TEST_VRR_LEVEL=0..4): this rig's monitor reports no VRR
     // support, so UI and presentation-rule tests simulate a level.
@@ -59,6 +75,16 @@ inline VrrState queryVrr(HWND window){
         s.supportsVrr=testLevel>=2;s.currentlyCapable=testLevel>=3;s.possible=s.requested=testLevel>=3;s.enabled=s.inVrrMode=testLevel>=4;
         return s;
     }
+    const VrrState nvidia=queryNvidiaVrr(window);
+    if(nvidia.known||!window)return nvidia;
+    // NVAPI did not answer for this display (no NVIDIA driver, or the display
+    // hangs off another card): ask the AMD driver.
+    MONITORINFOEXW monitor{};monitor.cbSize=sizeof(monitor);
+    if(!GetMonitorInfoW(MonitorFromWindow(window,MONITOR_DEFAULTTONEAREST),&monitor))return nvidia;
+    const auto amd=queryAmdFreeSync(monitor.szDevice);
+    return amd?vrrFromFreeSync(*amd):nvidia;
+}
+inline VrrState queryNvidiaVrr(HWND window){
     struct Info {uint32_t version;uint32_t flags;uint32_t reservedEx[4];};
     static_assert(sizeof(Info)==24);
     // NV_MONITOR_CAPABILITIES_V1: the union starts right after the one-byte

@@ -12,6 +12,9 @@ DialogLayer {
     sub: qsTr("直接打开 HTTP、HTTPS、RTSP、RTP 或 UDP 视频流")
     dialogWidth: 640
     actions: [{label:qsTr("取消")},{label:qsTr("打开"),primary:true,icon:"play"}]
+    // PushFPS: the address box is ready for Ctrl+V the moment the window opens (it had no focus, so a paste
+    // went nowhere).
+    onShownChanged: if (shown) Qt.callLater(() => { if (networkDialog.shown) networkAddress.focusEditor() })
     onActionTriggered: label => {
         if(label!==qsTr("打开")){dialogHost.close();return}
         if(veyra.openNetworkAddress(networkAddress.text))dialogHost.close()

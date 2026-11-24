@@ -191,6 +191,9 @@ int main() {
         check(w == 4096 && h == 2304, "never above the limit, shape kept");
         pushOutputSize(1665, 937, 1920, 1080, 4096, w, h);
         check(w == 1664 && h == 936, "sizes are even");
+        // An odd picture (a window of odd width) is recorded at the even size next to it, through the canvas.
+        pushOutputSize(0, 0, 1919, 1081, 8192, w, h);
+        check(w == 1918 && h == 1080, "an odd picture gets an even output size");
         PushCanvas full;
         check(full.fullFrame(), "the default canvas is the whole picture");
         auto m = mapPushCanvas(full, 3840, 2160, 1920, 1080);

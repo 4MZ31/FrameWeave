@@ -294,7 +294,7 @@ VGroup {
     property real pacingShare: -1
     Timer {
         interval: 1000; repeat: true
-        running: (quick.adaptive || quick.pacingOn || veyra.hudLock === true || veyra.fgBackendName === "pushflow" || veyra.preferences.pushCrosshairHold === true) && veyra.hasSource && veyra.fgEnabled && quick.visible
+        running: (quick.adaptive || quick.pacingOn || veyra.hudLock === true || veyra.fgBackendName === "pushflow" || veyra.preferences.pushCrosshairHold === true || veyra.preferences.pushSubtitleHold === true) && veyra.hasSource && veyra.fgEnabled && quick.visible
         triggeredOnStart: true
         onTriggered: {
             const st = veyra.pushLiveStats()
@@ -898,7 +898,7 @@ VGroup {
     // comparison clip reads 60. One tap switches to the fixed 60 -> 30 mode (every second sample).
     readonly property bool cadenceMismatch: quick.liveStats.running === true && veyra.fgEnabled === true && quick.baseFps === 30
         && Math.abs(Number(quick.liveStats.captureFps || 0) - 60) < 3 && Number(quick.liveStats.contentFps || 0) > 45
-        && Number(veyra.contentRate) !== 5
+        && Number(veyra.contentRate) !== 5 && Number(veyra.contentRate) !== 6
     // Frame generation health (engine/PushFgHealth.h): frame generation is on and nothing generated
     // is shown, so the picture plays at the game's own frame rate. Shown with its cause for as long
     // as it lasts: 2 the method is not running, 3 the card does not keep up, 4 nothing comes out.
@@ -994,7 +994,7 @@ VGroup {
     property bool gsyncWanted: false     // the button was pressed; the check is running
     property bool gsyncChecked: false    // a check has finished since the button was pressed
     readonly property bool gsyncUnconfirmed: quick.gsyncTools !== null && veyra.hasSource === true && quick.smoothPacing
-                                             && Number(veyra.vrrState || 0) === 3
+                                             && Number(veyra.vrrState || 0) === 3 && veyra.vrrAmd !== true
     Connections {
         target: quick.gsyncTools
         ignoreUnknownSignals: true
@@ -1612,6 +1612,33 @@ VGroup {
                 opacity: enabled ? 1 : 0.4
                 checked: quick.ownTechPossible && crosshairHold.on   // by id: a row's control is not the row's direct child
                 onToggled: checked => veyra.setPreference("pushCrosshairHold", checked)
+            }
+        }
+        // Subtitle Hold (pipeline/PushOverlay.h, subtitleZoneFor): the same machinery in the band along the bottom where
+        // a game draws its subtitles. Off unless switched on: not every player uses subtitles.
+        VRow {
+            id: subtitleHold
+            objectName: "pushfps-subtitle-row"
+            visible: !quick.proPage   // Professional mode's own list has this switch
+            label: qsTr("字幕保持")
+            help: qsTr("字幕静止而背后的画面在动时（例如高速开车），补帧会把字幕当成背景一起拉动，文字会上下拖影、出现重影。开启后，PushFPS 在屏幕下方找出字幕，补帧前先把它从画面里取出，补帧后再原样放回。新的一行字幕出现时，需要先静止片刻才会被识别。不用字幕时不必开启。")
+            readonly property int holdState: Number(quick.liveStats.subtitleHoldState || 0)
+            readonly property int holdPixels: Number(quick.liveStats.subtitleHoldPixels || 0)
+            readonly property bool on: veyra.preferences.pushSubtitleHold === true
+            readonly property bool methodOk: ["vfg", "amdfrc", "pushflow", "dlss", "fsr3", "fsr4"].indexOf(veyra.fgBackendName) >= 0
+            hint: !quick.ownTechPossible ? (quick.fgPossible ? qsTr("XeSS 自己生成画面，不能同时使用") : (Support.status(veyra, "frame-generation").reason || ""))
+                : on && !methodOk ? qsTr("这种补帧方式暂不支持，请换一种补帧方式")
+                : on && holdState === 2 ? qsTr("没能在这台电脑上启动，补帧照常运行（原因见日志）")
+                : on && holdState === 1 ? (holdPixels > 0 ? qsTr("正在运行：已找到字幕，补出的每一帧里都原样放回")
+                                                           : qsTr("正在运行：屏幕下方还没有找到字幕（背后的画面动起来才会识别）"))
+                : on ? qsTr("已开启：有画面播放并且补帧开启后开始运行")
+                : qsTr("已关闭：画面快速移动时字幕可能拖影")
+            VSwitch {
+                objectName: "pushfps-subtitle"
+                enabled: quick.ownTechPossible && veyra.fgEnabled
+                opacity: enabled ? 1 : 0.4
+                checked: quick.ownTechPossible && subtitleHold.on   // by id: a row's control is not the row's direct child
+                onToggled: checked => veyra.setPreference("pushSubtitleHold", checked)
             }
         }
         // The still rule (pipeline/PushHudStill.h): off unless switched on (since 4.0.1). What stands still in front of a

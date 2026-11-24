@@ -62,6 +62,12 @@ public:
     static constexpr unsigned kHitchSlots=5;
     void reset(){anchored_=false;havePicture_=false;previousNew_=false;shift_=false;secondCopies_=0;lastSequence_=nextSequence_=0;keptValid_=holding_=waiting_=false;}
     static bool supported(double fps){return std::isfinite(fps)&&fps>=59&&fps<=61;}
+    // PushFPS: the choice between the two 60 -> 30 modes (EnhancementSettings ContentRate 5 and 6). On (5, the
+    // default and what every version since 4.1.2 did): a due sample that repeats the last kept picture waits
+    // for the next new one. Off (6, "original"): the plain every-second-sample grid of 3.2.10 to 4.1.1, which
+    // some players found right for their game (tests: decided exactly as that class). A change resets.
+    bool setSkipRepeats(bool enabled){if(skipRepeats_==enabled)return false;skipRepeats_=enabled;reset();return true;}
+    bool skipRepeats()const{return skipRepeats_;}
     // picture: the sample's picture number, nullptr when unknown.
     bool accept(int64_t pts,int64_t transportInterval,bool boundary,const uint64_t* picture=nullptr,uint64_t sequence=0){
         if(transportInterval<=0){reset();return true;}
@@ -87,7 +93,7 @@ public:
             holding_=false;kept(pts,picture,sequence);return true;
         }
         const bool repeatOfKept=picture&&keptValid_&&*picture==keptPicture_;
-        if(repeatOfKept&&!holding_){
+        if(skipRepeats_&&repeatOfKept&&!holding_){
             const bool withinHitch=sequence&&keptSequence_?sequence-keptSequence_<kHitchSlots:
                 pts-keptPts_+transportInterval/4<transportInterval*int64_t(kHitchSlots);
             // Due, but the game has not drawn a new picture yet: wait for it.
@@ -129,7 +135,7 @@ private:
     bool anchored_=false,havePicture_=false,previousNew_=false,shift_=false;int64_t next_=0,last_=0;
     uint64_t lastSequence_=0,nextSequence_=0;
     uint64_t lastPicture_=0,shifts_=0,grid_=0,secondKept_=0;unsigned secondCopies_=0;
-    bool keptValid_=false,holding_=false,waiting_=false;
+    bool keptValid_=false,holding_=false,waiting_=false,skipRepeats_=true;
     uint64_t keptPicture_=0,keptSequence_=0,repeatsSkipped_=0,held_=0;int64_t keptPts_=0;
 };
 }

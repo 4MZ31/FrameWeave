@@ -109,6 +109,7 @@ QtObject {
     property int nvidiaLowLatency: 0
     property bool fgLowQueue: false
     property int vrrState: 0
+    property bool vrrAmd: false
     property bool running: false
     property string presentationStatus: ""
     // PushFPS quick setup (tst_push_quick_setup.qml): frame generation, output cap,
@@ -502,6 +503,8 @@ QtObject {
     function openMoonlightDialog() {}
     function openNetworkDialog() {}
     function openPs5Dialog() {}
+    function ps5OpenAccountChecker() {}
+    function ps5FinishSignIn(pasted) {}
     function openScreenCaptureDialog() {}
     function openXboxDialog() {}
     function resumeLastSource() {}

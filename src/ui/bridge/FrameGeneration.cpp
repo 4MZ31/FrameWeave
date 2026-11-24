@@ -300,7 +300,7 @@ QString QmlPlayerBridge::dlssgLiteHint() const {
 }
 int QmlPlayerBridge::contentRate() const { return int(engine::currentContentRate(settings().content)); }
 void QmlPlayerBridge::setContentRate(int value) {
-    if (value < 0 || value > int(engine::ContentRate::Capture60To30)) return;
+    if (value < 0 || value > int(engine::ContentRate::Capture60To30Original)) return;
     value=int(engine::currentContentRate(static_cast<engine::ContentRate>(value)));
     auto s = settings();
     if (int(s.content) == value) return;
@@ -352,6 +352,7 @@ void QmlPlayerBridge::setVariableRefresh(bool value) {
     applyPresentation();
 }
 int QmlPlayerBridge::vrrState() const { return impl_->vrrState; }
+bool QmlPlayerBridge::vrrAmd() const { return impl_->vrrAmd; }
 int QmlPlayerBridge::displayHdr() const { return impl_->displayHdr; }
 double QmlPlayerBridge::displayRefreshHz() const { return impl_->displayRefreshHz; }
 bool QmlPlayerBridge::displayChecking() const { return impl_->displayChecking; }
@@ -381,11 +382,12 @@ QString QmlPlayerBridge::vrrHintText(int level) const {
     // can do VRR even if the driver setting is still off.
     const bool on = impl_->presentation.variableRefresh, running = impl_->snapshot.running;
     switch (level) {
-    case 0: return tr("无法检测屏幕是否支持（目前只支持 NVIDIA 显卡）");
+    case 0: return tr("无法检测屏幕是否支持（目前只支持 NVIDIA 和 AMD 显卡）");
     case 1: return tr("当前屏幕不支持可变刷新");
     case 2: return tr("屏幕支持可变刷新，但当前显示模式不可用；请检查连接、刷新率及驱动设置");
     case 3:
         if (!on) return tr("屏幕跟着画面刷新：不撕裂，也几乎不用等刷新");
+        if (running && impl_->vrrAmd) return tr("已请求可变刷新。AMD 驱动不报告是否生效，可在显示器菜单里看刷新率是否跟着画面变化；FreeSync 在 AMD Software 中开关");
         return running ? tr("已请求可变刷新，驱动尚未确认生效；可检查窗口/全屏 G-SYNC 设置，当前状态不代表驱动已关闭")
                        : tr("已开启，将在播放时请求可变刷新；是否生效以驱动报告为准");
     default: return on ? tr("生效中：屏幕跟着画面刷新") : tr("屏幕正处于可变刷新（驱动已开启）");

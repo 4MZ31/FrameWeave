@@ -1027,7 +1027,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                 snapshot_.fsrMaxGeneratedFrames=fsrMaxGeneratedFramesCap_;
                 snapshot_.fsrProviderVersion=graph->fsrProviderVersion();
                 snapshot_.fsrSrProviderVersion=graph->fsrSrProviderVersion();
-                snapshot_.hudLockState=graph->hudLockState();snapshot_.hudStillState=graph->hudStillState();snapshot_.crosshairHoldState=graph->crosshairHoldState();snapshot_.crosshairHoldPixels=int(graph->crosshairHoldPixels());snapshot_.crosshairHoldFrames=graph->crosshairHoldFrames();
+                snapshot_.hudLockState=graph->hudLockState();snapshot_.hudStillState=graph->hudStillState();snapshot_.crosshairHoldState=graph->crosshairHoldState();snapshot_.crosshairHoldPixels=int(graph->crosshairHoldPixels());snapshot_.crosshairHoldFrames=graph->crosshairHoldFrames();snapshot_.subtitleHoldState=graph->subtitleHoldState();snapshot_.subtitleHoldPixels=int(graph->subtitleHoldPixels());
                 if(fgMultiFrameMaxCap_>0)veyra::log::info("settings",std::format("frame-generation capability: maxGeneratedFrames={} maxMultiplier={}",fgMultiFrameMaxCap_,fgMultiFrameMaxCap_+1));
                 veyra::log::info("settings",std::format("xess capability: active={} maxInterpolatedFrames={} unlockApplied={} (active context only)",presenter.xessActive(),xessMaxInterpolatedFramesCap_,xessState.applied));
                 if(fsrMaxGeneratedFramesCap_>0)veyra::log::info("settings",std::format("fsr capability: generatedPerPresent={} => maxMultiplier={}",fsrMaxGeneratedFramesCap_,fsrMaxGeneratedFramesCap_+1));
@@ -1258,7 +1258,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
             PushPacingRepair pacingRepair;int64_t pacingLastPts=0;bool pacingHaveLast=false;int64_t nextPacingLog=0;
             ContentDedup::Stats dedupLogged{};
             static const bool legacyCadence=GetEnvironmentVariableW(L"VEYRA_TEST_CONTENT_DEDUP_LEGACY",nullptr,0)>0;
-            const auto dedupContent=[](ContentRate content){return content!=ContentRate::Transport&&content!=ContentRate::Capture60To30;};
+            const auto dedupContent=[](ContentRate content){return content!=ContentRate::Transport&&!isCaptureHalfRate(content);};
             // CPU frames are compared here; capture-card frames arrive numbered by the callback.
             pipeline::PictureReference enginePictures{2};
             unsigned dedupRepeatMax8=0;uint64_t dedupRepeatMaxOver=0,dedupNewMinOver=UINT64_MAX;
@@ -2084,7 +2084,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                        gd.srOutputWidth!=nextDesc.srOutputWidth||gd.srOutputHeight!=nextDesc.srOutputHeight||
                        // PushFPS: PushFlow's motion size (a preference, not a field of the settings) sizes its network.
                        gd.pushFlowMotion!=nextDesc.pushFlowMotion||gd.pushFlowEncoderCache!=nextDesc.pushFlowEncoderCache||gd.pushFlowGuard!=nextDesc.pushFlowGuard||gd.pushFlowPredict!=nextDesc.pushFlowPredict||gd.pushFlowDual!=nextDesc.pushFlowDual||
-                       gd.hudStill!=nextDesc.hudStill||gd.crosshairHold!=nextDesc.crosshairHold)rebuild=true;
+                       gd.hudStill!=nextDesc.hudStill||gd.crosshairHold!=nextDesc.crosshairHold||gd.subtitleHold!=nextDesc.subtitleHold)rebuild=true;
                     bool accepted=ring.drainQueue();out={};hasOutput=false;
                     resetRecord->rebuilt=rebuild;
                     markResetStage(diagnostics::ResetStage::Drain);
@@ -2508,8 +2508,12 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     if(testReplayDropPending){pkt.flags|=static_cast<pipeline::FrameFlags>(pipeline::FrameFlagBits::Drop);testReplayDropPending=false;}
                 }
                 if(!isImage&&!isCapture&&seekSeconds_>=0)continue;
-                const bool halfRate=isCapture&&options.settings.content==ContentRate::Capture60To30&&
+                const bool halfRate=isCapture&&isCaptureHalfRate(options.settings.content)&&
                     CaptureHalfRate::supported(activeSource->info().averageFps);
+                // PushFPS: the two 60 -> 30 modes differ only here, in what is done with a due repeat.
+                if(halfRate&&captureSampler.setSkipRepeats(options.settings.content==ContentRate::Capture60To30))
+                    veyra::log::info("capture-rate",std::format("revision={} mode={} samplerReset=1",options.settings.revision,
+                        options.settings.content==ContentRate::Capture60To30?"waits-for-new":"original"));
                 const bool dedupActive=isCapture&&!isImage&&!legacyCadence&&dedupContent(options.settings.content);
                 // The callback compares whole pictures only while dedup or the 60->30 phase needs them.
                 if(physicalCapture)captureSource.setPictureCompare(dedupActive||halfRate);
@@ -3158,7 +3162,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                 previewSkippedSinceSubmit=0;
                 if(transaction||frames==0){
                     std::lock_guard lock(mutex_);snapshot_.captureHalfRate=halfRate;
-                    veyra::log::info("capture-rate",std::format("revision={} requested60To30={} active={} transportFps={} originalPtsPreserved={}",options.settings.revision,options.settings.content==ContentRate::Capture60To30,halfRate,isCapture?activeSource->info().averageFps:0,!captureClockCorrected));
+                    veyra::log::info("capture-rate",std::format("revision={} requested60To30={} active={} transportFps={} originalPtsPreserved={}",options.settings.revision,isCaptureHalfRate(options.settings.content),halfRate,isCapture?activeSource->info().averageFps:0,!captureClockCorrected));
                 }
                 const bool pairPacing=pairAnchoredLive&&options.fg;
                 // File replay has no device pacing and still needs its PTS clock.
@@ -3573,7 +3577,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     snapshot_.pushFlowDual=pf.dual;snapshot_.pushFlowDualReal=dualRealGiven_;snapshot_.pushFlowDualBetween=dualBetweenGiven_;
                     snapshot_.pushFlowMotionPairs=pf.motionPairs;snapshot_.pushFlowAlignedApart=pf.alignedApart;
                     // PushFPS Crosshair Hold: what it holds changes from second to second, so it is read here as well.
-                    snapshot_.crosshairHoldState=graph->crosshairHoldState();snapshot_.crosshairHoldPixels=int(graph->crosshairHoldPixels());snapshot_.crosshairHoldFrames=graph->crosshairHoldFrames();
+                    snapshot_.crosshairHoldState=graph->crosshairHoldState();snapshot_.crosshairHoldPixels=int(graph->crosshairHoldPixels());snapshot_.crosshairHoldFrames=graph->crosshairHoldFrames();snapshot_.subtitleHoldState=graph->subtitleHoldState();snapshot_.subtitleHoldPixels=int(graph->subtitleHoldPixels());
                     // Asked for, and the source is a file: Predict is for live sources only, and says so.
                     if(snapshot_.pushFlowPredict.empty()&&!isCapture&&pushflow2::wanted(pushflow2::Experiment::Predict))snapshot_.pushFlowPredict="not-live";}
                     // Custom (format label): one name for what the source carries,
@@ -3636,7 +3640,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     snapshot_.hdrAboveCeilingPercent=coverage.aboveCeilingPercent();
                     snapshot_.hdrInRollOffPercent=coverage.inRollOffPercent();
                     snapshot_.hdrInLiftPercent=coverage.inLiftPercent();
-                    snapshot_.displayVrr=gfx::vrrLevel(presenter.displayVrr());snapshot_.presentationVrrSync=presenter.vrrSync();
+                    snapshot_.displayVrr=gfx::vrrLevel(presenter.displayVrr());snapshot_.displayVrrAmd=presenter.displayVrr().amd;snapshot_.presentationVrrSync=presenter.vrrSync();
                     snapshot_.nrActive=graph->nrEnabled()&&graphStats.nrEvaluateCount>0;
                     snapshot_.nrAutoActive=graph->autoNrPoolReady();
                     snapshot_.nrAutoPercent=graph->autoNrPoolReady()?AutoNrController::percent(graph->autoNrLevel()):0;

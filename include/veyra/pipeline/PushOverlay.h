@@ -74,14 +74,31 @@ inline Rule ruleFor(uint32_t height) {
     r.hole = scaled(9, height, 2, kMaxHole);
     return r;
 }
-// The zone: a square round the screen centre, a whole number of blocks, on even pixels.
-struct Zone { uint32_t x = 0, y = 0, size = 0; };
+// The zone: a square round the screen centre, a whole number of blocks, on even pixels. Since Subtitle Hold
+// (after 4.4.5) a zone may be a rectangle: w x h; for the crosshair's square, w = h = size.
+struct Zone { uint32_t x = 0, y = 0, size = 0, w = 0, h = 0; };
 inline Zone zoneFor(uint32_t width, uint32_t height) {
     uint32_t size = uint32_t(std::floor(400.0 * double(height) / 2160.0 + 0.5));
     size = std::min({size, width, height}) / kBlock * kBlock;
     Zone z;
     if (size < 4 * kBlock) return z;     // too small a picture: nothing is done
-    z.size = size; z.x = ((width - size) / 2) & ~1u; z.y = ((height - size) / 2) & ~1u;
+    z.size = z.w = z.h = size; z.x = ((width - size) / 2) & ~1u; z.y = ((height - size) / 2) & ~1u;
+    return z;
+}
+// PushFPS Subtitle Hold: the band where a game draws its subtitles, along the bottom of the picture: the middle
+// 62.5 % of the width and the bottom 400 / 2160 of the height, from 4 % above the bottom edge (GTA 6's lines sit
+// at about 90 % of the height). Whole blocks, on even pixels; `size` is the width, so code that only knows
+// squares sees a zone it cannot take for one (`w != h`).
+inline Zone subtitleZoneFor(uint32_t width, uint32_t height) {
+    Zone z;
+    uint32_t h = uint32_t(std::floor(400.0 * double(height) / 2160.0 + 0.5)) / kBlock * kBlock;
+    uint32_t w = uint32_t(std::floor(double(width) * 0.625 + 0.5)) / kBlock * kBlock;
+    if (h < 4 * kBlock || w < 4 * kBlock || h > height || w > width) return z;
+    const uint32_t gap = uint32_t(std::floor(double(height) * 0.04 + 0.5));
+    if (h + gap > height) return z;
+    z.w = z.size = w; z.h = h;
+    z.x = ((width - w) / 2) & ~1u;
+    z.y = (height - gap - h) & ~1u;
     return z;
 }
 // How a frame's values become the 0..1 the thresholds are in (as Live HUD Lock): sRGB and PQ are used as
@@ -93,25 +110,27 @@ inline float lumaOf(float r, float g, float b, unsigned outputMode) {
 inline bool kindRunsAcross(int kind) { return (kind & 1) != 0; }   // flanks above and below: the bar runs across
 inline float kindSign(int kind) { return kind < 2 ? 1.0f : -1.0f; }
 
-// A square picture of the zone, one value a pixel.
+// A picture of the zone, one value a pixel: n x n, or w x h for a rectangular zone (size = w).
 struct Plane {
-    int size = 0; std::vector<float> v;
+    int size = 0, w = 0, h = 0; std::vector<float> v;
     Plane() = default;
-    explicit Plane(int n, float fill = 0) : size(n), v(size_t(n) * n, fill) {}
-    float at(int x, int y) const { return v[size_t(y) * size + x]; }
-    float& at(int x, int y) { return v[size_t(y) * size + x]; }
-    bool inside(int x, int y) const { return x >= 0 && y >= 0 && x < size && y < size; }
+    explicit Plane(int n, float fill = 0) : size(n), w(n), h(n), v(size_t(n) * n, fill) {}
+    Plane(int width, int height, float fill) : size(width), w(width), h(height), v(size_t(width) * height, fill) {}
+    float at(int x, int y) const { return v[size_t(y) * w + x]; }
+    float& at(int x, int y) { return v[size_t(y) * w + x]; }
+    bool inside(int x, int y) const { return x >= 0 && y >= 0 && x < w && y < h; }
 };
 struct Colour { float r = 0, g = 0, b = 0; };
 struct Picture {
-    int size = 0; std::vector<Colour> v;
+    int size = 0, w = 0, h = 0; std::vector<Colour> v;
     Picture() = default;
-    explicit Picture(int n) : size(n), v(size_t(n) * n) {}
-    const Colour& at(int x, int y) const { return v[size_t(y) * size + x]; }
-    Colour& at(int x, int y) { return v[size_t(y) * size + x]; }
+    explicit Picture(int n) : size(n), w(n), h(n), v(size_t(n) * n) {}
+    Picture(int width, int height) : size(width), w(width), h(height), v(size_t(width) * height) {}
+    const Colour& at(int x, int y) const { return v[size_t(y) * w + x]; }
+    Colour& at(int x, int y) { return v[size_t(y) * w + x]; }
 };
 inline Plane lumaPlane(const Picture& p, unsigned outputMode) {
-    Plane l(p.size);
+    Plane l(p.w, p.h, 0.0f);
     for (size_t i = 0; i < p.v.size(); ++i) l.v[i] = lumaOf(p.v[i].r, p.v[i].g, p.v[i].b, outputMode);
     return l;
 }
@@ -148,10 +167,10 @@ inline bool blockMoves(const Plane& before, const Plane& now, int bx, int by) {
 }
 // Which blocks move (row by row), and whether a tenth of them do.
 inline std::vector<unsigned char> movingBlocks(const Plane& before, const Plane& now) {
-    const int blocks = now.size / kBlock;
-    std::vector<unsigned char> flags(size_t(blocks) * blocks, 0);
-    for (int by = 0; by < blocks; ++by)
-        for (int bx = 0; bx < blocks; ++bx) flags[size_t(by) * blocks + bx] = blockMoves(before, now, bx, by) ? 1 : 0;
+    const int bw = now.w / kBlock, bh = now.h / kBlock;
+    std::vector<unsigned char> flags(size_t(bw) * bh, 0);
+    for (int by = 0; by < bh; ++by)
+        for (int bx = 0; bx < bw; ++bx) flags[size_t(by) * bw + bx] = blockMoves(before, now, bx, by) ? 1 : 0;
     return flags;
 }
 inline bool zoneMoves(const std::vector<unsigned char>& flags) {
@@ -164,13 +183,14 @@ inline bool zoneMoves(const Plane& before, const Plane& now) { return zoneMoves(
 // that stands while the picture round it moves; a pole that stands while a car passes elsewhere in the zone is
 // scenery (on the driving clip this took the pixels marked outside the crosshair from 162 000 to 8 000, and
 // what is left stands right beside what moves).
-inline bool movesNear(const std::vector<unsigned char>& flags, int blocks, int x, int y) {
-    const int bx = std::min(x / kBlock, blocks - 1), by = std::min(y / kBlock, blocks - 1);
-    for (int j = std::max(by - kNearBlocks, 0); j <= std::min(by + kNearBlocks, blocks - 1); ++j)
-        for (int i = std::max(bx - kNearBlocks, 0); i <= std::min(bx + kNearBlocks, blocks - 1); ++i)
-            if (flags[size_t(j) * blocks + i]) return true;
+inline bool movesNear(const std::vector<unsigned char>& flags, int blocksX, int blocksY, int x, int y) {
+    const int bx = std::min(x / kBlock, blocksX - 1), by = std::min(y / kBlock, blocksY - 1);
+    for (int j = std::max(by - kNearBlocks, 0); j <= std::min(by + kNearBlocks, blocksY - 1); ++j)
+        for (int i = std::max(bx - kNearBlocks, 0); i <= std::min(bx + kNearBlocks, blocksX - 1); ++i)
+            if (flags[size_t(j) * blocksX + i]) return true;
     return false;
 }
+inline bool movesNear(const std::vector<unsigned char>& flags, int blocks, int x, int y) { return movesNear(flags, blocks, blocks, x, y); }
 // 1c. The count of one pixel and kind. Above 0: a bar, and 1 more than the counted frames it has been one;
 //     below 0: no bar, likewise; 0: never judged. Only a frame in which the zone moves, and the picture near
 //     this pixel with it, counts.
@@ -188,11 +208,15 @@ inline bool longNoBar(float count, const Rule& r) { return count <= -float(r.sta
 
 // What the rule keeps from frame to frame, per kind.
 struct State {
-    int size = 0;
+    int size = 0, w = 0, h = 0;
     Plane count[kKinds], memory[kKinds];
     Plane before;            // the luma of the frame before
     bool hasBefore = false, moving = false;
-    explicit State(int n = 0) : size(n), before(n) { for (auto& c : count) c = Plane(n); for (auto& m : memory) m = Plane(n); }
+    explicit State(int n = 0) : State(n, n) {}
+    State(int width, int height) : size(width), w(width), h(height), before(width, height, 0.0f) {
+        for (auto& c : count) c = Plane(width, height, 0.0f);
+        for (auto& m : memory) m = Plane(width, height, 0.0f);
+    }
 };
 struct Decision { bool accepted = false, found = false; };
 // 1d. One pixel of one kind: the unbroken run of bar pixels through it, along the bar's own direction.
@@ -200,7 +224,7 @@ inline Decision judge(const Plane& count, const Plane& memory, int x, int y, int
     Decision d;
     if (!isBar(count.at(x, y))) return d;
     const int dx = kindRunsAcross(kind) ? 1 : 0, dy = kindRunsAcross(kind) ? 0 : 1;
-    const int n = count.size;
+    const int nw = count.w, nh = count.h;
     bool stood = hasStood(count.at(x, y), r);
     int length = 1, known = memory.at(x, y) > 0 ? 1 : 0;
     float beyond[2] = {0, 0};
@@ -209,7 +233,7 @@ inline Decision judge(const Plane& count, const Plane& memory, int x, int y, int
         int px = x, py = y;
         for (;;) {
             px += step * dx; py += step * dy;
-            if (px < 0 || py < 0 || px >= n || py >= n) return d;          // the bar reaches the zone's edge
+            if (px < 0 || py < 0 || px >= nw || py >= nh) return d;        // the bar reaches the zone's edge
             const float c = count.at(px, py);
             if (!isBar(c)) { beyond[side] = c; break; }
             if (++length > r.longest) return d;
@@ -238,27 +262,27 @@ inline bool enclosed(const Plane& accepted, int x, int y, int hole) {
 }
 // One real frame: counts, memory, and the mask (1 where frame generation is not to see the picture).
 inline Plane step(State& s, const Plane& luma, const Rule& r) {
-    const int n = s.size, blocks = n / kBlock;
-    const std::vector<unsigned char> flags = s.hasBefore ? movingBlocks(s.before, luma) : std::vector<unsigned char>(size_t(blocks) * blocks, 0);
+    const int nw = s.w, nh = s.h, blocksX = nw / kBlock, blocksY = nh / kBlock;
+    const std::vector<unsigned char> flags = s.hasBefore ? movingBlocks(s.before, luma) : std::vector<unsigned char>(size_t(blocksX) * blocksY, 0);
     s.moving = s.hasBefore && zoneMoves(flags);
     for (int k = 0; k < kKinds; ++k)
-        for (int y = 0; y < n; ++y)
-            for (int x = 0; x < n; ++x)
-                s.count[k].at(x, y) = nextCount(s.count[k].at(x, y), barAt(luma, x, y, k, r), s.moving && movesNear(flags, blocks, x, y), r);
-    Plane accepted(n);
+        for (int y = 0; y < nh; ++y)
+            for (int x = 0; x < nw; ++x)
+                s.count[k].at(x, y) = nextCount(s.count[k].at(x, y), barAt(luma, x, y, k, r), s.moving && movesNear(flags, blocksX, blocksY, x, y), r);
+    Plane accepted(nw, nh, 0.0f);
     for (int k = 0; k < kKinds; ++k) {
-        Plane memory(n);
-        for (int y = 0; y < n; ++y)
-            for (int x = 0; x < n; ++x) {
+        Plane memory(nw, nh, 0.0f);
+        for (int y = 0; y < nh; ++y)
+            for (int x = 0; x < nw; ++x) {
                 const Decision d = judge(s.count[k], s.memory[k], x, y, k, r);
                 if (d.accepted) accepted.at(x, y) = 1;
                 memory.at(x, y) = d.found ? float(r.memory) : std::max(s.memory[k].at(x, y) - 1.0f, 0.0f);
             }
         s.memory[k] = memory;
     }
-    Plane mask(n);
-    for (int y = 0; y < n; ++y)
-        for (int x = 0; x < n; ++x) {
+    Plane mask(nw, nh, 0.0f);
+    for (int y = 0; y < nh; ++y)
+        for (int x = 0; x < nw; ++x) {
             bool any = false;
             for (int j = -r.grow; j <= r.grow && !any; ++j)
                 for (int i = -r.grow; i <= r.grow && !any; ++i)
@@ -290,9 +314,9 @@ inline Colour fillAt(const Picture& frame, const Plane& mask, int x, int y, cons
     return {sum.r / weight, sum.g / weight, sum.b / weight};
 }
 inline Picture fill(const Picture& frame, const Plane& mask, const Rule& r) {
-    Picture out(frame.size);
-    for (int y = 0; y < frame.size; ++y)
-        for (int x = 0; x < frame.size; ++x) out.at(x, y) = fillAt(frame, mask, x, y, r);
+    Picture out(frame.w, frame.h);
+    for (int y = 0; y < frame.h; ++y)
+        for (int x = 0; x < frame.w; ++x) out.at(x, y) = fillAt(frame, mask, x, y, r);
     return out;
 }
 // 3. One pixel of a generated frame. a, b: the two real frames; fa, fb: what frame generation was given of them;
@@ -325,4 +349,9 @@ inline Colour composeAt(const Picture& a, const Picture& b, const Picture& fa, c
 inline bool& wantedStore() { static bool wanted = false; return wanted; }
 inline void setWanted(bool on) { wantedStore() = on; }
 inline bool wanted() { return wantedStore(); }
+// PushFPS Subtitle Hold (after 4.4.5): the same rule in the subtitle band (subtitleZoneFor). Its own switch, off
+// unless switched on: not every player uses subtitles.
+inline bool& subtitlesWantedStore() { static bool wanted = false; return wanted; }
+inline void setSubtitlesWanted(bool on) { subtitlesWantedStore() = on; }
+inline bool subtitlesWanted() { return subtitlesWantedStore(); }
 }

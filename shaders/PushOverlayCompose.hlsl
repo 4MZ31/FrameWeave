@@ -16,15 +16,15 @@ Texture2D<float4> maskA : register(t5);      // the mask the older was filled wi
 Texture2D<float4> maskB : register(t6);      // and the newer's
 RWTexture2D<float4> outTex : register(u0);   // the generated frame
 cbuffer Constants : register(b0) {
-    uint zoneX, zoneY, zoneSize, pad0;
+    uint zoneX, zoneY, zoneSize, zoneHeight;   // PushFPS Subtitle Hold: a zone may be a rectangle (zoneSize = its width)
     float t, pad1, pad2, pad3;
 };
 static const float kWeightFloor = 1e-4;
-bool masked(int2 p) { return p.x >= 0 && p.y >= 0 && p.x < int(zoneSize) && p.y < int(zoneSize) && (maskA[p].x > 0.5 || maskB[p].x > 0.5); }
+bool masked(int2 p) { return p.x >= 0 && p.y >= 0 && p.x < int(zoneSize) && p.y < int(zoneHeight) && (maskA[p].x > 0.5 || maskB[p].x > 0.5); }
 
 [numthreads(8, 8, 1)]
 void main(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= zoneSize || id.y >= zoneSize) return;
+    if (id.x >= zoneSize || id.y >= zoneHeight) return;
     const int2 p = int2(id.xy);
     if (!masked(p)) return;
     const int2 zone = int2(zoneX, zoneY);
