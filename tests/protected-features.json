@@ -1825,7 +1825,7 @@
     },
     {
      "file": "src/pipeline/EnhanceGraph.cpp",
-     "contains": "return overlay_?overlay_->input(parity):videoFrame_[parity].Get();"
+     "contains": "return overlay_?overlay_->input(parity):subtitles_?subtitles_->input(parity):videoFrame_[parity].Get();"
     },
     {
      "file": "tests/integration/PushGpuTests.cpp",
@@ -2006,6 +2006,202 @@
      "contains": "set(pushfps_shared_names"
     }
    ]
+  },
+  {
+   "id": "F70",
+   "what": "PS5 pairing takes what people type and names the field to fix: the pairing number as the PS5 shows it (with its space), an account ID that is a PSN name answered as such and never completed to an ID, the first field that is wrong named top to bottom; the number stays in its field when pairing did not start; a first visit looks for the PS5 by itself; the status line stands first in the dialog.",
+   "guards": [
+    {
+     "file": "tests/unit/PushPairingInputTests.cpp",
+     "ci": "veyra_push_pairing_input_tests",
+     "contains": "pairing takes the number with the space"
+    },
+    {
+     "file": "tests/unit/PushPairingInputTests.cpp",
+     "ci": "veyra_push_pairing_input_tests",
+     "contains": "so eleven letters alone are never taken for one"
+    },
+    {
+     "file": "tests/unit/PushPairingInputTests.cpp",
+     "ci": "veyra_push_pairing_input_tests",
+     "contains": "everything wrong: the address is named first"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_ps5_pairing.qml",
+     "ci": "tst_push_ps5_pairing",
+     "contains": "test_the_number_stays_when_pairing_did_not_start"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_ps5_pairing.qml",
+     "ci": "tst_push_ps5_pairing",
+     "contains": "test_a_first_visit_looks_for_the_ps5"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_ps5_pairing.qml",
+     "ci": "tst_push_ps5_pairing",
+     "contains": "test_the_status_line_stands_first_and_is_shown"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_ps5_pairing.qml",
+     "ci": "tst_push_ps5_pairing",
+     "contains": "test_get_account_id_stands_out_until_an_id_is_there"
+    }
+   ],
+   "needs_hardware": "A PS5: that a pairing made with a number typed with its space is accepted by the console, and what the page Get Account ID opens shows."
+  },
+  {
+   "id": "F71",
+   "what": "With several controllers the one a button is first pressed on is read (a wheel or a virtual pad listed first no longer leaves the pad in the player's hands unread), one controller behaves exactly as before, follow mode is unchanged; a stream that plays with no controller on the PC says so once; what lies behind a dialog is not hovered.",
+   "guards": [
+    {
+     "file": "tests/unit/PushPairingInputTests.cpp",
+     "ci": "veyra_push_pairing_input_tests",
+     "contains": "the first button comes from another controller: that one is read"
+    },
+    {
+     "file": "tests/unit/PushPairingInputTests.cpp",
+     "ci": "veyra_push_pairing_input_tests",
+     "contains": "one press seen on two controllers switches once, not back and forth"
+    },
+    {
+     "file": "tests/unit/PushPairingInputTests.cpp",
+     "ci": "veyra_push_pairing_input_tests",
+     "contains": "follow mode: whoever presses is read, every time"
+    },
+    {
+     "file": "tests/unit/PushPairingInputTests.cpp",
+     "ci": "veyra_push_pairing_input_tests",
+     "contains": "after six seconds of playing without a controller"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_ps5_pairing.qml",
+     "ci": "tst_push_ps5_pairing",
+     "contains": "test_the_page_behind_the_dialog_is_not_hovered"
+    }
+   ],
+   "needs_hardware": "Two controllers on a PC with a console streaming: the reader itself (ControllerInput.cpp over SDL) is in no automated test; it was run over a stand-in for SDL before the build."
+  },
+  {
+   "id": "F72",
+   "what": "With the volume above 100 % a loud peak is turned down and keeps its shape (it was cut off flat, which is heard as crackling); nothing passes the ceiling; up to 100 % the samples pass bit for bit, and a boost that ends glides back without a step.",
+   "guards": [
+    {
+     "file": "tests/unit/PushBoostLimiterTests.cpp",
+     "ci": "veyra_push_boost_limiter_tests",
+     "contains": "turned down instead, under a thousandth is"
+    },
+    {
+     "file": "tests/unit/PushBoostLimiterTests.cpp",
+     "ci": "veyra_push_boost_limiter_tests",
+     "contains": "sound under the ceiling passes bit for bit"
+    },
+    {
+     "file": "tests/unit/PushBoostLimiterTests.cpp",
+     "ci": "veyra_push_boost_limiter_tests",
+     "contains": "a volume that was never above 100 % touches nothing at all"
+    },
+    {
+     "file": "tests/unit/PushBoostLimiterTests.cpp",
+     "ci": "veyra_push_boost_limiter_tests",
+     "contains": "right after the boost ends the sound is as loud as it was: no jump"
+    }
+   ],
+   "needs_hardware": "A sound device: the renderer's two calls (WasapiAudioSink.cpp copyPcm) are in no automated test, and nobody has listened to a game at 150 % or 300 % with it."
+  },
+  {
+   "id": "F73",
+   "what": "PS5 Account ID through Sony's own sign-in: no lookup website, the pasted address checked to be Sony's redirect, the code traded at Sony and never kept",
+   "guards": [
+    {
+     "file": "tests/unit/PushPsnSignInTests.cpp",
+     "ci": "veyra_push_psn_sign_in_tests",
+     "contains": "Another site's address"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_ps5_pairing.qml",
+     "ci": "tst_push_ps5_pairing",
+     "contains": "test_sign_in_with_playstation_fills_the_account_id"
+    }
+   ],
+   "needs_hardware": "a PS5 and a PSN account: the exchange with Sony has not been run"
+  },
+  {
+   "id": "F74",
+   "what": "PS5 Remote Play reconnects: a stream that was playing waits for the console to release its session (no retries inside the ~20 s window that end in error 2004); FFmpeg's warnings reach the log, rate-limited",
+   "guards": [
+    {
+     "file": "tests/unit/PushRetryWaitTests.cpp",
+     "ci": "veyra_push_retry_wait_tests",
+     "contains": "Never inside the window"
+    },
+    {
+     "file": "tests/unit/PushLogLimiterTests.cpp",
+     "ci": "veyra_push_log_limiter_tests",
+     "contains": "The same line 500 times"
+    }
+   ],
+   "needs_hardware": "a PS5 whose stream drops mid-session"
+  },
+  {
+   "id": "F75",
+   "what": "60 -> 30 in two modes: the one that waits for a new picture after a hitch (5, unchanged) and the original plain grid of 3.2.10 to 4.1.1 (6), decided exactly as that grid",
+   "guards": [
+    {
+     "file": "tests/unit/PushHalfRateTests.cpp",
+     "ci": "veyra_push_half_rate_tests",
+     "contains": "the original 60 -> 30 mode decides every stream exactly as the plain grid"
+    },
+    {
+     "file": "tests/qml/quick/tst_dedup_modes.qml",
+     "ci": "Get-ChildItem qml-tests -Filter 'tst_*.qml'",
+     "contains": "test_the_original_60_to_30_is_chosen_and_kept"
+    }
+   ],
+   "needs_hardware": "a capture card at 60 with a 30 FPS game"
+  },
+  {
+   "id": "F76",
+   "what": "Subtitle Hold: Crosshair Hold's rule in the subtitle band along the bottom (a rectangular zone), its own switch, off unless switched on; the crosshair's square zone unchanged",
+   "guards": [
+    {
+     "file": "tests/unit/PushOverlayTests.cpp",
+     "ci": "veyra_push_overlay_tests",
+     "contains": "a line of text standing over a moving road is held"
+    },
+    {
+     "file": "tests/unit/PushOverlayTests.cpp",
+     "ci": "veyra_push_overlay_tests",
+     "contains": "the crosshair's zone is still its square"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_subtitle_hold_is_off_unless_switched_on"
+    }
+   ],
+   "needs_hardware": "a game with subtitles over fast motion, and the WARP comparison of the rectangular shaders in a Windows build"
+  },
+  {
+   "id": "F77",
+   "what": "AMD FreeSync detection: displays NVAPI does not answer are asked of the AMD driver (read only); FreeSync switched off or a mode without it never requests VRR, nothing is reported active, and NVIDIA's G-SYNC set-up is not offered for a FreeSync answer",
+   "guards": [
+    {
+     "file": "tests/unit/PushFreeSyncTests.cpp",
+     "ci": "veyra_push_free_sync_tests",
+     "contains": "a refused capability query is the answer: no FreeSync"
+    },
+    {
+     "file": "tests/unit/PushFreeSyncTests.cpp",
+     "ci": "veyra_push_free_sync_tests",
+     "contains": "FreeSync switched off in AMD Software is not on"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_gsync_row_is_not_offered_for_amd_freesync"
+    }
+   ],
+   "needs_hardware": "an AMD card with a FreeSync display (on and off in AMD Software)"
   }
  ]
 }

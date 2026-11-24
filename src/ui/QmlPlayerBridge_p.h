@@ -97,6 +97,12 @@ class QProcess;
 #include "veyra/remoteplay/ControllerInput.h"
 #include "veyra/remoteplay/Discovery.h"
 #include "veyra/remoteplay/ProfileStore.h"
+#include "veyra/remoteplay/PushPairingInput.h"
+#include "veyra/remoteplay/PushPsnSignIn.h"
+#include <QLocale>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include "veyra/source/RemotePlaySource.h"
 #endif
 #ifdef VEYRA_ENABLE_XBOX
@@ -532,6 +538,10 @@ struct QmlPlayerBridge::Impl {
     Ps5Outcome ps5Outcome;
     std::atomic<bool> ps5Done{false};
     bool ps5Busy = false;
+    // PushFPS: Sony sign-in for the Account ID. waiting = Sony's page was opened and an address is expected;
+    // asking = the code is being traded at Sony. Nothing of the exchange is kept.
+    bool ps5SignInWaiting = false;
+    bool ps5SignInAsking = false;
     QTimer* controllerTimer = nullptr;
     // PushFPS Remote Play latency test (PushLatencyTest.cpp): while it runs, its own presses replace
     // the pad (the controller timer sends latencyPress instead of the pad's state).
@@ -558,6 +568,7 @@ struct QmlPlayerBridge::Impl {
     // source that just ended never cuts off the pad the next source started using.
     enum PadUser : unsigned { PadPs5 = 1, PadPs5Control = 2, PadMoonlight = 4, PadXbox = 8 };
     unsigned padUsers = 0;
+    remoteplay::PadMissing padMissing;       // PushFPS: says once that a stream plays without a controller
     bool acquirePad(unsigned user) {
         const bool ok = controller.start(); // no-op once initialized
         padUsers |= user;
@@ -603,6 +614,7 @@ struct QmlPlayerBridge::Impl {
     // presenting monitor, or of the main window's monitor while idle.
     QString fgDisplayHint;
     int vrrState=0;
+    bool vrrAmd=false; // vrrState was answered by the AMD driver (FreeSync)
     // The shown monitor's Windows HDR (-1 unknown) and refresh rate.
     int displayHdr=-1;double displayRefreshHz=0;
     // 刷新显示器状态: the display generation it asked for, until the shown monitor

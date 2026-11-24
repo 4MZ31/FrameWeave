@@ -21,7 +21,7 @@ bool ControllerInput::start(uint32_t preferredDevice){
 }
 void ControllerInput::stop(){
     for(auto* pad:others_)SDL_CloseGamepad(pad);
-    others_.clear();follow_=false;
+    others_.clear();follow_=false;choice_.reset();
     releaseEffects();if(hapticStream_){SDL_DestroyAudioStream(hapticStream_);hapticStream_=nullptr;}
     if(audioInitialized_){SDL_QuitSubSystem(SDL_INIT_AUDIO);audioInitialized_=false;}hapticAttempted_=false;
     touchQueue_.clear();touchState_={};haveGyro_=haveAccel_=false;calibrating_=false;gyroBias_={};enumerateAt_=0;
@@ -29,7 +29,8 @@ void ControllerInput::stop(){
     if(initialized_){SDL_QuitSubSystem(SDL_INIT_GAMEPAD);initialized_=false;}
 }
 void ControllerInput::setFollowLastPressed(bool on){
-    if(!on){for(auto* pad:others_)SDL_CloseGamepad(pad);others_.clear();}
+    // PushFPS: without follow mode the other pads stay open only until a button was pressed on the pad read.
+    if(!on&&!choice_.watching(false)){for(auto* pad:others_)SDL_CloseGamepad(pad);others_.clear();}
     if(on!=follow_)enumerateAt_=0;
     follow_=on;
 }
@@ -60,17 +61,21 @@ ControllerState ControllerInput::poll(bool focused){
     // Only this module initializes SDL; drain its input events rather than
     // accumulating an unconsumed second application event queue.
 
-    if(gamepad_&&!SDL_GamepadConnected(gamepad_)){deactivate();SDL_CloseGamepad(gamepad_);gamepad_=nullptr;enumerateAt_=0;}
-    if(follow_){
+    if(gamepad_&&!SDL_GamepadConnected(gamepad_)){deactivate();SDL_CloseGamepad(gamepad_);gamepad_=nullptr;enumerateAt_=0;choice_.reset();}
+    // PushFPS (PushPadChoice.h): until a button was pressed on the pad read, the other pads are open too,
+    // so a button on one of them can make it the pad. With one pad, and after that first button, this is
+    // what it always was.
+    const bool watch=choice_.watching(follow_);
+    if(watch){
         std::erase_if(others_,[](SDL_Gamepad* pad){if(SDL_GamepadConnected(pad))return false;SDL_CloseGamepad(pad);return true;});
         if(!gamepad_&&!others_.empty()){auto* next=others_.front();others_.erase(others_.begin());activate(next);}
     }
     const auto now=monotonic100ns();
     // Follow mode keeps enumerating while a pad is open: a virtual pad created
     // by a streaming tool joins after the local one.
-    if((!gamepad_||follow_)&&now>=enumerateAt_){
+    if((!gamepad_||watch)&&now>=enumerateAt_){
         int count=0;auto* ids=SDL_GetGamepads(&count);
-        for(int i=0;i<count&&(follow_||!gamepad_);++i){
+        for(int i=0;i<count&&(watch||!gamepad_);++i){
             if((preferredDevice_&&ids[i]!=preferredDevice_)||opened(ids[i]))continue;
             auto* pad=SDL_OpenGamepad(ids[i]);if(!pad)continue;
             if(!gamepad_)activate(pad);else others_.push_back(pad);
@@ -83,9 +88,16 @@ ControllerState ControllerInput::poll(bool focused){
     }
     SDL_Event event;
     while(SDL_PollEvent(&event)){
-        if(follow_&&focused&&gamepad_&&event.type==SDL_EVENT_GAMEPAD_BUTTON_DOWN&&event.gbutton.which!=SDL_GetGamepadID(gamepad_)){
-            const auto it=std::find_if(others_.begin(),others_.end(),[&](SDL_Gamepad* pad){return SDL_GetGamepadID(pad)==event.gbutton.which;});
-            if(it!=others_.end()){auto* next=*it;others_.erase(it);deactivate();others_.push_back(gamepad_);activate(next);}
+        if(focused&&gamepad_&&event.type==SDL_EVENT_GAMEPAD_BUTTON_DOWN){
+            const auto active=SDL_GetGamepadID(gamepad_);
+            const auto it=event.gbutton.which==active?others_.end():std::find_if(others_.begin(),others_.end(),[&](SDL_Gamepad* pad){return SDL_GetGamepadID(pad)==event.gbutton.which;});
+            // A button on the pad read settles the choice; one on another open pad makes that the pad
+            // (always in follow mode, once otherwise). A pad that is not open says nothing here.
+            if((event.gbutton.which==active||it!=others_.end())&&choice_.pressed(event.gbutton.which,active,follow_)){
+                auto* next=*it;others_.erase(it);deactivate();others_.push_back(gamepad_);activate(next);
+                if(!follow_)veyra::log::info("remoteplay-input","the pad a button was pressed on is read from now on");
+            }
+            if(!choice_.watching(follow_)&&!others_.empty()){for(auto* pad:others_)SDL_CloseGamepad(pad);others_.clear();}
         }
         if(!focused||!gamepad_)continue;
         if((event.type==SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN||event.type==SDL_EVENT_GAMEPAD_TOUCHPAD_UP||event.type==SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION)&&event.gtouchpad.which==SDL_GetGamepadID(gamepad_)){

@@ -1,5 +1,6 @@
 #pragma once
 #include "veyra/sink/SoundProfile.h"
+#include "veyra/sink/PushBoostLimiter.h"
 #include "veyra/media/DemuxSession.h"
 #include "veyra/media/NetworkInput.h"
 
@@ -418,6 +419,7 @@ private:
     SwrContext* channelMix_=nullptr;
     std::vector<float> mixed_;
     bool copyPcm(BYTE* destination,const float* input,size_t frames,bool boosted);
+    PushBoostLimiter boostLimiter_;   // PushFPS: volume above 100 % turns peaks down where they were cut off
     bool comInited_ = false;
     std::atomic<uint64_t> underruns_{0};
     std::atomic<uint64_t> underrunFrames_{0},silenceFrames_{0};

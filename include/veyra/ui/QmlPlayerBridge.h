@@ -505,6 +505,7 @@ class QmlPlayerBridge : public QObject {
     Q_PROPERTY(QObject* nvidiaVrrProfile READ nvidiaVrrProfile CONSTANT)
     Q_PROPERTY(QObject* liveTranslation READ liveTranslation CONSTANT)
     Q_PROPERTY(int vrrState READ vrrState NOTIFY perfChanged)
+    Q_PROPERTY(bool vrrAmd READ vrrAmd NOTIFY perfChanged)
     Q_PROPERTY(QString vrrHint READ vrrHint NOTIFY perfChanged)
     // Display state of the shown monitor for the 信号 card: Windows HDR (-1
     // unknown, 0 off, 1 on), refresh rate (0 unknown) and a short VRR summary.
@@ -875,6 +876,8 @@ public:
     Q_INVOKABLE void ps5Wake();
     Q_INVOKABLE void ps5Forget();
     Q_INVOKABLE void ps5OpenAccountChecker();
+    // PushFPS: the address Sony's sign-in page landed on (or its code); fills in the Account ID.
+    Q_INVOKABLE void ps5FinishSignIn(const QString& pasted);
     Q_INVOKABLE void ps5SendLoginPin(const QString& pin);
     Q_INVOKABLE void ps5Cancel();
     Q_INVOKABLE void ps5Calibrate();
@@ -1207,6 +1210,7 @@ public:
     QObject* liveTranslation() const;
     void setVariableRefresh(bool value);
     int vrrState() const;
+    bool vrrAmd() const;
     QString vrrHint() const;
     int displayHdr() const;
     double displayRefreshHz() const;

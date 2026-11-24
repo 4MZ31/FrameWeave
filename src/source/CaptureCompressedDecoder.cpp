@@ -58,6 +58,7 @@ int swsColorspaceOf(AVColorSpace space, unsigned height)
 struct CaptureCompressedDecoder::Impl {
     CaptureCodec codec = CaptureCodec::None;
     unsigned width = 0, height = 0;
+    int codedWidth = 0, codedHeight = 0;   // PushFPS: lastCodedSize()
     media::FFmpegVideoDecoder decoder;
     AVCodecParameters* parameters = nullptr;
     SwsContext* sws = nullptr;
@@ -172,6 +173,7 @@ struct CaptureCompressedDecoder::Impl {
 
     bool convertToNv12(const AVFrame& frame, AVFrame* target)
     {
+        codedWidth = frame.width; codedHeight = frame.height;
         AVPixelFormat sourceFormat = AVPixelFormat(frame.format);
         if (sourceFormat == AV_PIX_FMT_YUVJ422P) sourceFormat = AV_PIX_FMT_YUV422P;
         else if (sourceFormat == AV_PIX_FMT_YUVJ420P) sourceFormat = AV_PIX_FMT_YUV420P;
@@ -187,8 +189,14 @@ struct CaptureCompressedDecoder::Impl {
         if (planarToNv12(frame, target)) { copyFrameProperties(frame, target, true); return true; }
         // swscale cannot supply the analysis pixels of an upload-backed target.
         pipeline::useCaptureUploadCpuPlanes(*target);
+        // PushFPS: a stream source may hand a target of the stream's real size once it knows it (an Xbox stream
+        // starts from a guess); scale into the target as it is. Capture cards keep their fixed size.
+        const bool targetSized = stream && target->width > 0 && target->height > 0 &&
+            target->width <= 16384 && target->height <= 16384 && target->width % 2 == 0 && target->height % 2 == 0;
+        const int outputWidth = targetSized ? target->width : int(width);
+        const int outputHeight = targetSized ? target->height : int(height);
         sws = sws_getCachedContext(sws, frame.width, frame.height, sourceFormat,
-            int(width), int(height), AV_PIX_FMT_NV12, SWS_BILINEAR, nullptr, nullptr, nullptr);
+            outputWidth, outputHeight, AV_PIX_FMT_NV12, SWS_BILINEAR, nullptr, nullptr, nullptr);
         if (sws == nullptr) {
             error = "swscale context creation failed";
             ++failures;
@@ -399,6 +407,7 @@ const char* CaptureCompressedDecoder::backendName() const
 }
 const std::string& CaptureCompressedDecoder::lastError() const { return p_->error; }
 uint64_t CaptureCompressedDecoder::framesDecoded() const { return p_->frames; }
+std::pair<int, int> CaptureCompressedDecoder::lastCodedSize() const { return {p_->codedWidth, p_->codedHeight}; }
 uint64_t CaptureCompressedDecoder::decodeFailures() const { return p_->failures; }
 uint64_t CaptureCompressedDecoder::hardwareFallbacks() const { return p_->fallbacks; }
 double CaptureCompressedDecoder::decodeMsAverage() const { return p_->decodeMs; }

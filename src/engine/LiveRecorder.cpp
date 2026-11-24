@@ -1664,7 +1664,11 @@ bool LiveRecorder::record(ID3D12GraphicsCommandList* list,const Frame& frame){
         segment->nvenc=segment->vendor==0x10DE&&GetEnvironmentVariableW(L"VEYRA_TEST_FORCE_MF_ENCODER",nullptr,0)==0;
         if(frame.hdrMode&&s.streamMode)return fail(L"直播需要 SDR 画面：请关闭 HDR 输出后再开播");
         if(frame.hdrMode&&!segment->nvenc)return fail(L"HDR 画面录制需要 NVIDIA 显卡（HEVC 10bit）；请关闭 HDR 输出后再录制");
-        if(frame.width<16||frame.height<16||(frame.width&1)||(frame.height&1))
+        // PushFPS: an odd size (a window or a crop of odd width) is recorded through the canvas pass, which
+        // gives the output an even size (pushOutputSize); only a comparison clip, which keeps the picture's own
+        // planes, still needs even sides. Before, any odd size refused to record.
+        const bool oddFrame=(frame.width&1)||(frame.height&1);
+        if(frame.width<16||frame.height<16||(oddFrame&&s.settings.compare&&!s.replayMode))
             return fail(std::format(L"当前画面尺寸 {}×{} 无法录制",frame.width,frame.height));
         segment->width=frame.width;segment->height=frame.height;segment->hdrMode=frame.hdrMode;
         segment->frameWidth=frame.width;segment->frameHeight=frame.height;

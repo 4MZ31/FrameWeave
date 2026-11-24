@@ -34,25 +34,36 @@ ComPtr<ID3D12Resource> makeReadbackBuffer(ID3D12Device* device, uint64_t size) {
 std::string PushOverlayPass::describe() const {
     unsigned writable = 0;
     for (unsigned i = 0; i < generatedCount_; ++i) writable += writable_[i] ? 1u : 0u;
-    return std::format("crosshair hold {}x{} zone={}+{}+{} mode={} generated={} writable={}", width_, height_, zone_.size, zone_.x, zone_.y,
-                       outputMode_, generatedCount_, writable);
+    return std::format("{} {}x{} zone={}x{}+{}+{} shared={} mode={} generated={} writable={}", name_, width_, height_, zone_.w, zone_.h, zone_.x, zone_.y,
+                       sharesInput_ ? 1 : 0, outputMode_, generatedCount_, writable);
 }
 
-bool PushOverlayPass::initialize(ID3D12Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format, unsigned outputMode) {
+bool PushOverlayPass::initialize(ID3D12Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format, unsigned outputMode,
+                                 const overlay::Zone* zone, PushOverlayPass* shareInput, const char* name) {
     if (!device || !width || !height || format == DXGI_FORMAT_UNKNOWN) return false;
     width_ = width; height_ = height; format_ = format; outputMode_ = outputMode;
-    zone_ = overlay::zoneFor(width, height);
-    if (!zone_.size) { veyra::log::warn("crosshair-hold", std::format("the picture {}x{} is too small for a zone", width, height)); return false; }
+    name_ = name ? name : "crosshair-hold";
+    zone_ = zone ? *zone : overlay::zoneFor(width, height);
+    if (!zone_.w || !zone_.h || zone_.x + zone_.w > width || zone_.y + zone_.h > height ||
+        zone_.w % uint32_t(overlay::kBlock) || zone_.h % uint32_t(overlay::kBlock)) {
+        veyra::log::warn(name_, std::format("the picture {}x{} has no zone", width, height)); return false;
+    }
     rule_ = overlay::ruleFor(height);
-    blocks_ = zone_.size / uint32_t(overlay::kBlock);
-    for (auto& texture : input_) texture = makeTexture(device, width_, height_, format_, true);
-    state_ = makeTexture(device, zone_.size, zone_.size, kCountFormat, true);
-    for (auto& texture : memory_) texture = makeTexture(device, zone_.size, zone_.size, kCountFormat, true);
-    accept_ = makeTexture(device, zone_.size, zone_.size, kFlagFormat, true);
-    for (auto& texture : mask_) texture = makeTexture(device, zone_.size, zone_.size, kFlagFormat, true);
-    blockMoves_ = makeTexture(device, blocks_, blocks_, kFlagFormat, true);
+    blocks_ = zone_.w / uint32_t(overlay::kBlock); blocksY_ = zone_.h / uint32_t(overlay::kBlock);
+    sharesInput_ = shareInput != nullptr;
+    if (shareInput) {
+        if (shareInput->width_ != width || shareInput->height_ != height || shareInput->format_ != format) return false;
+        for (unsigned i = 0; i < 2; ++i) input_[i] = shareInput->input_[i];
+    } else {
+        for (auto& texture : input_) texture = makeTexture(device, width_, height_, format_, true);
+    }
+    state_ = makeTexture(device, zone_.w, zone_.h, kCountFormat, true);
+    for (auto& texture : memory_) texture = makeTexture(device, zone_.w, zone_.h, kCountFormat, true);
+    accept_ = makeTexture(device, zone_.w, zone_.h, kFlagFormat, true);
+    for (auto& texture : mask_) texture = makeTexture(device, zone_.w, zone_.h, kFlagFormat, true);
+    blockMoves_ = makeTexture(device, blocks_, blocksY_, kFlagFormat, true);
     moving_ = makeTexture(device, 1, 1, kFlagFormat, true);
-    zoneCopy_ = makeTexture(device, zone_.size, zone_.size, format_, false);
+    zoneCopy_ = makeTexture(device, zone_.w, zone_.h, format_, false);
     if (!input_[0] || !input_[1] || !state_ || !memory_[0] || !memory_[1] || !accept_ || !mask_[0] || !mask_[1] || !blockMoves_ || !moving_ || !zoneCopy_) return false;
     std::vector<uint8_t> cs;
     if (!track_.loadShader("PushOverlay.dxil", cs) || !track_.create(device, cs, 2 * kStages * kTrackStride, 3, 2, kConstants)) return false;
@@ -70,7 +81,7 @@ bool PushOverlayPass::initialize(ID3D12Device* device, uint32_t width, uint32_t 
             mapped_ = static_cast<const uint8_t*>(memory);
         } else { readback_.Reset(); mapped_ = nullptr; }
     }
-    veyra::log::info("crosshair-hold", std::format("created {}", describe()));
+    veyra::log::info(name_, std::format("created {}", describe()));
     return true;
 }
 
@@ -81,9 +92,9 @@ void PushOverlayPass::harvest() {
     samplePending_ = false;
     unsigned masked = 0;
     const uint8_t* base = mapped_ + footprint_.Offset;
-    for (uint32_t y = 0; y < zone_.size; ++y) {
+    for (uint32_t y = 0; y < zone_.h; ++y) {
         const uint8_t* row = base + size_t(y) * footprint_.Footprint.RowPitch;
-        for (uint32_t x = 0; x < zone_.size; ++x) {
+        for (uint32_t x = 0; x < zone_.w; ++x) {
             uint16_t half = 0;
             std::memcpy(&half, row + size_t(x) * 2u, 2u);
             masked += (half & 0x7FFFu) ? 1u : 0u;   // a mask pixel is 0 or 1 (R16_FLOAT)
@@ -93,10 +104,10 @@ void PushOverlayPass::harvest() {
     if (masked) ++samplesWithMask_;
     if (masked && !foundLogged_) {
         foundLogged_ = true;
-        veyra::log::info("crosshair-hold", std::format("found: {} pixels of the zone held, {} real frames after the start", masked, updates_));
+        veyra::log::info(name_, std::format("found: {} pixels of the zone held, {} real frames after the start", masked, updates_));
     }
     if (samples_ % 256 == 0)
-        veyra::log::info("crosshair-hold", std::format("real frames={} samples={} with something held={} held now={} pixels", updates_, samples_, samplesWithMask_, masked_));
+        veyra::log::info(name_, std::format("real frames={} samples={} with something held={} held now={} pixels", updates_, samples_, samplesWithMask_, masked_));
 }
 
 void PushOverlayPass::createViews(ID3D12Device* device, DescriptorStager& stager, ID3D12Resource* const real[2],
@@ -148,14 +159,15 @@ void PushOverlayPass::createViews(ID3D12Device* device, DescriptorStager& stager
 }
 
 void PushOverlayPass::constants(float* c, unsigned stage, bool reset) const {
-    const uint32_t values[kConstants] = {zone_.x, zone_.y, zone_.size, stage, outputMode_, reset ? 1u : 0u, uint32_t(rule_.flank), uint32_t(rule_.stand),
+    const uint32_t values[kConstants] = {zone_.x, zone_.y, zone_.w, stage, outputMode_, reset ? 1u : 0u, uint32_t(rule_.flank), uint32_t(rule_.stand),
                                          uint32_t(rule_.longest), uint32_t(rule_.shortest), uint32_t(rule_.fresh), uint32_t(rule_.memory),
-                                         uint32_t(rule_.grow), uint32_t(rule_.reach), blocks_, uint32_t(rule_.hole)};
+                                         uint32_t(rule_.grow), uint32_t(rule_.reach), blocks_, uint32_t(rule_.hole),
+                                         zone_.h, blocksY_, 0u, 0u};
     for (UINT i = 0; i < kConstants; ++i) c[i] = std::bit_cast<float>(values[i]);
 }
 
 bool PushOverlayPass::update(ID3D12GraphicsCommandList* list, StateTracker& tracker, unsigned parity, bool reset) {
-    if (!list || parity > 1 || !real_[0] || !real_[1] || !zone_.size) return false;
+    if (!list || parity > 1 || !real_[0] || !real_[1] || !zone_.w) return false;
     // Nothing this pass keeps is read before it was written: the first frame starts everything over.
     if (!primed_) { reset = true; primed_ = true; }
     auto* now = real_[parity]; auto* before = real_[1 - parity];
@@ -169,11 +181,15 @@ bool PushOverlayPass::update(ID3D12GraphicsCommandList* list, StateTracker& trac
         list->Dispatch(groupsX, groupsY, 1);
         tracker.uavBarrier(list, written);
     };
-    const UINT zoneGroups = (zone_.size + 7) / 8, blockGroups = (blocks_ + 7) / 8;
-    // The frame frame generation gets starts as a copy of the real frame.
-    tracker.transition(list, now, D3D12_RESOURCE_STATE_COPY_SOURCE);
-    tracker.transition(list, input_[parity].Get(), D3D12_RESOURCE_STATE_COPY_DEST);
-    list->CopyResource(input_[parity].Get(), now);
+    const UINT zoneGroupsX = (zone_.w + 7) / 8, zoneGroupsY = (zone_.h + 7) / 8;
+    const UINT blockGroupsX = (blocks_ + 7) / 8, blockGroupsY = (blocksY_ + 7) / 8;
+    // The frame frame generation gets starts as a copy of the real frame (made by the pass that owns it, when
+    // this one fills a shared frame: that pass's update ran first for this parity).
+    if (!sharesInput_) {
+        tracker.transition(list, now, D3D12_RESOURCE_STATE_COPY_SOURCE);
+        tracker.transition(list, input_[parity].Get(), D3D12_RESOURCE_STATE_COPY_DEST);
+        list->CopyResource(input_[parity].Get(), now);
+    }
     tracker.transition(list, now, kRead);
     tracker.transition(list, before, kRead);
     tracker.transition(list, maskBefore, kRead);
@@ -182,7 +198,7 @@ bool PushOverlayPass::update(ID3D12GraphicsCommandList* list, StateTracker& trac
     tracker.transition(list, memoryNow, kWrite);
     // 0: which blocks move
     tracker.transition(list, blockMoves_.Get(), kWrite);
-    run(0, blockGroups, blockGroups, blockMoves_.Get());
+    run(0, blockGroupsX, blockGroupsY, blockMoves_.Get());
     // 1: does the zone move
     tracker.transition(list, blockMoves_.Get(), kRead);
     tracker.transition(list, moving_.Get(), kWrite);
@@ -190,22 +206,23 @@ bool PushOverlayPass::update(ID3D12GraphicsCommandList* list, StateTracker& trac
     // 2: the counts
     tracker.transition(list, moving_.Get(), kRead);
     tracker.transition(list, state_.Get(), kWrite);
-    run(2, zoneGroups, zoneGroups, state_.Get());
+    run(2, zoneGroupsX, zoneGroupsY, state_.Get());
     // 3: found and followed bars; what is remembered
     tracker.transition(list, state_.Get(), kRead);
-    run(3, zoneGroups, zoneGroups, accept_.Get());
+    run(3, zoneGroupsX, zoneGroupsY, accept_.Get());
     tracker.uavBarrier(list, memoryNow);
     // 4: the mask
     tracker.transition(list, accept_.Get(), kRead);
     tracker.transition(list, maskNow, kWrite);
-    run(4, zoneGroups, zoneGroups, maskNow);
+    run(4, zoneGroupsX, zoneGroupsY, maskNow);
     // the masked pixels of the frame frame generation gets, filled in
     tracker.transition(list, maskNow, kRead);
     tracker.transition(list, input_[parity].Get(), kWrite);
     float f[kConstants]{};
-    f[0] = std::bit_cast<float>(zone_.x); f[1] = std::bit_cast<float>(zone_.y); f[2] = std::bit_cast<float>(zone_.size); f[3] = std::bit_cast<float>(uint32_t(rule_.reach));
+    f[0] = std::bit_cast<float>(zone_.x); f[1] = std::bit_cast<float>(zone_.y); f[2] = std::bit_cast<float>(zone_.w); f[3] = std::bit_cast<float>(uint32_t(rule_.reach));
+    f[4] = std::bit_cast<float>(zone_.h);
     fill_.bind(list, f, gpuHandleOf(fill_, parity * kFillStride).ptr, gpuHandleOf(fill_, parity * kFillStride + 2).ptr);
-    list->Dispatch(zoneGroups, zoneGroups, 1);
+    list->Dispatch(zoneGroupsX, zoneGroupsY, 1);
     tracker.uavBarrier(list, input_[parity].Get());
     // Every few real frames this frame's mask goes to the count buffer, and the sample before it is counted.
     if (mapped_ && updates_ % sampleEvery_ == 0) {
@@ -224,7 +241,7 @@ bool PushOverlayPass::update(ID3D12GraphicsCommandList* list, StateTracker& trac
 }
 
 bool PushOverlayPass::compose(ID3D12GraphicsCommandList* list, StateTracker& tracker, unsigned slot, unsigned parity, float t) {
-    if (!list || slot >= generatedCount_ || parity > 1 || !writable_[slot] || !real_[0] || !real_[1] || !zone_.size) return false;
+    if (!list || slot >= generatedCount_ || parity > 1 || !writable_[slot] || !real_[0] || !real_[1] || !zone_.w) return false;
     auto* generated = generated_[slot];
     // The zone of the generated frame as it was made: the frame itself is written in place.
     tracker.transition(list, generated, D3D12_RESOURCE_STATE_COPY_SOURCE);
@@ -232,17 +249,18 @@ bool PushOverlayPass::compose(ID3D12GraphicsCommandList* list, StateTracker& tra
     D3D12_TEXTURE_COPY_LOCATION target{}, source{};
     target.pResource = zoneCopy_.Get(); target.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX; target.SubresourceIndex = 0;
     source.pResource = generated; source.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX; source.SubresourceIndex = 0;
-    const D3D12_BOX box{zone_.x, zone_.y, 0, zone_.x + zone_.size, zone_.y + zone_.size, 1};
+    const D3D12_BOX box{zone_.x, zone_.y, 0, zone_.x + zone_.w, zone_.y + zone_.h, 1};
     list->CopyTextureRegion(&target, 0, 0, 0, &source, &box);
     ID3D12Resource* const reads[] = {zoneCopy_.Get(), real_[0], real_[1], input_[0].Get(), input_[1].Get(), mask_[0].Get(), mask_[1].Get()};
     for (ID3D12Resource* r : reads) tracker.transition(list, r, kRead);
     tracker.transition(list, generated, kWrite);
     float c[kConstants]{};
-    c[0] = std::bit_cast<float>(zone_.x); c[1] = std::bit_cast<float>(zone_.y); c[2] = std::bit_cast<float>(zone_.size);
+    c[0] = std::bit_cast<float>(zone_.x); c[1] = std::bit_cast<float>(zone_.y); c[2] = std::bit_cast<float>(zone_.w);
+    c[3] = std::bit_cast<float>(zone_.h);
     c[4] = std::clamp(t, 0.0f, 1.0f);
     const UINT base = (slot * 2 + parity) * kComposeStride;
     compose_.bind(list, c, gpuHandleOf(compose_, base).ptr, gpuHandleOf(compose_, base + 7).ptr);
-    list->Dispatch((zone_.size + 7) / 8, (zone_.size + 7) / 8, 1);
+    list->Dispatch((zone_.w + 7) / 8, (zone_.h + 7) / 8, 1);
     tracker.uavBarrier(list, generated);
     tracker.transition(list, generated, D3D12_RESOURCE_STATE_COMMON);
     for (ID3D12Resource* r : reads) tracker.transition(list, r, D3D12_RESOURCE_STATE_COMMON);

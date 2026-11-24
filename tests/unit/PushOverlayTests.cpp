@@ -315,6 +315,54 @@ int main() {
         const Colour same = composeAt(flat, flat, f, f, f, Plane(n), Plane(n), 32, 32, 0.5f);
         check(diff(same, f.at(32, 32)) == 0, "outside both masks the generated frame is not touched");
     }
+    {   // Subtitle Hold: the same rule in a rectangular band along the bottom.
+        const Zone z = subtitleZoneFor(3840, 2160);
+        check(z.w == 2400 && z.h == 400 && z.x == 720 && z.y == 1674 && z.size == z.w, "the subtitle band at 4K: the middle 2400 x 400, above the bottom edge");
+        const Zone s = subtitleZoneFor(1920, 1080);
+        check(s.w % kBlock == 0 && s.h % kBlock == 0 && s.x % 2 == 0 && s.y % 2 == 0 && s.y + s.h <= 1080, "at 1080 lines whole blocks on even pixels, inside the picture");
+        check(subtitleZoneFor(320, 180).w == 0, "a picture too small gets no band");
+        check(zoneFor(3840, 2160).w == 400 && zoneFor(3840, 2160).h == 400, "the crosshair's zone is still its square");
+        // A line of text (white strokes with a dark outline) standing still while the road runs towards the
+        // camera (the world moves down two pixels a frame): found and held; the road is not.
+        const int W = 640, H = 128; const Rule r = ruleFor(2160);
+        World road(1100, 1100, 9);
+        std::vector<float> alpha(size_t(W) * H, 0), colour(size_t(W) * H, 0);
+        auto stroke = [&](int x0, int y0, int x1, int y1) {
+            for (int y = y0 - 2; y < y1 + 2; ++y) for (int x = x0 - 2; x < x1 + 2; ++x) { alpha[size_t(y) * W + x] = 0.8f; colour[size_t(y) * W + x] = 0.05f; }
+        };
+        auto core = [&](int x0, int y0, int x1, int y1) {
+            for (int y = y0; y < y1; ++y) for (int x = x0; x < x1; ++x) { alpha[size_t(y) * W + x] = 1.0f; colour[size_t(y) * W + x] = 0.97f; }
+        };
+        for (int letter = 0; letter < 14; ++letter) {   // letters of 3 px strokes, 26 px high, 30 px apart
+            const int x = 40 + letter * 40, y = 50;
+            const int shape[3][4] = {{x, y, x + 3, y + 26}, {x, y, x + 18, y + 3}, {x + 15, y + 12, x + 18, y + 26}};
+            for (const auto& q : shape) stroke(q[0], q[1], q[2], q[3]);
+            for (const auto& q : shape) core(q[0], q[1], q[2], q[3]);
+        }
+        State state(W, H); int textHeld = 0, roadMarked = 0, textPixels = 0;
+        for (size_t i = 0; i < alpha.size(); ++i) textPixels += colour[i] > 0.5f ? 1 : 0;
+        for (int f = 0; f < 14; ++f) {
+            Picture p(W, H);
+            for (int y = 0; y < H; ++y) for (int x = 0; x < W; ++x) {
+                const float g = road.at(x, y - 2 * f), a = alpha[size_t(y) * W + x], k = colour[size_t(y) * W + x];
+                p.at(x, y) = {g * (1 - a) + k * a, g * 0.96f * (1 - a) + k * a, g * 0.9f * (1 - a) + k * a};
+            }
+            const Plane mask = step(state, lumaPlane(p, 0), r);
+            if (f == 13) for (int y = 0; y < H; ++y) for (int x = 0; x < W; ++x) {
+                const bool text = alpha[size_t(y) * W + x] > 0;
+                if (text && colour[size_t(y) * W + x] > 0.5f && mask.at(x, y) > 0) ++textHeld;
+                bool nearText = false;
+                for (int j = -6; j <= 6 && !nearText; ++j) for (int i = -6; i <= 6 && !nearText; ++i)
+                    nearText = x + i >= 0 && y + j >= 0 && x + i < W && y + j < H && alpha[size_t(y + j) * W + x + i] > 0;
+                if (!nearText && mask.at(x, y) > 0) ++roadMarked;
+            }
+        }
+        std::printf("  subtitle band: %d of %d text pixels held, %d road pixels marked\n", textHeld, textPixels, roadMarked);
+        check(textHeld * 10 >= textPixels * 9, "a line of text standing over a moving road is held");
+        check(roadMarked == 0, "and nothing of the road is");
+        check(!subtitlesWanted(), "Subtitle Hold is off unless switched on");
+        setSubtitlesWanted(true); check(subtitlesWanted() && !wanted(), "its switch is its own"); setSubtitlesWanted(false);
+    }
     {   // off unless switched on
         check(!wanted(), "Crosshair Hold is off unless switched on");
         setWanted(true); check(wanted(), "and on when it is"); setWanted(false);

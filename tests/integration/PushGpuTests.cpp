@@ -2383,9 +2383,152 @@ void testOverlayAt(Gpu& gpu, const uint32_t H) {
         }
     }
 }
+// PushFPS Subtitle Hold: the same shaders in a rectangular zone along the bottom, filling the input of a Crosshair
+// Hold pass it shares. A line of text stands still while the world scrolls down under it; the shaders must mark,
+// count, fill and compose every pixel of the band as the rule in plain C++ does, and leave everything else alone.
+void testSubtitleBand(Gpu& gpu) {
+    namespace ov = pipeline::overlay;
+    constexpr DXGI_FORMAT F = DXGI_FORMAT_R8G8B8A8_UNORM;
+    constexpr uint32_t W = 640, H = 1080;
+    const ov::Zone zone = ov::subtitleZoneFor(W, H); const ov::Rule rule = ov::ruleFor(H);
+    const int ZW = int(zone.w), ZH = int(zone.h);
+    check(ZW == 400 && ZH == 192 && zone.x == 120 && zone.y + zone.h <= H, "subtitle hold: the band at the bottom (" + std::to_string(ZW) + "x" + std::to_string(ZH) + ")");
+    auto* device = gpu.device.Get();
+    Plane real[2]{{pipeline::makeTexture(device, W, H, F, true), F, W, H, 4}, {pipeline::makeTexture(device, W, H, F, true), F, W, H, 4}};
+    Plane generated{pipeline::makeTexture(device, W, H, F, true), F, W, H, 4};
+    pipeline::PushOverlayPass owner, band;
+    check(owner.initialize(device, W, H, F, 0), "subtitle hold: the crosshair pass whose input it shares");
+    check(band.initialize(device, W, H, F, 0, &zone, &owner, "subtitle-hold"), "subtitle hold: the pass is created in the band");
+    check(band.input(0) == owner.input(0) && band.input(1) == owner.input(1), "subtitle hold: it fills the same two frames");
+    pipeline::DescriptorStager stager;
+    check(stager.initialize(device, 512), "subtitle hold: staging heap");
+    ID3D12Resource* reals[2] = {real[0].texture.Get(), real[1].texture.Get()};
+    ID3D12Resource* gens[1] = {generated.texture.Get()};
+    owner.createViews(device, stager, reals, gens, 1);
+    band.createViews(device, stager, reals, gens, 1);
+    Plane input[2]{{ComPtr<ID3D12Resource>(band.input(0)), F, W, H, 4}, {ComPtr<ID3D12Resource>(band.input(1)), F, W, H, 4}};
+    Plane mask[2]{{ComPtr<ID3D12Resource>(band.maskTexture(0)), DXGI_FORMAT_R16_FLOAT, zone.w, zone.h, 2},
+                  {ComPtr<ID3D12Resource>(band.maskTexture(1)), DXGI_FORMAT_R16_FLOAT, zone.w, zone.h, 2}};
+    const auto lattice = [](int x, int y, uint32_t salt) { uint32_t h = uint32_t(x) * 374761393u + uint32_t(y) * 668265263u + salt * 2246822519u; h = (h ^ (h >> 13)) * 1274126177u; return int((h ^ (h >> 16)) & 255); };
+    const auto world = [&](int x, int y) {
+        int sum = 0, weight = 0;
+        for (int level = 0; level < 4; ++level) {
+            const int cell = 48 >> level, w = 8 >> level;
+            const int ix = x / cell, iy = y >= 0 ? y / cell : -((-y + cell - 1) / cell), fx = x - ix * cell, fy = y - iy * cell;
+            const int a = lattice(ix, iy, level), b = lattice(ix + 1, iy, level), c = lattice(ix, iy + 1, level), d = lattice(ix + 1, iy + 1, level);
+            sum += w * (((a * (cell - fx) + b * fx) * (cell - fy) + (c * (cell - fx) + d * fx) * fy) / (cell * cell)); weight += w;
+        }
+        return 40 + (sum / weight) * 130 / 255;
+    };
+    // Letters: three strokes of 2 px, 14 px high, 20 px apart, white with a dark outline, in the band's middle row.
+    const int textY = int(zone.y) + ZH / 2 - 7;
+    const auto textAt = [&](int x, int y) {
+        int kind = 0;
+        for (int letter = 0; letter < 14; ++letter) {
+            const int lx = int(zone.x) + 40 + letter * 22;
+            const int q[3][4] = {{lx, textY, lx + 2, textY + 14}, {lx, textY, lx + 10, textY + 2}, {lx + 8, textY + 6, lx + 10, textY + 14}};
+            for (const auto& r : q) {
+                if (x >= r[0] && x < r[2] && y >= r[1] && y < r[3]) return 2;
+                if (x >= r[0] - 1 && x < r[2] + 1 && y >= r[1] - 1 && y < r[3] + 1) kind = 1;
+            }
+        }
+        return kind;
+    };
+    const auto picture = [&](int shift) {
+        std::vector<uint8_t> px(size_t(W) * H * 4);
+        for (uint32_t y = 0; y < H; ++y)
+            for (uint32_t x = 0; x < W; ++x) {
+                int v = world(int(x), int(y) - shift);
+                const int k = textAt(int(x), int(y)); if (k == 2) v = 240; else if (k == 1) v = v * 25 / 100;
+                uint8_t* p = px.data() + (size_t(y) * W + x) * 4; p[0] = p[1] = p[2] = uint8_t(v); p[3] = 255;
+            }
+        return px;
+    };
+    const auto zoneOf = [&](const std::vector<uint8_t>& px) {
+        ov::Picture p(ZW, ZH);
+        for (int y = 0; y < ZH; ++y)
+            for (int x = 0; x < ZW; ++x) {
+                const uint8_t* q = px.data() + (size_t(zone.y + y) * W + zone.x + x) * 4;
+                p.at(x, y) = {q[0] / 255.0f, q[1] / 255.0f, q[2] / 255.0f};
+            }
+        return p;
+    };
+    const auto toByte = [](float v) { return int(std::floor(std::clamp(v, 0.0f, 1.0f) * 255.0f + 0.5f)); };
+    std::vector<uint8_t> made(size_t(W) * H * 4);
+    for (uint32_t y = 0; y < H; ++y) for (uint32_t x = 0; x < W; ++x) { uint8_t* p = made.data() + (size_t(y) * W + x) * 4; p[0] = p[1] = p[2] = uint8_t(60 + lattice(int(x) / 3, int(y) / 3, 9u) / 3); p[3] = 255; }
+    pipeline::StateTracker states;
+    ov::State state(ZW, ZH);
+    std::vector<uint8_t> beforePx; ov::Picture beforeFilled; ov::Plane beforeMask(ZW, ZH, 0.0f);
+    size_t maskWrong = 0, fillWrong = 0, outsideTouched = 0, composeWrong = 0, composeOutside = 0, held = 0, textPixels = 0;
+    bool ran = true;
+    for (uint32_t y = zone.y; y < zone.y + zone.h; ++y) for (uint32_t x = zone.x; x < zone.x + zone.w; ++x) textPixels += textAt(int(x), int(y)) == 2;
+    for (int k = 0; k < 9 && ran; ++k) {
+        const unsigned parity = unsigned(k & 1);
+        const auto px = picture(6 * k);
+        gpu.begin();
+        auto up = recordFill(gpu, real[parity], px, states.get(real[parity].texture.Get()), D3D12_RESOURCE_STATE_COMMON);
+        states.set(real[parity].texture.Get(), D3D12_RESOURCE_STATE_COMMON);
+        ran = owner.update(gpu.list.Get(), states, parity, k == 0) && band.update(gpu.list.Get(), states, parity, k == 0);
+        auto ri = recordRead(gpu, input[parity], states.get(input[parity].texture.Get()));
+        auto rm = recordRead(gpu, mask[parity], states.get(mask[parity].texture.Get()));
+        if (!ran || !gpu.submitAndWait()) { ran = false; break; }
+        const auto in = mapRead(input[parity], ri.Get()); const auto m = mapRead(mask[parity], rm.Get());
+        const ov::Picture frame = zoneOf(px);
+        const ov::Plane expected = ov::step(state, ov::lumaPlane(frame, 0), rule);
+        const ov::Picture filled = ov::fill(frame, expected, rule);
+        size_t textHeld = 0;
+        for (int y = 0; y < ZH; ++y)
+            for (int x = 0; x < ZW; ++x) {
+                const size_t i = size_t(y) * ZW + x;
+                const float got = halfToFloat(uint16_t(m[i * 2] | (m[i * 2 + 1] << 8)));
+                maskWrong += (got > 0.5f) != (expected.at(x, y) > 0);
+                textHeld += expected.at(x, y) > 0 && textAt(int(zone.x) + x, int(zone.y) + y) == 2;
+                const uint8_t* g = in.data() + (size_t(zone.y + y) * W + zone.x + x) * 4;
+                const ov::Colour& want = filled.at(x, y);
+                fillWrong += std::abs(int(g[0]) - toByte(want.r)) > 1 || std::abs(int(g[1]) - toByte(want.g)) > 1 || std::abs(int(g[2]) - toByte(want.b)) > 1;
+            }
+        held = std::max(held, textHeld);
+        for (uint32_t y = 0; y < H; ++y)
+            for (uint32_t x = 0; x < W; ++x) {
+                const bool inBand = x >= zone.x && x < zone.x + zone.w && y >= zone.y && y < zone.y + zone.h;
+                const size_t i = (size_t(y) * W + x) * 4;
+                if (!inBand) outsideTouched += std::memcmp(in.data() + i, px.data() + i, 4) != 0;
+            }
+        if (k >= 1) {
+            gpu.begin();
+            auto ug = recordFill(gpu, generated, made, states.get(generated.texture.Get()), D3D12_RESOURCE_STATE_COMMON);
+            states.set(generated.texture.Get(), D3D12_RESOURCE_STATE_COMMON);
+            ran = band.compose(gpu.list.Get(), states, 0, parity, 0.5f);
+            auto rb = recordRead(gpu, generated, states.get(generated.texture.Get()));
+            if (!ran || !gpu.submitAndWait()) { ran = false; break; }
+            const auto out = mapRead(generated, rb.Get());
+            const ov::Picture a = zoneOf(beforePx), g = zoneOf(made), fb = zoneOf(in);
+            for (uint32_t y = 0; y < H; ++y)
+                for (uint32_t x = 0; x < W; ++x) {
+                    const size_t i = (size_t(y) * W + x) * 4;
+                    const bool inBand = x >= zone.x && x < zone.x + zone.w && y >= zone.y && y < zone.y + zone.h;
+                    const int zx = int(x) - int(zone.x), zy = int(y) - int(zone.y);
+                    const bool masked = inBand && (beforeMask.at(zx, zy) > 0 || expected.at(zx, zy) > 0);
+                    if (!masked) { composeOutside += std::memcmp(out.data() + i, made.data() + i, 4) != 0; continue; }
+                    const ov::Colour want = ov::composeAt(a, frame, beforeFilled, fb, g, beforeMask, expected, zx, zy, 0.5f);
+                    composeWrong += std::abs(int(out[i]) - toByte(want.r)) > 1 || std::abs(int(out[i + 1]) - toByte(want.g)) > 1 || std::abs(int(out[i + 2]) - toByte(want.b)) > 1;
+                }
+        }
+        beforePx = px; beforeFilled = zoneOf(in); beforeMask = expected;
+    }
+    std::printf("INFO subtitle hold: %zu of %zu text pixels held at most; differences from the rule in plain C++: mask %zu, fill %zu, compose %zu; touched outside: input %zu, generated %zu\n",
+                held, textPixels, maskWrong, fillWrong, composeWrong, outsideTouched, composeOutside);
+    check(ran, "subtitle hold: every step runs, after the crosshair pass whose frame it shares");
+    check(maskWrong == 0, "subtitle hold: the shaders mark every pixel of the band as the rule in plain C++ does");
+    check(fillWrong == 0, "subtitle hold: the shared frame is filled in the band as the rule fills it");
+    check(outsideTouched == 0, "subtitle hold: outside the band the shared frame is the real frame (the crosshair pass found nothing)");
+    check(composeWrong == 0 && composeOutside == 0, "subtitle hold: the generated frame is composed as the rule composes it, and nothing else touched");
+    check(held * 10 >= textPixels * 9, "subtitle hold: the line of text is held");
+}
 void testOverlay(Gpu& gpu) {
     testOverlayAt(gpu, 2160);
     testOverlayAt(gpu, 1080);
+    testSubtitleBand(gpu);
     pipeline::PushOverlayPass tiny;
     check(!tiny.initialize(gpu.device.Get(), 160, 90, DXGI_FORMAT_R8G8B8A8_UNORM, 0), "crosshair hold: a picture too small for a zone gets no pass");
 }

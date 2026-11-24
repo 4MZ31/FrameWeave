@@ -955,6 +955,26 @@ Item {
             tools.destroy()
         }
 
+        // FreeSync: a level answered by the AMD driver never offers NVIDIA's G-SYNC set-up.
+        function test_gsync_row_is_not_offered_for_amd_freesync() {
+            const tools = gsyncMock.createObject(root)
+            veyra.nvidiaVrrProfile = tools
+            veyra.hasSource = true
+            veyra.displaySync = 1; veyra.variableRefresh = true; veyra.outputRateMode = 1
+            veyra.vrrState = 3; veyra.vrrAmd = true
+            const row = findChild(root, "pushfps-gsync-row")
+            verify(row, "the row exists")
+            wait(50)
+            verify(!quick.gsyncUnconfirmed, "FreeSync requested: nothing for NVIDIA's profile tools to set")
+            verify(!row.visible, "FreeSync requested: no G-SYNC set-up")
+            veyra.vrrAmd = false
+            // (the row itself may stay hidden: an earlier test remembered pushGsyncChecked)
+            tryVerify(() => quick.gsyncUnconfirmed, 2000, "the same level from the NVIDIA driver asks for the set-up")
+            veyra.vrrState = 0; veyra.displaySync = 2; veyra.variableRefresh = false
+            veyra.nvidiaVrrProfile = null
+            tools.destroy()
+        }
+
         // The look of AI picture enhancement: presets, two sliders, reset, every layer.
         function test_look_presets_sliders_and_reset() {
             verify(!quick.lookShown, "enhancement off: no look controls")
@@ -1118,6 +1138,34 @@ Item {
             verify(!sw.enabled)
         }
 
+        // Subtitle Hold: off unless switched on (not everyone uses subtitles), its own switch apart from Crosshair
+        // Hold's, and the row says what the engine says.
+        function test_subtitle_hold_is_off_unless_switched_on() {
+            const was = veyra.fgBackendName
+            veyra.fgEnabled = true; veyra.fgMultiplier = 2; veyra.fgBackendName = "vfg"
+            const row = control("pushfps-subtitle-row"), sw = control("pushfps-subtitle")
+            verify(row.visible, "on the home page, in the HUD section")
+            verify(!row.on && !sw.checked, "off by default")
+            const off = row.hint
+            verify(off.length > 0 && row.help.length > 0)
+            sw.toggled(true)
+            compare(veyra.preferences.pushSubtitleHold, true); verify(row.on && sw.checked && row.hint !== off)
+            verify(veyra.preferences.pushCrosshairHold !== true, "Crosshair Hold is not switched with it")
+            const waiting = row.hint
+            veyra.liveStats = ({ running: true, subtitleHoldState: 1, subtitleHoldPixels: 0 }); quick.liveStats = veyra.liveStats
+            const looking = row.hint
+            verify(looking !== waiting, "a pass that runs and has found no subtitles says so")
+            veyra.liveStats = ({ running: true, subtitleHoldState: 1, subtitleHoldPixels: 5000 }); quick.liveStats = veyra.liveStats
+            verify(row.hint !== looking && row.hint !== waiting, "a pass that holds subtitles says so")
+            // Crosshair Hold's state is not Subtitle Hold's.
+            veyra.liveStats = ({ running: true, crosshairHoldState: 1, crosshairHoldPixels: 240 }); quick.liveStats = veyra.liveStats
+            compare(row.hint, waiting)
+            veyra.fgBackendName = "anr"; verify(!row.methodOk && sw.checked, "with ANR it says so and keeps the choice")
+            veyra.fgBackendName = was
+            veyra.liveStats = ({}); quick.liveStats = veyra.liveStats
+            sw.toggled(false)
+            compare(veyra.preferences.pushSubtitleHold, false); verify(!row.on && !sw.checked)
+        }
         // Crosshair Hold: off unless switched on, its own switch, and it says when the method chosen cannot use it.
         function test_crosshair_hold_is_off_unless_switched_on() {
             const was = veyra.fgBackendName

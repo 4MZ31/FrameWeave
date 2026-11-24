@@ -288,8 +288,11 @@ try {
         }
         foreach ($name in $cameraKept) { Info "Not updated (in use by another program): virtualcam\$name. Close the programs that use a camera and run the installer again." }
     }
-    # One program, one name: PushFPS.exe replaces Veyra's launcher in this folder.
-    Remove-Item (Join-Path $InstallDir 'veyra_qml_ui.exe') -Force -ErrorAction SilentlyContinue
+    # One program, one name: PushFPS.exe replaces Veyra's launcher in this folder. The runtime package's own
+    # updater (since 2.2.1) updates Veyra, not PushFPS, which has its own signed updates: it is not kept.
+    foreach ($own in 'veyra_qml_ui.exe', 'veyra_update_worker.exe') {
+        Remove-Item (Join-Path $InstallDir $own) -Force -ErrorAction SilentlyContinue
+    }
     if ($copySettings) {
         & robocopy $mainData $ownData /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
         if ($LASTEXITCODE -ge 8) { Info 'Your settings could not be copied: the test build starts with settings of its own.' } else { Info 'Copied the settings of your PushFPS for the test build.' }

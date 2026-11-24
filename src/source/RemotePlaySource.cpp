@@ -1,6 +1,7 @@
 #include "veyra/source/RemotePlaySource.h"
 
 #include "veyra/Log.h"
+#include "veyra/media/PushFfmpegLog.h"
 #include "veyra/pipeline/ColorMetadata.h"
 
 #include <algorithm>
@@ -96,6 +97,8 @@ void RemotePlaySource::initializeColorContract(remoteplay::Codec codec, bool hig
 
 bool RemotePlaySource::connect(const RemotePlayConnectDesc& desc)
 {
+    // PushFPS: a decode failure on the PS5 stream says why in the log (FFmpeg's own warnings and errors).
+    media::installPushFfmpegLog();
     close();
     if (stopFailed_) {
         veyra::log::error("remoteplay", "connect refused: previous session did not stop successfully");

@@ -367,9 +367,11 @@ In PushFPS:
 
 3. **Open PS5 streaming and press Search.** It finds your PS5 and fills in its address. Nothing found? Type
    the IP address the PS5 shows under *Settings → Network → Connection Status → View Connection Status*.
-4. **Press Get Account ID.** A page opens in your browser. Look up your PSN name there and copy the Account
-   ID into PushFPS: a long number, or 12 characters ending in `=`. Your PSN name itself does not work.
-5. **Type the 8 digits and press Pair and save.** Type them without the space.
+4. **Press Get Account ID.** Sony's own sign-in page opens in your browser. Sign in, copy the address the
+   browser ends on (it starts with `https://remoteplay.dl.playstation.net`) into the box under it and press
+   *Fill in*: PushFPS fills in your Account ID. Your PSN name itself does not work, and never paste an
+   *NPSSO* code anywhere: it is your signed-in PSN session.
+5. **Type the 8 digits and press Pair and save.**
 6. **Press Connect.** If the PS5 asks for the sign-in PIN of your PS5 user, type it under *Sign-in PIN* in
    the same window.
 
@@ -403,7 +405,7 @@ when Microsoft changes its service. Only for your own account and console.
 
 | What happens | What to check |
 |---|---|
-| **The PS5 will not pair** | *Account ID* is the number from *Get Account ID*, not your PSN name. The 8 digits: no space, and a new number once 5 minutes have passed. No address? Press *Search*, or type the PS5's IP address. PS5 and PC on the same network: no guest Wi-Fi, no VPN. If Windows asks whether PushFPS may use the network, allow it |
+| **The PS5 will not pair** | *Account ID* comes from *Get Account ID* (Sony's sign-in), not your PSN name. The 8 digits: a new number once 5 minutes have passed. No address? Press *Search*, or type the PS5's IP address. PS5 and PC on the same network: no guest Wi-Fi, no VPN. If Windows asks whether PushFPS may use the network, allow it |
 | **The controller does nothing** | Connect it to the **PC**, not to the console. Keep PushFPS in front: click its window once (it only passes the controller on while it is the active window). PS5: *View only* off. Xbox: *Controller* on. More than one controller or wheel connected? Unplug the others and connect again |
 | **The Xbox is not in the list** | Sign in on the console with the same Microsoft account. Remote features on, power option *Sleep*, then press *Refresh* |
 | **It stutters, drops out or closes** | Use a network cable for the console, and for the PC if you can. PS5: lower *Requested bitrate*, or set *Decoding* to CPU software. Xbox: turn on *Software video decoding*. Still stuck? *Settings → About → Report a problem* copies what we need to help, or ask on the [Discord](https://discord.gg/N88znNpSgC) |
@@ -1032,6 +1034,7 @@ the window.</sub>
 | Elgato HD60 Pro | Reported working by a user (no further details) |
 | ezcap Game Link Raw | Reported working by a user (Xbox Series X over USB 3.0, Radeon RX 9060 XT) |
 | AVerMedia Live Streamer Ultra HD (GC571) | Reported working by a user (PS5 at 1440p60 over PCIe, RTX 3060 Ti) |
+| FEELWORLD C4K | Reported working by a user (PS5 Pro at 4K 30 FPS, RTX 5080, 30 → 120 FPS) |
 | Magewell USB Capture HDMI 4K Plus | Native low-latency mode (from Veyra) |
 | Blackmagic DeckLink / UltraStudio | Blackmagic's own interface (from Veyra) |
 

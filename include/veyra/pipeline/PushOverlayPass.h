@@ -16,10 +16,14 @@ namespace veyra::pipeline {
 
 class PushOverlayPass {
 public:
-    static constexpr UINT kConstants = 16;
+    static constexpr UINT kConstants = 20;
     static constexpr UINT kMaxGenerated = 32;
     // outputMode: how the frames are encoded, as Live HUD Lock (0 sRGB, 1 scRGB, 2 PQ).
-    bool initialize(ID3D12Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format, unsigned outputMode);
+    // PushFPS Subtitle Hold: `zone` another zone than the crosshair's (overlay::subtitleZoneFor), `shareInput` a
+    // pass whose input frames this one fills too (its zone must not overlap; that pass's update runs first for
+    // the same parity), so frame generation is given one copy whatever holds what. `name` is for the log.
+    bool initialize(ID3D12Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format, unsigned outputMode,
+                    const overlay::Zone* zone = nullptr, PushOverlayPass* shareInput = nullptr, const char* name = "crosshair-hold");
     // real[0..1]: the graph's two real-frame textures by parity; generated: its generated-frame textures.
     void createViews(ID3D12Device* device, DescriptorStager& stager, ID3D12Resource* const real[2],
                      ID3D12Resource* const* generated, unsigned generatedCount);
@@ -54,7 +58,9 @@ private:
     DXGI_FORMAT format_ = DXGI_FORMAT_UNKNOWN;
     overlay::Zone zone_;
     overlay::Rule rule_;
-    uint32_t blocks_ = 0;
+    uint32_t blocks_ = 0, blocksY_ = 0;
+    bool sharesInput_ = false;
+    const char* name_ = "crosshair-hold";
     ComputePass track_, fill_, compose_;
     bool primed_ = false;
     ComPtr<ID3D12Resource> input_[2];                 // the frames frame generation gets (the picture's size)

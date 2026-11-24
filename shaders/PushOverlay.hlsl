@@ -21,6 +21,9 @@ cbuffer Constants : register(b0) {
     uint outputMode, reset, flank, stand;      // outputMode: 0 sRGB, 1 scRGB (linear), 2 PQ
     uint longest, shortest, fresh, memory;
     uint grow, reach, blocks, hole;
+    // PushFPS Subtitle Hold: a zone may be a rectangle. zoneSize and blocks are its width, these its height
+    // (for the crosshair's square, zoneHeight = zoneSize and blocksY = blocks).
+    uint zoneHeight, blocksY, pad0, pad1;
 };
 static const float kContrast = 0.10;
 static const float kMoveRatio = 2.0;
@@ -32,7 +35,7 @@ static const int kMaxFlank = 8, kMaxGrow = 4, kMaxLongest = 160, kMaxHole = 12;
 
 float perceptual1(float v) { return outputMode == 1 ? sqrt(max(v, 0) / 2.5) : v; }
 float lumaOf(float3 c) { return 0.2126 * perceptual1(c.r) + 0.7152 * perceptual1(c.g) + 0.0722 * perceptual1(c.b); }
-bool inZone(int2 p) { return p.x >= 0 && p.y >= 0 && p.x < int(zoneSize) && p.y < int(zoneSize); }
+bool inZone(int2 p) { return p.x >= 0 && p.y >= 0 && p.x < int(zoneSize) && p.y < int(zoneHeight); }
 float lumaA(int2 p) { return lumaOf(texA[p + int2(zoneX, zoneY)].rgb); }   // the frame in t0, at a pixel of the zone
 float lumaB(int2 p) { return lumaOf(texB[p + int2(zoneX, zoneY)].rgb); }   // the frame in t1
 
@@ -94,7 +97,7 @@ float2 judge(int2 p, int kind) {
 void main(uint3 id : SV_DispatchThreadID) {
     const int2 p = int2(id.xy);
     if (stage == 0) {                       // does this block's picture move
-        if (id.x >= blocks || id.y >= blocks) return;
+        if (id.x >= blocks || id.y >= blocksY) return;
         float change = 0, detail = 0;
         if (reset == 0) {
             [loop] for (int y = 0; y < kBlock; ++y)
@@ -117,17 +120,17 @@ void main(uint3 id : SV_DispatchThreadID) {
     if (stage == 1) {                       // does the zone move: a tenth of its blocks
         if (id.x != 0 || id.y != 0) return;
         int moving = 0;
-        [loop] for (uint y = 0; y < blocks; ++y)
+        [loop] for (uint y = 0; y < blocksY; ++y)
             [loop] for (uint x = 0; x < blocks; ++x) moving += texA[int2(x, y)].x > 0.5 ? 1 : 0;
-        outA[int2(0, 0)] = float4((reset == 0 && moving * kMoveShareDivisor >= int(blocks * blocks)) ? 1 : 0, 0, 0, 0);
+        outA[int2(0, 0)] = float4((reset == 0 && moving * kMoveShareDivisor >= int(blocks * blocksY)) ? 1 : 0, 0, 0, 0);
         return;
     }
-    if (id.x >= zoneSize || id.y >= zoneSize) return;
+    if (id.x >= zoneSize || id.y >= zoneHeight) return;
     if (stage == 2) {                       // the counts: a frame counts when the zone moves, and the picture near this pixel with it
         bool moving = false;
         if (reset == 0 && texB[int2(0, 0)].x > 0.5) {
-            const int2 b = min(p / kBlock, int(blocks) - 1);
-            [loop] for (int j = max(b.y - kNearBlocks, 0); j <= min(b.y + kNearBlocks, int(blocks) - 1); ++j)
+            const int2 b = min(p / kBlock, int2(int(blocks) - 1, int(blocksY) - 1));
+            [loop] for (int j = max(b.y - kNearBlocks, 0); j <= min(b.y + kNearBlocks, int(blocksY) - 1); ++j)
                 [loop] for (int i = max(b.x - kNearBlocks, 0); i <= min(b.x + kNearBlocks, int(blocks) - 1); ++i)
                     if (texC[int2(i, j)].x > 0.5) moving = true;
         }
