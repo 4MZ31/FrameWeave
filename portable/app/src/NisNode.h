@@ -33,8 +33,8 @@ namespace pushfps {
 
 // What FrameView hands the node for one refresh.
 struct NisFrame {
-    std::array<QSGTexture*, 8> textures{};  // frame.frag's bindings 1..8
-    std::array<bool, 8> nearest{};          // sampled without filtering (the motion fields)
+    std::array<QSGTexture*, 11> textures{};  // frame.frag's bindings 1..11
+    std::array<bool, 11> nearest{};          // sampled without filtering (the motion fields)
     QByteArray uniforms;                    // frame.frag's uniform block; matrix and opacity are set here
     QSize picture;                          // the picture's size in pixels
     QSize output;                           // NIS's output: between the picture's size and twice it
@@ -90,7 +90,7 @@ private:
     QRhiComputePipeline* nisPipeline_ = nullptr;
     QRhiGraphicsPipeline* blitPipeline_ = nullptr;
     QRhiRenderPassDescriptor* blitPass_ = nullptr;  // the window's, as the blit pipeline was made for it
-    std::array<QRhiTexture*, 8> boundTextures_{};
+    std::array<QRhiTexture*, 11> boundTextures_{};
 };
 
 }  // namespace pushfps

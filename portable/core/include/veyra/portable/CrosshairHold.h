@@ -29,7 +29,8 @@ namespace veyra::portable {
 
 // One real frame's part.
 struct HoldFrame {
-    int x = 0, y = 0, size = 0;                    // the square in the picture
+    int x = 0, y = 0, size = 0;                    // the zone in the picture (size = w; the crosshair's is square)
+    int w = 0, h = 0;
     pipeline::overlay::Plane mask;                 // 1 where frame generation is not to see the picture
     Bgra zone;                                     // the square as the frame has it
     pipeline::overlay::Picture filled;             // the square with the mask filled in; empty when nothing is masked
@@ -38,7 +39,7 @@ struct HoldFrame {
 
 // What a generated frame between two real frames needs.
 struct HoldPair {
-    int x = 0, y = 0, size = 0;
+    int x = 0, y = 0, size = 0, w = 0, h = 0;   // size = w
     Bgra filledA, filledB;   // the square of each real frame as frame generation takes it
     // Per pixel of the square: how many 255ths of the background's change show through (kShowsFull = all of
     // it). A pixel that is not held has 255 and its filled pixels are its real ones, so the statement above
@@ -52,8 +53,12 @@ inline constexpr int kShowsFull = 255;
 // two against each other).
 pipeline::overlay::Plane stepFast(pipeline::overlay::State& state, const pipeline::overlay::Plane& luma, const pipeline::overlay::Rule& rule);
 
+// Which zone the rule looks at: the crosshair's square round the centre, or the subtitle band (Subtitle Hold).
+enum class HoldKind { Crosshair, Subtitles };
+
 class CrosshairHold {
 public:
+    explicit CrosshairHold(HoldKind kind = HoldKind::Crosshair) : kind_(kind) {}
     void reset();
     // The next real frame, in order. Null when the picture is too small for a zone.
     std::shared_ptr<const HoldFrame> frame(const Bgra& image);
@@ -61,6 +66,7 @@ public:
     static std::shared_ptr<const HoldPair> pair(const HoldFrame& a, const HoldFrame& b);
 
 private:
+    HoldKind kind_ = HoldKind::Crosshair;
     pipeline::overlay::State state_{0};
     int width_ = 0, height_ = 0;
 };

@@ -164,7 +164,7 @@ bool NisNode::ensure(QRhi* rhi) {
     }
 
     // The textures frame.frag samples change with every new real frame: new bindings for them.
-    std::array<QRhiTexture*, 8> now{};
+    std::array<QRhiTexture*, 11> now{};
     for (size_t i = 0; i < now.size(); ++i) {
         now[i] = frame_.textures[i] ? frame_.textures[i]->rhiTexture() : nullptr;
         if (!now[i]) return false;

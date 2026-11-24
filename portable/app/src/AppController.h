@@ -41,6 +41,7 @@ class AppController : public QObject {
     Q_PROPERTY(bool hudLock READ hudLock WRITE setHudLock NOTIFY settingsChanged)
     // Crosshair Hold (portable/core CrosshairHold.h): off unless switched on.
     Q_PROPERTY(bool crosshairHold READ crosshairHold WRITE setCrosshairHold NOTIFY settingsChanged)
+    Q_PROPERTY(bool subtitleHold READ subtitleHold WRITE setSubtitleHold NOTIFY settingsChanged)
     Q_PROPERTY(bool removeDuplicates READ removeDuplicates WRITE setRemoveDuplicates NOTIFY settingsChanged)
     Q_PROPERTY(int quality READ quality WRITE setQuality NOTIFY settingsChanged)
     Q_PROPERTY(bool audioPassthrough READ audioPassthrough WRITE setAudioPassthrough NOTIFY settingsChanged)
@@ -110,6 +111,8 @@ public:
     void setHudLock(bool v);
     bool crosshairHold() const { return crosshairHold_; }
     void setCrosshairHold(bool v);
+    bool subtitleHold() const { return subtitleHold_; }
+    void setSubtitleHold(bool v);
     bool removeDuplicates() const { return dedup_; }
     void setRemoveDuplicates(bool v);
     int quality() const { return quality_; }
@@ -214,6 +217,7 @@ private:
     QString upscaleSizes_;
     bool lowLatency_ = false, autoConnect_ = false, applyingLowLatency_ = false, savedCameraFound_ = false;
     bool crosshairHold_ = false;
+    bool subtitleHold_ = false;   // Subtitle Hold: off unless switched on (not everyone uses subtitles)
     bool autoConnectPending_ = false;
     QByteArray audioInId_, audioOutId_;
     QString audioInName_, audioOutName_;
