@@ -1258,7 +1258,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
             PushPacingRepair pacingRepair;int64_t pacingLastPts=0;bool pacingHaveLast=false;int64_t nextPacingLog=0;
             ContentDedup::Stats dedupLogged{};
             static const bool legacyCadence=GetEnvironmentVariableW(L"VEYRA_TEST_CONTENT_DEDUP_LEGACY",nullptr,0)>0;
-            const auto dedupContent=[](ContentRate content){return content!=ContentRate::Transport&&content!=ContentRate::Capture60To30;};
+            const auto dedupContent=[](ContentRate content){return content!=ContentRate::Transport&&!isCaptureHalfRate(content);};
             // CPU frames are compared here; capture-card frames arrive numbered by the callback.
             pipeline::PictureReference enginePictures{2};
             unsigned dedupRepeatMax8=0;uint64_t dedupRepeatMaxOver=0,dedupNewMinOver=UINT64_MAX;
@@ -2508,8 +2508,12 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                     if(testReplayDropPending){pkt.flags|=static_cast<pipeline::FrameFlags>(pipeline::FrameFlagBits::Drop);testReplayDropPending=false;}
                 }
                 if(!isImage&&!isCapture&&seekSeconds_>=0)continue;
-                const bool halfRate=isCapture&&options.settings.content==ContentRate::Capture60To30&&
+                const bool halfRate=isCapture&&isCaptureHalfRate(options.settings.content)&&
                     CaptureHalfRate::supported(activeSource->info().averageFps);
+                // PushFPS: the two 60 -> 30 modes differ only here, in what is done with a due repeat.
+                if(halfRate&&captureSampler.setSkipRepeats(options.settings.content==ContentRate::Capture60To30))
+                    veyra::log::info("capture-rate",std::format("revision={} mode={} samplerReset=1",options.settings.revision,
+                        options.settings.content==ContentRate::Capture60To30?"waits-for-new":"original"));
                 const bool dedupActive=isCapture&&!isImage&&!legacyCadence&&dedupContent(options.settings.content);
                 // The callback compares whole pictures only while dedup or the 60->30 phase needs them.
                 if(physicalCapture)captureSource.setPictureCompare(dedupActive||halfRate);
@@ -3158,7 +3162,7 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                 previewSkippedSinceSubmit=0;
                 if(transaction||frames==0){
                     std::lock_guard lock(mutex_);snapshot_.captureHalfRate=halfRate;
-                    veyra::log::info("capture-rate",std::format("revision={} requested60To30={} active={} transportFps={} originalPtsPreserved={}",options.settings.revision,options.settings.content==ContentRate::Capture60To30,halfRate,isCapture?activeSource->info().averageFps:0,!captureClockCorrected));
+                    veyra::log::info("capture-rate",std::format("revision={} requested60To30={} active={} transportFps={} originalPtsPreserved={}",options.settings.revision,isCaptureHalfRate(options.settings.content),halfRate,isCapture?activeSource->info().averageFps:0,!captureClockCorrected));
                 }
                 const bool pairPacing=pairAnchoredLive&&options.fg;
                 // File replay has no device pacing and still needs its PTS clock.

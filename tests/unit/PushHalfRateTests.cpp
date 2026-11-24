@@ -160,6 +160,8 @@ private:
 }
 
 using veyra::engine::CaptureHalfRate;
+// The "original" 60 -> 30 mode: the same class with repeat skipping off.
+struct OriginalHalfRate : CaptureHalfRate { OriginalHalfRate() { setSkipRepeats(false); } };
 static int failures = 0;
 static void check(bool ok, const std::string& label) { std::printf("%s %s\n", ok ? "PASS" : "FAIL", label.c_str()); if (!ok) ++failures; }
 
@@ -261,6 +263,13 @@ int main() {
         for (const auto& s : all) same += decisions<release::CaptureHalfRate>(s) == decisions<CaptureHalfRate>(s);
         std::printf("INFO %d of %zu streams decided exactly as the engine release decides them\n", same, all.size());
         check(same == int(all.size()), "every stream is decided exactly as the engine release decides it");
+        // The original mode is the plain grid of 3.2.10 to 4.1.1, decision for decision, on every stream.
+        int plainSame = 0;
+        for (const auto& s : all) plainSame += decisions<before::CaptureHalfRate>(s) == decisions<OriginalHalfRate>(s);
+        std::printf("INFO %d of %zu streams decided by the original mode exactly as by the plain grid\n", plainSame, all.size());
+        check(plainSame == int(all.size()), "the original 60 -> 30 mode decides every stream exactly as the plain grid of 3.2.10 did");
+        // Switching modes resets the sampler; switching to the mode it has changes nothing.
+        CaptureHalfRate h; check(!h.setSkipRepeats(true) && h.skipRepeats() && h.setSkipRepeats(false) && !h.skipRepeats(), "switching between the modes");
     }
     // --- where nothing repeats a kept picture, the plain grid's decisions --------------------------------
     {

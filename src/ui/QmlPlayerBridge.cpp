@@ -382,7 +382,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
         }
         if (!defaultFlowApplied && p.contains(QStringLiteral("contentRate"))) {
             const int rate = p.value(QStringLiteral("contentRate")).toInt();
-            if(rate>=0&&rate<=int(engine::ContentRate::Capture60To30)){
+            if(rate>=0&&rate<=int(engine::ContentRate::Capture60To30Original)){
                 const auto mode=engine::currentContentRate(static_cast<engine::ContentRate>(rate));
                 if(s.content!=mode){s.content=mode;changed=true;}
                 if(rate!=int(mode)){

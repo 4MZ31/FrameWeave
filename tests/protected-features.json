@@ -2141,6 +2141,23 @@
     }
    ],
    "needs_hardware": "a PS5 whose stream drops mid-session"
+  },
+  {
+   "id": "F75",
+   "what": "60 -> 30 in two modes: the one that waits for a new picture after a hitch (5, unchanged) and the original plain grid of 3.2.10 to 4.1.1 (6), decided exactly as that grid",
+   "guards": [
+    {
+     "file": "tests/unit/PushHalfRateTests.cpp",
+     "ci": "veyra_push_half_rate_tests",
+     "contains": "the original 60 -> 30 mode decides every stream exactly as the plain grid"
+    },
+    {
+     "file": "tests/qml/quick/tst_dedup_modes.qml",
+     "ci": "tst_dedup_modes",
+     "contains": "test_the_original_60_to_30_is_chosen_and_kept"
+    }
+   ],
+   "needs_hardware": "a capture card at 60 with a 30 FPS game"
   }
  ]
 }

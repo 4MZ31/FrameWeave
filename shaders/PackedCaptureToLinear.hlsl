@@ -52,6 +52,13 @@ void main(uint3 p : SV_DispatchThreadID) {
         float y, cb, cr;
         if (packing == 4) { y = second ? pair.w : pair.y; cb = pair.x; cr = pair.z; }
         else { y = second ? pair.z : pair.x; cb = pair.w; cr = pair.y; }
+        // PushFPS: the odd pixel's colour is the mean of its own pair's sample and the next pair's (sited on the
+        // even pixel; see Yuy2ToLinear.hlsl), not a copy. The last pair keeps its own.
+        if (second && p.x / 2 + 1 < (width + 1) / 2) {
+            const float4 nextPair = packedBytes[uint2(p.x / 2 + 1, p.y)];
+            cb = 0.5 * (cb + (packing == 4 ? nextPair.x : nextPair.w));
+            cr = 0.5 * (cr + (packing == 4 ? nextPair.z : nextPair.y));
+        }
         float2 uv = float2(cb, cr) - 128.0 / 255.0;
         if (limited > 0.5) { y = (y - 16.0 / 255.0) * (255.0 / 219.0); uv *= 255.0 / 224.0; }
         rgb = matrix709 > 0.5 ? float3(y + 1.5748 * uv.y, y - 0.187324 * uv.x - 0.468124 * uv.y, y + 1.8556 * uv.x)

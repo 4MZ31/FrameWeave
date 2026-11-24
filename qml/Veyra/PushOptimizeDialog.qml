@@ -397,7 +397,7 @@ DialogLayer {
             // picture: either the game really runs at 60, or the capture card adds noise to repeated
             // pictures. The tests below then run on what was measured; say what to do if it is the card.
             if (opt.original && opt.original.gameFps === 30 && content === 60 && Math.abs(Number(opt.stats().captureFps || 0) - 60) < 3 &&
-                Number(opt.original.contentRate) !== 5)
+                Number(opt.original.contentRate) !== 5 && Number(opt.original.contentRate) !== 6)
                 skipped.push({ label: qsTr("游戏帧率"),
                                reason: qsTr("游戏帧率设为 30，但测到每秒 60 张新画面，下面按 60 FPS 测试。如果游戏确实是 30 FPS（采集卡给重复画面加了噪点），请在快速设置里把去重改为「60→30」后重新优化") })
             opt.skipped = skipped

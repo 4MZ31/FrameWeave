@@ -898,7 +898,7 @@ VGroup {
     // comparison clip reads 60. One tap switches to the fixed 60 -> 30 mode (every second sample).
     readonly property bool cadenceMismatch: quick.liveStats.running === true && veyra.fgEnabled === true && quick.baseFps === 30
         && Math.abs(Number(quick.liveStats.captureFps || 0) - 60) < 3 && Number(quick.liveStats.contentFps || 0) > 45
-        && Number(veyra.contentRate) !== 5
+        && Number(veyra.contentRate) !== 5 && Number(veyra.contentRate) !== 6
     // Frame generation health (engine/PushFgHealth.h): frame generation is on and nothing generated
     // is shown, so the picture plays at the game's own frame rate. Shown with its cause for as long
     // as it lasts: 2 the method is not running, 3 the card does not keep up, 4 nothing comes out.

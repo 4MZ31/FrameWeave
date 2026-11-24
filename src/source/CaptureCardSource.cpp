@@ -412,6 +412,7 @@ struct CaptureCardSource::Impl:ISampleGrabberCB {
     // Decoding happens on the DirectShow callback thread for now (one decoder);
     // a bounded parallel decode queue is a later refinement.
     bool compressedPath=false;CaptureCodec codec=CaptureCodec::None;
+    unsigned compressedRangeOverride=0;   // PushFPS: a manual range for compressed capture (CaptureColorOverride.h value)
     CaptureCompressedDecoder compressedDecoder;
     ID3D12Device* decodeDevice=nullptr;ID3D12CommandQueue* decodeQueue=nullptr;
     uint64_t compressedDecoded=0,compressedErrors=0;
@@ -1287,12 +1288,22 @@ bool CaptureCardSource::configure(const SourceOpenDesc& desc){close();error_.cle
         }
     }
     if(colorOverride){
-        if(compressedPath){error_=L"压缩采集使用码流颜色信息；手动颜色和范围请选择原生采集格式。";log::error("capture-color","Manual color override requires raw capture; compressed override is not silently ignored");return false;}
+        // PushFPS: a compressed capture (MJPEG) takes a manual range: many cards send limited codes in MJPEG
+        // while JPEG says full, which leaves the picture grey. The colour space still comes from the stream.
+        if(compressedPath&&captureColorSpace(colorOverride)){error_=L"压缩采集使用码流颜色信息；手动颜色和范围请选择原生采集格式。";log::error("capture-color","Manual color space requires raw capture; compressed override is not silently ignored");return false;}
+        if(compressedPath){p.compressedRangeOverride=captureColorOverride(0,captureColorRange(colorOverride));log::info("capture-color",std::format("compressed capture keeps manual range={} (1=limited 2=full)",captureColorRange(colorOverride)));}else{
         const auto space=captureColorSpace(colorOverride);
         if((space==1||space==2)&&p.layout.format!=AV_PIX_FMT_P010&&p.layout.format!=AV_PIX_FMT_P016){error_=L"手动 HDR 需要 P010/P016 格式；SDR 信号请选择自动或 Rec.709。";log::error("capture-color","Explicit HDR requires P010/P016");return false;}
         applyCaptureColorOverride(p.layout.color,colorOverride);
         log::info("capture-color",std::format("manual space={} range={} effective transfer={} matrix={} primaries={} range={} (0=auto, space 1=PQ 2=HLG 3=709, range 1=limited 2=full)",space,captureColorRange(colorOverride),int(p.layout.color.transfer),int(p.layout.color.matrix),int(p.layout.color.primaries),int(p.layout.color.range)));
+        }
     }
+    // PushFPS: a native planar 4:2:0 capture (NV12 / P010 / P016) has one colour sample for every 2 x 2
+    // pixels. Drawn as it comes, each sample covers its whole block, and a coloured edge (small text, a HUD
+    // outline) steps in 2-pixel blocks. The colour conversion can instead place each sample where the format
+    // sites it and blend between neighbours, which PS5 Remote Play already does. MJPEG and other compressed
+    // capture keep what they had: their 4:2:0 is made here, by the decoder.
+    if(!compressedPath&&p.layout.planes==2)p.layout.color.reconstructChroma=true;
     p.info={};p.info.kind=pipeline::SourceKind::CaptureCard;p.info.width=p.layout.width;p.info.height=p.layout.height;p.info.displayAspect=p.layout.height>0?double(p.layout.width)/p.layout.height:0.0;p.info.averageFps=p.layout.duration>0?1e7/p.layout.duration:0;p.info.duration=pipeline::Rational::unknown();p.info.color=p.layout.color;
     if(expectedFps>0){
         const bool accepted=captureFrameRateMatches(expectedFps,p.layout.duration);
@@ -2054,6 +2065,12 @@ SourceReadStatus CaptureCardSource::readWithWait(pipeline::FramePacket& packet,c
         // stays the declared fallback. D3D12VA surfaces report NV12 by
         // contract (the capture ingress contract is 8-bit for this path).
         colorInfo=pipeline::resolveFrameColor(*delivered,p.layout.color);
+        // PushFPS: a manual range wins over what the stream says, and the frame says it too, because the graph
+        // reads the frame's own range again when it resolves colour.
+        if(p.compressedRangeOverride){
+            applyCaptureColorOverride(colorInfo,p.compressedRangeOverride);
+            delivered->color_range=colorInfo.range==pipeline::ColorRange::Limited?AVCOL_RANGE_MPEG:AVCOL_RANGE_JPEG;
+        }
         if(delivered->format==AV_PIX_FMT_D3D12&&colorInfo.pixelFormat==pipeline::SourcePixelFormat::Unknown)colorInfo.pixelFormat=pipeline::SourcePixelFormat::NV12;
     }
     delivered->pts=p.decklink?nativeTime100ns:static_cast<int64_t>(time*10000000);delivered->duration=duration.isUnknown()?0:duration.to100ns();delivered->time_base={1,10000000};packet={};packet.pts={delivered->pts,10000000};packet.duration=duration;packet.colorInfo=colorInfo;packet.sourceKind=pipeline::SourceKind::CaptureCard;packet.sequence=sequence;packet.flags=flags;packet.sourceEpoch=1;
@@ -2089,7 +2106,7 @@ void CaptureCardSource::close()noexcept{
     if(p.pendingHardware)av_frame_free(&p.pendingHardware);if(p.hardwareRead)av_frame_free(&p.hardwareRead);
     p.compressedDecoder.close();
     if(p.decodeDevice){p.decodeDevice->Release();p.decodeDevice=nullptr;}if(p.decodeQueue){p.decodeQueue->Release();p.decodeQueue=nullptr;}
-    p.pendingIsHardware=false;p.compressedPath=false;p.codec=CaptureCodec::None;p.compressedDecoded=p.compressedErrors=0;
+    p.pendingIsHardware=false;p.compressedPath=false;p.compressedRangeOverride=0;p.codec=CaptureCodec::None;p.compressedDecoded=p.compressedErrors=0;
     p.info={};
     p.sequence=p.received=p.dropped=p.lastDrop=0;p.pending=p.callbackError=p.configured=p.forceDiscontinuity=false;p.lastPts=p.readAgeMs=0;
     p.recentArrivals.clear();
