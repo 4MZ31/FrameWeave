@@ -302,7 +302,7 @@ bool QmlPlayerBridge::pushShareToDiscord(const QString& path) {
 
 QString QmlPlayerBridge::pushImportTextFile(const QString& title) {
     const QString path = QFileDialog::getOpenFileName(nullptr, title, QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation),
-                                                      tr("PushFPS 游戏预设 (*.pushfps);;所有文件 (*)"));
+                                                      tr("FrameWeave 游戏预设 (*.frameweave);;所有文件 (*)"));
     if (path.isEmpty()) return {};
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly) || file.size() > 256 * 1024) { emit notice(tr("无法读取文件：%1").arg(path), true); return {}; }
@@ -313,8 +313,8 @@ bool QmlPlayerBridge::pushExportTextFile(const QString& title, const QString& su
     QString base = suggestedName;
     for (const QChar c : QStringLiteral("\\/:*?\"<>|")) base.replace(c, QLatin1Char('_'));
     const QString path = QFileDialog::getSaveFileName(nullptr, title,
-        QDir(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).filePath(base + QStringLiteral(".pushfps")),
-        tr("PushFPS 游戏预设 (*.pushfps)"));
+        QDir(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).filePath(base + QStringLiteral(".frameweave")),
+        tr("FrameWeave 游戏预设 (*.frameweave)"));
     if (path.isEmpty()) return false;
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate) || file.write(text.toUtf8()) < 0) {
@@ -445,7 +445,7 @@ bool QmlPlayerBridge::pushInstallAnr() {
     veyra::log::info("anr-install", std::format("installed files={} skipped={} bytes={} nvngx_dlssg.dll sha256={} from={}",
                                                 files, skipped, bytes, hash.toStdString(), QFileInfo(picked).fileName().toStdString()));
     refreshComponentList();
-    emit notice(tr("ANR 已安装（%1 个文件）。重新启动 PushFPS 后，可在补帧方式中选择 ANR").arg(files)
+    emit notice(tr("ANR 已安装（%1 个文件）。重新启动 FrameWeave 后，可在补帧方式中选择 ANR").arg(files)
                 + (skipped > 0 ? tr("；没有复制 %1 个程序或脚本文件").arg(skipped) : QString())
                 + QStringLiteral(" · SHA-256 ") + hash.left(16), false);
     return true;
@@ -507,7 +507,7 @@ QVariantMap QmlPlayerBridge::pushHudDetection() {
     if (st.done && st.preview.size() == size_t(engine::hud::kPreviewWidth) * engine::hud::kPreviewHeight * 3 &&
         st.revision != impl_->hudPreviewRevision) {
         const QString dir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-        const QString path = QDir(dir).filePath(QStringLiteral("pushfps-hud-%1.png").arg(qulonglong(st.revision)));
+        const QString path = QDir(dir).filePath(QStringLiteral("frameweave-hud-%1.png").arg(qulonglong(st.revision)));
         const QImage image(st.preview.data(), int(engine::hud::kPreviewWidth), int(engine::hud::kPreviewHeight),
                            int(engine::hud::kPreviewWidth * 3), QImage::Format_RGB888);
         if (image.save(path)) {
@@ -566,15 +566,9 @@ veyra::engine::RecordingLabel drawCompareBadge(bool pushFps, const QString& word
     const QString value = QString::number(fps), fpsText = QStringLiteral("FPS");
     const QFontMetricsF ml(label), mn(number), mu(unit);
     // The left part: the logo, or a dot and the word.
-    QImage logo;
-    if (pushFps) {
-        logo = QImage(QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("qml/Veyra/pushfps-badge-logo.png")));
-        if (!logo.isNull()) logo = logo.scaledToHeight(int(std::lround(text * 1.55)), Qt::SmoothTransformation);
-    }
     const qreal dot = text * 0.42;
     qreal leftWidth;
-    if (pushFps && !logo.isNull()) leftWidth = logo.width();
-    else if (pushFps) leftWidth = QFontMetricsF(badgeFont(text, QFont::Bold)).horizontalAdvance(QStringLiteral("PushFPS"));
+    if (pushFps) leftWidth = QFontMetricsF(badgeFont(text, QFont::Bold)).horizontalAdvance(QStringLiteral("FrameWeave"));
     else leftWidth = dot + gap * 0.7 + ml.horizontalAdvance(word);
     const qreal valueWidth = mn.horizontalAdvance(value) + text * 0.18 + mu.horizontalAdvance(fpsText);
     int width = int(std::ceil(pad + leftWidth + gap + outline + gap + valueWidth + pad));
@@ -590,17 +584,15 @@ veyra::engine::RecordingLabel drawCompareBadge(bool pushFps, const QString& word
     painter.drawRoundedRect(pill, pill.height() / 2, pill.height() / 2);
     const qreal mid = height / 2.0;
     qreal x = pad;
-    if (pushFps && !logo.isNull()) {
-        painter.drawImage(QPointF(x, mid - logo.height() / 2.0), logo);
-    } else if (pushFps) {
+    if (pushFps) {
         const QFont bold = badgeFont(text, QFont::Bold);
         const QFontMetricsF mb(bold);
         painter.setFont(bold);
         const qreal base = mid + (mb.ascent() - mb.descent()) / 2;
         painter.setPen(QColor(245, 245, 245));
-        painter.drawText(QPointF(x, base), QStringLiteral("Push"));
+        painter.drawText(QPointF(x, base), QStringLiteral("Frame"));
         painter.setPen(QColor::fromRgba(kBadgeGreen));
-        painter.drawText(QPointF(x + mb.horizontalAdvance(QStringLiteral("Push")), base), fpsText);
+        painter.drawText(QPointF(x + mb.horizontalAdvance(QStringLiteral("Frame")), base), QStringLiteral("Weave"));
     } else {
         painter.setPen(Qt::NoPen);
         painter.setBrush(QColor(154, 160, 166));
@@ -723,18 +715,18 @@ bool QmlPlayerBridge::pushStartCompareClip(int seconds, int layout) {
     // clip was stopped by hand, then finds another clip and leaves it alone.
     const int generation = ++impl_->compareGeneration;
     if (untilStopped) {
-        emit notice(reveal ? tr("正在录制滑动揭示对比片段，直到你停止：先是主机原本的帧率，线条扫过后是 PushFPS，来回切换。再点一次“对比片段”或按录制快捷键停止")
-                  : vertical ? tr("正在录制竖屏对比片段，直到你停止：上面是主机原本的帧率，下面是 PushFPS。再点一次“对比片段”或按录制快捷键停止")
-                             : tr("正在录制对比片段，直到你停止：左边是主机原本的帧率，右边是 PushFPS。再点一次“对比片段”或按录制快捷键停止"), false);
+        emit notice(reveal ? tr("正在录制滑动揭示对比片段，直到你停止：先是主机原本的帧率，线条扫过后是 FrameWeave，来回切换。再点一次“对比片段”或按录制快捷键停止")
+                  : vertical ? tr("正在录制竖屏对比片段，直到你停止：上面是主机原本的帧率，下面是 FrameWeave。再点一次“对比片段”或按录制快捷键停止")
+                             : tr("正在录制对比片段，直到你停止：左边是主机原本的帧率，右边是 FrameWeave。再点一次“对比片段”或按录制快捷键停止"), false);
         return true;
     }
     QTimer::singleShot(seconds * 1000, this, [this, generation] {
         if (generation == impl_->compareGeneration && recording() && impl_->recordingState.value("compare").toBool())
             stopRecording(QStringLiteral("compare-timer"));
     });
-    emit notice(reveal ? tr("正在录制 %1 秒的滑动揭示对比片段：先是主机原本的帧率，线条扫过后是 PushFPS，来回切换").arg(seconds)
-              : vertical ? tr("正在录制 %1 秒的竖屏对比片段：上面是主机原本的帧率，下面是 PushFPS").arg(seconds)
-                         : tr("正在录制 %1 秒的对比片段：左边是主机原本的帧率，右边是 PushFPS").arg(seconds), false);
+    emit notice(reveal ? tr("正在录制 %1 秒的滑动揭示对比片段：先是主机原本的帧率，线条扫过后是 FrameWeave，来回切换").arg(seconds)
+              : vertical ? tr("正在录制 %1 秒的竖屏对比片段：上面是主机原本的帧率，下面是 FrameWeave").arg(seconds)
+                         : tr("正在录制 %1 秒的对比片段：左边是主机原本的帧率，右边是 FrameWeave").arg(seconds), false);
     return true;
 }
 
@@ -950,7 +942,7 @@ void QmlPlayerBridge::pushValidateHalfApproval() {
     impl_->prefs[QStringLiteral("pushFlowHalf")] = false;
     if (!impl_->savePrefs()) veyra::log::warn("ui-prefs", "half precision reset not saved");
     QTimer::singleShot(6000, this, [this] {
-        emit notice(tr("PushFlow 半精度已关闭：显卡、驱动或 PushFPS 版本和测试时不同了，需要重新测试（专业模式 → PushFlow 半精度）。现在使用全精度"), false);
+        emit notice(tr("PushFlow 半精度已关闭：显卡、驱动或 FrameWeave 版本和测试时不同了，需要重新测试（专业模式 → PushFlow 半精度）。现在使用全精度"), false);
     });
 }
 
@@ -962,7 +954,7 @@ bool QmlPlayerBridge::pushTestPushFlowHalf() {
     if (impl_->pushFlowHalfTest) return false;
     if (impl_->snapshot.running) { emit notice(tr("请先停止播放再测试：测试会占用显卡几秒钟"), true); return false; }
     const QString exe = QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("PushFlowBench.exe"));
-    if (!QFileInfo::exists(exe)) { emit notice(tr("没有找到 PushFlowBench.exe，请重新安装 PushFPS"), true); return false; }
+    if (!QFileInfo::exists(exe)) { emit notice(tr("没有找到 PushFlowBench.exe，请重新安装 FrameWeave"), true); return false; }
     const QString out = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).filePath(QStringLiteral("pushfps-fp16-probe.json"));
     QFile::remove(out);
     QStringList args{QStringLiteral("--fp16-probe"), QStringLiteral("--out"), out};
@@ -1007,7 +999,7 @@ bool QmlPlayerBridge::pushTestPushFlowHalf() {
         else if (reason == QLatin1String("fp16-mismatch"))
             emit notice(tr("半精度的画面和全精度不一致（%1 dB），继续使用全精度").arg(QString::number(r.value(QStringLiteral("matchDb")).toDouble(), 'f', 1)), false);
         else
-            emit notice(tr("半精度测试没有完成（显卡驱动或 DirectML 在半精度下出错），继续使用全精度。PushFPS 不受影响"), false);
+            emit notice(tr("半精度测试没有完成（显卡驱动或 DirectML 在半精度下出错），继续使用全精度。FrameWeave 不受影响"), false);
     });
     proc->start();
     if (!proc->waitForStarted(5000)) {

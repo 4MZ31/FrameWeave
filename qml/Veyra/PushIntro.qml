@@ -251,47 +251,11 @@ Item {
         opacity: intro.scene * (0.35 + 0.6 * intro.warm)
         smooth: true
     }
-    Image {
-        // glow canvas: 1340x550 for 1200x410 art (70 px margin at this scale)
-        source: "sunset-logo-glow.png"
-        width: intro.logoW * 1340 / 1200; height: intro.logoH * 550 / 410
-        x: intro.logoX - intro.logoW * 70 / 1200; y: intro.logoY - intro.logoH * 70 / 410
-        opacity: (1 - intro.glide) * intro.outCubic(intro.at(intro.hit3, intro.hit3 + 260)) * (0.85 + 0.15 * Math.sin(intro.ms / 260))
-        smooth: true
-    }
-    // The logo parts, each sliding in to its beat with a trail of in-between copies. (A Repeater,
-    // not an inline component: inline components do not see this file's ids.)
-    Repeater {
-        model: [{ src: "sunset-logo-push.png", start: 860, land: intro.hit3 },
-                { src: "sunset-logo-fps.png", start: 900, land: intro.hit3 },
-                { src: "sunset-logo-chev1.png", start: 360, land: intro.hit1 },
-                { src: "sunset-logo-chev2.png", start: 500, land: intro.hit2 }]
-        Item {
-            id: part
-            required property var modelData
-            readonly property real squash: 1 + 0.08 * intro.kick(intro.ms, modelData.land, 200)
-            function offset(t) { return -intro.width * 0.9 * intro.travel(t, modelData.start, modelData.land) * intro.logoW / intro.heroW }
-            x: intro.logoX; y: intro.logoY; width: intro.logoW; height: intro.logoH
-            visible: intro.ms >= modelData.start
-            Repeater {
-                model: 3        // ghosts at three earlier moments
-                Image {
-                    required property int index
-                    source: part.modelData.src
-                    width: part.width; height: part.height
-                    x: part.offset(intro.ms - (3 - index) * 34)
-                    opacity: intro.ms < part.modelData.land ? 0.14 + index * 0.1 : 0
-                    smooth: true
-                }
-            }
-            Image {
-                source: part.modelData.src
-                width: part.width; height: part.height
-                x: part.offset(intro.ms)
-                transform: Scale { origin.x: part.width; origin.y: part.height / 2; xScale: 1 / part.squash; yScale: part.squash }
-                smooth: true
-            }
-        }
+    PushWordmark {
+        x: intro.logoX + (intro.logoW - width) / 2 - intro.width * intro.travel(intro.ms, 860, intro.hit3)
+        y: intro.logoY + (intro.logoH - height) / 2
+        visible: intro.ms >= 860
+        pixelSize: intro.logoW * 0.15
     }
 
     // 30 → 120 FPS under the logo.

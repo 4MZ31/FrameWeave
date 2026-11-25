@@ -65,7 +65,7 @@ Item {
             // Labels next to the divider: the console's just above, PushFPS's just below (192-high preview).
             const top = cmp.verticalTagY(0, 12, 192), bottom = cmp.verticalTagY(1, 12, 192)
             verify(top + 12 <= 96 && top > 60, "console label just above the middle, y=" + top)
-            verify(bottom >= 96 && bottom < 120, "PushFPS label just below the middle, y=" + bottom)
+            verify(bottom >= 96 && bottom < 120, "FrameWeave label just below the middle, y=" + bottom)
             verify(cmp.layoutHint(2).indexOf("TikTok") >= 0)
             action(qsTr("开始录制"))
             compare(veyra.compareLayout, 2)
@@ -128,7 +128,7 @@ Item {
             // (The dialog fades in: wait for it before reading what is visible.)
             tryVerify(function() { return preview.visible }, 3000, "the reveal preview is drawn")
             tryVerify(function() { return findChild(cmp, "pushfps-compare-tag-left") === null }, 3000, "without the split layout's fixed labels")
-            verify(cmp.layoutHint(3).indexOf("PushFPS") >= 0)
+            verify(cmp.layoutHint(3).indexOf("FrameWeave") >= 0)
             // How often the line sweeps: every 3 seconds unless chosen.
             verify(findChild(cmp, "pushfps-compare-reveal-row").visible)
             const every = findChild(cmp, "pushfps-compare-reveal")
@@ -160,7 +160,7 @@ Item {
                 compare(Clip.revealPosition(hold * 0.9, every), 0, "and holds there")
                 fuzzyCompare(Clip.revealPosition(hold + sweep / 2, every), 0.5, 1e-9)
                 fuzzyCompare(Clip.revealPosition(every, every), 1, 1e-9)
-                compare(Clip.revealPosition(every + hold * 0.5, every), 1, "then all PushFPS")
+                compare(Clip.revealPosition(every + hold * 0.5, every), 1, "then all FrameWeave")
                 fuzzyCompare(Clip.revealPosition(every + hold + sweep / 2, every), 0.5, 1e-9)
                 fuzzyCompare(Clip.revealPosition(2 * every + hold * 0.5, every), 0, 1e-9)
                 let last = 0, forward = true
@@ -305,7 +305,7 @@ Item {
         function test_preview_labels_name_both_rates() {
             veyra.fgMultiplier = 4
             compare(cmp.leftTag, qsTr("主机原画") + " · 30 FPS")
-            compare(cmp.rightTag, "PushFPS · 120 FPS")
+            compare(cmp.rightTag, "FrameWeave · 120 FPS")
             veyra.fgMultiplier = 1
         }
         // The original's side is called by the console chosen in quick setup, as the clip will call it;

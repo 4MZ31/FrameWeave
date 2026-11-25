@@ -125,7 +125,7 @@ struct Input {
 };
 
 std::wstring describe(HRESULT hr, bool desktop) {
-    if (hr == E_ACCESSDENIED) return desktop ? L"Windows did not allow capturing desktop audio" : L"Windows did not allow PushFPS to use this input (Settings > Privacy & security > Microphone)";
+    if (hr == E_ACCESSDENIED) return desktop ? L"Windows did not allow capturing desktop audio" : L"Windows did not allow FrameWeave to use this input (Settings > Privacy & security > Microphone)";
     if (hr == AUDCLNT_E_DEVICE_INVALIDATED || hr == E_NOTFOUND || hr == HRESULT_FROM_WIN32(ERROR_NOT_FOUND)) return L"The input was not found; plug it back in or pick another";
     if (hr == AUDCLNT_E_DEVICE_IN_USE) return L"Another app uses this input in exclusive mode";
     return std::format(L"{} could not start (0x{:08X})", desktop ? L"Desktop audio" : L"The input", uint32_t(hr));
@@ -174,7 +174,7 @@ HRESULT openInput(Input& input, const std::wstring& id, std::wstring& name) {
 
 void run() {
     const HRESULT com = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-    SetThreadDescription(GetCurrentThread(), L"PushFPS extra audio");
+    SetThreadDescription(GetCurrentThread(), L"FrameWeave extra audio");
     Input desktop, input;
     std::vector<float> scratch, block(kBlock * 2), part(kBlock * 2);
     uint64_t seenVersion = UINT64_MAX;

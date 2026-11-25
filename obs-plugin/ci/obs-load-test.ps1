@@ -1,6 +1,6 @@
 <#
-  CI only: installs PushFPS for OBS from a package folder into a real OBS Studio (latest release, portable
-  zip run in normal mode), opens a scene collection that holds one PushFPS source in the program scene, and
+  CI only: installs FrameWeave for OBS from a package folder into a real OBS Studio (latest release, portable
+  zip run in normal mode), opens a scene collection that holds one FrameWeave source in the program scene, and
   checks the OBS log for the lines given in -Expect. The log is copied to -LogDir.
 #>
 param(
@@ -15,7 +15,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # The newest OBS Studio release that has a Windows zip. Not simply "latest": on 20 November 2026 OBS 33.0.2
-# was the latest release for some hours without that file, and this test, which a PushFPS release waits
+# was the latest release for some hours without that file, and this test, which a FrameWeave release waits
 # for, failed on a build that had nothing to do with OBS.
 $releases = gh api "repos/obsproject/obs-studio/releases?per_page=10" | ConvertFrom-Json
 $rel = $null; $asset = $null
@@ -36,7 +36,7 @@ Remove-Item D:\obs\portable_mode*, D:\obs\obs_portable_mode* -ErrorAction Silent
 $obs = Get-ChildItem D:\obs -Recurse -Filter obs64.exe | Select-Object -First 1
 if (-not $obs) { throw 'obs64.exe not in the zip' }
 
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PackageDir 'Install-PushFPS-OBS.ps1')
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PackageDir 'Install-FrameWeave-OBS.ps1')
 if ($LASTEXITCODE -ne 0) { throw "plugin installer exit $LASTEXITCODE" }
 foreach ($d in "$env:ProgramData\obs-studio\plugins\pushfps-obs\pushfps-obs.dll", "$env:ProgramData\obs-studio\plugins\pushfps-obs\bin\64bit\pushfps-obs.dll") {
     if (-not (Test-Path $d)) { throw "installer did not place $d" }
@@ -51,11 +51,11 @@ $collection = @{
     name = 'Untitled'; current_scene = 'Scene'; current_program_scene = 'Scene'
     scene_order = @(@{ name = 'Scene' })
     sources = @(
-        @{ id = 'pushfps_source'; versioned_id = 'pushfps_source'; name = 'PushFPS'; uuid = $src
+        @{ id = 'pushfps_source'; versioned_id = 'pushfps_source'; name = 'FrameWeave'; uuid = $src
            # A legacy collection from a different PC must still use this PC's installation.
-           settings = @{ exe_path = 'Z:\former-pc\PushFPS.exe' }; enabled = $true; flags = 0; mixers = 0; volume = 1.0 },
+           settings = @{ exe_path = 'Z:\former-pc\FrameWeave.exe' }; enabled = $true; flags = 0; mixers = 0; volume = 1.0 },
         @{ id = 'scene'; versioned_id = 'scene'; name = 'Scene'; uuid = '6c1d6f52-0d55-4a45-9a70-6b2a3d6f0002'
-           settings = @{ id_counter = 1; items = @(@{ name = 'PushFPS'; source_uuid = $src; visible = $true; id = 1
+           settings = @{ id_counter = 1; items = @(@{ name = 'FrameWeave'; source_uuid = $src; visible = $true; id = 1
                                                        pos = @{ x = 0; y = 0 }; scale = @{ x = 1; y = 1 }; rot = 0; align = 5 }) } }
     )
 }
@@ -75,7 +75,7 @@ if ($file) { $log = Get-Content $file.FullName -Raw }
 if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }
 New-Item -ItemType Directory -Force $LogDir | Out-Null
 if ($file) { Copy-Item $file.FullName $LogDir }
-($log -split "`n") | Where-Object { $_ -match 'pushfps|PushFPS|game-capture|window-capture|D3D11|adapter' } | Select-Object -First 150 | Out-Host
+($log -split "`n") | Where-Object { $_ -match 'pushfps|FrameWeave|game-capture|window-capture|D3D11|adapter' } | Select-Object -First 150 | Out-Host
 $missing = @($Expect | Where-Object { $log -notmatch $_ })
 if ($missing.Count) { $missing | ForEach-Object { Write-Host "::error::OBS log is missing: $_" }; throw 'OBS load test failed' }
 Write-Host 'All expected OBS log lines found.'

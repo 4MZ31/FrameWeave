@@ -15,7 +15,7 @@ DialogLayer {
     key: "latencytest"
     glyph: "gauge"
     title: qsTr("PS5 串流延迟测试")
-    sub: qsTr("PushFPS 通过串流按下 PS 键，等控制中心出现在画面上，计算用了多久，并分出 PushFPS 自己的处理时间")
+    sub: qsTr("FrameWeave 通过串流按下 PS 键，等控制中心出现在画面上，计算用了多久，并分出 FrameWeave 自己的处理时间")
     dialogWidth: 600
 
     property var st: ({})
@@ -72,7 +72,7 @@ DialogLayer {
         }
         VRow {
             visible: lt.st.state === "done" && Number(lt.st.answered || 0) > 0
-            label: qsTr("PushFPS 处理")
+            label: qsTr("FrameWeave 处理")
             value: lt.ms(lt.st.pushfpsMs)
             hint: qsTr("画面到达电脑到交给显示器，与延迟显示相同")
         }

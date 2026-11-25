@@ -183,10 +183,10 @@ DialogLayer {
             .map(o => ({ label: opt.backendLabel[o.id] || o.label || o.id, reason: String(o.note || "") || qsTr("这台电脑不能运行") }))
         for (const o of (veyra.fgBackendChoices || []))
             if (!o.disabled && skip.indexOf(o.id) >= 0)
-                list.push({ label: opt.backendLabel[o.id] || o.label || o.id, reason: qsTr("上次测试这种方式时 PushFPS 意外退出，这个版本不再测试它") })
+                list.push({ label: opt.backendLabel[o.id] || o.label || o.id, reason: qsTr("上次测试这种方式时 FrameWeave 意外退出，这个版本不再测试它") })
         for (const extra of ["+enhance", "+sr2", "+sr6"])
             if (skip.indexOf(extra) >= 0)
-                list.push({ label: opt.blameLabel(extra), reason: qsTr("上次测试这种方式时 PushFPS 意外退出，这个版本不再测试它") })
+                list.push({ label: opt.blameLabel(extra), reason: qsTr("上次测试这种方式时 FrameWeave 意外退出，这个版本不再测试它") })
         return list
     }
     // A whole multiplier lands within 5 % of the refresh (30 FPS: 180 Hz = 6X, 240 Hz = 8X).
@@ -523,7 +523,7 @@ DialogLayer {
             Text {
                 Layout.fillWidth: true
                 visible: opt.phase === "idle"
-                text: qsTr("让游戏画面通过采集卡显示出来，然后开始。PushFPS 会在实际画面上依次测试这台电脑能运行的每种补帧方式（每种约 10 秒，共 1 到 3 分钟），测量真实帧率、1% 低帧和延迟，按你选的目标选出最好的一种。")
+                text: qsTr("让游戏画面通过采集卡显示出来，然后开始。FrameWeave 会在实际画面上依次测试这台电脑能运行的每种补帧方式（每种约 10 秒，共 1 到 3 分钟），测量真实帧率、1% 低帧和延迟，按你选的目标选出最好的一种。")
                 color: Theme.t2; font.family: Theme.fontUi; font.pixelSize: 13; wrapMode: Text.WordWrap
             }
             RowLayout {

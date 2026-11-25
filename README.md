@@ -1,51 +1,49 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/pushfps-logo-animated-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/pushfps-logo-animated-light.png">
-  <img src="assets/pushfps-logo-animated-dark.png" alt="PushFPS: the logo slides in with a trail of generated frames while a counter climbs from 30 to 120 FPS" width="480">
-</picture>
+<h1>FrameWeave</h1>
+
+<p>Maintained by 4MZ31. Based on <a href="https://github.com/DosukaSOL/PushFPS">PushFPS</a> by DosukaSOL.</p>
 
 ### Play 30 FPS console games at 60 or 120 FPS on your PC monitor.
 
-PushFPS takes the picture from your capture card and adds AI-generated frames in real time.<br>
+FrameWeave takes the picture from your capture card and adds AI-generated frames in real time.<br>
 Nothing changes on the console or in the game: you need a capture card and a graphics card.
 
-[![Download for Windows](https://img.shields.io/badge/Download-Windows%2011-89F52A?style=for-the-badge&logo=windows&logoColor=0D1A04&labelColor=89F52A)](https://github.com/DosukaSOL/PushFPS/releases)
+[![Download for Windows](https://img.shields.io/badge/Download-Windows%2011-89F52A?style=for-the-badge&logo=windows&logoColor=0D1A04&labelColor=89F52A)](https://github.com/4MZ31/FrameWeave/releases)
 &nbsp;
 [![Linux and macOS preview](https://img.shields.io/badge/Linux%20%26%20macOS-preview-1b1b20?style=for-the-badge)](#linux-and-macos-preview)
 &nbsp;
 [![OBS Studio plugin](https://img.shields.io/badge/OBS%20Studio-plugin-1b1b20?style=for-the-badge)](#obs-studio-plugin)
 &nbsp;
-[![Website](https://img.shields.io/badge/Website-dosukasol.github.io%2FPushFPS-1b1b20?style=for-the-badge)](https://dosukasol.github.io/PushFPS/)
+[![Website](https://img.shields.io/badge/Upstream_guide-dosukasol.github.io%2FPushFPS-1b1b20?style=for-the-badge)](https://dosukasol.github.io/PushFPS/)
 &nbsp;
 [![Discord](https://img.shields.io/badge/Discord-join%20us-1b1b20?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/N88znNpSgC)
 
-[![Latest release](https://img.shields.io/github/v/release/DosukaSOL/PushFPS?include_prereleases&style=flat-square&color=89F52A&label=release)](https://github.com/DosukaSOL/PushFPS/releases)
-[![Build](https://img.shields.io/github/actions/workflow/status/DosukaSOL/PushFPS/build-windows.yml?branch=main&event=push&style=flat-square&label=build)](https://github.com/DosukaSOL/PushFPS/actions/workflows/build-windows.yml)
+[![Latest release](https://img.shields.io/github/v/release/4MZ31/FrameWeave?include_prereleases&style=flat-square&color=89F52A&label=release)](https://github.com/4MZ31/FrameWeave/releases)
+[![Build](https://img.shields.io/github/actions/workflow/status/4MZ31/FrameWeave/build-windows.yml?branch=main&event=push&style=flat-square&label=build)](https://github.com/4MZ31/FrameWeave/actions/workflows/build-windows.yml)
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-89F52A?style=flat-square)](LICENSE)
 [![Built on Veyra](https://img.shields.io/badge/built%20on-Veyra%20by%20Likely7-89F52A?style=flat-square)](https://github.com/Likely7/Veyra-NRVideo)
 
 <sub>Built on <a href="https://github.com/Likely7/Veyra-NRVideo">Veyra</a> by Likely7 · ANR frame generation by <a href="https://apexcompute.com">Apex Compute</a></sub>
 
-<sub>Questions, setups and clips: <a href="https://discord.gg/N88znNpSgC">join the PushFPS Discord</a></sub>
+<sub>Questions, setups and clips: <a href="https://discord.gg/N88znNpSgC">join the upstream Discord</a></sub>
 
 <br>
 
-<img src="assets/screenshots/home.png" alt="PushFPS home screen: your sources on the left, the picture in the middle, quick setup on the right" width="860">
+<img src="assets/screenshots/home.png" alt="FrameWeave home screen: your sources on the left, the picture in the middle, quick setup on the right" width="860">
 
 </div>
 
 ---
 
-## Why PushFPS
+## Why FrameWeave
 
 <table>
 <tr>
 <td width="33%" valign="top">
 
 **Smoother console games**<br>
-A 30 FPS game becomes 60 or 120 FPS, or matches your monitor. PushFPS finds the real frames inside the
+A 30 FPS game becomes 60 or 120 FPS, or matches your monitor. FrameWeave finds the real frames inside the
 60 Hz signal and generates the ones in between on your GPU.
 
 </td>
@@ -75,7 +73,7 @@ RTX 30, 40 and 50 series get NVIDIA's methods; every DirectX 12 card gets PushFl
 <td valign="top">
 
 **Streams too**<br>
-The OBS Studio plugin puts the PushFPS picture, generated frames included, straight into your scenes.
+The OBS Studio plugin puts the FrameWeave picture, generated frames included, straight into your scenes.
 
 </td>
 <td valign="top">
@@ -87,28 +85,28 @@ GPL-3.0, no account needed. Built on Veyra, the open-source video enhancer by Li
 </tr>
 </table>
 
-## Only in PushFPS
+## Only in FrameWeave
 
-PushFPS is built on [Veyra](https://github.com/Likely7/Veyra-NRVideo), a general video enhancer. On top of
-that, PushFPS adds what console players need:
+FrameWeave is built on [Veyra](https://github.com/Likely7/Veyra-NRVideo), a general video enhancer. On top of
+that, FrameWeave adds what console players need:
 
 | Feature | What it does |
 |---|---|
-| **PushFlow** | PushFPS's own frame generation: the RIFE neural network on DirectML, on NVIDIA, AMD and Intel graphics cards, 2× to 4×, Fast / Balanced / Quality tiers ([more](#pushflow-our-own-frame-generation)) |
+| **PushFlow** | FrameWeave's own frame generation: the RIFE neural network on DirectML, on NVIDIA, AMD and Intel graphics cards, 2× to 4×, Fast / Balanced / Quality tiers ([more](#pushflow-our-own-frame-generation)) |
 | **Frame quality test** | Holds back every second real frame, lets frame generation rebuild it and compares it with the original: accuracy (PSNR), pixel errors, HUD smearing, gain over a simple blend, whether generated frames are on time, and (since 3.2.7) the worst frame and the worst place, where an object missing from a generated frame shows. *Optimise for my PC* uses it |
-| **PS5 latency test** | Presses the PS button over Remote Play, times the response on screen and splits the PS5, network and decoding part from PushFPS's own processing |
-| **One-click signed updates** | New versions download and install from the app; every release is signed (RSA-3072, SHA-256) and the app refuses anything that doesn't match |
-| **Frame input API** | Other programs can send video straight into PushFPS through shared memory ([docs/FRAME-INPUT-API.md](docs/FRAME-INPUT-API.md)) |
+| **PS5 latency test** | Presses the PS button over Remote Play, times the response on screen and splits the PS5, network and decoding part from FrameWeave's own processing |
+| **Update checks** | The app checks this fork for releases and opens the download page |
+| **Frame input API** | Other programs can send video straight into FrameWeave through shared memory ([docs/FRAME-INPUT-API.md](docs/FRAME-INPUT-API.md)) |
 | **Optimise for my PC** | Tests every frame generation method your PC has, AI enhancement and the upscalers on your real game picture, measures frame rate, 1% low, latency and jitter, and keeps the best combination for your goal (balanced, lowest latency, smoothest or best picture), up to 144 or 240 Hz |
 | **Check my setup** | Looks at the running picture for a few seconds and says which setting costs you sharpness, smoothness or sound, each with the one change that answers it ([more](#check-my-setup)) |
 | **Read the text on the picture** | One key takes a frame, Windows reads the text on it on your PC, and you can copy or translate it: a menu in another language, a line of dialogue ([more](#read-the-text-on-the-picture)) |
 | **Clip markers and a vertical copy** | Mark a moment while you record so it is easy to find when editing, and record a 1080 × 1920 copy beside the wide recording for TikTok, Shorts and Reels |
 | **Local control** | A button box (Stream Deck and the like) or a script on your PC starts and stops a recording, saves the replay, marks a moment and switches a scene ([docs/LOCAL-CONTROL.md](docs/LOCAL-CONTROL.md)) |
-| **Streaming mode** | An OBS-style page: preview, PushFPS features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards) with webcam, window and video sources (cameras at up to 4K, shown live) and cut or fade transitions, a right-click menu to add, duplicate or delete scenes, a layout editor (move, resize and crop the game picture and every source), go live and record controls, an audio mixer for game sound, microphone, desktop audio, an extra input and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
+| **Streaming mode** | An OBS-style page: preview, FrameWeave features, scenes (game scenes with a logo or text, *Starting soon* and *Be right back* cards) with webcam, window and video sources (cameras at up to 4K, shown live) and cut or fade transitions, a right-click menu to add, duplicate or delete scenes, a layout editor (move, resize and crop the game picture and every source), go live and record controls, an audio mixer for game sound, microphone, desktop audio, an extra input and monitor with level meters, and microphone filters (rumble filter, EQ, noise gate, compressor) |
 | **Video playback mode** | Frame generation, super resolution, AI enhancement and SDR to HDR on any video on your PC: a browser window with YouTube, a video app, a screen or a file |
 | **Ultrawide screens** | A console only sends 16:9. On a 21:9 or 32:9 screen choose black bars, **ambient fill** (a soft, dimmed extension of the picture in the bars, nothing cut or distorted), crop or stretch ([more](#ultrawide-screens)) |
 | **Fine-tune AI picture enhancement** | Shape the change the enhancement makes: its strength, brightening and darkening, shadows, midtones and highlights, colour, hue, and limits per pixel ([more](#enhancement-look)) |
-| **Crash notice** | If PushFPS ever closes unexpectedly, the next start says so and offers a summary to copy, with no user name, folder path or stream address in it |
+| **Crash notice** | If FrameWeave ever closes unexpectedly, the next start says so and offers a summary to copy, with no user name, folder path or stream address in it |
 | **Test my graphics card** | Measures how fast PushFlow runs on your card at 1080p and 4K and says what that means for 30 and 60 FPS games; the result can be copied and sent to us |
 | **Lowest latency in one tap** | Every latency setting that costs no picture quality, switched on together; off restores your previous settings |
 | **Go live** | Stream the boosted picture straight to Twitch, YouTube, Kick, TikTok, Facebook, Trovo or any RTMP server, to several platforms at once from one encode, at its own resolution (vertical for TikTok LIVE). Stream keys are stored encrypted |
@@ -122,7 +120,7 @@ that, PushFPS adds what console players need:
 | **Adaptive multiplier** | Follows the game when its frame rate drops, so the output stays even |
 | **Game presets** | GTA VI and other layouts in one click, with the minimap and HUD kept sharp. Save your own and share them as a code |
 | **Automatic HUD detection** | Watches your game for a few seconds and finds the minimap, health and ammo, so they are never interpolated. Correct the boxes by dragging them |
-| **Before/after comparison clips** | Records a clip of the console's own frame rate against PushFPS in four layouts: split screen, side by side, vertical 9:16 for TikTok, Shorts and Reels, or Reveal, where a line sweeps across the whole picture and uncovers PushFPS. From 10 seconds to 2 minutes or until you stop it, each side labelled with its frame rate; picture quality up to near lossless, split and reveal clips at up to 4K |
+| **Before/after comparison clips** | Records a clip of the console's own frame rate against FrameWeave in four layouts: split screen, side by side, vertical 9:16 for TikTok, Shorts and Reels, or Reveal, where a line sweeps across the whole picture and uncovers FrameWeave. From 10 seconds to 2 minutes or until you stop it, each side labelled with its frame rate; picture quality up to near lossless, split and reveal clips at up to 4K |
 | **No capture card needed** | PS5 Remote Play, Moonlight (stream another PC through Sunshine) and Xbox streaming, with the same frame generation, from Veyra |
 | **Help on hard settings** | A small **?** beside settings that need explaining; hover it for a short summary |
 | **Quick setup** | Console, game frame rate and target frame rate instead of hundreds of settings, with console and game profiles |
@@ -134,21 +132,21 @@ that, PushFPS adds what console players need:
 | **Tested capture cards** | Which cards are known to work, shown in the app |
 | **15 languages** | English, 简体中文, 繁體中文, 日本語, 한국어, Nederlands, Deutsch, Español, Français, Italiano, Português (Brasil), Türkçe, Polski, Русский, العربية |
 | **Your colours** | Six backgrounds (graphite, black for OLED screens, light, midnight, plum, forest), seven accent colours and a high contrast look |
-| **Plug and play** | Connects to your capture card when PushFPS opens and goes fullscreen when the picture appears (both optional) |
-| **Measure total delay** | A guided slow-motion phone test that shows the whole delay PushFPS adds over your capture card's passthrough |
-| **Linux and macOS (preview)** | PushFPS's own frame generation, Crosshair Hold, Frame Pacing Repair and Live HUD Lock on Vulkan, OpenGL or Metal, in the new design, with no vendor components |
+| **Plug and play** | Connects to your capture card when FrameWeave opens and goes fullscreen when the picture appears (both optional) |
+| **Measure total delay** | A guided slow-motion phone test that shows the whole delay FrameWeave adds over your capture card's passthrough |
+| **Linux and macOS (preview)** | FrameWeave's own frame generation, Crosshair Hold, Frame Pacing Repair and Live HUD Lock on Vulkan, OpenGL or Metal, in the new design, with no vendor components |
 
 ## How it works
 
 ```mermaid
 flowchart LR
     A[Console<br/>30 FPS game] -- HDMI --> B[Capture card]
-    B -- USB / PCIe --> C[PushFPS on your PC<br/>frame generation]
+    B -- USB / PCIe --> C[FrameWeave on your PC<br/>frame generation]
     C --> D[Monitor<br/>60 / 120 FPS]
     C -. optional .-> E[OBS Studio<br/>stream or record]
 ```
 
-Your console sends its picture to a capture card. PushFPS reads every frame, notices that a 30 FPS game
+Your console sends its picture to a capture card. FrameWeave reads every frame, notices that a 30 FPS game
 repeats each picture twice inside the 60 Hz signal, keeps only the real frames, and fills the gaps with
 generated frames on your GPU. You play on the PC monitor.
 
@@ -173,14 +171,14 @@ like the original 30 FPS, plus a few milliseconds for the capture card and proce
 </tr>
 <tr>
 <td width="50%"><img src="assets/screenshots/pro-folded.png" alt="Professional mode with some categories folded"><br><sub><b>Fold what you don't need.</b> Quality, Frame Gen, Color, Audio and Display fold by their title.</sub></td>
-<td width="50%"><img src="assets/screenshots/appearance-light.png" alt="PushFPS home screen in light mode"><br><sub><b>Light mode.</b> The palette opens <i>Appearance</i>.</sub></td>
+<td width="50%"><img src="assets/screenshots/appearance-light.png" alt="FrameWeave home screen in light mode"><br><sub><b>Light mode.</b> The palette opens <i>Appearance</i>.</sub></td>
 </tr>
 <tr>
 <td width="50%"><img src="assets/screenshots/optimize.png" alt="Optimise for my PC dialog"><br><sub><b>Optimise for my PC.</b> Tests every combination on your real picture.</sub></td>
 <td width="50%"><img src="assets/screenshots/game-presets.png" alt="Game presets dialog with GTA VI"><br><sub><b>Game presets.</b> GTA VI and more, with the HUD kept sharp.</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="assets/screenshots/appearance-black.png" alt="PushFPS home screen in black mode"><br><sub><b>Black mode.</b> Almost-black surfaces for OLED screens.</sub></td>
+<td width="50%"><img src="assets/screenshots/appearance-black.png" alt="FrameWeave home screen in black mode"><br><sub><b>Black mode.</b> Almost-black surfaces for OLED screens.</sub></td>
 <td width="50%"><img src="assets/screenshots/anr.png" alt="Settings, Apex Neural Rendering install card"><br><sub><b>ANR by Apex Compute.</b> Download from Apex, install in one click.</sub></td>
 </tr>
 <tr>
@@ -193,7 +191,7 @@ like the original 30 FPS, plus a few milliseconds for the capture card and proce
 </tr>
 <tr>
 <td width="50%"><img src="assets/screenshots/appearance.png" alt="Appearance panel: design, theme and accent colour"><br><sub><b>Appearance.</b> New or Legacy, seven backgrounds, seven accent colours.</sub></td>
-<td width="50%"><img src="assets/screenshots/legacy.png" alt="PushFPS home screen in the Legacy design"><br><sub><b>Legacy.</b> The design of 4.2, one click away, with the same features.</sub></td>
+<td width="50%"><img src="assets/screenshots/legacy.png" alt="FrameWeave home screen in the Legacy design"><br><sub><b>Legacy.</b> The design of 4.2, one click away, with the same features.</sub></td>
 </tr>
 </table>
 
@@ -202,46 +200,46 @@ NVIDIA-only controls show as unavailable. On an RTX PC they are active.</sub>
 
 ## Download and install
 
-1. Download the latest **PushFPS-…-win64.zip** from [Releases](https://github.com/DosukaSOL/PushFPS/releases)
+1. Download the latest **FrameWeave-…-win64.zip** from [Releases](https://github.com/4MZ31/FrameWeave/releases)
    and extract it.
-2. Double-click **Install-PushFPS.cmd**.
+2. Double-click **Install-FrameWeave.cmd**.
 
-The installer picks the right package for your graphics card, installs PushFPS to your user folder (no
+The installer picks the right package for your graphics card, installs FrameWeave to your user folder (no
 administrator rights needed), adds Start menu and desktop shortcuts, and starts it.
 
 <details>
 <summary>What the installer does, step by step</summary>
 
-PushFPS runs on Veyra's official runtime package: Qt, FFmpeg and the NVIDIA, AMD and Intel components
+FrameWeave runs on Veyra's official runtime package: Qt, FFmpeg and the NVIDIA, AMD and Intel components
 that Veyra's author distributes. The installer downloads that package (about 750 MB) directly from
 [Veyra's GitHub release](https://github.com/Likely7/Veyra-NRVideo/releases), checks its SHA-256 against
-the value pinned when the PushFPS release was built, unpacks it, and adds PushFPS on top. PushFPS itself
+the value pinned when the FrameWeave release was built, unpacks it, and adds FrameWeave on top. FrameWeave itself
 never rehosts those files.
 
 - **Experimental extras.** Veyra's package also has the files AI picture enhancement runs on for NVIDIA RTX
   and Radeon cards, built on NVIDIA files used outside the terms NVIDIA licenses them under. The installer
-  asks whether you want them (default no); `Install-PushFPS.cmd -ExperimentalExtras Yes` installs them
+  asks whether you want them (default no); `Install-FrameWeave.cmd -ExperimentalExtras Yes` installs them
   without asking, and running the installer again lets you change your answer. Details in
   [NOTICE.md](NOTICE.md).
-- Install folder: `%LOCALAPPDATA%\Programs\PushFPS`
-- Update: PushFPS offers new versions itself (signed, one click), or run the newer installer; your settings
-  and profiles are kept either way
-- Uninstall: `Install-PushFPS.cmd -Uninstall`, or delete the folder and shortcuts
-- Windows may warn about an unknown publisher (PushFPS isn't code signed yet). Choose *More info*, then
+- Install folder: `%LOCALAPPDATA%\Programs\FrameWeave`
+- Update: FrameWeave checks the fork for new versions. Install them manually with the newer installer; your settings
+  and profiles are kept
+- Uninstall: `Install-FrameWeave.cmd -Uninstall`, or delete the folder and shortcuts
+- Windows may warn about an unknown publisher (FrameWeave isn't code signed yet). Choose *More info*, then
   *Run anyway*, if you downloaded the zip from this repository.
 
 </details>
 
-**Portable install.** PushFPS keeps its settings, profiles and logs inside its own folder. To keep it out of
-your user folder and Start menu, run `Install-PushFPS.cmd -InstallDir D:\PushFPS -NoShortcuts` (any folder);
-moving or deleting that folder moves or removes PushFPS. Only the PS5, Moonlight and Xbox sign-ins are kept,
+**Portable install.** FrameWeave keeps its settings, profiles and logs inside its own folder. To keep it out of
+your user folder and Start menu, run `Install-FrameWeave.cmd -InstallDir D:\FrameWeave -NoShortcuts` (any folder);
+moving or deleting that folder moves or removes FrameWeave. Only the PS5, Moonlight and Xbox sign-ins are kept,
 encrypted, in your Windows user profile.
 
 **Checking the download.** Every release lists the SHA-256 of each file in `SHA256SUMS.txt` and the exact
-pinned components in `PushFPS-<version>-components.txt`. In PowerShell: `Get-FileHash PushFPS-*.zip`.
+pinned components in `FrameWeave-<version>-components.txt`. In PowerShell: `Get-FileHash FrameWeave-*.zip`.
 
 > [!NOTE]
-> Reports from real setups are very welcome in [Issues](https://github.com/DosukaSOL/PushFPS/issues).
+> Reports from real setups are very welcome in [Issues](https://github.com/4MZ31/FrameWeave/issues).
 
 ## What you need
 
@@ -259,8 +257,8 @@ AMD Radeon and Intel cards can use PushFlow (2× to 4×) and FSR frame generatio
 **AI picture enhancement** is separate from frame generation. On NVIDIA RTX cards (the app lists RTX 20 to
 50) and on Radeon RX 7000 and 9000 it runs on community-built runtime files, which the installer treats as
 *experimental extras*: it asks, and the default is no. Without them the switch is greyed out and says *This
-package lacks the runtime components for this feature*. Run `Install-PushFPS.cmd` again and answer **y**
-when it asks about the experimental extras; your settings are kept, and updates from inside PushFPS keep
+package lacks the runtime components for this feature*. Run `Install-FrameWeave.cmd` again and answer **y**
+when it asks about the experimental extras; your settings are kept, and updates from inside FrameWeave keep
 the extras.
 
 ### Tested graphics cards
@@ -277,13 +275,13 @@ the extras.
 | GeForce RTX 3060 | NVIDIA | Tested |
 | Radeon RX 9070 XT | AMD | Tested |
 
-*Tested* means PushFPS has been run on that card with real games. It is a compatibility list, not a speed
+*Tested* means FrameWeave has been run on that card with real games. It is a compatibility list, not a speed
 ranking, and other DirectX 12 cards should work too. The RTX 3060 is the smallest NVIDIA card it has been
 run on: frame generation and AI picture enhancement both work there, so the RTX cards between it and the
 ones listed are expected to work the same, and users have since reported every GeForce RTX card from the
 RTX 3060 to the RTX 5090 working, Crosshair Hold and the other features included. To get your card on
 it: play for a while, copy the **performance report** (*Settings → Performance report*) and open a
-[hardware report](https://github.com/DosukaSOL/PushFPS/issues/new?template=hardware-report.yml).
+[hardware report](https://github.com/4MZ31/FrameWeave/issues/new?template=hardware-report.yml).
 [How to measure, and what the numbers mean](docs/BENCHMARKING.md).
 
 <details>
@@ -291,7 +289,7 @@ it: play for a while, copy the **performance report** (*Settings → Performance
 
 | Method | Graphics cards | Most frames per real frame |
 |---|---|---|
-| [PushFlow](#pushflow-our-own-frame-generation), PushFPS's own | DirectX 12 cards: NVIDIA, AMD and Intel | 4× |
+| [PushFlow](#pushflow-our-own-frame-generation), FrameWeave's own | DirectX 12 cards: NVIDIA, AMD and Intel | 4× |
 | NVIDIA Video Frame Generation (VFG) | RTX 40, RTX 50 (RTX 30 experimental) | 8× |
 | NVIDIA DLSS Frame Generation | RTX 40 (2×), RTX 50 (up to 6×) | 6× |
 | Intel XeSS Frame Generation (experimental) | DirectX 12 cards; Veyra tested it on NVIDIA | 4× |
@@ -309,7 +307,7 @@ it: play for a while, copy the **performance report** (*Settings → Performance
    most cards; use 4K if your card captures 4K60.
 3. **PlayStation only: turn HDCP off.** Settings, System, HDMI, turn off *Enable HDCP*. With HDCP on, the
    capture card only shows black. Xbox and Switch games are not HDCP protected.
-4. **Open PushFPS and fill in the quick setup** on the home screen, or let PushFPS do it: connect the capture
+4. **Open FrameWeave and fill in the quick setup** on the home screen, or let FrameWeave do it: connect the capture
    card (step 5), get the game on screen and click **Optimise for my PC**.
 
    | Setting | What to pick |
@@ -317,7 +315,7 @@ it: play for a while, copy the **performance report** (*Settings → Performance
    | **Console** | PlayStation 5, PS5 Pro, Xbox Series X\|S, Nintendo Switch 2 or Other. Each console remembers its own choices |
    | **Game profile** | Optional: save the current settings under a game's name, switch to them later in one click |
    | **Game frame rate** | 30 for most games (GTA VI), 40 for 40 FPS modes, 60 for performance modes |
-   | **Target frame rate** | Off, 60 FPS, 120 FPS or Match monitor (on a 90 Hz screen: 90 FPS in place of 120). PushFPS picks the frame generation multiplier. 60 on a 60 Hz monitor, 120 on 120 Hz and faster ([target for every refresh rate](https://dosukasol.github.io/PushFPS/#guide-rates)) |
+   | **Target frame rate** | Off, 60 FPS, 120 FPS or Match monitor (on a 90 Hz screen: 90 FPS in place of 120). FrameWeave picks the frame generation multiplier. 60 on a 60 Hz monitor, 120 on 120 Hz and faster ([target for every refresh rate](https://dosukasol.github.io/PushFPS/#guide-rates)) |
    | **AI picture enhancement** | Off: frame generation only. On: every frame also goes through AI enhancement (NVIDIA RTX and Radeon RX 7000 / 9000; needs the installer's experimental extras, see [What you need](#what-you-need)). Uses a lot more GPU, so start with it off |
 
 5. **Click Connect** on the capture card. Choose your card, its resolution, 60 FPS and the card's audio input.
@@ -329,16 +327,16 @@ it: play for a while, copy the **performance report** (*Settings → Performance
 > [!TIP]
 > **Setup guide:** the recommended settings to start from, how to tune them, console, capture card and
 > Windows settings, and when to use HDR: [on the website](https://dosukasol.github.io/PushFPS/#guide) or as
-> [PushFPS-Setup-Guide.txt](docs/PushFPS-Setup-Guide.txt) (also attached to every release).
+> [FrameWeave-Setup-Guide.txt](docs/FrameWeave-Setup-Guide.txt) (also attached to every release).
 
 ## No capture card? Stream instead
 
 The home screen also offers three network sources, built on Veyra's streaming support. Frame generation,
-AI enhancement, HUD protection, recording and every other PushFPS feature work on them the same way.
+AI enhancement, HUD protection, recording and every other FrameWeave feature work on them the same way.
 
 | Source | What it streams | What you need |
 |---|---|---|
-| **PS5 streaming** | Your own PS5 over your home network (Remote Play protocol, via [chiaki-ng](https://github.com/streetpea/chiaki-ng)) | Remote Play turned on on the PS5, a one-time registration with your PSN account ID and the pairing number the PS5 shows ([step by step](#remote-play-setup-step-by-step)). Your controller works through PushFPS |
+| **PS5 streaming** | Your own PS5 over your home network (Remote Play protocol, via [chiaki-ng](https://github.com/streetpea/chiaki-ng)) | Remote Play turned on on the PS5, a one-time registration with your PSN account ID and the pairing number the PS5 shows ([step by step](#remote-play-setup-step-by-step)). Your controller works through FrameWeave |
 | **PC streaming** | Another computer running [Sunshine](https://github.com/LizardByte/Sunshine) (Moonlight protocol) | Sunshine on the other PC and a one-time pairing PIN |
 | **Xbox streaming** (experimental, unofficial) | Your own Xbox console over your home network | Remote features turned on on the Xbox and a Microsoft account sign-in ([step by step](#remote-play-setup-step-by-step)) |
 
@@ -363,19 +361,19 @@ On your PS5:
 2. **Get the pairing number.** *Settings → System → Remote Play → Pair Device* (older system software calls
    it *Link Device*). The PS5 shows 8 digits for 5 minutes. Leave them on screen.
 
-In PushFPS:
+In FrameWeave:
 
 3. **Open PS5 streaming and press Search.** It finds your PS5 and fills in its address. Nothing found? Type
    the IP address the PS5 shows under *Settings → Network → Connection Status → View Connection Status*.
 4. **Press Get Account ID.** Sony's own sign-in page opens in your browser. Sign in, copy the address the
    browser ends on (it starts with `https://remoteplay.dl.playstation.net`) into the box under it and press
-   *Fill in*: PushFPS fills in your Account ID. Your PSN name itself does not work, and never paste an
+   *Fill in*: FrameWeave fills in your Account ID. Your PSN name itself does not work, and never paste an
    *NPSSO* code anywhere: it is your signed-in PSN session.
 5. **Type the 8 digits and press Pair and save.**
 6. **Press Connect.** If the PS5 asks for the sign-in PIN of your PS5 user, type it under *Sign-in PIN* in
    the same window.
 
-**Controller:** connect it to the **PC** with a USB cable, or pair it with the PC's Bluetooth. PushFPS passes
+**Controller:** connect it to the **PC** with a USB cable, or pair it with the PC's Bluetooth. FrameWeave passes
 it on to the PS5 while its window is in front.
 
 You pair once. Next time: open PS5 streaming and press Connect. To start a PS5 that is in rest mode with the
@@ -389,10 +387,10 @@ On your Xbox:
 1. **Turn remote features on.** *Settings → Devices & connections → Remote features → Enable remote features*.
 2. **Set the power option to Sleep.** *Settings → General → Power options → Sleep*.
 
-In PushFPS:
+In FrameWeave:
 
-3. **Open Xbox streaming and press Sign in.** PushFPS shows a code. Enter it at **microsoft.com/link** and
-   sign in with the Microsoft account your Xbox uses. PushFPS never sees your password.
+3. **Open Xbox streaming and press Sign in.** FrameWeave shows a code. Enter it at **microsoft.com/link** and
+   sign in with the Microsoft account your Xbox uses. FrameWeave never sees your password.
 4. **Pick your console and press Start streaming.** Not in the list? Press *Refresh*. The Xbox has to be
    signed in with the same account.
 5. **Use this PC's controller.** Connect it to the **PC** (USB cable, wireless adapter or Bluetooth) and leave
@@ -405,19 +403,19 @@ when Microsoft changes its service. Only for your own account and console.
 
 | What happens | What to check |
 |---|---|
-| **The PS5 will not pair** | *Account ID* comes from *Get Account ID* (Sony's sign-in), not your PSN name. The 8 digits: a new number once 5 minutes have passed. No address? Press *Search*, or type the PS5's IP address. PS5 and PC on the same network: no guest Wi-Fi, no VPN. If Windows asks whether PushFPS may use the network, allow it |
-| **The controller does nothing** | Connect it to the **PC**, not to the console. Keep PushFPS in front: click its window once (it only passes the controller on while it is the active window). PS5: *View only* off. Xbox: *Controller* on. More than one controller or wheel connected? Unplug the others and connect again |
+| **The PS5 will not pair** | *Account ID* comes from *Get Account ID* (Sony's sign-in), not your PSN name. The 8 digits: a new number once 5 minutes have passed. No address? Press *Search*, or type the PS5's IP address. PS5 and PC on the same network: no guest Wi-Fi, no VPN. If Windows asks whether FrameWeave may use the network, allow it |
+| **The controller does nothing** | Connect it to the **PC**, not to the console. Keep FrameWeave in front: click its window once (it only passes the controller on while it is the active window). PS5: *View only* off. Xbox: *Controller* on. More than one controller or wheel connected? Unplug the others and connect again |
 | **The Xbox is not in the list** | Sign in on the console with the same Microsoft account. Remote features on, power option *Sleep*, then press *Refresh* |
 | **It stutters, drops out or closes** | Use a network cable for the console, and for the PC if you can. PS5: lower *Requested bitrate*, or set *Decoding* to CPU software. Xbox: turn on *Software video decoding*. Still stuck? *Settings → About → Report a problem* copies what we need to help, or ask on the [Discord](https://discord.gg/N88znNpSgC) |
 
-> Only one program can use a capture card at a time. To show PushFPS in OBS, use the
+> Only one program can use a capture card at a time. To show FrameWeave in OBS, use the
 > [OBS Studio plugin](#obs-studio-plugin) instead.
 
 ## PushFlow: our own frame generation
 
 <img src="assets/pushflow-logo.png" alt="PushFlow" height="64">
 
-PushFlow is PushFPS's own frame generation. It runs **RIFE** (Real-Time Intermediate Flow Estimation, an open
+PushFlow is FrameWeave's own frame generation. It runs **RIFE** (Real-Time Intermediate Flow Estimation, an open
 neural network for in-between frames, MIT-licensed, by hzwer) through **ONNX Runtime on DirectML**, so it works
 on every DirectX 12 graphics card: NVIDIA, AMD and Intel. Choose it under *Frame generation* in Professional
 mode or in streaming mode.
@@ -434,14 +432,14 @@ mode or in streaming mode.
   sampled from the full-resolution real frames. On a panning fine-texture test this scores 25 dB against
   17 dB for enlarging the half-size picture.
 - **Everything stays on the graphics card**: a compute pass packs the two frames into the network's input
-  (once per pair; later frames only change the time), the network runs on PushFPS's own GPU queue, and a
+  (once per pair; later frames only change the time), the network runs on FrameWeave's own GPU queue, and a
   second pass turns the result back into a picture, with no copies through the CPU.
 - **Never waits on the CPU**: each generated frame is queued on the GPU and the next step follows it there,
   so the engine thread keeps running while the network works (since 3.2.0).
 - **Experiment: encode each real frame once** (*Professional → PushFlow 2*, off by default): the model's
   per-frame part runs once per real frame instead of twice per generated frame, with the same picture
   (checked against the whole model on your card at start). Meant to save the most at 3× and 4×.
-  `PushFPS.exe --safe-mode` starts with every experiment off.
+  `FrameWeave.exe --safe-mode` starts with every experiment off.
 - **Experiment: Guard** (*Professional → PushFlow 2*, off by default): when an object moves too far between
   two real frames for PushFlow to follow, it is missing from the generated frame. Guard finds those places
   and shows the nearer real frame there, so the object moves at the game's own frame rate instead of
@@ -465,15 +463,15 @@ mode or in streaming mode.
   down one tier and says why, where it used to sit at the game's frame rate without a word.
 - **Half precision, tested safely**: *Professional → Frame generation → PushFlow half precision → Test* tries
   the faster fp16 model in a separate process and turns it on only when the picture matches and it really
-  is faster on your card. A driver fault in that test can't touch PushFPS. With something playing, the button
+  is faster on your card. A driver fault in that test can't touch FrameWeave. With something playing, the button
   stops it first and starts the test by itself.
-- **Measure your card**: `PushFlowBench.exe`, next to `PushFPS.exe`, writes PushFlow's timings on your card
+- **Measure your card**: `PushFlowBench.exe`, next to `FrameWeave.exe`, writes PushFlow's timings on your card
   as JSON. Details: [docs/PUSHFLOW.md](docs/PUSHFLOW.md).
 - Works with HUD protection, Live HUD Lock, the adaptive multiplier, recording and going live.
 - *Optimise for my PC* tests PushFlow like the other methods, and the frame quality test can score it on your
   own game.
 
-**Before 3.2.2 PushFlow did not generate frames inside PushFPS**: one line in the engine left it out of the
+**Before 3.2.2 PushFlow did not generate frames inside FrameWeave**: one line in the engine left it out of the
 methods that are given frames to work on, so the picture stayed at the console's frame rate. PichotM found
 and fixed it; with the fix he measured 60 → about 120 FPS on an RTX 4090 over PS5 Remote Play. If you tried
 PushFlow before and saw no difference, try it again.
@@ -485,7 +483,7 @@ over a gigabyte and NVIDIA-only); DirectML covers every vendor.
 ## Optimise for my PC
 
 Click **Optimise for my PC** in the quick setup while your game is on screen, and pick a goal: **Balanced**,
-**Lowest latency**, **Smoothest** or **Best picture**. In one to three minutes PushFPS:
+**Lowest latency**, **Smoothest** or **Best picture**. In one to three minutes FrameWeave:
 
 1. measures the picture without effects, to find the game's frame rate (30, 40 or 60) and the base latency;
 2. tries every frame generation method your PC can run (PushFlow, DLSS, NVIDIA VFG, ANR, FSR 4/3.1, XeSS, AMD FRC) at
@@ -497,13 +495,13 @@ Click **Optimise for my PC** in the quick setup while your game is on screen, an
 The result lists every method it skipped and why (not supported by this graphics card, not installed), and
 shows PC processing latency, its 95th percentile and frame-time jitter for each tested combination.
 
-Every number is measured on the real picture: PushFPS times each frame it hands to the display and each
+Every number is measured on the real picture: FrameWeave times each frame it hands to the display and each
 frame's latency, after the settings are applied and warmed up, over a 6-second window per combination. A
 combination only counts when it really generated frames, reached 95 % of its target, kept its 1% low at
 80 % of the target, dropped under 1 % of the capture card's frames, and added no more than 60 ms of latency.
 
 It works the same with a capture card and with PS5 or Xbox Remote Play: it measures whatever picture is on
-screen. If PushFPS ever stops while it is testing a method, your settings from before the run come back at the
+screen. If FrameWeave ever stops while it is testing a method, your settings from before the run come back at the
 next start, and that method is not tested again in that version, so one method that fails on your PC can't
 break the optimisation (since 3.2.0).
 
@@ -541,7 +539,7 @@ Click **Game presets** in the quick setup and pick a game:
 Protected areas use *Exclude all effects*: they keep the console's own pixels and are never interpolated, so
 text and the minimap don't smear when the camera moves. **Adjust HUD areas** opens the HUD editor (see below);
 Professional mode, *Quality*, *Exclude all effects* has the same areas. **Save current settings as a preset** stores your own, including the areas you drew.
-**Copy code** gives a `PUSHFPS1:` code to share on Reddit or Discord; **Add** or **Open file** imports one.
+**Copy code** gives a `FRAMEWEAVE1:` code to share on Reddit or Discord; **Add** or **Open file** imports one.
 
 ### Nintendo Switch and Switch 2
 
@@ -568,7 +566,7 @@ use **Adjust HUD areas** to find them automatically. Set the Switch to its dock,
 Console games rarely hold one frame rate: a 30 FPS game dips to 25, a 40 FPS mode wanders between 35 and 45,
 Elden Ring on Switch 2 sits anywhere from 30 to 40. With a fixed multiplier the output follows every dip. Turn
 on **Adaptive multiplier** in the quick setup (or under frame generation in Professional mode) and the
-multiplier becomes a ceiling: PushFPS measures the game's frame rate from the capture card picture (automatic
+multiplier becomes a ceiling: FrameWeave measures the game's frame rate from the capture card picture (automatic
 duplicate removal) and, for every pair of real frames, uses the multiplier whose output lands closest to the
 target (your output cap, or the monitor's refresh rate).
 
@@ -577,7 +575,7 @@ VFG, 4X with DLSS (which has no 5X). A change waits half a second so a game sitt
 it flicker. The quick setup shows what it is doing ("Now 3×: game 38 FPS → about 114 FPS").
 
 This is the same idea as NVIDIA's DLSS 4.5 Dynamic Multi Frame Generation, which switches between whole
-multipliers to reach the display's refresh rate; PushFPS bases it on the console's frame rate and it works
+multipliers to reach the display's refresh rate; FrameWeave bases it on the console's frame rate and it works
 with DLSS, ANR and NVIDIA VFG frame generation. FSR, AMD FRC and XeSS generate a fixed 2X or pace themselves,
 so the switch is not offered for them. A lower multiplier also means a little less delay.
 
@@ -632,7 +630,7 @@ An option in *Quick setup*, **off unless you switch it on** (it was on by defaul
 out one motion for every place of the picture, so a HUD that stands still in front of a moving world gets the
 world's motion too. With **Keep the HUD sharp**, a pixel that is the same in both real frames, and stands in a
 surrounding that mostly moves, keeps its real value in the generated frames between them. It works with every
-method PushFPS runs itself (NVIDIA's, FSR, PushFlow), not with XeSS.
+method FrameWeave runs itself (NVIDIA's, FSR, PushFlow), not with XeSS.
 
 **Why it is off by default.** "The same in both frames" is not always "standing still": a moving game picture has
 many pixels that match by chance (road, walls, skin, anything smooth or motion blurred). With the option on,
@@ -646,7 +644,7 @@ it less to find.
 ## Automatic HUD detection
 
 Click **HUD protection** in the quick setup while your game is playing, then **Detect automatically** and
-turn the camera or walk around for about five seconds. PushFPS looks for the parts of the picture that hold
+turn the camera or walk around for about five seconds. FrameWeave looks for the parts of the picture that hold
 still while everything else moves (minimap, health, ammo, prompts) and draws up to four green boxes
 around them on a frame of your own game. Since 3.2.0 it looks at every pixel of a 1080p copy of the picture,
 so it also finds text drawn straight over the game, thin bars and a minimap whose map scrolls; the first
@@ -657,7 +655,7 @@ to draw a new one, and use the **×** on the selected box to delete it. **Apply*
 areas keep the console's own pixels and are never interpolated. With no boxes, the whole picture is
 interpolated.
 
-If the picture hardly moved during detection (a menu, a paused game), PushFPS can't tell the HUD apart and
+If the picture hardly moved during detection (a menu, a paused game), FrameWeave can't tell the HUD apart and
 asks you to try again while moving. The detection reads a few presented frames on the GPU and works with
 every frame generation method; it does not change any setting until you click **Apply**.
 
@@ -727,18 +725,18 @@ presents through its own path.
 **Comparison clip** in the quick setup opens a small dialog: pick the layout and the length (10, 15, 30, 60,
 90 or 120 seconds, or **Until I stop** since 3.2.4: the clip then runs until you click *Comparison clip* again
 or press the recording shortcut, in every layout), then **Start recording** (the same choices are under
-*Settings, Playback*). The clip goes into your recordings folder (`PushFPS-compare-….mp4`).
+*Settings, Playback*). The clip goes into your recordings folder (`FrameWeave-compare-….mp4`).
 
 - **Split**: one picture cut down the middle. The left half is the raw console picture, each real frame held
-  until the next one arrives, so it moves at the game's own frame rate; the right half is every frame PushFPS
+  until the next one arrives, so it moves at the game's own frame rate; the right half is every frame FrameWeave
   shows, with frame generation and AI picture enhancement.
-- **Side by side**: the whole picture twice, each at half size: the raw console picture on the left, PushFPS
+- **Side by side**: the whole picture twice, each at half size: the raw console picture on the left, FrameWeave
   on the right, on a black background.
-- **Vertical (TikTok, Shorts, Reels)**: a 1080×1920 video, the console on top and PushFPS below, each filling
+- **Vertical (TikTok, Shorts, Reels)**: a 1080×1920 video, the console on top and FrameWeave below, each filling
   half the screen with the middle of the picture. The badges sit next to the divider, where those apps leave the
   screen free. H.264, ready to upload from your phone (HDR recordings stay HEVC 10-bit).
 - **Reveal** (since 3.2.5): the whole picture, full screen. The clip opens on the raw console picture at the
-  game's own frame rate; a glowing line then sweeps from left to right and uncovers PushFPS, holds, sweeps back
+  game's own frame rate; a glowing line then sweeps from left to right and uncovers FrameWeave, holds, sweeps back
   to the console picture, and repeats for as long as the clip runs. **Sweep every** sets how often: every 1, 2,
   3, 5 or 8 seconds. The dialog's preview plays it. Each badge is cut off at the line with its picture, so the
   label always says what you are looking at.
@@ -751,12 +749,12 @@ looks lossless, choose *Clip size → 4K* and *Quality → Near lossless*.
 
 **Clip size** (split and reveal, the two layouts whose picture fills the frame): *Auto* records at the
 picture's own size, up to 1440p, as before. *1080p*, *1440p* and *4K* record at up to that height with a higher
-bitrate; a smaller picture is never enlarged. A comparison clip records every frame PushFPS shows, so 4K at a
-high frame rate needs a strong graphics card: if the card could not keep up, PushFPS says so when the clip ends
+bitrate; a smaller picture is never enlarged. A comparison clip records every frame FrameWeave shows, so 4K at a
+high frame rate needs a strong graphics card: if the card could not keep up, FrameWeave says so when the clip ends
 and you can pick one step lower. Side by side and vertical have sizes of their own and are unchanged.
 
-The console side has no AI enhancement, upscaling or colour changes, so the clip shows exactly what PushFPS adds.
-Each side has a badge at the top: *Console · 30 FPS* and the PushFPS logo with its frame rate, in SDR and HDR. Frame generation has to be on, using any method except XeSS (XeSS makes its frames as they
+The console side has no AI enhancement, upscaling or colour changes, so the clip shows exactly what FrameWeave adds.
+Each side has a badge at the top: *Console · 30 FPS* and the FrameWeave logo with its frame rate, in SDR and HDR. Frame generation has to be on, using any method except XeSS (XeSS makes its frames as they
 are shown, after the recorder has read the picture). Click the tile again to stop early. The card that appears
 afterwards can share the clip to Discord.
 
@@ -765,11 +763,11 @@ afterwards can share the clip to Discord.
 AI picture enhancement reworks light, colour and fine detail. How far it should go is a matter of taste, so the
 quick setup has four controls for it, shown while AI picture enhancement is on:
 
-- **Enhancement look**: Subtle, Balanced or Strong. Strong is the full effect and what PushFPS has always
+- **Enhancement look**: Subtle, Balanced or Strong. Strong is the full effect and what FrameWeave has always
   used. Balanced and Subtle stay closer to the original picture. **Reset** returns to Strong.
 - **Lighting**: how far the AI reworks light and colour. At 0% the original's light and colours stay.
 - **Detail**: how much fine texture, contact shadow and reflection the AI adds.
-- **Enhancement size** (since 4.1): the size the enhancement is worked out at. *1080p* is what PushFPS always
+- **Enhancement size** (since 4.1): the size the enhancement is worked out at. *1080p* is what FrameWeave always
   did, also for a 4K picture; *1440p* and *Full size* are sharper on a larger picture and cost more (full size
   at 4K is about four times the work). If frame generation starts skipping frames, go back.
 - **Compare with the original**: splits the picture while you tune, original on the left, enhanced on the
@@ -863,7 +861,7 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
 - **Split files** every 30, 60 or 120 minutes during long recordings, or by size, without stopping. Since 4.2
   the parts join without a gap: a part ends at a keyframe and the next starts with it, so no picture and no
   sound is missing or doubled when you put them one after another. Each part is a standard MP4 by itself.
-- **PushFPS as a camera** (since 4.1): *Settings → Recording → Virtual camera* adds "PushFPS Virtual Camera" as
+- **FrameWeave as a camera** (since 4.1): *Settings → Recording → Virtual camera* adds "FrameWeave Virtual Camera" as
   a video device other programs can choose. It carries the whole processed picture, without full screen.
 - **Local control** (since 4.1): a button box or a script on the same PC can start and stop a recording, save
   the replay, mark a moment, take a screenshot and switch a scene. Off unless you switch it on, this PC only,
@@ -876,21 +874,21 @@ the editor), **Export** (trim, pick tracks, re-encode) and **Show in folder**.
   opens in Vegas Pro, Premiere Pro, DaVinci Resolve and others. While recording it is kept in a crash-safe
   format, so a crash or power cut still keeps what was recorded. The rewrite needs the recording's size in
   free disk space once more; without it the recording is kept as written (it plays everywhere, but some
-  editors refuse that form) and PushFPS says so.
+  editors refuse that form) and FrameWeave says so.
 
 ## Streaming mode
 
-**Streaming mode** (the broadcast button in the top bar) is a page laid out like OBS Studio, with PushFPS's own
+**Streaming mode** (the broadcast button in the top bar) is a page laid out like OBS Studio, with FrameWeave's own
 features built in:
-- **Preview** in the middle, with the source, the game's frame rate and what PushFPS shows.
-- **PushFPS features** on the left: frame generation, adaptive multiplier, pacing repair, HUD lock, AI
+- **Preview** in the middle, with the source, the game's frame rate and what FrameWeave shows.
+- **FrameWeave features** on the left: frame generation, adaptive multiplier, pacing repair, HUD lock, AI
   enhancement and lowest latency, as in the quick setup.
 - **Controls** on the right: go live, record, save the instant replay, comparison clip, screenshot, your
   streaming platforms and each platform's state and bitrate while live.
 - **Audio mixer** across the bottom, like OBS's: *Game sound* and *Microphone* faders with level meters and
   mute, for what recordings and streams take, and *Monitor* (what you hear yourself). Choose whether the
   microphone goes into recordings, streams or both.
-  - *Desktop audio*: everything Windows plays except PushFPS (Discord, music, a browser). PushFPS leaves
+  - *Desktop audio*: everything Windows plays except FrameWeave (Discord, music, a browser). FrameWeave leaves
     itself out, so the game is never in the mix twice.
   - *Extra input*: a second microphone, a line-in or an audio interface.
   Both are off until you switch them on, and go into recordings and streams you start after that.
@@ -922,7 +920,7 @@ features built in:
 
 ## Video playback mode
 
-**Video playback mode** (the play button in the top bar) puts PushFPS's tools on any video on your PC:
+**Video playback mode** (the play button in the top bar) puts FrameWeave's tools on any video on your PC:
 - pick a **window** (a browser playing YouTube, a video app), a **whole screen** or a **video file**;
 - switch on **Smoother** (frame generation: 24 or 30 FPS video looks like 60 or 120 FPS), **Sharper**
   (super resolution to your screen), **AI picture enhancement** (removes compression blocks and noise) and
@@ -941,13 +939,13 @@ time you choose after its original ended (1.5 seconds unless you change it), so 
 ## Read the text on the picture
 
 A menu in another language, a line of dialogue you want to look up: press **F4** (or *Settings → Playback → Read
-the text on the picture*). PushFPS takes one frame of the picture, Windows reads the text on it, and the dialog
+the text on the picture*). FrameWeave takes one frame of the picture, Windows reads the text on it, and the dialog
 shows it to copy or translate.
 
 - **It happens on your PC.** The reading is Windows' own text recognition, with the languages Windows has it
   for. To read Japanese, Korean or Chinese, add that language in Windows' language settings first; the dialog
   has a button to that page.
-- **Only what PushFPS shows, only when you ask.** One frame, deleted as soon as it is read. Nothing is read
+- **Only what FrameWeave shows, only when you ask.** One frame, deleted as soon as it is read. Nothing is read
   from the game or from another program, and nothing runs in the background.
 - **Read a part of the picture** (the lower third for subtitles and dialogue boxes): the text is read larger
   and more accurately.
@@ -959,7 +957,7 @@ shows it to copy or translate.
 ## Go live: Twitch, YouTube, Kick and TikTok
 
 Click **Go live** in the quick setup to stream the picture you see, frame generation, picture settings and sound
-included, straight from PushFPS. No OBS needed.
+included, straight from FrameWeave. No OBS needed.
 
 - **Several platforms at once.** Add up to eight outputs (Twitch, YouTube, Kick, TikTok, Facebook Live, Trovo or
   any RTMP/RTMPS server) and switch on the ones you want. One encode feeds them all, so streaming to three
@@ -996,39 +994,39 @@ generation.
 
 ## OBS Studio plugin
 
-The plugin adds a **PushFPS** source to OBS Studio 28 or newer on Windows, including OBS 33 (it installs in
-the plugin layout that OBS 34 will require, so the Plugin Manager doesn't flag it as Legacy). It shows the PushFPS picture,
-generated frames included, in any scene, and can start PushFPS for you.
+The plugin adds a **FrameWeave** source to OBS Studio 28 or newer on Windows, including OBS 33 (it installs in
+the plugin layout that OBS 34 will require, so the Plugin Manager doesn't flag it as Legacy). It shows the FrameWeave picture,
+generated frames included, in any scene, and can start FrameWeave for you.
 
-1. Download **PushFPS-OBS-Plugin-…-win64.zip** from [Releases](https://github.com/DosukaSOL/PushFPS/releases)
+1. Download **FrameWeave-OBS-Plugin-…-win64.zip** from [Releases](https://github.com/4MZ31/FrameWeave/releases)
    and extract it.
-2. Close OBS Studio and double-click **Install-PushFPS-OBS.cmd** (no administrator rights needed).
-3. Start OBS Studio. Under *Sources*, click **+** and pick **PushFPS**.
+2. Close OBS Studio and double-click **Install-FrameWeave-OBS.cmd** (no administrator rights needed).
+3. Start OBS Studio. Under *Sources*, click **+** and pick **FrameWeave**.
 
 | In the source's properties | What it does |
 |---|---|
-| **Open PushFPS** | Starts PushFPS with OBS game capture support, or brings it to the front (also under *Tools*) |
+| **Open FrameWeave** | Starts FrameWeave with OBS game capture support, or brings it to the front (also under *Tools*) |
 | **Capture method** | *Game capture* receives every generated frame (recommended). *Window capture* is the fallback |
-| **Start PushFPS when this source is shown** | On by default |
-| **PushFPS.exe location** | Only needed if PushFPS isn't in its default folder |
+| **Start FrameWeave when this source is shown** | On by default |
+| **FrameWeave.exe location** | Only needed if FrameWeave isn't in its default folder |
 
-For sound, add an *Application Audio Capture* source and pick `PushFPS.exe`. If you start PushFPS yourself
-instead of from OBS, turn on *Settings, Compatible, OBS Game Capture compatibility* in PushFPS once and
-restart it. Uninstall: `Install-PushFPS-OBS.cmd -Uninstall`.
+For sound, add an *Application Audio Capture* source and pick `FrameWeave.exe`. If you start FrameWeave yourself
+instead of from OBS, turn on *Settings, Compatible, OBS Game Capture compatibility* in FrameWeave once and
+restart it. Uninstall: `Install-FrameWeave-OBS.cmd -Uninstall`.
 
-<sub>How it works: PushFPS keeps doing the processing on your GPU; the plugin drives OBS's own game capture
-(or window capture) pointed at the PushFPS window. Every build is loaded into the latest OBS Studio on
-GitHub Actions, which opens a scene with a PushFPS source, lets it start PushFPS and checks that it finds
+<sub>How it works: FrameWeave keeps doing the processing on your GPU; the plugin drives OBS's own game capture
+(or window capture) pointed at the FrameWeave window. Every build is loaded into the latest OBS Studio on
+GitHub Actions, which opens a scene with a FrameWeave source, lets it start FrameWeave and checks that it finds
 the window.</sub>
 
 ## Capture cards
 
 | Capture card | Status |
 |---|---|
-| Elgato 4K X | Tested with PushFPS (RTX 5090, console games and videos) |
+| Elgato 4K X | Tested with FrameWeave (RTX 5090, console games and videos) |
 | T911 4K60 | Tested by Veyra's developer (4K60 NV12, RTX 5070) |
-| Elgato HD60 X | Tested with PushFPS |
-| Elgato 4K S | Tested with PushFPS |
+| Elgato HD60 X | Tested with FrameWeave |
+| Elgato 4K S | Tested with FrameWeave |
 | Elgato HD60 S | Reported working by a user (PS5 at 1080p60, Radeon RX 7600) |
 | AVerMedia Live Gamer Ultra 2.1 (GC553G2) | Reported working by a user (PS5 Pro, RTX 4080 SUPER) |
 | Elgato HD60 Pro | Reported working by a user (no further details) |
@@ -1041,7 +1039,7 @@ the window.</sub>
 Any card that Windows shows as a camera and that sends uncompressed 1080p60 or 4K60 should work. The quick
 setup shows whether your card is on this list.
 
-**If PushFPS does not find your card** (since 4.1): it now chooses a capture card before a webcam on a PC where
+**If FrameWeave does not find your card** (since 4.1): it now chooses a capture card before a webcam on a PC where
 none was used yet, and when nothing is listed the capture dialog says what to check: a USB 3 port, the maker's
 driver, another program that holds the card, and Windows' camera permission (Windows counts a capture card as
 a camera), with a button to that page.
@@ -1050,12 +1048,12 @@ a camera), with a button to that page.
 compressed one at 60. The capture dialog says when that is so and offers the switch; at 30 the card hands over
 half the frames of a 60 FPS game, so it is your choice.
 
-Capture at 60 FPS, even for 30 FPS games (PushFPS removes the repeated pictures), in uncompressed NV12 or
+Capture at 60 FPS, even for 30 FPS games (FrameWeave removes the repeated pictures), in uncompressed NV12 or
 P010 rather than MJPEG. Delay measured by Veyra's developer: about 10-20 ms at 1440p60 NV12, 30-40 ms at
 4K60 NV12 (10 Gbps or PCIe cards) and 80-100 ms at 4K30 HDR. For the lowest delay, capture 1440p60 and let
 RTX Video Super Resolution upscale it. Which card to buy (5 Gbps, 10 Gbps, PCIe) is in the
 [setup guide](https://dosukasol.github.io/PushFPS/#guide-capture). Tested yours?
-[Send a capture card report](https://github.com/DosukaSOL/PushFPS/issues/new?template=capture-card-report.yml).
+[Send a capture card report](https://github.com/4MZ31/FrameWeave/issues/new?template=capture-card-report.yml).
 
 ## Languages and appearance
 
@@ -1063,7 +1061,7 @@ RTX Video Super Resolution upscale it. Which card to buy (5 Gbps, 10 Gbps, PCIe)
 Dutch, German, Spanish, French, Italian, Portuguese (Brazil), Turkish, Polish, Russian and Arabic. *Automatic*
 follows your Windows language.
 
-In the ten newest (Dutch to Arabic) every button, menu and setting name and all PushFPS feature texts are
+In the ten newest (Dutch to Arabic) every button, menu and setting name and all FrameWeave feature texts are
 translated by hand; longer help texts in the advanced pages are machine-translated with
 [Argos Translate](https://github.com/argosopentech/argos-translate) and fall back to English where the
 machine output was not usable. If a word reads wrong in your language, please open an issue, or fix it in
@@ -1078,14 +1076,14 @@ sizes.
 
 Quick setup is in six sections that fold by their title.
 
-**Two designs (4.3).** The new design, which PushFPS opens in, has the navigation by name on the left, a
+**Two designs (4.3).** The new design, which FrameWeave opens in, has the navigation by name on the left, a
 title bar that shows what is connected, a status strip with the capture format, frame rate, latency, load
 and output, and a home page with the sources, the picture and quick setup side by side. An index over quick
 setup brings any part of it to the top, and Professional mode has an *All* tab with the settings of every
 tab in one list. The **palette** at the bottom of the navigation opens *Appearance*: *Design → Legacy* is
 the interface of 4.2 as it was, and the same panel has the backgrounds and accent colours. In Legacy the
 palette is at the bottom left of the home page. Both designs have the same features, and changing the design
-changes no setting. The new design opens with a two-second animation of the PushFPS logo.
+changes no setting. The new design opens with a two-second animation of the FrameWeave logo.
 
 **More room for the picture (4.3.1).** The title bar has two small buttons. The one on the left folds the
 navigation to its icons; the one on the right hides the settings side (quick setup on the home page, the
@@ -1098,32 +1096,32 @@ connects* brings back the jump to Professional mode.
 puts it back untouched in every generated frame, so it no longer flickers or doubles when the camera moves.
 Its row says when it has found one. More under [Crosshair Hold](#crosshair-hold).
 
-**Sunset City (Legacy).** In the Legacy design PushFPS opens with a three-second intro: a neon road out of the dark, the logo landing on the
+**Sunset City (Legacy).** In the Legacy design FrameWeave opens with a three-second intro: a neon road out of the dark, the logo landing on the
 beat, the sky turning to sunset over a palm-lined city, and the logo gliding into place on the home page, where
 it stays filled with the sunset city. The music is the startup track that comes with Veyra's runtime package.
 Click or press any key to skip; *Settings → Appearance* has separate switches for the Sunset City logo, the
-intro and the music. All of the art is drawn by PushFPS itself (`scripts/brand/make_sunset.py`).
+intro and the music. All of the art is drawn by FrameWeave itself (`scripts/brand/make_sunset.py`).
 
 ## ANR frame generation by Apex Compute
 
 [Apex Neural Rendering (ANR)](https://github.com/apex-compute/ANR) is frame generation made by
 [Apex Compute](https://apexcompute.com). Apex lists support for GeForce GTX 16 and newer, Radeon RX 5000 and
-newer and Intel Arc, so it is an option on graphics cards that DLSS Frame Generation does not cover. PushFPS
+newer and Intel Arc, so it is an option on graphics cards that DLSS Frame Generation does not cover. FrameWeave
 runs it on your capture card picture, the same way Veyra 2.1.6 does.
 
-ANR is in beta and Apex does not allow it to be redistributed, so it is not inside PushFPS. To use it:
+ANR is in beta and Apex does not allow it to be redistributed, so it is not inside FrameWeave. To use it:
 
 1. Download the `anr-fg-addon` package (or `anr-fg-full`) from [ANR's releases](https://github.com/apex-compute/ANR/releases).
-2. In PushFPS open *Settings → Components and licenses* and click *Install from download…*, then choose the
-   `.zip` you downloaded. PushFPS copies ANR's files into its own folder on your PC; nothing is sent anywhere.
-3. Restart PushFPS and pick *ANR FG* as the frame generation method in Professional mode.
+2. In FrameWeave open *Settings → Components and licenses* and click *Install from download…*, then choose the
+   `.zip` you downloaded. FrameWeave copies ANR's files into its own folder on your PC; nothing is sent anywhere.
+3. Restart FrameWeave and pick *ANR FG* as the frame generation method in Professional mode.
 
-ANR in games gets motion data from the game itself. From a capture card PushFPS has only the picture, so the
-motion is estimated, as with every method in PushFPS: results can differ from what ANR shows in games.
+ANR in games gets motion data from the game itself. From a capture card FrameWeave has only the picture, so the
+motion is estimated, as with every method in FrameWeave: results can differ from what ANR shows in games.
 
 ## Linux and macOS (preview)
 
-PushFPS for Linux and macOS is a separate, smaller app (`portable/` in this repository) with PushFPS's own frame
+FrameWeave for Linux and macOS is a separate, smaller app (`portable/` in this repository) with FrameWeave's own frame
 generation: block motion estimation on the processor and motion-compensated interpolation on the graphics card
 (Vulkan or OpenGL on Linux, Metal on macOS), plus Crosshair Hold, Frame Pacing Repair, duplicate-frame removal
 and Live HUD Lock.
@@ -1132,12 +1130,12 @@ Metal.
 
 | | Linux | macOS |
 |---|---|---|
-| Download | `PushFPS-<version>-x86_64.AppImage` (updates itself with AppImageUpdate) or `PushFPS-<version>-linux-x86_64.tar.gz` | `PushFPS-<version>-macos-universal.zip` (Apple Silicon and Intel) |
+| Download | `FrameWeave-<version>-x86_64.AppImage` (updates itself with AppImageUpdate) or `FrameWeave-<version>-linux-x86_64.tar.gz` | `FrameWeave-<version>-macos-universal.zip` (Apple Silicon and Intel) |
 | Needs | x86-64, glibc 2.31+ (Ubuntu 20.04+, Debian 11+, Fedora 33+), X11 or Wayland, OpenGL (`libopengl0`, present on desktop systems) | macOS 12 or newer |
 | Capture cards | Any UVC card (`/dev/video*`): almost every USB card | Any card macOS lists as a camera |
-| Portable | Put an empty `portable.txt` next to the program | Put an empty `portable.txt` next to PushFPS.app |
+| Portable | Put an empty `portable.txt` next to the program | Put an empty `portable.txt` next to FrameWeave.app |
 
-Try it without a capture card: **Home → Test picture**. `PushFPS --selftest 6` checks the whole chain.
+Try it without a capture card: **Home → Test picture**. `FrameWeave --selftest 6` checks the whole chain.
 
 Since 4.4.5 (preview 0.2) it has the **new design** of the Windows build: the title bar, the named navigation
 and the status strip round four pages. *Home* has the sources, the picture, picture and sound and quick setup
@@ -1153,7 +1151,7 @@ its row says when a crosshair is held.
 Since 4.1 the picture waits less: the motion of a pair of frames starts while the newer frame is still being
 converted to colour, the first seconds of a session no longer run late, and a margin the app gave itself after
 a slow moment is given back within seconds instead of minutes. Also new there: **Lowest latency** (one tap),
-**lip sync by hand**, **connect when PushFPS opens**, a remembered capture format per card, and how a picture of
+**lip sync by hand**, **connect when FrameWeave opens**, a remembered capture format per card, and how a picture of
 another shape than the window is shown (bars, fill or stretch). Frame generation on these systems finds motion on
 the processor, so its delay stays above the Windows version's, which does it on the graphics card.
 
@@ -1181,7 +1179,7 @@ Turn on **Show latency on screen** in the quick setup to see the measured PC lat
 arriving to handing it to the display, mean and 95th percentile), the frame rate and the 1% low over the
 picture. The capture card, the display and the game add their own delay, which software can't measure.
 
-To place a frame between two real frames, PushFPS has to wait for the second one. With a 30 FPS game that
+To place a frame between two real frames, FrameWeave has to wait for the second one. With a 30 FPS game that
 adds up to one frame (about 33 ms) on top of the capture card's own delay, which depends on the card.
 Generated frames make motion look like 120 FPS, but your inputs still take effect at the game's own pace.
 
@@ -1195,11 +1193,11 @@ Ways to lower it:
   through to your TV (such as the HD60 X, which captures 60 Hz) needs a 60 Hz console output. This is the same
   on every console, PS5 Pro included.
 - **NVIDIA low latency** in the quick setup on NVIDIA graphics.
-- **One graphics card for everything.** With two graphics cards, connect the monitor to the one PushFPS
-  processes on; PushFPS warns when every frame has to be copied between cards.
+- **One graphics card for everything.** With two graphics cards, connect the monitor to the one FrameWeave
+  processes on; FrameWeave warns when every frame has to be copied between cards.
 
-To see the whole delay, not just PushFPS's part, use **Measure total delay** next to the latency switch: film
-the capture card's passthrough screen and PushFPS side by side in slow motion and count the frames between them.
+To see the whole delay, not just FrameWeave's part, use **Measure total delay** next to the latency switch: film
+the capture card's passthrough screen and FrameWeave side by side in slow motion and count the frames between them.
 
 The readout can be dragged anywhere over the picture (a double click sends it back to the corner). The
 performance report (*Settings → Performance report*) also says how long your screen took after the hand-over
@@ -1207,7 +1205,7 @@ to show each frame, when Windows reports it.
 
 ### Lip sync
 
-Automatic sync delays the sound by the time the picture spends inside PushFPS. It cannot see how much later
+Automatic sync delays the sound by the time the picture spends inside FrameWeave. It cannot see how much later
 than its sound your capture card hands over the picture, or what your screen, soundbar or wireless headphones
 add. If voices and mouths don't match, use **Lip sync** in the quick setup: *Earlier 10* / *Later 10* move
 the sound in steps of 10 ms on top of automatic sync.
@@ -1225,52 +1223,52 @@ Yes. The console's picture stays 16:9, and you choose what fills the rest: see
 **I have a 90 Hz screen. Can I get 90 FPS?**
 Yes. On a 90 Hz screen the quick setup offers 90 FPS (three frames for every frame of a 30 FPS game).
 
-**PushFPS closed by itself. What now?**
+**FrameWeave closed by itself. What now?**
 Start it again: it tells you what it knows and offers a summary to copy into a
-[GitHub issue](https://github.com/DosukaSOL/PushFPS/issues). The summary holds no user name, folder path or
+[GitHub issue](https://github.com/4MZ31/FrameWeave/issues). The summary holds no user name, folder path or
 stream address. The crash file in the log folder does contain your Windows user name, so send that one
 privately.
 
 **Does it change the console or the game?**
-No. PushFPS only processes the video coming out of the capture card. Nothing is installed on the console.
+No. FrameWeave only processes the video coming out of the capture card. Nothing is installed on the console.
 
 **Is it free?**
-Yes. PushFPS is free and open source under the GPL-3.0, like Veyra.
+Yes. FrameWeave is free and open source under the GPL-3.0, like Veyra.
 
 **Is there a macOS or Linux version?**
 Yes, as a preview: see [Linux and macOS (preview)](#linux-and-macos-preview). It has the new design,
-PushFPS's own frame generation and Crosshair Hold, instead of the NVIDIA, AMD and Intel methods, which only
+FrameWeave's own frame generation and Crosshair Hold, instead of the NVIDIA, AMD and Intel methods, which only
 exist for Windows.
 
 **Where are my settings and profiles stored?**
-Inside the PushFPS folder itself (`%LOCALAPPDATA%\Programs\PushFPS` unless you chose another one), with the
-logs. Updating PushFPS keeps them.
+Inside the FrameWeave folder itself (`%LOCALAPPDATA%\Programs\FrameWeave` unless you chose another one), with the
+logs. Updating FrameWeave keeps them.
 
 **AI picture enhancement says "This package lacks the runtime components for this feature".**
-Its files are an optional extra the installer leaves out unless you say yes. Run `Install-PushFPS.cmd` again
+Its files are an optional extra the installer leaves out unless you say yes. Run `Install-FrameWeave.cmd` again
 and answer **y** when it asks about the experimental extras: see [What you need](#what-you-need).
 
-**PushFPS says "No generated frames". What now?**
-Frame generation is switched on, but PushFPS is only showing the game's own frames, so the picture is no
+**FrameWeave says "No generated frames". What now?**
+Frame generation is switched on, but FrameWeave is only showing the game's own frames, so the picture is no
 smoother than the console's. The message says why: the method is not running (pick another one), the graphics
 card does not keep up (lower the multiplier, the tier or the output resolution), or nothing comes out although
 the method runs. In the last case press **Copy performance report** next to the message and send it to us.
 
-**How do I show what PushFPS does on my PC?**
+**How do I show what FrameWeave does on my PC?**
 *Settings → Performance report → Copy*, while a game is playing. It holds the graphics card and driver, your
-settings, the game's own frames and the generated frames shown each second, and PushFPS's software delay, and
+settings, the game's own frames and the generated frames shown each second, and FrameWeave's software delay, and
 nothing personal. [What the numbers mean](docs/BENCHMARKING.md).
 
 **Where do I get help?**
-On the [PushFPS Discord](https://discord.gg/N88znNpSgC), where other players and the developer answer. Bugs and capture card reports
-go to [GitHub Issues](https://github.com/DosukaSOL/PushFPS/issues).
+On the [upstream Discord](https://discord.gg/N88znNpSgC), where other players and the developer answer. Bugs and capture card reports
+go to [GitHub Issues](https://github.com/4MZ31/FrameWeave/issues).
 
 ## Roadmap
 
 What comes next, in the order things depend on each other, is in **[docs/ROADMAP.md](docs/ROADMAP.md)**.
 A measurement from your own card helps: [how to take one](docs/BENCHMARKING.md).
 
-- [x] PushFPS name, logo and update channel
+- [x] FrameWeave name, logo and update channel
 - [x] Quick setup: target frame rate, frame generation with or without AI enhancement
 - [x] Windows release with automated, reproducible builds
 - [x] Per-console and per-game profiles
@@ -1295,16 +1293,16 @@ A measurement from your own card helps: [how to take one](docs/BENCHMARKING.md).
 - [x] Plug and play (connect on start, fullscreen on connect), 120 Hz and 40 FPS guidance, total-delay guide, always on top
 - [x] Go live to Twitch, YouTube, Kick, TikTok and more, several platforms at once
 - [x] Optimiser goals, every frame generation method tested, 144-240 Hz targets
-- [x] Linux and macOS preview with PushFPS's own frame generation
-- [x] PushFlow, PushFPS's own frame generation (RIFE on DirectML)
+- [x] Linux and macOS preview with FrameWeave's own frame generation
+- [x] PushFlow, FrameWeave's own frame generation (RIFE on DirectML)
 - [x] Measured frame quality in the optimiser, automatic PS5 latency test
-- [x] One-click signed updates, frame input API for other apps
+- [x] Update checks for this fork, frame input API for other apps
 - [x] Streaming mode: scenes, sources, layout editor, audio mixer, output presets
 - [x] Video playback mode for any video on the PC
 - [x] Ultrawide screens (ambient fill), 90 Hz screens, fine-tuning of AI picture enhancement
 - [x] Crash notice and a graphics card test
 - [x] Comparison clips up to 2 minutes or until stopped; cameras at up to 4K with a live picture
-- [x] Reveal comparison clips (a line sweeps between the console and PushFPS), clip quality up to 4K
+- [x] Reveal comparison clips (a line sweeps between the console and FrameWeave), clip quality up to 4K
 - [x] A warning when frame generation shows no frames, a performance report to copy, tested graphics cards
 - [x] 4.0: the HUD kept sharp with every method, a steadier 60 → 30 rhythm, lip sync by hand, a line in the
       live comparison, a capture card's own sound input chosen for a new card, recording choices before
@@ -1331,19 +1329,19 @@ A measurement from your own card helps: [how to take one](docs/BENCHMARKING.md).
 
 ## Privacy
 
-PushFPS has no accounts, analytics or telemetry. It only connects to the internet for the update check (GitHub),
+FrameWeave has no accounts, analytics or telemetry. It only connects to the internet for the update check (GitHub),
 when you share a clip to your own Discord webhook, when you connect a streaming source, when you go live
 (only to the platforms you chose), and for translation when you download the local model or choose an online
 engine. Reading the text on the picture happens on your PC. Details in [PRIVACY.md](PRIVACY.md).
 
 ## Build from source
 
-Every push builds PushFPS on GitHub Actions ([build-windows.yml](.github/workflows/build-windows.yml)), and
+Every push builds FrameWeave on GitHub Actions ([build-windows.yml](.github/workflows/build-windows.yml)), and
 that workflow is the build recipe: Visual Studio 2022, CMake with Ninja, Qt 6.8.3, FFmpeg 9.0.1 from vcpkg
 at the pinned baseline, the NVIDIA DLSS SDK 310.7.0, nv-codec-headers, the CUDA driver header, Intel XeSS
 3.0.2 and AMD FidelityFX 1.1.4 and 2.3.0. All of them are downloaded from their official public sources at
 pinned versions; none is committed. The workflow then runs the unit and interface tests, checks that
-`PushFPS.exe` links exactly the Qt and FFmpeg libraries in Veyra's runtime package, installs it with the real
+`FrameWeave.exe` links exactly the Qt and FFmpeg libraries in Veyra's runtime package, installs it with the real
 installer and opens every main page, failing on any interface error.
 
 The NVIDIA Optical Flow SDK needs a developer login, so its headers are never in this repository. Release
@@ -1361,8 +1359,8 @@ cmake --build build-obs --config Release
 ```
 
 More background: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-Inside the code, PushFPS keeps Veyra's names (namespaces, targets, the `qml/Veyra` module) so fixes from
-Veyra keep merging cleanly. The PushFPS name and links live in
+Inside the code, FrameWeave keeps Veyra's names (namespaces, targets, the `qml/Veyra` module) so fixes from
+Veyra keep merging cleanly. The FrameWeave name and links live in
 [`include/veyra/Brand.h`](include/veyra/Brand.h).
 
 ## Credits and license

@@ -1,12 +1,12 @@
 name: Bug report
-description: Something in PushFPS does not work as it should.
+description: Something in FrameWeave does not work as it should.
 title: "[Bug] "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting! The fastest way: in PushFPS open **Settings → Report a problem**. It copies the version,
+        Thanks for reporting! The fastest way: in FrameWeave open **Settings → Report a problem**. It copies the version,
         graphics card, source format and recent log lines. Read it before pasting: it never contains stream keys, and
         you can remove anything you don't want to share.
   - type: textarea
@@ -29,7 +29,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: PushFPS version
+      label: FrameWeave version
       description: Shown under Settings → About.
       placeholder: "3.0.0"
     validations:

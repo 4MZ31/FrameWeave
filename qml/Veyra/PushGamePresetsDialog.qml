@@ -161,7 +161,7 @@ DialogLayer {
         return true
     }
     function addImported(p) {
-        if (!p) { games.say(qsTr("这不是有效的 PushFPS 预设代码"), true); return false }
+        if (!p) { games.say(qsTr("这不是有效的 FrameWeave 预设代码"), true); return false }
         let name = p.name
         if (Presets.builtIn.some(b => b.name === name)) name = (name + " " + qsTr("（分享）")).slice(0, Presets.kMaxName)
         p.name = name
@@ -305,7 +305,7 @@ DialogLayer {
                 DialogTextField {
                     objectName: "pushfps-game-preset-code"
                     implicitWidth: 200
-                    placeholder: qsTr("粘贴 PUSHFPS1: 代码")
+                    placeholder: qsTr("粘贴 FRAMEWEAVE1: 代码")
                     onTyped: t => games.importText = t
                     onEdited: t => games.importText = t
                 }

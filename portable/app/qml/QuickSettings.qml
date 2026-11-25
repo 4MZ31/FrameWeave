@@ -61,7 +61,7 @@ ColumnLayout {
         visible: quick.shows("hud")
         objectName: "home-crosshair-row"
         label: qsTr("准星保持")
-        help: qsTr("准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。")
+        help: qsTr("准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，FrameWeave 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。")
         readonly property int holdState: app.running ? Number(app.stats.holdState || 0) : 0
         readonly property int holdPixels: app.running ? Number(app.stats.holdPixels || 0) : 0
         hint: !app.crosshairHold ? qsTr("已关闭：画面移动时准星可能闪烁或出现重影")
@@ -78,7 +78,7 @@ ColumnLayout {
         visible: quick.shows("hud")
         objectName: "home-subtitle-row"
         label: qsTr("字幕保持")
-        help: qsTr("字幕静止而背后的画面在动时（例如高速开车），补帧会把字幕当成背景一起拉动，文字会上下拖影、出现重影。开启后，PushFPS 在屏幕下方找出字幕，补帧前先把它从画面里取出，补帧后再原样放回。新的一行字幕出现时，需要先静止片刻才会被识别。不用字幕时不必开启。")
+        help: qsTr("字幕静止而背后的画面在动时（例如高速开车），补帧会把字幕当成背景一起拉动，文字会上下拖影、出现重影。开启后，FrameWeave 在屏幕下方找出字幕，补帧前先把它从画面里取出，补帧后再原样放回。新的一行字幕出现时，需要先静止片刻才会被识别。不用字幕时不必开启。")
         readonly property int holdState: app.running ? Number(app.stats.subHoldState || 0) : 0
         readonly property int holdPixels: app.running ? Number(app.stats.subHoldPixels || 0) : 0
         hint: !app.subtitleHold ? qsTr("已关闭：画面快速移动时字幕可能拖影")

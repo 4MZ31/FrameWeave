@@ -18,7 +18,7 @@ Rectangle {
     readonly property var themes: [{ id: "default", tip: qsTr("石墨") }, { id: "light", tip: qsTr("浅色") }, { id: "black", tip: qsTr("纯黑") },
                                    { id: "midnight", tip: qsTr("午夜蓝") }, { id: "plum", tip: qsTr("深紫") }, { id: "forest", tip: qsTr("墨绿") },
                                    { id: "contrast", tip: qsTr("高对比度") }]
-    readonly property var accentList: [{ id: "orange", tip: qsTr("PushFPS 绿") }, { id: "white", tip: qsTr("白色光晕") }, { id: "ice", tip: qsTr("冰蓝") },
+    readonly property var accentList: [{ id: "orange", tip: qsTr("FrameWeave 绿") }, { id: "white", tip: qsTr("白色光晕") }, { id: "ice", tip: qsTr("冰蓝") },
                                        { id: "blue", tip: qsTr("蓝色") }, { id: "violet", tip: qsTr("紫色") }, { id: "rose", tip: qsTr("玫红") },
                                        { id: "amber", tip: qsTr("琥珀") }]
     readonly property string themeShown: Theme.surfaces[Theme.mode] ? Theme.mode : "default"
@@ -197,17 +197,17 @@ Rectangle {
                 objectName: "set-about"
                 Layout.fillWidth: true
                 PanelTitle { text: qsTr("关于") }
-                Line { text: "PushFPS " + app.version + " · " + app.platformName }
-                Line { text: qsTr("Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 PushFPS 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。") }
+                Line { text: "FrameWeave " + app.version + " · " + app.platformName }
+                Line { text: qsTr("Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 FrameWeave 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。") }
                 Line { text: qsTr("基于开源项目 Veyra（GPL-3.0）打造，感谢原作者 Likely7") }
-                Line { color: Theme.t3; font.pixelSize: Theme.fsHint; text: qsTr("PushFPS 以 GPL-3.0 许可发布。使用 Qt 6（LGPL-3.0），视频解码由 Qt 自带的 FFmpeg（LGPL）完成。") }
+                Line { color: Theme.t3; font.pixelSize: Theme.fsHint; text: qsTr("FrameWeave 以 GPL-3.0 许可发布。使用 Qt 6（LGPL-3.0），视频解码由 Qt 自带的 FFmpeg（LGPL）完成。") }
                 Text {
-                    text: "github.com/DosukaSOL/PushFPS"
+                    text: "github.com/4MZ31/FrameWeave"
                     color: Theme.accent
                     font.family: Theme.fontUi
                     font.pixelSize: Theme.fsBody
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: Qt.openUrlExternally("https://github.com/DosukaSOL/PushFPS") }
+                    TapHandler { onTapped: Qt.openUrlExternally("https://github.com/4MZ31/FrameWeave") }
                 }
                 // Check my setup (CheckSetupDialog.qml), as the Windows build's About section has it.
                 VRow {

@@ -243,7 +243,7 @@ bool QmlPlayerBridge::pushStartCardTest() {
         result.insert(QStringLiteral("vramMB"), r.value(QStringLiteral("vramMB")).toInt());
         // What to copy: the benchmark's own result with the PushFPS version and Windows build in front.
         if (!r.isEmpty()) {
-            QJsonObject copy{{QStringLiteral("pushfps"), version()}, {QStringLiteral("windows"), QSysInfo::kernelVersion()}};
+            QJsonObject copy{{QStringLiteral("frameweave"), version()}, {QStringLiteral("windows"), QSysInfo::kernelVersion()}};
             for (auto it = r.begin(); it != r.end(); ++it) copy.insert(it.key(), it.value());
             result.insert(QStringLiteral("text"), QString::fromUtf8(QJsonDocument(copy).toJson(QJsonDocument::Indented)));
         }

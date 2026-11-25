@@ -335,7 +335,7 @@ VPage {
         VH2 { text: qsTr("直播模式") }
         Text {
             visible: !studio.compact
-            text: qsTr("直播和录制 PushFPS 的画面，混音、开播、录像都在这一页")
+            text: qsTr("直播和录制 FrameWeave 的画面，混音、开播、录像都在这一页")
             color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 12
         }
         Item { Layout.fillWidth: true }
@@ -1051,7 +1051,7 @@ VPage {
                 title: qsTr("桌面音频")
                 subtitle: !on ? qsTr("关闭：不进入录制和直播")
                         : String(studio.levels.desktopError || "").length ? String(studio.levels.desktopError)
-                        : qsTr("除 PushFPS 外的所有声音")
+                        : qsTr("除 FrameWeave 外的所有声音")
                 iconName: "monitor"
                 from: -60; to: 12
                 value: Number(veyra.preferences.mixDesktopDb ?? 0)

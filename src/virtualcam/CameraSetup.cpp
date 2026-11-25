@@ -130,11 +130,11 @@ int wmain(int argc,wchar_t** argv){
         require(argc==2,ERROR_INVALID_PARAMETER);const std::wstring mode=argv[1];
         if(mode==L"--verify"){
             require(hash(beside()/L"pushfps-virtualcam64.dll")==CameraHash64&&hash(beside()/L"pushfps-virtualcam32.dll")==CameraHash32,ERROR_CRC);
-            std::wprintf(L"Verified PushFPS camera payload. Target: %ls\n",root().c_str());return 0;
+            std::wprintf(L"Verified FrameWeave camera payload. Target: %ls\n",root().c_str());return 0;
         }
         require(mode==L"--install"||mode==L"--uninstall",ERROR_INVALID_PARAMETER);require(elevated(),ERROR_ELEVATION_REQUIRED);
         if(mode==L"--install")install();else uninstall();
         SendNotifyMessageW(HWND_BROADCAST,WM_DEVICECHANGE,DBT_DEVNODES_CHANGED,0);return 0;
-    }catch(DWORD error){std::fprintf(stderr,"PushFPS camera setup failed: 0x%08lX\n",error);return int(error?error:ERROR_GEN_FAILURE);}
-    catch(const std::exception& e){std::fprintf(stderr,"PushFPS camera setup failed: %s\n",e.what());return ERROR_GEN_FAILURE;}
+    }catch(DWORD error){std::fprintf(stderr,"FrameWeave camera setup failed: 0x%08lX\n",error);return int(error?error:ERROR_GEN_FAILURE);}
+    catch(const std::exception& e){std::fprintf(stderr,"FrameWeave camera setup failed: %s\n",e.what());return ERROR_GEN_FAILURE;}
 }

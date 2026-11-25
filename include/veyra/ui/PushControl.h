@@ -226,7 +226,7 @@ inline std::string statusJson(const Facts& f) {
     };
     const auto flag = [](bool b) { return b ? "true" : "false"; };
     const auto count = [](int v) { return std::to_string(v < 0 ? 0 : v > 1000000 ? 1000000 : v); };
-    std::string out = "{\"ok\":true,\"app\":\"PushFPS\",\"api\":1,\"version\":\"" + version + "\"";
+    std::string out = "{\"ok\":true,\"app\":\"FrameWeave\",\"api\":1,\"version\":\"" + version + "\"";
     out += ",\"playing\":"; out += flag(f.playing);
     out += ",\"source\":\""; out += source; out += "\"";
     out += ",\"frameGeneration\":"; out += flag(f.frameGeneration);

@@ -517,8 +517,8 @@
      "ci": "veyra_push_archive_paths_tests"
     },
     {
-     "file": "packaging/Install-PushFPS.ps1",
-     "ci": "Install-PushFPS.ps1"
+     "file": "packaging/Install-FrameWeave.ps1",
+     "ci": "Install-FrameWeave.ps1"
     }
    ],
    "needs_hardware": ""
@@ -843,15 +843,15 @@
     {
      "file": "tests/unit/PushCaptureDevicePickTests.cpp",
      "ci": "veyra_push_capture_device_pick_tests",
-     "contains": "pushIsOwnCamera(L\"PushFPS Virtual Camera\")"
+     "contains": "pushIsOwnCamera(L\"FrameWeave Virtual Camera\")"
     },
     {
      "file": "src/virtualcam/virtualcam-guid.h",
-     "contains": "VeyraCameraName[]=L\"PushFPS Virtual Camera\""
+     "contains": "VeyraCameraName[]=L\"FrameWeave Virtual Camera\""
     },
     {
      "file": "include/veyra/source/PushCaptureDevicePick.h",
-     "contains": "kPushOwnCameraName = L\"PushFPS Virtual Camera\""
+     "contains": "kPushOwnCameraName = L\"FrameWeave Virtual Camera\""
     },
     {
      "file": "src/ui/bridge/Capture.cpp",
@@ -1882,48 +1882,48 @@
    "what": "The installer never harms the PushFPS that is installed: a test build (a version that is not a release's X.Y.Z) goes into its own folder with its own shortcuts and a copy of the settings, and its uninstall removes only itself; an install or update finishes when another program has the virtual camera's file loaded (the old file is moved aside and replaced), where it used to stop half-way with \"Copying files failed\"; a copy that does fail names the files and says the install is not complete.",
    "guards": [
     {
-     "file": "packaging/Install-PushFPS.ps1",
-     "ci": "Install-PushFPS.ps1",
+     "file": "packaging/Install-FrameWeave.ps1",
+     "ci": "Install-FrameWeave.ps1",
      "contains": "$OwnFolder = $TestBuild -and -not $PSBoundParameters.ContainsKey('InstallDir')"
     },
     {
-     "file": "packaging/Install-PushFPS.ps1",
-     "ci": "Install-PushFPS.ps1",
+     "file": "packaging/Install-FrameWeave.ps1",
+     "ci": "Install-FrameWeave.ps1",
      "contains": "[System.IO.File]::Move($dest, ($dest + '.replaced-'"
     },
     {
-     "file": "packaging/Install-PushFPS.ps1",
-     "ci": "Install-PushFPS.ps1",
+     "file": "packaging/Install-FrameWeave.ps1",
+     "ci": "Install-FrameWeave.ps1",
      "contains": "/XD (Join-Path $source 'virtualcam')"
     },
     {
-     "file": "packaging/Install-PushFPS.ps1",
-     "ci": "Install-PushFPS.ps1",
+     "file": "packaging/Install-FrameWeave.ps1",
+     "ci": "Install-FrameWeave.ps1",
      "contains": "so this install is NOT complete"
     },
     {
      "file": ".github/workflows/build-windows.yml",
-     "ci": "Install-PushFPS.ps1",
+     "ci": "Install-FrameWeave.ps1",
      "contains": "throw 'a test build did not install into its own folder'"
     },
     {
      "file": ".github/workflows/build-windows.yml",
-     "ci": "Install-PushFPS.ps1",
-     "contains": "a test build changed the folder of the installed PushFPS"
+     "ci": "Install-FrameWeave.ps1",
+     "contains": "a test build changed the folder of the installed FrameWeave"
     },
     {
      "file": ".github/workflows/build-windows.yml",
-     "ci": "Install-PushFPS.ps1",
-     "contains": "throw 'a test build''s uninstall removed the installed PushFPS'"
+     "ci": "Install-FrameWeave.ps1",
+     "contains": "throw 'a test build''s uninstall removed the installed FrameWeave'"
     },
     {
      "file": ".github/workflows/build-windows.yml",
-     "ci": "Install-PushFPS.ps1",
+     "ci": "Install-FrameWeave.ps1",
      "contains": "throw 'the virtual camera file was not replaced while another program held it'"
     },
     {
      "file": ".github/workflows/build-windows.yml",
-     "ci": "Install-PushFPS.ps1",
+     "ci": "Install-FrameWeave.ps1",
      "contains": "was not installed\" }"
     }
    ],

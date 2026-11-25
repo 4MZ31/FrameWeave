@@ -1,19 +1,19 @@
 <#
-  PushFPS installer.
+  FrameWeave installer.
 
-  PushFPS runs on Veyra's official runtime package (Qt, FFmpeg and the NVIDIA / AMD / Intel components that
+  FrameWeave runs on Veyra's official runtime package (Qt, FFmpeg and the NVIDIA / AMD / Intel components that
   Veyra's author distributes). This script downloads that package from Veyra's own GitHub release, checks its
-  SHA-256 against the value pinned when this PushFPS release was built, unpacks it, and adds PushFPS on top.
+  SHA-256 against the value pinned when this FrameWeave release was built, unpacks it, and adds FrameWeave on top.
   No administrator rights are needed: everything goes into your user folder.
 
-  Usage (normally just double-click Install-PushFPS.cmd):
-    Install-PushFPS.ps1 [-Gpu Auto|NVIDIA|AMD] [-InstallDir <folder>] [-NoShortcuts] [-NoLaunch]
+  Usage (normally just double-click Install-FrameWeave.cmd):
+    Install-FrameWeave.ps1 [-Gpu Auto|NVIDIA|AMD] [-InstallDir <folder>] [-NoShortcuts] [-NoLaunch]
                         [-ExperimentalExtras Ask|Yes|No]
-    Install-PushFPS.ps1 -Uninstall [-InstallDir <folder>]
+    Install-FrameWeave.ps1 -Uninstall [-InstallDir <folder>]
 
-  A test build (a version that is not a release's X.Y.Z) never installs over the PushFPS that is there:
-  unless -InstallDir names a folder, it goes to %LOCALAPPDATA%\Programs\PushFPS-test, its shortcuts are
-  called "PushFPS test", and it starts with a copy of the installed PushFPS's settings.
+  A test build (a version that is not a release's X.Y.Z) never installs over the FrameWeave that is there:
+  unless -InstallDir names a folder, it goes to %LOCALAPPDATA%\Programs\FrameWeave-test, its shortcuts are
+  called "FrameWeave test", and it starts with a copy of the installed FrameWeave's settings.
 
   Works with Windows PowerShell 5.1 and PowerShell 7.
 #>
@@ -21,7 +21,7 @@
 param(
     [ValidateSet('Auto', 'NVIDIA', 'AMD')]
     [string]$Gpu = 'Auto',
-    [string]$InstallDir = (Join-Path $env:LOCALAPPDATA 'Programs\PushFPS'),
+    [string]$InstallDir = (Join-Path $env:LOCALAPPDATA 'Programs\FrameWeave'),
     [switch]$NoShortcuts,
     [switch]$NoLaunch,
     # Veyra's experimental extras whose NVIDIA files fall outside NVIDIA's licence (see below).
@@ -29,7 +29,7 @@ param(
     [ValidateSet('Ask', 'Yes', 'No')]
     [string]$ExperimentalExtras = 'Ask',
     [switch]$Uninstall,
-    # Signed in-app updates (src/ui/UpdateChecker.cpp): the running PushFPS that started this
+    # Signed in-app updates (src/ui/UpdateChecker.cpp): the running FrameWeave that started this
     # installer; it quits right after, and the copy waits until it has (at most a minute).
     [int]$WaitForPid = 0
 )
@@ -37,7 +37,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
-# Windows PowerShell that was started from PowerShell 7 (PushFPS launched from a PowerShell 7 window, or
+# Windows PowerShell that was started from PowerShell 7 (FrameWeave launched from a PowerShell 7 window, or
 # by a tool running under it, then updating itself) inherits PowerShell 7's module path and cannot load
 # its own modules: "Get-FileHash is not recognized", and the update stopped there with its window
 # closing at once (found by the update test in CI, November 2026). Use Windows PowerShell's own paths.
@@ -58,17 +58,17 @@ $UpstreamSha256 = @{
 }
 
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$filesDir = Join-Path $here 'PushFPS-files'
-# A test build (its version is not a release's X.Y.Z) never installs over the PushFPS that is there. Unless a
+$filesDir = Join-Path $here 'FrameWeave-files'
+# A test build (its version is not a release's X.Y.Z) never installs over the FrameWeave that is there. Unless a
 # folder is named it goes into a folder of its own; its shortcuts have their own name whatever the folder; and
-# in its own folder it starts with a copy of the installed PushFPS's settings, which is only read.
-# (23 November 2026: a private test build, double-clicked, replaced the owner's own PushFPS.)
+# in its own folder it starts with a copy of the installed FrameWeave's settings, which is only read.
+# (23 November 2026: a private test build, double-clicked, replaced the owner's own FrameWeave.)
 $TestBuild = $PushFpsVersion -notmatch '^\d+\.\d+\.\d+$'
-$MainDir = Join-Path $env:LOCALAPPDATA 'Programs\PushFPS'
+$MainDir = Join-Path $env:LOCALAPPDATA 'Programs\FrameWeave'
 $OwnFolder = $TestBuild -and -not $PSBoundParameters.ContainsKey('InstallDir')
-if ($OwnFolder) { $InstallDir = Join-Path $env:LOCALAPPDATA 'Programs\PushFPS-test' }
-$linkName = 'PushFPS.lnk'
-if ($TestBuild) { $linkName = 'PushFPS test.lnk' }
+if ($OwnFolder) { $InstallDir = Join-Path $env:LOCALAPPDATA 'Programs\FrameWeave-test' }
+$linkName = 'FrameWeave.lnk'
+if ($TestBuild) { $linkName = 'FrameWeave test.lnk' }
 $startMenu = Join-Path ([Environment]::GetFolderPath('Programs')) $linkName
 $desktop = Join-Path ([Environment]::GetFolderPath('Desktop')) $linkName
 
@@ -77,12 +77,12 @@ function Info([string]$text) { Write-Host "    $text" }
 function Fail([string]$text) {
     Write-Host ''; Write-Host "  $text" -ForegroundColor Red
     if ($WaitForPid -gt 0) {
-        # An update started inside PushFPS: the program has closed by now. Say what happened, start the
+        # An update started inside FrameWeave: the program has closed by now. Say what happened, start the
         # copy that is still installed and keep this window open so the reason can be read.
-        Write-Host '  The update did not finish. You can run it again from PushFPS, or download the release by hand.' -ForegroundColor Yellow
+        Write-Host '  The update did not finish. You can run it again from FrameWeave, or download the release by hand.' -ForegroundColor Yellow
         try {
-            $existing = Join-Path $InstallDir 'PushFPS.exe'
-            if ((Test-Path $existing) -and -not (Get-Process -Name 'PushFPS' -ErrorAction SilentlyContinue)) { Start-Process -FilePath $existing -WorkingDirectory $InstallDir }
+            $existing = Join-Path $InstallDir 'FrameWeave.exe'
+            if ((Test-Path $existing) -and -not (Get-Process -Name 'FrameWeave' -ErrorAction SilentlyContinue)) { Start-Process -FilePath $existing -WorkingDirectory $InstallDir }
         } catch { }
         if (-not [Console]::IsInputRedirected) { Read-Host '  Press Enter to close this window' | Out-Null }
     }
@@ -90,16 +90,16 @@ function Fail([string]$text) {
 }
 
 # Anything unexpected ends through Fail too: in an update the window stays open with the reason and the
-# installed copy starts again, where it used to close at once with PushFPS already gone.
+# installed copy starts again, where it used to close at once with FrameWeave already gone.
 trap { Fail ("Unexpected error: " + $_.Exception.Message) }
 
 Write-Host ''
-Write-Host "  PushFPS $PushFpsVersion" -ForegroundColor Green
+Write-Host "  FrameWeave $PushFpsVersion" -ForegroundColor Green
 Write-Host '  Based on Veyra by Likely7 (GPL-3.0)'
 if ($OwnFolder) {
     Write-Host ''
-    Write-Host '  This is a test build. It gets its own folder and its own shortcut ("PushFPS test").' -ForegroundColor Yellow
-    Write-Host '  The PushFPS you have is not changed.' -ForegroundColor Yellow
+    Write-Host '  This is a test build. It gets its own folder and its own shortcut ("FrameWeave test").' -ForegroundColor Yellow
+    Write-Host '  The FrameWeave you have is not changed.' -ForegroundColor Yellow
 }
 
 # SHA-256 through .NET: no PowerShell module is needed for it (see the module path note at the top).
@@ -120,8 +120,8 @@ for ($ancestor = $installRootInfo; $ancestor; $ancestor = $ancestor.Parent) {
         Fail "The installation folder goes through a link: $($ancestor.FullName)"
     }
 }
-$manifest = Join-Path $InstallDir 'PushFPS-installed-files.txt'
-$manifestHeader = 'PushFPS installed files v1'
+$manifest = Join-Path $InstallDir 'FrameWeave-installed-files.txt'
+$manifestHeader = 'FrameWeave installed files v1'
 $owned = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 $hasManifest = $false
 if ([IO.File]::Exists($manifest)) {
@@ -136,7 +136,7 @@ function Add-Payload([IO.DirectoryInfo]$Folder, [string]$Prefix, [string]$SkipTo
     foreach ($entry in $Folder.EnumerateFileSystemInfos()) {
         if (($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) -or ($entry.Name -eq $SkipTop)) { continue }
         $name = $Prefix + $entry.Name
-        if ($name -like 'runtime_local/user-data-*' -or $name -eq 'PushFPS-installed-files.txt') { continue }
+        if ($name -like 'runtime_local/user-data-*' -or $name -eq 'FrameWeave-installed-files.txt') { continue }
         if ($entry -is [IO.DirectoryInfo]) {
             [void]$owned.Add($name + '/')
             Add-Payload $entry ($name + '/')
@@ -150,7 +150,7 @@ function Remove-Payload([IO.DirectoryInfo]$Folder, [string]$Prefix) {
     foreach ($entry in $Folder.GetFileSystemInfos()) {
         if ($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
         $name = $Prefix + $entry.Name
-        if ($name -like 'runtime_local/user-data-*' -or $name -eq 'PushFPS-installed-files.txt') { continue }
+        if ($name -like 'runtime_local/user-data-*' -or $name -eq 'FrameWeave-installed-files.txt') { continue }
         if ($entry -is [IO.DirectoryInfo]) {
             if ($owned.Contains($name + '/')) {
                 Remove-Payload $entry ($name + '/')
@@ -169,13 +169,13 @@ function Remove-Payload([IO.DirectoryInfo]$Folder, [string]$Prefix) {
 }
 
 if ($Uninstall) {
-    Step 'Removing PushFPS'
+    Step 'Removing FrameWeave'
     if (-not $installRootInfo.Exists) { Info "Nothing installed in $InstallDir"; exit 0 }
     if (-not $hasManifest) {
-        $versionFile = Join-Path $InstallDir 'PushFPS-VERSION.txt'
+        $versionFile = Join-Path $InstallDir 'FrameWeave-VERSION.txt'
         if (-not [IO.File]::Exists($versionFile) -or
             ([IO.File]::GetAttributes($versionFile) -band [IO.FileAttributes]::ReparsePoint) -or
-            (Get-Content -LiteralPath $versionFile -TotalCount 1) -notmatch '^PushFPS \d+\.\d+\.\d+([-.+][\w.-]+)?$') {
+            (Get-Content -LiteralPath $versionFile -TotalCount 1) -notmatch '^FrameWeave \d+\.\d+\.\d+([-.+][\w.-]+)?$') {
             Info "No recognizable installation record in $InstallDir. Its files were kept."
             exit 0
         }
@@ -189,18 +189,18 @@ if ($Uninstall) {
     foreach ($link in @($startMenu, $desktop)) {
         if (Test-Path -LiteralPath $link -PathType Leaf) {
             $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut($link)
-            if ($shortcut.TargetPath -eq (Join-Path $InstallDir 'PushFPS.exe')) { Remove-Item -LiteralPath $link -Force }
+            if ($shortcut.TargetPath -eq (Join-Path $InstallDir 'FrameWeave.exe')) { Remove-Item -LiteralPath $link -Force }
         }
     }
     exit 0
 }
 
-if (-not (Test-Path (Join-Path $filesDir 'PushFPS.exe'))) {
-    Fail 'PushFPS-files\PushFPS.exe is missing. Extract the whole zip first, then run the installer from that folder.'
+if (-not (Test-Path (Join-Path $filesDir 'FrameWeave.exe'))) {
+    Fail 'FrameWeave-files\FrameWeave.exe is missing. Extract the whole zip first, then run the installer from that folder.'
 }
 
 if ([Environment]::OSVersion.Version.Major -lt 10 -or -not [Environment]::Is64BitOperatingSystem) {
-    Fail 'PushFPS needs 64-bit Windows 10 or 11 (Windows 11 recommended).'
+    Fail 'FrameWeave needs 64-bit Windows 10 or 11 (Windows 11 recommended).'
 }
 
 # Pick the runtime package that matches the graphics card.
@@ -215,7 +215,7 @@ $version = $UpstreamTag.TrimStart('v')
 $asset = "Veyra-$version-$Gpu-win64-portable.zip"
 $expected = $UpstreamSha256[$Gpu]
 $url = "https://github.com/$UpstreamRepo/releases/download/$UpstreamTag/$asset"
-$cacheDir = Join-Path $env:TEMP 'PushFPS-download'
+$cacheDir = Join-Path $env:TEMP 'FrameWeave-download'
 $zip = Join-Path $cacheDir $asset
 New-Item -ItemType Directory -Force $cacheDir | Out-Null
 
@@ -241,7 +241,7 @@ if (Test-Download) {
 Info "SHA-256 verified: $expected"
 
 Step 'Unpacking'
-$stage = Join-Path $env:TEMP ("PushFPS-stage-" + [guid]::NewGuid().ToString('N'))
+$stage = Join-Path $env:TEMP ("FrameWeave-stage-" + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Force $stage | Out-Null
 try {
     $tar = Join-Path $env:SystemRoot 'System32\tar.exe'
@@ -255,7 +255,7 @@ try {
     if (-not $exe) { Fail 'The runtime package has an unexpected layout (veyra_qml_ui.exe not found).' }
     $runtimeRoot = $exe.DirectoryName
 
-    # Licensing. By default PushFPS installs only what NVIDIA's licence allows to be passed on:
+    # Licensing. By default FrameWeave installs only what NVIDIA's licence allows to be passed on:
     #  - NVIDIA's runtime files only as NVIDIA ships them. A file that says it is from NVIDIA but is not
     #    an original with a valid NVIDIA signature (a community-modified DLSS build: Veyra's RTX 30 AI
     #    enhancement slot) is an "experimental extra".
@@ -286,7 +286,7 @@ try {
         elseif ($ExperimentalExtras -eq 'Ask' -and -not [Console]::IsInputRedirected) {
             Step 'Optional: Veyra''s experimental extras'
             foreach ($x in $extras) { Info "- $($x.Why)" }
-            Info 'They use NVIDIA files outside the terms NVIDIA licenses them under, so PushFPS leaves them out'
+            Info 'They use NVIDIA files outside the terms NVIDIA licenses them under, so FrameWeave leaves them out'
             Info 'unless you choose them. Everything else works without them.'
             $answer = Read-Host '    Install the experimental extras too? [y/N]'
             $keepExtras = $answer -match '^(y|yes|j|ja)$'
@@ -305,13 +305,13 @@ try {
     Step "Installing to $InstallDir"
     if ($WaitForPid -gt 0) {
         $old = Get-Process -Id $WaitForPid -ErrorAction SilentlyContinue
-        if ($old) { Info 'Waiting for PushFPS to close'; $old.WaitForExit(60000) | Out-Null }
+        if ($old) { Info 'Waiting for FrameWeave to close'; $old.WaitForExit(60000) | Out-Null }
     }
-    # Only a PushFPS running from this very folder: "...\PushFPS" is also how "...\PushFPS-test" begins.
+    # Only a FrameWeave running from this very folder: "...\FrameWeave" is also how "...\FrameWeave-test" begins.
     $installRoot = $InstallDir.TrimEnd('\') + '\'
-    $running = Get-Process -Name 'PushFPS' -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($installRoot, [StringComparison]::OrdinalIgnoreCase) }
-    if ($running) { Fail 'PushFPS is running. Close it, then run the installer again.' }
-    # A test build in its own folder takes a copy of the installed PushFPS's settings, once: never again when
+    $running = Get-Process -Name 'FrameWeave' -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($installRoot, [StringComparison]::OrdinalIgnoreCase) }
+    if ($running) { Fail 'FrameWeave is running. Close it, then run the installer again.' }
+    # A test build in its own folder takes a copy of the installed FrameWeave's settings, once: never again when
     # the test folder has settings of its own. Decided before anything is copied into the folder.
     $mainData = Join-Path $MainDir 'runtime_local\user-data-2.0.0'
     $ownData = Join-Path $InstallDir 'runtime_local\user-data-2.0.0'
@@ -358,27 +358,27 @@ try {
         }
         foreach ($name in $cameraKept) { Info "Not updated (in use by another program): virtualcam\$name. Close the programs that use a camera and run the installer again." }
     }
-    # One program, one name: PushFPS.exe replaces Veyra's launcher in this folder. The runtime package's own
-    # updater (since 2.2.1) updates Veyra, not PushFPS, which has its own signed updates: it is not kept.
+    # One program, one name: FrameWeave.exe replaces Veyra's launcher in this folder. The runtime package's own
+    # updater (since 2.2.1) updates Veyra, not FrameWeave, which has its own signed updates: it is not kept.
     foreach ($own in 'veyra_qml_ui.exe', 'veyra_update_worker.exe') {
         Remove-Item (Join-Path $InstallDir $own) -Force -ErrorAction SilentlyContinue
     }
     if ($copySettings) {
         & robocopy $mainData $ownData /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
-        if ($LASTEXITCODE -ge 8) { Info 'Your settings could not be copied: the test build starts with settings of its own.' } else { Info 'Copied the settings of your PushFPS for the test build.' }
+        if ($LASTEXITCODE -ge 8) { Info 'Your settings could not be copied: the test build starts with settings of its own.' } else { Info 'Copied the settings of your FrameWeave for the test build.' }
     }
     $versionLines = @(
-        "PushFPS $PushFpsVersion",
+        "FrameWeave $PushFpsVersion",
         "Runtime: $asset from https://github.com/$UpstreamRepo/releases/tag/$UpstreamTag",
         "Runtime SHA-256: $expected"
     ) + @($skipped | ForEach-Object { "Not installed: $_" })
-    Set-Content -Path (Join-Path $InstallDir 'PushFPS-VERSION.txt') -Value $versionLines -Encoding UTF8
+    Set-Content -Path (Join-Path $InstallDir 'FrameWeave-VERSION.txt') -Value $versionLines -Encoding UTF8
     # Merge earlier inventories for upgrades. Never inventory the destination:
     # it can also contain files belonging to its user or another program.
     Add-Payload ([IO.DirectoryInfo]::new($runtimeRoot)) '' 'virtualcam'
     [void]$owned.Remove('veyra_qml_ui.exe')
     Add-Payload ([IO.DirectoryInfo]::new($filesDir)) ''
-    [void]$owned.Add('PushFPS-VERSION.txt')
+    [void]$owned.Add('FrameWeave-VERSION.txt')
     $stagedManifest = Join-Path $InstallDir ([IO.Path]::GetRandomFileName())
     try {
         [IO.File]::WriteAllLines($stagedManifest, [string[]](@($manifestHeader) + @($owned)))
@@ -389,7 +389,7 @@ try {
     Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-$target = Join-Path $InstallDir 'PushFPS.exe'
+$target = Join-Path $InstallDir 'FrameWeave.exe'
 if (-not $NoShortcuts) {
     Step 'Adding Start menu and desktop shortcuts'
     $shell = New-Object -ComObject WScript.Shell
@@ -398,8 +398,8 @@ if (-not $NoShortcuts) {
         $s.TargetPath = $target
         $s.WorkingDirectory = $InstallDir
         $s.IconLocation = "$target,0"
-        $s.Description = 'PushFPS: console frame generation'
-        if ($TestBuild) { $s.Description = 'PushFPS test build' }
+        $s.Description = 'FrameWeave: console frame generation'
+        if ($TestBuild) { $s.Description = 'FrameWeave test build' }
         $s.Save()
     }
 }
@@ -414,10 +414,10 @@ try {
     }
 } catch { }
 
-Step 'PushFPS is installed.'
+Step 'FrameWeave is installed.'
 Info "Program: $target"
-Info "Remove it any time with: Install-PushFPS.cmd -Uninstall"
-if ($OwnFolder) { Info "Your own PushFPS in $MainDir was not changed. Start this test build with the shortcut ""PushFPS test""." }
+Info "Remove it any time with: Install-FrameWeave.cmd -Uninstall"
+if ($OwnFolder) { Info "Your own FrameWeave in $MainDir was not changed. Start this test build with the shortcut ""FrameWeave test""." }
 Info "The downloaded package stays in $cacheDir for quick reinstalls; you can delete it."
 
 if (-not $NoLaunch) { Start-Process -FilePath $target -WorkingDirectory $InstallDir }

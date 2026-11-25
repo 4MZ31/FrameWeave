@@ -238,7 +238,7 @@ QtObject {
     property bool anrInstalled: false
     property int anrInstallCalls: 0
     property string lastOpenedLink: ""
-    function pushAnrState() { return { installed: anrInstalled, folder: "C:/PushFPS/runtime/experimental/anr", name: "Apex Neural Rendering (ANR)", maker: "Apex Compute", url: "anr-url" } }
+    function pushAnrState() { return { installed: anrInstalled, folder: "C:/FrameWeave/runtime/experimental/anr", name: "Apex Neural Rendering (ANR)", maker: "Apex Compute", url: "anr-url" } }
     function pushInstallAnr() { anrInstallCalls++; anrInstalled = true; return true }
     function pushOpenAnrFolder() { return true }
     function pushLinkUrl(key) { return ["repo", "issues", "veyra", "anr", "anrReleases", "apex", "discord", "controlDocs"].indexOf(key) >= 0 ? "link-" + key : "" }
@@ -246,7 +246,7 @@ QtObject {
     function pushImportTextFile(title) { return importFileText }
     function pushExportTextFile(title, name, text) { lastExportText = text; return true }
     // PushFPS HUD detection, comparison clips and the wordmark (tst_push_hud.qml).
-    property string appName: "PushFPS"
+    property string appName: "FrameWeave"
     property bool recording: false
     property var hudState: ({running: false, done: false, failed: false, taken: 0, target: 0, regions: [], preview: "", tooStill: false, motion: 0})
     property int hudStarts: 0

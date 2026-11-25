@@ -900,7 +900,7 @@ Item {
         function test_missing_enhancement_files_say_how_to_get_them() {
             const row = control("pushfps-enhance-row")
             const before = veyra.effectCapabilities
-            const how = "Install-PushFPS.cmd"
+            const how = "Install-FrameWeave.cmd"
             // The card could run it, the files were left out at installation: the reason and the way to get them.
             veyra.effectCapabilities = ({ nr: { available: false, reason: "missing files", missingFiles: true } })
             verify(!quick.nrPossible)
@@ -926,11 +926,11 @@ Item {
             // Not an installed copy that can repeat its install (portable, or the extras are there): the old words.
             veyra.updates.canInstallExtras = false
             verify(!row.extrasOffered, "no button without an install to repeat")
-            verify(row.hint.indexOf("Install-PushFPS.cmd") > 0)
+            verify(row.hint.indexOf("Install-FrameWeave.cmd") > 0)
             veyra.updates.canInstallExtras = true
             verify(row.extrasOffered)
             verify(button.enabled)
-            verify(row.hint.indexOf("Install-PushFPS.cmd") < 0, "the button says it: " + row.hint)
+            verify(row.hint.indexOf("Install-FrameWeave.cmd") < 0, "the button says it: " + row.hint)
             button.clicked()
             compare(veyra.updates.extrasAsked, asked + 1)
             veyra.updates.installState = "downloading"

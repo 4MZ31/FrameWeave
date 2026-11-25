@@ -442,7 +442,7 @@ bool QmlPlayerBridge::takeScreenshot() {
     const QString folder = screenshotDirectory();
     if (!QDir().mkpath(folder)) { emit notice(tr("截图目录不可用：%1").arg(folder), true); return false; }
     // PushFPS: a file the user finds is named after PushFPS (it was "veyra-<time>.png" until 4.1.0).
-    const QString name = QStringLiteral("pushfps-%1.png")
+    const QString name = QStringLiteral("frameweave-%1.png")
                              .arg(QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss-zzz")));
     const QString path = QDir(folder).filePath(name);
     impl_->engine.saveFrame(wideOf(QDir::toNativeSeparators(path)));

@@ -15,7 +15,7 @@ DialogLayer {
     key: "frameinput"
     glyph: "import"
     title: qsTr("其他应用的画面")
-    sub: qsTr("游戏、模拟器、串流或视频软件可以通过 PushFPS 画面输入接口把画面直接送进来，然后像采集卡一样补帧、增强、录制和直播")
+    sub: qsTr("游戏、模拟器、串流或视频软件可以通过 FrameWeave 画面输入接口把画面直接送进来，然后像采集卡一样补帧、增强、录制和直播")
     dialogWidth: 640
 
     property var senders: []
@@ -54,7 +54,7 @@ DialogLayer {
             visible: input.senders.length === 0
             objectName: "frame-input-none"
             label: qsTr("没有找到正在发送画面的应用")
-            hint: qsTr("打开支持 PushFPS 画面输入的应用后，它会自动出现在这里")
+            hint: qsTr("打开支持 FrameWeave 画面输入的应用后，它会自动出现在这里")
         }
         VRow {
             label: qsTr("其他通道")

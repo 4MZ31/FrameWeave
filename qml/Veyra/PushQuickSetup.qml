@@ -940,7 +940,7 @@ VGroup {
             sub: quick.compareRecording ? qsTr("正在录制…") + " " + CompareClip.elapsed((veyra.recordingState || {}).seconds)
                  : veyra.recording ? qsTr("录制中不可用")
                  : (clipUntilStop ? qsTr("手动停止") : qsTr("%1 秒").arg(clipSeconds)) + " · " + clipLayout
-            tip: qsTr("录制前后对比视频：一边是主机原本的帧率，一边是 PushFPS。可选分屏、并排、竖屏（TikTok、Shorts、Reels）或滑动揭示，以及时长和画质")
+            tip: qsTr("录制前后对比视频：一边是主机原本的帧率，一边是 FrameWeave。可选分屏、并排、竖屏（TikTok、Shorts、Reels）或滑动揭示，以及时长和画质")
             // Opens with nothing playing too, so the layout and length can be set beforehand;
             // the dialog says a picture is needed and only its start button records.
             enabled: quick.compareRecording || !veyra.recording
@@ -959,7 +959,7 @@ VGroup {
             text: streamState.active ? qsTr("直播中") : qsTr("直播")
             sub: streamState.active ? (streamState.live ? qsTr("%1 个平台").arg((streamState.outputs || []).filter(o => o.state === "live").length) : qsTr("正在连接平台…"))
                              : qsTr("Twitch、YouTube、Kick、TikTok，可同时推")
-            tip: qsTr("把 PushFPS 的画面直接推到直播平台，可以同时推多个平台")
+            tip: qsTr("把 FrameWeave 的画面直接推到直播平台，可以同时推多个平台")
             onClicked: veyra.navigate("stream")
         }
     }
@@ -1113,9 +1113,9 @@ VGroup {
             visible: String(veyra.captureDeviceLabel || "").length > 0 && !noCard
             label: qsTr("采集卡")
             hint: !named ? ""
-                : card && card.status === "tested" ? qsTr("PushFPS 已实测")
+                : card && card.status === "tested" ? qsTr("原项目已实测")
                 : card && card.status === "veyra" ? qsTr("Veyra 作者已实测")
-                : card && card.status === "reported" ? qsTr("有 PushFPS 用户报告可用")
+                : card && card.status === "reported" ? qsTr("原项目用户报告可用")
                 : qsTr("欢迎在 GitHub 上分享这张卡的使用结果")
             hintBelow: true
             RowLayout {
@@ -1202,7 +1202,7 @@ VGroup {
         VRow {
             objectName: "pushfps-game-fps-row"
             label: qsTr("游戏帧率")
-            help: qsTr("游戏自己每秒画出多少张新画面。主机输出固定的 60 Hz 或 120 Hz 信号，30 FPS 的游戏在 60 Hz 下每张画面重复一次。PushFPS 去掉重复的画面，再根据游戏帧率决定要生成几帧")
+            help: qsTr("游戏自己每秒画出多少张新画面。主机输出固定的 60 Hz 或 120 Hz 信号，30 FPS 的游戏在 60 Hz 下每张画面重复一次。FrameWeave 去掉重复的画面，再根据游戏帧率决定要生成几帧")
             hint: qsTr("大多数主机游戏为 30 FPS；120 Hz 模式的游戏常为 40；性能模式选 60")
             VSeg {
                 objectName: "pushfps-game-fps"
@@ -1271,7 +1271,7 @@ VGroup {
             objectName: "pushfps-fg-backend-row"
             visible: quick.methodShown && !quick.proPage   // Professional mode's own list has the method
             label: qsTr("补帧方式")
-            hint: quick.amdMethodTip ? qsTr("看到重影或拖影？试试 PushFlow：PushFPS 自己的补帧，任何显卡都能用。「为我的电脑优化」会在你的显卡上实测每一种方式")
+            hint: quick.amdMethodTip ? qsTr("看到重影或拖影？试试 PushFlow：FrameWeave 自己的补帧，任何显卡都能用。「为我的电脑优化」会在你的显卡上实测每一种方式")
                                      : veyra.fgProviderText
             hintBelow: true
             VSelect {
@@ -1323,7 +1323,7 @@ VGroup {
             objectName: "pushfps-adaptive-row"
             visible: !quick.proPage   // Professional mode's own list has this switch
             label: qsTr("自适应倍率")
-            help: qsTr("很多主机游戏的帧率并不固定：30 FPS 的游戏会掉到 25，40 FPS 模式会在 35 到 45 之间波动。开启后 PushFPS 实时测量游戏帧率，每一对画面都选择最接近目标帧率的补帧倍率，类似 NVIDIA DLSS 4.5 的动态多帧生成")
+            help: qsTr("很多主机游戏的帧率并不固定：30 FPS 的游戏会掉到 25，40 FPS 模式会在 35 到 45 之间波动。开启后 FrameWeave 实时测量游戏帧率，每一对画面都选择最接近目标帧率的补帧倍率，类似 NVIDIA DLSS 4.5 的动态多帧生成")
             hint: !quick.fgPossible ? (Support.status(veyra, "frame-generation").reason || "")
                 : !quick.adaptivePossible ? qsTr("当前补帧方式只有 2×，无需自适应")
                 : quick.adaptive && quick.liveStats.fgMultiplierNow > 1 && quick.liveStats.contentFps > 0
@@ -1342,7 +1342,7 @@ VGroup {
             objectName: "pushfps-pacing-row"
             visible: !quick.proPage   // Professional mode's own list has this switch
             label: qsTr("帧节奏修复")
-            help: qsTr("很多锁 30 FPS 的主机游戏出帧并不均匀：有的画面停留 17 毫秒，有的停留 50 毫秒，即使帧率没错，画面也会顿挫。PushFPS 把每一帧放回均匀的位置再补帧，主机自己做不到这一点。每帧最多晚一次刷新显示")
+            help: qsTr("很多锁 30 FPS 的主机游戏出帧并不均匀：有的画面停留 17 毫秒，有的停留 50 毫秒，即使帧率没错，画面也会顿挫。FrameWeave 把每一帧放回均匀的位置再补帧，主机自己做不到这一点。每帧最多晚一次刷新显示")
             hint: !quick.ownTechPossible ? (quick.fgPossible ? qsTr("XeSS 自己控制节奏，不能同时使用") : (Support.status(veyra, "frame-generation").reason || ""))
                 : quick.pacingOn && quick.pacingShare >= 0
                   ? (quick.pacingShare > 0.05 ? qsTr("正在修复：%1% 的画面重新对齐").arg(Math.round(quick.pacingShare * 100))
@@ -1385,7 +1385,7 @@ VGroup {
             label: "G-SYNC"
             help: qsTr("屏幕支持可变刷新时，画面一准备好屏幕就刷新：不撕裂，每一帧显示的时间都一样长。NVIDIA 驱动要为每个程序单独允许窗口和全屏 G-SYNC")
             hint: quick.gsyncWanted || (quick.gsyncTools && quick.gsyncTools.busy) ? qsTr("正在检查驱动配置…")
-                : qsTr("屏幕支持可变刷新，但驱动还没有确认对 PushFPS 生效，画面可能不如录像流畅。点「一键设置」为 PushFPS 允许窗口和全屏 G-SYNC，然后重启 PushFPS")
+                : qsTr("屏幕支持可变刷新，但驱动还没有确认对 FrameWeave 生效，画面可能不如录像流畅。点「一键设置」为 FrameWeave 允许窗口和全屏 G-SYNC，然后重启 FrameWeave")
             hintBelow: true
             VButton {
                 objectName: "pushfps-gsync-fix"
@@ -1426,11 +1426,11 @@ VGroup {
             hint: quick.nrPossible ? qsTr("关闭时只做补帧。开启后每帧都经过 NVIDIA 神经渲染（DLSS 5 NR）增强，画面更清晰，但更耗 GPU")
                   : extrasOffered && busy ? (installing === "downloading"
                         ? qsTr("正在下载… %1%").arg(Math.round(Number(updates.installProgress || 0) * 100))
-                        : installing === "installing" ? qsTr("正在启动安装程序；PushFPS 会自动关闭，装好后重新打开")
+                        : installing === "installing" ? qsTr("正在启动安装程序；FrameWeave 会自动关闭，装好后重新打开")
                         : qsTr("正在验证签名…"))
-                  : extrasOffered ? qsTr("安装时没有选择它的组件。点「安装」即可补装：PushFPS 会关闭，下载并安装组件后重新打开，设置会保留")
+                  : extrasOffered ? qsTr("安装时没有选择它的组件。点「安装」即可补装：FrameWeave 会关闭，下载并安装组件后重新打开，设置会保留")
                   : (support.reason || "") + (support.missingFiles === true
-                        ? " " + qsTr("它属于安装时可选的实验性附加组件：重新运行 Install-PushFPS.cmd，询问时回答 y 即可，设置会保留") : "")
+                        ? " " + qsTr("它属于安装时可选的实验性附加组件：重新运行 Install-FrameWeave.cmd，询问时回答 y 即可，设置会保留") : "")
             hintBelow: !quick.nrPossible && support.missingFiles === true
             RowLayout {
                 spacing: 8
@@ -1688,7 +1688,7 @@ VGroup {
             objectName: "pushfps-crosshair-row"
             visible: !quick.proPage   // Professional mode's own list has this switch
             label: qsTr("准星保持")
-            help: qsTr("准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。")
+            help: qsTr("准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，FrameWeave 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。")
             readonly property int holdState: Number(quick.liveStats.crosshairHoldState || 0)
             // What the engine says it holds (pixels of the zone in the frame sampled last): the row says whether the
             // pass really runs and whether it has a crosshair, never only that the switch is on.
@@ -1717,7 +1717,7 @@ VGroup {
             objectName: "pushfps-subtitle-row"
             visible: !quick.proPage   // Professional mode's own list has this switch
             label: qsTr("字幕保持")
-            help: qsTr("字幕静止而背后的画面在动时（例如高速开车），补帧会把字幕当成背景一起拉动，文字会上下拖影、出现重影。开启后，PushFPS 在屏幕下方找出字幕，补帧前先把它从画面里取出，补帧后再原样放回。新的一行字幕出现时，需要先静止片刻才会被识别。不用字幕时不必开启。")
+            help: qsTr("字幕静止而背后的画面在动时（例如高速开车），补帧会把字幕当成背景一起拉动，文字会上下拖影、出现重影。开启后，FrameWeave 在屏幕下方找出字幕，补帧前先把它从画面里取出，补帧后再原样放回。新的一行字幕出现时，需要先静止片刻才会被识别。不用字幕时不必开启。")
             readonly property int holdState: Number(quick.liveStats.subtitleHoldState || 0)
             readonly property int holdPixels: Number(quick.liveStats.subtitleHoldPixels || 0)
             readonly property bool on: veyra.preferences.pushSubtitleHold === true
@@ -1763,7 +1763,7 @@ VGroup {
             objectName: "pushfps-hudlock-row"
             visible: !quick.proPage   // Professional mode's own list has this switch
             label: qsTr("实时 HUD 锁定")
-            help: qsTr("补出来的帧会把画面上静止的文字、准星和血条跟着背景一起拉动，看起来发糊或抖动。开启后 PushFPS 每一帧都会找出静止的 HUD 像素，补帧时直接用主机原来的像素，不需要画框")
+            help: qsTr("补出来的帧会把画面上静止的文字、准星和血条跟着背景一起拉动，看起来发糊或抖动。开启后 FrameWeave 每一帧都会找出静止的 HUD 像素，补帧时直接用主机原来的像素，不需要画框")
             // What actually runs (EnhanceGraph::hudLockState): a pass that could not start says so.
             readonly property int hudState: Number(quick.liveStats.hudLockState || 0)
             hint: !quick.ownTechPossible ? (quick.fgPossible ? qsTr("XeSS 自己生成画面，不能同时使用") : (Support.status(veyra, "frame-generation").reason || ""))
@@ -1854,7 +1854,7 @@ VGroup {
             readonly property bool atLimit: automatic && trim < 0 && applied >= 0 && applied < 0.5
             function set(value) { veyra.setPreference("pushAudioTrimMs", Math.max(-250, Math.min(250, Math.round(value)))) }
             label: qsTr("声音对口型")
-            help: qsTr("声音和嘴型对不上时在这里微调。自动同步会让声音延后画面在 PushFPS 里所花的时间，但它看不到采集卡交出画面比声音晚多少，也看不到显示器、电视音箱、回音壁或无线耳机之后再加的延迟。声音先到就往“晚”调，声音晚到就往“早”调；声音不能早于它到达的时间，所以“早”有上限。")
+            help: qsTr("声音和嘴型对不上时在这里微调。自动同步会让声音延后画面在 FrameWeave 里所花的时间，但它看不到采集卡交出画面比声音晚多少，也看不到显示器、电视音箱、回音壁或无线耳机之后再加的延迟。声音先到就往“晚”调，声音晚到就往“早”调；声音不能早于它到达的时间，所以“早”有上限。")
             hint: !automatic ? qsTr("声音同步设为手动或关闭时微调不起作用（音频设置里改回自动估算）")
                 : atLimit ? qsTr("已经最早：声音一到就播放，再往早调没有效果")
                 : trim === 0 ? (applied >= 0 ? qsTr("自动：声音延后 %1 毫秒，与画面对齐").arg(Math.round(applied)) : qsTr("自动：声音跟随画面的延迟"))
@@ -1908,7 +1908,7 @@ VGroup {
             objectName: "pushfps-auto-connect-row"
             visible: !quick.shortForm
             label: qsTr("启动时自动连接")
-            hint: qsTr("打开 PushFPS 时直接连接上次的采集卡（沿用上次的设置）或串流")
+            hint: qsTr("打开 FrameWeave 时直接连接上次的采集卡（沿用上次的设置）或串流")
             VSwitch {
                 objectName: "pushfps-auto-connect"
                 checked: !!veyra.preferences.autoResume

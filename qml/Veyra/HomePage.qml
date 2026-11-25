@@ -212,7 +212,7 @@ VPage {
         spacing: 0
             // Sunset City logo (scripts/brand/make_sunset.py; its glow is baked into the image, 70/1340
             // of the width on each side). The startup intro glides into exactly this rect.
-            Image {
+            Item {
                 id: sunsetLogo
                 objectName: "home-sunset-logo"
                 visible: root.sunset && !Theme.modern   // the new design has the wordmark in its title bar
@@ -221,10 +221,7 @@ VPage {
                 Layout.bottomMargin: -22
                 Layout.preferredWidth: Math.min(470, content.columnWidth)
                 Layout.preferredHeight: Layout.preferredWidth * 550 / 1340
-                source: "sunset-logo.png"
-                sourceSize.width: 940
-                fillMode: Image.PreserveAspectFit
-                smooth: true
+                PushWordmark { anchors.centerIn: parent; pixelSize: parent.width * 1200 / 1340 * 0.15 }
                 opacity: root.introHold ? 0 : 1
             }
             Item {

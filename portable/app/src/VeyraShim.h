@@ -33,7 +33,7 @@ public:
     bool captureRecovering() const { return false; }
     bool gameInputActive() const { return false; }
     QString sourceTitle() const;
-    QString appName() const { return QStringLiteral("PushFPS"); }
+    QString appName() const { return QStringLiteral("FrameWeave"); }
     QString version() const;
     QVariantMap preferences() const;
     bool reducedMotion() const;

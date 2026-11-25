@@ -34,7 +34,7 @@ std::unique_ptr<QSettings> Storage::open() {
 QString Storage::screenshotFolder() {
     const QString folder = portableFolder();
     QString dir = folder.isEmpty()
-                      ? QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + QStringLiteral("/PushFPS")
+                      ? QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + QStringLiteral("/FrameWeave")
                       : folder + QStringLiteral("/Screenshots");
     QDir().mkpath(dir);
     return dir;

@@ -129,7 +129,7 @@ DialogLayer {
             veyra.pushCancelHudDetection()
             poll.stop()
             hud.phase = "idle"
-            if (watching) hud.say(qsTr("没有收到画面。请确认画面正在播放，并且 PushFPS 窗口没有最小化"), true)
+            if (watching) hud.say(qsTr("没有收到画面。请确认画面正在播放，并且 FrameWeave 窗口没有最小化"), true)
         }
     }
     function finishDetection(s) {

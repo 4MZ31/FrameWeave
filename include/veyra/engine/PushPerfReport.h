@@ -148,7 +148,7 @@ inline const char* evidence(const Facts& f) {
     if (f.softwareRenderer) return "software renderer: correctness only, timings say nothing about a graphics card";
     if (!f.playing) return "nothing was playing: hardware and settings only";
     if (!f.ratesReady) return "live session, rates not settled yet";
-    return "live session, PushFPS's own software timing";
+    return "live session, FrameWeave's own software timing";
 }
 
 // The report as JSON text (two-space indent, fixed key order).
@@ -156,7 +156,7 @@ inline std::string json(const Facts& f) {
     using namespace detail;
     const std::string gpu = cardName(f.gpu);
     std::string o = "{\n";
-    o += "  \"report\": \"pushfps-performance\",\n";
+    o += "  \"report\": \"frameweave-performance\",\n";
     o += "  \"schema\": " + std::to_string(kSchema) + ",\n";
     o += "  \"evidence\": \"" + std::string(evidence(f)) + "\",\n";
     o += "  \"version\": " + quoted(buildText(f.version)) + ",\n";
@@ -220,7 +220,7 @@ inline std::string json(const Facts& f) {
     o += "    \"pushFlowMemoryApart\": " + (f.pushFlowMemoryPairs && word(f.pushFlowMemory) == "on" ? "[" + std::to_string(f.pushFlowMemoryPairs) + ", " + number(f.pushFlowMemoryApart, 2) + "]"
                                                                                                     : std::string("null")) + "\n";
     o += "  },\n";
-    o += "  \"notes\": \"Rates are frames PushFPS presented in the last second. softwareLatency is a frame's arrival in PushFPS to its Present call: "
+    o += "  \"notes\": \"Rates are frames FrameWeave presented in the last second. softwareLatency is a frame's arrival in FrameWeave to its Present call: "
          "not button to screen, and it leaves out the capture card, the console and the display. frameGenerationHealth: 0 fine, 1 nothing to add at this "
          "target or on this screen, 2 the method is not running, 3 the card does not keep up, 4 nothing generated is shown. "
          "display.presentToScreen is the Present call to the refresh that showed the frame, as Windows reports it (no light is measured); "

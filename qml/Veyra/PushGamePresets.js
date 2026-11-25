@@ -8,7 +8,7 @@
 // captured picture (0..1, left/top/right/bottom).
 .pragma library
 
-var kCodePrefix = "PUSHFPS1:"
+var kCodePrefix = "FRAMEWEAVE1:"
 var kMaxRegions = 4
 var kMaxName = 40
 
@@ -160,8 +160,9 @@ function decode(text, atob) {
     var t = String(text || "").trim()
     if (t.length === 0 || t.length > 20000) return null
     try {
-        if (t.indexOf(kCodePrefix) === 0)
-            return sanitize(JSON.parse(decodeURIComponent(escape(atob(t.slice(kCodePrefix.length).replace(/\s+/g, ""))))))
+        const prefix = t.startsWith("PUSHFPS1:") ? "PUSHFPS1:" : kCodePrefix
+        if (t.startsWith(prefix))
+            return sanitize(JSON.parse(decodeURIComponent(escape(atob(t.slice(prefix.length).replace(/\s+/g, ""))))))
         return sanitize(JSON.parse(t))
     } catch (e) {
         return null

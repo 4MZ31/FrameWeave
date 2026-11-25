@@ -521,7 +521,7 @@
 520|Oryginał wejścia
 521|Zakres wejścia
 522|Wejście · przepływ optyczny
-523|Zainstaluj PushFPS Virtual Speaker
+523|Zainstaluj FrameWeave Virtual Speaker
 524|Zainstalowano
 525|Zainstaluj…
 526|Natychmiastowa powtórka
@@ -796,7 +796,7 @@
 795|Światła parametryczne
 796|Jasne parametryczne
 797|Cienie parametryczne
-798|Wklej kod PUSHFPS1:
+798|Wklej kod FRAMEWEAVE1:
 799|Wklej ustawienia kolorów
 800|Strona Patreon
 801|Patreon, WeChat i Alipay
@@ -845,11 +845,11 @@
 844|Chroń HUD
 845|Wyrazistość
 846|Fioletowy
-847|PushFPS Virtual Speaker
-848|Preset kolorów PushFPS (*.vpcolor)
-849|Preset gry PushFPS (*.pushfps)
-850|Zieleń PushFPS
-851|Preset PushFPS (*.vpreset)
+847|FrameWeave Virtual Speaker
+848|Preset kolorów FrameWeave (*.vpcolor)
+849|Preset gry FrameWeave (*.frameweave)
+850|Zieleń FrameWeave
+851|Preset FrameWeave (*.vpreset)
 852|Jakość
 853|Kolejka
 854|Szybkie presety
@@ -1090,7 +1090,7 @@
 1089|Stabilność czasowa
 1090|Przetestowana
 1091|Przetestowana przez twórcę Veyry
-1092|Przetestowana z PushFPS
+1092|Przetestowana z FrameWeave
 1093|Tekstura
 1094|Tekstura zachowana
 1095|Nie zastosowano obszarów HUD
@@ -1203,11 +1203,11 @@
 1202|=
 1203|ANR FG · Apex Compute · eksperymentalne
 1204|Pakiet ANR (*.zip nvngx_dlssg.dll);;Wszystkie pliki (*)
-1205|ANR zainstalowano (%1 plików). Uruchom ponownie PushFPS i wybierz ANR jako metodę generowania klatek
-1206|Generowanie klatek ANR tworzy Apex Compute; działa na kartach GTX serii 16 i nowszych. Nie może być dołączone do PushFPS: pobierz pakiet anr-fg z GitHuba Apex i wybierz go tutaj
+1205|ANR zainstalowano (%1 plików). Uruchom ponownie FrameWeave i wybierz ANR jako metodę generowania klatek
+1206|Generowanie klatek ANR tworzy Apex Compute; działa na kartach GTX serii 16 i nowszych. Nie może być dołączone do FrameWeave: pobierz pakiet anr-fg z GitHuba Apex i wybierz go tutaj
 1207|Generowanie klatek ANR to Apex Neural Rendering od Apex Compute
 1208|Generowanie klatek ANR, autor: Apex Compute
-1209|Podstawa PushFPS, autor: Likely7
+1209|Podstawa FrameWeave, autor: Likely7
 1210|Pobierz ANR
 1211|Zainstaluj z pobranego pliku…
 1212|Najpierw zainstaluj ANR od Apex w Ustawienia → Składniki i licencje
@@ -1221,7 +1221,7 @@
 1220|Ten plik nie zawiera nvngx_dlssg.dll od ANR. Wybierz pakiet anr-fg od Apex
 1221|Wybierz pakiet ANR pobrany od Apex Compute
 1222|Gra działająca w %1 FPS będzie działać w %2 FPS (generowanie klatek %3×)
-1223|Działa %1. Podłącza się do interfejsu i do wideo, co może zawiesić PushFPS. Uruchom ponownie PushFPS, aby włączyć zgodne rysowanie: interfejs będzie rysowany programowo, a %1 obejmie tylko wideo. Uruchomić ponownie teraz? Odtwarzanie lub strumieniowanie zostanie przerwane.
+1223|Działa %1. Podłącza się do interfejsu i do wideo, co może zawiesić FrameWeave. Uruchom ponownie FrameWeave, aby włączyć zgodne rysowanie: interfejs będzie rysowany programowo, a %1 obejmie tylko wideo. Uruchomić ponownie teraz? Odtwarzanie lub strumieniowanie zostanie przerwane.
 1224|1% low tylko %1 FPS, za mało stabilnie
 1225|Zalecane ustawienia dla gier takich jak GTA VI, z ostrą minimapą i HUD
 1226|Postaw Switch 2 w stacji dokującej z 60 Hz. Gry nie mają HDCP, więc są przechwytywane bez zmian.
@@ -1281,7 +1281,7 @@
 1280|To oprogramowanie jest darmowe i otwarte. Jeśli Ci pomaga, możesz →
 1281|Wykryto %1
 1282|Wykryto usługę nakładki RTSS
-1283|Usługa nakładki RTSS działa. Uruchom ponownie PushFPS, aby włączyć zgodne rysowanie i pokazywać OSD tylko na wideo. Uruchomić ponownie teraz? Odtwarzanie lub strumieniowanie zostanie przerwane.
+1283|Usługa nakładki RTSS działa. Uruchom ponownie FrameWeave, aby włączyć zgodne rysowanie i pokazywać OSD tylko na wideo. Uruchomić ponownie teraz? Odtwarzanie lub strumieniowanie zostanie przerwane.
 1284|Zalecane ustawienia dla każdej gry, z ostrą minimapą i HUD (te obszary nie dostają generowania klatek ani efektów)
 1285|Żadna kombinacja nie utrzymała celu stabilnie, więc Twoje ustawienia zostały zachowane. Spróbuj niższego celu lub wyłącz inne efekty i uruchom ponownie
 1286|Nie zmieniaj źródła w trakcie; możesz dalej grać
@@ -1289,10 +1289,10 @@
 1288|Obraz się zatrzymał. Optymalizację anulowano i przywrócono Twoje ustawienia
 1289|Wydobywa kroki i strzały, do gier rywalizacyjnych
 1290|Zielone obszary zachowują obraz konsoli bez zmian, bez generowania klatek, więc tekst i minimapa pozostają ostre
-1291|Wyświetl grę przez kartę przechwytującą i zacznij. PushFPS testuje każdą dostępną kombinację na Twoim prawdziwym obrazie (około 10 sekund każda, łącznie 1–2 minuty), mierzy prawdziwą liczbę klatek, 1% low i opóźnienie, i wybiera najlepszą.
+1291|Wyświetl grę przez kartę przechwytującą i zacznij. FrameWeave testuje każdą dostępną kombinację na Twoim prawdziwym obrazie (około 10 sekund każda, łącznie 1–2 minuty), mierzy prawdziwą liczbę klatek, 1% low i opóźnienie, i wybiera najlepszą.
 1292|Wyścigi · prędkościomierz w prawym dolnym rogu
 1293|Nikt jeszcze nie zgłosił tej karty; podziel się wynikami na GitHubie
-1294|To nie jest prawidłowy kod presetu PushFPS
+1294|To nie jest prawidłowy kod presetu FrameWeave
 1295|Wbudowany preset już używa tej nazwy
 1296|Ten PC nie obsłuży tej kombinacji
 1297|Karta przechwytująca utraciła %1% klatek
@@ -1335,22 +1335,22 @@ zh:亮|Światło
 1332|Zastosowano: %1 obszary zachowują piksele konsoli
 1333|Pomoc
 1334|Bieżący format obrazu nie obsługuje automatycznego wykrywania HUD
-1335|Nagraj 15-sekundowe wideo obok siebie: po lewej oryginalna liczba klatek konsoli, po prawej PushFPS
+1335|Nagraj 15-sekundowe wideo obok siebie: po lewej oryginalna liczba klatek konsoli, po prawej FrameWeave
 1336|Znaleziono obszary HUD: %1. Sprawdź zielone ramki, w razie potrzeby przeciągnij je, a potem kliknij Zastosuj
 1337|Nie można odczytać obrazu; wykrywanie HUD zatrzymane
 1338|Za mało pamięci wideo, aby wykryć HUD
 1339|Maksymalnie 4 ramki; najpierw usuń jedną
-1340|Nagrywanie klipu porównawczego (%1 s): po lewej oryginalna liczba klatek konsoli, po prawej PushFPS
+1340|Nagrywanie klipu porównawczego (%1 s): po lewej oryginalna liczba klatek konsoli, po prawej FrameWeave
 1341|Pobieranie obrazu…
 1342|Obserwowanie obrazu %1 / %2
 1343|Obserwuję obraz przez około 5 sekund. Obróć kamerę albo chodź w grze
 1344|Największa liczba klatek wyświetlanych na sekundę. Przy generowaniu klatek utrzymuje wyjście na docelowej liczbie klatek, więc ruch jest równiejszy
 1345|Nie znaleziono HUD. Możesz przeciągnąć po obrazie, aby narysować ramki ręcznie
-1346|Nie dotarł żaden obraz. Sprawdź, czy obraz jest odtwarzany, a okno PushFPS nie jest zminimalizowane
+1346|Nie dotarł żaden obraz. Sprawdź, czy obraz jest odtwarzany, a okno FrameWeave nie jest zminimalizowane
 1347|Nic nie jest odtwarzane, więc nie można wykryć HUD
 1348|Brak obrazu. Podłącz kartę przechwytującą i zacznij odtwarzanie, aby dopasować ramki na obrazie własnej gry
 1349|Dodaj ramkę
-1350|Ile nowych obrazów sama gra rysuje na sekundę. Konsola zawsze wysyła sygnał 60 Hz, więc gra w 30 FPS pokazuje każdy obraz dwa razy. PushFPS na tej podstawie decyduje, ile klatek wygenerować
+1350|Ile nowych obrazów sama gra rysuje na sekundę. Konsola zawsze wysyła sygnał 60 Hz, więc gra w 30 FPS pokazuje każdy obraz dwa razy. FrameWeave na tej podstawie decyduje, ile klatek wygenerować
 1351|AI usuwa bloki i szum pozostawione przez kompresję karty przechwytującej, więc szczegóły są wyraźniejsze. Niezależne od generowania klatek, można je włączać osobno
 1352|Obraz prawie się nie ruszał, więc nie dało się odróżnić HUD. Obróć kamerę lub porusz się w grze i spróbuj ponownie
 1353|Bitrate to ilość danych na sekundę wideo. Sterowanie bitrate decyduje, jak koder ją rozdziela: więcej danych to lepsza jakość i większy plik
@@ -1507,20 +1507,20 @@ zh:这一帧里没有读到文字。试试只读画面的一部分，或换一�
 zh:PushFlow 的模型每生成一帧，都要把前后两个真实帧各编码一遍。开启后，每个真实帧只编码一次，结果留给下一对画面和同一对里的其他时刻使用，所以 3× 和 4× 省得更多。画面应当和不开启时一样：启动时会在你的显卡上和完整模型对比，不一致就不使用。能省多少取决于你的显卡|Dla każdej stworzonej przez nią ramki model PushFlow koduje ponownie obie prawdziwe ramki. Z tym na, każda prawdziwa ramka jest zakodowany raz i wynik jest przechowywany dla następnej pary i dla innych momentów tej samej pary, więc 3 × i 4 × zapisać najbardziej. Obraz powinien być taki sam jak bez niego: na początku jest porównywany z całym modelem na karcie graficznej i nie jest używany, jeśli się różnią. Ile oszczędza, zależy od karty graficznej
 zh:开启 Predict 后，屏幕上显示的是预测帧。录制、即时回放和直播记录的是屏幕上的画面，所以也会包含这些预测帧。Dual 让它们改用真实的画面：真实帧本身，以及同一对真实帧之间真实的中间帧（Predict 已经算出了它，几乎不增加开销），时间上比屏幕晚一帧。你看到的画面和延迟都不变。只在 Predict 正在运行并且倍率是 2X 时起作用；对比短片仍然记录屏幕上的画面；录下的声音会比画面早一帧（30 FPS 时约 33 毫秒）|Przy włączonym Predict, ekran pokazuje ramy prognozowania. Nagrania, natychmiastowa powtórka i strumienie zapisują to, co jest na ekranie, więc zawierają te prognozy również. Dual daje im zamiast tego prawdziwy obraz: prawdziwe ramki same, i prawdziwe in- między ramą każdej pary prawdziwych ramki (Predict już to wypracował, więc kosztuje prawie nic), jedna rama za ekranem. To co widzisz i jego opóźnienie nie zmienia się. Działa tylko w czasie, gdy Predict działa na 2X; klipy porównawcze nadal rejestrują to, co jest na ekranie; nagrany dźwięk jest jedną klatką przed obrazem (około 33 ms przy 30 FPS)
 zh:普通补帧要等下一个真实帧到达，才能在两帧之间生成画面，所以真实画面会晚大约一帧才显示。Predict 不等：最新的真实帧处理完就显示，它之后的画面由已经到达的两帧预测出来。延迟更低，但预测可能出错：物体突然改变方向或新物体出现时，预测帧会和实际不同，直到下一个真实帧纠正。不可信的位置保持最新真实帧不动，不会凭空生成画面。只用于采集卡、串流等实时画面，不用于视频文件和导出。延迟降低多少、画面是否可以接受，取决于你的显卡和游戏，由你来判断|Zwyczajne generowanie ramki musi czekać na następną prawdziwą ramkę, zanim może zrobić ramki pomiędzy, więc prawdziwy obraz jest pokazany o jednej ramce późno. Predict nie czeka: najnowsza prawdziwa klatka jest pokazywana zaraz po jej przetworzeniu, a ramki po niej są prognozowane z dwóch prawdziwych klatek, które już dotarły. Opóźnienie jest niższe, ale prognoza może się mylić: kiedy coś zmienia kierunek nagle lub pojawia się coś nowego, rama prognozowana różni się od tego, co naprawdę się dzieje, aż do momentu, gdy następna prawdziwa framuga go naprawi. Tam, gdzie ruch nie jest zaufany, pozostaje najnowsza prawdziwa rama; nic nie jest wymyślone. Tylko dla zdjęć na żywo, takich jak karta przechwytywania lub strumień, nie dla plików wideo lub eksportu. Ile opóźnienia oszczędza i czy obraz jest do przyjęcia, zależy od karty graficznej i gry: oceń to samodzielnie
-zh:Response 的设想是：在主机自己的画面到达之前，先根据右摇杆把画面转动一点。第一步只测量，不改动画面：画面自身的运动是否跟随右摇杆、有多强、晚多少。它只观察两样已经在 PushFPS 里的东西：PushFPS 自己发给主机的右摇杆（目前只有 PS5 Remote Play；接在主机上的手柄看不到），以及 Predict 运行时 PushFlow 算出的画面整体运动。不读取任何按键，不写入磁盘，不发送到任何地方；关闭开关或更换画面来源时全部清除。玩几分钟、多转动视角，这里就会显示结果，性能报告里也有|Ideą Response jest obrócenie obrazu trochę z prawej patyczki, zanim konsola przybędzie. Pierwszy krok tylko mierzy i niczego nie zmienia w obrazie: czy własny ruch obrazu podąża za właściwym patykiem, jak mocno i jak późno? Zwraca uwagę tylko na dwie rzeczy, które są już wewnątrz PushFPS: prawy patyk PushFPS sam wysyła do konsoli (tylko PS5 Remote Play na razie; kontroler podłączony do konsoli nie jest widoczny), a cały ruch obrazu, że PushFlow działa podczas Predict działa. Żaden przycisk nie jest odczytywany, nic nie jest zapisywane na dysk, nic nie jest wysyłane nigdzie, i wszystko jest wyczyszczone, gdy wyłącznik jest wyłączony lub źródło zmienia. Zagraj przez kilka minut i obróć aparat dużo: wynik pojawia się tutaj i w raporcie wydajności
+zh:Response 的设想是：在主机自己的画面到达之前，先根据右摇杆把画面转动一点。第一步只测量，不改动画面：画面自身的运动是否跟随右摇杆、有多强、晚多少。它只观察两样已经在 FrameWeave 里的东西：FrameWeave 自己发给主机的右摇杆（目前只有 PS5 Remote Play；接在主机上的手柄看不到），以及 Predict 运行时 PushFlow 算出的画面整体运动。不读取任何按键，不写入磁盘，不发送到任何地方；关闭开关或更换画面来源时全部清除。玩几分钟、多转动视角，这里就会显示结果，性能报告里也有|Ideą Response jest obrócenie obrazu trochę z prawej patyczki, zanim konsola przybędzie. Pierwszy krok tylko mierzy i niczego nie zmienia w obrazie: czy własny ruch obrazu podąża za właściwym patykiem, jak mocno i jak późno? Zwraca uwagę tylko na dwie rzeczy, które są już wewnątrz FrameWeave: prawy patyk FrameWeave sam wysyła do konsoli (tylko PS5 Remote Play na razie; kontroler podłączony do konsoli nie jest widoczny), a cały ruch obrazu, że PushFlow działa podczas Predict działa. Żaden przycisk nie jest odczytywany, nic nie jest zapisywane na dysk, nic nie jest wysyłane nigdzie, i wszystko jest wyczyszczone, gdy wyłącznik jest wyłączony lub źródło zmienia. Zagraj przez kilka minut i obróć aparat dużo: wynik pojawia się tutaj i w raporcie wydajności
 zh:愿意的话请复制结果发给我们：真实显卡的数据都来自大家|Jeśli chcesz, skopiuj wynik i wyślij go nam: wyniki prawdziwych kart graficznych pochodzą wyłącznie od użytkowników
 zh:欢迎在 GitHub 上分享这张卡的使用结果|Podziel się na GitHubie, jak ta karta działa u Ciebie
 zh:本机控制保存的令牌无法读取，已生成新的令牌：请在设置里重新复制|Nie udało się odczytać zapisanego tokenu sterowania lokalnego, więc utworzono nowy: skopiuj go ponownie w Ustawieniach
 zh:FSR 4 ML 需要支持的 RX 9000 和驱动，不可用时自动改用 FSR 3.1|FSR 4 ML potrzebuje obsługiwanego RX 9000 oraz sterownika i wyłączników do FSR 3.1, jeżeli jest niedostępny
 zh:60→30：每两帧保留一帧，游戏不足30帧时跳过重复画面。自动去除：检测并跳过重复画面。|60→30 zachowuje co drugą klatkę i pomija powtórzone obrazy, gdy gra spada poniżej 30 FPS. Automatyczne usuwanie wykrywa powtórzone obrazy i je pomija.
-zh:欢迎使用 PushFPS|Witamy w PushFPS
+zh:欢迎使用 FrameWeave|Witamy w FrameWeave
 zh:用一分钟看一遍：接上采集卡，选好帧率，开始游戏。按 Esc 可以随时退出，以后在首页还能再看。|Minuta, żeby zobaczyć, jak to działa: podłącz kartę przechwytującą, wybierz liczbę klatek i graj. Esc zamyka przewodnik w dowolnej chwili, a na stronie startowej można otworzyć go ponownie.
 zh:主机的 HDMI 接到采集卡，采集卡接到这台电脑。点「采集卡」打开采集设置。|HDMI konsoli podłącz do karty przechwytującej, a kartę do tego komputera. Kliknij „Karta przechwytująca”, aby otworzyć jej ustawienia.
 zh:选好设备和格式后，在这里连接。画面出现后，剩下的都在首页的「快速设置」里。|Po wybraniu urządzenia i formatu połącz się tutaj. Gdy pojawi się obraz, cała reszta jest w sekcji Szybka konfiguracja na stronie startowej.
-zh:告诉 PushFPS 你玩的是什么|Powiedz PushFPS, w co grasz
+zh:告诉 FrameWeave 你玩的是什么|Powiedz FrameWeave, w co grasz
 zh:选你的主机和游戏本身的帧率。多数主机游戏是 30 FPS；选对了，重复的画面才会被去掉，补帧才干净。|Wybierz konsolę i liczbę klatek, z jaką działa sama gra. Większość gier konsolowych działa w 30 FPS. Przy właściwym ustawieniu powtórzone obrazy są usuwane, a generowanie klatek pozostaje czyste.
 zh:选择目标帧率|Wybierz docelową liczbę klatek
-zh:60、120，或者跟随显示器。PushFPS 在游戏的每两帧之间生成新的画面，补到这个帧率。|60, 120 albo tyle, ile wyświetla ekran. PushFPS tworzy nowe klatki między każdymi dwiema klatkami gry, aby osiągnąć tę wartość.
+zh:60、120，或者跟随显示器。FrameWeave 在游戏的每两帧之间生成新的画面，补到这个帧率。|60, 120 albo tyle, ile wyświetla ekran. FrameWeave tworzy nowe klatki między każdymi dwiema klatkami gry, aby osiągnąć tę wartość.
 zh:想要更清晰、更有层次的画面，就打开它。风格和处理尺寸可以在下面调，不喜欢随时关掉。|Włącz, aby uzyskać wyraźniejszy obraz z większą głębią. Wygląd i rozmiar roboczy ustawisz tuż poniżej, a wyłączyć można je w każdej chwili.
 zh:常用工具都在这一排|Narzędzia są w tym rzędzie
 zh:「为我的电脑优化」实测这台电脑并选出合适的设置；「检查我的设置」找出影响画质的地方；「游戏预设」让小地图和 HUD 保持清晰。这里还能录对比片段和开播。|„Optymalizuj pod mój PC” mierzy ten komputer i dobiera pasujące ustawienia. „Sprawdź moje ustawienia” znajduje to, co obniża jakość obrazu. „Presety gier” utrzymują ostrość minimapy i HUD-u. Stąd uruchomisz też klipy porównawcze i transmisję na żywo.
@@ -1552,7 +1552,7 @@ zh:旧版|Klasyczny
 zh:新版把导航、预览和全部快速设置放在同一个窗口里；旧版是 4.2 及更早版本的界面。两种设计的功能完全相同|Nowy łączy nawigację, podgląd i całą szybką konfigurację w jednym oknie. Klasyczny to interfejs wersji 4.2 i wcześniejszych. Oba wyglądy mają dokładnie te same funkcje
 zh:更多外观设置|Więcej ustawień wyglądu
 zh:语言、启动方式和窗口选项在「设置」里|Język, uruchamianie i opcje okna są w Ustawieniach
-zh:打开 PushFPS 时播放约 2 秒的开场动画，单击或按任意键可跳过|Odtwarza 2-sekundowe intro przy otwieraniu PushFPS; kliknij lub naciśnij dowolny klawisz, aby pominąć
+zh:打开 FrameWeave 时播放约 2 秒的开场动画，单击或按任意键可跳过|Odtwarza 2-sekundowe intro przy otwieraniu FrameWeave; kliknij lub naciśnij dowolny klawisz, aby pominąć
 zh:展开导航栏|Rozwiń nawigację
 zh:收起导航栏|Zwiń nawigację do ikon
 zh:显示右侧设置栏|Pokaż panel ustawień po prawej
@@ -1562,7 +1562,7 @@ zh:连接采集卡后打开专业模式|Otwórz tryb Pro po połączeniu karty p
 zh:关闭时留在首页，画面显示在首页中间|Wyłączone: zostajesz na stronie Start, gdzie obraz jest odtwarzany pośrodku
 zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Pełny ekran po połączeniu" jest włączony: połączenie zawsze otwiera tryb Pro na pełnym ekranie
 zh:准星保持|Utrzymanie celownika
-zh:准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。|Gdy celownik stoi w miejscu, a obraz za nim się porusza, generowanie klatek przesuwa celownik razem z tłem: znika on ze swojego miejsca, a po obu stronach pojawia się jego bledsza kopia. Po włączeniu PushFPS znajduje celownik na środku ekranu, wyjmuje go z obrazu przed generowaniem klatek i potem wstawia z powrotem bez zmian. Celownik, który dopiero się pojawił albo którego linie jeszcze się rozsuwają lub zsuwają, musi chwilę postać nieruchomo, zanim zostanie rozpoznany.
+zh:准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，FrameWeave 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。|Gdy celownik stoi w miejscu, a obraz za nim się porusza, generowanie klatek przesuwa celownik razem z tłem: znika on ze swojego miejsca, a po obu stronach pojawia się jego bledsza kopia. Po włączeniu FrameWeave znajduje celownik na środku ekranu, wyjmuje go z obrazu przed generowaniem klatek i potem wstawia z powrotem bez zmian. Celownik, który dopiero się pojawił albo którego linie jeszcze się rozsuwają lub zsuwają, musi chwilę postać nieruchomo, zanim zostanie rozpoznany.
 zh:已关闭：画面移动时准星可能闪烁或出现重影|Wyłączone: gdy obraz się porusza, celownik może migotać lub zostawiać powidoki
 zh:已开启：准星不交给补帧，补出的每一帧里都原样放回|Włączone: celownik nie trafia do generowania klatek i jest wstawiany bez zmian do każdej wygenerowanej klatki
 zh:当前补帧方式暂不支持：可用于 NVIDIA VFG、AMD FRC 和 PushFlow|Jeszcze nie z tą metodą generowania klatek: działa z NVIDIA VFG, AMD FRC i PushFlow
@@ -1587,7 +1587,7 @@ zh:停止播放并测试|Zatrzymaj odtwarzanie i testuj
 zh:已测试：半精度在这块显卡上并不更快，继续使用全精度|Przetestowano: połowiczna precyzja nie jest szybsza na tej karcie graficznej, więc nadal używana jest pełna precyzja
 zh:先测试这块显卡；通过后才能开启。测试需要先停止播放|Najpierw przetestuj tę kartę graficzną; po zaliczeniu testu można to włączyć. Test wymaga wcześniejszego zatrzymania odtwarzania
 zh:FSR 的运动估算可以更省|Szacowanie ruchu dla FSR może być lżejsze
-zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|Zanim FSR wygeneruje klatkę, PushFPS szacuje ruch na podstawie obrazu. Lżejsze szacowanie mniej obciąża kartę graficzną w każdej klatce, dzięki czemu karty ze średniej i niższej półki łatwiej nadążają; krawędzie obiektów stają się nieco bardziej zgrubne. Cofnij, jeśli obraz wygląda gorzej
+zh:FSR 补帧前，FrameWeave 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|Zanim FSR wygeneruje klatkę, FrameWeave szacuje ruch na podstawie obrazu. Lżejsze szacowanie mniej obciąża kartę graficzną w każdej klatce, dzięki czemu karty ze średniej i niższej półki łatwiej nadążają; krawędzie obiektów stają się nieco bardziej zgrubne. Cofnij, jeśli obraz wygląda gorzej
 zh:改用更省的运动估算|Użyj lżejszego szacowania ruchu
 zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|Przepustowość, o którą prosi się PS5; konsola nie gwarantuje jej osiągnięcia. W sieci przewodowej 30 Mb/s lub więcej daje ostrzejszy obraz; zmniejsz, jeśli obraz się zacina
 zh:有画面播放时开始放大|Skalowanie zacznie się, gdy będzie odtwarzany obraz
@@ -1598,7 +1598,7 @@ zh:放大到屏幕分辨率|Skaluje do rozdzielczości ekranu
 zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 powiększa bez wyostrzania; 50 to domyślna wartość NVIDIA. NIS powiększa do 2× w jednym przebiegu; większe współczynniki kończy zwykłe skalowanie.
 zh:帧节奏修复|Korekta rytmu klatek
 zh:实时 HUD 锁定|Blokada HUD na żywo
-zh:Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 PushFPS 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。|Wersja zapoznawcza dla Linuksa i macOS: generowanie klatek, Korekta rytmu klatek i Blokada HUD na żywo to własne technologie PushFPS, które nie wymagają komponentów NVIDIA, AMD ani Intel.
+zh:Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 FrameWeave 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。|Wersja zapoznawcza dla Linuksa i macOS: generowanie klatek, Korekta rytmu klatek i Blokada HUD na żywo to własne technologie FrameWeave, które nie wymagają komponentów NVIDIA, AMD ani Intel.
 zh:一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置|Włącza naraz wszystkie ustawienia niskiego opóźnienia, które nie kosztują jakości obrazu: karta graficzna kolejkuje tylko jedną klatkę (NVIDIA Low Latency na kartach NVIDIA), pełny ekran po połączeniu (omija kompozytor pulpitu, o jedno odświeżenie mniej czekania) i synchronizacja ze zmiennym odświeżaniem na ekranach G-SYNC/FreeSync (bez rozrywania i pomijanych klatek). Generowanie klatek, ulepszanie AI, blokada HUD i Korekta rytmu klatek pozostają bez zmian. Wyłączenie przywraca poprzednie ustawienia
 zh:已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置|Włączone: ruch jest wyznaczany szybkim sposobem, a Korekta rytmu klatek jest wyłączona. Wyłączenie przywraca poprzednie ustawienia
 zh:帧节奏修复 · 已重排 %1%|Korekta rytmu klatek · %1% przestawionych

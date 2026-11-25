@@ -177,7 +177,7 @@ struct VirtualCamera::State {
     bool setup(bool remove,std::wstring& why){
         std::lock_guard lock(control);pollSetupLocked();if(setupProcess){why=L"正在安装摄像机组件，请等待";return false;}
         const auto file=modules()/L"pushfps-camera-setup.exe";std::error_code ec;
-        if(!std::filesystem::is_regular_file(file,ec)){why=L"虚拟摄像机组件不完整，请重新安装 PushFPS";return false;}
+        if(!std::filesystem::is_regular_file(file,ec)){why=L"虚拟摄像机组件不完整，请重新安装 FrameWeave";return false;}
         SHELLEXECUTEINFOW launch{sizeof(launch)};launch.fMask=SEE_MASK_NOCLOSEPROCESS|SEE_MASK_FLAG_NO_UI;
         launch.lpVerb=L"runas";launch.lpFile=file.c_str();launch.lpParameters=remove?L"--uninstall":L"--install";launch.nShow=SW_HIDE;
         if(!ShellExecuteExW(&launch)){
@@ -298,12 +298,12 @@ bool VirtualCamera::start(uint32_t rate,std::wstring& error){
     const auto x64=directory/L"pushfps-virtualcam64.dll",x86=directory/L"pushfps-virtualcam32.dll";
     std::error_code ec;
     if(!std::filesystem::is_regular_file(x64,ec)||!std::filesystem::is_regular_file(x86,ec)){
-        error=L"虚拟摄像机组件不完整，请重新安装 PushFPS";s.fail(error);return false;
+        error=L"虚拟摄像机组件不完整，请重新安装 FrameWeave";s.fail(error);return false;
     }
     SetLastError(0);HANDLE owner=CreateMutexW(nullptr,FALSE,L"Local\\PushFPSVirtualCameraProducerV1");
     const DWORD last=GetLastError();
     if(!owner||last==ERROR_ALREADY_EXISTS){
-        if(owner)CloseHandle(owner);error=L"另一个 PushFPS 窗口已启用虚拟摄像机";s.fail(error);return false;
+        if(owner)CloseHandle(owner);error=L"另一个 FrameWeave 窗口已启用虚拟摄像机";s.fail(error);return false;
     }
     s.pollSetupLocked();s.systemInstalled=machineRegistered();
     s.systemOutdated=s.systemInstalled.load()&&!machineCurrent();

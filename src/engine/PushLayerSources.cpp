@@ -364,7 +364,7 @@ void runWindow(Worker& worker) {
 
 void startWorker(const std::shared_ptr<Worker>& worker) {
     worker->thread = std::thread([w = worker]() {
-        SetThreadDescription(GetCurrentThread(), L"PushFPS scene source");
+        SetThreadDescription(GetCurrentThread(), L"FrameWeave scene source");
         if (w->spec.kind == PushSourceKind::Window) runWindow(*w);
         else runReader(*w);
     });

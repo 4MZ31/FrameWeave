@@ -397,8 +397,8 @@ int nischeck(QGuiApplication& app, const QString& savePath) {
 }  // namespace
 
 int main(int argc, char** argv) {
-    QCoreApplication::setOrganizationName(QStringLiteral("PushFPS"));
-    QCoreApplication::setApplicationName(QStringLiteral("PushFPS"));
+    QCoreApplication::setOrganizationName(QStringLiteral("FrameWeave"));
+    QCoreApplication::setApplicationName(QStringLiteral("FrameWeave"));
     QCoreApplication::setApplicationVersion(QStringLiteral(PUSHFPS_PORTABLE_VERSION));
     QGuiApplication app(argc, argv);
 #ifdef PUSHFPS_MAC_ACTIVITY
@@ -407,7 +407,7 @@ int main(int argc, char** argv) {
     app.setWindowIcon(QIcon(QStringLiteral(":/qt/qml/PushFPS/icon.png")));
 
     QCommandLineParser cli;
-    cli.setApplicationDescription(QStringLiteral("PushFPS for Linux and macOS (preview)"));
+    cli.setApplicationDescription(QStringLiteral("FrameWeave for Linux and macOS (preview)"));
     cli.addHelpOption();
     cli.addVersionOption();
     QCommandLineOption list(QStringLiteral("list-devices"), QStringLiteral("List capture cards and sound devices."));

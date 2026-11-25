@@ -3,9 +3,9 @@ contact_links:
   - name: Discord
     url: https://discord.gg/N88znNpSgC
     about: Questions, help with your setup and clips. Other players and the developer answer here.
-  - name: Website and download
-    url: https://dosukasol.github.io/PushFPS/
-    about: Setup guide, requirements, FAQ and the latest download.
+  - name: FrameWeave releases
+    url: https://github.com/4MZ31/FrameWeave/releases
+    about: Downloads and release notes for this fork.
   - name: Security issue
-    url: https://github.com/DosukaSOL/PushFPS/security/advisories/new
+    url: https://github.com/4MZ31/FrameWeave/security/advisories/new
     about: Please report security problems privately, not as a public issue.

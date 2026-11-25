@@ -25,8 +25,8 @@ DialogLayer {
     key: "compare"
     glyph: "split"
     title: qsTr("对比片段")
-    sub: cmp.videoSource ? qsTr("录制一段前后对比视频：一边是视频原本的帧率，一边是 PushFPS")
-                         : qsTr("录制一段前后对比视频：一边是主机原本的帧率，一边是 PushFPS")
+    sub: cmp.videoSource ? qsTr("录制一段前后对比视频：一边是视频原本的帧率，一边是 FrameWeave")
+                         : qsTr("录制一段前后对比视频：一边是主机原本的帧率，一边是 FrameWeave")
     dialogWidth: 560
 
     readonly property var lengths: Clip.lengths
@@ -69,16 +69,16 @@ DialogLayer {
                                                                  : cmp.videoSource ? qsTr("原画") : qsTr("主机原画")
     }
     readonly property string leftTag: cmp.leftName + " · " + cmp.gameFps + " FPS"
-    readonly property string rightTag: "PushFPS · " + cmp.shownFps + " FPS"
+    readonly property string rightTag: "FrameWeave · " + cmp.shownFps + " FPS"
 
     // The preview drawn: portrait for the vertical layout, landscape for the others.
     readonly property bool verticalPreview: cmp.layoutId === 2
     function layoutName(id) { return id === 3 ? qsTr("滑动揭示") : id === 2 ? qsTr("竖屏") : id === 1 ? qsTr("并排") : qsTr("分屏") }
     function layoutHint(id) {
-        return id === 3 ? qsTr("整个画面：先是原帧率，一条线从左扫到右露出 PushFPS，停一会儿再扫回去，如此反复")
-             : id === 2 ? qsTr("竖屏 9:16，适合 TikTok、Shorts 和 Reels：上面是原帧率，下面是 PushFPS，各占半屏（取画面中间部分）")
-             : id === 1 ? qsTr("完整画面并排两份：左边是原帧率，右边是 PushFPS")
-             : qsTr("同一个画面从中间分开：左半边是原帧率，右半边是 PushFPS")
+        return id === 3 ? qsTr("整个画面：先是原帧率，一条线从左扫到右露出 FrameWeave，停一会儿再扫回去，如此反复")
+             : id === 2 ? qsTr("竖屏 9:16，适合 TikTok、Shorts 和 Reels：上面是原帧率，下面是 FrameWeave，各占半屏（取画面中间部分）")
+             : id === 1 ? qsTr("完整画面并排两份：左边是原帧率，右边是 FrameWeave")
+             : qsTr("同一个画面从中间分开：左半边是原帧率，右半边是 FrameWeave")
     }
     function qualityLabel(height) { return height > 0 ? Clip.qualityName(height) : qsTr("自动") }
     function qualityHint(height) {
@@ -334,7 +334,7 @@ DialogLayer {
             objectName: "pushfps-compare-reveal-row"
             visible: cmp.reveal
             label: qsTr("扫过间隔")
-            hint: qsTr("线条每隔这么久扫过一次，在原帧率和 PushFPS 之间切换")
+            hint: qsTr("线条每隔这么久扫过一次，在原帧率和 FrameWeave 之间切换")
             hintBelow: true
             VSeg {
                 objectName: "pushfps-compare-reveal"

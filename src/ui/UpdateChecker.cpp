@@ -42,7 +42,7 @@ UpdateChecker::UpdateChecker(QString currentVersion, QObject* parent, QUrl endpo
 QVersionNumber UpdateChecker::localVersion() const {
     QVersionNumber local = versionNumber(currentVersion_, true);
     if (!installDir_.isEmpty()) {
-        QFile f(QDir(installDir_).filePath(QStringLiteral("PushFPS-VERSION.txt")));
+        QFile f(QDir(installDir_).filePath(QStringLiteral("FrameWeave-VERSION.txt")));
         if (f.open(QIODevice::ReadOnly))
             if (const auto record = parseInstalledVersionFile(f.read(64 * 1024)); record && QVersionNumber::compare(record->version, local) > 0)
                 local = record->version;
@@ -74,7 +74,7 @@ void UpdateChecker::check(bool manual) {
     body_.clear(); failure_.clear();
     QNetworkRequest request(endpoint_);
     request.setRawHeader("Accept", "application/vnd.github+json");
-    request.setRawHeader("User-Agent", "PushFPS-Update-Check");
+    request.setRawHeader("User-Agent", "FrameWeave-Update-Check");
     request.setRawHeader("X-GitHub-Api-Version", "2022-11-28");
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     request.setMaximumRedirectsAllowed(3);
@@ -126,7 +126,7 @@ void UpdateChecker::finish() {
             tag_ = tag; packageVersion_ = remote.toString();
             sumsUrl_.clear(); sigUrl_.clear(); zipUrl_.clear(); zipName_.clear();
             if (newer || QVersionNumber::compare(remote, local) == 0) {
-                const QString wantZip = QStringLiteral("PushFPS-%1-win64.zip").arg(packageVersion_);
+                const QString wantZip = QStringLiteral("FrameWeave-%1-win64.zip").arg(packageVersion_);
                 for (const auto& v : obj.value(QStringLiteral("assets")).toArray()) {
                     const auto a = v.toObject();
                     const QString name = a.value(QStringLiteral("name")).toString();
@@ -181,7 +181,7 @@ bool UpdateChecker::assetUrlOk(const QUrl& url) const {
 bool UpdateChecker::canInstall() const {
     if (latestVersion_.isEmpty()) return false;   // assets of the installed version are for the extras only
     if (publicKeyPem_.isEmpty() || sumsUrl_.isEmpty() || sigUrl_.isEmpty() || zipUrl_.isEmpty() || installDir_.isEmpty()) return false;
-    QFile f(QDir(installDir_).filePath(QStringLiteral("PushFPS-VERSION.txt")));
+    QFile f(QDir(installDir_).filePath(QStringLiteral("FrameWeave-VERSION.txt")));
     if (!f.open(QIODevice::ReadOnly)) return false;   // a portable or development copy: the release page instead
     return parseInstalledVersionFile(f.read(64 * 1024)).has_value();
 }
@@ -195,8 +195,8 @@ void UpdateChecker::failInstall(const QString& reason) {
     setInstall(QStringLiteral("failed"));
     if (extrasMode_) {
         emit notice(reason == QStringLiteral("no-package")
-                        ? tr("没有找到这个版本的已签名安装包，请稍后再试，或重新运行 Install-PushFPS.cmd 并在询问时回答 y")
-                        : tr("附加组件没有安装完成，当前版本未改动；可以重新运行 Install-PushFPS.cmd 并在询问时回答 y"), true);
+                        ? tr("没有找到这个版本的已签名安装包，请稍后再试，或重新运行 Install-FrameWeave.cmd 并在询问时回答 y")
+                        : tr("附加组件没有安装完成，当前版本未改动；可以重新运行 Install-FrameWeave.cmd 并在询问时回答 y"), true);
         emit installFinished(reason);
         return;
     }
@@ -207,7 +207,7 @@ void UpdateChecker::failInstall(const QString& reason) {
 }
 void UpdateChecker::download(const QUrl& url, qint64 limit, std::function<void(QByteArray)> done, QString file) {
     QNetworkRequest request(url);
-    request.setRawHeader("User-Agent", "PushFPS-Update");
+    request.setRawHeader("User-Agent", "FrameWeave-Update");
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     request.setMaximumRedirectsAllowed(5);
     request.setTransferTimeout(60000);
@@ -244,7 +244,7 @@ void UpdateChecker::download(const QUrl& url, qint64 limit, std::function<void(Q
 }
 bool UpdateChecker::canInstallExtras() const {
     if (publicKeyPem_.isEmpty() || installDir_.isEmpty()) return false;
-    QFile f(QDir(installDir_).filePath(QStringLiteral("PushFPS-VERSION.txt")));
+    QFile f(QDir(installDir_).filePath(QStringLiteral("FrameWeave-VERSION.txt")));
     if (!f.open(QIODevice::ReadOnly)) return false;   // a portable or development copy has no installer record
     const auto installed = parseInstalledVersionFile(f.read(64 * 1024));
     return installed && !installed->extras;
@@ -294,7 +294,7 @@ void UpdateChecker::startInstall() {
     });
 }
 void UpdateChecker::verifyAndDownloadZip() {
-    stageDir_ = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).filePath(QStringLiteral("PushFPS-update-") + packageVersion_);
+    stageDir_ = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).filePath(QStringLiteral("FrameWeave-update-") + packageVersion_);
     QDir(stageDir_).removeRecursively();
     if (!QDir().mkpath(stageDir_)) { failInstall(QStringLiteral("cannot-write")); return; }
     const QString zip = QDir(stageDir_).filePath(zipName_);
@@ -314,9 +314,9 @@ void UpdateChecker::unpackAndLaunch() {
     const QString tarExe = QDir(qEnvironmentVariable("SystemRoot", QStringLiteral("C:/Windows"))).filePath(QStringLiteral("System32/tar.exe"));
     connect(tar, &QProcess::finished, this, [this, tar, files](int code, QProcess::ExitStatus status) {
         tar->deleteLater();
-        const QString script = QDir(files).filePath(QStringLiteral("Install-PushFPS.ps1"));
+        const QString script = QDir(files).filePath(QStringLiteral("Install-FrameWeave.ps1"));
         if (status != QProcess::NormalExit || code != 0 || !QFileInfo::exists(script)) { failInstall(QStringLiteral("unpack")); return; }
-        QFile f(QDir(installDir_).filePath(QStringLiteral("PushFPS-VERSION.txt")));
+        QFile f(QDir(installDir_).filePath(QStringLiteral("FrameWeave-VERSION.txt")));
         const auto installed = f.open(QIODevice::ReadOnly) ? parseInstalledVersionFile(f.read(64 * 1024)) : std::nullopt;
         if (!installed) { failInstall(QStringLiteral("not-installed")); return; }
         const QStringList args{QStringLiteral("-NoProfile"), QStringLiteral("-ExecutionPolicy"), QStringLiteral("Bypass"), QStringLiteral("-File"),

@@ -83,7 +83,7 @@ inline std::string cleanLabel(std::string_view text) {
 // line a marker in the order of their times (markers at the same time keep the order they were made in).
 inline std::string fileText(std::string_view recordingName, std::vector<Marker> markers) {
     std::stable_sort(markers.begin(), markers.end(), [](const Marker& a, const Marker& b) { return a.seconds < b.seconds; });
-    std::string out = "PushFPS markers for ";
+    std::string out = "FrameWeave markers for ";
     out += cleanLabel(recordingName);
     out += "\r\n";
     for (const auto& marker : markers) {
