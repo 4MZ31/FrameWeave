@@ -13,6 +13,8 @@
 #include <QDateTime>
 #include <QDesktopServices>
 #include <QGuiApplication>
+#include <QJsonDocument>
+#include <QJsonParseError>
 #include <QQmlEngine>
 #include <QSysInfo>
 #include <QWindow>
@@ -172,7 +174,7 @@ void AppController::clearError() { setError({}); }
 
 void AppController::applyEngineSettings() {
     veyra::portable::EngineSettings s;
-    s.frameGeneration = targetMode_ != 0;
+    s.frameGeneration = targetMode_ != 0 && compareMode_ == 0;  // paused while comparing, as on Windows
     s.targetFps = targetMode_ == 1 ? 60.0 : (targetMode_ == 2 ? 120.0 : 0.0);
     s.pacingRepair = pacing_;
     s.hudLock = hud_;
@@ -411,10 +413,16 @@ const QStringList kThemes{QStringLiteral("default"), QStringLiteral("black"), QS
                           QStringLiteral("plum"), QStringLiteral("forest"), QStringLiteral("contrast")};
 const QStringList kAccents{QStringLiteral("orange"), QStringLiteral("white"), QStringLiteral("ice"), QStringLiteral("blue"),
                            QStringLiteral("violet"), QStringLiteral("rose"), QStringLiteral("amber")};
-const QStringList kFlags{QStringLiteral("pushNavCollapsed"), QStringLiteral("pushSideCollapsed"), QStringLiteral("reducedMotion")};
+const QStringList kFlags{QStringLiteral("pushNavCollapsed"), QStringLiteral("pushSideCollapsed"), QStringLiteral("reducedMotion"),
+                          QStringLiteral("pushCompareSwap")};
 const QStringList kFoldLists{QStringLiteral("pushQuickFolded"), QStringLiteral("pushProFolded")};
 // Whole percentages, as the Windows build keeps them (nisSharpness: 0..100, NVIDIA's default 50).
 const QStringList kPercents{QStringLiteral("nisSharpness")};
+// Console and game profiles (ConsoleProfiles.qml), as the Windows build keeps them (Preferences.cpp):
+// which console the quick setup is for, and the profiles as a JSON object, size-capped and parsed here
+// so a broken value never reaches the file.
+const QStringList kConsoles{QStringLiteral("ps5"), QStringLiteral("ps5pro"), QStringLiteral("xbox"), QStringLiteral("switch"),
+                            QStringLiteral("switch2"), QStringLiteral("other")};
 
 // A preference's value as it may be kept, or an invalid QVariant when it may not.
 QVariant cleanPreference(const QString& key, const QVariant& value) {
@@ -426,6 +434,14 @@ QVariant cleanPreference(const QString& key, const QVariant& value) {
         return ok && std::isfinite(v) ? QVariant(int(std::clamp(std::lround(v), 0L, 100L))) : QVariant();
     }
     if (kFlags.contains(key)) return value.typeId() == QMetaType::Bool || value.canConvert<bool>() ? QVariant(value.toBool()) : QVariant();
+    if (key == QLatin1String("pushConsole")) return kConsoles.contains(value.toString()) ? QVariant(value.toString()) : QVariant();
+    if (key == QLatin1String("pushProfiles")) {
+        const QString v = value.toString();
+        if (v.size() > 65536) return {};
+        QJsonParseError error{};
+        const QJsonDocument doc = QJsonDocument::fromJson(v.toUtf8(), &error);
+        return error.error == QJsonParseError::NoError && doc.isObject() ? QVariant(v) : QVariant();
+    }
     if (kFoldLists.contains(key)) {
         // Section or block ids with commas: lower-case letters only, each at most once.
         QStringList ids;
@@ -442,7 +458,7 @@ QVariant cleanPreference(const QString& key, const QVariant& value) {
 }  // namespace
 
 void AppController::loadPreferences() {
-    QStringList keys{QStringLiteral("pushTheme"), QStringLiteral("accent")};
+    QStringList keys{QStringLiteral("pushTheme"), QStringLiteral("accent"), QStringLiteral("pushConsole"), QStringLiteral("pushProfiles")};
     keys << kFlags << kFoldLists << kPercents;
     for (const QString& key : keys) {
         const QVariant stored = settings_->value(QStringLiteral("ui/") + key);
@@ -584,6 +600,23 @@ void AppController::setVideoSrQuality(int v) {
     srAlgorithm_ = v;
     save(QStringLiteral("videoSrQuality"), v);
     emit settingsChanged();
+}
+
+void AppController::setCompareMode(int m) {
+    if (m != 1 && m != 2) m = 0;
+    if (m == compareMode_) return;
+    const bool pauses = (m == 0) != (compareMode_ == 0);
+    compareMode_ = m;
+    if (pauses) applyEngineSettings();
+    emit compareChanged();
+}
+
+void AppController::setCompareSplit(double v) {
+    if (!std::isfinite(v)) return;
+    v = std::clamp(v, 0.0, 1.0);
+    if (v == compareSplit_) return;
+    compareSplit_ = v;
+    emit compareChanged();
 }
 
 void AppController::setFillMode(int m) {

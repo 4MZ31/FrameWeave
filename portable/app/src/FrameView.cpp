@@ -3,6 +3,8 @@
 #include "FrameView.h"
 
 #include "NisNode.h"
+
+#include "veyra/engine/PushCompareLine.h"  // pure C++, shared with the Windows build: the line
 #include "VideoFrames.h"
 
 #include <QMutex>
@@ -50,8 +52,11 @@ struct Uniforms {
     float holdZone[4];   // Crosshair Hold: x, y, size of its square in picture pixels; [3] > 0.5 = held
     float subZone[4];    // Subtitle Hold: x, y, width, height of its band in picture pixels
     float subFlags[4];   // [0] > 0.5 = held
+    float compare[4];    // the live comparison: [0] on, [1] .. [2] the original's part (picture u), [3] > 0.5 = draw the line
+    float compareLine[4];  // the line in picture u: dark edges [0] .. [1], white core [2] .. [3]
 };
-static_assert(sizeof(Uniforms) == 176, "std140 layout of frame.vert/frame.frag");
+static_assert(sizeof(Uniforms) == 208, "std140 layout of frame.vert/frame.frag");
+static_assert(offsetof(Uniforms, compare) == 176, "vec4 alignment");
 static_assert(offsetof(Uniforms, subZone) == 144, "vec4 alignment");
 static_assert(offsetof(Uniforms, holdZone) == 128, "vec4 alignment");
 static_assert(offsetof(Uniforms, frameSize) == 80, "vec2 alignment");
@@ -163,6 +168,16 @@ FrameView::FrameView(QQuickItem* parent) : QQuickItem(parent) { setFlag(ItemHasC
 
 FrameView::~FrameView() = default;
 
+void FrameView::setCompare(int v) {
+    if (v != 1 && v != 2) v = 0;
+    if (v != compare_) { compare_ = v; emit pictureChanged(); update(); }
+}
+void FrameView::setCompareSplit(qreal v) {
+    if (!std::isfinite(v)) return;
+    v = std::clamp(v, qreal(0), qreal(1));
+    if (v != compareSplit_) { compareSplit_ = v; emit pictureChanged(); update(); }
+}
+void FrameView::setCompareSwap(bool v) { if (v != compareSwap_) { compareSwap_ = v; emit pictureChanged(); update(); } }
 void FrameView::setBrightness(qreal v) { if (v != brightness_) { brightness_ = v; emit pictureChanged(); update(); } }
 void FrameView::setContrast(qreal v) { if (v != contrast_) { contrast_ = v; emit pictureChanged(); update(); } }
 void FrameView::setSaturation(qreal v) { if (v != saturation_) { saturation_ = v; emit pictureChanged(); update(); } }
@@ -395,10 +410,30 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
     u.subZone[3] = subHeld ? float(pick.subHold->h) : 1.f;
     u.subFlags[0] = subHeld ? 1.f : 0.f;
 
+    const qreal dpr = win->effectiveDevicePixelRatio();
+    // The live comparison. In window pixels (the line's width is the Windows build's, for the window's
+    // height), then as shares of the picture, which is what both shaders compare their coordinate with.
+    std::array<float, 4> compare{}, compareLine{};
+    if (compare_ == 1) {
+        compare = {1.f, -1.f, 2.f, 0.f};
+    } else if (compare_ == 2 && rect.width() > 0) {
+        const long left = std::lround(rect.left() * dpr), right = std::lround(rect.right() * dpr);
+        const long split = std::lround(compareSplit_ * width() * dpr);
+        const auto sides = veyra::engine::pushCompareSides(left, right, split, compareSwap_);
+        const auto toU = [&](long px) { return float(source.x() + (px / dpr - rect.x()) / rect.width() * source.width()); };
+        // The original's part reaches past the picture's own edge on its outer side.
+        compare = {1.f, compareSwap_ ? toU(sides.referenceLeft) : -1.f, compareSwap_ ? 2.f : toU(sides.referenceRight), 0.f};
+        const auto line = veyra::engine::pushCompareLine(sides.line, left, right, std::lround(win->height() * dpr));
+        if (line.visible) {
+            compare[3] = 1.f;
+            compareLine = {toU(line.outerLeft), toU(line.outerRight), toU(line.coreLeft), toU(line.coreRight)};
+        }
+    }
+    for (int i = 0; i < 4; ++i) { u.compare[i] = compare[size_t(i)]; u.compareLine[i] = compareLine[size_t(i)]; }
+
     // Upscaling: by how much the shown part of the picture is enlarged on screen, never more than NIS's
     // 2 per side nor past the size chosen (fitted to the picture's shape, as on Windows). What is left
     // above 2 the window scales as it always did.
-    const qreal dpr = win->effectiveDevicePixelRatio();
     const double shown = std::min(rect.width() * dpr / (source.width() * fw), rect.height() * dpr / (source.height() * fh));
     const QSize target = upscaleTargetSize(upscaleTarget_);
     const double targetW = target.width(), targetH = target.height();
@@ -421,7 +456,12 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
         NisFrame frame;
         frame.textures = textures;
         frame.nearest = {false, false, true, true, false, false, false, false, false, false, false};  // the two motion fields
-        frame.uniforms = QByteArray(reinterpret_cast<const char*>(&u), sizeof(Uniforms));
+        // The line is drawn after upscaling (blit.frag), never into the picture NIS sharpens.
+        Uniforms beforeNis = u;
+        beforeNis.compare[3] = 0.f;
+        frame.uniforms = QByteArray(reinterpret_cast<const char*>(&beforeNis), sizeof(Uniforms));
+        frame.compare = compare;
+        frame.compareLine = compareLine;
         frame.picture = QSize(int(fw), int(fh));
         frame.output = output;
         frame.rect = rect;

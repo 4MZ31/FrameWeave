@@ -24,9 +24,12 @@ constexpr int kOpacityOffset = 64;
 // NISConfig as the shader reads it: 28 values of 4 bytes (nis.comp.in).
 constexpr int kNisConfigBytes = 28 * 4;
 static_assert(offsetof(NISConfig, reserved1) == kNisConfigBytes - 4, "NISConfig layout changed");
-// blit.vert's block: matrix, opacity, then the part of the picture shown at 80 (vec4 alignment).
-constexpr int kBlitBytes = 96;
+// blit.vert's block: matrix, opacity, then the part of the picture shown at 80 (vec4 alignment), the
+// comparison at 96 and its line at 112 (blit.frag).
+constexpr int kBlitBytes = 128;
 constexpr int kBlitUvOffset = 80;
+constexpr int kBlitCompareOffset = 96;
+constexpr int kBlitLineOffset = 112;
 // NIS's coefficient tables: float4 rows of half floats, kFilterSize / 4 texels wide, one row per phase.
 constexpr int kCoefWidth = int(kFilterSize / 4), kCoefHeight = int(kPhaseCount);
 static_assert(sizeof(coef_scale_fp16) == size_t(kCoefWidth) * kCoefHeight * 8 && sizeof(coef_usm_fp16) == sizeof(coef_scale_fp16));
@@ -144,6 +147,7 @@ bool NisNode::ensure(QRhi* rhi) {
         release(picturePass_);
         release(picture_);
         release(nisBindings_);
+        release(blitBindings_);  // it samples picture_ for the comparison's original side
         boundTextures_ = {};
         picture_ = rhi->newTexture(QRhiTexture::RGBA8, frame_.picture, 1, QRhiTexture::RenderTarget);
         if (!made(picture_)) return false;
@@ -228,6 +232,7 @@ bool NisNode::ensure(QRhi* rhi) {
         blitBindings_->setBindings({
             QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage, blitUniforms_),
             QRhiShaderResourceBinding::sampledTexture(1, QRhiShaderResourceBinding::FragmentStage, scaled_, linear_),
+            QRhiShaderResourceBinding::sampledTexture(2, QRhiShaderResourceBinding::FragmentStage, picture_, linear_),
         });
         if (!blitBindings_->create()) return false;
         release(blitPipeline_);
@@ -321,6 +326,8 @@ void NisNode::prepare() {
     std::memcpy(blit + kOpacityOffset, &opacity, sizeof(float));
     const float uv[4] = {float(frame_.source.x()), float(frame_.source.y()), float(frame_.source.width()), float(frame_.source.height())};
     std::memcpy(blit + kBlitUvOffset, uv, sizeof(uv));
+    std::memcpy(blit + kBlitCompareOffset, frame_.compare.data(), sizeof(float) * 4);
+    std::memcpy(blit + kBlitLineOffset, frame_.compareLine.data(), sizeof(float) * 4);
     updates->updateDynamicBuffer(blitUniforms_, 0, kBlitBytes, blit);
 
     const QRhiCommandBuffer::VertexInput quad(quad_, 0);

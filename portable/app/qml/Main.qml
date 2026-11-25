@@ -161,6 +161,22 @@ Window {
         upscale: app.srEnabled && app.videoSrQuality === 6
         upscaleTarget: app.srTargetIndex
         sharpness: (root.prefs.nisSharpness === undefined ? 50 : Number(root.prefs.nisSharpness)) / 100
+        // The live comparison (Professional mode → Display), as the Windows build's.
+        compare: app.compareMode
+        compareSplit: app.compareSplit
+        compareSwap: root.prefs.pushCompareSwap === true
+        // The split's line follows the left button anywhere on the picture, as on Windows; only while
+        // the split is shown, so every other press on the picture is what it was.
+        MouseArea {
+            objectName: "player-compare-drag"
+            anchors.fill: parent
+            enabled: app.compareMode === 2 && app.running
+            acceptedButtons: Qt.LeftButton
+            cursorShape: enabled ? Qt.SplitHCursor : Qt.ArrowCursor
+            function move(x) { if (width > 0) app.compareSplit = Math.max(0, Math.min(1, x / width)) }
+            onPressed: mouse => move(mouse.x)
+            onPositionChanged: mouse => { if (pressed) move(mouse.x) }
+        }
     }
     // What upscaling does, for the picture panel's hint (the picture is drawn on another thread).
     Binding { target: app; property: "upscaleState"; value: picture.upscaleState }

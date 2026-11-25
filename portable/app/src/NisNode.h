@@ -41,6 +41,9 @@ struct NisFrame {
     QRectF rect;                            // where the picture stands in the item
     QRectF source;                          // the part of the picture shown, as shares of it
     float sharpness = 0.5f;                 // 0 = none, 1 = strongest (NVScalerUpdateConfig)
+    // The live comparison, drawn by the step into the window (blit.frag): on, the original's part, the line.
+    std::array<float, 4> compare{};
+    std::array<float, 4> compareLine{};
 };
 
 class NisNode : public QSGRenderNode {
