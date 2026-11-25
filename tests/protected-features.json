@@ -1889,17 +1889,17 @@
     {
      "file": "packaging/Install-FrameWeave.ps1",
      "ci": "Install-FrameWeave.ps1",
-     "contains": "[System.IO.File]::Move($dest, ($dest + '.replaced-'"
+     "contains": "[IO.File]::Replace($pending, $dest.FullName, $backup)"
     },
     {
      "file": "packaging/Install-FrameWeave.ps1",
      "ci": "Install-FrameWeave.ps1",
-     "contains": "/XD (Join-Path $source 'virtualcam')"
+     "contains": "$source -eq $runtimeRoot -and $rel.StartsWith('virtualcam\\'"
     },
     {
      "file": "packaging/Install-FrameWeave.ps1",
      "ci": "Install-FrameWeave.ps1",
-     "contains": "so this install is NOT complete"
+     "contains": "Installation did not complete. Changes were rolled back."
     },
     {
      "file": ".github/workflows/build-windows.yml",

@@ -738,7 +738,10 @@ jobs:
           # folder half old and half new (the owner's PC, with a browser open). The install must finish, with the
           # new file under the old name and the old one moved aside.
           $cam = 'D:\pf-install\virtualcam\pushfps-virtualcam64.dll'; $camHeld = $null
-          if (Test-Path $cam) { $camHeld = [System.IO.File]::Open($cam, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]'Read, Delete') }
+          if (Test-Path $cam) {
+            [IO.File]::WriteAllBytes($cam, [byte[]]@(42))
+            $camHeld = [System.IO.File]::Open($cam, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]'Read, Delete')
+          }
           $u = Start-Process powershell.exe -PassThru -Wait -RedirectStandardInput D:\pf-update\empty.txt -RedirectStandardOutput D:\pf-update\out.txt -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'D:\pf-update\files\Install-FrameWeave.ps1',
             '-Gpu', 'NVIDIA', '-InstallDir', 'D:\pf-install', '-NoShortcuts', '-ExperimentalExtras', 'No', '-WaitForPid', "$($old.Id)", '-NoLaunch')
           Get-Content D:\pf-update\out.txt -ErrorAction SilentlyContinue | Out-Host
@@ -747,8 +750,9 @@ jobs:
           if (-not (Test-Path D:\pf-install\FrameWeave-update-marker.txt)) { throw 'the update removed a file it should have kept' }
           if ((Get-Content D:\pf-install\FrameWeave-VERSION.txt -Raw) -notmatch "FrameWeave $([regex]::Escape($env:PUSHFPS_VERSION))") { throw 'FrameWeave-VERSION.txt does not name this version after the update' }
           if ($camHeld) {
-            $camHeld.Dispose()
-            if (@(Get-ChildItem D:\pf-install\virtualcam -Filter 'pushfps-virtualcam64.dll.replaced-*').Count -ne 1) { throw 'the virtual camera file that another program held was not moved aside' }
+            try {
+              if ($camHeld.ReadByte() -ne 42 -or $camHeld.ReadByte() -ne -1) { throw 'the update modified the camera file held by another program' }
+            } finally { $camHeld.Dispose() }
             if ((Get-FileHash $cam -Algorithm SHA256).Hash -ne (Get-FileHash D:\pf-update\files\FrameWeave-files\virtualcam\pushfps-virtualcam64.dll -Algorithm SHA256).Hash) { throw 'the virtual camera file was not replaced while another program held it' }
             Write-Host 'Update path: a virtual camera file held by another program is moved aside and replaced; the install finishes.'
           } else { Write-Host '::warning::no virtual camera file in this package: the held-file path of the installer was not run' }

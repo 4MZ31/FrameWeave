@@ -417,7 +417,8 @@ try {
                 if ($source -eq $runtimeRoot -and $rel.StartsWith('virtualcam\', [StringComparison]::OrdinalIgnoreCase)) { continue }
                 if ($rel -in 'veyra_qml_ui.exe','veyra_update_worker.exe') { continue }
                 if ($rel -like 'runtime_local\user-data-*') { continue }
-                Set-InstallFile $rel $file
+                try { Set-InstallFile $rel $file }
+                catch { throw "Could not install '${rel}': $($_.Exception.Message)" }
             }
         }
         foreach ($own in 'veyra_qml_ui.exe','veyra_update_worker.exe') { Set-InstallFile $own '' }
@@ -450,7 +451,7 @@ try {
         $cause = $_
         Restore-Install
         $script:installUncertain = $false
-        throw $cause
+        throw "Installation did not complete. Changes were rolled back. $($cause.Exception.Message)"
     }
     Restore-Install
     $script:installUncertain = $false
