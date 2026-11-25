@@ -89,7 +89,7 @@ int main() {
       f.pushFlowEncoderCache = "C:\\Users\\someone"; const auto v = json(f);
       check(has(v, "\"pushFlowEncoderCache\": null") && !has(v, "someone") && wellFormed(v), "anything that is not such a word is dropped whole"); }
     // What the numbers are worth.
-    check(has(r, "\"evidence\": \"live session, PushFPS's own software timing\""), "a live session is called that");
+    check(has(r, "\"evidence\": \"live session, FrameWeave's own software timing\""), "a live session is called that");
     check(has(r, "not button to screen"), "and the delay is not passed off as button to screen");
     { auto f = session(); f.softwareRenderer = true; const auto t = json(f);
       check(has(t, "software renderer: correctness only") && has(t, "\"softwareRenderer\": true"), "the software renderer is named: its timings mean nothing for a card"); }
