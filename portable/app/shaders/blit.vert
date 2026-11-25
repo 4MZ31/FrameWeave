@@ -7,11 +7,13 @@ layout(location = 0) in vec4 qt_VertexPosition;
 layout(location = 1) in vec2 qt_VertexTexCoord;
 layout(location = 0) out vec2 vTex;
 
-// Must match blit.frag and NisNode.cpp (std140, 96 bytes).
+// Must match blit.frag and NisNode.cpp (std140, 128 bytes).
 layout(std140, binding = 0) uniform buf {
     mat4 qt_Matrix;
     float qt_Opacity;
     vec4 uvRect;
+    vec4 compare;
+    vec4 compareLine;
 };
 
 void main() {

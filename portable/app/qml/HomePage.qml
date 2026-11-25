@@ -16,6 +16,7 @@ Rectangle {
     property bool sideCollapsed: false
     signal requestFullscreen()
     signal requestScreenshot()
+    signal requestCheckSetup()
 
     readonly property bool threePane: width >= 900
     // Where the shell draws the picture on this page (null: the page has none).
@@ -47,10 +48,19 @@ Rectangle {
         parent: root.threePane ? rightSlot : columnQuickSlot
         width: parent ? parent.width : 0
         spacing: 0
+        // Console and game, as the Windows build's quick setup begins (its section "setup").
+        PushSection {
+            sectionId: "setup"
+            title: qsTr("主机与游戏")
+            first: true
+            summary: setupProfiles.consoleLabel
+            open: root.isOpen("setup")
+            onToggled: open => root.setOpen("setup", open)
+            ConsoleProfiles { id: setupProfiles }
+        }
         PushSection {
             sectionId: "fg"
             title: qsTr("补帧")
-            first: true
             summary: app.targetMode === 0 ? qsTr("关") : app.targetMode === 1 ? "60 FPS" : app.targetMode === 2 ? "120 FPS" : qsTr("匹配显示器")
             open: root.isOpen("fg")
             onToggled: open => root.setOpen("fg", open)
@@ -197,6 +207,14 @@ Rectangle {
                 elide: Text.ElideMiddle
             }
             VButton {
+                objectName: "home-desk-diagnose"
+                visible: app.running
+                icon: true
+                iconName: "activity"
+                tip: qsTr("检查我的设置")
+                onClicked: root.requestCheckSetup()
+            }
+            VButton {
                 objectName: "home-desk-screenshot"
                 visible: app.running
                 icon: true
@@ -259,15 +277,18 @@ Rectangle {
             Flickable {
                 id: rightFlick
                 objectName: "home-desk-settings-list"
-                x: 14; y: rightTitle.y + rightTitle.height + 6
-                width: parent.width - 18
+                // Room for a row's hover light, which reaches 7 px past the row (VRow.qml), inside this clipping
+                // list: 7 px on the left (the rows start at 7 + 7 = 14, where they always did) and on the right 7 px
+                // plus the scroll bar (10 px while the pointer is on it) plus 4 px between them (the 28 below).
+                x: 7; y: rightTitle.y + rightTitle.height + 6
+                width: parent.width - 11
                 height: parent.height - y - 8
                 contentHeight: rightSlot.height
                 interactive: contentHeight > height + 1
                 boundsBehavior: Flickable.StopAtBounds
                 clip: true
                 ScrollBar.vertical: VScrollBar {}
-                Item { id: rightSlot; width: rightFlick.width - 12; height: quick.parent === rightSlot ? quick.implicitHeight : 0 }
+                Item { id: rightSlot; x: 7; width: rightFlick.width - 28; height: quick.parent === rightSlot ? quick.implicitHeight : 0 }
             }
         }
     }

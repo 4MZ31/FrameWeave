@@ -16,6 +16,7 @@ Rectangle {
     property bool sideCollapsed: false
     signal requestFullscreen()
     signal requestScreenshot()
+    signal requestCheckSetup()
     signal requestSources()
 
     readonly property Item videoViewport: viewport
@@ -134,6 +135,14 @@ Rectangle {
             onClicked: app.startCamera()
         }
         VButton {
+            objectName: "pro-diagnose"
+            visible: app.running
+            icon: true
+            iconName: "activity"
+            tip: qsTr("检查我的设置")
+            onClicked: root.requestCheckSetup()
+        }
+        VButton {
             objectName: "pro-screenshot"
             visible: app.running
             icon: true
@@ -202,8 +211,11 @@ Rectangle {
         Flickable {
             id: listFlick
             objectName: "pro-list"
-            x: 14; y: tabFlick.y + tabFlick.height + 10
-            width: parent.width - 18
+            // Room for a row's hover light, which reaches 7 px past the row (VRow.qml), inside this clipping
+            // list: 7 px on the left (the rows start at 7 + 7 = 14, where they always did) and on the right 7 px
+            // plus the scroll bar (10 px while the pointer is on it) plus 4 px between them (the 28 below).
+            x: 7; y: tabFlick.y + tabFlick.height + 10
+            width: parent.width - 11
             height: parent.height - y - 8
             contentHeight: list.implicitHeight + 8
             boundsBehavior: Flickable.StopAtBounds
@@ -211,7 +223,8 @@ Rectangle {
             ScrollBar.vertical: VScrollBar {}
             ColumnLayout {
                 id: list
-                width: listFlick.width - 12
+                x: 7
+                width: listFlick.width - 28
                 spacing: 4
 
                 // Quality, as the Windows build's tab: "Upscale to my screen" and the Super resolution card.
@@ -220,7 +233,7 @@ Rectangle {
                     UpscaleRow {}
                     SuperResolutionCard { Layout.topMargin: 6; Layout.bottomMargin: 6 }
                 }
-                Block { blockId: "fg"; title: qsTr("补帧"); tab: root.tab; shown: root.blockShown("fg"); onFoldToggled: open => root.setFolded("fg", !open); QuickSettings {} }
+                Block { blockId: "fg"; title: qsTr("补帧"); tab: root.tab; shown: root.blockShown("fg"); onFoldToggled: open => root.setFolded("fg", !open); ConsoleProfiles {} QuickSettings {} }
                 Block { blockId: "color"; title: qsTr("色彩"); tab: root.tab; shown: root.blockShown("color"); onFoldToggled: open => root.setFolded("color", !open); PictureSettings { showShape: false } }
                 Block { blockId: "audio"; title: qsTr("声音"); tab: root.tab; shown: root.blockShown("audio"); onFoldToggled: open => root.setFolded("audio", !open); SoundSettings {} }
                 // Display, as the Windows build's tab: how the picture fills the window, under its names.
@@ -235,6 +248,31 @@ Rectangle {
                             options: [{ id: "0", label: qsTr("适应") }, { id: "1", label: qsTr("填充裁切") }, { id: "2", label: qsTr("拉伸铺满") }]
                             value: (options.find(o => o.id === String(app.fillMode)) || options[0]).label
                             onPicked: id => app.fillMode = Number(id)
+                        }
+                    }
+                    // The live comparison, as the Windows build's Display tab (ProDisplayPanel.qml): the
+                    // original is the capture before the picture controls and NVIDIA Image Scaling.
+                    VRow {
+                        label: qsTr("原画 / 增强对比")
+                        readonly property string sides: app.preferences.pushCompareSwap === true ? qsTr("在画面上按住左键拖动分割线：左边增强、右边原画。")
+                                                                                                   : qsTr("在画面上按住左键拖动分割线：左边原画、右边增强。")
+                        hint: (app.compareMode === 2 ? sides : "") + (app.compareMode !== 0 ? qsTr("对比时补帧暂停，关闭对比后恢复") : "")
+                        hintBelow: true
+                        VSeg {
+                            objectName: "display-compare"
+                            options: [{ id: "0", label: qsTr("关闭", "off") }, { id: "2", label: qsTr("分屏") }, { id: "1", label: qsTr("只看原画") }]
+                            current: String(app.compareMode)
+                            onPicked: id => app.compareMode = Number(id)
+                        }
+                    }
+                    VRow {
+                        objectName: "display-compare-swap-row"
+                        label: qsTr("交换两侧")
+                        visible: app.compareMode === 2 || app.preferences.pushCompareSwap === true
+                        VSwitch {
+                            objectName: "display-compare-swap"
+                            checked: app.preferences.pushCompareSwap === true
+                            onToggled: on => app.setPreference("pushCompareSwap", on)
                         }
                     }
                 }

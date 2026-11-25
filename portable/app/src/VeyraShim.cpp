@@ -33,6 +33,9 @@ QVariantMap VeyraShim::pushLiveStats() const {
     copy("contentFps", "contentFps");
     // The preview counts what it shows as one figure: everything shown goes in realFps.
     copy("outputFps", "realFps");
+    // ... and it is also what reaches the screen each second, the latency readout's frame rate
+    // (PushLatencyBadge.qml). There is no 1% low or 95th percentile here: those stay out.
+    copy("outputFps", "submitFps");
     copy("latencyMs", "latencyMs");
     out.insert(QStringLiteral("running"), true);
     return out;

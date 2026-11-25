@@ -18,6 +18,8 @@ class VeyraShim : public QObject {
     Q_OBJECT
     Q_PROPERTY(bool hasSource READ hasSource NOTIFY sourceChanged)
     Q_PROPERTY(bool captureRecovering READ captureRecovering CONSTANT)
+    // The preview never hands the mouse to a game (PushLatencyBadge.qml asks before it can be dragged).
+    Q_PROPERTY(bool gameInputActive READ gameInputActive CONSTANT)
     Q_PROPERTY(QString sourceTitle READ sourceTitle NOTIFY sourceChanged)
     Q_PROPERTY(QString appName READ appName CONSTANT)
     Q_PROPERTY(QString version READ version CONSTANT)
@@ -29,6 +31,7 @@ public:
 
     bool hasSource() const;
     bool captureRecovering() const { return false; }
+    bool gameInputActive() const { return false; }
     QString sourceTitle() const;
     QString appName() const { return QStringLiteral("PushFPS"); }
     QString version() const;

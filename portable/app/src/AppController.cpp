@@ -13,6 +13,8 @@
 #include <QDateTime>
 #include <QDesktopServices>
 #include <QGuiApplication>
+#include <QJsonDocument>
+#include <QJsonParseError>
 #include <QQmlEngine>
 #include <QSysInfo>
 #include <QWindow>
@@ -63,7 +65,6 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
     contrast_ = std::clamp(s.value(QStringLiteral("contrast"), 1.0).toDouble(), 0.5, 1.5);
     saturation_ = std::clamp(s.value(QStringLiteral("saturation"), 1.0).toDouble(), 0.0, 2.0);
     gamma_ = std::clamp(s.value(QStringLiteral("gamma"), 1.0).toDouble(), 0.5, 2.0);
-    showStats_ = s.value(QStringLiteral("showStats"), false).toBool();
     onTop_ = s.value(QStringLiteral("alwaysOnTop"), false).toBool();
     language_ = s.value(QStringLiteral("language"), QStringLiteral("auto")).toString();
     lowLatency_ = s.value(QStringLiteral("lowLatency"), false).toBool();
@@ -172,7 +173,7 @@ void AppController::clearError() { setError({}); }
 
 void AppController::applyEngineSettings() {
     veyra::portable::EngineSettings s;
-    s.frameGeneration = targetMode_ != 0;
+    s.frameGeneration = targetMode_ != 0 && compareMode_ == 0;  // paused while comparing, as on Windows
     s.targetFps = targetMode_ == 1 ? 60.0 : (targetMode_ == 2 ? 120.0 : 0.0);
     s.pacingRepair = pacing_;
     s.hudLock = hud_;
@@ -245,6 +246,49 @@ void AppController::restoreFormat() {
     const auto list = cameras_[videoIndex_].videoFormats();
     for (int i = 0; i < list.size(); ++i)
         if (formatLabel(list[i]) == wanted) { formatIndex_ = i; return; }
+}
+
+namespace {
+// As the Windows build's PushCaptureSharper.h, on Qt's formats: MJPEG is the compressed one here.
+bool compressedFormat(const QCameraFormat& f) { return f.pixelFormat() == QVideoFrameFormat::Format_Jpeg; }
+// The frame rates a game is played at, as CaptureFormatSelection.h captureCommonFrameRate has them.
+bool commonFrameRate(double fps) {
+    for (const double r : {24.0, 25.0, 30.0, 50.0, 60.0, 100.0, 120.0, 144.0, 165.0, 240.0})
+        if (std::abs(fps - r) <= r * 0.0015) return true;
+    return false;
+}
+constexpr double kSharperMinFps = 24.0;  // PushCaptureSharper.h kPushSharperMinFps
+}  // namespace
+
+QVariantMap AppController::sharperFormat() const {
+    if (!source_ || source_->kind() != CaptureSource::Kind::Camera) return {};
+    if (playingVideo_ < 0 || playingVideo_ >= cameras_.size() || playingVideo_ != videoIndex_) return {};
+    const auto list = cameras_[playingVideo_].videoFormats();
+    if (playingFormat_ < 0 || playingFormat_ >= list.size()) return {};
+    const QCameraFormat& now = list[playingFormat_];
+    const auto sameRate = [&](const QCameraFormat& f) { return std::abs(f.maxFrameRate() - now.maxFrameRate()) <= 0.05f; };
+    // Only when everything offered at this size and rate is compressed.
+    for (const auto& f : list)
+        if (f.resolution() == now.resolution() && sameRate(f) && !compressedFormat(f)) return {};
+    if (!compressedFormat(now)) return {};
+    int best = -1;
+    for (int i = 0; i < list.size(); ++i) {
+        const QCameraFormat& f = list[i];
+        const double fps = f.maxFrameRate();
+        if (f.resolution() != now.resolution() || compressedFormat(f) || fps < kSharperMinFps || !commonFrameRate(fps)) continue;
+        // The highest rate; at one rate the first in the card's list.
+        if (best < 0 || fps > double(list[best].maxFrameRate()) + 0.01) best = i;
+    }
+    if (best < 0) return {};
+    const QString label = formatLabel(list[best]);
+    return {{QStringLiteral("index"), best},
+            {QStringLiteral("fps"), int(std::lround(list[best].maxFrameRate()))},
+            {QStringLiteral("pixel"), label.section(QStringLiteral(" · "), -1)}};
+}
+
+bool AppController::captureSoundFound() const {
+    if (!source_ || source_->kind() != CaptureSource::Kind::Camera || videoIndex_ < 0 || videoIndex_ >= cameras_.size()) return false;
+    return !AudioPassthrough::matchingInput(cameras_[videoIndex_].description()).isNull();
 }
 
 QStringList AppController::formats() const {
@@ -345,6 +389,8 @@ void AppController::startCameraNow() {
     // Named before it starts: the start is what tells the interface to read the name.
     sourceTitle_ = device.description();
     if (source_->startCamera(device, format)) {
+        playingVideo_ = videoIndex_;
+        playingFormat_ = formatIndex_ >= 0 && formatIndex_ < list.size() ? formatIndex_ : -1;
         // The card connected is the one "Connect when PushFPS opens" connects next time, also when it
         // was never picked from the list (a single card stays on its first place and was never saved).
         rememberCamera();
@@ -411,10 +457,16 @@ const QStringList kThemes{QStringLiteral("default"), QStringLiteral("black"), QS
                           QStringLiteral("plum"), QStringLiteral("forest"), QStringLiteral("contrast")};
 const QStringList kAccents{QStringLiteral("orange"), QStringLiteral("white"), QStringLiteral("ice"), QStringLiteral("blue"),
                            QStringLiteral("violet"), QStringLiteral("rose"), QStringLiteral("amber")};
-const QStringList kFlags{QStringLiteral("pushNavCollapsed"), QStringLiteral("pushSideCollapsed"), QStringLiteral("reducedMotion")};
+const QStringList kFlags{QStringLiteral("pushNavCollapsed"), QStringLiteral("pushSideCollapsed"), QStringLiteral("reducedMotion"),
+                          QStringLiteral("pushCompareSwap"), QStringLiteral("pushLatencyOverlay")};
 const QStringList kFoldLists{QStringLiteral("pushQuickFolded"), QStringLiteral("pushProFolded")};
 // Whole percentages, as the Windows build keeps them (nisSharpness: 0..100, NVIDIA's default 50).
 const QStringList kPercents{QStringLiteral("nisSharpness")};
+// Console and game profiles (ConsoleProfiles.qml), as the Windows build keeps them (Preferences.cpp):
+// which console the quick setup is for, and the profiles as a JSON object, size-capped and parsed here
+// so a broken value never reaches the file.
+const QStringList kConsoles{QStringLiteral("ps5"), QStringLiteral("ps5pro"), QStringLiteral("xbox"), QStringLiteral("switch"),
+                            QStringLiteral("switch2"), QStringLiteral("other")};
 
 // A preference's value as it may be kept, or an invalid QVariant when it may not.
 QVariant cleanPreference(const QString& key, const QVariant& value) {
@@ -426,6 +478,23 @@ QVariant cleanPreference(const QString& key, const QVariant& value) {
         return ok && std::isfinite(v) ? QVariant(int(std::clamp(std::lround(v), 0L, 100L))) : QVariant();
     }
     if (kFlags.contains(key)) return value.typeId() == QMetaType::Bool || value.canConvert<bool>() ? QVariant(value.toBool()) : QVariant();
+    if (key == QLatin1String("pushConsole")) return kConsoles.contains(value.toString()) ? QVariant(value.toString()) : QVariant();
+    if (key == QLatin1String("pushProfiles")) {
+        const QString v = value.toString();
+        if (v.size() > 65536) return {};
+        QJsonParseError error{};
+        const QJsonDocument doc = QJsonDocument::fromJson(v.toUtf8(), &error);
+        return error.error == QJsonParseError::NoError && doc.isObject() ? QVariant(v) : QVariant();
+    }
+    // The latency readout (PushLatencyBadge.qml), cleaned as the Windows build's Preferences.cpp does:
+    // its size (0 standard, 1 large, 2 largest) and its place as two thousandths of the room it has.
+    if (key == QLatin1String("pushLatencySize") || key == QLatin1String("pushLatencyX") || key == QLatin1String("pushLatencyY")) {
+        bool ok = false;
+        const double v = value.toDouble(&ok);
+        if (!ok || !std::isfinite(v)) return {};
+        const long top = key == QLatin1String("pushLatencySize") ? 2L : 1000L;
+        return QVariant(int(std::clamp(std::lround(v), 0L, top)));
+    }
     if (kFoldLists.contains(key)) {
         // Section or block ids with commas: lower-case letters only, each at most once.
         QStringList ids;
@@ -442,8 +511,8 @@ QVariant cleanPreference(const QString& key, const QVariant& value) {
 }  // namespace
 
 void AppController::loadPreferences() {
-    QStringList keys{QStringLiteral("pushTheme"), QStringLiteral("accent")};
-    keys << kFlags << kFoldLists << kPercents;
+    QStringList keys{QStringLiteral("pushTheme"), QStringLiteral("accent"), QStringLiteral("pushConsole"), QStringLiteral("pushProfiles")};
+    keys << kFlags << kFoldLists << kPercents << QStringLiteral("pushLatencySize") << QStringLiteral("pushLatencyX") << QStringLiteral("pushLatencyY");
     for (const QString& key : keys) {
         const QVariant stored = settings_->value(QStringLiteral("ui/") + key);
         if (!stored.isValid()) continue;
@@ -452,6 +521,10 @@ void AppController::loadPreferences() {
         const QVariant clean = cleanPreference(key, value);
         if (clean.isValid()) prefs_.insert(key, clean);
     }
+    // Until the Windows readout came to the preview its own overlay was switched by `showStats`: one that
+    // was on stays on as the readout.
+    if (!prefs_.contains(QStringLiteral("pushLatencyOverlay")) && settings_->value(QStringLiteral("showStats"), false).toBool())
+        prefs_.insert(QStringLiteral("pushLatencyOverlay"), true);
 }
 
 void AppController::setPreference(const QString& key, const QVariant& value) {
@@ -586,6 +659,23 @@ void AppController::setVideoSrQuality(int v) {
     emit settingsChanged();
 }
 
+void AppController::setCompareMode(int m) {
+    if (m != 1 && m != 2) m = 0;
+    if (m == compareMode_) return;
+    const bool pauses = (m == 0) != (compareMode_ == 0);
+    compareMode_ = m;
+    if (pauses) applyEngineSettings();
+    emit compareChanged();
+}
+
+void AppController::setCompareSplit(double v) {
+    if (!std::isfinite(v)) return;
+    v = std::clamp(v, 0.0, 1.0);
+    if (v == compareSplit_) return;
+    compareSplit_ = v;
+    emit compareChanged();
+}
+
 void AppController::setFillMode(int m) {
     m = std::clamp(m, 0, 2);
     if (m == fillMode_) return;
@@ -623,13 +713,6 @@ void AppController::resetPicture() {
     setContrast(1);
     setSaturation(1);
     setGamma(1);
-}
-
-void AppController::setShowStats(bool v) {
-    if (v == showStats_) return;
-    showStats_ = v;
-    save(QStringLiteral("showStats"), v);
-    emit settingsChanged();
 }
 
 void AppController::setAlwaysOnTop(bool v) {
