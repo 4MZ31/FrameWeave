@@ -2316,6 +2316,35 @@
     }
    ],
    "needs_hardware": "an Xbox with remote play, on a network fast enough for 1440p"
+  },
+  {
+   "id": "F85",
+   "what": "PS5 Remote Play decoding: a packet the decoder never answered leaves no stamp behind, a full stamp list drops its oldest instead of failing, and the graphics card's decoder is given up only after two failures with no picture between them",
+   "guards": [
+    {
+     "file": "tests/unit/PushPacketStampsTests.cpp",
+     "ci": "veyra_push_packet_stamps_tests",
+     "contains": "an in-order stream leaves no stamp behind for packets that never came out"
+    },
+    {
+     "file": "tests/unit/PushPacketStampsTests.cpp",
+     "ci": "veyra_push_packet_stamps_tests",
+     "contains": "one damaged picture keeps the card's decoder"
+    }
+   ],
+   "needs_hardware": "a PS5 with Remote Play, a long session on a network that loses packets"
+  },
+  {
+   "id": "F86",
+   "what": "The record window shows a rate, upload preset or size chosen in Settings as the chosen option and keeps it",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_record.qml",
+     "ci": "tst_push_record",
+     "contains": "test_settings_own_rate_and_size_are_shown_as_chosen"
+    }
+   ],
+   "needs_hardware": "none"
   }
  ]
 }
