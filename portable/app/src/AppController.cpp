@@ -248,6 +248,49 @@ void AppController::restoreFormat() {
         if (formatLabel(list[i]) == wanted) { formatIndex_ = i; return; }
 }
 
+namespace {
+// As the Windows build's PushCaptureSharper.h, on Qt's formats: MJPEG is the compressed one here.
+bool compressedFormat(const QCameraFormat& f) { return f.pixelFormat() == QVideoFrameFormat::Format_Jpeg; }
+// The frame rates a game is played at, as CaptureFormatSelection.h captureCommonFrameRate has them.
+bool commonFrameRate(double fps) {
+    for (const double r : {24.0, 25.0, 30.0, 50.0, 60.0, 100.0, 120.0, 144.0, 165.0, 240.0})
+        if (std::abs(fps - r) <= r * 0.0015) return true;
+    return false;
+}
+constexpr double kSharperMinFps = 24.0;  // PushCaptureSharper.h kPushSharperMinFps
+}  // namespace
+
+QVariantMap AppController::sharperFormat() const {
+    if (!source_ || source_->kind() != CaptureSource::Kind::Camera) return {};
+    if (playingVideo_ < 0 || playingVideo_ >= cameras_.size() || playingVideo_ != videoIndex_) return {};
+    const auto list = cameras_[playingVideo_].videoFormats();
+    if (playingFormat_ < 0 || playingFormat_ >= list.size()) return {};
+    const QCameraFormat& now = list[playingFormat_];
+    const auto sameRate = [&](const QCameraFormat& f) { return std::abs(f.maxFrameRate() - now.maxFrameRate()) <= 0.05f; };
+    // Only when everything offered at this size and rate is compressed.
+    for (const auto& f : list)
+        if (f.resolution() == now.resolution() && sameRate(f) && !compressedFormat(f)) return {};
+    if (!compressedFormat(now)) return {};
+    int best = -1;
+    for (int i = 0; i < list.size(); ++i) {
+        const QCameraFormat& f = list[i];
+        const double fps = f.maxFrameRate();
+        if (f.resolution() != now.resolution() || compressedFormat(f) || fps < kSharperMinFps || !commonFrameRate(fps)) continue;
+        // The highest rate; at one rate the first in the card's list.
+        if (best < 0 || fps > double(list[best].maxFrameRate()) + 0.01) best = i;
+    }
+    if (best < 0) return {};
+    const QString label = formatLabel(list[best]);
+    return {{QStringLiteral("index"), best},
+            {QStringLiteral("fps"), int(std::lround(list[best].maxFrameRate()))},
+            {QStringLiteral("pixel"), label.section(QStringLiteral(" · "), -1)}};
+}
+
+bool AppController::captureSoundFound() const {
+    if (!source_ || source_->kind() != CaptureSource::Kind::Camera || videoIndex_ < 0 || videoIndex_ >= cameras_.size()) return false;
+    return !AudioPassthrough::matchingInput(cameras_[videoIndex_].description()).isNull();
+}
+
 QStringList AppController::formats() const {
     QStringList out;
     if (videoIndex_ >= 0 && videoIndex_ < cameras_.size())
@@ -346,6 +389,8 @@ void AppController::startCameraNow() {
     // Named before it starts: the start is what tells the interface to read the name.
     sourceTitle_ = device.description();
     if (source_->startCamera(device, format)) {
+        playingVideo_ = videoIndex_;
+        playingFormat_ = formatIndex_ >= 0 && formatIndex_ < list.size() ? formatIndex_ : -1;
         // The card connected is the one "Connect when PushFPS opens" connects next time, also when it
         // was never picked from the list (a single card stays on its first place and was never saved).
         rememberCamera();

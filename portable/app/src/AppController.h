@@ -173,6 +173,12 @@ public:
     Q_INVOKABLE void setPreference(const QString& key, const QVariant& value);
 
     Q_INVOKABLE void refreshDevices();
+    // Check my setup (CheckSetupDialog.qml, rules in the Windows build's PushDiagnose.js):
+    // a sharper capture format for the card playing now, as the Windows build's PushCaptureSharper.h
+    // decides it: { index, fps, pixel } (index in `formats`), or an empty map;
+    Q_INVOKABLE QVariantMap sharperFormat() const;
+    // and whether the playing card's own sound input was found (what "Automatic" passes through).
+    Q_INVOKABLE bool captureSoundFound() const;
     Q_INVOKABLE void startCamera();
     Q_INVOKABLE void startFile(const QUrl& url);
     Q_INVOKABLE void startTestPattern(bool uneven = false);
@@ -218,6 +224,7 @@ private:
     QList<QCameraDevice> cameras_;
     QList<QAudioDevice> inputs_, outputs_;
     int videoIndex_ = 0, formatIndex_ = -1, audioInIndex_ = 0, audioOutIndex_ = 0;
+    int playingVideo_ = -1, playingFormat_ = -1;  // what the running capture was opened with
     int targetMode_ = 3, quality_ = 1;
     bool pacing_ = false, hud_ = false, dedup_ = true, audioOn_ = true, onTop_ = false;
     bool srEnabled_ = false;

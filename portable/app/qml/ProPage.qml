@@ -16,6 +16,7 @@ Rectangle {
     property bool sideCollapsed: false
     signal requestFullscreen()
     signal requestScreenshot()
+    signal requestCheckSetup()
     signal requestSources()
 
     readonly property Item videoViewport: viewport
@@ -132,6 +133,14 @@ Rectangle {
             text: qsTr("连接")
             enabled: app.videoDevices.length > 0
             onClicked: app.startCamera()
+        }
+        VButton {
+            objectName: "pro-diagnose"
+            visible: app.running
+            icon: true
+            iconName: "activity"
+            tip: qsTr("检查我的设置")
+            onClicked: root.requestCheckSetup()
         }
         VButton {
             objectName: "pro-screenshot"

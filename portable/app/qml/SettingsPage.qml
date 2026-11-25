@@ -9,6 +9,7 @@ import QtQuick.Layouts
 
 Rectangle {
     id: root
+    signal requestCheckSetup()
     objectName: "page-set"
     color: Theme.bgMid
     // Bring the appearance group into view (the navigation's palette button).
@@ -207,6 +208,14 @@ Rectangle {
                     font.pixelSize: Theme.fsBody
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler { onTapped: Qt.openUrlExternally("https://github.com/DosukaSOL/PushFPS") }
+                }
+                // Check my setup (CheckSetupDialog.qml), as the Windows build's About section has it.
+                VRow {
+                    objectName: "set-diagnose"
+                    Layout.topMargin: 8
+                    label: qsTr("检查我的设置")
+                    hint: qsTr("看看正在运行的画面里，是什么在影响清晰度、流畅度和声音，每一项都有一键更改")
+                    VButton { objectName: "set-diagnose-open"; text: qsTr("检查"); onClicked: root.requestCheckSetup() }
                 }
             }
         }

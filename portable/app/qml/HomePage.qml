@@ -16,6 +16,7 @@ Rectangle {
     property bool sideCollapsed: false
     signal requestFullscreen()
     signal requestScreenshot()
+    signal requestCheckSetup()
 
     readonly property bool threePane: width >= 900
     // Where the shell draws the picture on this page (null: the page has none).
@@ -204,6 +205,14 @@ Rectangle {
                 font.family: Theme.fontUi
                 font.pixelSize: Theme.fsBody
                 elide: Text.ElideMiddle
+            }
+            VButton {
+                objectName: "home-desk-diagnose"
+                visible: app.running
+                icon: true
+                iconName: "activity"
+                tip: qsTr("检查我的设置")
+                onClicked: root.requestCheckSetup()
             }
             VButton {
                 objectName: "home-desk-screenshot"

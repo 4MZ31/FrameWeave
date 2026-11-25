@@ -114,6 +114,7 @@ Window {
             sideCollapsed: root.sideCollapsed
             onRequestFullscreen: root.toggleFullscreen()
             onRequestScreenshot: root.screenshot()
+            onRequestCheckSetup: checkSetup.open()
         }
         ProPage {
             id: proPage
@@ -122,6 +123,7 @@ Window {
             sideCollapsed: root.sideCollapsed
             onRequestFullscreen: root.toggleFullscreen()
             onRequestScreenshot: root.screenshot()
+            onRequestCheckSetup: checkSetup.open()
             onRequestSources: root.go("home")
         }
         MinimalPage {
@@ -137,8 +139,11 @@ Window {
             id: setPage
             anchors.fill: parent
             visible: root.page === "set"
+            onRequestCheckSetup: checkSetup.open()
         }
     }
+    // Check my setup (CheckSetupDialog.qml), opened from the home page, Professional mode and Settings.
+    CheckSetupDialog { id: checkSetup; parent: Overlay.overlay }
 
     // ---- the one picture ----
     readonly property Item viewport: page === "home" ? homePage.videoViewport
