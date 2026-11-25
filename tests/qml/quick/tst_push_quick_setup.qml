@@ -656,6 +656,52 @@ Item {
             compare(quick.games.length, 0)
             compare(quick.activeGame, "")
         }
+        function test_switching_console_via_game_keeps_outgoing_settings() {
+            quick.switchConsole("xbox")
+            quick.setGameFps("60")
+            verify(quick.saveGame("Xbox game"))
+            quick.switchConsole("ps5")
+            quick.setGameFps("40")
+
+            quick.applyGame("Xbox game")
+            compare(quick.consoleId, "xbox")
+            compare(quick.activeGame, "Xbox game")
+            compare(quick.baseFps, 60)
+            compare(JSON.parse(veyra.preferences.pushProfiles).consoles.ps5.fps, 40)
+            quick.switchConsole("ps5")
+            compare(quick.baseFps, 40)
+        }
+        function test_game_profiles_restore_low_queue_and_accept_legacy_profiles() {
+            const nvidia = veyra.nvidiaLowLatencyAvailable, queue = veyra.fgLowQueue, mode = veyra.nvidiaLowLatency
+            try {
+                veyra.nvidiaLowLatencyAvailable = false
+                veyra.fgLowQueue = true
+                verify(quick.saveGame("Short"))
+                veyra.fgLowQueue = false
+                verify(quick.saveGame("Default"))
+                const games = JSON.parse(veyra.preferences.pushProfiles).games
+                compare(games.find(g => g.name === "Short").lowQueue, true)
+                compare(games.find(g => g.name === "Default").lowQueue, false)
+                quick.applyGame("Short")
+                compare(veyra.fgLowQueue, true)
+                quick.applyGame("Default")
+                compare(veyra.fgLowQueue, false)
+
+                // Older profiles only stored the NVIDIA setting, even on cards using the low queue.
+                verify(veyra.setPreference("pushProfiles", JSON.stringify({v: 1, games: [{name: "Legacy", lowLatency: false}]})))
+                veyra.fgLowQueue = true
+                quick.applyGame("Legacy")
+                compare(veyra.fgLowQueue, true)
+                veyra.nvidiaLowLatencyAvailable = true
+                veyra.nvidiaLowLatency = 1
+                quick.applyGame("Legacy")
+                compare(veyra.nvidiaLowLatency, 0)
+            } finally {
+                veyra.nvidiaLowLatencyAvailable = nvidia
+                veyra.fgLowQueue = queue
+                veyra.nvidiaLowLatency = mode
+            }
+        }
         function test_game_profile_applies_its_preset() {
             veyra.presets = [{index: 0, name: "Default"}, {index: 3, name: "Sharp"}]
             veyra.currentPresetName = "Sharp"

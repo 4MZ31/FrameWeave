@@ -24,7 +24,8 @@ Item {
     function model() {
         const b = veyra.fgEnabled ? veyra.fgBackendName : ""
         const m = veyra.fgEnabled ? veyra.fgMultiplier : 1
-        const base = { valid: true, presents: 600, generatedPresents: 0, low01Fps: 0, jitterMs: 0.4, latencyP50Ms: 0, latencyP95Ms: 0 }
+        const base = { valid: true, seconds: opt.now() - opt.stepStarted, gaps: 0, presents: 600, generatedPresents: 0,
+                       low01Fps: 0, jitterMs: 0.4, latencyP50Ms: 0, latencyP95Ms: 0 }
         if (!b) return Object.assign(base, { fps: 60, low1Fps: 58, latencyMeanMs: 12 })
         const want = 30 * m
         let fps = want, latency = 20
@@ -130,6 +131,25 @@ Item {
             verify(!vfg.result.ok)
             compare(vfg.result.reason, qsTr("没有真正生成帧"))
             compare(opt.best.config.backend, "dlss", "next best that really generated frames")
+        }
+        function test_measurement_coverage_data() {
+            return [
+                {tag: "complete baseline", kind: "baseline", seconds: 5.95, gaps: 0, ok: true},
+                {tag: "complete candidate", kind: "fg-high", seconds: 5.95, gaps: 0, ok: true},
+                {tag: "interrupted baseline", kind: "baseline", seconds: 5.95, gaps: 1, ok: false},
+                {tag: "interrupted candidate", kind: "fg-high", seconds: 5.95, gaps: 1, ok: false},
+                {tag: "short baseline", kind: "baseline", seconds: 4, gaps: 0, ok: false},
+                {tag: "short candidate", kind: "fg-high", seconds: 4, gaps: 0, ok: false}
+            ]
+        }
+        function test_measurement_coverage(data) {
+            opt.current = 0
+            opt.steps = [{config: {kind: data.kind, multiplier: 2, target: "60"}}]
+            const sample = {valid: true, fps: 60, low1Fps: 60, presents: 240, generatedPresents: 120,
+                            seconds: data.seconds, gaps: data.gaps}
+            const result = opt.evaluate(sample, {}, {}, 6)
+            compare(result.ok, data.ok)
+            if (!data.ok) compare(result.reason, qsTr("帧数不足，无法测量"))
         }
         function test_undo_restores_the_settings() {
             veyra.fgEnabled = true; veyra.fgBackendName = "dlss"; veyra.fgMultiplier = 2
