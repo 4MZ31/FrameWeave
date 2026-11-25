@@ -140,31 +140,33 @@ inline AVFrame* allocCaptureUploadFrame(ID3D12Device* device, AVPixelFormat form
     return frame;
 }
 
-// Capture callback, before it writes a frame: point the planes at the upload
-// buffer, or at the CPU planes while the GPU still reads the buffer.
-inline void selectCaptureUploadTarget(AVFrame& frame) {
+// The GPU may still own the mapped pixels. A failed CPU allocation leaves
+// the frame untouched and the caller must skip the write.
+[[nodiscard]] inline bool useCaptureUploadCpuPlanes(AVFrame& frame) {
     auto* info = captureUploadFrame(&frame);
-    if (!info) return;
-    uint8_t* base = info->mapped;
-    info->direct = true; info->proxyValid = false; info->pictureValid = false;
-    if (info->gpuBusy()) {
-        if (!info->cpu) { info->cpu = static_cast<uint8_t*>(av_malloc(size_t(info->bytes))); if (info->cpu) std::memset(info->cpu, 0, size_t(info->bytes)); }
-        if (info->cpu) { base = info->cpu; info->direct = false; ++info->fallbacks; }
+    if (!info) return true;
+    if (!info->cpu) {
+        info->cpu = static_cast<uint8_t*>(av_mallocz(size_t(info->bytes)));
+        if (!info->cpu) return false;
     }
-    frame.data[0] = base;
-    if (info->planes == 2) frame.data[1] = base + info->chromaOffset;
-}
-
-// A writer that cannot supply the analysis pixels (generic swscale output)
-// keeps the frame on its CPU planes; the graph then copies it as before.
-inline void useCaptureUploadCpuPlanes(AVFrame& frame) {
-    auto* info = captureUploadFrame(&frame);
-    if (!info) return;
-    if (!info->cpu) { info->cpu = static_cast<uint8_t*>(av_malloc(size_t(info->bytes))); if (info->cpu) std::memset(info->cpu, 0, size_t(info->bytes)); }
-    if (!info->cpu) return;
     info->direct = false; info->proxyValid = false; info->pictureValid = false;
     frame.data[0] = info->cpu;
     if (info->planes == 2) frame.data[1] = info->cpu + info->chromaOffset;
+    return true;
+}
+
+[[nodiscard]] inline bool selectCaptureUploadTarget(AVFrame& frame) {
+    auto* info = captureUploadFrame(&frame);
+    if (!info) return true;
+    if (info->gpuBusy()) {
+        if (!useCaptureUploadCpuPlanes(frame)) return false;
+        ++info->fallbacks;
+        return true;
+    }
+    info->direct = true; info->proxyValid = false; info->pictureValid = false;
+    frame.data[0] = info->mapped;
+    if (info->planes == 2) frame.data[1] = info->mapped + info->chromaOffset;
+    return true;
 }
 
 // Capture callback, after the copy: the pixels the graph analyses, read from

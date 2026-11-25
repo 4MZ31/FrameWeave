@@ -188,7 +188,11 @@ struct CaptureCompressedDecoder::Impl {
         }
         if (planarToNv12(frame, target)) { copyFrameProperties(frame, target, true); return true; }
         // swscale cannot supply the analysis pixels of an upload-backed target.
-        pipeline::useCaptureUploadCpuPlanes(*target);
+        if (!pipeline::useCaptureUploadCpuPlanes(*target)) {
+            error = "capture CPU upload fallback allocation failed";
+            ++failures;
+            return false;
+        }
         // PushFPS: a stream source may hand a target of the stream's real size once it knows it (an Xbox stream
         // starts from a guess); scale into the target as it is. Capture cards keep their fixed size.
         const bool targetSized = stream && target->width > 0 && target->height > 0 &&
