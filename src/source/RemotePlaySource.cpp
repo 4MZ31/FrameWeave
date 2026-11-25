@@ -2,6 +2,7 @@
 
 #include "veyra/Log.h"
 #include "veyra/media/PushFfmpegLog.h"
+#include "veyra/remoteplay/PushPacketStamps.h"
 #include "veyra/pipeline/ColorMetadata.h"
 
 #include <algorithm>
@@ -115,7 +116,7 @@ bool RemotePlaySource::connect(const RemotePlayConnectDesc& desc)
     request_.credentials.accountId = desc.request.credentials.accountId;
     request_.credentials.registrationKey = desc.request.credentials.registrationKey;
     request_.credentials.sessionKey = desc.request.credentials.sessionKey;
-    decodeMode_=desc.decodeMode;decodeDevice_=desc.decodeDevice;hardwareFallback_=false;
+    decodeMode_=desc.decodeMode;decodeDevice_=desc.decodeDevice;hardwareFallback_=false;hardwareStrikes_.reset();stampsDropped_=0;
     discardMedia_=desc.controlOnly;
 
     origin100ns_ = static_cast<std::uint64_t>(remoteplay::monotonic100ns());
@@ -289,6 +290,8 @@ bool RemotePlaySource::drainDecoder(std::uint64_t sourceIndex, const pipeline::F
         }
         auto clone = cloneFrame(decoderFrame_);
         if (!clone) return false;
+        // PushFPS (remoteplay/PushPacketStamps.h): packets before this picture that never came out leave no stamp.
+        stampsDropped_ += remoteplay::stamps::prune(packetStamps_, decoderFrame_->pts, codecContext_->has_b_frames);
         const auto stamp = std::find_if(packetStamps_.begin(), packetStamps_.end(),
             [&](const PacketStamp& value) { return value.id == decoderFrame_->pts; });
         if (stamp == packetStamps_.end()) {
@@ -327,6 +330,7 @@ bool RemotePlaySource::drainDecoder(std::uint64_t sourceIndex, const pipeline::F
         }
         info_.color = packet.colorInfo;
         const bool hardware=decoderFrame_->format==AV_PIX_FMT_D3D12;
+        if(hardware)hardwareStrikes_.decoded();
         if(sequence_==1||info_.hardwareDecodeActive!=hardware)veyra::log::info("remoteplay-decode",std::format("actual={} pixelFormat={} {}x{} fallback={}",hardware?"D3D12VA":"software",decoderFrame_->format,decoderFrame_->width,decoderFrame_->height,hardwareFallback_));
         info_.hardwareDecodeActive=hardware;
 #ifdef _WIN32
@@ -362,9 +366,14 @@ bool RemotePlaySource::submitPacket(std::span<const std::uint8_t> bytes,
         return false;
     }
     std::memcpy(packet->data, bytes.data(), bytes.size());
-    if (packetStamps_.size() >= 64 || nextPacketId_ == INT64_MAX) {
+    if (nextPacketId_ == INT64_MAX) {
         av_packet_free(&packet);
         return false;
+    }
+    // PushFPS: a full list makes room (its oldest stamp can no longer be answered) instead of failing the packet.
+    if (const auto dropped = remoteplay::stamps::makeRoom(packetStamps_)) {
+        stampsDropped_ += dropped;
+        veyra::log::warn("remoteplay-decode", std::format("{} packet stamps without a picture dropped (total {})", dropped, stampsDropped_));
     }
     packet->pts = nextPacketId_++;
     packet->dts = AV_NOPTS_VALUE;
@@ -451,9 +460,15 @@ SourceReadStatus RemotePlaySource::read(pipeline::FramePacket& out, const AVFram
                 veyra::log::error("remoteplay-decode","requested hardware decode failed; choose automatic or software");
                 inbox_->decodeFailed(sample.generation);return SourceReadStatus::Error;
             }
-            hardwareFallback_=true;avcodec_free_context(&codecContext_);decoderReady_=false;
-            info_.hardwareDecodeActive=false;
-            veyra::log::warn("remoteplay-decode","hardware decode failed; switching to software at next keyframe");
+            // PushFPS (remoteplay/PushPacketStamps.h): one damaged picture is not the card's fault. The card's
+            // decoder is given up only when it fails again before it has decoded a picture.
+            if(!hardwareStrikes_.failed()){
+                veyra::log::warn("remoteplay-decode","hardware decode refused a picture; waiting for the next keyframe on the graphics card");
+            }else{
+                hardwareFallback_=true;avcodec_free_context(&codecContext_);decoderReady_=false;
+                info_.hardwareDecodeActive=false;
+                veyra::log::warn("remoteplay-decode","hardware decode failed twice; switching to software at next keyframe");
+            }
         }
         inbox_->decodeFailed(sample.generation);
         return SourceReadStatus::Waiting;

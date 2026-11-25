@@ -16525,6 +16525,24 @@
    "ru": "Полный экран (двойной щелчок / F11) · Нажмите %1 для быстрой настройки"
   },
   {
+   "zh": "全屏（只显示画面）",
+   "src": "qml/CineBar.qml",
+   "zh-TW": "全螢幕（只顯示畫面）",
+   "en": "Full screen (picture only)",
+   "ja": "全画面（映像のみ）",
+   "ko": "전체 화면 (화면만)",
+   "nl": "Volledig scherm (alleen het beeld)",
+   "de": "Vollbild (nur das Bild)",
+   "es": "Pantalla completa (solo la imagen)",
+   "fr": "Plein écran (image seule)",
+   "it": "Schermo intero (solo l'immagine)",
+   "pt-BR": "Tela cheia (só a imagem)",
+   "tr": "Tam ekran (yalnızca görüntü)",
+   "ar": "ملء الشاشة (الصورة فقط)",
+   "pl": "Pełny ekran (sam obraz)",
+   "ru": "Полный экран (только изображение)"
+  },
+  {
    "zh": "全效果剔除",
    "src": "qml/ProPage.qml",
    "zh-TW": "全效果剔除",
@@ -23310,6 +23328,24 @@
    "ar": "القائد ينتظر",
    "pl": "Slot poleceń czekać",
    "ru": "Командный слот ожидания"
+  },
+  {
+   "zh": "和“设置 → 录制”是同一套设置：这里显示的就是设置里的，在这里改，那里也会改",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "和「設定 → 錄製」是同一套設定：這裡顯示的就是設定裡的，在這裡改，那裡也會改",
+   "en": "The same settings as Settings → Recording: what you see here is what is set there, and a change here changes it there too",
+   "ja": "「設定 → 録画」と同じ設定です。ここに表示されているのは設定の内容で、ここで変えると設定も変わります",
+   "ko": "\"설정 → 녹화\"와 같은 설정입니다. 여기 보이는 것이 설정에 있는 값이고, 여기서 바꾸면 설정도 바뀝니다",
+   "nl": "Dezelfde instellingen als Instellingen → Opnemen: wat je hier ziet is wat daar staat, en een wijziging hier verandert het daar ook",
+   "de": "Dieselben Einstellungen wie Einstellungen → Aufnahme: Was hier steht, ist dort eingestellt, und eine Änderung hier ändert es auch dort",
+   "es": "Los mismos ajustes que Ajustes → Grabación: lo que ves aquí es lo que hay allí, y un cambio aquí también lo cambia allí",
+   "fr": "Les mêmes réglages que Réglages → Enregistrement : ce qui est affiché ici est ce qui y est réglé, et un changement ici le change aussi là-bas",
+   "it": "Le stesse impostazioni di Impostazioni → Registrazione: quello che vedi qui è ciò che è impostato lì, e una modifica qui la cambia anche lì",
+   "pt-BR": "As mesmas configurações de Configurações → Gravação: o que aparece aqui é o que está lá, e uma mudança aqui também muda lá",
+   "tr": "Ayarlar → Kayıt ile aynı ayarlar: burada gördüğünüz oradakilerdir ve burada yapılan değişiklik orayı da değiştirir",
+   "ar": "هي نفس إعدادات «الإعدادات ← التسجيل»: ما تراه هنا هو المضبوط هناك، وأي تغيير هنا يغيّره هناك أيضًا",
+   "pl": "Te same ustawienia co Ustawienia → Nagrywanie: to, co tu widać, jest tam ustawione, a zmiana tutaj zmienia też tam",
+   "ru": "Те же настройки, что в «Настройки → Запись»: здесь показано то, что задано там, и изменение здесь меняет и там"
   },
   {
    "zh": "和「PS5 串流」共用配对",
@@ -50099,24 +50135,6 @@
    "ru": "В использовании. Сделано %1 прогнозные кадры; %2 % движущейся картины не было доверено и оставлено как есть; %3 прогнозные кадры не были показаны, потому что следующий реальный кадр уже должен был быть"
   },
   {
-   "zh": "正在使用设置里选的码率或平台预设（%1 Mbps）。在这里选一项就会改用它",
-   "src": "qml/PushRecordDialog.qml",
-   "zh-TW": "正在使用設定裡選的位元率或平台預設（%1 Mbps）。在這裡選一項就會改用它",
-   "en": "Using the bitrate or platform preset chosen in Settings (%1 Mbps). Pick one here to use that instead",
-   "ja": "設定で選んだビットレートまたはプラットフォームのプリセット（%1 Mbps）を使用中です。ここで選ぶとそちらに切り替わります",
-   "ko": "설정에서 고른 비트레이트 또는 플랫폼 프리셋을 사용 중입니다 (%1 Mbps). 여기서 하나를 고르면 그것을 대신 씁니다",
-   "nl": "Gebruik makend van de bitrate of platformpreset die gekozen is in Instellingen (%1 Mbps). Kies er hier een om dat te gebruiken.",
-   "de": "Verwenden der Bitrate oder Plattformvoreinstellung, die in den Einstellungen ausgewählt wurde (%1 Mbps). Wählen Sie hier eine, um stattdessen diese zu verwenden",
-   "es": "Usando el preset de bitrate o plataforma elegido en Ajustes (%1 Mbps). Elija uno aquí para usar eso en su lugar",
-   "fr": "En utilisant le débit de débit ou le préréglage de plate-forme choisi dans Paramètres (%1 Mbps). Choisissez-en un ici pour l'utiliser.",
-   "it": "Utilizzando la preimpostazione bitrate o platform scelta in Impostazioni (%1 Mbps). Scegli uno qui per usarlo invece",
-   "pt-BR": "Usando a taxa de bits ou a predefinição da plataforma escolhida em Configurações (%1 Mbps). Escolha aqui para usar isso em vez",
-   "tr": "Ayarlama veya platform önceden belirlenmiş Ayarlar (%1 Mbps). Bunun yerine bunu kullanmak için burada bir tane seçin",
-   "ar": "Using the bitrate or platform preset chosen in Settings (%1 Mbps). Pick one here to use that instead",
-   "pl": "Korzystanie z ustawionego bitrate lub platformy (%1 Mbps). Wybierz jeden tutaj, żeby go użyć.",
-   "ru": "Использование битрейта или предустановленной платформы, выбранной в настройках %1 Mbps. Выберите один из них, чтобы использовать его вместо"
-  },
-  {
    "zh": "正在保存截图或导出图片，请稍后再试",
    "src": "qml/PushReadTextDialog.qml",
    "zh-TW": "正在儲存截圖或匯出圖片，請稍後再試",
@@ -56469,6 +56487,24 @@
    "ar": "شاشتان معا في حركة بطيئة مع هاتفك (240 FPS أكثر دقة وضغط الزر بضع مرات",
    "pl": "Filmuj oba ekrany w zwolnionym tempie telefonem (240 FPS jest bardziej precyzyjne) i naciśnij kilka razy przycisk",
    "ru": "Снимите оба экрана в замедленном режиме с помощью телефона (240 FPS более точно) и нажмите кнопку несколько раз."
+  },
+  {
+   "zh": "用的是设置里选的码率或上传预设（%1 Mbps）。在这里选别的一项才会改掉它",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "用的是設定裡選的位元速率或上傳預設（%1 Mbps）。在這裡選別的一項才會改掉它",
+   "en": "Uses the rate or upload preset chosen in Settings (%1 Mbps). It changes only if you pick another option here",
+   "ja": "設定で選んだビットレートまたはアップロードプリセット（%1 Mbps）を使います。ここで別の項目を選んだときだけ変わります",
+   "ko": "설정에서 고른 비트레이트 또는 업로드 프리셋(%1 Mbps)을 사용합니다. 여기서 다른 항목을 고를 때만 바뀝니다",
+   "nl": "Gebruikt de bitrate of uploadvoorinstelling uit Instellingen (%1 Mbps). Die verandert alleen als je hier iets anders kiest",
+   "de": "Verwendet die in den Einstellungen gewählte Bitrate oder Upload-Vorgabe (%1 Mbps). Sie ändert sich nur, wenn du hier etwas anderes wählst",
+   "es": "Usa la tasa de bits o el ajuste de subida elegido en Ajustes (%1 Mbps). Solo cambia si eliges otra opción aquí",
+   "fr": "Utilise le débit ou le préréglage d'envoi choisi dans les Réglages (%1 Mbps). Il ne change que si vous choisissez autre chose ici",
+   "it": "Usa il bitrate o la preimpostazione di caricamento scelti nelle Impostazioni (%1 Mbps). Cambia solo se scegli un'altra opzione qui",
+   "pt-BR": "Usa a taxa de bits ou a predefinição de envio escolhida nas Configurações (%1 Mbps). Só muda se você escolher outra opção aqui",
+   "tr": "Ayarlarda seçilen bit hızını veya yükleme ön ayarını kullanır (%1 Mbps). Yalnızca burada başka bir seçenek seçerseniz değişir",
+   "ar": "يستخدم معدل البت أو إعداد الرفع المختار في الإعدادات (%1 ميغابت/ث). لا يتغيّر إلا إذا اخترت خيارًا آخر هنا",
+   "pl": "Używa bitrate'u lub ustawienia przesyłania wybranego w Ustawieniach (%1 Mb/s). Zmienia się tylko, gdy wybierzesz tu inną opcję",
+   "ru": "Используется битрейт или пресет загрузки из настроек (%1 Мбит/с). Он изменится, только если выбрать здесь другой вариант"
   },
   {
    "zh": "用远程游玩控制 PS5",
@@ -63095,6 +63131,24 @@
    "ru": "Автоматически остаётся прежний запрос 1080p. Действует после переподключения."
   },
   {
+   "zh": "自动码率的一半：录制窗口里选了“小文件”。在这里选“自动”就会用完整的自动码率",
+   "src": "qml/SettingsPage.qml",
+   "zh-TW": "自動位元速率的一半：錄製視窗裡選了「小檔案」。在這裡選「自動」就會用完整的自動位元速率",
+   "en": "Half the automatic rate: \"Smaller files\" was chosen in the record window. Choose \"Auto\" here for the full automatic rate",
+   "ja": "自動ビットレートの半分：録画ウィンドウで「小さいファイル」が選ばれています。ここで「自動」を選ぶと自動ビットレートをそのまま使います",
+   "ko": "자동 비트레이트의 절반: 녹화 창에서 \"더 작은 파일\"을 골랐습니다. 여기서 \"자동\"을 고르면 자동 비트레이트를 그대로 씁니다",
+   "nl": "De helft van de automatische bitrate: in het opnamevenster is 'Kleinere bestanden' gekozen. Kies hier 'Automatisch' voor de volledige bitrate",
+   "de": "Die Hälfte der automatischen Bitrate: Im Aufnahmefenster wurde „Kleinere Dateien“ gewählt. Wähle hier „Automatisch“ für die volle Bitrate",
+   "es": "La mitad de la tasa automática: en la ventana de grabación se eligió «Archivos más pequeños». Elige «Automático» aquí para la tasa completa",
+   "fr": "La moitié du débit automatique : « Fichiers plus petits » a été choisi dans la fenêtre d'enregistrement. Choisissez « Auto » ici pour le débit complet",
+   "it": "Metà del bitrate automatico: nella finestra di registrazione è stato scelto «File più piccoli». Scegli «Automatico» qui per il bitrate completo",
+   "pt-BR": "Metade da taxa automática: \"Arquivos menores\" foi escolhido na janela de gravação. Escolha \"Automático\" aqui para a taxa completa",
+   "tr": "Otomatik bit hızının yarısı: kayıt penceresinde \"Küçük dosyalar\" seçildi. Tam otomatik bit hızı için burada \"Otomatik\"i seçin",
+   "ar": "نصف المعدل التلقائي: اختير «الملفات الأصغر» في نافذة التسجيل. اختر «تلقائي» هنا للمعدل التلقائي الكامل",
+   "pl": "Połowa automatycznego bitrate'u: w oknie nagrywania wybrano „Mniejsze pliki”. Wybierz tu „Auto”, aby użyć pełnego bitrate'u",
+   "ru": "Половина автоматического битрейта: в окне записи выбрано «Меньшие файлы». Выберите здесь «Авто» для полного битрейта"
+  },
+  {
    "zh": "自动识别",
    "src": "qml/PushHudDialog.qml",
    "zh-TW": "自動辨識",
@@ -67415,6 +67469,24 @@
    "ar": "وضع لون المدخلات",
    "pl": "Ustaw kolor wejścia",
    "ru": "Установите входной цвет"
+  },
+  {
+   "zh": "设置里的",
+   "src": "qml/PushRecordDialog.qml",
+   "zh-TW": "設定裡的",
+   "en": "Settings'",
+   "ja": "設定のまま",
+   "ko": "설정 값",
+   "nl": "Uit Instellingen",
+   "de": "Aus Einstellungen",
+   "es": "De Ajustes",
+   "fr": "Des Réglages",
+   "it": "Dalle Impostazioni",
+   "pt-BR": "Das Configurações",
+   "tr": "Ayarlardaki",
+   "ar": "من الإعدادات",
+   "pl": "Z Ustawień",
+   "ru": "Из настроек"
   },
   {
    "zh": "设置里选了另一种大小（%1 × %2）。在这里选一项就会改用它",
@@ -73697,24 +73769,6 @@
    "ar": "اختيار مجلد التسجيلات",
    "pl": "Wybierz folder nagrań",
    "ru": "Выбрать папку записей"
-  },
-  {
-   "zh": "选择录成什么样，然后开始",
-   "src": "qml/PushRecordDialog.qml",
-   "zh-TW": "選擇錄成什麼樣，然後開始",
-   "en": "Choose what the recording will be, then start",
-   "ja": "どのように録画するかを選んでから開始します",
-   "ko": "어떻게 녹화할지 고른 다음 시작하세요",
-   "nl": "Kies wat de opname zal zijn, dan start",
-   "de": "Wählen Sie, was die Aufzeichnung sein wird, dann beginnen",
-   "es": "Elija lo que será la grabación, luego comience",
-   "fr": "Choisissez ce que sera l'enregistrement, puis commencez",
-   "it": "Scegliere quello che sarà la registrazione, quindi iniziare",
-   "pt-BR": "Escolha qual será a gravação e, em seguida, inicie",
-   "tr": "Kaydın ne olacağını seçin, sonra başlayın",
-   "ar": "اختر ما سيكون التسجيل ثم ابدأ",
-   "pl": "Wybierz, jakie będzie nagranie, a następnie uruchom",
-   "ru": "Выберите, какой будет запись, затем начните"
   },
   {
    "zh": "选择截图目录",
