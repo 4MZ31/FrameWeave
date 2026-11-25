@@ -67,6 +67,7 @@ private:
     QString selected_, status_, code_, verificationUri_, lastId_, lastName_;
     bool busy_ = false, gamepad_ = true, softwareDecode_ = false, loaded_ = false, streamActive_ = false, signingIn_ = false;
     QVariantMap stream_;
+    int streamSize_ = 0;   // PushFPS 4.5.3: 0 automatic, 1080, 1440 (xbox::PushStreamSize)
     std::atomic<bool> cancel_{false};
     std::jthread worker_;
 };

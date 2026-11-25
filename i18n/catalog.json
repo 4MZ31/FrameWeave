@@ -22952,6 +22952,24 @@
    "ru": "Назад / вперёд на 5 секунд"
   },
   {
+   "zh": "向主机请求 1440p。主机和服务决定是否给出；需要更快、更稳的网络。重新连接后生效",
+   "src": "qml/XboxSourceDialog.qml",
+   "zh-TW": "向主機請求 1440p。主機和服務決定是否給出；需要更快、更穩的網路。重新連線後生效",
+   "en": "Asks the console for 1440p. The console and the service decide whether they give it; it needs a faster, steadier network. Takes effect when you reconnect.",
+   "ja": "本体に 1440p を要求します。応じるかどうかは本体とサービスが決めます。より速く安定したネットワークが必要です。再接続で反映されます",
+   "ko": "콘솔에 1440p를 요청합니다. 제공 여부는 콘솔과 서비스가 정합니다. 더 빠르고 안정적인 네트워크가 필요합니다. 다시 연결하면 적용됩니다",
+   "nl": "Vraagt de console om 1440p. De console en de dienst bepalen of ze dat geven; er is een sneller, stabieler netwerk voor nodig. Werkt na opnieuw verbinden.",
+   "de": "Fordet von der Konsole 1440p an. Ob sie es liefert, entscheiden Konsole und Dienst; dafür ist ein schnelleres, stabileres Netzwerk nötig. Gilt nach erneutem Verbinden.",
+   "es": "Pide 1440p a la consola. La consola y el servicio deciden si lo dan; necesita una red más rápida y estable. Se aplica al volver a conectar.",
+   "fr": "Demande 1440p à la console. La console et le service décident s'ils l'accordent ; il faut un réseau plus rapide et plus stable. Prend effet à la reconnexion.",
+   "it": "Chiede 1440p alla console. Console e servizio decidono se concederlo; serve una rete più veloce e stabile. Vale dalla prossima connessione.",
+   "pt-BR": "Pede 1440p ao console. O console e o serviço decidem se oferecem; é preciso uma rede mais rápida e estável. Vale ao reconectar.",
+   "tr": "Konsoldan 1440p ister. Verilip verilmeyeceğine konsol ve hizmet karar verir; daha hızlı ve kararlı bir ağ gerekir. Yeniden bağlanınca geçerli olur.",
+   "ar": "يطلب دقة 1440p من الجهاز. يقرر الجهاز والخدمة ما إذا كانا سيوفّرانها؛ ويتطلب ذلك شبكة أسرع وأكثر ثباتًا. يسري عند إعادة الاتصال.",
+   "pl": "Prosi konsolę o 1440p. Konsola i usługa decydują, czy go udostępnią; potrzebna jest szybsza i stabilniejsza sieć. Działa po ponownym połączeniu.",
+   "ru": "Запрашивает у консоли 1440p. Дадут ли его, решают консоль и сервис; нужна более быстрая и стабильная сеть. Действует после переподключения."
+  },
+  {
    "zh": "否",
    "src": "qml/SettingsPage.qml",
    "zh-TW": "否",
@@ -56903,6 +56921,24 @@
    "ru": "Изображение почти не двигалось, поэтому HUD не удалось отличить. Поверните камеру или подвигайтесь в игре и попробуйте снова"
   },
   {
+   "zh": "画面分辨率",
+   "src": "qml/XboxSourceDialog.qml",
+   "zh-TW": "畫面解析度",
+   "en": "Picture resolution",
+   "ja": "映像の解像度",
+   "ko": "화면 해상도",
+   "nl": "Beeldresolutie",
+   "de": "Bildauflösung",
+   "es": "Resolución de imagen",
+   "fr": "Résolution de l'image",
+   "it": "Risoluzione dell'immagine",
+   "pt-BR": "Resolução da imagem",
+   "tr": "Görüntü çözünürlüğü",
+   "ar": "دقة الصورة",
+   "pl": "Rozdzielczość obrazu",
+   "ru": "Разрешение изображения"
+  },
+  {
    "zh": "画面到达电脑到交给显示器，与延迟显示相同",
    "src": "qml/PushLatencyTestDialog.qml",
    "zh-TW": "畫面到達電腦到交給顯示器，與延遲顯示相同",
@@ -62967,6 +63003,24 @@
    "ar": "Detect input automatically · Native BMD",
    "pl": "Wykrywanie wejścia automatycznie · Native BMD",
    "ru": "Обнаружение ввода автоматически · Native BMD"
+  },
+  {
+   "zh": "自动沿用一直以来的 1080p 请求。重新连接后生效",
+   "src": "qml/XboxSourceDialog.qml",
+   "zh-TW": "自動沿用一直以來的 1080p 請求。重新連線後生效",
+   "en": "Automatic keeps the 1080p request PushFPS has always made. Takes effect when you reconnect.",
+   "ja": "自動では、これまでどおり 1080p を要求します。再接続で反映されます",
+   "ko": "자동은 지금까지처럼 1080p를 요청합니다. 다시 연결하면 적용됩니다",
+   "nl": "Automatisch houdt het 1080p-verzoek dat PushFPS altijd deed. Werkt na opnieuw verbinden.",
+   "de": "Automatisch behält die 1080p-Anforderung bei, die PushFPS immer gestellt hat. Gilt nach erneutem Verbinden.",
+   "es": "Automático mantiene la petición de 1080p de siempre. Se aplica al volver a conectar.",
+   "fr": "Automatique garde la demande en 1080p que PushFPS a toujours faite. Prend effet à la reconnexion.",
+   "it": "Automatico mantiene la richiesta a 1080p di sempre. Vale dalla prossima connessione.",
+   "pt-BR": "Automático mantém o pedido de 1080p de sempre. Vale ao reconectar.",
+   "tr": "Otomatik, PushFPS'in her zaman yaptığı 1080p isteğini korur. Yeniden bağlanınca geçerli olur.",
+   "ar": "يحتفظ الوضع التلقائي بطلب 1080p المعتاد. يسري عند إعادة الاتصال.",
+   "pl": "Automatycznie zostaje dotychczasowe żądanie 1080p. Działa po ponownym połączeniu.",
+   "ru": "Автоматически остаётся прежний запрос 1080p. Действует после переподключения."
   },
   {
    "zh": "自动识别",
