@@ -21,7 +21,9 @@ HRESULT createNativeAudioSink(const AM_MEDIA_TYPE&,std::function<HRESULT(IMediaS
 HRESULT createBitstreamAudioSink(const AM_MEDIA_TYPE&,std::function<HRESULT(IMediaSample*)>,Microsoft::WRL::ComPtr<IBaseFilter>&,Microsoft::WRL::ComPtr<IPin>&);
 // Compressed (MJPEG/H.264/HEVC/...) variant: carries the driver payload without
 // a pixel-layout contract; decoding happens in our own backend.
+HRESULT createCompressedCaptureSink(const AM_MEDIA_TYPE&,std::function<HRESULT(IMediaSample*)>,Microsoft::WRL::ComPtr<IBaseFilter>&,Microsoft::WRL::ComPtr<IPin>&,long requestedBuffers);
 HRESULT createCompressedCaptureSink(const AM_MEDIA_TYPE&,std::function<HRESULT(IMediaSample*)>,Microsoft::WRL::ComPtr<IBaseFilter>&,Microsoft::WRL::ComPtr<IPin>&);
+long compressedCaptureBufferBytes(const AM_MEDIA_TYPE&);
 // Advisory request on the upstream output pin, before ConnectDirect. Failure
 // does not invalidate the device; callers retain the compatible connection.
 HRESULT suggestCaptureAudioBuffering(IPin*,const WAVEFORMATEX&);

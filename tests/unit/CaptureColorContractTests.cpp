@@ -1,5 +1,6 @@
 #include "veyra/source/CaptureMediaType.h"
 #include "veyra/source/NativeCaptureSink.h"
+#include "veyra/source/CaptureBuffer.h"
 #include "CaptureFormatCases.h"
 #include "ElgatoHdrCases.h"
 #include "BlackmagicCaptureCases.h"
@@ -148,6 +149,28 @@ int main(){
     {
         auto compressed=type;
         compressed.subtype=MEDIASUBTYPE_MJPG;
+        for (auto mode : {source::CaptureBufferMode::Auto, source::CaptureBufferMode::Minimum, source::CaptureBufferMode::DriverDefault}) {
+            for (bool jpeg : {true, false}) {
+                auto media = compressed;
+                media.lSampleSize=2*1024*1024;
+                if (!jpeg) media.subtype.Data1 = MAKEFOURCC('H','2','6','4');
+                const long count = source::captureCompressedBuffers(mode, jpeg);
+                ComPtr<IBaseFilter> sink; ComPtr<IPin> pin; ComPtr<IMemInputPin> mem; ComPtr<IMemAllocator> upstream;
+                ALLOCATOR_PROPERTIES wanted{}, granted{}, measured{};
+                bool ok = SUCCEEDED(source::createCompressedCaptureSink(media, [](IMediaSample*){return S_OK;}, sink, pin, count)) && SUCCEEDED(pin.As(&mem));
+                if (ok) {
+                    const HRESULT req = mem->GetAllocatorRequirements(&wanted);
+                    ok = count ? req == S_OK && wanted.cBuffers == count && wanted.cbBuffer >= long(media.lSampleSize) : req == E_NOTIMPL;
+                }
+                // The upstream allocator may choose a different capacity.
+                ALLOCATOR_PROPERTIES driver{count ? count + 1 : 5, 524288, 1, 0};
+                ok = ok && SUCCEEDED(CoCreateInstance(CLSID_MemoryAllocator,nullptr,CLSCTX_INPROC_SERVER,IID_PPV_ARGS(&upstream))) &&
+                    SUCCEEDED(upstream->SetProperties(&driver,&granted)) && SUCCEEDED(mem->NotifyAllocator(upstream.Get(),FALSE)) &&
+                    SUCCEEDED(source::queryCaptureAllocatorProperties(pin.Get(),measured)) && measured.cBuffers == driver.cBuffers && measured.cbBuffer == driver.cbBuffer;
+                std::cout << "ALLOCATOR mode=" << source::captureBufferModeKey(mode) << " jpeg=" << jpeg << " requested=" << count << " negotiated=" << measured.cBuffers << " bytes=" << measured.cbBuffer << std::endl;
+                check(ok,"compressed input distinguishes requested and granted allocator capacity");
+            }
+        }
         unsigned packets=0;
         double pts=-1;
         HRESULT downstream=S_OK;

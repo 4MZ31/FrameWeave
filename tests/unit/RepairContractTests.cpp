@@ -602,8 +602,10 @@ int main(){
         engine::EnhancementSettings settings;
         settings.videoSrQuality=engine::kVideoSrFsr;
         check(settings.validate().empty(),"AMD FSR upscaling is a valid video SR quality");
-        settings.videoSrQuality=engine::kVideoSrFsr+1;
-        check(!settings.validate().empty(),"video SR quality above the AMD FSR slot is rejected");
+        settings.videoSrQuality=engine::kVideoSrNis;
+        check(settings.validate().empty(),"NIS is a valid video SR quality");
+        settings.videoSrQuality=engine::kVideoSrNis+1;
+        check(!settings.validate().empty(),"unassigned video SR quality after NIS is rejected");
         settings.videoSrQuality=0;
         check(settings.validate().empty(),"DLSS SR quality remains valid");
     }
@@ -734,10 +736,12 @@ int main(){
     rates.xessSubmitted(2,1,10000000);rates.xessSubmitted(1,0,10000000);
     check(rates.snapshot(10000000).xessSdkSubmitFps==3&&rates.snapshot(10000000).outputCompletedFps==100,"XeSS SDK submissions never enter measured GPU completions");
     rates.latency(10100000,10300000);rates.latency(10200000,10600000);
+    rates.presented(true,61,10900000);
     const auto times=rates.snapshot(13000000);
+    check(times.captureArrivalToPresentReturnMs==40 && times.latencySamples==2,"generated presentation leaves original capture age and sample count intact");
     check(times.softwareLatencyMs==30&&times.softwareLatencyP95Ms==40&&times.latencySamples==2,"software latency measures same-frame endpoints and nearest-rank P95");
     const auto stale=rates.snapshot(23000000);
-    check(!stale.softwareLatencyMs&&stale.outputCompletedFps==0&&stale.xessSdkSubmitFps==0,"stalled stream expires rates and latency samples");
+    check(!stale.captureArrivalToPresentReturnMs&&!stale.softwareLatencyP95Ms&&!stale.latencySamples&&!stale.softwareLatencyMs&&stale.outputCompletedFps==0&&stale.xessSdkSubmitFps==0,"stalled stream expires rates and latency samples");
     engine::FrameFlowWindow thousand(1,{1,1,1},0);
     for(unsigned i=1;i<=1000;++i)thousand.ready(i,true,0,0,i*10000);
     check(thousand.snapshot(10000000).outputCompletedFps==1000,"completion accounting supports measured 1000fps without a 60fps clamp");

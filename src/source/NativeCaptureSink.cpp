@@ -3,6 +3,7 @@
 #include "veyra/Log.h"
 #include "veyra/sink/AudioFormat.h"
 #include "veyra/sink/BitstreamAudio.h"
+#include <algorithm>
 #include <format>
 #include <mmreg.h>
 #include <atomic>
@@ -39,6 +40,15 @@ bool nativeCaptureContractsMatch(const AM_MEDIA_TYPE& a,const AM_MEDIA_TYPE& b){
     if(a.subtype!=b.subtype||!equivalentCaptureTypes(a,b))return false;
     const auto fields=[](const AM_MEDIA_TYPE& t){return t.formattype==FORMAT_VideoInfo2&&t.pbFormat&&t.cbFormat>=sizeof(VIDEOINFOHEADER2)?reinterpret_cast<const VIDEOINFOHEADER2*>(t.pbFormat)->dwInterlaceFlags:DWORD(0);};
     return fields(a)==fields(b);
+}
+long compressedCaptureBufferBytes(const AM_MEDIA_TYPE& type) {
+    DWORD imageBytes=0;
+    if(type.pbFormat&&type.formattype==FORMAT_VideoInfo&&type.cbFormat>=sizeof(VIDEOINFOHEADER))
+        imageBytes=reinterpret_cast<const VIDEOINFOHEADER*>(type.pbFormat)->bmiHeader.biSizeImage;
+    else if(type.pbFormat&&type.formattype==FORMAT_VideoInfo2&&type.cbFormat>=sizeof(VIDEOINFOHEADER2))
+        imageBytes=reinterpret_cast<const VIDEOINFOHEADER2*>(type.pbFormat)->bmiHeader.biSizeImage;
+    const auto valid=[](DWORD bytes){return bytes<=LONG_MAX?long(bytes):0L;};
+    return std::max({512L*1024,valid(imageBytes),valid(type.lSampleSize)});
 }
 namespace {
 LONG audioBlockBytes(const WAVEFORMATEX& f){
@@ -97,8 +107,9 @@ class NativeSink final:public IBaseFilter,public IPin,public IMemInputPin,public
     bool compressed_=false;
     uint64_t videoSamples_=0;
     CaptureAllocatorMode allocatorMode_=CaptureAllocatorMode::SinkDefault;
+    long compressedBuffers_=4;
 public:
-    NativeSink(const AM_MEDIA_TYPE& type,std::function<HRESULT(IMediaSample*)> cb,bool compressed=false,CaptureAllocatorMode allocatorMode=CaptureAllocatorMode::SinkDefault):callback_(std::move(cb)),allocatorMode_(allocatorMode){
+    NativeSink(const AM_MEDIA_TYPE& type,std::function<HRESULT(IMediaSample*)> cb,bool compressed=false,CaptureAllocatorMode allocatorMode=CaptureAllocatorMode::SinkDefault,long compressedBuffers=4):callback_(std::move(cb)),allocatorMode_(allocatorMode),compressedBuffers_(compressedBuffers){
         compressed_=compressed;audio_=!compressed&&audioType(type);
         if(compressed_){
             if(FAILED(copyType(desired_,type)))throw std::bad_alloc();
@@ -178,8 +189,8 @@ public:
     }
     HRESULT STDMETHODCALLTYPE GetAllocatorRequirements(ALLOCATOR_PROPERTIES* p)override{
         if(!p)return E_POINTER;std::lock_guard lock(mutex_);
-        if(allocatorMode_==CaptureAllocatorMode::Upstream){*p={};return E_NOTIMPL;}
-        *p={compressed_?4:3,compressed_?LONG(512*1024):audio_?audioBlockBytes(*reinterpret_cast<const WAVEFORMATEX*>(desired_.pbFormat)):LONG(layout_.sampleBytes),1,0};return S_OK;
+        if(allocatorMode_==CaptureAllocatorMode::Upstream||(compressed_&&compressedBuffers_==0)){*p={};return E_NOTIMPL;}
+        *p={compressed_?compressedBuffers_:3,compressed_?compressedCaptureBufferBytes(desired_):audio_?audioBlockBytes(*reinterpret_cast<const WAVEFORMATEX*>(desired_.pbFormat)):LONG(layout_.sampleBytes),1,0};return S_OK;
     }
     // Receive holds the pin mutex across the callback (DirectShow requires
     // Stop()/GetState() to observe a quiescent pin). The callback itself now
@@ -260,8 +271,11 @@ HRESULT queryCaptureAllocatorProperties(IPin* pin,ALLOCATOR_PROPERTIES& out){
     return allocator->GetProperties(&out);
 }
 HRESULT createCompressedCaptureSink(const AM_MEDIA_TYPE& type,std::function<HRESULT(IMediaSample*)> callback,ComPtr<IBaseFilter>& filter,ComPtr<IPin>& pin){
+    return createCompressedCaptureSink(type,std::move(callback),filter,pin,4);
+}
+HRESULT createCompressedCaptureSink(const AM_MEDIA_TYPE& type,std::function<HRESULT(IMediaSample*)> callback,ComPtr<IBaseFilter>& filter,ComPtr<IPin>& pin,long requestedBuffers){
     filter.Reset();pin.Reset();if(type.majortype!=MEDIATYPE_Video)return VFW_E_INVALIDMEDIATYPE;
-    try{filter.Attach(new NativeSink(type,std::move(callback),true));return filter.As(&pin);}catch(...){return E_OUTOFMEMORY;}
+    try{filter.Attach(new NativeSink(type,std::move(callback),true,CaptureAllocatorMode::SinkDefault,requestedBuffers));return filter.As(&pin);}catch(...){return E_OUTOFMEMORY;}
 }
 HRESULT createNativeCaptureSink(const AM_MEDIA_TYPE& type,std::function<HRESULT(IMediaSample*)> callback,ComPtr<IBaseFilter>& filter,ComPtr<IPin>& pin){
     return createNativeCaptureSink(type,std::move(callback),filter,pin,CaptureAllocatorMode::SinkDefault);

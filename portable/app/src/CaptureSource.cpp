@@ -59,11 +59,12 @@ int CaptureSource::preferredFormat(const QList<QCameraFormat>& formats) {
     return best;
 }
 
-void CaptureSource::enqueue(const QVideoFrame& frame) {
+void CaptureSource::enqueue(const QVideoFrame& frame, quint64 generation) {
     if (!frame.isValid()) return;
     const qint64 t = nowNs();
     {
         std::lock_guard lk(m_);
+        if (generation != generation_) return;
         queue_.emplace_back(frame, t);
         // Never let the capture wait: if the engine falls behind, the oldest waiting frame goes. Two may
         // wait (4.1; three before): a machine that cannot keep up showed every picture two capture
@@ -80,10 +81,13 @@ void CaptureSource::workerLoop() {
         if (stopWorker_) return;
         auto item = std::move(queue_.front());
         queue_.pop_front();
+        publishing_ = true;
         lk.unlock();
         const bool ok = pushVideoFrame(*engine_, item.first, item.second);
         lk.lock();
+        publishing_ = false;
         if (ok) ++read_;
+        cv_.notify_all();
     }
 }
 
@@ -101,7 +105,7 @@ bool CaptureSource::startCamera(const QCameraDevice& device, const QCameraFormat
     session_->setCamera(camera_);
     session_->setVideoSink(sink_);
     // Delivered on Qt's capture thread: only queue the frame there.
-    connect(sink_, &QVideoSink::videoFrameChanged, this, [this](const QVideoFrame& f) { enqueue(f); }, Qt::DirectConnection);
+    connect(sink_, &QVideoSink::videoFrameChanged, this, [this, generation = generation_](const QVideoFrame& f) { enqueue(f, generation); }, Qt::DirectConnection);
     connect(camera_, &QCamera::errorOccurred, this, [this](QCamera::Error error, const QString& text) {
         if (error != QCamera::NoError) emit errorOccurred(text.isEmpty() ? tr("无法打开采集设备") : text);
     });
@@ -124,7 +128,7 @@ bool CaptureSource::startFile(const QUrl& url, float volume, bool withSound) {
         player_->setAudioOutput(fileAudio_);
     }
     player_->setLoops(QMediaPlayer::Infinite);
-    connect(sink_, &QVideoSink::videoFrameChanged, this, [this](const QVideoFrame& f) { enqueue(f); }, Qt::DirectConnection);
+    connect(sink_, &QVideoSink::videoFrameChanged, this, [this, generation = generation_](const QVideoFrame& f) { enqueue(f, generation); }, Qt::DirectConnection);
     connect(player_, &QMediaPlayer::errorOccurred, this, [this](QMediaPlayer::Error error, const QString& text) {
         if (error != QMediaPlayer::NoError) emit errorOccurred(text.isEmpty() ? tr("无法播放此文件") : text);
     });
@@ -176,8 +180,12 @@ void CaptureSource::stop() {
     delete sink_;
     sink_ = nullptr;
     {
-        std::lock_guard lk(m_);
+        std::unique_lock lk(m_);
+        ++generation_;
         queue_.clear();
+        // startCamera/startFile reset the engine after stop returns. Finish the
+        // single in-flight publication before admitting that next source.
+        cv_.wait(lk, [this] { return !publishing_; });
         read_ = 0;
     }
     kind_ = Kind::None;

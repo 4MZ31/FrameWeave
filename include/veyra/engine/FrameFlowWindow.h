@@ -133,7 +133,9 @@ public:
     void latency(int64_t begin,int64_t end){
         if(begin<=0||end<begin)return;
         pushBenchmarkProbe().latency(double(end-begin)/10000); // PushFPS: Optimise for my PC
-        std::lock_guard lock(mutex_);latency_.push_back({end,double(end-begin)/10000});
+        std::lock_guard lock(mutex_);
+        metrics_.captureArrivalToPresentReturnMs=double(end-begin)/10000;
+        latency_.push_back({end,*metrics_.captureArrivalToPresentReturnMs});
         while(latency_.size()>8192||(!latency_.empty()&&latency_.front().time<=end-10000000))latency_.pop_front();
     }
     void presented(bool generated,uint64_t fence,int64_t now,int64_t paceAt=0){
@@ -161,6 +163,7 @@ public:
         for(unsigned i=0;i<unsigned(diagnostics::CpuStage::Count);++i)m.cpuTiming[i]=aggregates_[gpuCount+i];
         for(unsigned i=0;i<unsigned(diagnostics::PairTiming::Count);++i)m.pairTiming[i]=aggregates_[pairBegin+i];
         m.enhancementProcessing=aggregates_[enhancementIndex];
+        if(!latencyCount_)m.captureArrivalToPresentReturnMs.reset();
         m.softwareLatencyMs=latencyMean_;m.softwareLatencyP95Ms=latencyP95_;m.latencySamples=latencyCount_;return m;
     }
 };

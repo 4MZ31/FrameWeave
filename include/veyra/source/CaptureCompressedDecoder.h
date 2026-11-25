@@ -14,12 +14,31 @@
 #include "veyra/source/CaptureCodec.h"
 
 struct AVFrame;
+struct AVPacket;
+struct AVBufferPool;
 struct ID3D12Device;
 struct ID3D12CommandQueue;
 
 namespace veyra::pipeline { struct HardwareSurfaceInput; }
 
 namespace veyra::source {
+
+struct CapturePacketDeleter { void operator()(AVPacket*) const noexcept; };
+using CapturePacket = std::unique_ptr<AVPacket, CapturePacketDeleter>;
+// Owned by the serialized DirectShow producer. FFmpeg keeps outstanding buffers
+// alive when the pool grows or the capture source closes.
+class CapturePacketPool {
+public:
+    CapturePacketPool() = default;
+    CapturePacketPool(const CapturePacketPool&) = delete;
+    CapturePacketPool& operator=(const CapturePacketPool&) = delete;
+    ~CapturePacketPool();
+    void clear();
+    CapturePacket copy(const uint8_t* data, size_t bytes, int64_t pts100ns);
+private:
+    AVBufferPool* pool_ = nullptr;
+    size_t capacity_ = 0;
+};
 
 class CaptureCompressedDecoder {
 public:
@@ -61,6 +80,9 @@ public:
     // decoder reported an error; see lastError()/waitingForInput().
     bool decode(const uint8_t* data, size_t bytes, int64_t pts100ns,
         AVFrame* nv12Target, AVFrame** out, bool& hardware);
+
+    // A ref-counted FFmpeg packet can be submitted directly. Null only drains pending output.
+    bool decodePacket(const AVPacket* packet, AVFrame* nv12Target, AVFrame** out, bool& hardware);
 
     // For D3D11VA frames (AV_PIX_FMT_D3D11) the texture the graph reads is not
     // inside the AVFrame: this fills the borrowed view of the last frame.

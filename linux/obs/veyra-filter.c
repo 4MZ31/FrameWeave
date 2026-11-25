@@ -83,15 +83,18 @@ static void load_lut(struct veyra_filter *filter)
     }
 
 	obs_enter_graphics();
-	if (filter->lut)
-		gs_texture_destroy(filter->lut);
 	const uint8_t *data = cube.rgba;
-	filter->lut = gs_voltexture_create((uint32_t)cube.size, (uint32_t)cube.size,
+	gs_texture_t *replacement = gs_voltexture_create((uint32_t)cube.size, (uint32_t)cube.size,
 					  (uint32_t)cube.size, GS_RGBA, 1, &data, 0);
+	if (replacement) {
+		if (filter->lut)
+			gs_texture_destroy(filter->lut);
+		filter->lut = replacement;
+	}
 	obs_leave_graphics();
 	free(cube.rgba);
 
-	if (!filter->lut) {
+	if (!replacement) {
 		blog(LOG_ERROR, "[veyra] volume texture creation failed for '%s'", filter->lut_path);
 		return;
 	}

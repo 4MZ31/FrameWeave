@@ -76,7 +76,7 @@ function Step([string]$text) { Write-Host ''; Write-Host "  $text" -ForegroundCo
 function Info([string]$text) { Write-Host "    $text" }
 function Fail([string]$text) {
     Write-Host ''; Write-Host "  $text" -ForegroundColor Red
-    if ($WaitForPid -gt 0) {
+    if ($WaitForPid -gt 0 -and -not $script:installUncertain) {
         # An update started inside PushFPS: the program has closed by now. Say what happened, start the
         # copy that is still installed and keep this window open so the reason can be read.
         Write-Host '  The update did not finish. You can run it again from PushFPS, or download the release by hand.' -ForegroundColor Yellow
@@ -120,6 +120,89 @@ for ($ancestor = $installRootInfo; $ancestor; $ancestor = $ancestor.Parent) {
         Fail "The installation folder goes through a link: $($ancestor.FullName)"
     }
 }
+
+# A journal beside the installation survives an interrupted process. Only package
+# files are replaced. The backup index is independent of the destination names.
+function Get-InstallFile([string]$Name) {
+    if ([IO.Path]::IsPathRooted($Name) -or $Name -match '(^|[\\/])\.\.?([\\/]|$)|:') { throw "Invalid package path: $Name" }
+    $file = [IO.FileInfo]::new([IO.Path]::Combine($InstallDir, $Name))
+    if (-not $file.FullName.StartsWith($InstallDir.TrimEnd('\') + '\', [StringComparison]::OrdinalIgnoreCase)) { throw "Outside installation: $Name" }
+    for ($entry = $file; $entry; $entry = $(if ($entry -is [IO.FileInfo]) { $entry.Directory } else { $entry.Parent })) {
+        if ((Test-Path -LiteralPath $entry.FullName) -and ([IO.File]::GetAttributes($entry.FullName) -band [IO.FileAttributes]::ReparsePoint)) { throw "Linked installation path: $Name" }
+    }
+    return $file
+}
+
+function Restore-Install {
+    if (-not [IO.Directory]::Exists($transaction)) { return }
+    if ([IO.File]::GetAttributes($transaction) -band [IO.FileAttributes]::ReparsePoint) { throw 'Linked transaction directory.' }
+    if (-not [IO.File]::Exists($journal)) { throw "Unrecognized transaction directory: $transaction" }
+    if (-not [IO.File]::Exists((Join-Path $transaction 'committed'))) {
+        $entries = [IO.File]::ReadAllLines($journal)
+        for ($i = $entries.Count - 1; $i -ge 0; --$i) {
+            $kind, $name = $entries[$i] -split '\|', 2
+            $dest = (Get-InstallFile $name).FullName
+            $backup = Join-Path $transaction ("old-$i")
+            if ($kind -eq 'dir') {
+                if ([IO.Directory]::Exists($dest) -and [IO.Directory]::GetFileSystemEntries($dest).Length -eq 0) { [IO.Directory]::Delete($dest) }
+            }
+            elseif ($kind -eq 'new') { [IO.File]::Delete($dest) }
+            elseif ($kind -eq 'old') {
+                if ([IO.File]::Exists($backup)) {
+                    if ([IO.File]::Exists($dest)) { [IO.File]::Replace($backup, $dest, [System.Management.Automation.Language.NullString]::Value) }
+                    else { [IO.File]::Move($backup, $dest) }
+                }
+            } else { throw 'Invalid installation journal.' }
+        }
+    }
+    # Detach a finished journal atomically. An interrupted cleanup may leave
+    # stale backups, but can never replay an already completed rollback.
+    $finished = $transaction + '-finished-' + [guid]::NewGuid().ToString('N')
+    [IO.Directory]::Move($transaction, $finished)
+    foreach ($item in [IO.Directory]::EnumerateFiles($finished)) {
+        if ([IO.Path]::GetFileName($item) -notmatch '^(journal|pending|committed|old-\d+)$') { throw "Unexpected transaction file: $item" }
+        try { [IO.File]::Delete($item) } catch { Info "In-use backup retained: $item" }
+    }
+    if ([IO.Directory]::GetFileSystemEntries($finished).Length -eq 0) { [IO.Directory]::Delete($finished) }
+}
+
+function Set-InstallFile([string]$Name, [string]$Source) {
+    $dest = Get-InstallFile $Name
+    if ([IO.Directory]::Exists($dest.FullName)) { throw "A directory occupies the package file path: $Name" }
+    $exists = [IO.File]::Exists($dest.FullName)
+    if (-not $exists -and -not $Source) { return }
+    $pending = Join-Path $transaction 'pending'
+    if ($Source) {
+        $missing = [Collections.Generic.Stack[IO.DirectoryInfo]]::new()
+        for ($dir = $dest.Directory; -not $dir.Exists; $dir = $dir.Parent) { $missing.Push($dir) }
+        while ($missing.Count) {
+            $dir = $missing.Pop()
+            $relative = $dir.FullName.Substring($InstallDir.TrimEnd('\').Length + 1)
+            [IO.File]::AppendAllText($journal, "dir|$relative" + [Environment]::NewLine)
+            ++$script:transactionIndex
+            $dir.Create()
+        }
+        [IO.File]::Copy($Source, $pending, $true)
+    }
+    $kind = if ($exists) { 'old' } else { 'new' }
+    [IO.File]::AppendAllText($journal, "$kind|$Name" + [Environment]::NewLine)
+    $backup = Join-Path $transaction ("old-" + $script:transactionIndex++)
+    if (-not $Source) { [IO.File]::Move($dest.FullName, $backup) }
+    elseif ($exists) { [IO.File]::Replace($pending, $dest.FullName, $backup) }
+    else { [IO.File]::Move($pending, $dest.FullName) }
+}
+
+$hash = [Security.Cryptography.SHA256]::Create()
+try { $key = [BitConverter]::ToString($hash.ComputeHash([Text.Encoding]::UTF8.GetBytes($InstallDir.ToUpperInvariant()))).Replace('-', '') } finally { $hash.Dispose() }
+$installLock = [Threading.Mutex]::new($false, "Local\PushFPS-Install-$key")
+try { $locked = $installLock.WaitOne(0) } catch [Threading.AbandonedMutexException] { $locked = $true }
+if (-not $locked) { $script:installUncertain = $true; Fail 'Another installation is in progress.' }
+try {
+$transaction = Join-Path $installRootInfo.Parent.FullName ('.PushFPS-update-' + $key)
+$journal = Join-Path $transaction 'journal'
+$script:installUncertain = $true
+Restore-Install
+$script:installUncertain = $false
 $manifest = Join-Path $InstallDir 'PushFPS-installed-files.txt'
 $manifestHeader = 'PushFPS installed files v1'
 $owned = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
@@ -296,8 +379,11 @@ try {
     foreach ($x in $extras) {
         if ($keepExtras) { Info "Installing experimental extra by your choice: $($x.Rel)"; continue }
         $src = Join-Path $runtimeRoot $x.Rel
-        if ($x.Dir) { Remove-Item $src -Recurse -Force } else { Remove-Item $src -Force }
-        Remove-Item (Join-Path $InstallDir $x.Rel) -Recurse -Force -ErrorAction SilentlyContinue
+        if ($x.Dir) {
+            $x | Add-Member -NotePropertyName Files -NotePropertyValue @([IO.Directory]::EnumerateFiles($src, '*', [IO.SearchOption]::AllDirectories) | ForEach-Object { $_.Substring($runtimeRoot.Length + 1) })
+            Remove-Item -LiteralPath $src -Recurse -Force
+        } else { Remove-Item $src -Force }
+
         $skipped += "$($x.Rel) ($($x.Why); install with -ExperimentalExtras Yes)"
     }
     foreach ($item in $skipped) { Info "Not installed: $item" }
@@ -317,74 +403,60 @@ try {
     $ownData = Join-Path $InstallDir 'runtime_local\user-data-2.0.0'
     $copySettings = $OwnFolder -and (Test-Path $mainData) -and -not (Test-Path $ownData)
     New-Item -ItemType Directory -Force $InstallDir | Out-Null
-    # /E copies every folder; files already there are replaced, your settings folder
-    # (runtime_local\user-data-2.0.0) and other extra files stay.
-    # A file that another program holds open cannot be replaced: the folder is then half old and half new, so
-    # say which files and that the install has to be run again (it used to say only an exit code).
-    # The virtual camera's files are left out here and copied on their own below: they are the one part of
-    # this folder that other programs load.
-    foreach ($source in @($runtimeRoot, $filesDir)) {
-        $copyLog = & robocopy $source $InstallDir /E /XD (Join-Path $source 'virtualcam') /R:2 /W:2 /NFL /NDL /NJH /NJS /NP
-        if ($LASTEXITCODE -ge 8) {
-            $copyCode = $LASTEXITCODE
-            @($copyLog) | Where-Object { $_ -match '\(0x[0-9A-Fa-f]{8}\)' } | Select-Object -First 6 | ForEach-Object { Info ([string]$_).Trim() }
-            Fail "Copying files failed (robocopy exit $copyCode), so this install is NOT complete. Close every program that has a file of $InstallDir open (a restart of the PC does it), then run the installer again."
-        }
-    }
-    # The virtual camera. Once it has been switched on, every program that lists cameras (a browser, Discord, OBS)
-    # loads its file from this folder and keeps it loaded while that program runs. A loaded file cannot be
-    # written over, and until 23 November 2026 that ended the whole install with "Copying files failed", the
-    # folder half old and half new. It can be renamed: the old file is moved aside (and removed by a later
-    # install, once nothing holds it) and the new one takes its name. A file that cannot even be moved stays as
-    # it is, and the install goes on: it is said below.
-    $cameraKept = @()
-    $cameraFrom = Join-Path $filesDir 'virtualcam'
-    if (Test-Path $cameraFrom) {
-        $cameraTo = Join-Path $InstallDir 'virtualcam'
-        New-Item -ItemType Directory -Force $cameraTo | Out-Null
-        foreach ($old in @(Get-ChildItem -LiteralPath $cameraTo -File | Where-Object { $_.Name -like '*.replaced-*' })) {
-            try { Remove-Item -LiteralPath $old.FullName -Force -ErrorAction Stop } catch { }
-        }
-        foreach ($file in @(Get-ChildItem -LiteralPath $cameraFrom -File)) {
-            $dest = Join-Path $cameraTo $file.Name
-            try { Copy-Item -LiteralPath $file.FullName -Destination $dest -Force -ErrorAction Stop }
-            catch {
-                try {
-                    [System.IO.File]::Move($dest, ($dest + '.replaced-' + [guid]::NewGuid().ToString('N').Substring(0, 8)))
-                    Copy-Item -LiteralPath $file.FullName -Destination $dest -Force -ErrorAction Stop
-                    Info "In use by another program, so the old file was moved aside: virtualcam\$($file.Name)"
-                } catch { $cameraKept += $file.Name }
+    $script:transactionIndex = 0
+    $preparing = $transaction + '-preparing-' + [guid]::NewGuid().ToString('N')
+    [void][IO.Directory]::CreateDirectory($preparing)
+    [IO.File]::WriteAllText((Join-Path $preparing 'journal'), '')
+    [IO.Directory]::Move($preparing, $transaction)
+    $script:installUncertain = $true
+    try {
+        foreach ($source in @($runtimeRoot, $filesDir)) {
+            foreach ($file in [IO.Directory]::EnumerateFiles($source, '*', [IO.SearchOption]::AllDirectories)) {
+                $rel = $file.Substring($source.Length + 1)
+                if ($source -eq $runtimeRoot -and $rel.StartsWith('virtualcam\', [StringComparison]::OrdinalIgnoreCase)) { continue }
+                if ($rel -in 'veyra_qml_ui.exe','veyra_update_worker.exe') { continue }
+                if ($rel -like 'runtime_local\user-data-*') { continue }
+                Set-InstallFile $rel $file
             }
         }
-        foreach ($name in $cameraKept) { Info "Not updated (in use by another program): virtualcam\$name. Close the programs that use a camera and run the installer again." }
+        foreach ($own in 'veyra_qml_ui.exe','veyra_update_worker.exe') { Set-InstallFile $own '' }
+        if (-not $keepExtras) {
+            foreach ($x in $extras) {
+                if ($x.Dir) {
+                    # Remove only files belonging to the excluded runtime package.
+                    foreach ($name in $x.Files) { Set-InstallFile $name '' }
+                } else { Set-InstallFile $x.Rel '' }
+            }
+        }
+        $versionLines = @(
+            "PushFPS $PushFpsVersion",
+            "Runtime: $asset from https://github.com/$UpstreamRepo/releases/tag/$UpstreamTag",
+            "Runtime SHA-256: $expected"
+        ) + @($skipped | ForEach-Object { "Not installed: $_" })
+        Set-Content -LiteralPath (Join-Path $stage 'version.tmp') -Value $versionLines -Encoding UTF8
+        Set-InstallFile 'PushFPS-VERSION.txt' (Join-Path $stage 'version.tmp')
+        # Merge earlier inventories for upgrades. Never inventory the destination:
+        # it can also contain files belonging to its user or another program.
+        Add-Payload ([IO.DirectoryInfo]::new($runtimeRoot)) '' 'virtualcam'
+        [void]$owned.Remove('veyra_qml_ui.exe')
+        Add-Payload ([IO.DirectoryInfo]::new($filesDir)) ''
+        [void]$owned.Add('PushFPS-VERSION.txt')
+        $stagedManifest = Join-Path $stage 'manifest.tmp'
+        [IO.File]::WriteAllLines($stagedManifest, [string[]](@($manifestHeader) + @($owned)))
+        Set-InstallFile 'PushFPS-installed-files.txt' $stagedManifest
+        [IO.File]::WriteAllText((Join-Path $transaction 'committed'), '')
+    } catch {
+        $cause = $_
+        Restore-Install
+        $script:installUncertain = $false
+        throw $cause
     }
-    # One program, one name: PushFPS.exe replaces Veyra's launcher in this folder. The runtime package's own
-    # updater (since 2.2.1) updates Veyra, not PushFPS, which has its own signed updates: it is not kept.
-    foreach ($own in 'veyra_qml_ui.exe', 'veyra_update_worker.exe') {
-        Remove-Item (Join-Path $InstallDir $own) -Force -ErrorAction SilentlyContinue
-    }
+    Restore-Install
+    $script:installUncertain = $false
     if ($copySettings) {
         & robocopy $mainData $ownData /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
         if ($LASTEXITCODE -ge 8) { Info 'Your settings could not be copied: the test build starts with settings of its own.' } else { Info 'Copied the settings of your PushFPS for the test build.' }
     }
-    $versionLines = @(
-        "PushFPS $PushFpsVersion",
-        "Runtime: $asset from https://github.com/$UpstreamRepo/releases/tag/$UpstreamTag",
-        "Runtime SHA-256: $expected"
-    ) + @($skipped | ForEach-Object { "Not installed: $_" })
-    Set-Content -Path (Join-Path $InstallDir 'PushFPS-VERSION.txt') -Value $versionLines -Encoding UTF8
-    # Merge earlier inventories for upgrades. Never inventory the destination:
-    # it can also contain files belonging to its user or another program.
-    Add-Payload ([IO.DirectoryInfo]::new($runtimeRoot)) '' 'virtualcam'
-    [void]$owned.Remove('veyra_qml_ui.exe')
-    Add-Payload ([IO.DirectoryInfo]::new($filesDir)) ''
-    [void]$owned.Add('PushFPS-VERSION.txt')
-    $stagedManifest = Join-Path $InstallDir ([IO.Path]::GetRandomFileName())
-    try {
-        [IO.File]::WriteAllLines($stagedManifest, [string[]](@($manifestHeader) + @($owned)))
-        if ($hasManifest) { [IO.File]::Replace($stagedManifest, $manifest, [System.Management.Automation.Language.NullString]::Value) }
-        else { [IO.File]::Move($stagedManifest, $manifest) }
-    } finally { if ([IO.File]::Exists($stagedManifest)) { [IO.File]::Delete($stagedManifest) } }
 } finally {
     Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
 }
@@ -421,4 +493,8 @@ if ($OwnFolder) { Info "Your own PushFPS in $MainDir was not changed. Start this
 Info "The downloaded package stays in $cacheDir for quick reinstalls; you can delete it."
 
 if (-not $NoLaunch) { Start-Process -FilePath $target -WorkingDirectory $InstallDir }
+} finally {
+    $installLock.ReleaseMutex()
+    $installLock.Dispose()
+}
 exit 0

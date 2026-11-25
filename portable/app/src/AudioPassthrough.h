@@ -24,7 +24,7 @@ public:
     bool start(const QAudioDevice& input, const QAudioDevice& output);
     void stop();
     bool running() const { return source_ != nullptr; }
-    void setDelayMs(double ms);
+    double setDelayMs(double ms);
     void setVolume(float volume);
     // The input device that belongs to a video capture device (same name, or the USB capture card's
     // usual audio name), or a null device.

@@ -290,15 +290,70 @@ bool CaptureCompressedDecoder::open(CaptureCodec codec, unsigned width, unsigned
     return true;
 }
 
+void CapturePacketDeleter::operator()(AVPacket* packet) const noexcept { av_packet_free(&packet); }
+
+static CapturePacket copyCapturePacket(const uint8_t* data, size_t bytes, int64_t pts100ns, AVBufferPool* pool = nullptr) {
+    if (!data || !bytes || bytes > INT_MAX - AV_INPUT_BUFFER_PADDING_SIZE) return {};
+    CapturePacket packet(av_packet_alloc());
+    if (!packet) return {};
+    if (pool) {
+        packet->buf = av_buffer_pool_get(pool);
+        if (!packet->buf) return {};
+        packet->data = packet->buf->data;
+        packet->size = int(bytes);
+        std::memset(packet->data + bytes, 0, AV_INPUT_BUFFER_PADDING_SIZE);
+    } else if (av_new_packet(packet.get(), int(bytes)) < 0) return {};
+    std::memcpy(packet->data, data, bytes);
+    packet->pts = pts100ns;
+    packet->dts = AV_NOPTS_VALUE;
+    return packet;
+}
+
+CapturePacketPool::~CapturePacketPool() { clear(); }
+
+void CapturePacketPool::clear() {
+    av_buffer_pool_uninit(&pool_);
+    capacity_ = 0;
+}
+
+CapturePacket CapturePacketPool::copy(const uint8_t* data, size_t bytes, int64_t pts100ns) {
+    if (!data || !bytes || bytes > INT_MAX - AV_INPUT_BUFFER_PADDING_SIZE) return {};
+    const size_t needed = bytes + AV_INPUT_BUFFER_PADDING_SIZE;
+    if (needed > capacity_) {
+        constexpr size_t block = 64 * 1024;
+        const size_t next = ((needed + block - 1) / block) * block;
+        auto* replacement = av_buffer_pool_init(next, nullptr);
+        if (!replacement) return {};
+        clear();
+        pool_ = replacement;
+        capacity_ = next;
+    }
+    return copyCapturePacket(data, bytes, pts100ns, pool_);
+}
+
 bool CaptureCompressedDecoder::decode(const uint8_t* data, size_t bytes, int64_t pts100ns,
     AVFrame* nv12Target, AVFrame** out, bool& hardware)
+{
+    auto packet = copyCapturePacket(data, bytes, pts100ns);
+    if ((data || bytes) && !packet) {
+        *out = nullptr;
+        hardware = false;
+        p_->waiting = false;
+        p_->error = "invalid compressed payload or packet allocation failed";
+        ++p_->failures;
+        return false;
+    }
+    return decodePacket(packet.get(), nv12Target, out, hardware);
+}
+
+bool CaptureCompressedDecoder::decodePacket(const AVPacket* packet, AVFrame* nv12Target, AVFrame** out, bool& hardware)
 {
     auto& p = *p_;
     *out = nullptr;
     hardware = false;
     p.waiting = false;
-    const bool receiveOnly = data == nullptr && bytes == 0;
-    if (!p.decoder.opened() || (!receiveOnly && (data == nullptr || bytes == 0)) || nv12Target == nullptr) {
+    const bool receiveOnly = packet == nullptr;
+    if (!p.decoder.opened() || nv12Target == nullptr) {
         p.error = "decode called without an open decoder or a writable target frame";
         ++p.failures;
         return false;
@@ -313,24 +368,7 @@ bool CaptureCompressedDecoder::decode(const uint8_t* data, size_t bytes, int64_t
     };
     for (int attempt = 0; attempt < 2; ++attempt) {
         if (!receiveOnly) {
-            AVPacket* packet = av_packet_alloc();
-            if (packet == nullptr) {
-                p.error = "av_packet_alloc failed";
-                ++p.failures;
-                return false;
-            }
-            if (av_new_packet(packet, int(bytes)) < 0) {
-                av_packet_free(&packet);
-                p.error = "av_new_packet failed";
-                ++p.failures;
-                return false;
-            }
-            std::memcpy(packet->data, data, bytes);
-            packet->pts = pts100ns;
-            packet->dts = AV_NOPTS_VALUE; // capture PTS is not decode order for B frames
-            const bool sent = p.decoder.sendPacket(packet);
-            av_packet_free(&packet);
-            if (!sent) {
+            if (!p.decoder.sendPacket(packet)) {
                 p.error = "decoder rejected the compressed payload";
                 ++p.failures;
                 p.fallBackBeforeFirstPicture();

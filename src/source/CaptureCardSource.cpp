@@ -420,7 +420,9 @@ struct CaptureCardSource::Impl:ISampleGrabberCB {
     AVFrame* pendingHardware=nullptr;AVFrame* hardwareRead=nullptr;bool pendingIsHardware=false;
     // Decode worker: keeps the DirectShow callback cheap (payload copy only)
     // and lets the decode overlap with graph work.
-    struct CompressedSample{std::vector<uint8_t> payload;double time=0;Clock::time_point arrival;REFERENCE_TIME start=0,end=0;bool completeTime=false,bad=false,reset=false;uint64_t order=0,mjpegBoundaryOrder=0;};
+    CapturePacketPool packetPool;
+    struct SampleStamp{double time=0;Clock::time_point arrival;REFERENCE_TIME start=0,end=0;bool completeTime=false,bad=false,reset=false;uint64_t order=0,mjpegBoundaryOrder=0;};
+    struct CompressedSample : SampleStamp { CapturePacket packet; };
     std::deque<CompressedSample> compressedQueue;size_t compressedQueueLimit=3;
     // MJPEG is intra-only, so several decoders work on consecutive payloads at
     // once (mjpegLoop). One software decoder manages about 110 fps at 1440p;
@@ -431,12 +433,6 @@ struct CaptureCardSource::Impl:ISampleGrabberCB {
     // the marked packet was evicted or finished after a newer decode.
     uint64_t mjpegBoundaryOrder=0;
     std::vector<std::unique_ptr<CaptureCompressedDecoder>> extraDecoders;std::vector<std::thread> extraDecodeThreads;
-    // Recycled payload buffers: the callback used to allocate a fresh vector
-    // per sample under the mailbox lock (MJPEG 4K = several MB); the worker
-    // returns the buffer after decode (sweep 2026-09-22 C4).
-    std::vector<std::vector<uint8_t>> payloadPool;
-    std::vector<uint8_t> takePayload(){if(payloadPool.empty())return {};auto v=std::move(payloadPool.back());payloadPool.pop_back();v.clear();return v;}
-    void returnPayload(std::vector<uint8_t>&& v){if(payloadPool.size()<8){v.clear();payloadPool.push_back(std::move(v));}}
     std::thread decodeThread;std::condition_variable decodeWake;bool decodeStop=false;
     uint64_t compressedDropped=0;double lastCallbackTime=0;
     // NV12 frames the decode worker may write into. A frame enters this pool
@@ -566,10 +562,9 @@ struct CaptureCardSource::Impl:ISampleGrabberCB {
             // Upload-backed target: written once, straight into GPU upload memory.
             AVFrame* decodedFrame=nullptr;bool hardware=false;
             const bool produced=pipeline::selectCaptureUploadTarget(*target)&&
-                decoder.decode(sample.payload.data(),sample.payload.size(),int64_t(sample.time*1e7),target,&decodedFrame,hardware)&&!hardware;
+                decoder.decodePacket(sample.packet.get(),target,&decodedFrame,hardware)&&!hardware;
             {
                 std::lock_guard lock(mutex);
-                if(sample.payload.capacity())returnPayload(std::move(sample.payload));
                 if(!produced){++compressedErrors;++dropped;compressedFree.push_back(target);continue;}
                 if(sample.order<=lastPublishedOrder){
                     // A newer picture is already in the mailbox.
@@ -591,7 +586,7 @@ struct CaptureCardSource::Impl:ISampleGrabberCB {
         }
     }
     void decodeLoop(){
-        std::deque<CompressedSample> metadata;
+        std::deque<SampleStamp> metadata;
         bool recoveryBoundary=false;
         bool draining=false;
         for(;;){
@@ -605,14 +600,9 @@ struct CaptureCardSource::Impl:ISampleGrabberCB {
             }
             AVFrame* decodedFrame=nullptr;bool hardware=false;
             if(sample.reset){compressedDecoder.recoverAtKeyframe();metadata.clear();recoveryBoundary=true;}
-            CompressedSample stamp;
-            stamp.time=sample.time;stamp.arrival=sample.arrival;stamp.start=sample.start;stamp.end=sample.end;
-            stamp.completeTime=sample.completeTime;stamp.bad=sample.bad;
-            stamp.order=sample.order;stamp.mjpegBoundaryOrder=sample.mjpegBoundaryOrder;
+            SampleStamp stamp=sample;
             if(!draining){metadata.push_back(stamp);if(metadata.size()>64)metadata.pop_front();}
-            const bool produced=compressedDecoder.decode(draining?nullptr:sample.payload.data(),draining?0:sample.payload.size(),
-                int64_t(sample.time*1e7),target,&decodedFrame,hardware);
-            if(!draining&&sample.payload.capacity()){std::lock_guard lock(mutex);returnPayload(std::move(sample.payload));}
+            const bool produced=compressedDecoder.decodePacket(draining?nullptr:sample.packet.get(),target,&decodedFrame,hardware);
             if(!produced){
                 draining=false;
                 // A decoder that needs more input before it can emit a frame is
@@ -677,8 +667,16 @@ struct CaptureCardSource::Impl:ISampleGrabberCB {
         REFERENCE_TIME sampleStart=0,sampleEnd=0;
         const bool sampleTime=sample&&sample->GetTime(&sampleStart,&sampleEnd)==S_OK;
         if(sampleTime&&!compressedPath)observeDriverAge(sampleStart);
-        const bool valid=sample&&std::isfinite(time)&&SUCCEEDED(sample->GetPointer(&data))&&data&&
+        bool valid=sample&&std::isfinite(time)&&SUCCEEDED(sample->GetPointer(&data))&&data&&
             (compressedPath?sample->GetActualDataLength()>0:sample->GetActualDataLength()>=LONG(layout.sampleBytes));
+        CapturePacket packet;
+        double packetCopyMs=0;
+        if(valid&&compressedPath){
+            const auto startCopy=Clock::now();
+            packet=packetPool.copy(data,size_t(sample->GetActualDataLength()),int64_t(time*1e7));
+            packetCopyMs=std::chrono::duration<double,std::milli>(Clock::now()-startCopy).count();
+            valid=bool(packet);
+        }
         bool enqueued=false;uint64_t timingSequence=0;int64_t copied100ns=0;double lockWaitMs=0,arrivalDeltaMs=0,ptsDeltaMs=0;
         // Native path: claim the staging frame, copy outside the lock.
         AVFrame* staged=nullptr;bool stagedOk=false,probeNow=false,commitPicture=false;CaptureSignalSample signalSample;
@@ -730,19 +728,16 @@ struct CaptureCardSource::Impl:ISampleGrabberCB {
                 if(compressedPath){
                     // MPEG chain: the callback only copies the compressed
                     // payload; the decode worker produces the NV12 frame.
-                    const auto* payload=reinterpret_cast<const uint8_t*>(data);
-                    const size_t bytes=size_t(sample->GetActualDataLength());
-                    CompressedSample entry;entry.payload=takePayload();entry.payload.assign(payload,payload+bytes);
+                    CompressedSample entry;entry.packet=std::move(packet);
                     if(compressedQueue.size()>=compressedQueueLimit){
                         // MJPEG is intra-only: dropping a queued packet skips one picture and
                         // leaves every other frame and its timestamp intact. It is counted
                         // as a drop (bounded skip keeps NR/FG history), never as a
                         // discontinuity - marking it bad reset the whole temporal history
                         // on every overflow (field log: ~20 resets per second at 1440p144).
-                        if(codec==CaptureCodec::Mjpeg){returnPayload(std::move(compressedQueue.front().payload));compressedQueue.pop_front();++compressedDropped;++dropped;}
+                        if(codec==CaptureCodec::Mjpeg){compressedQueue.pop_front();++compressedDropped;++dropped;}
                         else{
                             compressedDropped+=compressedQueue.size();dropped+=compressedQueue.size();
-                            for(auto& queued:compressedQueue)returnPayload(std::move(queued.payload));
                             compressedQueue.clear();entry.reset=true;entry.bad=true;
                             log::warn("capture-decode","compressed queue overflow: discard damaged history and recover at keyframe");
                         }
@@ -789,7 +784,7 @@ struct CaptureCardSource::Impl:ISampleGrabberCB {
             wake.notify_one();
             if(frameEvent)SetEvent(frameEvent);
         }
-        if(timingSequence&&(timingSequence%120==0||lockWaitMs>5))log::info("capture-callback",std::format("source={} entryToLockMs={:.3f} entryToCopiedMs={:.3f} bytes={} compressed={} arrivalDeltaMs={:.3f} ptsDeltaMs={:.3f} sampleDurationMs={:.3f} (callback cost, not display latency)",timingSequence,lockWaitMs,(copied100ns-std::chrono::duration_cast<std::chrono::nanoseconds>(arrival.time_since_epoch()).count()/100)/10000.0,sample->GetActualDataLength(),compressedPath,arrivalDeltaMs,ptsDeltaMs,sampleTime?double(sampleEnd-sampleStart)/10000:-1));
+        if(timingSequence&&(timingSequence%120==0||lockWaitMs>5))log::info("capture-callback",std::format("source={} entryToLockMs={:.3f} entryToCopiedMs={:.3f} packetAllocCopyMs={:.3f} bytes={} compressed={} arrivalDeltaMs={:.3f} ptsDeltaMs={:.3f} sampleDurationMs={:.3f} (callback cost, not display latency)",timingSequence,lockWaitMs,(copied100ns-std::chrono::duration_cast<std::chrono::nanoseconds>(arrival.time_since_epoch()).count()/100)/10000.0,packetCopyMs,sample->GetActualDataLength(),compressedPath,arrivalDeltaMs,ptsDeltaMs,sampleTime?double(sampleEnd-sampleStart)/10000:-1));
         if(log::verboseFrameLogs()&&timingSequence)log::info("capture-ingress-sample",std::format("source={} arrival={} copied={} compressed={}",timingSequence,std::chrono::duration_cast<std::chrono::nanoseconds>(arrival.time_since_epoch()).count()/100,copied100ns,compressedPath));
         return S_OK;
     }
@@ -1198,13 +1193,19 @@ bool CaptureCardSource::configure(const SourceOpenDesc& desc){close();error_.cle
     AM_MEDIA_TYPE connected{};
     if(compressedPath){
         ComPtr<IPin> input,output;
-        hr=createCompressedCaptureSink(*native,timedCaptureDelivery([&p](double time,IMediaSample* sample){return p.SampleCB(time,sample);}),p.grabFilter,input);
+        const auto policy=static_cast<CaptureBufferMode>(p.bufferMode);
+        const long requested=captureCompressedBuffers(policy,codec==CaptureCodec::Mjpeg);
+        hr=createCompressedCaptureSink(*native,timedCaptureDelivery([&p](double time,IMediaSample* sample){return p.SampleCB(time,sample);}),p.grabFilter,input,requested);
         if(SUCCEEDED(hr))hr=p.graph->AddFilter(p.grabFilter.Get(),L"Compressed frame mailbox");
         if(SUCCEEDED(hr))output=formatPin;
-        if(SUCCEEDED(hr))suggestCaptureVideoBuffering(output.Get(),4,512*1024);
+        if(SUCCEEDED(hr)&&requested)suggestCaptureVideoBuffering(output.Get(),requested,compressedCaptureBufferBytes(*native));
         if(SUCCEEDED(hr))hr=p.graph->ConnectDirect(output.Get(),input.Get(),native);
         if(SUCCEEDED(hr))hr=input->ConnectionMediaType(&connected);
         if(SUCCEEDED(hr)){
+            ALLOCATOR_PROPERTIES actual{};
+            const HRESULT result=queryCaptureAllocatorProperties(input.Get(),actual);
+            p.driverBuffers=SUCCEEDED(result)?actual.cBuffers:0;
+            log::info("capture-buffer",std::format("codec={} mode={} requested={} requestedBytes={} actual={} bytes={} align={} prefix={} hr=0x{:08X}",captureCodecKey(codec),captureBufferModeKey(policy),requested,requested?compressedCaptureBufferBytes(*native):0,p.driverBuffers,actual.cbBuffer,actual.cbAlign,actual.cbPrefix,uint32_t(result)));
             if(connected.formattype==FORMAT_VideoInfo2&&connected.cbFormat>=sizeof(VIDEOINFOHEADER2)){const auto& v=*reinterpret_cast<const VIDEOINFOHEADER2*>(connected.pbFormat);compressedWidth=unsigned(v.bmiHeader.biWidth);compressedHeight=unsigned(std::abs(int64_t(v.bmiHeader.biHeight)));compressedDuration=int64_t(v.AvgTimePerFrame);}
             else if(connected.formattype==FORMAT_VideoInfo&&connected.cbFormat>=sizeof(VIDEOINFOHEADER)){const auto& v=*reinterpret_cast<const VIDEOINFOHEADER*>(connected.pbFormat);compressedWidth=unsigned(v.bmiHeader.biWidth);compressedHeight=unsigned(std::abs(int64_t(v.bmiHeader.biHeight)));compressedDuration=int64_t(v.AvgTimePerFrame);}
             if(!compressedWidth||!compressedHeight||compressedWidth%2||compressedHeight%2){log::error("capture-decode","compressed dimensions unusable; refusing implicit RGB conversion");error_=L"采集卡返回的压缩格式尺寸无效，请重新选择采集格式。";hr=VFW_E_INVALIDMEDIATYPE;}
@@ -2124,11 +2125,11 @@ void CaptureCardSource::close()noexcept{
     if(p.audioPassthrough)p.audioPassthrough->close();
     p.events.Reset();p.control.Reset();p.grab.Reset();p.nullFilter.Reset();p.grabFilter.Reset();p.audioSink.Reset();p.audioFilter.Reset();p.config.Reset();p.device.Reset();p.builder.Reset();p.graph.Reset();p.referenceClock.Reset();p.ageClock.Reset();p.runReference=0;p.audioSession.reset();p.audioPassthrough.reset();
     p.audioSessionDeferred=false;p.audioBitstream.reset();p.audioBitstreamKind.clear();
-    if(p.decodeThread.joinable()){{std::lock_guard lock(p.mutex);p.decodeStop=true;p.compressedQueue.clear();p.payloadPool.clear();}p.decodeWake.notify_all();p.decodeThread.join();}
+    if(p.decodeThread.joinable()){{std::lock_guard lock(p.mutex);p.decodeStop=true;p.compressedQueue.clear();}p.decodeWake.notify_all();p.decodeThread.join();}
     for(auto& thread:p.extraDecodeThreads)if(thread.joinable())thread.join();
     p.extraDecodeThreads.clear();p.extraDecoders.clear();p.mjpegParallel=false;
     for(auto*& frame:p.compressedFree)if(frame)av_frame_free(&frame);
-    p.compressedFree.clear();
+    p.compressedFree.clear();p.packetPool.clear();
     av_frame_free(&p.frame);av_frame_free(&p.pendingFrame);av_frame_free(&p.stagingFrame);p.stagingBusy=false;
     if(p.pendingHardware)av_frame_free(&p.pendingHardware);if(p.hardwareRead)av_frame_free(&p.hardwareRead);
     p.compressedDecoder.close();
