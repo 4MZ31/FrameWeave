@@ -36,8 +36,9 @@ foreach ($gpu in 'NVIDIA', 'AMD') {
 }
 
 $name = "PushFPS-$Version-win64"
-# The exact source of this build: its release tag, else the commit CI built, else the main branch.
-$sourceRef = if ($Version -match '^\d+\.\d+\.\d+$') { "v$Version" } elseif ($env:GITHUB_SHA) { $env:GITHUB_SHA } else { 'main' }
+# GitHub Actions records the exact repository and commit used by the build.
+$sourceRepo = if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { '4MZ31/PushFPS' }
+$sourceRef = if ($env:GITHUB_SHA) { $env:GITHUB_SHA } elseif ($Version -match '^\d+\.\d+\.\d+$') { "v$Version" } else { 'main' }
 $stage = Join-Path $OutDir $name
 $files = Join-Path $stage 'PushFPS-files'
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
@@ -121,7 +122,7 @@ Install
 
   Windows may warn that the file comes from the internet or an unknown publisher (PushFPS is not code
   signed). Choose "More info" and "Run anyway" if you downloaded this zip from
-  https://github.com/DosukaSOL/PushFPS/releases .
+  https://github.com/$sourceRepo/releases .
 
 Uninstall
   Run Install-PushFPS.cmd -Uninstall from a command prompt in this folder,
@@ -135,7 +136,7 @@ License
   PushFPS is free software under the GNU GPL-3.0 and comes with ABSOLUTELY NO WARRANTY. It is a modified
   version of Veyra by Likely7 (https://github.com/Likely7/Veyra-NRVideo). The license, the modification
   notice and third-party notices are in PushFPS-files (LICENSE, NOTICE.md, THIRD_PARTY_NOTICES.md).
-  Source code of this release: https://github.com/DosukaSOL/PushFPS/tree/$sourceRef
+  Source code of this release: https://github.com/$sourceRepo/tree/$sourceRef
 "@ | Set-Content -Path (Join-Path $stage 'READ ME FIRST.txt') -Encoding UTF8
 
 $zip = Join-Path $OutDir "$name.zip"

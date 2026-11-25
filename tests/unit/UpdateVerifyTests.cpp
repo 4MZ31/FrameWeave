@@ -109,7 +109,7 @@ private slots:
         Server server;
         server.files["/latest"] = QJsonDocument(QJsonObject{
             {"tag_name", "v3.1.4"}, {"draft", false}, {"prerelease", false},
-            {"html_url", "https://github.com/DosukaSOL/PushFPS/releases/tag/v3.1.4"}, {"assets", QJsonArray{}}}).toJson();
+            {"html_url", "https://github.com/4MZ31/PushFPS/releases/tag/v3.1.4"}, {"assets", QJsonArray{}}}).toJson();
         QTemporaryDir install;
         QFile rec(install.filePath("PushFPS-VERSION.txt"));
         QVERIFY(rec.open(QIODevice::WriteOnly));
@@ -136,11 +136,11 @@ private slots:
     void installFlow() {
         QFETCH(bool, tamperZip); QFETCH(bool, tamperSig); QFETCH(QString, result);
         Server server;
-        const QByteArray dl = "/DosukaSOL/PushFPS/releases/download/v9.9.9/";
+        const QByteArray dl = "/4MZ31/PushFPS/releases/download/v9.9.9/";
         auto asset = [&](const char* name) { return QJsonObject{{"name", name}, {"browser_download_url", QString::fromLatin1(server.base() + dl + name)}}; };
         server.files["/latest"] = QJsonDocument(QJsonObject{
             {"tag_name", "v9.9.9"}, {"draft", false}, {"prerelease", false},
-            {"html_url", "https://github.com/DosukaSOL/PushFPS/releases/tag/v9.9.9"},
+            {"html_url", "https://github.com/4MZ31/PushFPS/releases/tag/v9.9.9"},
             {"assets", QJsonArray{asset("SHA256SUMS.txt"), asset("SHA256SUMS.txt.sig"), asset("PushFPS-9.9.9-win64.zip"),
                                   QJsonObject{{"name", "PushFPS-9.9.9-win64.zip"}, {"browser_download_url", "https://evil.example/PushFPS-9.9.9-win64.zip"}}}}}).toJson();
         server.files[dl + "SHA256SUMS.txt"] = fixture("SHA256SUMS.txt");
