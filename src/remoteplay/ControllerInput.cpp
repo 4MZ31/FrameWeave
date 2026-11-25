@@ -9,8 +9,107 @@
 #include <SDL3/SDL_sensor.h>
 #include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_audio.h>
-#include <cstring>
+#include <cstddef>
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <mmdeviceapi.h>
+#include <propsys.h>
+#include <setupapi.h>
+#include <wrl/client.h>
+#include <initguid.h>
+#include <devpkey.h>
+#include <functiondiscoverykeys_devpkey.h>
 #include "veyra/Log.h"
+
+#pragma comment(lib, "setupapi.lib")
+#pragma comment(lib, "ole32.lib")
+
+namespace {
+using Microsoft::WRL::ComPtr;
+
+// The HID interface and its USB audio interface belong to the same Windows
+// device container, regardless of how their friendly names are translated.
+bool controllerContainer(SDL_Gamepad* gamepad, GUID& container) {
+    const char* path=SDL_GetGamepadPath(gamepad);
+    if(!path||SDL_GetGamepadConnectionState(gamepad)!=SDL_JOYSTICK_CONNECTION_WIRED)return false;
+    const int length=MultiByteToWideChar(CP_UTF8,0,path,-1,nullptr,0);
+    if(!length)return false;
+    std::wstring interfacePath(static_cast<size_t>(length),L'\0');
+    if(!MultiByteToWideChar(CP_UTF8,0,path,-1,interfacePath.data(),length))return false;
+    const auto devices=SetupDiCreateDeviceInfoList(nullptr,nullptr);
+    if(devices==INVALID_HANDLE_VALUE)return false;
+    SP_DEVICE_INTERFACE_DATA interfaceData{sizeof(SP_DEVICE_INTERFACE_DATA)};
+    SP_DEVINFO_DATA deviceData{sizeof(SP_DEVINFO_DATA)};
+    DWORD size=0;
+    bool found=false;
+    if(SetupDiOpenDeviceInterfaceW(devices,interfacePath.c_str(),0,&interfaceData)) {
+        SetupDiGetDeviceInterfaceDetailW(devices,&interfaceData,nullptr,0,&size,nullptr);
+        if(size>=sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA_W)) {
+            std::vector<std::byte> storage(size);
+            auto* details=reinterpret_cast<SP_DEVICE_INTERFACE_DETAIL_DATA_W*>(storage.data());
+            details->cbSize=sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA_W);
+            DEVPROPTYPE type=0;
+            found=SetupDiGetDeviceInterfaceDetailW(devices,&interfaceData,details,size,nullptr,&deviceData)
+                &&SetupDiGetDevicePropertyW(devices,&deviceData,&DEVPKEY_Device_ContainerId,&type,
+                    reinterpret_cast<PBYTE>(&container),sizeof(container),nullptr,0)
+                &&type==DEVPROP_TYPE_GUID;
+        }
+    }
+    SetupDiDestroyDeviceInfoList(devices);
+    return found;
+}
+
+std::string playbackEndpointName(REFGUID container) {
+    const HRESULT com=CoInitializeEx(nullptr,COINIT_APARTMENTTHREADED);
+    if(FAILED(com)&&com!=RPC_E_CHANGED_MODE)return {};
+    std::string name;
+    {
+        ComPtr<IMMDeviceEnumerator> enumerator;
+        ComPtr<IMMDeviceCollection> endpoints;
+        UINT count=0;
+        if(SUCCEEDED(CoCreateInstance(__uuidof(MMDeviceEnumerator),nullptr,CLSCTX_INPROC_SERVER,
+                IID_PPV_ARGS(&enumerator)))
+            &&SUCCEEDED(enumerator->EnumAudioEndpoints(eRender,DEVICE_STATE_ACTIVE,&endpoints))
+            &&SUCCEEDED(endpoints->GetCount(&count))) {
+            unsigned matches=0;
+            for(UINT i=0;i<count;++i) {
+                ComPtr<IMMDevice> endpoint;
+                ComPtr<IPropertyStore> properties;
+                if(FAILED(endpoints->Item(i,&endpoint))||FAILED(endpoint->OpenPropertyStore(STGM_READ,&properties)))continue;
+                PROPVARIANT value{};
+                const bool belongs=SUCCEEDED(properties->GetValue(PKEY_Device_ContainerId,&value))
+                    &&value.vt==VT_CLSID&&value.puuid&&IsEqualGUID(*value.puuid,container);
+                PropVariantClear(&value);
+                if(!belongs)continue;
+                ++matches;
+                if(SUCCEEDED(properties->GetValue(PKEY_Device_FriendlyName,&value))
+                    &&value.vt==VT_LPWSTR&&value.pwszVal) {
+                    const int size=WideCharToMultiByte(CP_UTF8,0,value.pwszVal,-1,nullptr,0,nullptr,nullptr);
+                    if(size>1) {
+                        name.resize(static_cast<size_t>(size));
+                        WideCharToMultiByte(CP_UTF8,0,value.pwszVal,-1,name.data(),size,nullptr,nullptr);
+                        name.pop_back();
+                    }
+                }
+                PropVariantClear(&value);
+            }
+            if(matches!=1)name.clear();
+        }
+    }
+    if(SUCCEEDED(com))CoUninitialize();
+    return name;
+}
+
+constexpr int kHapticSampleRate=3000;
+constexpr size_t kHapticMaxStereoSamples=600;
+constexpr int kHapticQueueBytes=int(kHapticMaxStereoSamples*2*sizeof(int16_t));
+constexpr veyra::remoteplay::HostTime kHapticRetryInterval=30000000; // 3 s
+constexpr veyra::remoteplay::HostTime kRumbleRefreshInterval=200000; // 20 ms
+constexpr unsigned kFallbackRumbleMs=40;
+constexpr unsigned kLegacyRumbleMs=5000;
+}
 namespace veyra::remoteplay {
 bool ControllerInput::start(uint32_t preferredDevice){
     preferredDevice_=preferredDevice;
@@ -22,8 +121,9 @@ bool ControllerInput::start(uint32_t preferredDevice){
 void ControllerInput::stop(){
     for(auto* pad:others_)SDL_CloseGamepad(pad);
     others_.clear();follow_=false;choice_.reset();
-    releaseEffects();if(hapticStream_){SDL_DestroyAudioStream(hapticStream_);hapticStream_=nullptr;}
-    if(audioInitialized_){SDL_QuitSubSystem(SDL_INIT_AUDIO);audioInitialized_=false;}hapticAttempted_=false;
+    releaseEffects();closeHaptics();
+    if(audioInitialized_){SDL_QuitSubSystem(SDL_INIT_AUDIO);audioInitialized_=false;}
+    hapticProbeReported_=false;hapticRetryAt_=0;
     touchQueue_.clear();touchState_={};haveGyro_=haveAccel_=false;calibrating_=false;gyroBias_={};enumerateAt_=0;
     if(gamepad_){SDL_CloseGamepad(gamepad_);gamepad_=nullptr;}
     if(initialized_){SDL_QuitSubSystem(SDL_INIT_GAMEPAD);initialized_=false;}
@@ -49,7 +149,8 @@ void ControllerInput::activate(SDL_Gamepad* pad){
 }
 // The pad stops being read: its rumble/trigger effects and haptic stream end.
 void ControllerInput::deactivate(){
-    releaseEffects();if(hapticStream_){SDL_DestroyAudioStream(hapticStream_);hapticStream_=nullptr;}hapticAttempted_=false;
+    releaseEffects();closeHaptics();
+    hapticProbeReported_=false;hapticRetryAt_=0;
     if(gamepad_&&SDL_GamepadConnected(gamepad_)){
         if(gyro_)SDL_SetGamepadSensorEnabled(gamepad_,SDL_SENSOR_GYRO,false);
         if(accel_)SDL_SetGamepadSensorEnabled(gamepad_,SDL_SENSOR_ACCEL,false);
@@ -88,6 +189,16 @@ ControllerState ControllerInput::poll(bool focused){
     }
     SDL_Event event;
     while(SDL_PollEvent(&event)){
+        if(event.type==SDL_EVENT_AUDIO_DEVICE_ADDED||event.type==SDL_EVENT_AUDIO_DEVICE_REMOVED
+            ||event.type==SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED){
+            if(!event.adevice.recording){
+                if(hapticStream_&&event.type!=SDL_EVENT_AUDIO_DEVICE_ADDED
+                    &&(event.adevice.which==hapticDevice_||event.adevice.which==SDL_GetAudioStreamDevice(hapticStream_)))
+                    closeHaptics();
+                if(!hapticStream_){hapticRetryAt_=0;hapticProbeReported_=false;}
+            }
+            continue;
+        }
         if(focused&&gamepad_&&event.type==SDL_EVENT_GAMEPAD_BUTTON_DOWN){
             const auto active=SDL_GetGamepadID(gamepad_);
             const auto it=event.gbutton.which==active?others_.end():std::find_if(others_.begin(),others_.end(),[&](SDL_Gamepad* pad){return SDL_GetGamepadID(pad)==event.gbutton.which;});
@@ -165,16 +276,17 @@ ControllerState ControllerInput::poll(bool focused){
     return state;
 }
 void ControllerInput::releaseEffects(){
-    if(!effectsActive_)return;
-    if(gamepad_){
-        if(!SDL_RumbleGamepad(gamepad_,0,0,0))veyra::log::warn("remoteplay-feedback",SDL_GetError());
-        if(SDL_GetGamepadType(gamepad_)==SDL_GAMEPAD_TYPE_PS5){
-            std::array<uint8_t,47> effect{};effect[0]=0x0c;effect[10]=5;effect[21]=5;
-            if(!SDL_SendGamepadEffect(gamepad_,effect.data(),int(effect.size())))veyra::log::warn("remoteplay-feedback",SDL_GetError());
-        }
+    if(!rumbleActive_&&!triggersActive_&&!hapticsQueued_)return;
+    if(gamepad_&&rumbleActive_&&!SDL_RumbleGamepad(gamepad_,0,0,0))
+        veyra::log::warn("remoteplay-feedback",SDL_GetError());
+    if(gamepad_&&triggersActive_){
+        std::array<uint8_t,47> effect{};effect[0]=0x0c;effect[10]=5;effect[21]=5;
+        if(!SDL_SendGamepadEffect(gamepad_,effect.data(),int(effect.size())))veyra::log::warn("remoteplay-feedback",SDL_GetError());
     }
-    if(hapticStream_)SDL_ClearAudioStream(hapticStream_);
-    effectsActive_=false;
+    if(hapticsQueued_)SDL_ClearAudioStream(hapticStream_);
+    hapticsQueued_=false;
+    rumbleActive_=fallbackActive_=triggersActive_=false;
+    legacyRumbleUntil_=fallbackAt_=0;
 }
 void ControllerInput::applyLights(){
     lightsDirty_=false;
@@ -193,39 +305,124 @@ void ControllerInput::feedback(ControllerFeedback f,bool focused){
     if(f.playerIndex){player_=f.player;havePlayer_=true;lightsDirty_=true;}
     if(!focused||!gamepad_){releaseEffects();return;}
     if(lightsDirty_)applyLights();
-    if(f.rumble){effectsActive_=true;if(!SDL_RumbleGamepad(gamepad_,uint16_t(f.left)*257,uint16_t(f.right)*257,5000))veyra::log::warn("remoteplay-feedback",SDL_GetError());}
-    if(f.triggers&&SDL_GetGamepadType(gamepad_)==SDL_GAMEPAD_TYPE_PS5){
+    if(!f.rumble&&!f.triggers&&f.haptics.empty())return;
+    const auto now=monotonic100ns();
+    if(f.rumble){
+        rumbleActive_=f.left||f.right;
+        fallbackActive_=false;
+        legacyRumbleUntil_=rumbleActive_?now+kLegacyRumbleMs*10000:0;
+        if(!SDL_RumbleGamepad(gamepad_,uint16_t(f.left)*257,uint16_t(f.right)*257,kLegacyRumbleMs))
+            veyra::log::warn("remoteplay-feedback",SDL_GetError());
+    }
+    const bool isDualSense=SDL_GetGamepadType(gamepad_)==SDL_GAMEPAD_TYPE_PS5;
+    if(f.triggers&&isDualSense){
         // SDL DualSense effects report payload (47 bytes): right at10, left at21.
         std::array<uint8_t,47> effect{};effect[0]=0x0c;
         std::copy(f.rightTrigger.begin(),f.rightTrigger.end(),effect.begin()+10);
         std::copy(f.leftTrigger.begin(),f.leftTrigger.end(),effect.begin()+21);
-        effectsActive_=true;
-        if(!SDL_SendGamepadEffect(gamepad_,effect.data(),int(effect.size())))veyra::log::warn("remoteplay-feedback",SDL_GetError());
+        if(SDL_SendGamepadEffect(gamepad_,effect.data(),int(effect.size())))triggersActive_=true;
+        else veyra::log::warn("remoteplay-feedback",SDL_GetError());
     }
-    if(f.haptics.empty()||SDL_GetGamepadType(gamepad_)!=SDL_GAMEPAD_TYPE_PS5)return;
-    if(!hapticAttempted_){
-        hapticAttempted_=true;
-        if(!audioInitialized_)audioInitialized_=SDL_InitSubSystem(SDL_INIT_AUDIO);
-        if(!audioInitialized_){veyra::log::error("remoteplay-haptics",SDL_GetError());return;}
-        // Never use the default speakers or a stereo endpoint. Ambiguity fails closed.
-        int count=0;auto* devices=SDL_GetAudioPlaybackDevices(&count);SDL_AudioDeviceID selected=0;int matches=0;
-        for(int i=0;i<count;++i){const auto* name=SDL_GetAudioDeviceName(devices[i]);SDL_AudioSpec spec{};
-            if(name&&(std::strstr(name,"Wireless Controller")||std::strstr(name,"DualSense"))&&SDL_GetAudioDeviceFormat(devices[i],&spec,nullptr)&&spec.channels==4){selected=devices[i];++matches;}
+    if(isDualSense&&f.haptics.size()>=2)playHaptics(f.haptics,now);
+}
+
+void ControllerInput::closeHaptics(){
+    if(hapticStream_)SDL_DestroyAudioStream(hapticStream_);
+    hapticStream_=nullptr;
+    hapticDevice_=0;
+    hapticsQueued_=false;
+}
+
+void ControllerInput::openHaptics(HostTime now){
+    hapticRetryAt_=now+kHapticRetryInterval;
+    const auto unavailable=[this](const char* reason){
+        if(!hapticProbeReported_)veyra::log::warn("remoteplay-haptics",reason);
+        hapticProbeReported_=true;
+    };
+    GUID container{};
+    if(!controllerContainer(gamepad_,container)){
+        unavailable("No wired DualSense USB audio route; using vibration fallback");
+        return;
+    }
+    if(!audioInitialized_)audioInitialized_=SDL_InitSubSystem(SDL_INIT_AUDIO);
+    if(!audioInitialized_){
+        unavailable("SDL audio could not initialize; using DualSense vibration fallback");
+        return;
+    }
+    const auto endpoint=playbackEndpointName(container);
+    if(endpoint.empty()){
+        unavailable("No active Windows playback endpoint for this DualSense; using vibration fallback");
+        return;
+    }
+    int count=0;
+    auto* devices=SDL_GetAudioPlaybackDevices(&count);
+    uint32_t selected=0;
+    unsigned matches=0;
+    for(int i=0;i<count;++i){
+        const auto* name=SDL_GetAudioDeviceName(devices[i]);
+        if(name&&endpoint==name){selected=devices[i];++matches;}
+    }
+    SDL_free(devices);
+    SDL_AudioSpec format{};
+    if(matches!=1||!SDL_GetAudioDeviceFormat(selected,&format,nullptr)||format.channels!=4){
+        unavailable("DualSense playback is ambiguous or lacks four channels; using vibration fallback");
+        return;
+    }
+    const SDL_AudioSpec input{SDL_AUDIO_S16,4,kHapticSampleRate};
+    hapticStream_=SDL_OpenAudioDeviceStream(selected,&input,nullptr,nullptr);
+    if(!hapticStream_||!SDL_GetAudioStreamFormat(hapticStream_,nullptr,&format)||format.channels!=4
+        ||!SDL_ResumeAudioStreamDevice(hapticStream_)){
+        closeHaptics();
+        unavailable("Could not open four-channel DualSense playback; using vibration fallback");
+        return;
+    }
+    hapticDevice_=selected;
+    hapticProbeReported_=false;
+    if(fallbackActive_){
+        SDL_RumbleGamepad(gamepad_,0,0,0);
+        rumbleActive_=fallbackActive_=false;
+    }
+    veyra::log::info("remoteplay-haptics","Native DualSense USB haptics active; speaker channels silent");
+}
+
+void ControllerInput::playHaptics(const std::vector<int16_t>& pcm,HostTime now){
+    if(!hapticStream_&&now>=hapticRetryAt_)openHaptics(now);
+    const size_t samples=std::min(pcm.size(),kHapticMaxStereoSamples)&~size_t{1};
+    if(hapticStream_){
+        std::array<int16_t,kHapticMaxStereoSamples*2> quad{};
+        for(size_t i=0;i<samples;i+=2){
+            quad[2*i+2]=pcm[i];
+            quad[2*i+3]=pcm[i+1];
         }
-        SDL_free(devices);
-        int gamepadCount=0;auto* gamepads=SDL_GetGamepads(&gamepadCount);SDL_free(gamepads);
-        if(matches!=1||gamepadCount!=1){veyra::log::warn("remoteplay-haptics","No unique four-channel DualSense endpoint/controller pair; haptics not routed");return;}
-        SDL_AudioSpec input{SDL_AUDIO_S16,4,3000};
-        hapticStream_=SDL_OpenAudioDeviceStream(selected,&input,nullptr,nullptr);
-        if(!hapticStream_||!SDL_ResumeAudioStreamDevice(hapticStream_)){veyra::log::error("remoteplay-haptics",SDL_GetError());if(hapticStream_)SDL_DestroyAudioStream(hapticStream_);hapticStream_=nullptr;return;}
-        veyra::log::info("remoteplay-haptics","Dedicated four-channel endpoint opened; speaker channels silent");
+        const int queued=SDL_GetAudioStreamQueued(hapticStream_);
+        const int bytes=int(samples*2*sizeof(int16_t));
+        if(queued>=0&&(queued+bytes<=kHapticQueueBytes||SDL_ClearAudioStream(hapticStream_))
+            &&SDL_PutAudioStreamData(hapticStream_,quad.data(),bytes)){
+            hapticsQueued_=true;
+            return;
+        }
+        veyra::log::warn("remoteplay-haptics","DualSense playback interrupted; using vibration until it reopens");
+        closeHaptics();
+        hapticRetryAt_=now+kHapticRetryInterval;
     }
-    if(!hapticStream_)return;
-    std::vector<int16_t> quad;quad.reserve(f.haptics.size()*2);
-    for(size_t i=0;i+1<f.haptics.size();i+=2){quad.push_back(0);quad.push_back(0);quad.push_back(f.haptics[i]);quad.push_back(f.haptics[i+1]);}
-    if(SDL_GetAudioStreamQueued(hapticStream_)>2400)SDL_ClearAudioStream(hapticStream_);
-    effectsActive_=true;
-    if(!SDL_PutAudioStreamData(hapticStream_,quad.data(),int(quad.size()*sizeof(int16_t))))veyra::log::warn("remoteplay-haptics",SDL_GetError());
+    if(!samples||now<legacyRumbleUntil_||now<fallbackAt_)return;
+    if(!SDL_GetBooleanProperty(SDL_GetGamepadProperties(gamepad_),SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN,false))return;
+    // PS5 games can send only PCM. Approximate its envelope with short,
+    // bounded rumble pulses while the native output is unavailable.
+    std::array<unsigned,2> sum{};
+    for(size_t i=0;i<samples;i+=2){
+        sum[0]+=std::abs(int(pcm[i]));
+        sum[1]+=std::abs(int(pcm[i+1]));
+    }
+    const auto level=[samples](unsigned total){
+        const unsigned mean=total*4/static_cast<unsigned>(samples);
+        return static_cast<uint16_t>(mean>100?std::clamp(mean,512u,65535u):0);
+    };
+    const auto left=level(sum[0]),right=level(sum[1]);
+    if(!left&&!right)return;
+    fallbackAt_=now+kRumbleRefreshInterval;
+    if(SDL_RumbleGamepad(gamepad_,left,right,kFallbackRumbleMs))rumbleActive_=fallbackActive_=true;
+    else veyra::log::warn("remoteplay-feedback",SDL_GetError());
 }
 
 bool ControllerInput::calibrate(){

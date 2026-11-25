@@ -129,9 +129,13 @@ int virtualInput(){
     SDL_VirtualJoystickTouchpadDesc touch{};touch.nfingers=2;desc.ntouchpads=1;desc.touchpads=&touch;
     SDL_VirtualJoystickSensorDesc sensors[2]={{SDL_SENSOR_GYRO,120},{SDL_SENSOR_ACCEL,120}};desc.nsensors=2;desc.sensors=sensors;
     desc.SetSensorsEnabled=[](void*,bool){return true;};
-    struct Fixture {unsigned rumble=0,led=0;Uint8 rgb[3]{};int player=-1;} fixture;desc.userdata=&fixture;
+    struct Fixture {unsigned rumble=0,led=0;Uint16 low=0,high=0;Uint8 rgb[3]{};int player=-1;} fixture;desc.userdata=&fixture;
     unsigned& rumbleCalls=fixture.rumble;
-    desc.Rumble=[](void* p,Uint16,Uint16){++static_cast<Fixture*>(p)->rumble;return true;};
+    desc.Rumble=[](void* p,Uint16 low,Uint16 high){
+        auto& f=*static_cast<Fixture*>(p);
+        ++f.rumble;f.low=low;f.high=high;
+        return true;
+    };
     desc.SetLED=[](void* p,Uint8 r,Uint8 g,Uint8 b){auto& f=*static_cast<Fixture*>(p);++f.led;f.rgb[0]=r;f.rgb[1]=g;f.rgb[2]=b;return true;};
     desc.SetPlayerIndex=[](void* p,int index){static_cast<Fixture*>(p)->player=index;};
     desc.SendEffect=[](void*,const void*,int){return true;};
@@ -160,6 +164,27 @@ int virtualInput(){
     auto calibrated=input.poll(true);ok&=std::abs(calibrated.gyro[0])<1e-5&&std::abs(calibrated.gyro[2])<1e-5;
     ControllerFeedback f;f.rumble=true;f.left=5;input.feedback(f,true);ok&=rumbleCalls>0;
     const auto before=rumbleCalls;ok&=input.poll(false)==ControllerState{};ok&=rumbleCalls>before;
+    // The virtual DualSense has no physical Windows audio endpoint. PCM must
+    // still drive a short rumble on that pad, respect native rumble and stop on blur.
+    ControllerFeedback pcm;pcm.haptics={9000,0,-9000,0};
+    auto count=rumbleCalls;
+    input.feedback(pcm,false);
+    ok&=rumbleCalls==count;
+    ControllerFeedback silent;silent.haptics={0,0,0,0};
+    input.feedback(silent,true);
+    ok&=rumbleCalls==count;
+    input.feedback(pcm,true);
+    ok&=rumbleCalls==count+1&&fixture.low==18000&&fixture.high==0&&!input.capabilities().haptics;
+    input.poll(false);
+    ok&=fixture.low==0&&fixture.high==0;
+    input.feedback(f,true);
+    count=rumbleCalls;
+    input.feedback(pcm,true);
+    ok&=rumbleCalls==count&&fixture.low==5*257;
+    input.poll(false);
+    input.feedback(pcm,true);
+    ok&=fixture.low==18000&&fixture.high==0;
+    input.poll(false);
     // Console light bar / player indicator: applied when focused; a change while unfocused
     // is kept and applied when focus returns.
     ControllerFeedback lights;lights.led=true;lights.ledColor={255,64,0};lights.playerIndex=true;lights.player=2;
