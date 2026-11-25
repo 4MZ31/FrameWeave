@@ -129,12 +129,22 @@ int virtualInput(){
     SDL_VirtualJoystickTouchpadDesc touch{};touch.nfingers=2;desc.ntouchpads=1;desc.touchpads=&touch;
     SDL_VirtualJoystickSensorDesc sensors[2]={{SDL_SENSOR_GYRO,120},{SDL_SENSOR_ACCEL,120}};desc.nsensors=2;desc.sensors=sensors;
     desc.SetSensorsEnabled=[](void*,bool){return true;};
-    struct Fixture {unsigned rumble=0,led=0;Uint8 rgb[3]{};int player=-1;} fixture;desc.userdata=&fixture;
+    struct Fixture {
+        unsigned rumble=0,led=0,effects=0;
+        Uint8 rgb[3]{};int player=-1;
+        std::array<uint8_t,47> report{};
+    } fixture;desc.userdata=&fixture;
     unsigned& rumbleCalls=fixture.rumble;
     desc.Rumble=[](void* p,Uint16,Uint16){++static_cast<Fixture*>(p)->rumble;return true;};
     desc.SetLED=[](void* p,Uint8 r,Uint8 g,Uint8 b){auto& f=*static_cast<Fixture*>(p);++f.led;f.rgb[0]=r;f.rgb[1]=g;f.rgb[2]=b;return true;};
     desc.SetPlayerIndex=[](void* p,int index){static_cast<Fixture*>(p)->player=index;};
-    desc.SendEffect=[](void*,const void*,int){return true;};
+    desc.SendEffect=[](void* p,const void* data,int size){
+        auto& f=*static_cast<Fixture*>(p);
+        if(size!=int(f.report.size()))return false;
+        std::copy_n(static_cast<const uint8_t*>(data),size,f.report.begin());
+        ++f.effects;
+        return true;
+    };
     const auto id=SDL_AttachVirtualJoystick(&desc);if(!id)return 21;
     auto* joystick=SDL_OpenJoystick(id);ControllerInput input;
     if(!joystick||!input.start(id))return 22;
@@ -160,6 +170,37 @@ int virtualInput(){
     auto calibrated=input.poll(true);ok&=std::abs(calibrated.gyro[0])<1e-5&&std::abs(calibrated.gyro[2])<1e-5;
     ControllerFeedback f;f.rumble=true;f.left=5;input.feedback(f,true);ok&=rumbleCalls>0;
     const auto before=rumbleCalls;ok&=input.poll(false)==ControllerState{};ok&=rumbleCalls>before;
+    ControllerFeedback triggers;triggers.triggers=true;
+    triggers.leftTrigger={0x21,0x18,0x04};
+    triggers.rightTrigger={0x25,0x34,0x02};
+    triggers.triggerIntensity=DualSenseTriggerIntensity::Medium;
+    input.feedback(triggers,true);
+    ok&=fixture.effects==1&&fixture.report[0]==0x0c&&fixture.report[1]==0x40&&fixture.report[36]==0x60;
+    ok&=std::equal(triggers.rightTrigger.begin(),triggers.rightTrigger.end(),fixture.report.begin()+10);
+    ok&=std::equal(triggers.leftTrigger.begin(),triggers.leftTrigger.end(),fixture.report.begin()+21);
+    input.poll(false);
+    ok&=fixture.effects==2&&fixture.report[10]==0x05&&fixture.report[21]==0x05;
+    triggers.rightTrigger[0]=0x26;
+    triggers.triggerIntensity=DualSenseTriggerIntensity::Weak;
+    input.feedback(triggers,false);
+    ok&=fixture.effects==2;
+    input.feedback({},true);
+    ok&=fixture.effects==3&&fixture.report[10]==0x26&&fixture.report[21]==0x21&&fixture.report[36]==0x90;
+    input.feedback(triggers,true);
+    ok&=fixture.effects==3; // No redundant HID reports while the effect is held.
+    ControllerFeedback intensity;intensity.triggerIntensity=DualSenseTriggerIntensity::Off;
+    input.feedback(intensity,true);
+    ok&=fixture.effects==4&&fixture.report[10]==0x05&&fixture.report[21]==0x05;
+    intensity.triggerIntensity=DualSenseTriggerIntensity::Strong;
+    input.feedback(intensity,true);
+    ok&=fixture.effects==5&&fixture.report[10]==0x26&&fixture.report[36]==0;
+    ControllerFeedback reset;reset.resetTriggers=true;
+    auto batched=triggers;batched.merge(reset);
+    ok&=batched.resetTriggers&&!batched.triggers&&!batched.triggerIntensity;
+    input.feedback(batched,true);
+    ok&=fixture.effects==6&&fixture.report[10]==0x05&&fixture.report[21]==0x05;
+    input.feedback({},true);
+    ok&=fixture.effects==6;
     // Console light bar / player indicator: applied when focused; a change while unfocused
     // is kept and applied when focus returns.
     ControllerFeedback lights;lights.led=true;lights.ledColor={255,64,0};lights.playerIndex=true;lights.player=2;

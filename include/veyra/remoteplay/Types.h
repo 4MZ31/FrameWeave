@@ -74,16 +74,22 @@ struct PcmBlock {
     std::size_t frames() const noexcept { return channels ? samples.size()/channels : 0; }
     bool valid() const noexcept;
 };
+enum class DualSenseTriggerIntensity : uint8_t { Strong, Medium, Weak, Off };
+
 struct ControllerFeedback {
     bool rumble=false,triggers=false,motionReset=false,led=false,playerIndex=false;
     uint8_t left=0,right=0;
     std::array<uint8_t,11> leftTrigger{},rightTrigger{};
+    std::optional<DualSenseTriggerIntensity> triggerIntensity;
+    bool resetTriggers=false;
     std::array<uint8_t,3> ledColor{}; // Light bar RGB sent by the console.
     uint8_t player=0; // Player indicator sent by the console.
     std::vector<int16_t> haptics; // Stereo PCM 3kHz; hard cap 600 samples (100ms).
     void merge(ControllerFeedback next){
         if(next.rumble){rumble=true;left=next.left;right=next.right;}
+        if(next.resetTriggers){resetTriggers=true;triggers=false;triggerIntensity.reset();}
         if(next.triggers){triggers=true;leftTrigger=next.leftTrigger;rightTrigger=next.rightTrigger;}
+        if(next.triggerIntensity)triggerIntensity=next.triggerIntensity;
         motionReset|=next.motionReset;
         if(next.led){led=true;ledColor=next.ledColor;}
         if(next.playerIndex){playerIndex=true;player=next.player;}

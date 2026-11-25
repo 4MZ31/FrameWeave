@@ -10,6 +10,7 @@
 #include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_audio.h>
 #include <cstring>
+#include <format>
 #include "veyra/Log.h"
 namespace veyra::remoteplay {
 bool ControllerInput::start(uint32_t preferredDevice){
@@ -23,6 +24,8 @@ void ControllerInput::stop(){
     for(auto* pad:others_)SDL_CloseGamepad(pad);
     others_.clear();follow_=false;choice_.reset();
     releaseEffects();if(hapticStream_){SDL_DestroyAudioStream(hapticStream_);hapticStream_=nullptr;}
+    haveTriggers_=triggersDirty_=triggersActive_=triggerReportLogged_=false;
+    triggerIntensity_=DualSenseTriggerIntensity::Strong;triggerRetryAt_=0;
     if(audioInitialized_){SDL_QuitSubSystem(SDL_INIT_AUDIO);audioInitialized_=false;}hapticAttempted_=false;
     touchQueue_.clear();touchState_={};haveGyro_=haveAccel_=false;calibrating_=false;gyroBias_={};enumerateAt_=0;
     if(gamepad_){SDL_CloseGamepad(gamepad_);gamepad_=nullptr;}
@@ -40,6 +43,7 @@ bool ControllerInput::opened(uint32_t id)const{
 }
 void ControllerInput::activate(SDL_Gamepad* pad){
     gamepad_=pad;lightsDirty_=haveLed_||havePlayer_;
+    triggersDirty_=haveTriggers_;triggersActive_=triggerReportLogged_=false;triggerRetryAt_=0;
     triggerFilter_.reset();
     touchQueue_.clear();touchState_={};sensorStamp_=0;haveGyro_=haveAccel_=false;gyroBias_={};calibrating_=false;touchIds_={-1,-1};gyro_=SDL_GamepadHasSensor(gamepad_,SDL_SENSOR_GYRO)&&SDL_SetGamepadSensorEnabled(gamepad_,SDL_SENSOR_GYRO,true);
     accel_=SDL_GamepadHasSensor(gamepad_,SDL_SENSOR_ACCEL)&&SDL_SetGamepadSensorEnabled(gamepad_,SDL_SENSOR_ACCEL,true);
@@ -165,17 +169,56 @@ ControllerState ControllerInput::poll(bool focused){
     return state;
 }
 void ControllerInput::releaseEffects(){
+    releaseTriggers();
     if(!effectsActive_)return;
-    if(gamepad_){
-        if(!SDL_RumbleGamepad(gamepad_,0,0,0))veyra::log::warn("remoteplay-feedback",SDL_GetError());
-        if(SDL_GetGamepadType(gamepad_)==SDL_GAMEPAD_TYPE_PS5){
-            std::array<uint8_t,47> effect{};effect[0]=0x0c;effect[10]=5;effect[21]=5;
-            if(!SDL_SendGamepadEffect(gamepad_,effect.data(),int(effect.size())))veyra::log::warn("remoteplay-feedback",SDL_GetError());
-        }
-    }
+    if(gamepad_&&!SDL_RumbleGamepad(gamepad_,0,0,0))veyra::log::warn("remoteplay-feedback",SDL_GetError());
     if(hapticStream_)SDL_ClearAudioStream(hapticStream_);
     effectsActive_=false;
 }
+bool ControllerInput::sendTriggers(bool release){
+    // DualSense HID effect payload as defined by SDL: R2 at byte 10, L2 at
+    // byte 21, trigger attenuation in the high nibble of byte 36.
+    std::array<uint8_t,47> report{};
+    report[0]=0x0c;
+    if(release){
+        report[10]=report[21]=0x05;
+    }else{
+        std::copy(rightTrigger_.begin(),rightTrigger_.end(),report.begin()+10);
+        std::copy(leftTrigger_.begin(),leftTrigger_.end(),report.begin()+21);
+        report[1]=0x40; // Apply the attenuation setting along with the trigger effects.
+        if(triggerIntensity_==DualSenseTriggerIntensity::Medium)report[36]=0x60;
+        if(triggerIntensity_==DualSenseTriggerIntensity::Weak)report[36]=0x90;
+    }
+    if(!SDL_SendGamepadEffect(gamepad_,report.data(),int(report.size()))){
+        triggerRetryAt_=monotonic100ns()+2500000; // Retry a failed write after 250 ms.
+        veyra::log::warn("remoteplay-triggers",std::format("DualSense {} failed: {}",release?"release":"effect",SDL_GetError()));
+        return false;
+    }
+    triggerRetryAt_=0;
+    const auto active=[](uint8_t mode){return mode!=0&&mode!=0x05;};
+    triggersActive_=active(report[10])||active(report[21]);
+    if(!triggerReportLogged_&&triggersActive_){
+        veyra::log::info("remoteplay-triggers",std::format("PS5 effects accepted by SDL: L2 mode={} R2 mode={} attenuation={}",
+            report[21],report[10],report[36]>>4));
+        triggerReportLogged_=true;
+    }
+    return true;
+}
+
+void ControllerInput::applyTriggers(){
+    if(!triggersDirty_||!haveTriggers_)return;
+    if(SDL_GetGamepadType(gamepad_)!=SDL_GAMEPAD_TYPE_PS5&&SDL_GetRealGamepadType(gamepad_)!=SDL_GAMEPAD_TYPE_PS5)return;
+    if(triggerRetryAt_&&monotonic100ns()<triggerRetryAt_)return;
+    triggersDirty_=!sendTriggers(triggerIntensity_==DualSenseTriggerIntensity::Off);
+}
+
+void ControllerInput::releaseTriggers(){
+    if(!gamepad_||!triggersActive_||!SDL_GamepadConnected(gamepad_))return;
+    if(triggerRetryAt_&&monotonic100ns()<triggerRetryAt_)return;
+    triggersDirty_=haveTriggers_;
+    sendTriggers(true);
+}
+
 void ControllerInput::applyLights(){
     lightsDirty_=false;
     if(!gamepad_)return;
@@ -191,17 +234,27 @@ void ControllerInput::feedback(ControllerFeedback f,bool focused){
     // values are kept while unfocused and applied once the pad is read again.
     if(f.led){ledColor_=f.ledColor;haveLed_=true;lightsDirty_=true;}
     if(f.playerIndex){player_=f.player;havePlayer_=true;lightsDirty_=true;}
+    // A game can set resistance once and keep it until the next scene.
+    // Cache its last state even while the local pad is released or absent.
+    if(f.resetTriggers){
+        releaseTriggers();
+        haveTriggers_=triggersDirty_=triggerReportLogged_=false;
+        triggerIntensity_=DualSenseTriggerIntensity::Strong;
+    }
+    if(f.triggers&&(!haveTriggers_||f.leftTrigger!=leftTrigger_||f.rightTrigger!=rightTrigger_)){
+        leftTrigger_=f.leftTrigger;rightTrigger_=f.rightTrigger;
+        haveTriggers_=triggersDirty_=true;
+    }
+    if(f.triggerIntensity&&*f.triggerIntensity!=triggerIntensity_){
+        triggerIntensity_=*f.triggerIntensity;
+        triggersDirty_=haveTriggers_;
+        veyra::log::info("remoteplay-triggers",std::format("PS5 trigger setting={}",static_cast<unsigned>(triggerIntensity_)));
+    }
     if(!focused||!gamepad_){releaseEffects();return;}
+    if(!haveTriggers_)releaseTriggers();
+    applyTriggers();
     if(lightsDirty_)applyLights();
     if(f.rumble){effectsActive_=true;if(!SDL_RumbleGamepad(gamepad_,uint16_t(f.left)*257,uint16_t(f.right)*257,5000))veyra::log::warn("remoteplay-feedback",SDL_GetError());}
-    if(f.triggers&&SDL_GetGamepadType(gamepad_)==SDL_GAMEPAD_TYPE_PS5){
-        // SDL DualSense effects report payload (47 bytes): right at10, left at21.
-        std::array<uint8_t,47> effect{};effect[0]=0x0c;
-        std::copy(f.rightTrigger.begin(),f.rightTrigger.end(),effect.begin()+10);
-        std::copy(f.leftTrigger.begin(),f.leftTrigger.end(),effect.begin()+21);
-        effectsActive_=true;
-        if(!SDL_SendGamepadEffect(gamepad_,effect.data(),int(effect.size())))veyra::log::warn("remoteplay-feedback",SDL_GetError());
-    }
     if(f.haptics.empty()||SDL_GetGamepadType(gamepad_)!=SDL_GAMEPAD_TYPE_PS5)return;
     if(!hapticAttempted_){
         hapticAttempted_=true;

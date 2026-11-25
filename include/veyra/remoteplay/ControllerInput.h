@@ -30,6 +30,9 @@ private:
     void activate(SDL_Gamepad*);
     void deactivate();
     void applyLights();
+    bool sendTriggers(bool release);
+    void applyTriggers();
+    void releaseTriggers();
     bool opened(uint32_t id)const;
     SDL_Gamepad* gamepad_=nullptr;
     std::vector<SDL_Gamepad*> others_; // open, not read: follow mode, or nothing pressed yet on the pad read
@@ -40,6 +43,10 @@ private:
     std::array<int8_t,2> touchIds_{-1,-1};uint8_t nextTouchId_=0;
     bool gyro_=false,accel_=false,effectsActive_=false,audioInitialized_=false,hapticAttempted_=false;
     SDL_AudioStream* hapticStream_=nullptr;
+    std::array<uint8_t,11> leftTrigger_{},rightTrigger_{};
+    DualSenseTriggerIntensity triggerIntensity_=DualSenseTriggerIntensity::Strong;
+    bool haveTriggers_=false,triggersDirty_=false,triggersActive_=false,triggerReportLogged_=false;
+    HostTime triggerRetryAt_=0;
     // Console-set light bar and player indicator: kept while unfocused, applied to the read pad.
     std::array<uint8_t,3> ledColor_{};uint8_t player_=0;bool haveLed_=false,havePlayer_=false,lightsDirty_=false;
     std::array<ControllerState::Touch,2> touchState_{};

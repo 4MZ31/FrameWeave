@@ -11,7 +11,7 @@ extern "C" {
 namespace veyra::source {
 bool RemotePlaySessionSource::connect(RemotePlayConnectDesc desc) {
     close();
-    { std::lock_guard lock(mutex_); initialized_=started_=failed_=false; skipped_=publishedSequence_=0; recovery_={}; rates_={}; feedback_={}; controllers_.clear(); controllers_.resetStats(); snapshot_={}; }
+    { std::lock_guard lock(mutex_); initialized_=started_=failed_=false; skipped_=publishedSequence_=0; recovery_={}; rates_={}; feedback_={}; feedback_.resetTriggers=true; controllers_.clear(); controllers_.resetStats(); snapshot_={}; }
     owner_=std::jthread([this, request=std::move(desc)](std::stop_token stop) mutable { run(stop,std::move(request)); });
     std::unique_lock lock(mutex_);
     ready_.wait(lock,[&]{return initialized_;});
@@ -255,7 +255,7 @@ void RemotePlaySessionSource::run(std::stop_token stop, RemotePlayConnectDesc de
                 remoteplay::retryWaitSeconds(remoteplay::RetryKind::AfterLive,recovery.episodeRetries()),recovery.episodeRetries())
             :desc.controlOnly?std::format(L"PS5 手柄控制中断，正在重新连接（{}/3）…",recovery.episodeRetries())
             :std::format(L"串流中断，正在重新连接（{}/3）…",recovery.episodeRetries())};
-        latest_.reset();controllers_.clear();feedback_={};
+        latest_.reset();controllers_.clear();feedback_={};feedback_.resetTriggers=true;
     }
     log::info("remoteplay-recovery",std::format("teardown begin attempt={} retry={} cancelled={}",recovery.reconnects(),retry,stop.stop_requested()));
     if(monitor.joinable()){monitor.request_stop();monitor.join();}
