@@ -1,7 +1,17 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # PushFPS for Linux and macOS: the Qt application.
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Qml Quick Multimedia ShaderTools)
-qt_standard_project_setup(REQUIRES 6.5)
+# 6.6: Qt's rendering interface (QRhi) and the command buffer of a scene graph render node, which
+# upscaling uses (src/NisNode.h).
+find_package(Qt6 6.6 REQUIRED COMPONENTS Core Gui Qml Quick Multimedia ShaderTools)
+# Since Qt 6.10 the private targets (Qt6::GuiPrivate, for rhi/qrhi.h) are a package of their own; before,
+# Gui brought them.
+# Using them ties the program to the Qt it was built with, which is how it ships: the AppImage and the
+# macOS app carry their own Qt.
+set(QT_NO_PRIVATE_MODULE_WARNING ON)
+if(NOT TARGET Qt6::GuiPrivate)
+  find_package(Qt6 REQUIRED COMPONENTS GuiPrivate)
+endif()
+qt_standard_project_setup(REQUIRES 6.6)
 
 qt_add_executable(pushfps_portable
   src/main.cpp
@@ -9,6 +19,7 @@ qt_add_executable(pushfps_portable
   src/AudioPassthrough.cpp src/AudioPassthrough.h
   src/CaptureSource.cpp src/CaptureSource.h
   src/FrameView.cpp src/FrameView.h
+  src/NisNode.cpp src/NisNode.h
   src/Settings.cpp src/Settings.h
   src/TestPattern.cpp src/TestPattern.h
   src/Translator.cpp src/Translator.h
@@ -39,7 +50,7 @@ target_include_directories(pushfps_portable PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/
 set(pushfps_shared_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../qml/Veyra)
 set(pushfps_shared_names
     Theme.qml IconData.js PushShell.js VIcon.qml VAccentFill.qml VButton.qml VSwitch.qml VSeg.qml VSelect.qml VMenu.qml
-    VRow.qml VHelp.qml VSliderValue.qml VSlider.qml VCard.qml VDot.qml VTag.qml VScrollBar.qml PushFoldHead.qml
+    VRow.qml VHelp.qml VSliderValue.qml VSlider.qml VCard.qml VDot.qml VTag.qml VScrollBar.qml VAccordion.qml VSubGroup.qml VEyebrow.qml PushFoldHead.qml
     PushSection.qml PushSidebar.qml PushTitleBar.qml PushStatusStrip.qml PushWordmark.qml)
 set(pushfps_shared_files)
 foreach(name IN LISTS pushfps_shared_names)
@@ -50,7 +61,7 @@ set_source_files_properties(${pushfps_shared_dir}/Theme.qml PROPERTIES QT_QML_SI
 set(pushfps_own_files
     qml/Main.qml qml/HomePage.qml qml/ProPage.qml qml/MinimalPage.qml qml/SettingsPage.qml qml/GpuCheck.qml
     qml/SourcesPanel.qml qml/QuickSettings.qml qml/PictureSettings.qml qml/SoundSettings.qml qml/LiveFigures.qml
-    qml/PicturePlaceholder.qml qml/PanelTitle.qml)
+    qml/PicturePlaceholder.qml qml/PanelTitle.qml qml/UpscaleRow.qml qml/SuperResolutionCard.qml)
 set(pushfps_qml_resources qml/logo.png qml/icon.png)
 # Every file sits next to the module's qmldir in the resources: in a folder of its own, that folder is
 # also an implicit import that offers Theme.qml as a plain type, and Qt picks one or the other at random
@@ -81,6 +92,32 @@ qt_add_shaders(pushfps_portable "pushfps_shaders"
     shaders/frame.vert
     shaders/frame.frag)
 
+# Upscaling with NVIDIA Image Scaling (src/NisNode.h). The compute shader is NVIDIA's NIS_Scaler.h,
+# unchanged, inside shaders/nis.comp.in: qsb has no #include, so the two are put together here into the
+# build folder (written again only when either changes). A compute shader needs GLSL 4.30 on OpenGL.
+set(pushfps_nis_header ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/nis/NIS_Scaler.h)
+set(pushfps_nis_wrapper ${CMAKE_CURRENT_SOURCE_DIR}/shaders/nis.comp.in)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${pushfps_nis_header} ${pushfps_nis_wrapper})
+file(READ ${pushfps_nis_wrapper} pushfps_nis_text)
+file(READ ${pushfps_nis_header} pushfps_nis_scaler)
+string(REPLACE "// @NIS_SCALER_H@" "${pushfps_nis_scaler}" pushfps_nis_text "${pushfps_nis_text}")
+file(CONFIGURE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/shaders/nis.comp CONTENT "${pushfps_nis_text}" @ONLY)
+qt_add_shaders(pushfps_portable "pushfps_nis_compute"
+  PREFIX "/"
+  GLSL "430"
+  HLSL 50
+  MSL 12
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/shaders/nis.comp
+  OUTPUTS shaders/nis.comp.qsb)
+qt_add_shaders(pushfps_portable "pushfps_nis_blit"
+  PREFIX "/"
+  GLSL "300 es,330"
+  HLSL 50
+  MSL 12
+  FILES
+    shaders/blit.vert
+    shaders/blit.frag)
+
 # The translation catalog of the Windows build (keyed by the Chinese source text) is used as is.
 qt_add_resources(pushfps_portable "pushfps_i18n"
   PREFIX "/i18n"
@@ -88,7 +125,9 @@ qt_add_resources(pushfps_portable "pushfps_i18n"
   FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../i18n/catalog.json)
 
 target_link_libraries(pushfps_portable PRIVATE
-  pushfps_portable_core Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::Multimedia)
+  pushfps_portable_core Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::Multimedia
+  # QRhi's headers (rhi/qrhi.h) come with Qt's GUI module as an API with limited compatibility promises.
+  Qt6::GuiPrivate)
 if(NOT MSVC)
   target_compile_options(pushfps_portable PRIVATE -Wall -Wextra)
 endif()
@@ -96,3 +135,13 @@ endif()
 install(TARGETS pushfps_portable
   BUNDLE DESTINATION .
   RUNTIME DESTINATION bin)
+
+# NVIDIA Image Scaling is MIT-licensed: its notice goes with every copy of the program, which carries its
+# shader (Linux: usr/share/doc/pushfps in the AppImage and the folder; macOS: the bundle's Resources).
+set(pushfps_nis_licence ${CMAKE_CURRENT_SOURCE_DIR}/../../licenses/NVIDIA_Image_Scaling_SDK_MIT.txt)
+if(APPLE)
+  target_sources(pushfps_portable PRIVATE ${pushfps_nis_licence})
+  set_source_files_properties(${pushfps_nis_licence} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/licenses)
+else()
+  install(FILES ${pushfps_nis_licence} DESTINATION share/doc/pushfps)
+endif()

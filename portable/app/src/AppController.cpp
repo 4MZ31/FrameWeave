@@ -27,6 +27,9 @@
 namespace pushfps {
 
 namespace {
+// The upscaling algorithms the preview has, by the Windows build's numbers: 6 = NVIDIA Image Scaling.
+const QList<int> kSrAlgorithms{6};
+
 QString formatLabel(const QCameraFormat& f) {
     QString pixel;
     switch (f.pixelFormat()) {
@@ -51,6 +54,7 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
     pacing_ = s.value(QStringLiteral("pacingRepair"), false).toBool();
     hud_ = s.value(QStringLiteral("hudLock"), false).toBool();
     crosshairHold_ = s.value(QStringLiteral("crosshairHold"), false).toBool();
+    subtitleHold_ = s.value(QStringLiteral("subtitleHold"), false).toBool();
     dedup_ = s.value(QStringLiteral("removeDuplicates"), true).toBool();
     quality_ = std::clamp(s.value(QStringLiteral("quality"), 1).toInt(), 0, 1);
     audioOn_ = s.value(QStringLiteral("audioPassthrough"), true).toBool();
@@ -66,6 +70,11 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
     autoConnect_ = s.value(QStringLiteral("autoConnect"), false).toBool();
     audioTrim_ = std::clamp(s.value(QStringLiteral("audioTrimMs"), 0).toInt(), -veyra::sink::kPushAudioTrimLimitMs, veyra::sink::kPushAudioTrimLimitMs);
     fillMode_ = std::clamp(s.value(QStringLiteral("fillMode"), 0).toInt(), 0, 2);
+    srEnabled_ = s.value(QStringLiteral("srEnabled"), false).toBool();
+    srTarget_ = s.value(QStringLiteral("srTargetIndex"), 2).toInt();
+    if (FrameView::upscaleTargetSize(srTarget_).isEmpty()) srTarget_ = 2;
+    const int algorithm = s.value(QStringLiteral("videoSrQuality"), 6).toInt();
+    srAlgorithm_ = kSrAlgorithms.contains(algorithm) ? algorithm : 6;
 
     loadPreferences();
 
@@ -168,6 +177,7 @@ void AppController::applyEngineSettings() {
     s.pacingRepair = pacing_;
     s.hudLock = hud_;
     s.crosshairHold = crosshairHold_;
+    s.subtitleHold = subtitleHold_;
     s.removeDuplicates = dedup_;
     s.quality = quality_;
     if (engine_) engine_->setSettings(s);
@@ -403,11 +413,18 @@ const QStringList kAccents{QStringLiteral("orange"), QStringLiteral("white"), QS
                            QStringLiteral("violet"), QStringLiteral("rose"), QStringLiteral("amber")};
 const QStringList kFlags{QStringLiteral("pushNavCollapsed"), QStringLiteral("pushSideCollapsed"), QStringLiteral("reducedMotion")};
 const QStringList kFoldLists{QStringLiteral("pushQuickFolded"), QStringLiteral("pushProFolded")};
+// Whole percentages, as the Windows build keeps them (nisSharpness: 0..100, NVIDIA's default 50).
+const QStringList kPercents{QStringLiteral("nisSharpness")};
 
 // A preference's value as it may be kept, or an invalid QVariant when it may not.
 QVariant cleanPreference(const QString& key, const QVariant& value) {
     if (key == QLatin1String("pushTheme")) return kThemes.contains(value.toString()) ? QVariant(value.toString()) : QVariant();
     if (key == QLatin1String("accent")) return kAccents.contains(value.toString()) ? QVariant(value.toString()) : QVariant();
+    if (kPercents.contains(key)) {
+        bool ok = false;
+        const double v = value.toDouble(&ok);
+        return ok && std::isfinite(v) ? QVariant(int(std::clamp(std::lround(v), 0L, 100L))) : QVariant();
+    }
     if (kFlags.contains(key)) return value.typeId() == QMetaType::Bool || value.canConvert<bool>() ? QVariant(value.toBool()) : QVariant();
     if (kFoldLists.contains(key)) {
         // Section or block ids with commas: lower-case letters only, each at most once.
@@ -426,7 +443,7 @@ QVariant cleanPreference(const QString& key, const QVariant& value) {
 
 void AppController::loadPreferences() {
     QStringList keys{QStringLiteral("pushTheme"), QStringLiteral("accent")};
-    keys << kFlags << kFoldLists;
+    keys << kFlags << kFoldLists << kPercents;
     for (const QString& key : keys) {
         const QVariant stored = settings_->value(QStringLiteral("ui/") + key);
         if (!stored.isValid()) continue;
@@ -478,6 +495,14 @@ void AppController::setCrosshairHold(bool v) {
     if (v == crosshairHold_) return;
     crosshairHold_ = v;
     save(QStringLiteral("crosshairHold"), v);
+    applyEngineSettings();
+    emit settingsChanged();
+}
+
+void AppController::setSubtitleHold(bool v) {
+    if (v == subtitleHold_) return;
+    subtitleHold_ = v;
+    save(QStringLiteral("subtitleHold"), v);
     applyEngineSettings();
     emit settingsChanged();
 }
@@ -537,6 +562,27 @@ void AppController::setAutoConnect(bool v) {
     if (v == autoConnect_) return;
     autoConnect_ = v;
     save(QStringLiteral("autoConnect"), v);
+    emit settingsChanged();
+}
+
+void AppController::setSrEnabled(bool v) {
+    if (v == srEnabled_) return;
+    srEnabled_ = v;
+    save(QStringLiteral("srEnabled"), v);
+    emit settingsChanged();
+}
+
+void AppController::setSrTargetIndex(int v) {
+    if (FrameView::upscaleTargetSize(v).isEmpty() || v == srTarget_) return;
+    srTarget_ = v;
+    save(QStringLiteral("srTargetIndex"), v);
+    emit settingsChanged();
+}
+
+void AppController::setVideoSrQuality(int v) {
+    if (!kSrAlgorithms.contains(v) || v == srAlgorithm_) return;
+    srAlgorithm_ = v;
+    save(QStringLiteral("videoSrQuality"), v);
     emit settingsChanged();
 }
 
@@ -638,7 +684,8 @@ void AppController::openScreenshotFolder() const {
 
 void AppController::updateStats() {
     if (!running()) return;
-    const auto st = engine_->stats();
+    // The readout's rates fall off when the picture stands still, instead of keeping the last rate (Engine.h).
+    const auto st = engine_->stats(nowNs());
     QVariantMap m;
     m[QStringLiteral("transportFps")] = st.transportFps;
     m[QStringLiteral("contentFps")] = st.contentFps;
@@ -653,6 +700,8 @@ void AppController::updateStats() {
     // Crosshair Hold: whether it runs, and how many pixels the newest real frame holds (0 = no crosshair found).
     m[QStringLiteral("holdState")] = st.holdState;
     m[QStringLiteral("holdPixels")] = st.holdPixels;
+    m[QStringLiteral("subHoldState")] = st.subHoldState;
+    m[QStringLiteral("subHoldPixels")] = st.subHoldPixels;
     m[QStringLiteral("pacingShare")] = st.kept > 0 ? double(st.pacingRepaired) / double(st.kept) : 0.0;
     m[QStringLiteral("width")] = st.width;
     m[QStringLiteral("height")] = st.height;

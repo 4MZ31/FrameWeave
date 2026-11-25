@@ -2,6 +2,7 @@
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 #include "FrameView.h"
 
+#include "NisNode.h"
 #include "VideoFrames.h"
 
 #include <QMutex>
@@ -18,6 +19,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+#include <array>
 
 using namespace veyra::portable;
 
@@ -46,8 +48,11 @@ struct Uniforms {
     float gamma;
     float pad0;
     float holdZone[4];   // Crosshair Hold: x, y, size of its square in picture pixels; [3] > 0.5 = held
+    float subZone[4];    // Subtitle Hold: x, y, width, height of its band in picture pixels
+    float subFlags[4];   // [0] > 0.5 = held
 };
-static_assert(sizeof(Uniforms) == 144, "std140 layout of frame.vert/frame.frag");
+static_assert(sizeof(Uniforms) == 176, "std140 layout of frame.vert/frame.frag");
+static_assert(offsetof(Uniforms, subZone) == 144, "vec4 alignment");
 static_assert(offsetof(Uniforms, holdZone) == 128, "vec4 alignment");
 static_assert(offsetof(Uniforms, frameSize) == 80, "vec2 alignment");
 
@@ -60,7 +65,7 @@ public:
         // One node, one material: never batched with anything else.
         return this == other ? 0 : (this < other ? -1 : 1);
     }
-    QSGTexture* textures[8] = {};
+    QSGTexture* textures[11] = {};
     Uniforms u{};
 };
 
@@ -82,7 +87,7 @@ public:
     }
     void updateSampledImage(RenderState& state, int binding, QSGTexture** texture, QSGMaterial* newMaterial, QSGMaterial*) override {
         auto* m = static_cast<FrameMaterial*>(newMaterial);
-        if (binding < 1 || binding > 8) return;
+        if (binding < 1 || binding > 11) return;
         QSGTexture* t = m->textures[binding - 1];
         if (!t) return;
         t->commitTextureOperations(state.rhi(), state.resourceUpdateBatch());
@@ -169,6 +174,38 @@ void FrameView::setFill(int v) {
     emit pictureChanged();
     update();
 }
+void FrameView::setUpscale(bool v) { if (v != upscale_) { upscale_ = v; emit pictureChanged(); update(); } }
+QSize FrameView::upscaleTargetSize(int index) {
+    switch (index) {
+    case 1: return {2560, 1440};
+    case 2: return {3840, 2160};
+    case 4: return {5120, 2880};
+    case 5: return {6144, 3456};
+    }
+    return {};
+}
+
+void FrameView::setUpscaleTarget(int v) {
+    if (upscaleTargetSize(v).isEmpty()) v = 2;
+    if (v != upscaleTarget_) { upscaleTarget_ = v; emit pictureChanged(); update(); }
+}
+void FrameView::setSharpness(qreal v) {
+    v = std::isfinite(v) ? std::clamp(v, 0.0, 1.0) : 0.5;
+    if (v != sharpness_) { sharpness_ = v; emit pictureChanged(); update(); }
+}
+
+void FrameView::reportUpscale(int state, const QString& sizes) {
+    if (state == reportedState_ && sizes == reportedSizes_) return;
+    reportedState_ = state;
+    reportedSizes_ = sizes;
+    QMetaObject::invokeMethod(this, [this, state, sizes] {
+        if (state == upscaleState_ && sizes == upscaleSizes_) return;
+        upscaleState_ = state;
+        upscaleSizes_ = sizes;
+        emit upscaleStateChanged();
+    }, Qt::QueuedConnection);
+}
+
 void FrameView::setRunning(bool v) {
     if (v == running_) return;
     running_ = v;
@@ -246,6 +283,7 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
     if (!pick.valid() || width() <= 0 || height() <= 0) {
         delete old;
         if (!pick.valid()) dropTextures();
+        reportUpscale(upscale_ ? UpscaleWaiting : UpscaleOff, {});
         return nullptr;
     }
     // The picture in the item: whole with black bars, filling it with the sides cut, or stretched.
@@ -263,10 +301,11 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
         const double scale = std::min(width() / fw, height() / fh);
         rect = QRectF((width() - fw * scale) / 2, (height() - fh * scale) / 2, fw * scale, fh * scale);
     }
-    const quint64 keyA = pick.aId << 3, keyB = pick.bId << 3;
+    const quint64 keyA = pick.aId << 4, keyB = pick.bId << 4;
 
     const bool software = win->rendererInterface()->graphicsApi() == QSGRendererInterface::Software;
     if (software) {
+        reportUpscale(upscale_ ? UpscaleUnsupported : UpscaleOff, {});
         // No shaders on the software renderer: the nearer real frame.
         auto* node = dynamic_cast<QSGImageNode*>(old);
         if (!node) { delete old; node = win->createImageNode(); }
@@ -282,21 +321,18 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
         return node;
     }
 
-    auto* node = dynamic_cast<FrameNode*>(old);
-    if (!node) { delete old; node = new FrameNode; }
     if (!black_) {
         QImage b(1, 1, QImage::Format_RGBA8888);
         b.fill(Qt::black);
         black_ = win->createTextureFromImage(b);
     }
-    FrameMaterial& m = node->material_;
     QSGTexture* ta = cached(keyA, [&] { return frameImage(pick.a); }, false);
     QSGTexture* tb = pick.b != pick.a ? cached(keyB, [&] { return frameImage(pick.b); }, false) : ta;
     const bool generate = pick.generated() && ta && tb;
     QSGTexture *tf = black_, *tk = black_, *tm = black_;
     bool hud = false;
     if (generate) {
-        const quint64 pairKey = ((pick.aId * 1000003ULL) ^ pick.bId) << 3;
+        const quint64 pairKey = ((pick.aId * 1000003ULL) ^ pick.bId) << 4;
         tf = cached(pairKey | 1, [&] { return fieldImage(pick.fields->forward); }, true);
         tk = cached(pairKey | 2, [&] { return fieldImage(pick.fields->backward); }, true);
         if (pick.fields->hudMask && !pick.fields->hudMask->empty()) {
@@ -305,28 +341,34 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
         }
         if (!tf || !tk) { tf = tk = black_; }
     }
-    // Crosshair Hold's part of this pair, when a crosshair is held (CrosshairHold.h).
+    // Crosshair Hold's and Subtitle Hold's parts of this pair, when something is held (CrosshairHold.h).
+    const auto whole = [](const std::shared_ptr<const HoldPair>& z) {
+        return z && z->w > 1 && z->h > 1 && z->filledA.width == z->w && z->filledA.height == z->h &&
+               z->filledB.width == z->w && z->filledB.height == z->h && z->shows.width == z->w && z->shows.height == z->h;
+    };
     QSGTexture *tha = black_, *thb = black_, *ths = black_;
     bool holding = false;
-    if (generate && tf != black_ && pick.hold && pick.hold->size > 1 && pick.hold->filledA.width == pick.hold->size &&
-        pick.hold->filledB.width == pick.hold->size && pick.hold->shows.width == pick.hold->size) {
-        const quint64 pairKey = ((pick.aId * 1000003ULL) ^ pick.bId) << 3;
+    if (generate && tf != black_ && whole(pick.hold)) {
+        const quint64 pairKey = ((pick.aId * 1000003ULL) ^ pick.bId) << 4;
         tha = cached(pairKey | 4, [&] { return holdImage(pick.hold, false); }, false);
         thb = cached(pairKey | 5, [&] { return holdImage(pick.hold, true); }, false);
         ths = cached(pairKey | 6, [&] { return maskImage(pick.hold->shows); }, false);
         holding = tha && thb && ths;
         if (!holding) tha = thb = ths = black_;
     }
+    QSGTexture *tsa = black_, *tsb = black_, *tss = black_;
+    bool subHolding = false;
+    if (generate && tf != black_ && whole(pick.subHold)) {
+        const quint64 pairKey = ((pick.aId * 1000003ULL) ^ pick.bId) << 4;
+        tsa = cached(pairKey | 7, [&] { return holdImage(pick.subHold, false); }, false);
+        tsb = cached(pairKey | 8, [&] { return holdImage(pick.subHold, true); }, false);
+        tss = cached(pairKey | 9, [&] { return maskImage(pick.subHold->shows); }, false);
+        subHolding = tsa && tsb && tss;
+        if (!subHolding) tsa = tsb = tss = black_;
+    }
     const bool interpolating = generate && tf != black_ && tk != black_;
-    m.textures[0] = ta ? ta : black_;
-    m.textures[1] = tb ? tb : black_;
-    m.textures[2] = tf;
-    m.textures[3] = tk;
-    m.textures[4] = tm ? tm : black_;
-    m.textures[5] = tha;
-    m.textures[6] = thb;
-    m.textures[7] = ths;
-    Uniforms& u = m.u;
+    const std::array<QSGTexture*, 11> textures{ta ? ta : black_, tb ? tb : black_, tf, tk, tm ? tm : black_, tha, thb, ths, tsa, tsb, tss};
+    Uniforms u{};
     u.phase = pick.t;
     u.mode = interpolating ? 1.f : 0.f;
     u.hudOn = interpolating && hud ? 1.f : 0.f;
@@ -346,6 +388,54 @@ QSGNode* FrameView::updatePaintNode(QSGNode* old, UpdatePaintNodeData*) {
     u.holdZone[1] = held ? float(pick.hold->y) : 0.f;
     u.holdZone[2] = held ? float(pick.hold->size) : 1.f;
     u.holdZone[3] = held ? 1.f : 0.f;
+    const bool subHeld = interpolating && subHolding;
+    u.subZone[0] = subHeld ? float(pick.subHold->x) : 0.f;
+    u.subZone[1] = subHeld ? float(pick.subHold->y) : 0.f;
+    u.subZone[2] = subHeld ? float(pick.subHold->w) : 1.f;
+    u.subZone[3] = subHeld ? float(pick.subHold->h) : 1.f;
+    u.subFlags[0] = subHeld ? 1.f : 0.f;
+
+    // Upscaling: by how much the shown part of the picture is enlarged on screen, never more than NIS's
+    // 2 per side nor past the size chosen (fitted to the picture's shape, as on Windows). What is left
+    // above 2 the window scales as it always did.
+    const qreal dpr = win->effectiveDevicePixelRatio();
+    const double shown = std::min(rect.width() * dpr / (source.width() * fw), rect.height() * dpr / (source.height() * fh));
+    const QSize target = upscaleTargetSize(upscaleTarget_);
+    const double targetW = target.width(), targetH = target.height();
+    const double scale = std::min({2.0, shown, std::min(targetW / fw, targetH / fh)});
+    const QSize output(int(std::lround(fw * scale)), int(std::lround(fh * scale)));
+    int state = UpscaleOff;
+    if (upscale_) {
+        if (auto* nis = dynamic_cast<NisNode*>(old); nis && nis->failed()) nisFailed_ = true;
+        if (nisFailed_) state = UpscaleFailed;
+        else if (!NisNode::supported(win)) state = UpscaleUnsupported;
+        else if (scale < 1.05) state = UpscaleNotNeeded;  // a few per cent larger is not worth the work
+        else state = UpscaleRunning;
+    }
+    reportUpscale(state, state == UpscaleRunning ? QStringLiteral("%1 × %2 → %3 × %4").arg(int(fw)).arg(int(fh)).arg(output.width()).arg(output.height())
+                                                 : QString());
+
+    if (state == UpscaleRunning) {
+        auto* nis = dynamic_cast<NisNode*>(old);
+        if (!nis) { delete old; nis = new NisNode(win); }
+        NisFrame frame;
+        frame.textures = textures;
+        frame.nearest = {false, false, true, true, false, false, false, false, false, false, false};  // the two motion fields
+        frame.uniforms = QByteArray(reinterpret_cast<const char*>(&u), sizeof(Uniforms));
+        frame.picture = QSize(int(fw), int(fh));
+        frame.output = output;
+        frame.rect = rect;
+        frame.source = source;
+        frame.sharpness = float(sharpness_);
+        nis->set(frame);
+        return nis;
+    }
+
+    auto* node = dynamic_cast<FrameNode*>(old);
+    if (!node) { delete old; node = new FrameNode; }
+    FrameMaterial& m = node->material_;
+    for (size_t i = 0; i < textures.size(); ++i) m.textures[i] = textures[i];
+    m.u = u;
     QSGGeometry::updateTexturedRectGeometry(&node->geometry_, rect, source);
     node->markDirty(QSGNode::DirtyGeometry | QSGNode::DirtyMaterial);
     return node;

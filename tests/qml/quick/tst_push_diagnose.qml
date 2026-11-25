@@ -27,7 +27,7 @@ Item {
                 nrLayers: veyra.nrLayers, preferences: veyra.preferences, liveStats: veyra.liveStats, outputRateMode: veyra.outputRateMode,
                 outputCustomFps: veyra.outputCustomFps, displayRefreshHz: veyra.displayRefreshHz, displaySync: veyra.displaySync, vrrState: veyra.vrrState,
                 sharper: veyra.captureSharperFormat, audioChoice: veyra.captureAudioChoice, audioSuggestion: veyra.captureAudioSuggestion,
-                choices: veyra.fgBackendChoices
+                choices: veyra.fgBackendChoices, lowQueue: veyra.fgLowQueue, pacingRepair: veyra.pacingRepair, variableRefresh: veyra.variableRefresh
             }
             host.dialog = ""; root.navigated = ""
             // (4.2.1) A screen no picture of these tests is smaller than, whatever screen the tests run on:
@@ -41,6 +41,7 @@ Item {
             veyra.outputRateMode = 2; veyra.outputCustomFps = 120; veyra.displayRefreshHz = 120; veyra.displaySync = 1; veyra.vrrState = 2
             veyra.liveStats = ({ running: true, contentFps: 30, realFps: 30, generatedFps: 90, fgIdle: 0, fgMultiplierNow: 4 })
             veyra.captureSharperFormat = []; veyra.captureAudioChoice = -2; veyra.captureAudioSuggestion = -2
+            veyra.fgLowQueue = true; veyra.pacingRepair = false   // (4.5.1) nothing for the latency findings to say
         }
         function cleanup() {
             host.dialog = ""
@@ -50,6 +51,7 @@ Item {
             veyra.outputCustomFps = saved.outputCustomFps; veyra.displayRefreshHz = saved.displayRefreshHz; veyra.displaySync = saved.displaySync; veyra.vrrState = saved.vrrState
             veyra.captureSharperFormat = saved.sharper; veyra.captureAudioChoice = saved.audioChoice; veyra.captureAudioSuggestion = saved.audioSuggestion
             veyra.fgBackendChoices = saved.choices
+            veyra.fgLowQueue = saved.lowQueue; veyra.pacingRepair = saved.pacingRepair; veyra.variableRefresh = saved.variableRefresh
         }
         function control(item, name) { const c = findChild(item, name); verify(c !== null, name); return c }
         function ids() { return diag.found.map(f => f.id) }
@@ -139,6 +141,34 @@ Item {
             host.dialog = ""
             veyra.srEnabled = was.on; veyra.videoSrQuality = was.quality; veyra.srTargetIndex = was.target; veyra.srBackendChoices = was.choices
             diag.screenHighOverride = 720
+        }
+        function test_latency_is_checked_and_each_change_taken_back() {
+            veyra.vfgQuality = 2
+            veyra.nrLayers = [{ index: 1, sizePolicy: 1, runtime: 2 }]
+            // A window the desktop composes, the low queue off, Frame Pacing Repair on, and every frame
+            // waiting for a 60 Hz refresh without variable refresh.
+            veyra.liveStats = ({ running: true, contentFps: 30, realFps: 30, generatedFps: 30, fgIdle: 0, fgMultiplierNow: 2, displayPath: 0, fullscreen: false })
+            veyra.fgMultiplier = 2; veyra.outputCustomFps = 60; veyra.displayRefreshHz = 60; veyra.vrrState = 1
+            veyra.displaySync = 1; veyra.variableRefresh = true
+            veyra.fgLowQueue = false; veyra.pacingRepair = true
+            open()
+            compare(ids(), ["latency-composed", "latency-queue", "latency-pacing-repair", "latency-vsync"])
+            tryVerify(function() { return findChild(diag, "pushfps-diagnose-fix-latency-queue-0") !== null }, 3000)
+            verify(control(diag, "pushfps-diagnose-body-latency-vsync").text.indexOf("17") >= 0, "the cost is said")
+            control(diag, "pushfps-diagnose-fix-latency-queue-0").clicked()
+            verify(veyra.fgLowQueue)
+            control(diag, "pushfps-diagnose-fix-latency-pacing-repair-0").clicked()
+            verify(!veyra.pacingRepair)
+            control(diag, "pushfps-diagnose-fix-latency-vsync-0").clicked()
+            compare(veyra.displaySync, 2)
+            verify(!veyra.variableRefresh)
+            compare(veyra.preferences.pushSmoothPacing, false)
+            for (const f of diag.found) diag.undo(f)
+            verify(!veyra.fgLowQueue); verify(veyra.pacingRepair)
+            compare(veyra.displaySync, 1); verify(veyra.variableRefresh)
+            // Full screen goes through the shell's own step.
+            control(diag, "pushfps-diagnose-fix-latency-composed-0").clicked()
+            compare(root.navigated, "fullscreen")
         }
         function test_a_session_with_nothing_wrong_says_so() {
             veyra.vfgQuality = 2

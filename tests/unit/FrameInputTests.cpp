@@ -3,6 +3,7 @@
 // PushFPS Frame Input API: the header's sender (include/pushfps/FrameInput.h) and PushFPS's reader
 // (FrameInputChannel) through real named shared memory: frames, newest-wins, size changes, a
 // sender writing from another thread while the reader copies (no torn frames), closing, bad names.
+#include "veyra/source/PushOpaqueRow.h"
 #include "pushfps/FrameInput.h"
 #include "veyra/source/FrameInputSource.h"
 
@@ -83,6 +84,13 @@ int main() {
     FrameInputFrame f;
     check(!reader.readNewest(f, 20), "a closed channel reads nothing");
     check(!reader.sender().present, "a closed channel is reported");
+    {   // issue 24: a back buffer with alpha 0 is passed on opaque, colours untouched
+        uint8_t row[12] = {10, 20, 30, 0, 40, 50, 60, 7, 70, 80, 90, 255}, out[12] = {};
+        veyra::source::pushCopyOpaqueRow(out, row, 3);
+        bool ok = true;
+        for (int i = 0; i < 12; ++i) ok = ok && out[i] == (i % 4 == 3 ? 255 : row[i]);
+        check(ok, "alpha is ignored: every pixel is passed on opaque, colours untouched");
+    }
     std::printf("%s (%d failures)\n", failures ? "FAILED" : "OK", failures);
     return failures ? 1 : 0;
 }

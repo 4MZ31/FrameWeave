@@ -2856,8 +2856,10 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                 // It steps aside while the quality test, a benchmark window or the optimiser measures in-between frames.
                 if(graph)graph->setPushFlowPredictPaused(quality_->running()||pushBenchmarkProbe().active()||pushflow2::predictPaused());
                 const bool predictPair=isCapture&&options.fg&&graph&&graph->pushFlowPredicting();
-                const auto pairDelay=predictPair?processingAllowance+pairExtra:marginPair?
-                    pairLatency.select(host100ns(),legacyPairDelay,liveInterval,previewFgMultiplier,std::max(transportInterval/2,fgPhaseAllowance))+pairExtra:legacyPairDelay;
+                const auto phaseAllowance=std::max(transportInterval/2,fgPhaseAllowance);
+                const auto phaseLimit=legacyPairDelay+phaseAllowance;
+                auto pairDelay=predictPair?processingAllowance+pairExtra:marginPair?
+                    pairLatency.select(host100ns(),legacyPairDelay,liveInterval,previewFgMultiplier,phaseAllowance)+pairExtra:legacyPairDelay;
                 std::optional<int64_t> pairPresentAnchor;
                 const auto presentAnchorFor=[&](int64_t source){
                     if(!pairPresentAnchor){
@@ -2888,9 +2890,24 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
                         // With Predict the group must be done for its first forecast, which follows the real frame.
                         const auto firstForecast=predictPair?pushflow::predict::pts(a,batch.b100ns,1,previewFgMultiplier):0;
                         const auto lastGenerated=firstForecast>0?firstForecast:pipeline::FrameBatch::interpolate(a,batch.b100ns,previewFgMultiplier-1,previewFgMultiplier);
-                        const auto now=host100ns(),deadline=liveTimeline.deadline(lastGenerated);
+                        const auto now=host100ns();
                         const double elapsed=elapsedMs(processStart);
-                        const bool admitted=!vfgCostSettling.holding(now)&&fgBudget.admit(now,deadline,elapsed,presentP95,warmingHistory);
+                        // PushFPS 4.5.1, admission floor: a pair that would miss its own deadline only because the
+                        // learned phase is too small (a phase kept through a pause, readiness that grew) gets the
+                        // phase it needs, up to the limit select() keeps, and is generated, instead of being turned
+                        // away; a pair turned away all the same teaches the phase what it needed. Turned away, a pair
+                        // shows its real frame twice: a frame that freezes, then a jump.
+                        const auto earliest=now+fgBudget.requiredDeadlineLead(now,elapsed,presentP95,warmingHistory);
+                        const bool held=vfgCostSettling.holding(now);
+                        const bool adjustPhase=marginPair&&pairAnchoredLive&&!predictPair&&!warmingHistory&&!historyReset&&!held;
+                        const auto neededPhase=earliest-liveInputReady+batch.b100ns-lastGenerated-pairExtra;
+                        if(adjustPhase){
+                            pairDelay=pairLatency.enforceAdmissionFloor(neededPhase,phaseLimit)+pairExtra;
+                            liveTimeline.resetPair(batch.identity.epoch,batch.b100ns,liveInputReady,pairDelay);
+                        }
+                        const auto deadline=liveTimeline.deadline(lastGenerated);
+                        const bool admitted=!held&&fgBudget.admitBy(deadline,earliest);
+                        if(adjustPhase&&!admitted)pairLatency.observe(now,neededPhase);
                         logAdmission(batch,now,deadline,elapsed,presentP95,admitted,warmingHistory,pairAnchoredLive?(isStream?"decoded-pair":"capture-pair"):"continuous");
                         auto decision=admitted?pipeline::EnhanceGraph::FgDecision::Evaluate:pipeline::EnhanceGraph::FgDecision::Skip;
                         if(smoothTransportAnchor&&options.settings.vfgAutoRegulate&&previewFgMultiplier==2&&!warmingHistory&&graph->vfgFastReady()){

@@ -21,6 +21,9 @@ class UpdateChecker final : public QObject {
     Q_PROPERTY(bool canInstall READ canInstall NOTIFY releaseChanged)
     Q_PROPERTY(QString installState READ installState NOTIFY installChanged)
     Q_PROPERTY(double installProgress READ installProgress NOTIFY installChanged)
+    // PushFPS (4.5.2): the installer's optional extras (AI picture enhancement on most cards) were left out
+    // of this install, and this install can be repeated with them (it has the installer's record).
+    Q_PROPERTY(bool canInstallExtras READ canInstallExtras NOTIFY releaseChanged)
 public:
     explicit UpdateChecker(QString currentVersion, QObject* parent = nullptr,
         QUrl endpoint = QUrl(QString::fromLatin1(veyra::brand::kLatestReleaseApi)),
@@ -39,6 +42,10 @@ public:
     // the zip, checks its SHA-256, unpacks it and starts its installer for this install folder; then
     // asks the app to quit (quitForUpdate). Any failure leaves the installed version untouched.
     Q_INVOKABLE void installUpdate();
+    // The same signed path for the version installed (or a newer one when it is out), with the installer's
+    // optional extras: it asks GitHub for the release first when it has not yet, and then quits like an update.
+    Q_INVOKABLE void installExtras();
+    bool canInstallExtras() const;
     // Tests: a different public key, install folder and installer launcher.
     void setUpdateKeyForTests(QByteArray pem) { publicKeyPem_ = std::move(pem); }
     void setInstallDirForTests(QString dir) { installDir_ = std::move(dir); }
@@ -60,11 +67,14 @@ private:
     void setInstall(const QString& state, double progress = 0);
     void failInstall(const QString& reason);
     void download(const QUrl& url, qint64 limit, std::function<void(QByteArray)> done, QString file = {});
+    void startInstall();
     void verifyAndDownloadZip();
     void unpackAndLaunch();
     bool assetUrlOk(const QUrl& url) const;
     QUrl sumsUrl_, sigUrl_, zipUrl_;
     QString zipName_, installState_ = QStringLiteral("idle"), installDir_, stageDir_, tag_;
+    QString packageVersion_;   // the version of the assets found (the newer release, or the installed one)
+    bool extrasMode_ = false, extrasPending_ = false;
     double installProgress_ = 0;
     QByteArray sums_, publicKeyPem_, expectedZipSha_;
     QNetworkReply* download_ = nullptr;

@@ -4,6 +4,7 @@
 // goes through Microsoft's servers even when the console is on the same network; the media then flows
 // over WebRTC (see XboxSessionSource).
 #pragma once
+#include "veyra/xbox/PushStreamSize.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -37,7 +38,8 @@ public:
 
     std::vector<Console> consoles();
     // Starts a session on a console; returns the session id.
-    std::string play(const std::string& serverId, const std::string& locale = "zh-CN");
+    // size (PushFPS 4.5.3): the display size the service is told about; Automatic sends what it always sent.
+    std::string play(const std::string& serverId, const std::string& locale = "zh-CN", PushStreamSize size = PushStreamSize::Auto);
     SessionState state(const std::string& sessionId);
     void connect(const std::string& sessionId, const std::string& transferToken);
     // Sends the local offer, returns the console's answer SDP.

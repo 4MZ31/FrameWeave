@@ -4,6 +4,7 @@
 #include <windows.h>
 
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <iomanip>
 #include <limits>
@@ -1267,6 +1268,22 @@ bool ChainSessionStore::load(ChainSession& session) {
             if (!file.bad() && decode(data, session)) {
                 return true;
             }
+        }
+    }
+    // PushFPS 4.5.1: a file that exists and cannot be read used to block every later save of this session and
+    // of every session after it ("settings and game profiles don't save after a restart"). It is moved aside
+    // under a new name, kept whole, and saving goes on to a fresh file. Only when it cannot be moved is
+    // overwriting refused as before.
+    std::error_code present;
+    if (std::filesystem::exists(path_, present) && !present) {
+        std::error_code moved;
+        auto aside = path_;
+        aside += L".unreadable-" + std::to_wstring(std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count());
+        std::filesystem::rename(path_, aside, moved);
+        if (!moved) {
+            error_ = L"模式会话无法读取，已另存一份并从默认设置开始";
+            return false;
         }
     }
     corrupt_ = true;

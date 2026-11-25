@@ -1590,3 +1590,16 @@ zh:FSR 的运动估算可以更省|A estimativa de movimento do FSR pode ser mai
 zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|Antes de o FSR gerar um quadro, o PushFPS estima o movimento a partir da imagem. Uma estimativa mais leve exige menos da placa de vídeo a cada quadro, o que ajuda placas intermediárias e de entrada a acompanhar; as bordas dos objetos ficam um pouco mais grosseiras. Desfaça se a imagem piorar
 zh:改用更省的运动估算|Usar a estimativa de movimento mais leve
 zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|A largura de banda pedida ao PS5; o console não garante atingi-la. Em uma rede cabeada, 30 Mbps ou mais fica mais nítido; reduza se a imagem engasgar
+zh:有画面播放时开始放大|O upscaling começa quando uma imagem estiver sendo reproduzida
+zh:画面显示得不比原尺寸大，现在不需要放大|A imagem não está sendo mostrada maior que o próprio tamanho: nada a ampliar agora
+zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 OpenGL 4.3|A interface gráfica deste computador não consegue fazer o upscaling: é preciso Vulkan, Metal ou OpenGL 4.3
+zh:放大没能在这块显卡上启动，画面照常显示|O upscaling não conseguiu iniciar nesta placa de vídeo; a imagem é mostrada normalmente
+zh:放大到屏幕分辨率|Amplia para a resolução da sua tela
+zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 amplia sem nitidez; 50 é o padrão da NVIDIA. O NIS amplia até 2× por passagem; fatores maiores são concluídos com o redimensionamento comum.
+zh:帧节奏修复|Correção do ritmo de quadros
+zh:Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 PushFPS 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。|Prévia para Linux e macOS: a geração de quadros, a Correção do ritmo de quadros e o Bloqueio HUD vivo são tecnologia própria do PushFPS e não precisam de componentes da NVIDIA, AMD ou Intel.
+zh:一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置|Liga de uma vez todas as configurações de baixa latência que não custam qualidade de imagem: a placa de vídeo enfileira só um quadro (NVIDIA Low Latency em placas NVIDIA), tela cheia ao conectar (evita o compositor da área de trabalho, uma atualização a menos de espera) e sincronização com taxa variável em telas G-SYNC/FreeSync (sem tearing nem quadros pulados). A geração de quadros, a melhoria por IA, o bloqueio do HUD e a Correção do ritmo de quadros continuam como estão. Desligar restaura suas configurações anteriores
+zh:已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置|Ligado: o movimento é calculado do jeito rápido e a Correção do ritmo de quadros fica desligada. Desligar traz de volta o que estava configurado antes
+zh:帧节奏修复 · 已重排 %1%|Correção do ritmo de quadros · %1% reajustado
+zh:帧节奏修复 · 等待去重测出帧率|Correção do ritmo de quadros · aguardando a remoção de duplicados medir a taxa de quadros
+zh:引擎未接受帧节奏修复，原设置保留|O mecanismo não aceitou a Correção do ritmo de quadros; a configuração anterior foi mantida

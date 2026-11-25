@@ -2202,6 +2202,120 @@
     }
    ],
    "needs_hardware": "an AMD card with a FreeSync display (on and off in AMD Software)"
+  },
+  {
+   "id": "F78",
+   "what": "A chosen game profile and the current console's profile keep what is changed after they were chosen; what this PC cannot run right now and a target set by hand keep the profile's own value",
+   "guards": [
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_a_chosen_profile_keeps_what_is_changed_afterwards"
+    }
+   ],
+   "needs_hardware": "none (a restart and an update with a profile chosen, on Windows)"
+  },
+  {
+   "id": "F79",
+   "what": "Latency: a frame generation pair's learned phase is kept through a gap in readings; Check my setup offers full screen for a composed picture, low latency, Frame Pacing Repair off and smooth frame pacing off on a slow screen without VRR, each with Undo",
+   "guards": [
+    {
+     "file": "tests/unit/PushPairPhaseTests.cpp",
+     "ci": "veyra_push_pair_phase_tests",
+     "contains": "was: the legacy delay"
+    },
+    {
+     "file": "tests/js/push_diagnose_test.js",
+     "ci": "tests/js/*_test.js",
+     "contains": "a picture the desktop composes is offered full screen"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_diagnose.qml",
+     "ci": "tst_push_diagnose",
+     "contains": "test_latency_is_checked_and_each_change_taken_back"
+    }
+   ],
+   "needs_hardware": "a capture card session measured before and after (PS5 latency test or a camera)"
+  },
+  {
+   "id": "F80",
+   "what": "Listing capture devices never waits for ever on one driver: each device's sound check is asked on its own thread and waited for at most 3 s, a device still waiting is not asked again, a late answer is used at the next list",
+   "guards": [
+    {
+     "file": "tests/unit/PushTimedProbeTests.cpp",
+     "ci": "veyra_push_timed_probe_tests",
+     "contains": "the whole list is bounded"
+    }
+   ],
+   "needs_hardware": "a PC with a capture card whose driver does not answer (the two-Elgato report, issue 1)"
+  },
+  {
+   "id": "F81",
+   "what": "AI picture enhancement whose files were left out at installation is installed afterwards with one button: the signed update path repeats the installed version with the installer's optional extras, never an older version, never offered as an update",
+   "guards": [
+    {
+     "file": "tests/unit/UpdateVerifyTests.cpp",
+     "ci": "veyra_update_verify_tests",
+     "contains": "extrasRepeatTheInstalledVersion"
+    },
+    {
+     "file": "tests/unit/UpdateVerifyTests.cpp",
+     "ci": "veyra_update_verify_tests",
+     "contains": "extrasNeverInstallAnOlderVersion"
+    },
+    {
+     "file": "tests/qml/quick/tst_push_quick_setup.qml",
+     "ci": "tst_push_quick_setup",
+     "contains": "test_missing_enhancement_files_are_installed_with_one_button"
+    }
+   ],
+   "needs_hardware": "an installed PushFPS without the optional extras on an RTX card"
+  },
+  {
+   "id": "F82",
+   "what": "The frame quality test reads a capture frame's upload memory only through a streaming copy of the rows its luma grid reads (issue 15: byte reads of write-combined memory held the engine thread and the output fell to about 4 FPS)",
+   "guards": [
+    {
+     "file": "tests/unit/PushQualityTests.cpp",
+     "ci": "veyra_push_quality_tests",
+     "contains": "the copied rows are every row the grid reads"
+    },
+    {
+     "file": "tests/unit/PushQualityTests.cpp",
+     "ci": "veyra_push_quality_tests",
+     "contains": "the streaming copy copies exactly what it is given"
+    }
+   ],
+   "needs_hardware": "a capture card (YUY2 or NV12) and frame generation on, running the frame quality test"
+  },
+  {
+   "id": "F83",
+   "what": "PS5 Remote Play's automatic sound sync takes only the measured delay of the shown frame, starts sound once that delay has settled, and the PS5 video clock catches up with an index slower than its profile",
+   "guards": [
+    {
+     "file": "tests/remoteplay/CoreTests.cpp",
+     "ci": "veyra_remoteplay_core_tests",
+     "contains": "clock_follows_an_index_slower_than_the_profile"
+    },
+    {
+     "file": "tests/unit/PushRemoteSyncTests.cpp",
+     "ci": "veyra_push_remote_sync_tests",
+     "contains": "the delay counts as settled once five frames agree within 20 ms"
+    }
+   ],
+   "needs_hardware": "a PS5 with Remote Play"
+  },
+  {
+   "id": "F84",
+   "what": "Xbox Remote Play's picture size is a choice (automatic, 1080p, 1440p); automatic sends exactly the request PushFPS always sent",
+   "guards": [
+    {
+     "file": "tests/unit/PushStreamSizeTests.cpp",
+     "ci": "veyra_push_stream_size_tests",
+     "contains": "Automatic sends the header byte for byte"
+    }
+   ],
+   "needs_hardware": "an Xbox with remote play, on a network fast enough for 1440p"
   }
  ]
 }

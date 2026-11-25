@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 //
-// How the picture is drawn: its shape in the window and the four picture controls.
+// How the picture is drawn: its shape in the window and the four picture controls. (Upscaling's switch is
+// in quick setup's Picture section, as on Windows: UpscaleRow.qml.)
 import QtQuick
 import QtQuick.Layouts
 
@@ -9,6 +10,9 @@ ColumnLayout {
     id: picture
     spacing: 0
     Layout.fillWidth: true
+
+    // The picture's shape in the window. Professional mode has it in its Display tab, as on Windows.
+    property bool showShape: true
 
     component Control: VRow {
         id: row
@@ -28,6 +32,7 @@ ColumnLayout {
     }
 
     VRow {
+        visible: picture.showShape
         label: qsTr("画面比例")
         hint: qsTr("窗口和画面形状不同时：保留黑边、裁掉两侧铺满，或拉伸铺满")
         hintBelow: true

@@ -95,7 +95,7 @@ std::vector<Console> StreamApi::consoles() {
     }
 }
 
-std::string StreamApi::play(const std::string& serverId, const std::string& locale) {
+std::string StreamApi::play(const std::string& serverId, const std::string& locale, PushStreamSize size) {
     const json body = {
         {"titleId", ""}, {"systemUpdateGroup", ""}, {"clientSessionId", ""},
         {"settings", {{"nanoVersion", "V3;WebrtcTransport.dll"}, {"enableTextToSpeech", false}, {"highContrast", 0},
@@ -103,7 +103,7 @@ std::string StreamApi::play(const std::string& serverId, const std::string& loca
                       {"sdkType", "web"}, {"osName", "windows"}}},
         {"serverId", serverId}, {"fallbackRegionNames", json::array()},
     };
-    const json j = parse(call("POST", "/v5/sessions/home/play", body.dump(), {{"X-MS-Device-Info", kDeviceInfo}}), "play");
+    const json j = parse(call("POST", "/v5/sessions/home/play", body.dump(), {{"X-MS-Device-Info", pushDeviceInfo(kDeviceInfo, size)}}), "play");
     const std::string path = j.value("sessionPath", "");
     // "v5/sessions/home/<id>"
     const auto slash = path.find_last_of('/');

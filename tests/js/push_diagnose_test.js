@@ -148,6 +148,19 @@ t.same(ids(good()), [], 'a state from before 4.2.1 (no screen, no upscaling fiel
     t.check(same, 'Check my setup and the quick setup row agree on every size')
 }
 
+// 4.5.1: latency, each offered with its price.
+t.same(ids(good({ displayPath: 0 })), ['latency-composed'], 'a picture the desktop composes is offered full screen')
+t.same([ids(good({ displayPath: 0, fullscreen: true })), ids(good({ displayPath: 1 })), ids(good({ displayPath: 2 })), ids(good({ displayPath: null })), ids(good({ displayPath: '' }))], [[], [], [], [], []],
+       'not in full screen, not for an overlay or direct path, not for a path nobody reported')
+t.same(find(good({ lowLatencyKnown: true, lowLatencyOn: false, nvidiaLatency: true }), 'latency-queue'), { id: 'latency-queue', level: 'try', nvidia: true }, 'low latency off is offered on')
+t.same([ids(good({ lowLatencyKnown: true, lowLatencyOn: true })), ids(good({ lowLatencyKnown: false, lowLatencyOn: false }))], [[], []], 'not when it is on or not known')
+t.same(ids(good({ pacingRepair: true })), ['latency-pacing-repair'], 'Frame Pacing Repair on is named')
+t.same(ids(good({ pacingRepair: true, fgOn: false, generatedFps: null })).indexOf('latency-pacing-repair'), -1, 'not without frame generation')
+const sixty = extra => good(Object.assign({ refreshHz: 60, targetFps: 60, outputCap: 60, vrr: false, multiplier: 2, generatedFps: 30 }, extra || {}))
+t.same(find(sixty(), 'latency-vsync'), { id: 'latency-vsync', level: 'try', hz: 60, ms: 17 }, 'waiting for a 60 Hz refresh without VRR is offered off, with its cost')
+t.same([ids(sixty({ vrr: true })), ids(sixty({ vsync: false })), ids(good({ vrr: false }))].map(l => l.indexOf('latency-vsync')), [-1, -1, -1],
+       'not with VRR, not without the wait, not on a 120 Hz screen')
+
 t.same(D.mean([{ a: 10 }, { a: 20 }, { a: 'x' }, {}], 'a', -1), 15, 'values that are not numbers are left out')
 t.same(D.mean([], 'a', -1), -1, 'no samples: the fallback')
 t.same(D.mean([{ a: null }, { a: '' }, { a: undefined }], 'a', 7), 7, 'a figure that is not known is not a zero')

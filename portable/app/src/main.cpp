@@ -9,6 +9,9 @@
 //                                    block; exit 0 ok, 2 source failed, 3 no frames, 1 other
 //   PushFPS --gpucheck [--save <png>] draws a known generated frame on the GPU and compares it with the
 //                                    CPU reference; exit 0 match, 4 mismatch or no GPU renderer
+//   PushFPS --nischeck [--save <png>] upscales a known picture 2x with NIS (FrameView's upscaling) and
+//                                    checks it is that picture, upright, and that sharpening reaches the
+//                                    shader; exit 0 pass, 4 fail or no compute
 //   PushFPS --screenshot <png> [--page home|pro|min|set] [--lang <code>]
 #include "MacActivity.h"
 #include "AppController.h"
@@ -30,6 +33,7 @@
 #include <QQmlApplicationEngine>
 #include <memory>
 #include <QQmlContext>
+#include <QQuickItem>
 #include <QQuickView>
 #include <QQuickWindow>
 #include <QSGRendererInterface>
@@ -144,7 +148,7 @@ int selftest(QGuiApplication& app, double seconds, const QString& sourceSpec, in
             const bool keep = references.empty() && !saveFrame.isEmpty();
             references.emplace_back([p, keep, &checked, &sample] {
                 Bgra out;
-                if (interpolate(*p.a, *p.b, p.fields->forward, p.fields->backward, p.fields->hudMask.get(), p.t, out, 1, {}, p.hold.get())) {
+                if (interpolate(*p.a, *p.b, p.fields->forward, p.fields->backward, p.fields->hudMask.get(), p.t, out, 1, {}, p.hold.get(), p.subHold.get())) {
                     ++checked;
                     if (keep) sample = imageFromBgra(out);
                 }
@@ -201,36 +205,51 @@ int gpucheck(QGuiApplication& app, const QString& savePath) {
         const int dx = x - w / 2, dy = y - h / 2;
         return ((dy == 0 || dy == -1) && std::abs(dx) >= 4 && std::abs(dx) <= 10) || ((dx == 0 || dx == -1) && std::abs(dy) >= 4 && std::abs(dy) <= 10);
     };
-    for (QImage* image : {&ia, &ib})
+    // And a short line of "text" in the subtitle band, for Subtitle Hold (the same machinery in its own zone).
+    using namespace veyra::pipeline::overlay;
+    const Zone band = subtitleZoneFor(uint32_t(w), uint32_t(h));
+    const auto onText = [&](int x, int y) {
+        if (band.size == 0) return false;
+        // over the car of the test picture (it drives left), so the text stands while what is behind it moves
+        const int lx = x - int(band.x) - 100, ly = y - int(band.y + band.h / 2) + 6;
+        if (lx < 0 || lx >= 80 || ly < 0 || ly >= 12) return false;
+        const int cx = lx % 10;
+        return cx < 8 && (cx < 2 || ly < 2 || ly >= 10);
+    };
+    for (QImage* image : {&ia, &ib}) {
         for (int y = h / 2 - 12; y <= h / 2 + 12; ++y)
             for (int x = w / 2 - 12; x <= w / 2 + 12; ++x)
                 if (onCrosshair(x, y)) image->setPixel(x, y, qRgb(250, 250, 250));
+        for (int y = 0; y < h; ++y)
+            for (int x = 0; x < w; ++x)
+                if (onText(x, y)) image->setPixel(x, y, qRgb(250, 250, 250));
+    }
     const Bgra a = bgraFromImage(ia), b = bgraFromImage(ib);
-    // Its part for this pair, with the mask set by hand (finding a crosshair is the core tests' matter).
-    using namespace veyra::pipeline::overlay;
+    // Each zone's part for this pair, with the mask set by hand (finding an overlay is the core tests' matter).
     const Zone zone = zoneFor(uint32_t(w), uint32_t(h));
     const Rule rule = ruleFor(uint32_t(h));
-    const auto partOf = [&](const Bgra& frame) {
+    const auto partOf = [&](const Bgra& frame, const Zone& z, const auto& onShape) {
         HoldFrame part;
-        const int n = int(zone.size);
-        part.x = int(zone.x); part.y = int(zone.y); part.size = n;
-        part.zone = Bgra(n, n);
-        part.mask = Plane(n);
-        Picture original(n);
-        for (int y = 0; y < n; ++y)
-            for (int x = 0; x < n; ++x) {
+        const int zw = int(z.w ? z.w : z.size), zh = int(z.h ? z.h : z.size);
+        part.x = int(z.x); part.y = int(z.y); part.size = zw; part.w = zw; part.h = zh;
+        part.zone = Bgra(zw, zh);
+        part.mask = Plane(zw, zh, 0.0f);
+        Picture original(zw, zh);
+        for (int y = 0; y < zh; ++y)
+            for (int x = 0; x < zw; ++x) {
                 const uint8_t* p = frame.pixel(part.x + x, part.y + y);
                 std::copy(p, p + 4, part.zone.pixel(x, y));
                 original.at(x, y) = {float(p[2]) / 255.0f, float(p[1]) / 255.0f, float(p[0]) / 255.0f};
                 bool beside = false;
                 for (int j = -1; j <= 1 && !beside; ++j)
-                    for (int i = -1; i <= 1 && !beside; ++i) beside = onCrosshair(part.x + x + i, part.y + y + j);
+                    for (int i = -1; i <= 1 && !beside; ++i) beside = onShape(part.x + x + i, part.y + y + j);
                 if (beside) { part.mask.at(x, y) = 1.0f; ++part.masked; }
             }
         part.filled = fill(original, part.mask, rule);
         return part;
     };
-    const std::shared_ptr<const HoldPair> held = zone.size > 0 ? CrosshairHold::pair(partOf(a), partOf(b)) : nullptr;
+    const std::shared_ptr<const HoldPair> held = zone.size > 0 ? CrosshairHold::pair(partOf(a, zone, onCrosshair), partOf(b, zone, onCrosshair)) : nullptr;
+    const std::shared_ptr<const HoldPair> heldText = band.size > 0 ? CrosshairHold::pair(partOf(a, band, onText), partOf(b, band, onText)) : nullptr;
     const Pyramid pa = Pyramid::of(lumaOf(a), 4), pb = Pyramid::of(lumaOf(b), 4);
     const MotionEstimator est;
     auto fields = std::make_shared<PairFields>();
@@ -246,14 +265,18 @@ int gpucheck(QGuiApplication& app, const QString& savePath) {
     pick->t = 0.5f;
     pick->fields = fields;
     pick->hold = held;
+    pick->subHold = heldText;
     FrameView::setFixedPick(pick);
     Bgra reference, withoutHold;
-    interpolate(a, b, fields->forward, fields->backward, nullptr, 0.5f, reference, 2, {}, held.get());
+    interpolate(a, b, fields->forward, fields->backward, nullptr, 0.5f, reference, 2, {}, held.get(), heldText.get());
     interpolate(a, b, fields->forward, fields->backward, nullptr, 0.5f, withoutHold, 2);
     const QImage ref = imageFromBgra(reference);
     // The square round the crosshair, for the two comparisons that say the shader held it.
     const QRect aim(w / 2 - 16, h / 2 - 16, 32, 32);
     const QImage refAim = ref.copy(aim), plainAim = imageFromBgra(withoutHold).copy(aim);
+    // The same for the line of text.
+    const QRect text(int(band.x) + 92, int(band.y + band.h / 2) - 14, 100, 28);
+    const QImage refText = ref.copy(text), plainText = imageFromBgra(withoutHold).copy(text);
 
     QQuickView view;
     view.setResizeMode(QQuickView::SizeRootObjectToView);
@@ -284,14 +307,89 @@ int gpucheck(QGuiApplication& app, const QString& savePath) {
         const QImage shotAim = shot.copy(aim);
         const double aimHeld = psnr(shotAim, refAim, 0), aimPlain = psnr(shotAim, plainAim, 0);
         const bool holdOk = held != nullptr && aimHeld > 32.0 && aimHeld > aimPlain + 3.0;
-        code = !software && match > 38.0 && match > againstA + 3.0 && holdOk ? 0 : 4;
+        const QImage shotText = shot.copy(text);
+        const double textHeld = psnr(shotText, refText, 0), textPlain = psnr(shotText, plainText, 0);
+        const bool subOk = heldText != nullptr && textHeld > 32.0 && textHeld > textPlain + 3.0;
+        code = !software && match > 38.0 && match > againstA + 3.0 && holdOk && subOk ? 0 : 4;
         print(QStringLiteral("GPU CHECK RESULT\ngraphics api: %1\nGPU vs CPU reference: %2 dB\nGPU vs real frame A: %3 dB (CPU reference vs A: %4 dB)\n"
                              "crosshair hold: round the crosshair %8 dB against the reference that holds it, %9 dB against the one that does not (%10 px held)\n"
+                             "subtitle hold: round the text %11 dB against the reference that holds it, %12 dB against the one that does not (%13 px held)\n"
                              "diagnostics: upside down vs reference %6 dB, GPU vs real frame B %7 dB\nresult: %5")
                   .arg(int(api)).arg(match, 0, 'f', 1).arg(againstA, 0, 'f', 1).arg(refVsA, 0, 'f', 1)
                   .arg(code == 0 ? QStringLiteral("PASS") : (software ? QStringLiteral("FAIL (software renderer, no shaders)") : QStringLiteral("FAIL (mismatch)")))
-                  .arg(flipped, 0, 'f', 1).arg(againstB, 0, 'f', 1).arg(aimHeld, 0, 'f', 1).arg(aimPlain, 0, 'f', 1).arg(held ? held->held : 0));
+                  .arg(flipped, 0, 'f', 1).arg(againstB, 0, 'f', 1).arg(aimHeld, 0, 'f', 1).arg(aimPlain, 0, 'f', 1).arg(held ? held->held : 0)
+                  .arg(textHeld, 0, 'f', 1).arg(textPlain, 0, 'f', 1).arg(heldText ? heldText->held : 0));
         app.exit(code);
+    });
+    return app.exec();
+}
+
+
+// Upscales the test picture with NIS (twice its size when the window gets the size asked for) (FrameView's upscaling, NisNode.cpp) and
+// checks what comes out. There is no CPU reference of NIS here: what is checked is that the picture drawn
+// is the picture (close to a plain smooth enlargement of it, far from it upside down), that upscaling
+// says it runs, and that the sharpening reaches the shader (0 and 1 give different pictures).
+int nischeck(QGuiApplication& app, const QString& savePath) {
+    const int w = 640, h = 360;
+    const QImage ia = TestPattern::render(w, h, 2.0).convertToFormat(QImage::Format_RGB32);
+    auto pick = std::make_shared<Pick>();
+    pick->a = std::make_shared<const Bgra>(bgraFromImage(ia));
+    pick->b = pick->a;
+    pick->aId = pick->bId = 1;
+    pick->t = 0.0f;
+    FrameView::setFixedPick(pick);
+
+    QQuickView view;
+    view.setResizeMode(QQuickView::SizeRootObjectToView);
+    view.setColor(Qt::black);
+    view.loadFromModule(QStringLiteral("PushFPS"), QStringLiteral("GpuCheck"));
+    FrameView* frame = view.rootObject() ? view.rootObject()->findChild<FrameView*>() : nullptr;
+    if (view.status() != QQuickView::Ready || !frame) {
+        print(QStringLiteral("NIS CHECK RESULT\nresult: FAIL (GpuCheck.qml did not load)"));
+        return 1;
+    }
+    frame->setUpscale(true);
+    frame->setUpscaleTarget(2);
+    frame->setSharpness(0.0);
+    view.resize(2 * w, 2 * h);
+    view.show();
+    // The window manager may not give the window the size asked for: the picture is cut out where
+    // FrameView puts it (whole, with bars), and the smooth enlargement made at that size.
+    const auto grab = [&] {
+        const QImage shot = view.grabWindow().convertToFormat(QImage::Format_RGB32);
+        const double scale = std::min(double(shot.width()) / w, double(shot.height()) / h);
+        const int pw = int(std::lround(w * scale)), ph = int(std::lround(h * scale));
+        return shot.copy((shot.width() - pw) / 2, (shot.height() - ph) / 2, pw, ph);
+    };
+    int code = 4;
+    QImage soft;
+    int softState = -1;
+    QString softSizes;
+    QTimer::singleShot(1500, &app, [&] {
+        soft = grab();
+        softState = frame->upscaleState();
+        softSizes = frame->upscaleSizes();
+        frame->setSharpness(1.0);
+        QTimer::singleShot(800, &app, [&] {
+            const QImage sharp = grab();
+            const QImage smooth = ia.scaled(soft.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+            const auto api = view.rendererInterface()->graphicsApi();
+            const double match = psnr(soft, smooth, 4), flipped = psnr(soft.mirrored(false, true), smooth, 4);
+            const double sharpVsSoft = psnr(sharp, soft, 4), sharpMatch = psnr(sharp, smooth, 4);
+            if (!savePath.isEmpty()) {
+                soft.save(savePath);
+                sharp.save(QFileInfo(savePath).absolutePath() + QStringLiteral("/nischeck-sharp.png"));
+                smooth.save(QFileInfo(savePath).absolutePath() + QStringLiteral("/nischeck-smooth.png"));
+            }
+            const bool running = softState == FrameView::UpscaleRunning && frame->upscaleState() == FrameView::UpscaleRunning;
+            code = running && match > 28.0 && match > flipped + 6.0 && sharpMatch > 24.0 && sharpVsSoft < 50.0 ? 0 : 4;
+            print(QStringLiteral("NIS CHECK RESULT\ngraphics api: %1\nupscaling state: %2 (%3)\nNIS at sharpness 0 vs a smooth enlargement: %4 dB (upside down: %5 dB)\n"
+                                 "NIS at sharpness 1 vs the smooth enlargement: %6 dB, vs sharpness 0: %7 dB\nresult: %8")
+                      .arg(int(api)).arg(softState).arg(softSizes).arg(match, 0, 'f', 1).arg(flipped, 0, 'f', 1)
+                      .arg(sharpMatch, 0, 'f', 1).arg(sharpVsSoft, 0, 'f', 1)
+                      .arg(code == 0 ? QStringLiteral("PASS") : running ? QStringLiteral("FAIL (picture)") : QStringLiteral("FAIL (upscaling did not run)")));
+            app.exit(code);
+        });
     });
     return app.exec();
 }
@@ -319,11 +417,12 @@ int main(int argc, char** argv) {
     QCommandLineOption pacing(QStringLiteral("pacing"), QStringLiteral("Frame Pacing Repair on."));
     QCommandLineOption hud(QStringLiteral("hud"), QStringLiteral("Live HUD Lock on."));
     QCommandLineOption gpu(QStringLiteral("gpucheck"), QStringLiteral("Compare the GPU shader with the CPU reference."));
+    QCommandLineOption nis(QStringLiteral("nischeck"), QStringLiteral("Check upscaling with NVIDIA Image Scaling."));
     QCommandLineOption save(QStringLiteral("save"), QStringLiteral("Save a picture (self-test / GPU check)."), QStringLiteral("png"));
     QCommandLineOption shot(QStringLiteral("screenshot"), QStringLiteral("Open the interface, save a screenshot, quit."), QStringLiteral("png"));
     QCommandLineOption page(QStringLiteral("page"), QStringLiteral("Start page: home, pro, min or set."), QStringLiteral("page"), QStringLiteral("home"));
     QCommandLineOption lang(QStringLiteral("lang"), QStringLiteral("Interface language code."), QStringLiteral("code"));
-    cli.addOptions({list, self, src, target, pacing, hud, gpu, save, shot, page, lang});
+    cli.addOptions({list, self, src, target, pacing, hud, gpu, nis, save, shot, page, lang});
     cli.process(app);
 
     if (cli.isSet(list)) return listDevices();
@@ -331,6 +430,7 @@ int main(int argc, char** argv) {
         return selftest(app, std::clamp(cli.value(self).toDouble(), 1.0, 600.0), cli.value(src), cli.value(target).toInt(),
                         cli.isSet(pacing), cli.isSet(hud), cli.value(save));
     if (cli.isSet(gpu)) return gpucheck(app, cli.value(save));
+    if (cli.isSet(nis)) return nischeck(app, cli.value(save));
 
     CatalogTranslator translator;
     {

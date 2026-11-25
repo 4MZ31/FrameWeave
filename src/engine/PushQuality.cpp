@@ -9,7 +9,7 @@
 
 namespace veyra::engine::quality {
 namespace {
-constexpr int kTaps = 4;   // 4 x 4 samples per grid cell
+constexpr int kTaps = kGridTaps;   // 4 x 4 samples per grid cell
 
 float half(uint16_t h) {
     const uint32_t sign = uint32_t(h & 0x8000) << 16, exp = (h >> 10) & 0x1F, mant = h & 0x3FF;
@@ -35,7 +35,7 @@ template <class F> void grid(uint32_t width, uint32_t height, Luma& out, F value
         for (uint32_t gx = 0; gx < kGridW; ++gx) {
             float sum = 0;
             for (int sy = 0; sy < kTaps; ++sy) {
-                const uint32_t y = std::min(height - 1, uint32_t((gy + (sy + 0.5) / kTaps) * height / kGridH));
+                const uint32_t y = gridSourceRow(gy, sy, height);
                 for (int sx = 0; sx < kTaps; ++sx) {
                     const uint32_t x = std::min(width - 1, uint32_t((gx + (sx + 0.5) / kTaps) * width / kGridW));
                     sum += value(x, y);

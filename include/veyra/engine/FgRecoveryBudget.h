@@ -81,18 +81,25 @@ public:
         if(!base||!fg||interval<=0||(*base+*fg)*10000>double(interval))return 0;
         return int64_t(*fg*10000);
     }
-    bool canAdmit(int64_t now,int64_t deadline,double elapsed,double present,bool warmingHistory=false,double queuedMs=0)const{
+    // PushFPS 4.5.1: how far ahead of now a pair's last deadline has to be for it to fit, with the same
+    // costs, CPU progress and 10 ms grace canAdmit always used (canAdmit is this, decided the same way).
+    // The capture pair path raises its phase to it instead of turning the pair away (admission floor).
+    int64_t requiredDeadlineLead(int64_t now,double elapsed,double present,bool warmingHistory=false,double queuedMs=0)const{
         const auto cost=predicted(now,warmingHistory);
         // FG has not been submitted at admission. CPU time can at most cover
         // the base work; it must never erase the cost of future FG calls.
         const double queued=std::isfinite(queuedMs)?std::max(0.0,queuedMs):0.0;
-        const double progress=std::clamp(elapsed,0.0,queued+baseCost(now).value_or(0));
-        const bool fits=double(deadline-now)/10000+10>=std::max(0.0,queued+cost.value_or(0)-progress)+std::max(0.0,present);
-        return fits;
+        const double progress=std::clamp(std::isfinite(elapsed)?elapsed:0.0,0.0,queued+baseCost(now).value_or(0));
+        const double need=std::max(0.0,queued+cost.value_or(0)-progress)+std::max(0.0,present);
+        return int64_t(std::ceil((need-10.0)*10000));
+    }
+    bool canAdmit(int64_t now,int64_t deadline,double elapsed,double present,bool warmingHistory=false,double queuedMs=0)const{
+        return deadline-now>=requiredDeadlineLead(now,elapsed,present,warmingHistory,queuedMs);
     }
     bool admit(int64_t now,int64_t deadline,double elapsed,double present,bool warmingHistory=false,double queuedMs=0){
         return recordAdmission(canAdmit(now,deadline,elapsed,present,warmingHistory,queuedMs));
     }
+    bool admitBy(int64_t deadline,int64_t earliestDeadline){return recordAdmission(deadline>=earliestDeadline);}
     // strictFirstOutput=false reproduces the 1.4.0 rule: only the whole group
     // against its last deadline. true additionally requires the first output to
     // reach its own deadline; see EnhancementSettings::fgStrictAdmission.

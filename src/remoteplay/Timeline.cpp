@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "veyra/remoteplay/Timeline.h"
+#include <cstdlib>
 #include <limits>
 #include <stdexcept>
 #include <algorithm>
@@ -44,9 +45,13 @@ std::optional<EstimatedStamp> RemotePlayClock::video(std::uint64_t index,HostTim
     phaseWindow_.push_back({arrival,error});
     // At most 0.5% slew; even after a jitter burst successive PTS cannot
     // reverse or abruptly jump. A real network gap still resets above.
+    // PushFPS (4.5.3): the PS5's frame index does not always advance at the profile's rate (a log measured
+    // about 29.85 a second on a 30 profile for minutes), just past 0.5 %, so the estimate fell further and
+    // further behind arrival. Past half a frame of error it slews at 5 % until it has caught up.
     const auto step=10000000/static_cast<std::int64_t>(fps_);
-    const auto maxSlew=step/200;
-    phase_+=std::clamp(phaseWindow_.front().error-phase_,-maxSlew,maxSlew);
+    const auto phaseError=phaseWindow_.front().error-phase_;
+    const auto maxSlew=std::llabs(phaseError)>step/2?step/20:step/200;
+    phase_+=std::clamp(phaseError,-maxSlew,maxSlew);
     if(phase_>0&&nominal>std::numeric_limits<std::int64_t>::max()-phase_)return {};
     auto pts=nominal+phase_;
     if(index!=firstIndex_&&!gap)pts=std::max(pts,lastPts_+1);

@@ -50,6 +50,7 @@ struct EngineSettings {
     bool pacingRepair = false;
     bool hudLock = false;
     bool crosshairHold = false;  // Crosshair Hold (CrosshairHold.h); off unless switched on
+    bool subtitleHold = false;   // Subtitle Hold: the same rule in the subtitle band; off unless switched on
     int quality = 1;             // 0 fast (vectors from the quarter-size picture), 1 balanced (half size)
     double estimateBudgetMs = 0; // headroom for motion estimation in the display delay; 0 = measured
 };
@@ -64,6 +65,9 @@ struct ContentFrame {
     // (holdPairWith) and this one needs. Both null with the switch off or no crosshair on screen.
     std::shared_ptr<const HoldFrame> hold;
     std::shared_ptr<const HoldPair> holdPair;
+    // Subtitle Hold's, the same for the subtitle band (holdPairWith serves both).
+    std::shared_ptr<const HoldFrame> subHold;
+    std::shared_ptr<const HoldPair> subHoldPair;
     uint64_t holdPairWith = 0;
 };
 
@@ -79,6 +83,7 @@ struct Pick {
     std::shared_ptr<const Bgra> a, b;          // b == a when only one real frame is shown
     std::shared_ptr<const PairFields> fields;  // null: show the nearer real frame (no generation)
     std::shared_ptr<const HoldPair> hold;      // Crosshair Hold's part for this pair; null: nothing is held
+    std::shared_ptr<const HoldPair> subHold;   // Subtitle Hold's part; null: nothing is held
     uint64_t aId = 0, bId = 0;
     float t = 0;                               // 0 = a, 1 = b
     bool generated() const { return fields && t > 0.f && t < 1.f && a != b; }
@@ -86,6 +91,7 @@ struct Pick {
 };
 
 struct EngineStats {
+    // stats(now) gives the three rates as a readout shows them: falling off when what they count stops.
     double transportFps = 0;   // frames per second arriving from the capture
     double contentFps = 0;     // real (non-duplicate) pictures per second
     double outputFps = 0;      // different pictures shown per second
@@ -101,6 +107,8 @@ struct EngineStats {
     // Crosshair Hold: 0 not asked for, 1 running; and how many pixels the newest real frame holds.
     int holdState = 0;
     int holdPixels = 0;
+    int subHoldState = 0;      // Subtitle Hold, the same
+    int subHoldPixels = 0;
 };
 
 class Engine {
@@ -120,6 +128,9 @@ public:
     // Render thread, once per refresh. refreshHz: the display's refresh rate (for the output count).
     Pick pick(int64_t displayNs);
     EngineStats stats() const;
+    // The same, for a readout at `nowNs` (the clock the frames are stamped with): the three rates fall off
+    // when what they count stops, and read 0 a second after the last one, instead of keeping the last rate.
+    EngineStats stats(int64_t nowNs) const;
     // Drops all frames (source change, resolution change).
     void reset();
     // Tests: waits until the worker has finished every queued pair.
@@ -160,6 +171,11 @@ private:
     int64_t lastArrival_ = 0, lastKeptArrival_ = 0, lastContent_ = 0;
     int lastWidth_ = 0, lastHeight_ = 0;
     std::deque<int64_t> arrivals_, keptTimes_;
+    // The capture's arrivals over the last kReadoutWindowNs, for the readout's signal rate only: frames
+    // that come over USB in bunches made a rate over the 32 of arrivals_ (half a second) read 64 for a
+    // 60 Hz card; over two seconds a bunch moves it by about 1 %. Pacing keeps reading arrivals_.
+    std::deque<int64_t> readoutArrivals_;
+    static constexpr int64_t kReadoutWindowNs = 2'000'000'000;
     double delayNs_ = 0;
     double lateMarginMs_ = 0;  // extra delay this machine needed (motion not ready in time)
     double estimateMsAvg_ = 0;
@@ -176,6 +192,8 @@ private:
     HudLock hud_;  // worker thread only
     CrosshairHold hold_;      // the thread that pushes frames only; others ask for a reset through holdReset_
     bool holdReset_ = false;
+    CrosshairHold subHold_{HoldKind::Subtitles};   // the same for the subtitle band
+    bool subHoldReset_ = false;
     MotionField lastForward_, lastBackward_;
     std::thread worker_;
 };

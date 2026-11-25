@@ -21,10 +21,31 @@ public:
         while(!samples_.empty()&&(samples_.size()>=64||samples_.front().time<now-10000000))samples_.pop_front();
         samples_.push_back({now,requiredDelay});
     }
+    // PushFPS 4.5.1 (admission floor): a pair whose own deadline would come before it can be ready raises
+    // the phase to what it needs, never past the limit select() keeps, instead of being turned away. A kept
+    // phase that is too small (after a pause with no readings) is corrected by the very next pair.
+    int64_t enforceAdmissionFloor(int64_t need,int64_t limit){
+        selected_=std::min(std::max(selected_,need),limit);
+        return selected_;
+    }
     int64_t select(int64_t now,int64_t legacyDelay,int64_t interval,unsigned multiplier,int64_t samplingAllowance=0){
         std::vector<int64_t> current;
         for(const auto& sample:samples_)if(sample.time>=now-10000000)current.push_back(sample.delay);
-        if(current.size()<8||interval<=0||multiplier<2){selected_=legacyDelay;return selected_;}
+        if(interval<=0||multiplier<2){selected_=0;return legacyDelay;}
+        const auto limit=legacyDelay+samplingAllowance;
+        // PushFPS 4.5.1: fewer than 8 readings in the last second (a still picture or a menu has no pairs,
+        // skipped pairs are not read) keeps the phase already learned, within the limit. It went back to
+        // the whole legacy delay (a frame interval and the processing allowance, 35 to 45 ms at 30 FPS)
+        // and came down again by at most half a millisecond a pair, so every pause added that much delay
+        // for over a second after the picture moved again. Only reset() (a new source, settings, a hard
+        // reset) starts from the legacy delay again. A reading above the kept phase raises it at once, as before.
+        if(current.size()<8){
+            if(!selected_){selected_=legacyDelay;return selected_;}
+            int64_t highest=0;
+            for(const auto delay:current)highest=std::max(highest,delay+kMargin100ns);
+            selected_=std::min(std::max(selected_,highest),limit);
+            return selected_;
+        }
         const auto index=(current.size()*95+99)/100-1;
         std::nth_element(current.begin(),current.begin()+index,current.end());
         // 0.5 ms covers wake-up jitter with MMCSS. The allowance lets readiness
@@ -32,7 +53,6 @@ public:
         // later sample can move readiness past a deadline on the continuous
         // content clock, and FG whose own interpolation does not fit in the
         // legacy delay (FgRecoveryBudget::phaseAllowance).
-        const auto limit=legacyDelay+samplingAllowance;
         const auto target=std::min(limit,current[index]+kMargin100ns);
         const auto step=std::min<int64_t>(5000,interval/multiplier/8);
         selected_=std::clamp(selected_?selected_-step:legacyDelay,target,limit);

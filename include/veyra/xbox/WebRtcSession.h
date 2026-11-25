@@ -4,6 +4,7 @@
 // four data channels the console expects (chat, control, input, message). The signalling is an interface,
 // so a test can connect two local peers; the real one goes through StreamApi.
 #pragma once
+#include "veyra/xbox/PushStreamSize.h"
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -61,6 +62,8 @@ public:
     void setCallbacks(WebRtcCallbacks callbacks) { callbacks_ = std::move(callbacks); }
     // Tests: gather candidates on this address only (e.g. "127.0.0.1"). Empty: every interface.
     void setBindAddress(std::string address) { bindAddress_ = std::move(address); }
+    // PushFPS 4.5.3: the display size told to the console (PushStreamSize.h); Automatic is the 1920 x 1080 always sent.
+    void setStreamSize(PushStreamSize size) { streamSize_ = size; }
 
     // Offer, signalling, ICE; returns once connected, false (with `error`) on failure or timeout.
     bool start(Signaling& signaling, std::string* error, std::chrono::milliseconds timeout = std::chrono::seconds(20));
@@ -105,6 +108,7 @@ private:
     std::chrono::steady_clock::time_point origin_ = std::chrono::steady_clock::now();
     std::string failure_;
     std::string bindAddress_;
+    PushStreamSize streamSize_ = PushStreamSize::Auto;
 };
 
 } // namespace veyra::xbox

@@ -1590,3 +1590,17 @@ zh:FSR 的运动估算可以更省|La estimación de movimiento de FSR puede ser
 zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|Antes de que FSR genere un fotograma, PushFPS estima el movimiento a partir de la imagen. Una estimación más ligera exige menos a la tarjeta gráfica en cada fotograma, lo que ayuda a las tarjetas de gama media y de entrada a seguir el ritmo; los bordes de los objetos quedan algo más toscos. Deshazlo si se ve peor
 zh:改用更省的运动估算|Usar la estimación de movimiento más ligera
 zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|El ancho de banda que se pide a la PS5; la consola no garantiza alcanzarlo. En una red por cable, 30 Mbps o más se ve más nítido; bájalo si la imagen da tirones
+zh:有画面播放时开始放大|El escalado empieza en cuanto se reproduce una imagen
+zh:画面显示得不比原尺寸大，现在不需要放大|La imagen no se muestra más grande que su tamaño propio: ahora no hay nada que escalar
+zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 OpenGL 4.3|La interfaz gráfica de este ordenador no puede ejecutar el escalado: necesita Vulkan, Metal u OpenGL 4.3
+zh:放大没能在这块显卡上启动，画面照常显示|El escalado no pudo iniciarse en esta tarjeta gráfica; la imagen se muestra como siempre
+zh:放大到屏幕分辨率|Escala a la resolución de tu pantalla
+zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 escala sin enfocar; 50 es el valor predeterminado de NVIDIA. NIS amplía hasta 2× por pasada; los factores mayores se completan con el escalado normal.
+zh:帧节奏修复|Corrección del ritmo de fotogramas
+zh:实时 HUD 锁定|Bloqueo de HUD en vivo
+zh:Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 PushFPS 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。|Versión preliminar para Linux y macOS: la generación de fotogramas, la Corrección del ritmo de fotogramas y el Bloqueo de HUD en vivo son tecnología propia de PushFPS y no necesitan componentes de NVIDIA, AMD ni Intel.
+zh:一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置|Activa de una vez todos los ajustes de baja latencia que no restan calidad de imagen: la tarjeta gráfica pone en cola un solo fotograma (NVIDIA Low Latency en tarjetas NVIDIA), pantalla completa al conectar (evita el compositor del escritorio, una actualización menos de espera) y sincronización con frecuencia variable en pantallas G-SYNC/FreeSync (sin tearing ni fotogramas saltados). La generación de fotogramas, la mejora con IA, el bloqueo del HUD y la Corrección del ritmo de fotogramas no cambian. Al desactivarlo se restauran tus ajustes anteriores
+zh:已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置|Activado: el movimiento se calcula de la forma rápida y la Corrección del ritmo de fotogramas está desactivada. Al desactivarlo vuelve lo que había antes
+zh:帧节奏修复 · 已重排 %1%|Corrección del ritmo de fotogramas · %1% reajustado
+zh:帧节奏修复 · 等待去重测出帧率|Corrección del ritmo de fotogramas · esperando a que la eliminación de duplicados mida la frecuencia
+zh:引擎未接受帧节奏修复，原设置保留|El motor no aceptó la Corrección del ritmo de fotogramas; se mantiene el ajuste anterior

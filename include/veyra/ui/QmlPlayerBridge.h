@@ -910,6 +910,7 @@ public:
     QVariantMap shortcuts() const;
     Q_INVOKABLE bool setShortcut(const QString& action, const QString& sequence);
     Q_INVOKABLE void resetShortcuts();
+    Q_INVOKABLE bool clearShortcut(const QString& action);
     int uiScaleActive() const;
     bool obsGameCaptureActive() const;
     bool overlayCompatActive() const;

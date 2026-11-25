@@ -628,7 +628,13 @@ bool QmlPlayerBridge::setPreference(const QString& key, const QVariant& value) {
         emit notice(tr("偏好保存失败，已保留原设置"), true);
         return false;
     }
-    veyra::log::info("ui-prefs", std::format("{}={}", key.toStdString(), stored.toString().toStdString()));
+    // The JSON values (profiles, presets, scenes) are logged by size only: they hold names people typed, and
+    // the chosen profile now writes itself back as settings change (4.5.1).
+    const QString shownValue = stored.toString();
+    if (shownValue.startsWith(QLatin1Char('{')) || shownValue.startsWith(QLatin1Char('[')))
+        veyra::log::info("ui-prefs", std::format("{}=<{} characters>", key.toStdString(), shownValue.size()));
+    else
+        veyra::log::info("ui-prefs", std::format("{}={}", key.toStdString(), shownValue.toStdString()));
     applyPreference(key);
     emit preferencesChanged();
     return true;
@@ -909,7 +915,10 @@ const QVariantMap& shortcutDefaults() {
     // Screenshot was Ctrl+S before 2026-10-27; saved custom keys are kept.
     static const QVariantMap d{{"playPause", "Space"}, {"fullscreen", "F"}, {"lock", "Ctrl+L"},
                                {"hold", "V"}, {"screenshot", "F7"}, {"record", "F8"}, {"replay", "F9"}, {"marker", "F6"}, {"readText", "F4"}, {"toggleMode", "Tab"},
-                               {"gamePanel", "Home"}, {"gameExit", "Ctrl+Alt+Home"}};
+                               {"gamePanel", "Home"}, {"gameExit", "Ctrl+Alt+Home"},
+                               // PushFPS (4.5.3): actions a player wants without leaving full screen. The two with a key
+                               // take keys nothing had; frame generation and AI picture enhancement start unbound.
+                               {"latencyOverlay", "F3"}, {"compareClip", "Shift+F8"}, {"fgToggle", ""}, {"enhanceToggle", ""}};
     return d;
 }
 }
@@ -971,6 +980,19 @@ bool QmlPlayerBridge::setShortcut(const QString& action, const QString& sequence
     impl_->prefs["shortcuts"] = custom;
     if (!impl_->savePrefs()) { impl_->prefs = previous; emit notice(tr("快捷键保存失败"), true); return false; }
     veyra::log::info("ui-prefs", std::format("shortcut {}={}", action.toStdString(), text.toStdString()));
+    applyGameHotkeys();
+    emit preferencesChanged();
+    return true;
+}
+// PushFPS (4.5.3): an action without a key. Kept as an empty custom value, so a default never comes back by itself.
+bool QmlPlayerBridge::clearShortcut(const QString& action) {
+    if (!shortcutDefaults().contains(action) || action == "gamePanel" || action == "gameExit") return false;
+    auto custom = impl_->prefs.value("shortcuts").toMap();
+    custom[action] = QString();
+    const auto previous = impl_->prefs;
+    impl_->prefs["shortcuts"] = custom;
+    if (!impl_->savePrefs()) { impl_->prefs = previous; emit notice(tr("快捷键保存失败"), true); return false; }
+    veyra::log::info("ui-prefs", std::format("shortcut {}=none", action.toStdString()));
     applyGameHotkeys();
     emit preferencesChanged();
     return true;

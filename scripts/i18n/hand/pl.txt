@@ -1590,3 +1590,17 @@ zh:FSR 的运动估算可以更省|Szacowanie ruchu dla FSR może być lżejsze
 zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|Zanim FSR wygeneruje klatkę, PushFPS szacuje ruch na podstawie obrazu. Lżejsze szacowanie mniej obciąża kartę graficzną w każdej klatce, dzięki czemu karty ze średniej i niższej półki łatwiej nadążają; krawędzie obiektów stają się nieco bardziej zgrubne. Cofnij, jeśli obraz wygląda gorzej
 zh:改用更省的运动估算|Użyj lżejszego szacowania ruchu
 zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|Przepustowość, o którą prosi się PS5; konsola nie gwarantuje jej osiągnięcia. W sieci przewodowej 30 Mb/s lub więcej daje ostrzejszy obraz; zmniejsz, jeśli obraz się zacina
+zh:有画面播放时开始放大|Skalowanie zacznie się, gdy będzie odtwarzany obraz
+zh:画面显示得不比原尺寸大，现在不需要放大|Obraz nie jest wyświetlany w większym rozmiarze niż własny: teraz nie ma czego skalować
+zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 OpenGL 4.3|Interfejs graficzny tego komputera nie obsługuje skalowania: wymagany jest Vulkan, Metal lub OpenGL 4.3
+zh:放大没能在这块显卡上启动，画面照常显示|Skalowanie nie uruchomiło się na tej karcie graficznej; obraz jest wyświetlany normalnie
+zh:放大到屏幕分辨率|Skaluje do rozdzielczości ekranu
+zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 powiększa bez wyostrzania; 50 to domyślna wartość NVIDIA. NIS powiększa do 2× w jednym przebiegu; większe współczynniki kończy zwykłe skalowanie.
+zh:帧节奏修复|Korekta rytmu klatek
+zh:实时 HUD 锁定|Blokada HUD na żywo
+zh:Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 PushFPS 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。|Wersja zapoznawcza dla Linuksa i macOS: generowanie klatek, Korekta rytmu klatek i Blokada HUD na żywo to własne technologie PushFPS, które nie wymagają komponentów NVIDIA, AMD ani Intel.
+zh:一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置|Włącza naraz wszystkie ustawienia niskiego opóźnienia, które nie kosztują jakości obrazu: karta graficzna kolejkuje tylko jedną klatkę (NVIDIA Low Latency na kartach NVIDIA), pełny ekran po połączeniu (omija kompozytor pulpitu, o jedno odświeżenie mniej czekania) i synchronizacja ze zmiennym odświeżaniem na ekranach G-SYNC/FreeSync (bez rozrywania i pomijanych klatek). Generowanie klatek, ulepszanie AI, blokada HUD i Korekta rytmu klatek pozostają bez zmian. Wyłączenie przywraca poprzednie ustawienia
+zh:已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置|Włączone: ruch jest wyznaczany szybkim sposobem, a Korekta rytmu klatek jest wyłączona. Wyłączenie przywraca poprzednie ustawienia
+zh:帧节奏修复 · 已重排 %1%|Korekta rytmu klatek · %1% przestawionych
+zh:帧节奏修复 · 等待去重测出帧率|Korekta rytmu klatek · czeka, aż usuwanie duplikatów zmierzy liczbę klatek
+zh:引擎未接受帧节奏修复，原设置保留|Silnik nie przyjął Korekty rytmu klatek; poprzednie ustawienie zostaje

@@ -1,17 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 //
-// Frame generation and what it waits for: the rows of the quick setup's first sections. Used by the home
-// page's settings pane and by Professional mode's Frame generation block, so each setting is written once.
+// Frame generation and what it waits for. Used by the home page's quick setup, which shows them in the
+// Windows build's sections (`part`: "fg" Frame Gen, "hud" HUD, "latency" Latency and sound), and by
+// Professional mode's Frame Gen block, which shows them all; so each setting is written once.
 import QtQuick
 import QtQuick.Layouts
 
 ColumnLayout {
+    id: quick
     spacing: 0
     Layout.fillWidth: true
+    // "" every row; otherwise only the rows of that quick setup section.
+    property string part: ""
+    function shows(section) { return quick.part === "" || quick.part === section }
     readonly property bool generating: app.targetMode !== 0
 
     VRow {
+        visible: quick.shows("fg")
         objectName: "home-target-row"
         label: qsTr("目标帧率")
         hint: app.targetMode === 0 ? qsTr("补帧关闭：每一帧到达后立刻显示，延迟最低")
@@ -25,30 +31,34 @@ ColumnLayout {
         }
     }
     VRow {
+        visible: quick.shows("latency")
         label: qsTr("最低延迟")
         hint: app.lowLatency ? qsTr("已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置")
                              : qsTr("一键减少等待：补帧照常，每对画面的运动更快算好，画面少等一会儿")
-        enabled: parent.generating
+        enabled: quick.generating
         opacity: enabled ? 1 : 0.5
         VSwitch { objectName: "home-lowlatency"; checked: app.lowLatency; onToggled: on => app.lowLatency = on }
     }
     VRow {
+        visible: quick.shows("fg")
         label: qsTr("帧节奏修复")
         hint: qsTr("把出帧不均匀的锁帧游戏重新对齐到均匀的时间，每帧最多晚一次刷新。需要开启自动去重")
-        enabled: parent.generating
+        enabled: quick.generating
         opacity: enabled ? 1 : 0.5
         VSwitch { objectName: "home-pacing"; checked: app.pacingRepair; onToggled: on => app.pacingRepair = on }
     }
     VRow {
+        visible: quick.shows("hud")
         label: qsTr("实时 HUD 锁定")
         hint: qsTr("每一帧自动找出 HUD，文字和准星在补出来的帧里保持清晰")
-        enabled: parent.generating
+        enabled: quick.generating
         opacity: enabled ? 1 : 0.5
         VSwitch { objectName: "home-hud"; checked: app.hudLock; onToggled: on => app.hudLock = on }
     }
     // Crosshair Hold, as in the Windows build (the same rule, portable/core CrosshairHold.h): off unless switched on.
     VRow {
         id: crosshairRow
+        visible: quick.shows("hud")
         objectName: "home-crosshair-row"
         label: qsTr("准星保持")
         help: qsTr("准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。")
@@ -59,16 +69,35 @@ ColumnLayout {
                                                : qsTr("正在运行：画面中央还没有找到准星（背后的画面动起来才会识别）"))
             : qsTr("已开启：有画面播放并且补帧开启后开始运行")
         hintBelow: true
-        enabled: parent.generating
+        enabled: quick.generating
         opacity: enabled ? 1 : 0.5
         VSwitch { objectName: "home-crosshair"; checked: app.crosshairHold; onToggled: on => app.crosshairHold = on }
     }
+    // Subtitle Hold, as in the Windows build (the same rule in the subtitle band): off unless switched on.
     VRow {
+        visible: quick.shows("hud")
+        objectName: "home-subtitle-row"
+        label: qsTr("字幕保持")
+        help: qsTr("字幕静止而背后的画面在动时（例如高速开车），补帧会把字幕当成背景一起拉动，文字会上下拖影、出现重影。开启后，PushFPS 在屏幕下方找出字幕，补帧前先把它从画面里取出，补帧后再原样放回。新的一行字幕出现时，需要先静止片刻才会被识别。不用字幕时不必开启。")
+        readonly property int holdState: app.running ? Number(app.stats.subHoldState || 0) : 0
+        readonly property int holdPixels: app.running ? Number(app.stats.subHoldPixels || 0) : 0
+        hint: !app.subtitleHold ? qsTr("已关闭：画面快速移动时字幕可能拖影")
+            : holdState === 1 ? (holdPixels > 0 ? qsTr("正在运行：已找到字幕，补出的每一帧里都原样放回")
+                                               : qsTr("正在运行：屏幕下方还没有找到字幕（背后的画面动起来才会识别）"))
+            : qsTr("已开启：有画面播放并且补帧开启后开始运行")
+        hintBelow: true
+        enabled: quick.generating
+        opacity: enabled ? 1 : 0.5
+        VSwitch { objectName: "home-subtitle"; checked: app.subtitleHold; onToggled: on => app.subtitleHold = on }
+    }
+    VRow {
+        visible: quick.shows("fg")
         label: qsTr("去除重复帧")
         hint: qsTr("30 FPS 的游戏在 60 Hz 信号里每张画面会发两次；补帧只看真正的新画面")
         VSwitch { objectName: "home-dedup"; checked: app.removeDuplicates; onToggled: on => app.removeDuplicates = on }
     }
     VRow {
+        visible: quick.shows("fg")
         label: qsTr("运动估计")
         hint: qsTr("精细：按 16 像素找运动，更准；快速：按 32 像素，占用更少")
         VSeg {
@@ -79,6 +108,7 @@ ColumnLayout {
         }
     }
     VRow {
+        visible: quick.shows("latency")
         label: qsTr("在画面上显示延迟")
         hint: qsTr("游戏帧率、输出帧率和延迟（按 Tab 切换）")
         VSwitch { objectName: "home-stats"; checked: app.showStats; onToggled: on => app.showStats = on }
