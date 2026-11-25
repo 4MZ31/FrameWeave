@@ -86,6 +86,8 @@ then three pixel slots of `slotBytes` each.
 
 Slot *i*'s pixels start at `4096 + i × slotBytes`, top row first.
 
+Alpha is ignored: PushFPS shows every pixel opaque, so a swap chain's back buffer whose alpha is 0 can be sent as it is (until PushFPS 4.5.3 such a picture showed black, and the alpha had to be set to 255 before sending).
+
 ### Sending a frame
 
 1. Take `i = (latestSlot + 1) % 3`.
