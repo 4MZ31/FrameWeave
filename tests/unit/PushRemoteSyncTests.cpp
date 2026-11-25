@@ -63,6 +63,20 @@ int main() {
         for (int i = 0; i < 30; ++i) { const double host = 100000.0 + i * 16.7; r = target.observe(pictureMs + 400 + i * 8.0, host, host - pictureMs); }
         check(r.fallback && r.targetMs < pictureMs + 1, "a picture time line that falls behind does not pull the sound after it");
     }
+    {   // 4.5.3: settled. A backlog shown late at the start (1.48 s, then 39 ms) is not a delay to start sound on.
+        CaptureSyncTarget target;
+        CaptureSyncTarget::Result r{};
+        const double first[] = {1480, 900, 39, 40, 41, 39, 40};
+        bool settledEarly = false;
+        for (int i = 0; i < 7; ++i) {
+            const double host = 100000.0 + i * 33.3;
+            r = target.observe(first[i], host, host - first[i]);
+            if (i < 6 && r.settled) settledEarly = true;
+        }
+        check(!settledEarly && r.settled, "the delay counts as settled once five frames agree within 20 ms, not before");
+        CaptureSyncTarget noArrival;
+        check(noArrival.observe(30, 100000, std::nullopt).settled, "a source without arrivals never waits for it");
+    }
     std::printf(failures ? "%d FAILED\n" : "ALL PASSED (%d failures)\n", failures);
     return failures ? 1 : 0;
 }

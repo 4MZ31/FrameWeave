@@ -46,6 +46,11 @@ public:
     // request the old audio reset explicitly.
     void videoReset(bool resetAudio=true);
     void setGain(float);
+    // PushFPS (4.5.3), for a source whose video PTS are estimated here (PS5 Remote Play): automatic sync
+    // takes only the measured time each shown frame spent in PushFPS (presented minus its own arrival),
+    // and sound starts once that time has settled (at most two seconds' wait). Capture cards keep the
+    // rule they always had.
+    void setMeasuredVideoDelay(bool);
     // Records that the input arrived as a decoded bitstream (capture passthrough).
     void setInputBitstream(std::wstring kind);
     // 0 automatic, 1 manual, 2 off. Positive offset delays sound.

@@ -9,7 +9,10 @@ namespace veyra::sink {
 // PTS may include a small hardware offset, but are not trusted without bounds.
 class CaptureSyncTarget {
 public:
-    struct Result {double targetMs=0,rawMs=0,localMs=0;bool fallback=false,limited=false;};
+    // settled (PushFPS, 4.5.3): a full window of observations agrees within 20 ms. A stream's first frames
+    // can be a backlog shown late while the swap chain is made (a PS5 log: 1.48 s, then 39 ms a second
+    // later); sound started on them plays stale and then jumps. Only a source that asks waits for it.
+    struct Result {double targetMs=0,rawMs=0,localMs=0;bool fallback=false,limited=false,settled=true;};
     void reset(){*this={};}
     void invalidate(){count_=cursor_=0;recoverySince_.reset();}
     Result observe(double rawMs,double hostMs,std::optional<double> arrivalMs){
@@ -34,7 +37,8 @@ public:
         samples_[cursor_]=candidate;cursor_=(cursor_+1)%samples_.size();
         count_=std::min(count_+1,samples_.size());
         auto sorted=samples_;std::sort(sorted.begin(),sorted.begin()+count_);
-        return {sorted[count_/2],rawMs,valid?local:-1,fallback_,requested<0||requested>1500};
+        const bool settled=count_==samples_.size()&&sorted[count_-1]-sorted[0]<=20;
+        return {sorted[count_/2],rawMs,valid?local:-1,fallback_,requested<0||requested>1500,settled};
     }
 private:
     std::array<double,5> samples_{};

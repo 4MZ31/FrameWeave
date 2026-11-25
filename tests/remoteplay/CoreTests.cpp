@@ -87,6 +87,23 @@ TEST(clock_long_session_drift_and_fg){
         CHECK(admitted>measured*98/100);
     }
 }
+// PushFPS 4.5.3: a PS5 whose frame index runs slower than its profile (a log: about 29.85 a second on 30) for
+// minutes; here 1 % slow (29.7). At the old 0.5 % slew the estimate fell 1.5 s behind arrival in five minutes; now it stays within
+// a frame and a half, never steps back, and a steady stream still moves at most 0.5 % a frame.
+TEST(clock_follows_an_index_slower_than_the_profile){
+    RemotePlayClock c;c.reset(0,30);
+    const int64_t interval=10000000/30;
+    int64_t previous=-1,worst=0;
+    for(uint64_t i=0;i<30u*300u;++i){
+        const auto arrival=int64_t(double(i)*10000000.0/29.7)+int64_t(i%5)*2000;
+        const auto stamp=c.video(i,arrival);
+        CHECK(stamp&&!stamp->discontinuity&&stamp->pts100ns>previous);
+        if(stamp&&previous>=0)CHECK(stamp->pts100ns-previous<=interval+interval/20+1);
+        if(stamp)previous=stamp->pts100ns;
+        if(stamp&&i>30u*10u)worst=std::max<int64_t>(worst,std::llabs(arrival-stamp->pts100ns));
+    }
+    CHECK(worst<interval*3/2);
+}
 TEST(clock_reject_invalid){RemotePlayClock c;CHECK(!c.video(0,0));THROWS(c.reset(0,120));THROWS(c.reset(-1,60));c.reset(10,60);CHECK(!c.video(0,9));CHECK(c.video(1,20));CHECK(!c.video(1,20));CHECK(!c.video(2,19));CHECK(!c.audioPts(0,0,10));CHECK(!c.audioPts(std::numeric_limits<std::uint64_t>::max(),8000,10));}
 TEST(queue_limits_validation){QueueLimits l;l.maxFrames=0;THROWS(VideoIngress{l});l={};l.maxConfigBytes=l.maxBytes+1;THROWS(VideoIngress{l});l={};l.maxAge100ns=0;THROWS(VideoIngress{l});}
 TEST(config_not_counted_as_picture){VideoIngress q;q.begin(1);CHECK(q.push(config(),0)==PushStatus::ConfigStored);CHECK(q.stats().accessUnits==0);CHECK(q.stats().depth==0);CHECK(!q.tryPop(0));}
