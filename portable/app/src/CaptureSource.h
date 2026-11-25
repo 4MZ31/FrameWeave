@@ -54,7 +54,7 @@ signals:
     void stopped();
 
 private:
-    void enqueue(const QVideoFrame& frame);
+    void enqueue(const QVideoFrame& frame, quint64 generation);
     void workerLoop();
 
     std::shared_ptr<veyra::portable::Engine> engine_;
@@ -69,6 +69,8 @@ private:
     mutable std::mutex m_;
     std::condition_variable cv_;
     std::deque<std::pair<QVideoFrame, qint64>> queue_;
+    quint64 generation_ = 0;
+    bool publishing_ = false;
     bool stopWorker_ = false;
     qint64 read_ = 0;
     std::thread worker_;

@@ -26,6 +26,14 @@ constexpr const char* captureBufferModeKey(CaptureBufferMode mode) {
     return "auto";
 }
 
+// Keep the established compressed Auto profile. Inter-frame codecs use two
+// driver slots in Minimum so the producer can fill one while delivering another.
+constexpr long captureCompressedBuffers(CaptureBufferMode mode, bool independentFrames) {
+    if (mode == CaptureBufferMode::DriverDefault) return 0;
+    if (mode == CaptureBufferMode::Minimum) return independentFrames ? 1 : 2;
+    return 4;
+}
+
 // Auto keeps two buffers at 1080p and below, three above it: one slot is always
 // being filled while the callback drains the other, and a >1080p frame takes
 // longer over USB, so starving the device there costs dropped frames. Minimum

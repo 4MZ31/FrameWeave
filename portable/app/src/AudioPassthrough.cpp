@@ -78,7 +78,10 @@ void AudioPassthrough::stop() {
     fifo_.clear();
 }
 
-void AudioPassthrough::setDelayMs(double ms) { delayMs_ = std::clamp(ms, 0.0, 250.0); }
+double AudioPassthrough::setDelayMs(double ms) {
+    delayMs_ = std::clamp(ms, 0.0, 250.0);
+    return delayMs_;
+}
 
 void AudioPassthrough::setVolume(float volume) {
     volume_ = std::clamp(volume, 0.0f, 1.0f);

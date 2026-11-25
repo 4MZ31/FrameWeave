@@ -207,11 +207,14 @@ private:
     void setError(const QString& text);
     void updateStats();
     void startAudioIfWanted();
-    void startCameraNow();
+    void scheduleSavedCamera();
+    void requestCamera(QCameraDevice expected, quint64 request);
+    void startCameraNow(const QCameraDevice& expected, quint64 request);
+    quint64 cameraRequest_ = 0;
     QString formatKey() const;
     void restoreFormat();
     int savedCameraIndex() const;
-    void rememberCamera();
+    void rememberCamera(const QCameraDevice& device);
 
     QQmlEngine* qml_;
     CatalogTranslator* translator_;
@@ -230,7 +233,7 @@ private:
     bool srEnabled_ = false;
     int srTarget_ = 2, srAlgorithm_ = 6, upscaleState_ = 0;
     QString upscaleSizes_;
-    bool lowLatency_ = false, autoConnect_ = false, applyingLowLatency_ = false, savedCameraFound_ = false;
+    bool lowLatency_ = false, autoConnect_ = false, applyingLowLatency_ = false;
     bool crosshairHold_ = false;
     bool subtitleHold_ = false;   // Subtitle Hold: off unless switched on (not everyone uses subtitles)
     bool autoConnectPending_ = false;

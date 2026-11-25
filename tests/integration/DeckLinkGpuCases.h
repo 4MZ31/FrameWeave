@@ -49,7 +49,7 @@ inline int decklinkGpuCases(veyra::gfx::D3D12DeviceContext& ctx,veyra::gfx::Comm
         CaptureMediaLayout layout;layout.width=w;layout.height=h;layout.stride=stride;layout.rowBytes=rowBytes;layout.sampleBytes=raw.size();layout.format=AV_PIX_FMT_BGRA;layout.packing=code==6?CapturePacking::V210:CapturePacking::Rgb10xLE;layout.color=color;
         AVFrame* frame=upload?allocCaptureUploadFrame(ctx.device(),AV_PIX_FMT_BGRA,w,h,true):av_frame_alloc();
         bool ok=frame!=nullptr;if(ok&&!upload){frame->width=w;frame->height=h;frame->format=AV_PIX_FMT_BGRA;ok=av_frame_get_buffer(frame,256)>=0;}
-        if(ok){selectCaptureUploadTarget(*frame);ok=copyCaptureSample(layout,raw.data(),raw.size(),*frame);if(code==6)sampleCaptureV210Proxy(*frame,raw.data(),stride,false);else sampleCaptureUploadProxy(*frame,raw.data(),stride,false);}
+        if(ok){ok=selectCaptureUploadTarget(*frame)&&copyCaptureSample(layout,raw.data(),raw.size(),*frame);if(code==6)sampleCaptureV210Proxy(*frame,raw.data(),stride,false);else sampleCaptureUploadProxy(*frame,raw.data(),stride,false);}
         EnhanceGraph graph(ctx,ring);EnhanceGraphDesc gd;gd.sourceWidth=gd.workWidth=w;gd.sourceHeight=gd.workHeight=h;gd.enableNr=gd.enableFg=gd.enableSr=false;gd.noFeatures=true;gd.packedInput=code;gd.captureBitDepth=10;gd.hdrInput=curve!=1;gd.hdrOutput=curve!=1;
         EnhanceGraph::FrameOutputs out;std::vector<float> actual;
         ok=ok&&graph.initialize(gd)&&graph.createViews()&&graph.process(frame,0,true,out,1,&color)&&captureReadFp16(ctx,ring,graph.diagnosticLinearInput(),actual);

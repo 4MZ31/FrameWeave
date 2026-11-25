@@ -398,6 +398,20 @@ int wmain(int argc, wchar_t** argv)
         std::cout << (pass ? "PASS " : "FAIL ") << name << '\n';
         if (!pass) ++failures;
     };
+    {
+        source::CapturePacketPool pool;
+        std::vector<uint8_t> data(131072, 0xab);
+        auto first = pool.copy(data.data(), 4096, 7);
+        auto larger = pool.copy(data.data(), data.size(), 8);
+        larger.reset();
+        auto shorter = pool.copy(data.data(), 8, 9);
+        pool.clear();
+        const bool padded = shorter && std::all_of(shorter->data + shorter->size,
+            shorter->data + shorter->size + AV_INPUT_BUFFER_PADDING_SIZE, [](uint8_t v) { return v == 0; });
+        check(first && first->pts == 7 && first->size == 4096 && first->data[4095] == 0xab,
+            "leased capture packet survives pool growth and source closure");
+        check(padded && shorter->pts == 9 && shorter->size == 8, "shorter reused capture packet has zero FFmpeg padding");
+    }
     check(hardware.failures == 0 && hardware.frames > 0, "hardware decode produces frames without errors");
     check(hardware.sawHardwareFrame, "hardware backend returns importable D3D12 frames");
     check(software.failures == 0 && software.frames > 0, "software decode produces frames without errors");

@@ -580,6 +580,8 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
     // Interface scale (设置 → 界面缩放) has to be fixed before Qt starts, so the
     // preference file is read here, from the same data directory the bridge uses.
     // "Auto" leaves Qt following the Windows display scale.
+    std::filesystem::path dataDirectory = veyra::runtime::userDataDirectory() / L"user-data-2.0.0";
+    bool explicitDataDirectory = false;
     int uiScale = 0;
     bool obsGameCapture = false;
     bool overlayCompatAuto = true;   // 设置 → 监控软件兼容: "auto" (default) or "off"
@@ -588,15 +590,18 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
     {
         int count = 0;
         LPWSTR* args = CommandLineToArgvW(GetCommandLineW(), &count);
-        std::filesystem::path dir = veyra::runtime::userDataDirectory() / L"user-data-2.0.0";
         bool obsGameCaptureArg = false;
         for (int i = 1; args && i < count; ++i) {
-            if (std::wstring(args[i]) == L"--data-dir" && i + 1 < count) dir = args[++i];
+            if (std::wstring(args[i]) == L"--data-dir" && i + 1 < count) {
+                const auto* value = args[++i];
+                if (!explicitDataDirectory) dataDirectory = value;
+                explicitDataDirectory = true;
+            }
             else if (std::wstring(args[i]) == L"--obs-game-capture") obsGameCaptureArg = true;
             else if (std::wstring(args[i]) == L"--overlay-compat-restart") overlayCompatRestart = true;
         }
         if (args) LocalFree(args);
-        QFile prefs(QString::fromStdWString((dir / L"qml-preferences.v1.json").wstring()));
+        QFile prefs(QString::fromStdWString((dataDirectory / L"qml-preferences.v1.json").wstring()));
         if (prefs.open(QIODevice::ReadOnly)) {
             const auto saved = QJsonDocument::fromJson(prefs.readAll()).object();
             uiScale = saved.value(QStringLiteral("uiScale")).toInt();
@@ -771,17 +776,11 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
     // Keep 2.0.0 settings separate from 1.4.4 so the old executable remains a
     // working rollback. An explicit data directory is for isolated runs and is
     // never populated from the user's old settings.
-    std::filesystem::path dataDirectory = veyra::runtime::userDataDirectory() / L"user-data-2.0.0";
     std::filesystem::path legacyDirectory = veyra::runtime::userDataDirectory();
-    bool explicitDataDirectory = false;
     {
         const QStringList early = QCoreApplication::arguments();
-        const auto at = early.indexOf(QStringLiteral("--data-dir"));
-        if (at > 0 && at + 1 < early.size()) {
-            dataDirectory = std::filesystem::path(early.at(at + 1).toStdWString());
-            explicitDataDirectory = true;
-            veyra::log::info("app", "test data directory " + early.at(at + 1).toStdString());
-        }
+        if (explicitDataDirectory)
+            veyra::log::info("app", "test data directory " + QString::fromStdWString(dataDirectory.wstring()).toStdString());
         const auto importAt = early.indexOf(QStringLiteral("--import-1.4.4-data"));
         if (importAt > 0 && importAt + 1 < early.size())
             legacyDirectory = std::filesystem::path(early.at(importAt + 1).toStdWString());
@@ -1343,13 +1342,8 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
     if (rc == 42) {
         restartProgram = QCoreApplication::applicationFilePath();
         // Preserve the selected profile, not transient capture/open/test flags.
-        const auto args = QCoreApplication::arguments();
-        for (int i = 1; i + 1 < args.size(); ++i) {
-            if (args[i] == QStringLiteral("--data-dir")) {
-                restartArgs << args[i] << args[i + 1];
-                ++i;
-            }
-        }
+        if (explicitDataDirectory)
+            restartArgs << QStringLiteral("--data-dir") << QString::fromStdWString(dataDirectory.wstring());
         if (app.property("veyraOverlayCompatRestart").toBool())
             restartArgs << QStringLiteral("--overlay-compat-restart");
         restartArgs << QStringLiteral("--page") << QStringLiteral("set");

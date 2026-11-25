@@ -105,7 +105,7 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
 
     cameras_ = QMediaDevices::videoInputs();
     const int saved = savedCameraIndex();
-    if (saved >= 0) { videoIndex_ = saved; savedCameraFound_ = true; }
+    if (saved >= 0) videoIndex_ = saved;
     refreshDevices();
     restoreFormat();
     // Plug and play: the capture card that was used last is connected when the app opens. Only that
@@ -113,10 +113,10 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
     // A card that is listed a moment after the start (the device list on Linux can come late) is still
     // connected while the first seconds last.
     if (autoConnect_ && startPage_ == QLatin1String("home")) {
-        if (savedCameraFound_) {
-            QTimer::singleShot(400, this, [this] { if (!running()) startCamera(); });
-        } else if (!settings_->value(QStringLiteral("camera")).toString().isEmpty()) {
-            autoConnectPending_ = true;
+        autoConnectPending_ = !settings_->value(QStringLiteral("camera")).toString().isEmpty()
+                           || !settings_->value(QStringLiteral("cameraName")).toString().isEmpty();
+        if (autoConnectPending_) {
+            scheduleSavedCamera();
             QTimer::singleShot(15000, this, [this] { autoConnectPending_ = false; });
         }
     }
@@ -125,6 +125,11 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
 // The card used last: by its id, else by its name (on Linux the id is the /dev/video node, which can
 // change between starts or when the card is plugged into another port). -1 when it is not listed.
 int AppController::savedCameraIndex() const {
+    const QByteArray rawId = settings_->value(QStringLiteral("cameraId")).toByteArray();
+    if (!rawId.isEmpty()) {
+        for (int i = 0; i < cameras_.size(); ++i)
+            if (cameras_[i].id() == rawId) return i;
+    }
     const QString id = settings_->value(QStringLiteral("camera")).toString();
     const QString name = settings_->value(QStringLiteral("cameraName")).toString();
     if (id.isEmpty() && name.isEmpty()) return -1;
@@ -135,10 +140,10 @@ int AppController::savedCameraIndex() const {
     return -1;
 }
 
-void AppController::rememberCamera() {
-    if (videoIndex_ < 0 || videoIndex_ >= cameras_.size()) return;
-    save(QStringLiteral("camera"), QString::fromUtf8(cameras_[videoIndex_].id()));
-    save(QStringLiteral("cameraName"), cameras_[videoIndex_].description());
+void AppController::rememberCamera(const QCameraDevice& device) {
+    save(QStringLiteral("cameraId"), device.id());
+    save(QStringLiteral("camera"), QString::fromUtf8(device.id()));
+    save(QStringLiteral("cameraName"), device.description());
 }
 
 namespace {
@@ -192,7 +197,9 @@ void AppController::refreshDevices() {
     videoIndex_ = -1;
     for (int i = 0; i < cameras_.size(); ++i)
         if (cameras_[i].id() == current) videoIndex_ = i;
-    if (videoIndex_ < 0) videoIndex_ = savedCameraIndex();  // the card used last, back in the list
+    const int saved = savedCameraIndex();
+    if (autoConnectPending_ && saved >= 0) videoIndex_ = saved;
+    if (videoIndex_ < 0) videoIndex_ = saved;  // the card used last, back in the list
     if (videoIndex_ < 0) videoIndex_ = 0;
     inputs_ = QMediaDevices::audioInputs();
     outputs_ = QMediaDevices::audioOutputs();
@@ -209,11 +216,7 @@ void AppController::refreshDevices() {
         formatIndex_ = -1;
     }
     emit devicesChanged();
-    if (autoConnectPending_ && !running() && savedCameraIndex() >= 0 && savedCameraIndex() == videoIndex_) {
-        autoConnectPending_ = false;
-        savedCameraFound_ = true;
-        QTimer::singleShot(400, this, [this] { if (!running()) startCamera(); });
-    }
+    if (autoConnectPending_ && !running() && saved >= 0) scheduleSavedCamera();
 }
 
 QStringList AppController::videoDevices() const {
@@ -224,9 +227,11 @@ QStringList AppController::videoDevices() const {
 
 void AppController::setVideoDeviceIndex(int i) {
     if (i < 0 || i >= cameras_.size() || i == videoIndex_) return;
+    ++cameraRequest_;
+    autoConnectPending_ = false;
     videoIndex_ = i;
     formatIndex_ = CaptureSource::preferredFormat(cameras_[i].videoFormats());
-    rememberCamera();
+    rememberCamera(cameras_[i]);
     restoreFormat();
     emit devicesChanged();
 }
@@ -355,15 +360,50 @@ QString AppController::sourceKind() const {
     }
 }
 
+void AppController::scheduleSavedCamera() {
+    const int index = savedCameraIndex();
+    if (index < 0) return;
+    const QCameraDevice expected = cameras_[index];
+    const QByteArray rawId = settings_->value(QStringLiteral("cameraId")).toByteArray();
+    const QString savedName = settings_->value(QStringLiteral("cameraName")).toString();
+    if (expected.id().isEmpty() || (!savedName.isEmpty() && expected.description() != savedName)) return;
+    if (!rawId.isEmpty() && rawId != expected.id()) return;
+    const QString savedId = settings_->value(QStringLiteral("camera")).toString();
+    if (rawId.isEmpty()) {
+        // Old profiles stored a UTF-8 string (or only a name). An ambiguous
+        // match requires an explicit choice before opening a microphone/camera.
+        const auto matches = [&](const QCameraDevice& d) {
+            return (savedId.isEmpty() || savedId == QString::fromUtf8(d.id()))
+                && (savedName.isEmpty() || savedName == d.description());
+        };
+        if (!matches(expected) || std::count_if(cameras_.begin(), cameras_.end(), matches) != 1) return;
+    }
+    const auto request = ++cameraRequest_;
+    QTimer::singleShot(400, this, [this, expected, request] {
+        if (request == cameraRequest_ && autoConnect_ && autoConnectPending_ && !running())
+            requestCamera(expected, request);
+    });
+}
+
 void AppController::startCamera() {
+    autoConnectPending_ = false;
+    if (videoIndex_ < 0 || videoIndex_ >= cameras_.size()) {
+        setError(tr("未检测到采集设备"));
+        return;
+    }
+    requestCamera(cameras_[videoIndex_], ++cameraRequest_);
+}
+
+void AppController::requestCamera(QCameraDevice expected, quint64 request) {
     clearError();
 #if QT_CONFIG(permissions)
     // macOS asks the user once; a capture card counts as a camera, its sound as a microphone.
     QCameraPermission camera;
     switch (qApp->checkPermission(camera)) {
     case Qt::PermissionStatus::Undetermined:
-        qApp->requestPermission(camera, this, [this](const QPermission& p) {
-            if (p.status() == Qt::PermissionStatus::Granted) startCameraNow();
+        qApp->requestPermission(camera, this, [this, expected, request](const QPermission& p) {
+            if (request != cameraRequest_) return;
+            if (p.status() == Qt::PermissionStatus::Granted) startCameraNow(expected, request);
             else setError(tr("FrameWeave 没有使用采集卡的权限，请在系统设置的隐私与安全性中允许"));
         });
         return;
@@ -374,15 +414,21 @@ void AppController::startCamera() {
         break;
     }
 #endif
-    startCameraNow();
+    startCameraNow(expected, request);
 }
 
-void AppController::startCameraNow() {
-    if (videoIndex_ < 0 || videoIndex_ >= cameras_.size()) {
+void AppController::startCameraNow(const QCameraDevice& expected, quint64 request) {
+    if (request != cameraRequest_) return;
+    const auto present = QMediaDevices::videoInputs();
+    const auto matches = [&](const QCameraDevice& d) {
+        return d.id() == expected.id() && d.description() == expected.description();
+    };
+    const auto found = std::find_if(present.begin(), present.end(), matches);
+    if (expected.id().isEmpty() || found == present.end() || videoIndex_ < 0 || videoIndex_ >= cameras_.size() || !matches(cameras_[videoIndex_])) {
         setError(tr("未检测到采集设备"));
         return;
     }
-    const QCameraDevice device = cameras_[videoIndex_];
+    const QCameraDevice device = *found;
     const auto list = device.videoFormats();
     const QCameraFormat format = formatIndex_ >= 0 && formatIndex_ < list.size() ? list[formatIndex_] : QCameraFormat();
     audio_->stop();
@@ -393,7 +439,7 @@ void AppController::startCameraNow() {
         playingFormat_ = formatIndex_ >= 0 && formatIndex_ < list.size() ? formatIndex_ : -1;
         // The card connected is the one "Connect when PushFPS opens" connects next time, also when it
         // was never picked from the list (a single card stays on its first place and was never saved).
-        rememberCamera();
+        rememberCamera(device);
         if (formatIndex_ >= 0 && formatIndex_ < list.size()) save(formatKey(), formatLabel(list[formatIndex_]));
         autoConnectPending_ = false;
         startedAt_ = nowNs();
@@ -424,6 +470,8 @@ void AppController::startAudioIfWanted() {
 }
 
 void AppController::startFile(const QUrl& url) {
+    ++cameraRequest_;
+    autoConnectPending_ = false;
     clearError();
     audio_->stop();
     sourceTitle_ = url.fileName();
@@ -431,6 +479,8 @@ void AppController::startFile(const QUrl& url) {
 }
 
 void AppController::startTestPattern(bool uneven) {
+    ++cameraRequest_;
+    autoConnectPending_ = false;
     clearError();
     audio_->stop();
     TestPattern::Options o;
@@ -440,6 +490,8 @@ void AppController::startTestPattern(bool uneven) {
 }
 
 void AppController::stop() {
+    ++cameraRequest_;
+    autoConnectPending_ = false;
     audio_->stop();
     source_->stop();
     engine_->reset();
@@ -634,6 +686,7 @@ void AppController::setAudioTrimMs(int ms) {
 void AppController::setAutoConnect(bool v) {
     if (v == autoConnect_) return;
     autoConnect_ = v;
+    if (!v) { ++cameraRequest_; autoConnectPending_ = false; }
     save(QStringLiteral("autoConnect"), v);
     emit settingsChanged();
 }
@@ -791,12 +844,11 @@ void AppController::updateStats() {
     m[QStringLiteral("framesRead")] = source_->framesRead();
     // Sound waits as long as the picture does, moved by what was set by hand (never before it arrives).
     const double automatic = targetMode_ != 0 ? st.delayMs : 0.0;
-    const double soundDelay = std::max(0.0, automatic + double(audioTrim_));
+    const double soundDelay = audio_->setDelayMs(automatic + double(audioTrim_));
     m[QStringLiteral("audioDelayMs")] = soundDelay;
     m[QStringLiteral("audioAutomaticMs")] = automatic;
     stats_ = m;
     emit statsChanged();
-    audio_->setDelayMs(soundDelay);
     // Nothing arrives: say so instead of a black window.
     if (source_->framesRead() == 0 && startedAt_ > 0 && nowNs() - startedAt_ > 5'000'000'000LL && error_.isEmpty())
         setError(tr("没有收到画面：检查采集卡的连接、主机是否开机，以及采集卡是否被其他程序占用"));
