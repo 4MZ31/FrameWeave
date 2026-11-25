@@ -2,6 +2,7 @@
 // Copyright (C) 2026 DosukaSOL and the PushFPS contributors. Part of PushFPS, a modified version of Veyra.
 // PushFPS Frame Input API: the live source (frames from another application as BGRA AVFrames).
 #include "veyra/source/FrameInputSource.h"
+#include "veyra/source/PushOpaqueRow.h"
 #include "veyra/Log.h"
 
 #include <windows.h>
@@ -117,7 +118,7 @@ SourceReadStatus FrameInputSource::read(pipeline::FramePacket& packet, const AVF
     p.frame->width = int(f.width); p.frame->height = int(f.height);
     if (av_frame_get_buffer(p.frame, 64) < 0) { p.say(L"画面输入内存不足"); return SourceReadStatus::Error; }
     for (uint32_t y = 0; y < f.height; ++y)
-        std::memcpy(p.frame->data[0] + size_t(y) * p.frame->linesize[0], f.pixels.data() + size_t(y) * f.width * 4u, size_t(f.width) * 4u);
+        pushCopyOpaqueRow(p.frame->data[0] + size_t(y) * p.frame->linesize[0], f.pixels.data() + size_t(y) * f.width * 4u, f.width);
     p.frame->pts = pts;
     p.frame->color_range = AVCOL_RANGE_JPEG; p.frame->colorspace = AVCOL_SPC_RGB; p.frame->color_trc = AVCOL_TRC_IEC61966_2_1;
     packet = {};

@@ -72,6 +72,10 @@ private:
     std::deque<Ref> refs_;
     std::deque<Kept> kept_;
     quality::Luma lastKept_;
+    // The engine thread's copy of the rows the luma grid reads, for frames in write-combined upload memory
+    // (withhold() only, so it needs no lock). copyLogs_: the first few copies are logged with their time.
+    std::vector<uint8_t> scratch_;
+    std::atomic<uint32_t> copyLogs_{0};
     // Generated frames compared with their originals; real frames paired with their source luma.
     struct GenPair { quality::Luma generated; Ref ref; };
     struct RealPair { quality::Luma presented, source; };

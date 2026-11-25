@@ -3,9 +3,12 @@
 // PushFPS ground-truth frame-generation quality test: withholding, readback and the report.
 #include "veyra/engine/PushQualityProbe.h"
 #include "veyra/Log.h"
+#include "veyra/engine/PushWriteCombined.h"
+#include "veyra/pipeline/CaptureUploadFrame.h"
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <format>
 
 extern "C" {
@@ -27,7 +30,7 @@ void PushQualityProbe::start(const Options& options) {
     options_.targetSamples = std::clamp<uint32_t>(options.targetSamples, 4, 120);
     done_ = failed_ = false; error_.clear();
     refs_.clear(); kept_.clear(); lastKept_ = {}; generated_.clear(); real_.clear(); report_ = {};
-    toggle_ = false; withheld_ = 0; lastPts_ = 0; shown_ = onTime_ = 0;
+    toggle_ = false; withheld_ = 0; lastPts_ = 0; shown_ = onTime_ = 0; copyLogs_ = 0;
     started_ = std::chrono::steady_clock::now(); nextReal_ = started_;
     ++revision_;
     running_ = true;
@@ -61,6 +64,35 @@ bool PushQualityProbe::withhold(const AVFrame* frame, int64_t pts100ns, bool pac
     case AV_PIX_FMT_RGBA: case AV_PIX_FMT_RGB0: src.format = quality::SourceFormat::Rgba8; break;
     default: supported = false; break;
     }
+    // A capture frame whose pixels are in the D3D12 upload buffer (CaptureUploadFrame.h): only the rows the
+    // luma grid reads are copied out, with streaming loads, before anything looks at them. Reading the upload
+    // buffer byte by byte took the engine thread a large part of a second a frame (4.5.3, issue 15: the
+    // output fell to about 4 FPS while the test ran, and frame generation never made a frame to compare).
+    const auto* upload = pipeline::captureUploadFrame(frame);
+    if (supported && upload && upload->direct && src.plane0 && src.height >= 16 && src.pitch0 > 0) {
+        const auto copyStart = std::chrono::steady_clock::now();
+        const size_t pitch = src.pitch0;
+        const size_t bpp = src.format == quality::SourceFormat::P010 || src.format == quality::SourceFormat::Yuy2 ? 2
+            : src.format == quality::SourceFormat::Bgra8 || src.format == quality::SourceFormat::Rgba8 ? 4 : 1;
+        const size_t rowBytes = std::min(pitch, (size_t(src.width) * bpp + 63) & ~size_t(63));
+        if (scratch_.size() < pitch * src.height) scratch_.assign(pitch * src.height, 0);
+        uint32_t last = UINT32_MAX;
+        for (uint32_t gy = 0; gy < quality::kGridH; ++gy)
+            for (int sy = 0; sy < quality::kGridTaps; ++sy) {
+                const uint32_t row = quality::gridSourceRow(gy, sy, src.height);
+                if (row == last) continue;
+                last = row;
+                copyFromWriteCombined(scratch_.data() + size_t(row) * pitch, src.plane0 + size_t(row) * pitch, rowBytes);
+            }
+        src.plane0 = scratch_.data();
+        const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - copyStart).count();
+        if (copyLogs_.fetch_add(1, std::memory_order_relaxed) < 3) {
+            veyra::log::info("push-quality", std::format("upload-buffer rows copied in {:.2f} ms ({}x{}, {} bytes a row)", ms, src.width, src.height, rowBytes));
+        }
+    }
+    // Worked out before the lock: the presenter's record() takes the same lock for every frame it shows.
+    quality::Luma luma;
+    const bool lumaOk = supported && quality::lumaFromSource(src, luma);
     std::lock_guard lock(m_);
     if (!running_) return false;
     if (std::chrono::steady_clock::now() - started_ > std::chrono::seconds(options_.seconds)) { finishLocked(); return false; }
@@ -69,8 +101,7 @@ bool PushQualityProbe::withhold(const AVFrame* frame, int64_t pts100ns, bool pac
         stopLocked(L"这个画面来源不支持画质测试（画面不在内存里）；请用采集卡或画面输入接口");
         return false;
     }
-    quality::Luma luma;
-    if (!quality::lumaFromSource(src, luma)) { stopLocked(L"无法读取画面，画质测试已停止"); return false; }
+    if (!lumaOk) { stopLocked(L"无法读取画面，画质测试已停止"); return false; }
     toggle_ = !toggle_;
     if (!toggle_) {
         // Kept back: frame generation makes this moment.
