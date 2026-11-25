@@ -3,6 +3,8 @@
 // PushFPS ground-truth frame-generation quality test, pure part: luma grids from capture and output
 // formats, PSNR, the straight-line tone fit, the blend baseline, HUD boxes, timing and the score.
 #include "veyra/engine/PushQuality.h"
+#include "veyra/engine/PushWriteCombined.h"
+#include <algorithm>
 
 #include <cmath>
 #include <cstdio>
@@ -91,6 +93,34 @@ int main() {
     for (size_t i = 0; i < f16.size(); i += 4) f16[i] = f16[i + 1] = f16[i + 2] = toHalf(linear);
     check(lumaFromOutput(reinterpret_cast<const uint8_t*>(f16.data()), W * 8, W, H, OutputLayout::Rgba16fLinear, o16) &&
           std::abs(o16.y[0] - o8.y[0]) < 0.004f, "FP16 linear output is sRGB-encoded before comparing");
+    // 4.5.3 (issue 15): the probe copies only gridSourceRow's rows out of a capture's upload memory, so every
+    // row the grid reads must be among them. A picture whose other rows are garbage gives the same luma.
+    for (const uint32_t h : {1080u, 2160u, 720u, 1081u, 333u}) {
+        const uint32_t w = 640, pitch = w * 2;
+        std::vector<uint8_t> whole(size_t(pitch) * h), rows(size_t(pitch) * h, 0xEE);
+        for (uint32_t y = 0; y < h; ++y) for (uint32_t x = 0; x < pitch; ++x) whole[size_t(y) * pitch + x] = uint8_t((x * 7 + y * 13) & 0xFF);
+        for (uint32_t gy = 0; gy < kGridH; ++gy) for (int sy = 0; sy < kGridTaps; ++sy) {
+            const uint32_t row = gridSourceRow(gy, sy, h);
+            std::copy_n(whole.begin() + size_t(row) * pitch, pitch, rows.begin() + size_t(row) * pitch);
+        }
+        SourcePlanes sp; sp.format = SourceFormat::Yuy2; sp.pitch0 = pitch; sp.width = w; sp.height = h;
+        Luma full, part;
+        sp.plane0 = whole.data(); const bool okFull = lumaFromSource(sp, full);
+        sp.plane0 = rows.data(); const bool okPart = lumaFromSource(sp, part);
+        check(okFull && okPart && full.y == part.y, "the copied rows are every row the grid reads (" + std::to_string(h) + " lines)");
+    }
+    // The streaming copy gives the bytes it was given, at every alignment and length.
+    {
+        std::vector<uint8_t> from(4096 + 64), to(4096 + 64);
+        for (size_t i = 0; i < from.size(); ++i) from[i] = uint8_t(i * 31 + 7);
+        bool same = true;
+        for (size_t offset : {0u, 1u, 15u, 16u, 33u}) for (size_t n : {0u, 1u, 63u, 64u, 65u, 1000u, 3840u}) {
+            std::fill(to.begin(), to.end(), uint8_t(0));
+            veyra::engine::copyFromWriteCombined(to.data(), from.data() + offset, n);
+            same = same && std::memcmp(to.data(), from.data() + offset, n) == 0 && (n == to.size() || to[n] == 0);
+        }
+        check(same, "the streaming copy copies exactly what it is given");
+    }
     // Timing and the report.
     check(onTime(166667, 170000) && !onTime(166667, 260000) && !onTime(0, 1), "on-time rule");
     const auto report = summarize({perfect, repeat}, 38.0, 4, 100, 95);

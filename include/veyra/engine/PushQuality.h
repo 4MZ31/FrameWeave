@@ -44,6 +44,16 @@ struct SourcePlanes {
     bool limitedRange = true;          // YUV only
 };
 bool lumaFromSource(const SourcePlanes& src, Luma& out);
+// The rows of a picture `height` lines high that lumaFromSource / lumaFromOutput read: kGridTaps rows per
+// grid row, the same rule grid() uses. A capture frame can live in write-combined upload memory, which the
+// CPU reads at a fraction of normal speed byte by byte (4.5.3: the quality test read 900 000 single bytes
+// of it a frame on the engine thread and the output fell to about 4 FPS); the probe copies these rows out
+// with streaming loads first and never touches the rest.
+constexpr int kGridTaps = 4;
+inline uint32_t gridSourceRow(uint32_t gy, int sy, uint32_t height) {
+    const uint32_t y = uint32_t((gy + (sy + 0.5) / kGridTaps) * height / kGridH);
+    return y < height - 1 ? y : height - 1;
+}
 
 // Presented pictures (a readback of the graph output).
 enum class OutputLayout { Rgba8, Bgra8, Rgb10a2, Rgba16fLinear };
