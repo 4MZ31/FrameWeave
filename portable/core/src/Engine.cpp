@@ -38,10 +38,19 @@ double maxInterval(const std::deque<int64_t>& times, size_t n) {
     return worst;
 }
 
-double rateOver(const std::deque<int64_t>& times) {
-    if (times.size() < 2) return 0;
-    const double span = double(times.back() - times.front());
-    return span > 0 ? double(times.size() - 1) * 1e9 / span : 0;
+double rateOver(const std::deque<int64_t>& times, int64_t now = 0) {
+    const int64_t since = now - 1000 * kMs;
+    auto first = times.begin();
+    while (first != times.end() && *first < since) ++first;
+    const auto count = times.end() - first;
+    if (count < 2) return 0;
+    const double span = double(times.back() - *first);
+    if (span <= 0) return 0;
+    // A normal poll can fall between two frames. Once the next frame is overdue,
+    // include the missed time so the rate falls before the last samples expire.
+    const double interval = span / double(count - 1);
+    const double overdue = std::max(0.0, double(now - times.back()) - interval);
+    return double(count - 1) * 1e9 / (span + overdue);
 }
 
 }  // namespace
@@ -445,9 +454,12 @@ Pick Engine::pick(int64_t displayNs) {
 EngineStats Engine::stats() const {
     std::lock_guard lk(m_);
     EngineStats s = st_;
-    s.transportFps = rateOver(arrivals_);
-    s.contentFps = rateOver(keptTimes_);
-    s.outputFps = rateOver(shownTimes_);
+    // A frozen picture or a stopped source can leave these histories untouched.
+    // Age telemetry at read time; pacing still uses the original capture intervals.
+    const int64_t now = clock_();
+    s.transportFps = rateOver(arrivals_, now);
+    s.contentFps = rateOver(keptTimes_, now);
+    s.outputFps = rateOver(shownTimes_, now);
     s.latencyMs = latencyAvgMs_;
     s.estimateMs = estimateMsAvg_;
     s.delayMs = delayNs_ / double(kMs);

@@ -124,7 +124,7 @@ public:
     void reset();
     // Tests: waits until the worker has finished every queued pair.
     void waitIdle();
-    // Tests: the clock the worker reads when a pair's motion is ready (the same clock arrival and
+    // Tests: the clock used to date completed motion work and expire reported FPS (the same clock arrival and
     // display times are on). The default is the steady clock in nanoseconds, which is what the app
     // stamps its frames and refreshes with.
     void setClock(std::function<int64_t()> clock);
