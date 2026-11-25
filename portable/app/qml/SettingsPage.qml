@@ -9,6 +9,7 @@ import QtQuick.Layouts
 
 Rectangle {
     id: root
+    signal requestCheckSetup()
     objectName: "page-set"
     color: Theme.bgMid
     // Bring the appearance group into view (the navigation's palette button).
@@ -139,6 +140,18 @@ Rectangle {
                         onToggled: on => veyra.setPreference("reducedMotion", on)
                     }
                 }
+                // The latency readout over the picture (PushLatencyBadge.qml) in a larger size, as on Windows.
+                VRow {
+                    objectName: "set-readout-size-row"
+                    label: qsTr("画面读数大小")
+                    hint: qsTr("画面上的延迟和帧率读数。坐得远或用手柄玩时，大一些更容易看清")
+                    VSeg {
+                        objectName: "set-readout-size"
+                        options: [{ id: "0", label: qsTr("标准") }, { id: "1", label: qsTr("大") }, { id: "2", label: qsTr("特大") }]
+                        current: String(Math.max(0, Math.min(2, Number((veyra.preferences || {}).pushLatencySize || 0))))
+                        onPicked: id => veyra.setPreference("pushLatencySize", Number(id))
+                    }
+                }
             }
 
             VCard {
@@ -195,6 +208,14 @@ Rectangle {
                     font.pixelSize: Theme.fsBody
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler { onTapped: Qt.openUrlExternally("https://github.com/DosukaSOL/PushFPS") }
+                }
+                // Check my setup (CheckSetupDialog.qml), as the Windows build's About section has it.
+                VRow {
+                    objectName: "set-diagnose"
+                    Layout.topMargin: 8
+                    label: qsTr("检查我的设置")
+                    hint: qsTr("看看正在运行的画面里，是什么在影响清晰度、流畅度和声音，每一项都有一键更改")
+                    VButton { objectName: "set-diagnose-open"; text: qsTr("检查"); onClicked: root.requestCheckSetup() }
                 }
             }
         }

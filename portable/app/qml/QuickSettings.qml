@@ -107,10 +107,18 @@ ColumnLayout {
             onPicked: id => app.quality = Number(id)
         }
     }
+    // The latency readout over the picture, as the Windows build's (PushLatencyBadge.qml, shared).
     VRow {
         visible: quick.shows("latency")
+        objectName: "pushfps-latency-overlay-row"
         label: qsTr("在画面上显示延迟")
-        hint: qsTr("游戏帧率、输出帧率和延迟（按 Tab 切换）")
-        VSwitch { objectName: "home-stats"; checked: app.showStats; onToggled: on => app.showStats = on }
+        hint: qsTr("实测电脑处理延迟（采集卡画面到达到交给显示器）和帧率；采集卡、显示器和游戏的延迟另计") + "\n"
+              + qsTr("可以用鼠标把它拖到画面上的任何位置；双击它，它就回到左上角")
+        hintBelow: true
+        VSwitch {
+            objectName: "pushfps-latency-overlay"
+            checked: (veyra.preferences || {}).pushLatencyOverlay === true
+            onToggled: on => veyra.setPreference("pushLatencyOverlay", on)
+        }
     }
 }

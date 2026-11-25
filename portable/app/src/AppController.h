@@ -50,13 +50,18 @@ class AppController : public QObject {
     Q_PROPERTY(qreal contrast READ contrast WRITE setContrast NOTIFY settingsChanged)
     Q_PROPERTY(qreal saturation READ saturation WRITE setSaturation NOTIFY settingsChanged)
     Q_PROPERTY(qreal gamma READ gamma WRITE setGamma NOTIFY settingsChanged)
-    Q_PROPERTY(bool showStats READ showStats WRITE setShowStats NOTIFY settingsChanged)
     // 4.1: one tap for the shortest delay, the sound moved by hand, the capture card connected when the
     // app opens, and how a picture of another shape than the window is shown.
     Q_PROPERTY(bool lowLatency READ lowLatency WRITE setLowLatency NOTIFY settingsChanged)
     Q_PROPERTY(int audioTrimMs READ audioTrimMs WRITE setAudioTrimMs NOTIFY settingsChanged)
     Q_PROPERTY(bool autoConnect READ autoConnect WRITE setAutoConnect NOTIFY settingsChanged)
     Q_PROPERTY(int fillMode READ fillMode WRITE setFillMode NOTIFY settingsChanged)
+    // The live comparison with the picture before PushFPS's processing, as the Windows build's
+    // compareMode: 0 off, 2 split (the line at compareSplit, a share of the picture's width), 1 the
+    // original alone. Frame generation pauses while it is on, as on Windows. Not kept across starts;
+    // which side is which is preference pushCompareSwap.
+    Q_PROPERTY(int compareMode READ compareMode WRITE setCompareMode NOTIFY compareChanged)
+    Q_PROPERTY(double compareSplit READ compareSplit WRITE setCompareSplit NOTIFY compareChanged)
     Q_PROPERTY(bool alwaysOnTop READ alwaysOnTop WRITE setAlwaysOnTop NOTIFY settingsChanged)
     // Upscaling with NVIDIA Image Scaling, under the Windows build's names: on or off, and the size it
     // upscales towards (1 = 2K, 2 = 4K, 4 = 5K, 5 = 6K: FrameView::upscaleTargetSize). Its sharpening is the
@@ -129,8 +134,6 @@ public:
     void setSaturation(qreal v);
     qreal gamma() const { return gamma_; }
     void setGamma(qreal v);
-    bool showStats() const { return showStats_; }
-    void setShowStats(bool v);
     bool lowLatency() const { return lowLatency_; }
     void setLowLatency(bool v);
     int audioTrimMs() const { return audioTrim_; }
@@ -139,6 +142,10 @@ public:
     void setAutoConnect(bool v);
     int fillMode() const { return fillMode_; }
     void setFillMode(int m);
+    int compareMode() const { return compareMode_; }
+    void setCompareMode(int m);
+    double compareSplit() const { return compareSplit_; }
+    void setCompareSplit(double v);
     bool alwaysOnTop() const { return onTop_; }
     void setAlwaysOnTop(bool v);
     bool srEnabled() const { return srEnabled_; }
@@ -166,6 +173,12 @@ public:
     Q_INVOKABLE void setPreference(const QString& key, const QVariant& value);
 
     Q_INVOKABLE void refreshDevices();
+    // Check my setup (CheckSetupDialog.qml, rules in the Windows build's PushDiagnose.js):
+    // a sharper capture format for the card playing now, as the Windows build's PushCaptureSharper.h
+    // decides it: { index, fps, pixel } (index in `formats`), or an empty map;
+    Q_INVOKABLE QVariantMap sharperFormat() const;
+    // and whether the playing card's own sound input was found (what "Automatic" passes through).
+    Q_INVOKABLE bool captureSoundFound() const;
     Q_INVOKABLE void startCamera();
     Q_INVOKABLE void startFile(const QUrl& url);
     Q_INVOKABLE void startTestPattern(bool uneven = false);
@@ -182,6 +195,7 @@ signals:
     void devicesChanged();
     void runningChanged();
     void settingsChanged();
+    void compareChanged();
     void statsChanged();
     void errorTextChanged();
     void preferencesChanged();
@@ -210,8 +224,9 @@ private:
     QList<QCameraDevice> cameras_;
     QList<QAudioDevice> inputs_, outputs_;
     int videoIndex_ = 0, formatIndex_ = -1, audioInIndex_ = 0, audioOutIndex_ = 0;
+    int playingVideo_ = -1, playingFormat_ = -1;  // what the running capture was opened with
     int targetMode_ = 3, quality_ = 1;
-    bool pacing_ = false, hud_ = false, dedup_ = true, audioOn_ = true, showStats_ = false, onTop_ = false;
+    bool pacing_ = false, hud_ = false, dedup_ = true, audioOn_ = true, onTop_ = false;
     bool srEnabled_ = false;
     int srTarget_ = 2, srAlgorithm_ = 6, upscaleState_ = 0;
     QString upscaleSizes_;
@@ -222,6 +237,8 @@ private:
     QByteArray audioInId_, audioOutId_;
     QString audioInName_, audioOutName_;
     int audioTrim_ = 0, fillMode_ = 0;
+    int compareMode_ = 0;
+    double compareSplit_ = 0.5;
     qreal volume_ = 1.0, brightness_ = 0, contrast_ = 1, saturation_ = 1, gamma_ = 1;
     QString language_ = QStringLiteral("auto");
     QString sourceTitle_;

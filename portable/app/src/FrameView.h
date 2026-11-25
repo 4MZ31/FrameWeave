@@ -28,6 +28,13 @@ class FrameView : public QQuickItem {
     // How a picture of another shape than the window is shown: 0 whole with bars, 1 the window filled
     // and the picture's sides cut, 2 stretched.
     Q_PROPERTY(int fill READ fill WRITE setFill NOTIFY pictureChanged)
+    // The live comparison with the original (the picture before the picture controls and NIS), as the
+    // Windows build's compareMode: 0 off, 2 split, 1 the original alone. The split stands at compareSplit
+    // (a share of this item's width; the line itself is engine/PushCompareLine.h's); compareSwap puts
+    // the original on the right.
+    Q_PROPERTY(int compare READ compare WRITE setCompare NOTIFY pictureChanged)
+    Q_PROPERTY(qreal compareSplit READ compareSplit WRITE setCompareSplit NOTIFY pictureChanged)
+    Q_PROPERTY(bool compareSwap READ compareSwap WRITE setCompareSwap NOTIFY pictureChanged)
     // Upscaling with NVIDIA Image Scaling (NisNode.h): on or off, the size it upscales towards (the
     // Windows build's srTargetIndex: upscaleTargetSize) and its sharpening (0..1).
     Q_PROPERTY(bool upscale READ upscale WRITE setUpscale NOTIFY pictureChanged)
@@ -57,6 +64,12 @@ public:
     bool running() const { return running_; }
     int fill() const { return fill_; }
     void setFill(int v);
+    int compare() const { return compare_; }
+    qreal compareSplit() const { return compareSplit_; }
+    bool compareSwap() const { return compareSwap_; }
+    void setCompare(int v);
+    void setCompareSplit(qreal v);
+    void setCompareSwap(bool v);
     void setBrightness(qreal v);
     void setContrast(qreal v);
     void setSaturation(qreal v);
@@ -104,6 +117,9 @@ private:
     qreal brightness_ = 0, contrast_ = 1, saturation_ = 1, gamma_ = 1;
     bool running_ = true;
     int fill_ = 0;
+    int compare_ = 0;
+    qreal compareSplit_ = 0.5;
+    bool compareSwap_ = false;
     bool upscale_ = false;
     int upscaleTarget_ = 2;
     qreal sharpness_ = 0.5;
