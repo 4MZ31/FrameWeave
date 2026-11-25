@@ -1221,6 +1221,9 @@ target_compile_features(veyra_push_psn_sign_in_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_psn_sign_in_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # PushFPS: how long a PS5 reconnect waits (remoteplay/PushRetryWait.h) and FFmpeg's lines in the log
 # (media/PushLogLimiter.h); both pure, also build with g++.
+add_executable(veyra_push_packet_stamps_tests tests/unit/PushPacketStampsTests.cpp)
+target_compile_features(veyra_push_packet_stamps_tests PRIVATE cxx_std_20)
+target_include_directories(veyra_push_packet_stamps_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(veyra_push_stream_size_tests tests/unit/PushStreamSizeTests.cpp)
 target_compile_features(veyra_push_stream_size_tests PRIVATE cxx_std_20)
 target_include_directories(veyra_push_stream_size_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
