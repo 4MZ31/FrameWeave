@@ -15409,24 +15409,6 @@
    "ru": "Сигнал"
   },
   {
-   "zh": "信号 %1 Hz · 延迟 %2 ms · 运动估计 %3 ms",
-   "src": "portable/app/qml/MinimalPage.qml",
-   "zh-TW": "訊號 %1 Hz · 延遲 %2 ms · 運動估計 %3 ms",
-   "en": "Signal %1 Hz · latency %2 ms · motion estimation %3 ms",
-   "ja": "信号 %1 Hz · 遅延 %2 ms · 動き推定 %3 ms",
-   "ko": "신호 %1 Hz · 지연 %2 ms · 모션 추정 %3 ms",
-   "nl": "Signaal %1 Hz · latentie %2 ms · bewegingsschatting %3 ms",
-   "de": "Signal %1 Hz · Latenz %2 ms · Bewegungsschätzung %3 ms",
-   "es": "Signal %1 Hz · latency %2 ms · motion estimation %3 ms",
-   "fr": "Signal %1 Hz · latence %2 ms · estimation des mouvements %3 ms",
-   "it": "Segnale %1 Hz · latenza %2 ms · stima del movimento %3 ms",
-   "pt-BR": "Sinal %1 Hz · latência %2 ms · estimativa do movimento %3 ms",
-   "tr": "Signal %1 Hz · latency %2 ms · motion estimation %3 ms",
-   "ar": "الإشارة %1 Hz latency %2 ms · motion estimation %3 ms",
-   "pl": "Sygnał %1 Hz · opóźnienie %2 ms · oszacowanie ruchu %3 ms",
-   "ru": "сигнал %1 Hz · задержка %2 ms · оценка движения %3ms"
-  },
-  {
    "zh": "修复",
    "src": "qml/NvidiaVrrProfileRow.qml",
    "zh-TW": "修復",
@@ -54797,24 +54779,6 @@
    "ru": "Игра %1FPS"
   },
   {
-   "zh": "游戏 %1 FPS → 输出 %2 FPS",
-   "src": "portable/app/qml/MinimalPage.qml",
-   "zh-TW": "遊戲 %1 FPS → 輸出 %2 FPS",
-   "en": "Game %1 FPS → output %2 FPS",
-   "ja": "ゲーム %1 FPS → 出力 %2 FPS",
-   "ko": "게임 %1 FPS → 출력 %2 FPS",
-   "nl": "Spel %1 FPS → uitvoer %2 FPS",
-   "de": "Spiel %1 FPS %2 FPS",
-   "es": "Game %1 FPS → output %2 FPS",
-   "fr": "Jeu %1 FPS → sortie %2 FPS",
-   "it": "Gioco %1 FPS → output %2 FPS",
-   "pt-BR": "Jogo %1 FPS → saída %2 FPS",
-   "tr": "Game %1 FPS → output %2 FPS",
-   "ar": "لعبة %1 FPS ناتج %2 FPS",
-   "pl": "Gra %1 FPS → wyjście %2 FPS",
-   "ru": "Игра %1 FPS → выход %2FPS"
-  },
-  {
    "zh": "游戏、模拟器、串流或视频软件可以通过 PushFPS 画面输入接口把画面直接送进来，然后像采集卡一样补帧、增强、录制和直播",
    "src": "qml/PushFrameInputDialog.qml",
    "zh-TW": "遊戲、模擬器、串流或影片軟體可以透過 PushFPS 畫面輸入介面把畫面直接送進來，然後像擷取卡一樣補幀、增強、錄製和直播",
@@ -54975,24 +54939,6 @@
    "ar": "معدل إطارات اللعبة · الهدف",
    "pl": "Liczba klatek gry · cel",
    "ru": "Частота кадров игры · цель"
-  },
-  {
-   "zh": "游戏帧率、输出帧率和延迟（按 Tab 切换）",
-   "src": "portable/app/qml/QuickSettings.qml",
-   "zh-TW": "遊戲幀率、輸出幀率和延遲（按 Tab 切換）",
-   "en": "Game frame rate, output frame rate and latency (Tab toggles)",
-   "ja": "ゲームのフレームレート、出力フレームレート、遅延（Tab で切り替え）",
-   "ko": "게임 프레임률, 출력 프레임률, 지연 (Tab으로 전환)",
-   "nl": "Spelframesnelheid, uitvoerframesnelheid en latentie (Tab schakelt)",
-   "de": "Game frame rate, output frame rate and latency (Tab toggles)",
-   "es": "Tipo de marco de juego, velocidad de marco de salida y latencia (Tab toggles)",
-   "fr": "Taux de trame de jeu, taux de trame de sortie et latence (Tab toggles)",
-   "it": "Tasso del telaio del gioco, velocità del telaio di uscita e latenza (Tab toggles)",
-   "pt-BR": "Taxa de quadros do jogo, taxa de quadros de saída e latência (alterações Tab)",
-   "tr": "Game frame rate, output frame rate and latency (Tab toggles)",
-   "ar": "معدل إطار اللعبة، ومعدل إطار الناتج، والتساهل (النظارات التافهة)",
-   "pl": "Szybkość ramek gry, wydajność ramek i opóźnienie (przełączniki Tab)",
-   "ru": "Скорость кадров игры, выходная частота кадров и задержка (Tab Toggles)"
   },
   {
    "zh": "游戏帧率波动时自动调整倍率，输出尽量贴近目标",
@@ -72491,24 +72437,6 @@
    "ar": "انتظار إضافي على هذا الحاسوب",
    "pl": "Dodatkowe oczekiwanie na tym komputerze",
    "ru": "Дополнительное ожидание на этом компьютере"
-  },
-  {
-   "zh": "这台电脑的额外等待：%1 ms",
-   "src": "portable/app/qml/MinimalPage.qml",
-   "zh-TW": "這台電腦的額外等待：%1 ms",
-   "en": "Extra wait on this computer: %1 ms",
-   "ja": "この PC での追加の待ち：%1 ms",
-   "ko": "이 컴퓨터에서 추가로 기다리는 시간: %1 ms",
-   "nl": "Extra wacht op deze computer: %1 ms",
-   "de": "Extra warten auf diesem Computer: %1 ms",
-   "es": "Extra wait on this computer: %1 ms",
-   "fr": "Attendez sur cet ordinateur: %1 ms",
-   "it": "Extra wait on this computer: %1 ms",
-   "pt-BR": "Esperar extra neste computador: %1 ms",
-   "tr": "Extra wait on this computer: %1 ms",
-   "ar": "إنتظار إضافي على هذا الحاسوبِ: %1 ms",
-   "pl": "Extra czekać na ten komputer: %1 ms",
-   "ru": "Подождите на этом компьютере: %1ms"
   },
   {
    "zh": "这块屏幕是 %2 Hz：现在按 %2 FPS 输出。换到更快的屏幕会回到 %1 FPS",

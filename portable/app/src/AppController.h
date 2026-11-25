@@ -50,7 +50,6 @@ class AppController : public QObject {
     Q_PROPERTY(qreal contrast READ contrast WRITE setContrast NOTIFY settingsChanged)
     Q_PROPERTY(qreal saturation READ saturation WRITE setSaturation NOTIFY settingsChanged)
     Q_PROPERTY(qreal gamma READ gamma WRITE setGamma NOTIFY settingsChanged)
-    Q_PROPERTY(bool showStats READ showStats WRITE setShowStats NOTIFY settingsChanged)
     // 4.1: one tap for the shortest delay, the sound moved by hand, the capture card connected when the
     // app opens, and how a picture of another shape than the window is shown.
     Q_PROPERTY(bool lowLatency READ lowLatency WRITE setLowLatency NOTIFY settingsChanged)
@@ -135,8 +134,6 @@ public:
     void setSaturation(qreal v);
     qreal gamma() const { return gamma_; }
     void setGamma(qreal v);
-    bool showStats() const { return showStats_; }
-    void setShowStats(bool v);
     bool lowLatency() const { return lowLatency_; }
     void setLowLatency(bool v);
     int audioTrimMs() const { return audioTrim_; }
@@ -222,7 +219,7 @@ private:
     QList<QAudioDevice> inputs_, outputs_;
     int videoIndex_ = 0, formatIndex_ = -1, audioInIndex_ = 0, audioOutIndex_ = 0;
     int targetMode_ = 3, quality_ = 1;
-    bool pacing_ = false, hud_ = false, dedup_ = true, audioOn_ = true, showStats_ = false, onTop_ = false;
+    bool pacing_ = false, hud_ = false, dedup_ = true, audioOn_ = true, onTop_ = false;
     bool srEnabled_ = false;
     int srTarget_ = 2, srAlgorithm_ = 6, upscaleState_ = 0;
     QString upscaleSizes_;

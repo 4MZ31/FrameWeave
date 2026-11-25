@@ -177,6 +177,14 @@ Window {
             onPressed: mouse => move(mouse.x)
             onPositionChanged: mouse => { if (pressed) move(mouse.x) }
         }
+        // The latency readout over the picture, as the Windows build's (PushLatencyBadge.qml): dragged
+        // anywhere on it, in Professional mode and on the picture alone (not on the home page, as on Windows).
+        PushLatencyBadge {
+            z: 2
+            areaWidth: picture.width
+            areaHeight: picture.height
+            visible: wanted && stats.running === true && picture.width > 200 && (root.page === "pro" || root.page === "min")
+        }
     }
     // What upscaling does, for the picture panel's hint (the picture is drawn on another thread).
     Binding { target: app; property: "upscaleState"; value: picture.upscaleState }
@@ -295,5 +303,8 @@ Window {
             else if (root.page === "min") root.leavePicture()
         }
     }
-    Shortcut { sequence: "Tab"; enabled: root.page === "min"; onActivated: app.showStats = !app.showStats }
+    // The latency readout: F3 as the Windows build's default key, and Tab on the picture alone as before.
+    function toggleLatency() { veyra.setPreference("pushLatencyOverlay", (veyra.preferences || {}).pushLatencyOverlay !== true) }
+    Shortcut { objectName: "pushfps-key-latency"; sequence: "F3"; autoRepeat: false; onActivated: root.toggleLatency() }
+    Shortcut { sequence: "Tab"; enabled: root.page === "min"; onActivated: root.toggleLatency() }
 }
