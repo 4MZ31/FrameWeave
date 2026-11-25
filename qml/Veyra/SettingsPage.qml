@@ -1864,6 +1864,10 @@ VPage {
                                 { id: "replay", a: qsTr("保存即时回放"), note: qsTr("需先在 设置 → 录制 开启即时回放；游戏模式下在游戏里也能用") },
                                 { id: "marker", a: qsTr("录制时标记这一刻"), note: qsTr("时间记在录像旁边的文本文件里，剪辑时好找") },
                                 { id: "readText", a: qsTr("读取画面上的文字"), note: qsTr("打开后立即读取；窗口开着时再按一次，读现在的画面") },
+                                { id: "latencyOverlay", a: qsTr("显示 / 隐藏延迟读数"), note: qsTr("全屏时也能用，不用退出全屏") },
+                                { id: "compareClip", a: qsTr("开始 / 停止对比片段"), note: qsTr("按 设置 → 录制 里对比片段的布局和长度录制；再按一次停止") },
+                                { id: "fgToggle", a: qsTr("开启 / 关闭补帧") },
+                                { id: "enhanceToggle", a: qsTr("开启 / 关闭 AI 画面增强") },
                                 { id: "toggleMode", a: qsTr("切换极简 / 专业") },
                                 { id: "gamePanel", a: qsTr("游戏模式：调整画面"), note: qsTr("仅在游戏模式中接管按键；支持 Ctrl、Alt、Shift 组合") },
                                 { id: "gameExit", a: qsTr("游戏模式：退出鼠标穿透"), note: qsTr("退出全屏，恢复普通窗口操作") }
@@ -1873,25 +1877,37 @@ VPage {
                                 required property var modelData
                                 label: modelData.a
                                 hint: modelData.note || ""
-                                Rectangle {
-                                    objectName: "key-" + keyRow.modelData.id
-                                    readonly property bool capturing: root.capturingKey === keyRow.modelData.id
-                                    implicitWidth: Math.max(64, keyText.implicitWidth + 20)
-                                    implicitHeight: 26
-                                    radius: 7
-                                    color: capturing ? Theme.accentSoft : Theme.ink(0.06)
-                                    border.width: 1
-                                    border.color: capturing ? Theme.accent : Theme.stroke
-                                    Text {
-                                        id: keyText
-                                        anchors.centerIn: parent
-                                        text: parent.capturing ? qsTr("按下新按键…") : (veyra.shortcuts[keyRow.modelData.id] || qsTr("未设置"))
-                                        color: Theme.t1
-                                        font.family: Theme.fontMono
-                                        font.pixelSize: Theme.fsSmall
+                                // PushFPS (4.5.3): a key can be taken off an action (the game mode keys always keep one).
+                                readonly property bool clearable: keyRow.modelData.id !== "gamePanel" && keyRow.modelData.id !== "gameExit"
+                                RowLayout {
+                                    spacing: 6
+                                    VButton {
+                                        objectName: "key-clear-" + keyRow.modelData.id
+                                        visible: keyRow.clearable && !!veyra.shortcuts[keyRow.modelData.id] && root.capturingKey !== keyRow.modelData.id
+                                        ghost: true
+                                        text: qsTr("清除")
+                                        onClicked: veyra.clearShortcut(keyRow.modelData.id)
                                     }
-                                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                                    TapHandler { onTapped: { root.capturingKey = keyRow.modelData.id; keyCatcher.forceActiveFocus() } }
+                                    Rectangle {
+                                        objectName: "key-" + keyRow.modelData.id
+                                        readonly property bool capturing: root.capturingKey === keyRow.modelData.id
+                                        implicitWidth: Math.max(64, keyText.implicitWidth + 20)
+                                        implicitHeight: 26
+                                        radius: 7
+                                        color: capturing ? Theme.accentSoft : Theme.ink(0.06)
+                                        border.width: 1
+                                        border.color: capturing ? Theme.accent : Theme.stroke
+                                        Text {
+                                            id: keyText
+                                            anchors.centerIn: parent
+                                            text: parent.capturing ? qsTr("按下新按键…") : (veyra.shortcuts[keyRow.modelData.id] || qsTr("未设置"))
+                                            color: Theme.t1
+                                            font.family: Theme.fontMono
+                                            font.pixelSize: Theme.fsSmall
+                                        }
+                                        HoverHandler { cursorShape: Qt.PointingHandCursor }
+                                        TapHandler { onTapped: { root.capturingKey = keyRow.modelData.id; keyCatcher.forceActiveFocus() } }
+                                    }
                                 }
                             }
                         }
