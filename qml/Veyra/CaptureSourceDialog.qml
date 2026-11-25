@@ -400,7 +400,7 @@ DialogLayer {
             }
         }
         VRow {
-            label: qsTr("PushFPS 虚拟扬声器")
+            label: qsTr("FrameWeave 虚拟扬声器")
             hint: veyra.captureVirtualAudioBusy ? qsTr("正在处理 VB-CABLE 安装器…")
                 : veyra.captureVirtualAudioInstalled ? qsTr("已检测到 VB-CABLE · 用于转接 Windows 侦听")
                 : qsTr("可选 · 采集卡直采无声时使用")
@@ -453,8 +453,8 @@ DialogLayer {
             disconnectRequested = false
             open()
         }
-        title: operation === 2 ? qsTr("卸载 PushFPS 虚拟扬声器")
-            : operation === 1 ? qsTr("安装 PushFPS 虚拟扬声器") : qsTr("PushFPS 虚拟扬声器使用说明")
+        title: operation === 2 ? qsTr("卸载 FrameWeave 虚拟扬声器")
+            : operation === 1 ? qsTr("安装 FrameWeave 虚拟扬声器") : qsTr("FrameWeave 虚拟扬声器使用说明")
         text: operation === 2
             ? qsTr("先在 Windows 中关闭采集卡的“侦听此设备”，或把目标改回原设备。确认后打开 VB-Audio 安装器，选择 Remove Driver 并按提示重启。其他使用 VB-CABLE 的软件也会失去这条音频通路。")
             : qsTr("此功能使用 VB-Audio 的 VB-CABLE（捐赠软件），可从内置安装包离线安装。首次安装需管理员确认，完成后按提示重启。\n\n1. 在 Windows“录制”里打开采集卡音频的属性，勾选“侦听此设备”，播放目标选 CABLE Input。如果已改名，请选择改后的名称。")
@@ -506,7 +506,7 @@ DialogLayer {
             objectName: "capture-virtual-audio-follow-up"
             visible: virtualAudioGuide.operation !== 2
             Layout.fillWidth: true
-            text: qsTr("2. 回到 PushFPS，在“音频输入”选“PushFPS 虚拟扬声器”，再连接采集。音频输出选真实耳机或音箱，即可使用音画同步。\n\n可选改名：在 Windows 声音的“播放”页打开 CABLE Input 的属性，在“常规”里改成“PushFPS 采集音频”。")
+            text: qsTr("2. 回到 FrameWeave，在“音频输入”选“FrameWeave 虚拟扬声器”，再连接采集。音频输出选真实耳机或音箱，即可使用音画同步。\n\n可选改名：在 Windows 声音的“播放”页打开 CABLE Input 的属性，在“常规”里改成“FrameWeave 采集音频”。")
             color: Theme.t2
             font.family: Theme.fontUi
             font.pixelSize: Theme.fsBody
@@ -576,7 +576,7 @@ DialogLayer {
         VRow {
             visible: captureDialog.pcOn
             label: qsTr("后台也转发手柄")
-            hint: qsTr("再串流时建议打开：PushFPS 不在前台也继续转发。打开后在这台电脑上用别的程序时，手柄也会操作 PS5")
+            hint: qsTr("再串流时建议打开：FrameWeave 不在前台也继续转发。打开后在这台电脑上用别的程序时，手柄也会操作 PS5")
             VSwitch {
                 objectName: "capture-ps5-background"
                 checked: captureDialog.pc.background === true

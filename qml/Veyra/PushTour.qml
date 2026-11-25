@@ -25,7 +25,7 @@ QtObject {
     function steps(has) {
         const offers = has || ({})
         const list = [
-            { target: "", title: qsTr("欢迎使用 PushFPS"),
+            { target: "", title: qsTr("欢迎使用 FrameWeave"),
               detail: qsTr("用一分钟看一遍：接上采集卡，选好帧率，开始游戏。按 Esc 可以随时退出，以后在首页还能再看。") },
             { target: "capture", title: qsTr("从采集卡开始"),
               detail: qsTr("主机的 HDMI 接到采集卡，采集卡接到这台电脑。点「采集卡」打开采集设置。") },
@@ -41,10 +41,10 @@ QtObject {
               detail: qsTr("主机正在输出 HDR10 时，选 P010，再把这里设为「HDR · PQ」。NV12、YUY2 和 RGB24 走「SDR · 709」。修改后重新连接才生效。") },
             { target: "connect", title: qsTr("连接并开始采集"),
               detail: qsTr("选好设备和格式后，在这里连接。画面出现后，剩下的都在首页的「快速设置」里。") },
-            { target: "console", title: qsTr("告诉 PushFPS 你玩的是什么"),
+            { target: "console", title: qsTr("告诉 FrameWeave 你玩的是什么"),
               detail: qsTr("选你的主机和游戏本身的帧率。多数主机游戏是 30 FPS；选对了，重复的画面才会被去掉，补帧才干净。") },
             { target: "target", title: qsTr("选择目标帧率"),
-              detail: qsTr("60、120，或者跟随显示器。PushFPS 在游戏的每两帧之间生成新的画面，补到这个帧率。") }
+              detail: qsTr("60、120，或者跟随显示器。FrameWeave 在游戏的每两帧之间生成新的画面，补到这个帧率。") }
         ]
         if (offers.enhance === true)
             list.push({ target: "enhance", title: qsTr("AI 画面增强"),

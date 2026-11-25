@@ -16,7 +16,7 @@ DialogLayer {
     key: "stream"
     glyph: "cast"
     title: qsTr("直播")
-    sub: qsTr("把 PushFPS 的画面（含补帧）和声音直接推到 Twitch、YouTube、Kick、TikTok 等平台，可以同时推多个平台")
+    sub: qsTr("把 FrameWeave 的画面（含补帧）和声音直接推到 Twitch、YouTube、Kick、TikTok 等平台，可以同时推多个平台")
     dialogWidth: 720
 
     readonly property var platforms: veyra.pushStreamPlatforms() || []

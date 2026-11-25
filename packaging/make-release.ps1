@@ -1,12 +1,12 @@
 <#
-  Builds the PushFPS release zip from a finished build (used by .github/workflows/build-windows.yml).
+  Builds the FrameWeave release zip from a finished build (used by .github/workflows/build-windows.yml).
 
   Zip layout:
-    Install-PushFPS.cmd        double-click to install
-    Install-PushFPS.ps1        the installer (Veyra runtime package hashes pinned in it)
+    Install-FrameWeave.cmd        double-click to install
+    Install-FrameWeave.ps1        the installer (Veyra runtime package hashes pinned in it)
     READ ME FIRST.txt
-    PushFPS-files\             PushFPS.exe, its QML interface, shaders and licence files
-    PushFPS-files\runtime\experimental\pushflow\   PushFlow: ONNX Runtime + DirectML and the RIFE models
+    FrameWeave-files\             FrameWeave.exe, its QML interface, shaders and licence files
+    FrameWeave-files\runtime\experimental\pushflow\   PushFlow: ONNX Runtime + DirectML and the RIFE models
 #>
 [CmdletBinding()]
 param(
@@ -35,17 +35,17 @@ foreach ($gpu in 'NVIDIA', 'AMD') {
     $hash[$gpu] = $sums[$name]
 }
 
-$name = "PushFPS-$Version-win64"
+$name = "FrameWeave-$Version-win64"
 # GitHub Actions records the exact repository and commit used by the build.
-$sourceRepo = if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { '4MZ31/PushFPS' }
+$sourceRepo = if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { '4MZ31/FrameWeave' }
 $sourceRef = if ($env:GITHUB_SHA) { $env:GITHUB_SHA } elseif ($Version -match '^\d+\.\d+\.\d+$') { "v$Version" } else { 'main' }
 $stage = Join-Path $OutDir $name
-$files = Join-Path $stage 'PushFPS-files'
+$files = Join-Path $stage 'FrameWeave-files'
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory -Force $files | Out-Null
 
 # The program and everything built next to it that the runtime package does not already have newer.
-Copy-Item (Join-Path $BuildDir 'PushFPS.exe') $files
+Copy-Item (Join-Path $BuildDir 'FrameWeave.exe') $files
 # PushFlowBench: PushFlow timings on the player's graphics card (docs/PUSHFLOW.md), when it was built.
 $bench = Join-Path $BuildDir 'PushFlowBench.exe'
 if (Test-Path $bench) { Copy-Item $bench $files } else { Write-Warning 'PushFlowBench.exe not built: not packaged' }
@@ -62,9 +62,9 @@ if (Test-Path $dovi) {
         Copy-Item (Join-Path $env:LIBDOVI_ROOT 'LICENSE') (Join-Path $repo 'licenses\libdovi\LICENSE.txt')
     }
 }
-# The virtual camera: PushFPS's own DirectShow servers for 64 and 32 bit programs and their setup helper
+# The virtual camera: FrameWeave's own DirectShow servers for 64 and 32 bit programs and their setup helper
 # (src/virtualcam; licences in licenses\virtual-camera, copied with the licenses folder below). Nothing is
-# registered by installing PushFPS: the user turns the camera on in Settings.
+# registered by installing FrameWeave: the user turns the camera on in Settings.
 $camera = Join-Path $BuildDir 'virtualcam'
 $cameraFiles = 'pushfps-virtualcam64.dll', 'pushfps-virtualcam32.dll', 'pushfps-camera-setup.exe'
 if (@($cameraFiles | Where-Object { -not (Test-Path (Join-Path $camera $_)) }).Count -eq 0) {
@@ -73,7 +73,7 @@ if (@($cameraFiles | Where-Object { -not (Test-Path (Join-Path $camera $_)) }).C
     foreach ($f in $cameraFiles) { Copy-Item (Join-Path $camera $f) $cameraOut }
 } else { Write-Warning 'Virtual camera components not built: not packaged (the app then says the camera is unavailable)' }
 foreach ($doc in 'LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md') { Copy-Item (Join-Path $repo $doc) $files }
-Copy-Item (Join-Path $repo 'README.md') (Join-Path $files 'PushFPS-README.md')
+Copy-Item (Join-Path $repo 'README.md') (Join-Path $files 'FrameWeave-README.md')
 Copy-Item (Join-Path $repo 'licenses') $files -Recurse
 if ($PushFlowDir) {
     foreach ($f in 'onnxruntime.dll', 'DirectML.dll', 'models\pushflow-fast.onnx', 'models\pushflow-quality.onnx') {
@@ -88,7 +88,7 @@ if ($PushFlowDir) {
 }
 
 # Installer with the pinned values filled in.
-$installer = Get-Content (Join-Path $PSScriptRoot 'Install-PushFPS.ps1') -Raw
+$installer = Get-Content (Join-Path $PSScriptRoot 'Install-FrameWeave.ps1') -Raw
 $installer = $installer.Replace('@PUSHFPS_VERSION@', $Version)
 $installer = $installer.Replace('@UPSTREAM_REPO@', $UpstreamRepo)
 $installer = $installer.Replace('@UPSTREAM_TAG@', $UpstreamTag)
@@ -96,36 +96,36 @@ $installer = $installer.Replace('@SHA256_NVIDIA@', $hash['NVIDIA'])
 $installer = $installer.Replace('@SHA256_AMD@', $hash['AMD'])
 if ($installer -match '@[A-Z0-9_]+@') { throw "Unfilled placeholder in installer: $($Matches[0])" }
 # UTF-8 with BOM so Windows PowerShell 5.1 reads non-ASCII text correctly.
-[IO.File]::WriteAllText((Join-Path $stage 'Install-PushFPS.ps1'), $installer, (New-Object Text.UTF8Encoding $true))
-Copy-Item (Join-Path $PSScriptRoot 'Install-PushFPS.cmd') $stage
+[IO.File]::WriteAllText((Join-Path $stage 'Install-FrameWeave.ps1'), $installer, (New-Object Text.UTF8Encoding $true))
+Copy-Item (Join-Path $PSScriptRoot 'Install-FrameWeave.cmd') $stage
 
-# Where the installer puts this build (Install-PushFPS.ps1): a release in the usual folder, a test build beside it.
-$installsTo = 'installs PushFPS to %LOCALAPPDATA%\Programs\PushFPS with Start menu and desktop shortcuts.'
-$removeBy = 'or delete %LOCALAPPDATA%\Programs\PushFPS and the PushFPS shortcuts.'
+# Where the installer puts this build (Install-FrameWeave.ps1): a release in the usual folder, a test build beside it.
+$installsTo = 'installs FrameWeave to %LOCALAPPDATA%\Programs\FrameWeave with Start menu and desktop shortcuts.'
+$removeBy = 'or delete %LOCALAPPDATA%\Programs\FrameWeave and the FrameWeave shortcuts.'
 if ($Version -notmatch '^\d+\.\d+\.\d+$') {
-    $installsTo = 'installs this test build to %LOCALAPPDATA%\Programs\PushFPS-test with shortcuts of its own ("PushFPS test"). The PushFPS you have is not changed; the test build starts with a copy of its settings.'
-    $removeBy = 'or delete %LOCALAPPDATA%\Programs\PushFPS-test and the "PushFPS test" shortcuts.'
+    $installsTo = 'installs this test build to %LOCALAPPDATA%\Programs\FrameWeave-test with shortcuts of its own ("FrameWeave test"). The FrameWeave you have is not changed; the test build starts with a copy of its settings.'
+    $removeBy = 'or delete %LOCALAPPDATA%\Programs\FrameWeave-test and the "FrameWeave test" shortcuts.'
 }
 
 @"
-PushFPS $Version
+FrameWeave $Version
 ================
 
 Install
   1. Extract this whole zip to a folder (right-click, Extract All).
-  2. Double-click Install-PushFPS.cmd.
+  2. Double-click Install-FrameWeave.cmd.
 
   The installer downloads Veyra's official runtime package (about 750 MB, NVIDIA or AMD to match your
   graphics card) from https://github.com/$UpstreamRepo/releases/tag/$UpstreamTag , checks its SHA-256,
   and $installsTo
   No administrator rights are needed.
 
-  Windows may warn that the file comes from the internet or an unknown publisher (PushFPS is not code
+  Windows may warn that the file comes from the internet or an unknown publisher (FrameWeave is not code
   signed). Choose "More info" and "Run anyway" if you downloaded this zip from
   https://github.com/$sourceRepo/releases .
 
 Uninstall
-  Run Install-PushFPS.cmd -Uninstall from a command prompt in this folder,
+  Run Install-FrameWeave.cmd -Uninstall from a command prompt in this folder,
   $removeBy
 
 Pinned runtime package hashes (SHA-256)
@@ -133,9 +133,9 @@ Pinned runtime package hashes (SHA-256)
   AMD:    $($hash['AMD'])
 
 License
-  PushFPS is free software under the GNU GPL-3.0 and comes with ABSOLUTELY NO WARRANTY. It is a modified
+  FrameWeave is free software under the GNU GPL-3.0 and comes with ABSOLUTELY NO WARRANTY. It is a modified
   version of Veyra by Likely7 (https://github.com/Likely7/Veyra-NRVideo). The license, the modification
-  notice and third-party notices are in PushFPS-files (LICENSE, NOTICE.md, THIRD_PARTY_NOTICES.md).
+  notice and third-party notices are in FrameWeave-files (LICENSE, NOTICE.md, THIRD_PARTY_NOTICES.md).
   Source code of this release: https://github.com/$sourceRepo/tree/$sourceRef
 "@ | Set-Content -Path (Join-Path $stage 'READ ME FIRST.txt') -Encoding UTF8
 

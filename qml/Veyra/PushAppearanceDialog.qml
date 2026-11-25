@@ -24,7 +24,7 @@ DialogLayer {
     readonly property var themes: [{ id: "default", tip: qsTr("石墨") }, { id: "light", tip: qsTr("浅色") }, { id: "black", tip: qsTr("纯黑") },
                                    { id: "midnight", tip: qsTr("午夜蓝") }, { id: "plum", tip: qsTr("深紫") }, { id: "forest", tip: qsTr("墨绿") },
                                    { id: "contrast", tip: qsTr("高对比度") }]
-    readonly property var accentList: [{ id: "orange", tip: qsTr("PushFPS 绿") }, { id: "white", tip: qsTr("白色光晕") }, { id: "ice", tip: qsTr("冰蓝") },
+    readonly property var accentList: [{ id: "orange", tip: qsTr("FrameWeave 绿") }, { id: "white", tip: qsTr("白色光晕") }, { id: "ice", tip: qsTr("冰蓝") },
                                        { id: "blue", tip: qsTr("蓝色") }, { id: "violet", tip: qsTr("紫色") }, { id: "rose", tip: qsTr("玫红") },
                                        { id: "amber", tip: qsTr("琥珀") }]
     readonly property string themeShown: Theme.surfaces[Theme.mode] ? Theme.mode : "default"

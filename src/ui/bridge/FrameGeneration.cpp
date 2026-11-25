@@ -20,7 +20,7 @@ QString QmlPlayerBridge::fgBackendName() const {
 }
 QVariantList QmlPlayerBridge::fgBackendChoices() const {
     QVariantList choices = {
-        QVariantMap{{"id","pushflow"},{"label",tr("PushFlow · PushFPS 自研 · 2X～4X")}},
+        QVariantMap{{"id","pushflow"},{"label",tr("PushFlow · FrameWeave 自研 · 2X～4X")}},
         QVariantMap{{"id","anr"},{"label",tr("ANR FG · Apex Compute · 实验")},{"danger",true}},
         QVariantMap{{"id","dlss"},{"label",tr("DLSS 帧生成")}},
         QVariantMap{{"id","xess"},{"label",tr("Intel XeSS · 实验")}},
@@ -52,7 +52,7 @@ QString QmlPlayerBridge::fgProviderText() const {
     if(engine::fsrFrameGeneration(s.applied.frameGenerationBackend)&&s.applied.multiplier>1&&!s.fsrProviderVersion.empty())
         return tr("实际运行：FSR %1 · 2X").arg(QString::fromStdString(s.fsrProviderVersion));
     if(fgBackendName()==QLatin1String("pushflow"))
-        return tr("PushFPS 自己的补帧：RIFE 神经网络经 DirectML 运行，所有 DirectX 12 显卡可用；2X～4X，快速 / 均衡 / 高质量三档");
+        return tr("FrameWeave 自己的补帧：RIFE 神经网络经 DirectML 运行，所有 DirectX 12 显卡可用；2X～4X，快速 / 均衡 / 高质量三档");
     if(fgBackendName()==QLatin1String("amdfrc"))return tr("AMD 驱动自带的视频补帧（AMF FRC），只用前后两帧画面估算运动，固定 2X");
     if(fgBackendName()==QLatin1String("fsr4"))return tr("FSR 4 ML 需要支持的 RX 9000 和驱动，不可用时自动改用 FSR 3.1");
     if(fgBackendName()==QLatin1String("fsr3"))return tr("FSR 3.1 跨厂商补帧 · 最高 2X");

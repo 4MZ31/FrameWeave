@@ -521,7 +521,7 @@
 520|Input original
 521|Input range
 522|Input · optical flow
-523|Install PushFPS Virtual Speaker
+523|Install FrameWeave Virtual Speaker
 524|Installed
 525|Install…
 526|Instant replay
@@ -796,7 +796,7 @@
 795|Parametric highlights
 796|Parametric lights
 797|Parametric shadows
-798|Paste a PUSHFPS1: code
+798|Paste a FRAMEWEAVE1: code
 799|Paste color settings
 800|Patreon home
 801|Patreon, WeChat and Alipay
@@ -845,11 +845,11 @@
 844|Protect the HUD
 845|Punch
 846|Purple
-847|PushFPS Virtual Speaker
-848|PushFPS color preset (*.vpcolor)
-849|PushFPS game preset (*.pushfps)
-850|PushFPS green
-851|PushFPS preset (*.vpreset)
+847|FrameWeave Virtual Speaker
+848|FrameWeave color preset (*.vpcolor)
+849|FrameWeave game preset (*.frameweave)
+850|FrameWeave green
+851|FrameWeave preset (*.vpreset)
 852|Quality
 853|Queue 
 854|Quick presets
@@ -1090,7 +1090,7 @@
 1089|Temporal stability
 1090|Tested
 1091|Tested by Veyra's developer
-1092|Tested with PushFPS
+1092|Tested with FrameWeave
 1093|Texture
 1094|Texture kept
 1095|The HUD areas were not applied
@@ -1203,11 +1203,11 @@
 1202|繁體中文
 1203|ANR FG · Apex Compute · experimental
 1204|ANR package (*.zip nvngx_dlssg.dll);;All files (*)
-1205|ANR is installed (%1 files). Restart PushFPS, then pick ANR as the frame generation method
-1206|ANR frame generation is made by Apex Compute and supports GTX 16 series and newer graphics cards. It can't ship with PushFPS: download the anr-fg package from Apex's GitHub, then choose it here
+1205|ANR is installed (%1 files). Restart FrameWeave, then pick ANR as the frame generation method
+1206|ANR frame generation is made by Apex Compute and supports GTX 16 series and newer graphics cards. It can't ship with FrameWeave: download the anr-fg package from Apex's GitHub, then choose it here
 1207|ANR frame generation is Apex Neural Rendering by Apex Compute
 1208|ANR frame generation, by Apex Compute
-1209|What PushFPS is built on, by Likely7
+1209|What FrameWeave is built on, by Likely7
 1210|Download ANR
 1211|Install from download…
 1212|Install Apex's ANR first in Settings → Components & licenses
@@ -1221,7 +1221,7 @@
 1220|There's no ANR nvngx_dlssg.dll in this file. Choose Apex's anr-fg package
 1221|Choose the ANR package you downloaded from Apex Compute
 1222|A %1 FPS game will run at %2 FPS (%3× frame generation)
-1223|%1 is running. It hooks both the interface and the video, which can freeze PushFPS. Restart PushFPS to enable compatible rendering: the interface is then drawn in software and %1 only affects the video. Restart now? Current playback or streaming will stop.
+1223|%1 is running. It hooks both the interface and the video, which can freeze FrameWeave. Restart FrameWeave to enable compatible rendering: the interface is then drawn in software and %1 only affects the video. Restart now? Current playback or streaming will stop.
 1224|1% low only %1 FPS, not steady enough
 1225|Recommended settings for games like GTA VI, with a sharp minimap and HUD
 1226|Put the Switch 2 in its dock at 60 Hz. Games have no HDCP, so they capture as is.
@@ -1281,7 +1281,7 @@
 1280|This software is free and open source. If it helps you, you can →
 1281|%1 detected
 1282|RTSS on-screen display service detected
-1283|The RTSS on-screen display service is running. Restart PushFPS to enable compatible rendering and show the OSD on the video only. Restart now? Current playback or streaming will stop.
+1283|The RTSS on-screen display service is running. Restart FrameWeave to enable compatible rendering and show the OSD on the video only. Restart now? Current playback or streaming will stop.
 1284|Recommended settings per game, with a sharp minimap and HUD (those areas get no frame generation and no effects)
 1285|No frame generation combination held its target steadily, so your settings were kept. Try a lower target or turn other effects off, then run it again
 1286|Don't switch sources while it runs; you can keep playing
@@ -1289,10 +1289,10 @@
 1288|The picture stopped. Optimising was cancelled and your settings restored
 1289|Brings out footsteps and gunfire, for competitive games
 1290|Green areas keep the console picture as it is, with no frame generation, so text and the minimap stay sharp
-1291|Get the game on screen through your capture card, then start. PushFPS tests every available combination on your real picture (about 10 seconds each, 1 to 2 minutes in all), measures the real frame rate, 1% low and latency, and picks the best one.
+1291|Get the game on screen through your capture card, then start. FrameWeave tests every available combination on your real picture (about 10 seconds each, 1 to 2 minutes in all), measures the real frame rate, 1% low and latency, and picks the best one.
 1292|Racing · speedometer bottom right
 1293|Nobody has reported this card yet; share your results on GitHub
-1294|That isn't a valid PushFPS preset code
+1294|That isn't a valid FrameWeave preset code
 1295|A built-in preset already uses this name
 1296|This PC can't run this combination
 1297|Capture card dropped %1% of frames
@@ -1333,22 +1333,22 @@
 1332|Applied: %1 areas keep the console’s own pixels
 1333|Help
 1334|The current picture format does not support automatic HUD detection
-1335|Record a 15-second side-by-side video: the console’s own frame rate on the left, PushFPS on the right
+1335|Record a 15-second side-by-side video: the console’s own frame rate on the left, FrameWeave on the right
 1336|Found %1 HUD areas. Check the green boxes, drag them to correct them if needed, then click Apply
 1337|Could not read the picture; HUD detection stopped
 1338|Not enough video memory to detect the HUD
 1339|Up to 4 boxes; delete one first
-1340|Recording a %1-second comparison clip: the console’s own frame rate on the left, PushFPS on the right
+1340|Recording a %1-second comparison clip: the console’s own frame rate on the left, FrameWeave on the right
 1341|Getting the picture…
 1342|Watching the picture %1 / %2
 1343|Watching the picture for about 5 seconds. Turn the camera or walk around in the game
 1344|The most frames shown per second. With frame generation it holds the output at the target frame rate, so motion is more even
 1345|No HUD found. You can drag on the picture to draw boxes by hand
-1346|No picture arrived. Check that the picture is playing and the PushFPS window is not minimised
+1346|No picture arrived. Check that the picture is playing and the FrameWeave window is not minimised
 1347|Nothing is playing, so the HUD cannot be detected
 1348|No picture. Connect a capture card and start playing to adjust the boxes on your own game picture
 1349|Add box
-1350|How many new pictures the game itself draws per second. The console always sends a 60 Hz signal, so a 30 FPS game shows each picture twice. PushFPS uses this to decide how many frames to generate
+1350|How many new pictures the game itself draws per second. The console always sends a 60 Hz signal, so a 30 FPS game shows each picture twice. FrameWeave uses this to decide how many frames to generate
 1351|AI removes the blocks and noise that capture card compression leaves, so details look clearer. Separate from frame generation and can be switched on its own
 1352|The picture hardly moved, so the HUD could not be told apart. Turn the camera or move in the game, then try again
 1353|Bitrate is how much data the video uses per second. Rate control decides how the encoder spends it: more data means better quality and a bigger file

@@ -64,7 +64,7 @@ std::optional<QByteArray> updateSumFor(const QByteArray& sums, const QString& fi
 
 std::optional<UpdatePackage> updatePackageIn(const QByteArray& sums) {
     if (sums.size() > 256 * 1024) return std::nullopt;
-    static const QRegularExpression line(QStringLiteral("^([0-9a-fA-F]{64}) [ *](PushFPS-([0-9]+\\.[0-9]+\\.[0-9]+)-win64\\.zip)\\r?$"));
+    static const QRegularExpression line(QStringLiteral("^([0-9a-fA-F]{64}) [ *](FrameWeave-([0-9]+\\.[0-9]+\\.[0-9]+)-win64\\.zip)\\r?$"));
     std::optional<UpdatePackage> found;
     for (const QByteArray& raw : sums.split('\n')) {
         const auto m = line.match(QString::fromUtf8(raw));
@@ -79,7 +79,7 @@ std::optional<InstalledPushFps> parseInstalledVersionFile(const QByteArray& text
     InstalledPushFps out;
     bool runtime = false;
     static const QRegularExpression gpu(QStringLiteral("^Runtime: Veyra-[^ ]+-(NVIDIA|AMD)-win64-portable\\.zip"));
-    static const QRegularExpression version(QStringLiteral("^PushFPS (\\d+\\.\\d+\\.\\d+)\\s*$"));
+    static const QRegularExpression version(QStringLiteral("^(?:FrameWeave|PushFPS) (\\d+\\.\\d+\\.\\d+)\\s*$"));
     for (const QByteArray& raw : text.split('\n')) {
         // Windows PowerShell writes the file with a byte order mark: never part of the first line.
         QString l = QString::fromUtf8(raw).trimmed();

@@ -46,8 +46,8 @@ bool PushAmbientPass::initialize(ID3D12Device* device, unsigned sources) {
     ready_ = false;
     if (!device || !sources) return false;
     sources_ = sources;
-    small_ = makeSmall(device, kSmallRest, L"PushFPS ambient fill (averaged)");
-    blurred_ = makeSmall(device, kBlurredRest, L"PushFPS ambient fill (blurred)");
+    small_ = makeSmall(device, kSmallRest, L"FrameWeave ambient fill (averaged)");
+    blurred_ = makeSmall(device, kBlurredRest, L"FrameWeave ambient fill (blurred)");
     if (!small_ || !blurred_) return false;
     std::vector<uint8_t> cs;
     // down: { t0 frame } per source, then { u0 small }. blur: { t0 small, u0 blurred }.

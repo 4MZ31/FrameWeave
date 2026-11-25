@@ -71,7 +71,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: PushFPS-*
+          pattern: FrameWeave-*
           merge-multiple: true
           run-id: ${{ inputs.run_id }}
           github-token: ${{ github.token }}
@@ -92,7 +92,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: PushFPS-[0-9]*
+          pattern: FrameWeave-[0-9]*
           merge-multiple: true
           run-id: ${{ inputs.run_id }}
           github-token: ${{ github.token }}
@@ -100,7 +100,7 @@ jobs:
         run: |
           set -euo pipefail
           ls -la dist
-          zip=$(ls dist/PushFPS-*.zip | grep -v -e streaming-source | head -1)
+          zip=$(ls dist/FrameWeave-*.zip | grep -v -e streaming-source | head -1)
           test -n "$zip"
           name=$(basename "$zip" .zip)
           # The build wrote the hash file on Windows (CRLF).
@@ -113,8 +113,8 @@ jobs:
             echo
             echo "Built from $run."
             echo
-            echo "Install: unpack the zip and double-click Install-PushFPS.cmd. A test build gets its own folder (PushFPS-test) and its own shortcut, \"PushFPS test\", and starts with a copy of your settings. The PushFPS you have is not changed: close it while you test, and start the test build with its own shortcut."
-            echo "Remove the test build: delete the folder %LOCALAPPDATA%\\Programs\\PushFPS-test and the two \"PushFPS test\" shortcuts."
+            echo "Install: unpack the zip and double-click Install-FrameWeave.cmd. A test build gets its own folder (FrameWeave-test) and its own shortcut, \"FrameWeave test\", and starts with a copy of your settings. The FrameWeave you have is not changed: close it while you test, and start the test build with its own shortcut."
+            echo "Remove the test build: delete the folder %LOCALAPPDATA%\\Programs\\FrameWeave-test and the two \"FrameWeave test\" shortcuts."
             echo
             echo "Leave this as a draft: do not press Publish."
             echo

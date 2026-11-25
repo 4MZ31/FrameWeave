@@ -1,6 +1,6 @@
-# Builds and tests PushFPS for Linux and macOS (portable/, preview).
+# Builds and tests FrameWeave for Linux and macOS (portable/, preview).
 #
-# The Linux / macOS build is PushFPS's own: Qt 6 (Quick, Multimedia, ShaderTools) for the window,
+# The Linux / macOS build is FrameWeave's own: Qt 6 (Quick, Multimedia, ShaderTools) for the window,
 # capture cards and sound, and the core in portable/core for frame generation, duplicate removal,
 # Frame Pacing Repair and Live HUD Lock. No vendor SDK is needed.
 #
@@ -114,47 +114,47 @@ jobs:
           modules: qtmultimedia qtshadertools
           cache: true
 
-      - name: Build PushFPS
+      - name: Build FrameWeave
         run: |
           cmake -S portable -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPUSHFPS_PORTABLE_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/usr
           cmake --build build
-          ls -la build/app/PushFPS
+          ls -la build/app/FrameWeave
 
       - name: Self-test (test picture, generated video, uneven pacing)
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
           set -e
-          ./build/app/PushFPS --version
-          ./build/app/PushFPS --list-devices
-          ./build/app/PushFPS --selftest 6 --source testpattern --save build/selftest-frame.png
-          ./build/app/PushFPS --selftest 6 --source testpattern --target 60
-          ./build/app/PushFPS --selftest 8 --source testpattern-uneven --pacing --hud
+          ./build/app/FrameWeave --version
+          ./build/app/FrameWeave --list-devices
+          ./build/app/FrameWeave --selftest 6 --source testpattern --save build/selftest-frame.png
+          ./build/app/FrameWeave --selftest 6 --source testpattern --target 60
+          ./build/app/FrameWeave --selftest 8 --source testpattern-uneven --pacing --hud
           ffmpeg -loglevel error -f lavfi -i testsrc2=size=1280x720:rate=30 -t 6 -c:v libx264 -pix_fmt yuv420p build/test.mp4
-          ./build/app/PushFPS --selftest 6 --source file:build/test.mp4
+          ./build/app/FrameWeave --selftest 6 --source file:build/test.mp4
           # Abuse: a camera that is not there, a missing file, an unknown source.
           code=0
-          ./build/app/PushFPS --selftest 2 --source camera:7 || code=$?
+          ./build/app/FrameWeave --selftest 2 --source camera:7 || code=$?
           [[ $code == 2 ]]
           code=0
-          ./build/app/PushFPS --selftest 3 --source file:build/missing.mp4 || code=$?
+          ./build/app/FrameWeave --selftest 3 --source file:build/missing.mp4 || code=$?
           [[ $code == 2 || $code == 3 ]]
           code=0
-          ./build/app/PushFPS --selftest 2 --source nonsense || code=$?
+          ./build/app/FrameWeave --selftest 2 --source nonsense || code=$?
           [[ $code == 1 ]]
 
       - name: GPU check (Mesa llvmpipe under Xvfb)
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
           QSG_RHI_BACKEND: opengl
-        run: xvfb-run -a -s "-screen 0 1920x1080x24" ./build/app/PushFPS --gpucheck --save build/gpucheck.png
+        run: xvfb-run -a -s "-screen 0 1920x1080x24" ./build/app/FrameWeave --gpucheck --save build/gpucheck.png
 
       # Upscaling with NVIDIA Image Scaling: a compute shader, which llvmpipe runs (OpenGL 4.5).
       - name: NIS check (Mesa llvmpipe under Xvfb)
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
           QSG_RHI_BACKEND: opengl
-        run: xvfb-run -a -s "-screen 0 1920x1080x24" ./build/app/PushFPS --nischeck --save build/nischeck.png
+        run: xvfb-run -a -s "-screen 0 1920x1080x24" ./build/app/FrameWeave --nischeck --save build/nischeck.png
 
       - name: Screenshots
         env:
@@ -163,7 +163,7 @@ jobs:
         run: |
           mkdir -p shots
           for p in home pro min set; do
-            xvfb-run -a -s "-screen 0 1920x1080x24" ./build/app/PushFPS --screenshot shots/linux-$p.png --page $p --lang en
+            xvfb-run -a -s "-screen 0 1920x1080x24" ./build/app/FrameWeave --screenshot shots/linux-$p.png --page $p --lang en
           done
           cp build/gpucheck.png shots/linux-gpucheck.png
           cp build/gpucheck-cpu.png shots/linux-gpucheck-cpu.png
@@ -194,36 +194,36 @@ jobs:
           # and update information inside the file, so AppImageUpdate and similar tools can update it
           # from the latest GitHub release through the .zsync file published beside it.
           sudo apt-get install -y -qq zsync >/dev/null || echo "::warning::zsync not installed; the AppImage gets no .zsync file"
-          export LDAI_OUTPUT=PushFPS-$version-x86_64.AppImage
-          export LDAI_UPDATE_INFORMATION="gh-releases-zsync|${GITHUB_REPOSITORY%/*}|${GITHUB_REPOSITORY#*/}|latest|PushFPS-*-x86_64.AppImage.zsync"
+          export LDAI_OUTPUT=FrameWeave-$version-x86_64.AppImage
+          export LDAI_UPDATE_INFORMATION="gh-releases-zsync|${GITHUB_REPOSITORY%/*}|${GITHUB_REPOSITORY#*/}|latest|FrameWeave-*-x86_64.AppImage.zsync"
           export UPDATE_INFORMATION="$LDAI_UPDATE_INFORMATION"
           ./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt --output appimage \
             --desktop-file AppDir/usr/share/applications/pushfps.desktop \
             --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/pushfps.png
           # The update information is a string in the file's own .upd_info section. (The runtime's
           # --appimage-updateinformation prints nothing while APPIMAGE_EXTRACT_AND_RUN is set, as it is here.)
-          if grep -a -q "gh-releases-zsync|${GITHUB_REPOSITORY%/*}|" PushFPS-$version-x86_64.AppImage; then echo "update information is embedded"
+          if grep -a -q "gh-releases-zsync|${GITHUB_REPOSITORY%/*}|" FrameWeave-$version-x86_64.AppImage; then echo "update information is embedded"
           else echo "::warning::the AppImage carries no update information"; fi
-          ls -la PushFPS-$version-x86_64.AppImage.zsync 2>/dev/null || echo "::warning::no .zsync file was written"
-          # The same folder as a portable download: unpack, run ./PushFPS (AppRun).
-          cp -r AppDir PushFPS-$version-linux-x86_64
-          cp LICENSE PushFPS-$version-linux-x86_64/LICENSE.txt
-          cp licenses/NVIDIA_Image_Scaling_SDK_MIT.txt PushFPS-$version-linux-x86_64/
-          cp portable/app/packaging/README-linux.txt PushFPS-$version-linux-x86_64/README.txt
-          ln -sf AppRun PushFPS-$version-linux-x86_64/PushFPS
-          tar -czf PushFPS-$version-linux-x86_64.tar.gz PushFPS-$version-linux-x86_64
-          ls -la PushFPS-*.AppImage *.tar.gz
+          ls -la FrameWeave-$version-x86_64.AppImage.zsync 2>/dev/null || echo "::warning::no .zsync file was written"
+          # The same folder as a portable download: unpack, run ./FrameWeave (AppRun).
+          cp -r AppDir FrameWeave-$version-linux-x86_64
+          cp LICENSE FrameWeave-$version-linux-x86_64/LICENSE.txt
+          cp licenses/NVIDIA_Image_Scaling_SDK_MIT.txt FrameWeave-$version-linux-x86_64/
+          cp portable/app/packaging/README-linux.txt FrameWeave-$version-linux-x86_64/README.txt
+          ln -sf AppRun FrameWeave-$version-linux-x86_64/FrameWeave
+          tar -czf FrameWeave-$version-linux-x86_64.tar.gz FrameWeave-$version-linux-x86_64
+          ls -la FrameWeave-*.AppImage *.tar.gz
 
       - name: Package test in a clean Ubuntu 24.04 container
         run: |
           docker run --rm -v $PWD:/w -w /w ubuntu:24.04 bash -c '
             set -e
             apt-get update -qq && apt-get install -y -qq --no-install-recommends libgl1 libopengl0 libegl1 libfontconfig1 libxkbcommon0 libglib2.0-0t64 libdbus-1-3 >/dev/null
-            mkdir -p /tmp/t && tar -xzf PushFPS-'$PORTABLE_VERSION'-linux-x86_64.tar.gz -C /tmp/t
-            cd /tmp/t/PushFPS-'$PORTABLE_VERSION'-linux-x86_64
-            QT_QPA_PLATFORM=offscreen ./PushFPS --selftest 5 --source testpattern
+            mkdir -p /tmp/t && tar -xzf FrameWeave-'$PORTABLE_VERSION'-linux-x86_64.tar.gz -C /tmp/t
+            cd /tmp/t/FrameWeave-'$PORTABLE_VERSION'-linux-x86_64
+            QT_QPA_PLATFORM=offscreen ./FrameWeave --selftest 5 --source testpattern
             touch portable.txt
-            QT_QPA_PLATFORM=offscreen ./PushFPS --version'
+            QT_QPA_PLATFORM=offscreen ./FrameWeave --version'
 
       - name: Publish screenshots
         if: github.event_name != 'pull_request'
@@ -254,11 +254,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          sha256sum PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz > PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz.sha256
-          sha256sum PushFPS-$PORTABLE_VERSION-x86_64.AppImage > PushFPS-$PORTABLE_VERSION-x86_64.AppImage.sha256
-          files="PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz PushFPS-$PORTABLE_VERSION-linux-x86_64.tar.gz.sha256 PushFPS-$PORTABLE_VERSION-x86_64.AppImage PushFPS-$PORTABLE_VERSION-x86_64.AppImage.sha256"
+          sha256sum FrameWeave-$PORTABLE_VERSION-linux-x86_64.tar.gz > FrameWeave-$PORTABLE_VERSION-linux-x86_64.tar.gz.sha256
+          sha256sum FrameWeave-$PORTABLE_VERSION-x86_64.AppImage > FrameWeave-$PORTABLE_VERSION-x86_64.AppImage.sha256
+          files="FrameWeave-$PORTABLE_VERSION-linux-x86_64.tar.gz FrameWeave-$PORTABLE_VERSION-linux-x86_64.tar.gz.sha256 FrameWeave-$PORTABLE_VERSION-x86_64.AppImage FrameWeave-$PORTABLE_VERSION-x86_64.AppImage.sha256"
           # The .zsync file is what AppImage update tools read; without it they report "no update".
-          if [ -f PushFPS-$PORTABLE_VERSION-x86_64.AppImage.zsync ]; then files="$files PushFPS-$PORTABLE_VERSION-x86_64.AppImage.zsync"; fi
+          if [ -f FrameWeave-$PORTABLE_VERSION-x86_64.AppImage.zsync ]; then files="$files FrameWeave-$PORTABLE_VERSION-x86_64.AppImage.zsync"; fi
           gh release upload "$RELEASE_TAG" --clobber $files
 
   macos:
@@ -287,22 +287,22 @@ jobs:
           modules: qtmultimedia qtshadertools
           cache: true
 
-      - name: Build PushFPS (Apple Silicon and Intel)
+      - name: Build FrameWeave (Apple Silicon and Intel)
         run: |
           cmake -S portable -B build -DCMAKE_BUILD_TYPE=Release -DPUSHFPS_PORTABLE_TESTS=OFF "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
           cmake --build build -j4
-          lipo -info build/app/PushFPS.app/Contents/MacOS/PushFPS
+          lipo -info build/app/FrameWeave.app/Contents/MacOS/FrameWeave
 
       - name: Self-test
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
           set -e
-          app=build/app/PushFPS.app/Contents/MacOS/PushFPS
+          app=build/app/FrameWeave.app/Contents/MacOS/FrameWeave
           $app --version
           $app --list-devices
           # Shared macOS runners sometimes starve the process for seconds (the 60 Hz test picture then arrives
-          # at 40 Hz and the rate check fails for reasons outside PushFPS). A real fault fails twice in a row.
+          # at 40 Hz and the rate check fails for reasons outside FrameWeave). A real fault fails twice in a row.
           twice() { "$@" || { echo "::warning::retrying once: $*"; "$@"; }; }
           twice $app --selftest 6 --source testpattern --target 60
           twice $app --selftest 8 --source testpattern-uneven --pacing --hud --target 60
@@ -314,17 +314,17 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
-          app=build/app/PushFPS.app/Contents/MacOS/PushFPS
+          app=build/app/FrameWeave.app/Contents/MacOS/FrameWeave
           $app --selftest 6 --source testpattern
           $app --selftest 8 --source testpattern-uneven --pacing --hud
 
       - name: GPU check (Metal)
         continue-on-error: true
-        run: build/app/PushFPS.app/Contents/MacOS/PushFPS --gpucheck --save build/gpucheck.png
+        run: build/app/FrameWeave.app/Contents/MacOS/FrameWeave --gpucheck --save build/gpucheck.png
 
       - name: NIS check (Metal)
         continue-on-error: true
-        run: build/app/PushFPS.app/Contents/MacOS/PushFPS --nischeck --save build/nischeck.png
+        run: build/app/FrameWeave.app/Contents/MacOS/FrameWeave --nischeck --save build/nischeck.png
 
       - name: Package (app bundle, zip)
         run: |
@@ -333,18 +333,18 @@ jobs:
           tag="$RELEASE_TAG"; if [ -n "$tag" ]; then version=${tag#v}; fi
           echo "PORTABLE_VERSION=$version" >> $GITHUB_ENV
           python3 -m pip install --quiet --break-system-packages pillow 2>/dev/null || python3 -m pip install --quiet pillow
-          mkdir -p build/app/PushFPS.app/Contents/Resources
-          python3 -c "from PIL import Image; Image.open('portable/app/qml/icon.png').convert('RGBA').save('build/app/PushFPS.app/Contents/Resources/PushFPS.icns', sizes=[(16,16),(32,32),(64,64),(128,128),(256,256),(512,512),(1024,1024)])"
-          macdeployqt build/app/PushFPS.app -qmldir=portable/app/qml -always-overwrite
+          mkdir -p build/app/FrameWeave.app/Contents/Resources
+          python3 -c "from PIL import Image; Image.open('portable/app/qml/icon.png').convert('RGBA').save('build/app/FrameWeave.app/Contents/Resources/FrameWeave.icns', sizes=[(16,16),(32,32),(64,64),(128,128),(256,256),(512,512),(1024,1024)])"
+          macdeployqt build/app/FrameWeave.app -qmldir=portable/app/qml -always-overwrite
           # Ad-hoc signature (required to run on Apple Silicon); not notarised.
-          codesign --force --deep --sign - build/app/PushFPS.app
-          codesign --verify --deep --strict build/app/PushFPS.app
+          codesign --force --deep --sign - build/app/FrameWeave.app
+          codesign --verify --deep --strict build/app/FrameWeave.app
           mkdir -p dist
-          ditto build/app/PushFPS.app dist/PushFPS.app
+          ditto build/app/FrameWeave.app dist/FrameWeave.app
           cp LICENSE dist/LICENSE.txt
           cp licenses/NVIDIA_Image_Scaling_SDK_MIT.txt dist/
           cp portable/app/packaging/README-macos.txt dist/README.txt
-          ditto -c -k --sequesterRsrc dist PushFPS-$version-macos-universal.zip
+          ditto -c -k --sequesterRsrc dist FrameWeave-$version-macos-universal.zip
           ls -la *.zip
 
       - name: Package test (deployed bundle)
@@ -352,12 +352,12 @@ jobs:
           QT_QPA_PLATFORM: offscreen
         run: |
           set -e
-          mkdir -p /tmp/t && ditto -x -k PushFPS-$PORTABLE_VERSION-macos-universal.zip /tmp/t
+          mkdir -p /tmp/t && ditto -x -k FrameWeave-$PORTABLE_VERSION-macos-universal.zip /tmp/t
           # Make sure nothing still points at the Qt install on this machine.
           : "${QT_ROOT_DIR:?Qt installation path is missing}"
-          linked_libraries=$(otool -L /tmp/t/PushFPS.app/Contents/MacOS/PushFPS)
+          linked_libraries=$(otool -L /tmp/t/FrameWeave.app/Contents/MacOS/FrameWeave)
           if [[ "$linked_libraries" == *"${QT_ROOT_DIR%/}/"* ]]; then
-            echo "::error::The packaged PushFPS executable links to the runner's Qt installation"
+            echo "::error::The packaged FrameWeave executable links to the runner's Qt installation"
             exit 1
           fi
           # This checks the packaged bundle (Qt frameworks, plugins, shaders, QML), not speed: the 120 FPS
@@ -368,7 +368,7 @@ jobs:
           # generated frames is a warning; a bundle that cannot start, read or render still fails (codes 2-4).
           bundle_test() {
             set +e
-            out=$(/tmp/t/PushFPS.app/Contents/MacOS/PushFPS --selftest 5 --source testpattern --target 60 2>&1); code=$?
+            out=$(/tmp/t/FrameWeave.app/Contents/MacOS/FrameWeave --selftest 5 --source testpattern --target 60 2>&1); code=$?
             set -e
             echo "$out"
             [ $code -eq 0 ] && return 0
@@ -385,7 +385,7 @@ jobs:
         run: |
           mkdir -p shots
           for p in home pro min set; do
-            build/app/PushFPS.app/Contents/MacOS/PushFPS --screenshot shots/macos-$p.png --page $p --lang en || true
+            build/app/FrameWeave.app/Contents/MacOS/FrameWeave --screenshot shots/macos-$p.png --page $p --lang en || true
           done
           cp build/gpucheck.png shots/macos-gpucheck.png 2>/dev/null || true
           cp build/nischeck.png shots/macos-nischeck.png 2>/dev/null || true
@@ -418,5 +418,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          shasum -a 256 PushFPS-$PORTABLE_VERSION-macos-universal.zip > PushFPS-$PORTABLE_VERSION-macos-universal.zip.sha256
-          gh release upload "$RELEASE_TAG" --clobber PushFPS-$PORTABLE_VERSION-macos-universal.zip PushFPS-$PORTABLE_VERSION-macos-universal.zip.sha256
+          shasum -a 256 FrameWeave-$PORTABLE_VERSION-macos-universal.zip > FrameWeave-$PORTABLE_VERSION-macos-universal.zip.sha256
+          gh release upload "$RELEASE_TAG" --clobber FrameWeave-$PORTABLE_VERSION-macos-universal.zip FrameWeave-$PORTABLE_VERSION-macos-universal.zip.sha256

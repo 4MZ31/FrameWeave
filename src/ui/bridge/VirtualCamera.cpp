@@ -11,13 +11,13 @@ int QmlPlayerBridge::virtualCameraFps()const{
 void QmlPlayerBridge::setVirtualCameraEnabled(bool enabled){
     std::wstring error;
     if(impl_->engine.setVirtualCamera(enabled,uint32_t(virtualCameraFps()),error)&&enabled&&!virtualCameraEnabled())
-        emit notice(tr("虚拟摄像机已启用，在直播软件中选择 PushFPS Virtual Camera"),false);
+        emit notice(tr("虚拟摄像机已启用，在直播软件中选择 FrameWeave Virtual Camera"),false);
     pollVirtualCamera();
 }
 void QmlPlayerBridge::uninstallVirtualCamera(){
     std::wstring error;
     if(!impl_->engine.uninstallVirtualCamera(error))emit notice(i18n::text(error),true);
-    else if(!impl_->engine.virtualCameraSnapshot().installing)emit notice(tr("已卸载当前用户的 PushFPS 虚拟摄像机"),false);
+    else if(!impl_->engine.virtualCameraSnapshot().installing)emit notice(tr("已卸载当前用户的 FrameWeave 虚拟摄像机"),false);
     pollVirtualCamera();
 }
 void QmlPlayerBridge::installVirtualCamera(){

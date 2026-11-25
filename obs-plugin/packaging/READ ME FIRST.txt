@@ -1,41 +1,41 @@
-PushFPS for OBS Studio
+FrameWeave for OBS Studio
 ======================
 
 What it does
-  Adds a "PushFPS" source to OBS Studio (28 or newer, Windows 10/11 x64). The source shows
-  PushFPS's output - your console picture after frame generation and AI enhancement - in any
-  scene, at the frame rate PushFPS produces. It can also start PushFPS for you.
+  Adds a "FrameWeave" source to OBS Studio (28 or newer, Windows 10/11 x64). The source shows
+  FrameWeave's output - your console picture after frame generation and AI enhancement - in any
+  scene, at the frame rate FrameWeave produces. It can also start FrameWeave for you.
 
-  PushFPS itself does the processing; it must be installed (Install-PushFPS.cmd from the
-  PushFPS download). This plugin brings its picture into OBS.
+  FrameWeave itself does the processing; it must be installed (Install-FrameWeave.cmd from the
+  FrameWeave download). This plugin brings its picture into OBS.
 
 Install
   1. Close OBS Studio.
-  2. Double-click Install-PushFPS-OBS.cmd. No administrator rights needed.
-  3. Start OBS Studio. In a scene, click + under Sources and pick "PushFPS".
+  2. Double-click Install-FrameWeave-OBS.cmd. No administrator rights needed.
+  3. Start OBS Studio. In a scene, click + under Sources and pick "FrameWeave".
 
 Using it
-  - "Open PushFPS" (in the source's properties, or Tools > Open PushFPS) starts PushFPS with
+  - "Open FrameWeave" (in the source's properties, or Tools > Open FrameWeave) starts FrameWeave with
     OBS game capture support, or brings it to the front when it already runs.
   - Capture method "Game capture" receives every generated frame (recommended). If the source
-    stays empty, choose "Window capture". If you start PushFPS yourself, turn on
-    Settings > Compatible > OBS Game Capture compatibility in PushFPS once and restart it.
-  - Sound: add an "Application Audio Capture" source and pick PushFPS.exe.
-  - For a custom installation, click "PushFPS.exe location (this PC)" in the source properties
-    and choose the installed PushFPS.exe once. All scenes and the Tools menu use that local choice.
+    stays empty, choose "Window capture". If you start FrameWeave yourself, turn on
+    Settings > Compatible > OBS Game Capture compatibility in FrameWeave once and restart it.
+  - Sound: add an "Application Audio Capture" source and pick FrameWeave.exe.
+  - For a custom installation, click "FrameWeave.exe location (this PC)" in the source properties
+    and choose the installed FrameWeave.exe once. All scenes and the Tools menu use that local choice.
     After upgrading from an older plugin, select custom installations again on this PC.
 
 Where it goes
   %ProgramData%\obs-studio\plugins\pushfps-obs\pushfps-obs.dll for OBS Studio 33 and newer (the
   plugin layout OBS 34 requires), plus a copy in bin\64bit for OBS Studio 28 to 32. OBS 33+ loads
-  the new one, so the Plugin Manager does not list PushFPS as Legacy.
+  the new one, so the Plugin Manager does not list FrameWeave as Legacy.
 
 Uninstall
-  Close OBS Studio and run:  Install-PushFPS-OBS.cmd -Uninstall
+  Close OBS Studio and run:  Install-FrameWeave-OBS.cmd -Uninstall
 
 License
-  PushFPS for OBS is free software under the GNU GPL, version 3 or (at your option) any later
+  FrameWeave for OBS is free software under the GNU GPL, version 3 or (at your option) any later
   version, and comes with ABSOLUTELY NO WARRANTY. See LICENSE.txt and NOTICE.md in this folder.
-  Source code: https://github.com/DosukaSOL/PushFPS (folder obs-plugin, at the tag of this release).
-  PushFPS is a modified version of Veyra by Likely7: https://github.com/Likely7/Veyra-NRVideo
+  Source code: https://github.com/4MZ31/FrameWeave (folder obs-plugin, at the tag of this release).
+  FrameWeave is a modified version of Veyra by Likely7: https://github.com/Likely7/Veyra-NRVideo
   OBS Studio is by the OBS Project (GPL-2.0-or-later); this plugin only uses its public API.

@@ -14,7 +14,7 @@ DialogLayer {
     objectName: "pushfps-crash"
     key: "crash"
     glyph: "info"
-    title: qsTr("PushFPS 上次意外关闭了")
+    title: qsTr("FrameWeave 上次意外关闭了")
     sub: crash.report.optimising === true
          ? qsTr("当时「为我的电脑优化」正在测试，出问题的那一项这个版本不会再测。下面的摘要可以帮我们找到原因")
          : qsTr("抱歉。下面的摘要可以帮我们找到原因")

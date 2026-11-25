@@ -41,14 +41,14 @@ int main() {
     {
         const std::vector<Marker> marks{{125.0, "second"}, {12.34, "first"}, {125.0, "also second"}, {4000, ""}};
         const auto text = fileText("2026-11-20 21-14-05.mp4", marks);
-        CHECK(text == "PushFPS markers for 2026-11-20 21-14-05.mp4\r\n"
+        CHECK(text == "FrameWeave markers for 2026-11-20 21-14-05.mp4\r\n"
                       "0:00:12.3  first\r\n"
                       "0:02:05.0  second\r\n"
                       "0:02:05.0  also second\r\n"
                       "1:06:40.0\r\n");
-        CHECK(fileText("clip.mp4", {}) == "PushFPS markers for clip.mp4\r\n");
+        CHECK(fileText("clip.mp4", {}) == "FrameWeave markers for clip.mp4\r\n");
         // A file name can never add a line to the file.
-        CHECK(fileText("evil\r\n0:00:00.0  fake.mp4", {}) == "PushFPS markers for evil 0:00:00.0 fake.mp4\r\n");
+        CHECK(fileText("evil\r\n0:00:00.0  fake.mp4", {}) == "FrameWeave markers for evil 0:00:00.0 fake.mp4\r\n");
     }
 
     // The markers file's name: beside the recording, never anywhere else.

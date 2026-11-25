@@ -88,7 +88,7 @@ QImage TestPattern::render(int width, int height, double t) {
     f.setPixelSize(26);
     f.setBold(true);
     p.setFont(f);
-    p.drawText(QRectF(44, 28, 300, 34), Qt::AlignLeft | Qt::AlignVCenter, QStringLiteral("PUSHFPS TEST"));
+    p.drawText(QRectF(44, 28, 300, 34), Qt::AlignLeft | Qt::AlignVCenter, QStringLiteral("FRAMEWEAVE TEST"));
     p.setPen(QPen(QColor(255, 255, 255), 3));
     p.drawLine(QPointF(640 - 14, 360), QPointF(640 + 14, 360));
     p.drawLine(QPointF(640, 360 - 14), QPointF(640, 360 + 14));

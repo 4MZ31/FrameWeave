@@ -241,7 +241,7 @@ QVariantList QmlPlayerBridge::captureAudioInputs() const {
                                {"label", d.hasEmbeddedAudio ? tr("视频设备内置音频（已检测）") : tr("尝试视频设备内置音频")}};
     for (size_t i = 0; i < impl_->captureAudio.size(); ++i) {
         const auto& device = impl_->captureAudio[i];
-        const auto label = device.virtualSpeaker ? tr("PushFPS 虚拟扬声器 · %1").arg(utf8Of(device.name))
+        const auto label = device.virtualSpeaker ? tr("FrameWeave 虚拟扬声器 · %1").arg(utf8Of(device.name))
             : QStringLiteral("[%1] %2").arg(device.wasapi ? QStringLiteral("WASAPI") : QStringLiteral("DirectShow"), utf8Of(device.name));
         out << QVariantMap{{"id", int(i)}, {"label", label}};
     }
@@ -428,7 +428,7 @@ void QmlPlayerBridge::tickCapture() {
         // a busy mark with no explanation. Nothing is cancelled: a driver that answers late is still used.
         if (!i.captureQuerySlowNoted && std::chrono::steady_clock::now() - i.captureQueryStarted >= std::chrono::seconds(kCaptureQuerySlowSeconds)) {
             i.captureQuerySlowNoted = true;
-            i.captureStatus = tr("采集设备还没有响应。如果一直这样：关闭其他正在使用采集卡或摄像头的软件，把设备拔下再插回，然后重新启动 PushFPS。");
+            i.captureStatus = tr("采集设备还没有响应。如果一直这样：关闭其他正在使用采集卡或摄像头的软件，把设备拔下再插回，然后重新启动 FrameWeave。");
             veyra::log::warn("capture-ui", std::format("query kind={} still waiting after {} s", i.captureQueryKind, kCaptureQuerySlowSeconds));
             emit captureChanged();
         }
@@ -790,7 +790,7 @@ bool QmlPlayerBridge::startScreenCapture(bool cropPreview) {
     if (game && value.kind == source::ScreenTargetKind::Window) {
         source::vdesk::Placement desktop;
         if (source::vdesk::Lookup{}.otherDesktop(reinterpret_cast<void*>(value.target), desktop)) {
-            emit notice(tr("游戏模式需要窗口和 PushFPS 在同一个虚拟桌面：请把窗口移到当前桌面，或关闭游戏模式后直接捕获"), true);
+            emit notice(tr("游戏模式需要窗口和 FrameWeave 在同一个虚拟桌面：请把窗口移到当前桌面，或关闭游戏模式后直接捕获"), true);
             return false;
         }
     }

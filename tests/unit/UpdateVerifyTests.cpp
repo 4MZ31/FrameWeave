@@ -82,15 +82,15 @@ private slots:
         const QByteArray sums = fixture("SHA256SUMS.txt");
         const auto pkg = updatePackageIn(sums);
         QVERIFY(pkg.has_value());
-        QCOMPARE(pkg->fileName, QStringLiteral("PushFPS-9.9.9-win64.zip"));
+        QCOMPARE(pkg->fileName, QStringLiteral("FrameWeave-9.9.9-win64.zip"));
         QCOMPARE(pkg->version, QVersionNumber(9, 9, 9));
-        QCOMPARE(pkg->sha256, QByteArray("9cf0393b38dfb998d3fdf131983522a2cb938ada3c6ab2b33eff807182e6805c"));
-        QCOMPARE(updateSumFor(sums, QStringLiteral("PushFPS-9.9.9-OBS-Plugin.zip")).value(), QByteArray(64, '0'));
+        QCOMPARE(pkg->sha256, QByteArray("e06e57acbbb908d523101945f38805aa4d2e5fd59367859fc09cc27fa3139569"));
+        QCOMPARE(updateSumFor(sums, QStringLiteral("FrameWeave-9.9.9-OBS-Plugin.zip")).value(), QByteArray(64, '0'));
         QVERIFY(!updateSumFor(sums, QStringLiteral("other.zip")).has_value());
         QVERIFY(!updatePackageIn(sums + sums).has_value());   // two packages: refused
-        QVERIFY(!updatePackageIn("deadbeef  PushFPS-1.0.0-win64.zip\n").has_value());
-        QVERIFY(!updatePackageIn(QByteArray(64, 'a') + "  PushFPS-1.0.0-beta-win64.zip\n").has_value());
-        QVERIFY(updatePackageIn(QByteArray(64, 'A') + " *PushFPS-1.2.3-win64.zip\r\n").has_value());
+        QVERIFY(!updatePackageIn("deadbeef  FrameWeave-1.0.0-win64.zip\n").has_value());
+        QVERIFY(!updatePackageIn(QByteArray(64, 'a') + "  FrameWeave-1.0.0-beta-win64.zip\n").has_value());
+        QVERIFY(updatePackageIn(QByteArray(64, 'A') + " *FrameWeave-1.2.3-win64.zip\r\n").has_value());
     }
     void installRecord() {
         auto rec = parseInstalledVersionFile("PushFPS 3.2.0\r\nRuntime: Veyra-2.1.6-NVIDIA-win64-portable.zip from https://x\r\nRuntime SHA-256: ab\r\n");
@@ -109,9 +109,9 @@ private slots:
         Server server;
         server.files["/latest"] = QJsonDocument(QJsonObject{
             {"tag_name", "v3.1.4"}, {"draft", false}, {"prerelease", false},
-            {"html_url", "https://github.com/4MZ31/PushFPS/releases/tag/v3.1.4"}, {"assets", QJsonArray{}}}).toJson();
+            {"html_url", "https://github.com/4MZ31/FrameWeave/releases/tag/v3.1.4"}, {"assets", QJsonArray{}}}).toJson();
         QTemporaryDir install;
-        QFile rec(install.filePath("PushFPS-VERSION.txt"));
+        QFile rec(install.filePath("FrameWeave-VERSION.txt"));
         QVERIFY(rec.open(QIODevice::WriteOnly));
         rec.write("PushFPS 3.1.4\r\nRuntime: Veyra-2.1.9-NVIDIA-win64-portable.zip from x\r\n");
         rec.close();
@@ -136,23 +136,23 @@ private slots:
     void installFlow() {
         QFETCH(bool, tamperZip); QFETCH(bool, tamperSig); QFETCH(QString, result);
         Server server;
-        const QByteArray dl = "/4MZ31/PushFPS/releases/download/v9.9.9/";
+        const QByteArray dl = "/4MZ31/FrameWeave/releases/download/v9.9.9/";
         auto asset = [&](const char* name) { return QJsonObject{{"name", name}, {"browser_download_url", QString::fromLatin1(server.base() + dl + name)}}; };
         server.files["/latest"] = QJsonDocument(QJsonObject{
             {"tag_name", "v9.9.9"}, {"draft", false}, {"prerelease", false},
-            {"html_url", "https://github.com/4MZ31/PushFPS/releases/tag/v9.9.9"},
-            {"assets", QJsonArray{asset("SHA256SUMS.txt"), asset("SHA256SUMS.txt.sig"), asset("PushFPS-9.9.9-win64.zip"),
-                                  QJsonObject{{"name", "PushFPS-9.9.9-win64.zip"}, {"browser_download_url", "https://evil.example/PushFPS-9.9.9-win64.zip"}}}}}).toJson();
+            {"html_url", "https://github.com/4MZ31/FrameWeave/releases/tag/v9.9.9"},
+            {"assets", QJsonArray{asset("SHA256SUMS.txt"), asset("SHA256SUMS.txt.sig"), asset("FrameWeave-9.9.9-win64.zip"),
+                                  QJsonObject{{"name", "FrameWeave-9.9.9-win64.zip"}, {"browser_download_url", "https://evil.example/FrameWeave-9.9.9-win64.zip"}}}}}).toJson();
         server.files[dl + "SHA256SUMS.txt"] = fixture("SHA256SUMS.txt");
         QByteArray sig = fixture("SHA256SUMS.txt.sig");
         if (tamperSig) sig[3] = char(sig[3] ^ 1);
         server.files[dl + "SHA256SUMS.txt.sig"] = sig;
-        QByteArray zip = fixture("PushFPS-9.9.9-win64.zip");
+        QByteArray zip = fixture("FrameWeave-9.9.9-win64.zip");
         if (tamperZip) zip.append('x');
-        server.files[dl + "PushFPS-9.9.9-win64.zip"] = zip;
+        server.files[dl + "FrameWeave-9.9.9-win64.zip"] = zip;
 
         QTemporaryDir install;
-        QFile rec(install.filePath("PushFPS-VERSION.txt"));
+        QFile rec(install.filePath("FrameWeave-VERSION.txt"));
         QVERIFY(rec.open(QIODevice::WriteOnly));
         rec.write("PushFPS 3.2.0\r\nRuntime: Veyra-2.1.6-NVIDIA-win64-portable.zip from x\r\nNot installed: x\r\n");
         rec.close();
@@ -189,28 +189,28 @@ private slots:
     // read first (no earlier check), the same signed path, no update offered, the installer told Yes.
     void extrasRepeatTheInstalledVersion() {
         Server server;
-        const QByteArray dl = "/4MZ31/PushFPS/releases/download/v9.9.9/";
+        const QByteArray dl = "/4MZ31/FrameWeave/releases/download/v9.9.9/";
         auto asset = [&](const char* name) { return QJsonObject{{"name", name}, {"browser_download_url", QString::fromLatin1(server.base() + dl + name)}}; };
         server.files["/latest"] = QJsonDocument(QJsonObject{
             {"tag_name", "v9.9.9"}, {"draft", false}, {"prerelease", false},
-            {"html_url", "https://github.com/4MZ31/PushFPS/releases/tag/v9.9.9"},
-            {"assets", QJsonArray{asset("SHA256SUMS.txt"), asset("SHA256SUMS.txt.sig"), asset("PushFPS-9.9.9-win64.zip")}}}).toJson();
+            {"html_url", "https://github.com/4MZ31/FrameWeave/releases/tag/v9.9.9"},
+            {"assets", QJsonArray{asset("SHA256SUMS.txt"), asset("SHA256SUMS.txt.sig"), asset("FrameWeave-9.9.9-win64.zip")}}}).toJson();
         server.files[dl + "SHA256SUMS.txt"] = fixture("SHA256SUMS.txt");
         server.files[dl + "SHA256SUMS.txt.sig"] = fixture("SHA256SUMS.txt.sig");
-        server.files[dl + "PushFPS-9.9.9-win64.zip"] = fixture("PushFPS-9.9.9-win64.zip");
+        server.files[dl + "FrameWeave-9.9.9-win64.zip"] = fixture("FrameWeave-9.9.9-win64.zip");
         QTemporaryDir install;
         auto record = [&](const QByteArray& text) {
-            QFile rec(install.filePath("PushFPS-VERSION.txt"));
+            QFile rec(install.filePath("FrameWeave-VERSION.txt"));
             QVERIFY(rec.open(QIODevice::WriteOnly | QIODevice::Truncate));
             rec.write(text);
         };
-        record("PushFPS 9.9.9\r\nRuntime: Veyra-2.2.1-NVIDIA-win64-portable.zip from x\r\n");
+        record("FrameWeave 9.9.9\r\nRuntime: Veyra-2.2.1-NVIDIA-win64-portable.zip from x\r\n");
         UpdateChecker checker(QStringLiteral("9.9.9"), nullptr, QUrl(QString::fromLatin1(server.base() + "/latest")));
         checker.setAllowHttpForTests(true);
         checker.setUpdateKeyForTests(fixture("test-only-public.pem"));
         checker.setInstallDirForTests(install.path());
         QVERIFY2(!checker.canInstallExtras(), "the extras are installed already");
-        record("PushFPS 9.9.9\r\nRuntime: Veyra-2.2.1-NVIDIA-win64-portable.zip from x\r\nNot installed: runtime\\nr-ampere\\nvngx_dlssnr.dll (x)\r\n");
+        record("FrameWeave 9.9.9\r\nRuntime: Veyra-2.2.1-NVIDIA-win64-portable.zip from x\r\nNot installed: runtime\\nr-ampere\\nvngx_dlssnr.dll (x)\r\n");
         QVERIFY(checker.canInstallExtras());
         QString program; QStringList args;
         checker.setLaunchInstallerForTests([&](const QString& p, const QStringList& a) { program = p; args = a; return true; });
@@ -230,9 +230,9 @@ private slots:
         Server server;
         server.files["/latest"] = QJsonDocument(QJsonObject{
             {"tag_name", "v9.9.9"}, {"draft", false}, {"prerelease", false},
-            {"html_url", "https://github.com/4MZ31/PushFPS/releases/tag/v9.9.9"}, {"assets", QJsonArray{}}}).toJson();
+            {"html_url", "https://github.com/4MZ31/FrameWeave/releases/tag/v9.9.9"}, {"assets", QJsonArray{}}}).toJson();
         QTemporaryDir install;
-        QFile rec(install.filePath("PushFPS-VERSION.txt"));
+        QFile rec(install.filePath("FrameWeave-VERSION.txt"));
         QVERIFY(rec.open(QIODevice::WriteOnly));
         rec.write("PushFPS 10.0.0\r\nRuntime: Veyra-2.2.1-AMD-win64-portable.zip from x\r\nNot installed: runtime\\amd-nr (x)\r\n");
         rec.close();

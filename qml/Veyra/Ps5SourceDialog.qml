@@ -85,7 +85,7 @@ DialogLayer {
             // People typed their PSN name here with the old hint right under the box and never pressed the button.
             // Since 4.4.6 the button opens Sony's own sign-in page (never a lookup website) and the row under this
             // one takes back the address the page lands on.
-            hint: qsTr("点“获取 Account ID”，在索尼自己的页面登录，PushFPS 会替你填入。不是 PSN 昵称。不要在任何地方粘贴 NPSSO 码：它就是你的 PSN 登录。")
+            hint: qsTr("点“获取 Account ID”，在索尼自己的页面登录，FrameWeave 会替你填入。不是 PSN 昵称。不要在任何地方粘贴 NPSSO 码：它就是你的 PSN 登录。")
             hintBelow: true
             RowLayout {
                 spacing: 6

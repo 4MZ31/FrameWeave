@@ -1400,7 +1400,7 @@ QString QmlPlayerBridge::captureSignalText() const {
 
 void QmlPlayerBridge::importPresetDialog() {
     const QString path = QFileDialog::getOpenFileName(nullptr, tr("导入预设"), QString(),
-                                                      tr("PushFPS 预设 (*.vpreset);;所有文件 (*)"));
+                                                      tr("FrameWeave 预设 (*.vpreset);;所有文件 (*)"));
     if (!path.isEmpty()) importPreset(path);
 }
 bool QmlPlayerBridge::importPreset(const QString& path) {
@@ -1418,7 +1418,7 @@ void QmlPlayerBridge::exportPresetDialog(int index) {
     if (index < 0 || size_t(index) >= entries.size()) return;
     const QString path = QFileDialog::getSaveFileName(nullptr, tr("导出预设"),
                                                       utf8Of(entries[size_t(index)].name) + QStringLiteral(".vpreset"),
-                                                      tr("PushFPS 预设 (*.vpreset)"));
+                                                      tr("FrameWeave 预设 (*.vpreset)"));
     if (!path.isEmpty()) exportPreset(index, path);
 }
 bool QmlPlayerBridge::exportPreset(int index, const QString& path) {

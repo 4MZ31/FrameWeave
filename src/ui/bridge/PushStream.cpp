@@ -22,7 +22,7 @@ namespace {
 QByteArray protect(const QByteArray& plain) {
     DATA_BLOB in{DWORD(plain.size()), reinterpret_cast<BYTE*>(const_cast<char*>(plain.data()))};
     DATA_BLOB out{};
-    if (!CryptProtectData(&in, L"PushFPS stream key", nullptr, nullptr, nullptr, CRYPTPROTECT_UI_FORBIDDEN, &out)) return {};
+    if (!CryptProtectData(&in, L"FrameWeave stream key", nullptr, nullptr, nullptr, CRYPTPROTECT_UI_FORBIDDEN, &out)) return {};
     QByteArray result(reinterpret_cast<const char*>(out.pbData), int(out.cbData));
     LocalFree(out.pbData);
     return result;

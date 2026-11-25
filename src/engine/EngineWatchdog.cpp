@@ -121,7 +121,7 @@ void writeDump() {
     if (!write) { log::error("engine-hang", "minidump unavailable (dbghelp)"); return; }
     SYSTEMTIME st{};
     GetLocalTime(&st);
-    const auto name = std::format(L"pushfps-hang-{:04}{:02}{:02}-{:02}{:02}{:02}-{}.dmp", st.wYear, st.wMonth, st.wDay,
+    const auto name = std::format(L"frameweave-hang-{:04}{:02}{:02}-{:02}{:02}{:02}-{}.dmp", st.wYear, st.wMonth, st.wDay,
                                   st.wHour, st.wMinute, st.wSecond, GetCurrentProcessId());
     const auto path = std::filesystem::path(directory) / name;
     const HANDLE file = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);

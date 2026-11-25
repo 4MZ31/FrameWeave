@@ -1,11 +1,11 @@
-PushFPS setup guide: the best settings to start from
+FrameWeave setup guide: the best settings to start from
 ====================================================
 
-PushFPS is built on Veyra by Likely7. This guide is also on the website:
+FrameWeave is built on Veyra by Likely7. This guide is also on the website:
 https://dosukasol.github.io/PushFPS/#guide
 
 Contents
-  1. Start here: recommended PushFPS settings
+  1. Start here: recommended FrameWeave settings
   2. Then tune it to your liking
   3. Console settings (PS5, PS5 Pro, Xbox Series X|S, Switch, Switch 2)
   4. Capture card settings (frame rate, format, delay, which card)
@@ -36,7 +36,7 @@ set these in the Quick setup (Home or Pro mode):
   AI picture enhancement . OFF to start (it uses a lot of GPU). Turn it on later if you have headroom
   Lowest latency ......... ON for action games. It changes nothing about picture quality
 
-Then click "Optimise for my PC" with the game on screen (goal: Balanced). PushFPS tests the frame
+Then click "Optimise for my PC" with the game on screen (goal: Balanced). FrameWeave tests the frame
 generation methods your PC has on your real picture and keeps the best. "Undo" puts everything back.
 
 Which target for your monitor
@@ -57,7 +57,7 @@ Which target for your monitor
   Which multipliers your method offers:
     2x ......... every method
     3x and 4x .. NVIDIA Video Frame Generation, NVIDIA Frame Generation for games on RTX 50, ANR, Intel XeSS,
-                 PushFlow (PushFPS's own, any DirectX 12 card)
+                 PushFlow (FrameWeave's own, any DirectX 12 card)
     6x ......... NVIDIA Video Frame Generation, NVIDIA Frame Generation for games on RTX 50, ANR
     8x ......... NVIDIA Video Frame Generation only (RTX 40/50)
   AMD FSR stops at 2x, so a 30 FPS game goes to 60. More generated frames per real frame show more
@@ -85,7 +85,7 @@ Change one thing at a time, play a minute, then decide.
   Soft or blocky picture                      RTX Video Super Resolution at Medium (the default) on
                                               NVIDIA, NVIDIA Image Scaling on any card, or AI picture
                                               enhancement (NVIDIA RTX, Radeon RX 7000/9000; needs the
-                                              installer's experimental extras: run Install-PushFPS.cmd
+                                              installer's experimental extras: run Install-FrameWeave.cmd
                                               again and answer y when it asks)
   Frame rate drops with AI enhancement on     AI enhancement off, or a lower target
   An AMD or Intel card cannot keep up (FSR)   "Check my setup" on the home page, then "Use the lighter
@@ -107,7 +107,7 @@ All consoles
   - Output 60 Hz or 120 Hz: this depends on your capture card, not on your console (see below).
   - Variable refresh rate (VRR) OFF on the console. Capture needs a steady 60 or 120 Hz signal.
   - Resolution: what your capture card captures at 60 FPS (4K if it does 4K60, otherwise 1080p or 1440p).
-  - In-game: a mode locked to 30 FPS gives the sharpest picture, and PushFPS adds the smoothness.
+  - In-game: a mode locked to 30 FPS gives the sharpest picture, and FrameWeave adds the smoothness.
     A 60 FPS performance mode gives less delay.
 
 60 or 120 Hz? It depends on your capture card (same on PS5, PS5 Pro, Xbox Series X|S, Switch 2)
@@ -123,7 +123,7 @@ All consoles
     still pick 120 Hz from your TV even though the card can't capture it: you then get a black
     picture or stutter. Set 60 Hz by hand in that case.
   - 120 Hz doesn't make the game run faster: a 30 FPS game stays 30 FPS, so the game frame rate in
-    PushFPS stays 30.
+    FrameWeave stays 30.
 
 PlayStation 5 and PS5 Pro
   - Settings > System > HDMI > Enable HDCP: OFF (required, otherwise the capture card shows black).
@@ -131,7 +131,7 @@ PlayStation 5 and PS5 Pro
   - 120 Hz Output: Automatic only if your capture card captures 120 Hz (see above); otherwise Off.
   - VRR: Off.
   - HDR: see section 6. "On When Supported" for HDR play, "Off" for streaming and SDR clips.
-  - RGB range: Automatic, and match it in PushFPS's capture dialog (Limited or Full).
+  - RGB range: Automatic, and match it in FrameWeave's capture dialog (Limited or Full).
 
 Xbox Series X|S
   - Settings > General > TV & display options:
@@ -165,7 +165,7 @@ With thanks to Likely7, Veyra's developer: the delay figures and card picks in t
 checked against the makers' specs and corrected where needed.
 
   Frame rate ...... 60 FPS, also for a 30 FPS game. Each new picture reaches the PC sooner than with
-                    a 30 FPS capture. Half the frames are then repeats (AABBCC), so PushFPS removes
+                    a 30 FPS capture. Half the frames are then repeats (AABBCC), so FrameWeave removes
                     them before generating frames: the Quick setup and "Optimise for my PC" do this
                     for you; in Pro mode it is "Remove duplicate frames" (Automatic removal or 60->30).
                     120 FPS only if your card captures 120 Hz (section 3).
@@ -192,7 +192,7 @@ Which capture card
                  KUHAIMI G50. Plug into a real 10 Gbps port (USB 3.2 Gen 2) on the PC: on 5 Gbps
                  they capture less.
   PCIe ......... 4K60 HDR. AVerMedia GC573, Elgato 4K Pro
-  Tested with PushFPS: Elgato 4K X, HD60 X and 4K S. Reported working by users: Elgato HD60 S,
+  Tested with FrameWeave: Elgato 4K X, HD60 X and 4K S. Reported working by users: Elgato HD60 S,
   Elgato HD60 Pro, AVerMedia Live Gamer Ultra 2.1 (GC553G2), AVerMedia Live Streamer Ultra HD
   (GC571), ezcap Game Link Raw and FEELWORLD C4K. The other models are Veyra's developer's picks.
   Any card that shows up as a camera in Windows works.
@@ -208,7 +208,7 @@ NVIDIA Video Frame Generation: Medium or High?
   what your card keeps up with.
 
 PushFlow: which tier?
-  PushFlow is PushFPS's own frame generation (RIFE through DirectML) and runs on NVIDIA, AMD and
+  PushFlow is FrameWeave's own frame generation (RIFE through DirectML) and runs on NVIDIA, AMD and
   Intel cards, 2x to 4x. Start with Balanced. Fast estimates motion at half resolution for slower
   cards; Quality uses the full model and is the heaviest. Let "Optimise for my PC" check what your
   card keeps up with.
@@ -231,9 +231,9 @@ PushFlow: which tier?
   Power ................................. laptops: plugged in, "Best performance" power mode
   Microphone (for recordings/streams) ... Settings > Privacy & security > Microphone > allow desktop
                                           apps to access your microphone
-  Other apps ............................ close OBS (unless you use the PushFPS OBS plugin) and the
+  Other apps ............................ close OBS (unless you use the FrameWeave OBS plugin) and the
                                           capture card's own software before connecting
-  PushFPS window ........................ play fullscreen (F11): it skips the desktop compositor
+  FrameWeave window ........................ play fullscreen (F11): it skips the desktop compositor
 
 
 6. WHEN TO USE HDR
@@ -242,7 +242,7 @@ PushFlow: which tier?
 HDR only works end to end when every step is HDR: console, capture card, Windows and your monitor.
 One SDR step means SDR.
 
-  What you do                          Console HDR   Windows HDR   PushFPS
+  What you do                          Console HDR   Windows HDR   FrameWeave
   -----------------------------------  -----------   -----------   ---------------------------------------
   Play on an HDR monitor               On            On            Default (HDR output). Capture card set
   (capture card captures HDR)                                      to HDR at 60 FPS (1080p or 1440p on
@@ -255,7 +255,7 @@ One SDR step means SDR.
   Record in HDR (YouTube HDR,          On            On            Needs an NVIDIA graphics card: the file
   HDR video editing)                                               is HEVC 10-bit HDR
   Go live (Twitch, YouTube, Kick,      Off           Off           Streaming needs an SDR picture;
-  TikTok)                                                          PushFPS asks you to turn HDR off first
+  TikTok)                                                          FrameWeave asks you to turn HDR off first
   Vertical comparison clips            Off           Off           SDR gives a file every phone app shows
                                                                    correctly
 
@@ -291,19 +291,19 @@ PS5
   2. Get the pairing number: Settings > System > Remote Play > Pair Device (older system software
      calls it Link Device). The PS5 shows 8 digits for 5 minutes. Leave them on screen.
 
-  In PushFPS
+  In FrameWeave
   3. Open PS5 streaming and press Search. It finds your PS5 and fills in its address. Nothing found?
      Type the IP address the PS5 shows under Settings > Network > Connection Status > View
      Connection Status.
   4. Press Get Account ID. Sony's own sign-in page opens in your browser. Sign in, copy the address
      the browser ends on (it starts with https://remoteplay.dl.playstation.net) into the box under it
-     and press Fill in: PushFPS fills in your Account ID. Your PSN name itself does not work.
+     and press Fill in: FrameWeave fills in your Account ID. Your PSN name itself does not work.
      Never paste an "NPSSO" code anywhere: it is your signed-in PSN session.
   5. Type the 8 digits and press Pair and save.
   6. Press Connect. If the PS5 asks for the sign-in PIN of your PS5 user, type it under Sign-in PIN
      in the same window.
 
-  Controller: connect it to the PC with a USB cable, or pair it with the PC's Bluetooth. PushFPS
+  Controller: connect it to the PC with a USB cable, or pair it with the PC's Bluetooth. FrameWeave
   passes it on to the PS5 while its window is in front.
 
   You pair once. Next time: open PS5 streaming and press Connect. To start a PS5 that is in rest
@@ -317,9 +317,9 @@ Xbox (unofficial and experimental: it can stop working when Microsoft changes it
      features.
   2. Set the power option to Sleep: Settings > General > Power options > Sleep.
 
-  In PushFPS
-  3. Open Xbox streaming and press Sign in. PushFPS shows a code. Enter it at microsoft.com/link and
-     sign in with the Microsoft account your Xbox uses. PushFPS never sees your password.
+  In FrameWeave
+  3. Open Xbox streaming and press Sign in. FrameWeave shows a code. Enter it at microsoft.com/link and
+     sign in with the Microsoft account your Xbox uses. FrameWeave never sees your password.
   4. Pick your console and press Start streaming. Not in the list? Press Refresh. The Xbox has to be
      signed in with the same account.
   5. Use this PC's controller: connect it to the PC (USB cable, wireless adapter or Bluetooth) and
@@ -331,12 +331,12 @@ Not working?
   - Account ID comes from Get Account ID (Sony's sign-in, step 4), not your PSN name.
   - The 8 digits: no space, and a new number once 5 minutes have passed.
   - No address? Press Search, or type the PS5's IP address.
-  - PS5 and PC on the same network: no guest Wi-Fi, no VPN. If Windows asks whether PushFPS may use
+  - PS5 and PC on the same network: no guest Wi-Fi, no VPN. If Windows asks whether FrameWeave may use
     the network, allow it.
 
   The controller does nothing
   - Connect it to the PC, not to the console.
-  - Keep PushFPS in front: click its window once. It only passes the controller on while it is the
+  - Keep FrameWeave in front: click its window once. It only passes the controller on while it is the
     active window.
   - PS5: View only off. Xbox: Controller on.
   - More than one controller or wheel connected? Unplug the others and connect again.
@@ -351,7 +351,7 @@ Not working?
   - Xbox: turn on Software video decoding.
 
 
-Problems? In PushFPS: Settings > About > Report a problem copies diagnostic information.
-Questions? Ask on the PushFPS Discord: https://discord.gg/N88znNpSgC
-Website: https://dosukasol.github.io/PushFPS/    Source: https://github.com/DosukaSOL/PushFPS
-PushFPS is free software under the GNU GPL-3.0, a modified version of Veyra by Likely7.
+Problems? In FrameWeave: Settings > About > Report a problem copies diagnostic information.
+Questions? Ask on the FrameWeave Discord: https://discord.gg/N88znNpSgC
+Website: https://dosukasol.github.io/PushFPS/    Source: https://github.com/4MZ31/FrameWeave
+FrameWeave is free software under the GNU GPL-3.0, a modified version of Veyra by Likely7.

@@ -1,14 +1,14 @@
-PushFPS for Linux (preview)
+FrameWeave for Linux (preview)
 ===========================
 
 Your console through a capture card, boosted to 60 or 120 FPS by your PC. Frame generation, Frame
-Pacing Repair and Live HUD Lock are PushFPS's own technology on this system: no NVIDIA, AMD or Intel
+Pacing Repair and Live HUD Lock are FrameWeave's own technology on this system: no NVIDIA, AMD or Intel
 components are needed. It runs on the graphics card through Vulkan or OpenGL.
 
-Start:        ./PushFPS            (or double-click the AppImage from the release page)
+Start:        ./FrameWeave            (or double-click the AppImage from the release page)
 Try it:       Home -> Test picture, no capture card needed
-Check:        ./PushFPS --selftest 6
-Devices:      ./PushFPS --list-devices
+Check:        ./FrameWeave --selftest 6
+Devices:      ./FrameWeave --list-devices
 
 Capture cards: any card that Linux shows as a video device (UVC, /dev/video*), which is almost every
 USB capture card (Elgato HD60 X / 4K X / 4K S, AVerMedia Live Gamer, generic USB 3 cards). Its sound
@@ -25,8 +25,8 @@ install, "error while loading shared libraries: libOpenGL.so.0" means: sudo apt 
 
 This is a preview: tested automatically (self-test, GPU check against the CPU reference, a clean
 Ubuntu container), not yet with every capture card. Reports are welcome:
-https://github.com/DosukaSOL/PushFPS/issues
+https://github.com/4MZ31/FrameWeave/issues
 
-PushFPS is free software under the GPL-3.0 (LICENSE.txt), built on Veyra by Likely7
+FrameWeave is free software under the GPL-3.0 (LICENSE.txt), built on Veyra by Likely7
 (https://github.com/Likely7/Veyra-NRVideo). It uses Qt 6 (LGPL-3.0, https://www.qt.io/) and the FFmpeg
-libraries that come with Qt (LGPL). Source code: https://github.com/DosukaSOL/PushFPS
+libraries that come with Qt (LGPL). Source code: https://github.com/4MZ31/FrameWeave

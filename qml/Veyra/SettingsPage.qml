@@ -285,7 +285,7 @@ VPage {
                             RowLayout {
                                 id: accentPicker
                                 spacing: 12
-                                readonly property var accentList: [{ id: "orange", tip: qsTr("PushFPS 绿") }, { id: "white", tip: qsTr("白色光晕") }, { id: "ice", tip: qsTr("冰蓝") },
+                                readonly property var accentList: [{ id: "orange", tip: qsTr("FrameWeave 绿") }, { id: "white", tip: qsTr("白色光晕") }, { id: "ice", tip: qsTr("冰蓝") },
                                                                    { id: "blue", tip: qsTr("蓝色") }, { id: "violet", tip: qsTr("紫色") }, { id: "rose", tip: qsTr("玫红") },
                                                                    { id: "amber", tip: qsTr("琥珀") }]
                                 readonly property string shown: Theme.accents[Theme.accentName] ? Theme.accentName : "orange"
@@ -362,7 +362,7 @@ VPage {
                         VRow {
                             visible: !Theme.modern   // (the logo of the legacy home page; the new design has the wordmark in its title bar)
                             label: qsTr("日落之城标志")
-                            hint: qsTr("首页的 PushFPS 标志里是霓虹日落下的城市；关闭后显示经典标志")
+                            hint: qsTr("首页的 FrameWeave 标志里是霓虹日落下的城市；关闭后显示经典标志")
                             VSwitch {
                                 objectName: "set-sunset"
                                 checked: veyra.preferences.pushSunset !== false
@@ -371,8 +371,8 @@ VPage {
                         }
                         VRow {
                             label: qsTr("启动动画")
-                            hint: Theme.modern ? qsTr("打开 PushFPS 时播放约 2 秒的开场动画，单击或按任意键可跳过")
-                                               : qsTr("打开 PushFPS 时播放约 3 秒的日落之城开场，单击或按任意键可跳过")
+                            hint: Theme.modern ? qsTr("打开 FrameWeave 时播放约 2 秒的开场动画，单击或按任意键可跳过")
+                                               : qsTr("打开 FrameWeave 时播放约 3 秒的日落之城开场，单击或按任意键可跳过")
                             VSwitch {
                                 objectName: "set-intro"
                                 checked: veyra.preferences.introAnimation !== false
@@ -544,7 +544,7 @@ VPage {
                         // PushFPS: keep the player above other windows (Main.qml applyOnTop).
                         VRow {
                             label: qsTr("窗口置顶")
-                            hint: qsTr("PushFPS 窗口保持在其他窗口上面，适合边玩边看攻略或聊天")
+                            hint: qsTr("FrameWeave 窗口保持在其他窗口上面，适合边玩边看攻略或聊天")
                             VSwitch {
                                 objectName: "set-always-on-top"
                                 checked: veyra.preferences.pushAlwaysOnTop === true
@@ -1202,7 +1202,7 @@ VPage {
                         // mode's desktop audio strip and video playback mode.
                         VRow {
                             label: qsTr("录制电脑声音")
-                            hint: veyra.recordingAudio ? qsTr("录入电脑上除 PushFPS 以外的所有声音，例如浏览器或播放器里正在播放的视频声音。捕获窗口或屏幕时需要打开")
+                            hint: veyra.recordingAudio ? qsTr("录入电脑上除 FrameWeave 以外的所有声音，例如浏览器或播放器里正在播放的视频声音。捕获窗口或屏幕时需要打开")
                                                        : qsTr("先打开录制声音")
                             VSwitch {
                                 objectName: "set-recdesktop"
@@ -1254,10 +1254,10 @@ VPage {
                             label: qsTr("对比片段")
                             hint: {
                                 const n = CompareClip.layout(veyra.preferences)
-                                return n === 3 ? qsTr("整个画面：先是原帧率，一条线从左扫到右露出 PushFPS，停一会儿再扫回去，如此反复")
-                                     : n === 2 ? qsTr("竖屏 9:16，适合 TikTok、Shorts 和 Reels：上面是原帧率，下面是 PushFPS，各占半屏（取画面中间部分）")
-                                     : n === 1 ? qsTr("完整画面并排两份：左边是原帧率，右边是 PushFPS")
-                                     : qsTr("同一个画面从中间分开：左半边是原帧率，右半边是 PushFPS")
+                                return n === 3 ? qsTr("整个画面：先是原帧率，一条线从左扫到右露出 FrameWeave，停一会儿再扫回去，如此反复")
+                                     : n === 2 ? qsTr("竖屏 9:16，适合 TikTok、Shorts 和 Reels：上面是原帧率，下面是 FrameWeave，各占半屏（取画面中间部分）")
+                                     : n === 1 ? qsTr("完整画面并排两份：左边是原帧率，右边是 FrameWeave")
+                                     : qsTr("同一个画面从中间分开：左半边是原帧率，右半边是 FrameWeave")
                             }
                             RowLayout {
                                 spacing: 8
@@ -1326,7 +1326,7 @@ VPage {
                             objectName: "set-compare-reveal-row"
                             visible: CompareClip.layout(veyra.preferences) === 3
                             label: qsTr("扫过间隔")
-                            hint: qsTr("线条每隔这么久扫过一次，在原帧率和 PushFPS 之间切换")
+                            hint: qsTr("线条每隔这么久扫过一次，在原帧率和 FrameWeave 之间切换")
                             VSeg {
                                 objectName: "set-compare-reveal"
                                 options: CompareClip.revealIntervals.map(n => ({ id: String(n), label: qsTr("%1 秒").arg(n) }))
@@ -1410,7 +1410,7 @@ VPage {
                         }
                         VRow {
                             label: qsTr("虚拟摄像机")
-                            hint: qsTr("在直播软件的视频采集设备中选择 PushFPS Virtual Camera；输出处理后的完整画面，不需要全屏")
+                            hint: qsTr("在直播软件的视频采集设备中选择 FrameWeave Virtual Camera；输出处理后的完整画面，不需要全屏")
                             VSwitch {
                                 objectName: "set-virtual-camera-toggle"
                                 checked: veyra.virtualCameraEnabled
@@ -1749,7 +1749,7 @@ VPage {
                                       ? qsTr("监控兼容绘制已启用：OSD 只显示在视频上；部分阴影与模糊简化")
                                       : automatic
                                         ? qsTr("启动时检测到小飞机（RTSS）、NVIDIA 信息浮窗或游戏加加就改用软件绘制界面，它们只显示在视频上")
-                                        : qsTr("界面始终用显卡绘制；小飞机 OSD 不在 PushFPS 里显示；开着 NVIDIA 信息浮窗或游戏加加时可能卡死")
+                                        : qsTr("界面始终用显卡绘制；小飞机 OSD 不在 FrameWeave 里显示；开着 NVIDIA 信息浮窗或游戏加加时可能卡死")
                             VSeg {
                                 objectName: "set-overlay-compat"
                                 options: [{ id: "auto", label: qsTr("自动") }, { id: "off", label: qsTr("关闭") }]
@@ -1987,7 +1987,7 @@ VPage {
                             label: "Apex Neural Rendering (ANR)"
                             hint: root.anrState.installed
                                   ? qsTr("已安装。ANR 补帧由 Apex Compute 制作，可在专业模式的补帧方式中选择")
-                                  : qsTr("ANR 补帧由 Apex Compute 制作，支持 GTX 16 系列及更新的显卡。它不能随 PushFPS 一起分发：从 Apex 的 GitHub 下载 anr-fg 压缩包，再在这里选择它")
+                                  : qsTr("ANR 补帧由 Apex Compute 制作，支持 GTX 16 系列及更新的显卡。它不能随 FrameWeave 一起分发：从 Apex 的 GitHub 下载 anr-fg 压缩包，再在这里选择它")
                             VTag {
                                 objectName: "set-anr-status"
                                 text: root.anrState.installed ? qsTr("已安装") : qsTr("未安装")
@@ -2091,7 +2091,7 @@ VPage {
                     Text {
                         objectName: "about-license-notice"
                         Layout.fillWidth: true
-                        text: qsTr("PushFPS 是自由软件，是 Veyra 的修改版本，依据 GNU 通用公共许可证第 3 版（GPL-3.0）发布。你可以在该许可证的条款下使用、修改和再分发它。本软件不提供任何担保。")
+                        text: qsTr("FrameWeave 是自由软件，是 Veyra 的修改版本，依据 GNU 通用公共许可证第 3 版（GPL-3.0）发布。你可以在该许可证的条款下使用、修改和再分发它。本软件不提供任何担保。")
                         color: Theme.t3
                         font.family: Theme.fontUi
                         font.pixelSize: Theme.fsHint
@@ -2103,7 +2103,7 @@ VPage {
                     Text {
                         objectName: "about-sdk-attribution"
                         Layout.fillWidth: true
-                        text: qsTr("PushFPS 使用 NVIDIA® DLSS SDK 与 NGX SDK、AMD FidelityFX™ SDK 和 Intel® XeSS SDK。NVIDIA、NVIDIA RTX™ 和 DLSS 是 NVIDIA Corporation 的商标；PushFPS 未获 NVIDIA、AMD 或 Intel 赞助或认可。各 SDK 的许可证随程序提供。")
+                        text: qsTr("FrameWeave 使用 NVIDIA® DLSS SDK 与 NGX SDK、AMD FidelityFX™ SDK 和 Intel® XeSS SDK。NVIDIA、NVIDIA RTX™ 和 DLSS 是 NVIDIA Corporation 的商标；FrameWeave 未获 NVIDIA、AMD 或 Intel 赞助或认可。各 SDK 的许可证随程序提供。")
                         color: Theme.t3
                         font.family: Theme.fontUi
                         font.pixelSize: Theme.fsHint
@@ -2113,7 +2113,7 @@ VPage {
                     VGroup {
                         VRow {
                             objectName: "about-creator-row"
-                            label: "PushFPS"
+                            label: "DosukaSOL"
                             hint: qsTr("由 DosukaSOL 制作 · X：@DosukaSOL")
                             VButton {
                                 objectName: "about-open-creator"
@@ -2133,7 +2133,7 @@ VPage {
                         }
                         VRow {
                             label: "Veyra"
-                            hint: qsTr("PushFPS 的基础，作者 Likely7")
+                            hint: qsTr("FrameWeave 的基础，作者 Likely7")
                             VButton {
                                 objectName: "about-open-veyra"
                                 text: qsTr("访问页面")
@@ -2163,7 +2163,7 @@ VPage {
                         }
                         VRow {
                             label: qsTr("源代码")
-                            hint: "github.com/DosukaSOL/PushFPS"
+                            hint: "github.com/4MZ31/FrameWeave"
                             VButton {
                                 objectName: "about-open-source"
                                 text: qsTr("打开源代码页")
@@ -2178,7 +2178,7 @@ VPage {
                             // PushFPS signed updates (UpdateVerify.h): one click when the release is signed.
                             hint: veyra.updates.installState === "downloading" ? qsTr("正在下载更新… %1%").arg(Math.round(veyra.updates.installProgress * 100))
                                   : veyra.updates.installState === "verifying" ? qsTr("正在验证签名…")
-                                  : veyra.updates.installState === "installing" ? qsTr("签名和校验通过，正在启动安装程序；PushFPS 会自动关闭并重新打开")
+                                  : veyra.updates.installState === "installing" ? qsTr("签名和校验通过，正在启动安装程序；FrameWeave 会自动关闭并重新打开")
                                   : veyra.updates.latestVersion.length > 0
                                   ? (veyra.updates.canInstall ? qsTr("发现新版本 %1，已签名，可以一键安装").arg(veyra.updates.latestVersion)
                                                               : qsTr("发现新版本 %1").arg(veyra.updates.latestVersion))
@@ -2215,7 +2215,7 @@ VPage {
                         VRow {
                             objectName: "about-discord-row"
                             label: qsTr("社区")
-                            hint: qsTr("PushFPS 的 Discord：提问、分享设置和片段")
+                            hint: qsTr("原项目的 Discord：提问、分享设置和片段")
                             VButton { objectName: "about-open-discord"; iconName: "external"; text: qsTr("加入 Discord"); onClicked: veyra.pushOpenLink("discord") }
                         }
                         VRow {

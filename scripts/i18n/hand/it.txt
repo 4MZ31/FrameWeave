@@ -521,7 +521,7 @@
 520|Originale in ingresso
 521|Intervallo in ingresso
 522|Ingresso · flusso ottico
-523|Installa PushFPS Virtual Speaker
+523|Installa FrameWeave Virtual Speaker
 524|Installato
 525|Installa…
 526|Replay istantaneo
@@ -796,7 +796,7 @@
 795|Alte luci parametriche
 796|Chiari parametrici
 797|Ombre parametriche
-798|Incolla un codice PUSHFPS1:
+798|Incolla un codice FRAMEWEAVE1:
 799|Incolla impostazioni colore
 800|Pagina Patreon
 801|Patreon, WeChat e Alipay
@@ -845,11 +845,11 @@
 844|Proteggi l'HUD
 845|Incisività
 846|Viola
-847|PushFPS Virtual Speaker
-848|Preset colore PushFPS (*.vpcolor)
-849|Preset di gioco PushFPS (*.pushfps)
-850|Verde PushFPS
-851|Preset PushFPS (*.vpreset)
+847|FrameWeave Virtual Speaker
+848|Preset colore FrameWeave (*.vpcolor)
+849|Preset di gioco FrameWeave (*.frameweave)
+850|Verde FrameWeave
+851|Preset FrameWeave (*.vpreset)
 852|Qualità
 853|Coda
 854|Preset rapidi
@@ -1090,7 +1090,7 @@
 1089|Stabilità temporale
 1090|Testata
 1091|Testata dallo sviluppatore di Veyra
-1092|Testata con PushFPS
+1092|Testata con FrameWeave
 1093|Texture
 1094|Texture conservata
 1095|Le aree dell'HUD non sono state applicate
@@ -1203,11 +1203,11 @@
 1202|=
 1203|ANR FG · Apex Compute · sperimentale
 1204|Pacchetto ANR (*.zip nvngx_dlssg.dll);;Tutti i file (*)
-1205|ANR è installato (%1 file). Riavvia PushFPS e scegli ANR come metodo di generazione dei fotogrammi
-1206|La generazione dei fotogrammi ANR è di Apex Compute e supporta schede GTX serie 16 e successive. Non può essere distribuita con PushFPS: scarica il pacchetto anr-fg dal GitHub di Apex e sceglilo qui
+1205|ANR è installato (%1 file). Riavvia FrameWeave e scegli ANR come metodo di generazione dei fotogrammi
+1206|La generazione dei fotogrammi ANR è di Apex Compute e supporta schede GTX serie 16 e successive. Non può essere distribuita con FrameWeave: scarica il pacchetto anr-fg dal GitHub di Apex e sceglilo qui
 1207|La generazione dei fotogrammi ANR è Apex Neural Rendering di Apex Compute
 1208|Generazione dei fotogrammi ANR, di Apex Compute
-1209|La base di PushFPS, di Likely7
+1209|La base di FrameWeave, di Likely7
 1210|Scarica ANR
 1211|Installa dal download…
 1212|Installa prima ANR di Apex in Impostazioni → Componenti e licenze
@@ -1221,7 +1221,7 @@
 1220|Questo file non contiene il nvngx_dlssg.dll di ANR. Scegli il pacchetto anr-fg di Apex
 1221|Scegli il pacchetto ANR scaricato da Apex Compute
 1222|Un gioco a %1 FPS girerà a %2 FPS (generazione dei fotogrammi %3×)
-1223|%1 è in esecuzione. Si aggancia sia all'interfaccia sia al video e può bloccare PushFPS. Riavvia PushFPS per attivare il disegno compatibile: l'interfaccia viene disegnata via software e %1 agisce solo sul video. Riavviare ora? La riproduzione o lo streaming si interromperanno.
+1223|%1 è in esecuzione. Si aggancia sia all'interfaccia sia al video e può bloccare FrameWeave. Riavvia FrameWeave per attivare il disegno compatibile: l'interfaccia viene disegnata via software e %1 agisce solo sul video. Riavviare ora? La riproduzione o lo streaming si interromperanno.
 1224|1% low di soli %1 FPS, non abbastanza stabile
 1225|Impostazioni consigliate per giochi come GTA VI, con minimappa e HUD nitidi
 1226|Metti la Switch 2 nel dock a 60 Hz. I giochi non hanno HDCP, quindi vengono acquisiti così come sono.
@@ -1281,7 +1281,7 @@
 1280|Questo software è gratuito e open source. Se ti è utile, puoi →
 1281|%1 rilevato
 1282|Servizio di overlay RTSS rilevato
-1283|Il servizio di overlay RTSS è in esecuzione. Riavvia PushFPS per attivare il disegno compatibile e mostrare l'OSD solo sul video. Riavviare ora? La riproduzione o lo streaming si interromperanno.
+1283|Il servizio di overlay RTSS è in esecuzione. Riavvia FrameWeave per attivare il disegno compatibile e mostrare l'OSD solo sul video. Riavviare ora? La riproduzione o lo streaming si interromperanno.
 1284|Impostazioni consigliate per ogni gioco, con minimappa e HUD nitidi (quelle aree non ricevono generazione dei fotogrammi né effetti)
 1285|Nessuna combinazione ha mantenuto l'obiettivo in modo stabile, quindi le tue impostazioni sono rimaste. Prova un obiettivo più basso o disattiva altri effetti, poi riprova
 1286|Non cambiare sorgente mentre è in corso; puoi continuare a giocare
@@ -1289,10 +1289,10 @@
 1288|L'immagine si è fermata. L'ottimizzazione è stata annullata e le tue impostazioni ripristinate
 1289|Fa risaltare passi e spari, per i giochi competitivi
 1290|Le aree verdi mantengono l'immagine della console così com'è, senza generazione dei fotogrammi, così testo e minimappa restano nitidi
-1291|Porta il gioco sullo schermo con la scheda di acquisizione e avvia. PushFPS prova ogni combinazione disponibile sulla tua immagine reale (circa 10 secondi ciascuna, da 1 a 2 minuti in tutto), misura frequenza reale, 1% low e latenza, e sceglie la migliore.
+1291|Porta il gioco sullo schermo con la scheda di acquisizione e avvia. FrameWeave prova ogni combinazione disponibile sulla tua immagine reale (circa 10 secondi ciascuna, da 1 a 2 minuti in tutto), misura frequenza reale, 1% low e latenza, e sceglie la migliore.
 1292|Corse · tachimetro in basso a destra
 1293|Nessuno ha ancora segnalato questa scheda; condividi i tuoi risultati su GitHub
-1294|Questo non è un codice preset PushFPS valido
+1294|Questo non è un codice preset FrameWeave valido
 1295|Un preset integrato usa già questo nome
 1296|Questo PC non può eseguire questa combinazione
 1297|La scheda di acquisizione ha perso il %1% dei fotogrammi
@@ -1335,22 +1335,22 @@ zh:亮|Luce
 1332|Applicato: %1 aree mantengono i pixel della console
 1333|Aiuto
 1334|Il formato dell’immagine attuale non supporta il rilevamento automatico dell’HUD
-1335|Registra un video affiancato di 15 secondi: a sinistra il frame rate originale della console, a destra PushFPS
+1335|Registra un video affiancato di 15 secondi: a sinistra il frame rate originale della console, a destra FrameWeave
 1336|Trovate %1 aree HUD. Controlla i riquadri verdi, trascinali per correggerli se serve, poi fai clic su Applica
 1337|Impossibile leggere l’immagine; rilevamento HUD interrotto
 1338|Memoria video insufficiente per rilevare l’HUD
 1339|Al massimo 4 riquadri; eliminane prima uno
-1340|Registrazione di una clip di confronto di %1 secondi: a sinistra il frame rate originale della console, a destra PushFPS
+1340|Registrazione di una clip di confronto di %1 secondi: a sinistra il frame rate originale della console, a destra FrameWeave
 1341|Acquisizione dell’immagine…
 1342|Osservazione dell’immagine %1 / %2
 1343|Osservo l’immagine per circa 5 secondi. Ruota la visuale o muoviti nel gioco
 1344|Il massimo di fotogrammi mostrati al secondo. Con la generazione di fotogrammi tiene l’uscita al frame rate obiettivo, così il movimento è più regolare
 1345|Nessun HUD trovato. Puoi trascinare sull’immagine per disegnare i riquadri a mano
-1346|Nessuna immagine ricevuta. Controlla che l’immagine sia in riproduzione e che la finestra di PushFPS non sia ridotta a icona
+1346|Nessuna immagine ricevuta. Controlla che l’immagine sia in riproduzione e che la finestra di FrameWeave non sia ridotta a icona
 1347|Non c’è nulla in riproduzione, quindi non è possibile rilevare l’HUD
 1348|Nessuna immagine. Collega una scheda di acquisizione e avvia la riproduzione per regolare i riquadri sull’immagine del tuo gioco
 1349|Aggiungi riquadro
-1350|Quante nuove immagini disegna il gioco stesso al secondo. La console invia sempre un segnale a 60 Hz, quindi un gioco a 30 FPS mostra ogni immagine due volte. PushFPS lo usa per decidere quanti fotogrammi generare
+1350|Quante nuove immagini disegna il gioco stesso al secondo. La console invia sempre un segnale a 60 Hz, quindi un gioco a 30 FPS mostra ogni immagine due volte. FrameWeave lo usa per decidere quanti fotogrammi generare
 1351|L’IA rimuove i blocchi e il rumore lasciati dalla compressione della scheda di acquisizione, così i dettagli sono più chiari. È indipendente dalla generazione di fotogrammi e si attiva a parte
 1352|L’immagine si è mossa appena, quindi non è stato possibile distinguere l’HUD. Ruota la visuale o muoviti nel gioco e riprova
 1353|Il bitrate è la quantità di dati che il video usa al secondo. Il controllo del bitrate decide come l’encoder li distribuisce: più dati significano qualità migliore e file più grande
@@ -1507,20 +1507,20 @@ zh:这一帧里没有读到文字。试试只读画面的一部分，或换一�
 zh:PushFlow 的模型每生成一帧，都要把前后两个真实帧各编码一遍。开启后，每个真实帧只编码一次，结果留给下一对画面和同一对里的其他时刻使用，所以 3× 和 4× 省得更多。画面应当和不开启时一样：启动时会在你的显卡上和完整模型对比，不一致就不使用。能省多少取决于你的显卡|Per ogni fotogramma che genera, il modello di PushFlow codifica di nuovo entrambi i frame reali. Con questo su, ogni telaio reale è codificato una volta e il risultato è mantenuto per la coppia successiva e per gli altri momenti della stessa coppia, così 3× e 4× salvare di più. L'immagine dovrebbe essere la stessa come senza di essa: all'inizio è confrontato con l'intero modello sulla scheda grafica, e non è usato se differiscono. Quanto fa risparmiare dipende dalla scheda grafica
 zh:开启 Predict 后，屏幕上显示的是预测帧。录制、即时回放和直播记录的是屏幕上的画面，所以也会包含这些预测帧。Dual 让它们改用真实的画面：真实帧本身，以及同一对真实帧之间真实的中间帧（Predict 已经算出了它，几乎不增加开销），时间上比屏幕晚一帧。你看到的画面和延迟都不变。只在 Predict 正在运行并且倍率是 2X 时起作用；对比短片仍然记录屏幕上的画面；录下的声音会比画面早一帧（30 FPS 时约 33 毫秒）|Con Predict su, lo schermo mostra fotogrammi di previsione. Le registrazioni, i replay istantanei e i flussi registrano ciò che è sullo schermo, quindi contengono anche quelle previsioni. Doppio dà loro il vero quadro invece: i veri telai stessi, e la vera cornice intermedia di ogni coppia di cornici reali (Predict ha già funzionato, quindi costa quasi nulla), una cornice dietro lo schermo. Quello che vedi e il suo ritardo non cambiano. Agisce solo mentre Predict è in esecuzione a 2X; le clip di confronto registrano ancora ciò che è sullo schermo; il suono registrato è una cornice davanti all'immagine (circa 33 ms a 30 FPS)
 zh:普通补帧要等下一个真实帧到达，才能在两帧之间生成画面，所以真实画面会晚大约一帧才显示。Predict 不等：最新的真实帧处理完就显示，它之后的画面由已经到达的两帧预测出来。延迟更低，但预测可能出错：物体突然改变方向或新物体出现时，预测帧会和实际不同，直到下一个真实帧纠正。不可信的位置保持最新真实帧不动，不会凭空生成画面。只用于采集卡、串流等实时画面，不用于视频文件和导出。延迟降低多少、画面是否可以接受，取决于你的显卡和游戏，由你来判断|La generazione del telaio ordinario deve aspettare il prossimo telaio reale prima che possa fare le cornici tra, quindi l'immagine reale è mostrata circa una cornice in ritardo. Predict non aspetta: la nuova cornice reale viene mostrata non appena viene elaborata, e le cornici dopo che sono previste dalle due cornici reali che sono già arrivati. Il ritardo è inferiore, ma una previsione può essere sbagliata: quando qualcosa cambia direzione improvvisamente o qualcosa di nuovo appare, il frame di previsione differisce da quello che realmente accade fino a quando il prossimo frame reale lo corregge. Dove il moto non è fidato, la nuova cornice reale è lasciata così com'è; nulla è inventato. Solo per immagini dal vivo come una scheda di cattura o un flusso, non per i file video o l'esportazione. Quanto ritardo fa risparmiare e se l'immagine è accettabile dipende dalla scheda grafica e dal gioco: sta a te giudicare
-zh:Response 的设想是：在主机自己的画面到达之前，先根据右摇杆把画面转动一点。第一步只测量，不改动画面：画面自身的运动是否跟随右摇杆、有多强、晚多少。它只观察两样已经在 PushFPS 里的东西：PushFPS 自己发给主机的右摇杆（目前只有 PS5 Remote Play；接在主机上的手柄看不到），以及 Predict 运行时 PushFlow 算出的画面整体运动。不读取任何按键，不写入磁盘，不发送到任何地方；关闭开关或更换画面来源时全部清除。玩几分钟、多转动视角，这里就会显示结果，性能报告里也有|L'idea di Risposta è di girare l'immagine un po' dalla chiavetta destra prima che arrivi il telaio della console. Il primo passo misura soltanto e non cambia nulla nell'immagine: il proprio movimento dell'immagine segue il bastone giusto, quanto forte, e quanto tardi? Osserva solo due cose che sono già dentro PushFPS: la chiavetta destra PushFPS stessa invia alla console (solo PS5 Remote Play per ora; un controller collegato alla console non è visto), e l'intero movimento dell'immagine che PushFlow funziona mentre Predict corre. Nessun pulsante è letto, nulla è scritto su disco, nulla viene inviato ovunque, ed è tutto chiaro quando l'interruttore è spento o la fonte cambia. Giocare per qualche minuto e girare la fotocamera molto: il risultato appare qui e nel report delle prestazioni
+zh:Response 的设想是：在主机自己的画面到达之前，先根据右摇杆把画面转动一点。第一步只测量，不改动画面：画面自身的运动是否跟随右摇杆、有多强、晚多少。它只观察两样已经在 FrameWeave 里的东西：FrameWeave 自己发给主机的右摇杆（目前只有 PS5 Remote Play；接在主机上的手柄看不到），以及 Predict 运行时 PushFlow 算出的画面整体运动。不读取任何按键，不写入磁盘，不发送到任何地方；关闭开关或更换画面来源时全部清除。玩几分钟、多转动视角，这里就会显示结果，性能报告里也有|L'idea di Risposta è di girare l'immagine un po' dalla chiavetta destra prima che arrivi il telaio della console. Il primo passo misura soltanto e non cambia nulla nell'immagine: il proprio movimento dell'immagine segue il bastone giusto, quanto forte, e quanto tardi? Osserva solo due cose che sono già dentro FrameWeave: la chiavetta destra FrameWeave stessa invia alla console (solo PS5 Remote Play per ora; un controller collegato alla console non è visto), e l'intero movimento dell'immagine che PushFlow funziona mentre Predict corre. Nessun pulsante è letto, nulla è scritto su disco, nulla viene inviato ovunque, ed è tutto chiaro quando l'interruttore è spento o la fonte cambia. Giocare per qualche minuto e girare la fotocamera molto: il risultato appare qui e nel report delle prestazioni
 zh:愿意的话请复制结果发给我们：真实显卡的数据都来自大家|Se vuoi, copia il risultato e inviacelo: i dati delle schede grafiche reali arrivano tutti dagli utenti
 zh:欢迎在 GitHub 上分享这张卡的使用结果|Condividi su GitHub come funziona questa scheda
 zh:本机控制保存的令牌无法读取，已生成新的令牌：请在设置里重新复制|Il token salvato del controllo locale non è leggibile, quindi ne è stato creato uno nuovo: copialo di nuovo nelle impostazioni
 zh:FSR 4 ML 需要支持的 RX 9000 和驱动，不可用时自动改用 FSR 3.1|FSR 4 ML ha bisogno di un driver RX 9000 supportato e di un FSR 3.1 quando non disponibile
 zh:60→30：每两帧保留一帧，游戏不足30帧时跳过重复画面。自动去除：检测并跳过重复画面。|60→30 tiene un fotogramma ogni due e salta le immagini ripetute quando il gioco scende sotto i 30 FPS. La rimozione automatica rileva le immagini duplicate e le salta.
-zh:欢迎使用 PushFPS|Ti diamo il benvenuto in PushFPS
+zh:欢迎使用 FrameWeave|Ti diamo il benvenuto in FrameWeave
 zh:用一分钟看一遍：接上采集卡，选好帧率，开始游戏。按 Esc 可以随时退出，以后在首页还能再看。|Un minuto per vedere come funziona: collega la scheda di acquisizione, scegli la frequenza dei fotogrammi e gioca. Con Esc esci dalla guida quando vuoi, e puoi riaprirla dalla pagina Home.
 zh:主机的 HDMI 接到采集卡，采集卡接到这台电脑。点「采集卡」打开采集设置。|L'HDMI della console va alla scheda di acquisizione, e la scheda di acquisizione a questo PC. Fai clic su Scheda di acquisizione per aprirne le impostazioni.
 zh:选好设备和格式后，在这里连接。画面出现后，剩下的都在首页的「快速设置」里。|Scelti il dispositivo e il formato, collegati qui. Quando compare l'immagine, tutto il resto è in Configurazione rapida, nella pagina Home.
-zh:告诉 PushFPS 你玩的是什么|Di’ a PushFPS a cosa giochi
+zh:告诉 FrameWeave 你玩的是什么|Di’ a FrameWeave a cosa giochi
 zh:选你的主机和游戏本身的帧率。多数主机游戏是 30 FPS；选对了，重复的画面才会被去掉，补帧才干净。|Scegli la console e la frequenza dei fotogrammi a cui gira il gioco stesso. La maggior parte dei giochi per console gira a 30 FPS. Con il valore giusto le immagini ripetute vengono rimosse e la generazione dei fotogrammi resta pulita.
 zh:选择目标帧率|Scegli la frequenza dei fotogrammi di destinazione
-zh:60、120，或者跟随显示器。PushFPS 在游戏的每两帧之间生成新的画面，补到这个帧率。|60, 120 o quanto regge il tuo schermo. PushFPS crea nuovi fotogrammi tra ogni due fotogrammi del gioco per raggiungerla.
+zh:60、120，或者跟随显示器。FrameWeave 在游戏的每两帧之间生成新的画面，补到这个帧率。|60, 120 o quanto regge il tuo schermo. FrameWeave crea nuovi fotogrammi tra ogni due fotogrammi del gioco per raggiungerla.
 zh:想要更清晰、更有层次的画面，就打开它。风格和处理尺寸可以在下面调，不喜欢随时关掉。|Attivalo per un'immagine più nitida e con più profondità. Lo stile e la dimensione di lavoro si regolano subito sotto, e puoi disattivarlo quando vuoi.
 zh:常用工具都在这一排|Gli strumenti sono in questa riga
 zh:「为我的电脑优化」实测这台电脑并选出合适的设置；「检查我的设置」找出影响画质的地方；「游戏预设」让小地图和 HUD 保持清晰。这里还能录对比片段和开播。|Ottimizza per il mio PC misura questo PC e sceglie le impostazioni adatte. Controlla le mie impostazioni trova ciò che riduce la qualità dell'immagine. Preset di gioco mantiene nitidi la minimappa e l'HUD. Anche le clip di confronto e la diretta partono da qui.
@@ -1552,7 +1552,7 @@ zh:旧版|Classico
 zh:新版把导航、预览和全部快速设置放在同一个窗口里；旧版是 4.2 及更早版本的界面。两种设计的功能完全相同|Nuovo riunisce la navigazione, l'anteprima e tutta la configurazione rapida in un'unica finestra. Classico è l'interfaccia della versione 4.2 e delle precedenti. I due design hanno esattamente le stesse funzioni
 zh:更多外观设置|Altre impostazioni dell'aspetto
 zh:语言、启动方式和窗口选项在「设置」里|La lingua, l'avvio e le opzioni della finestra sono in Impostazioni
-zh:打开 PushFPS 时播放约 2 秒的开场动画，单击或按任意键可跳过|Riproduce un'introduzione di 2 secondi all'apertura di PushFPS; fai clic o premi un tasto per saltarla
+zh:打开 FrameWeave 时播放约 2 秒的开场动画，单击或按任意键可跳过|Riproduce un'introduzione di 2 secondi all'apertura di FrameWeave; fai clic o premi un tasto per saltarla
 zh:展开导航栏|Espandi la navigazione
 zh:收起导航栏|Riduci la navigazione alle icone
 zh:显示右侧设置栏|Mostra il pannello delle impostazioni a destra
@@ -1562,7 +1562,7 @@ zh:连接采集卡后打开专业模式|Apri la Modalità Pro alla connessione d
 zh:关闭时留在首页，画面显示在首页中间|Disattivato: resti nella Home, dove l'immagine viene riprodotta al centro
 zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Schermo intero alla connessione" è attivo: la connessione apre sempre la Modalità Pro a schermo intero
 zh:准星保持|Blocco del mirino
-zh:准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。|Quando il mirino è fermo e l'immagine dietro si muove, la generazione di fotogrammi sposta il mirino insieme allo sfondo: sparisce dal suo posto e ai due lati compare una copia più tenue. Con questa opzione attiva, PushFPS trova il mirino al centro dello schermo, lo toglie dall'immagine prima della generazione di fotogrammi e lo rimette invariato subito dopo. Un mirino appena comparso, o le cui linee si stanno ancora aprendo o chiudendo, deve restare fermo un istante prima di essere riconosciuto.
+zh:准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，FrameWeave 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。|Quando il mirino è fermo e l'immagine dietro si muove, la generazione di fotogrammi sposta il mirino insieme allo sfondo: sparisce dal suo posto e ai due lati compare una copia più tenue. Con questa opzione attiva, FrameWeave trova il mirino al centro dello schermo, lo toglie dall'immagine prima della generazione di fotogrammi e lo rimette invariato subito dopo. Un mirino appena comparso, o le cui linee si stanno ancora aprendo o chiudendo, deve restare fermo un istante prima di essere riconosciuto.
 zh:已关闭：画面移动时准星可能闪烁或出现重影|Disattivato: il mirino può sfarfallare o lasciare immagini fantasma quando l'immagine si muove
 zh:已开启：准星不交给补帧，补出的每一帧里都原样放回|Attivo: il mirino resta fuori dalla generazione di fotogrammi e viene rimesso invariato in ogni fotogramma generato
 zh:当前补帧方式暂不支持：可用于 NVIDIA VFG、AMD FRC 和 PushFlow|Non ancora con questo metodo di generazione di fotogrammi: funziona con NVIDIA VFG, AMD FRC e PushFlow
@@ -1587,7 +1587,7 @@ zh:停止播放并测试|Ferma la riproduzione e prova
 zh:已测试：半精度在这块显卡上并不更快，继续使用全精度|Provato: la mezza precisione non è più veloce su questa scheda grafica, quindi resta in uso la precisione piena
 zh:先测试这块显卡；通过后才能开启。测试需要先停止播放|Prova prima questa scheda grafica; si può attivare dopo che la prova è stata superata. Per la prova bisogna prima fermare la riproduzione
 zh:FSR 的运动估算可以更省|La stima del movimento per FSR può essere più leggera
-zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|Prima che FSR generi un fotogramma, PushFPS stima il movimento dall'immagine. Una stima più leggera impegna meno la scheda grafica a ogni fotogramma e aiuta le schede di fascia media e bassa a tenere il passo; i bordi degli oggetti diventano un po' più grezzi. Annulla se l'immagine peggiora
+zh:FSR 补帧前，FrameWeave 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|Prima che FSR generi un fotogramma, FrameWeave stima il movimento dall'immagine. Una stima più leggera impegna meno la scheda grafica a ogni fotogramma e aiuta le schede di fascia media e bassa a tenere il passo; i bordi degli oggetti diventano un po' più grezzi. Annulla se l'immagine peggiora
 zh:改用更省的运动估算|Usa la stima del movimento più leggera
 zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|La banda richiesta alla PS5; la console non garantisce di raggiungerla. Su una rete cablata 30 Mbps o più danno un'immagine più nitida; abbassa il valore se l'immagine va a scatti
 zh:有画面播放时开始放大|L'upscaling parte quando un'immagine è in riproduzione
@@ -1597,7 +1597,7 @@ zh:放大没能在这块显卡上启动，画面照常显示|L'upscaling non è 
 zh:放大到屏幕分辨率|Upscaling alla risoluzione del tuo schermo
 zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 ingrandisce senza nitidezza; 50 è il valore predefinito di NVIDIA. NIS ingrandisce fino a 2× per passaggio; i fattori più grandi vengono completati con il ridimensionamento normale.
 zh:帧节奏修复|Correzione del ritmo dei fotogrammi
-zh:Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 PushFPS 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。|Anteprima per Linux e macOS: la generazione dei fotogrammi, la Correzione del ritmo dei fotogrammi e Live HUD Lock sono tecnologie di PushFPS e non richiedono componenti NVIDIA, AMD o Intel.
+zh:Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 FrameWeave 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。|Anteprima per Linux e macOS: la generazione dei fotogrammi, la Correzione del ritmo dei fotogrammi e Live HUD Lock sono tecnologie di FrameWeave e non richiedono componenti NVIDIA, AMD o Intel.
 zh:一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置|Attiva in un colpo tutte le impostazioni a bassa latenza che non costano qualità d'immagine: la scheda grafica mette in coda un solo fotogramma (NVIDIA Low Latency sulle schede NVIDIA), schermo intero alla connessione (salta il compositore del desktop, un aggiornamento di attesa in meno) e sincronizzazione a frequenza variabile sugli schermi G-SYNC/FreeSync (niente tearing né fotogrammi saltati). Generazione dei fotogrammi, miglioramento IA, blocco dell'HUD e Correzione del ritmo dei fotogrammi restano come sono. Disattivandola tornano le impostazioni di prima
 zh:已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置|Attivo: il movimento viene stimato in modo veloce e la Correzione del ritmo dei fotogrammi è disattivata. Disattivandolo torna quello che era impostato prima
 zh:帧节奏修复 · 已重排 %1%|Correzione del ritmo dei fotogrammi · %1% riallineato

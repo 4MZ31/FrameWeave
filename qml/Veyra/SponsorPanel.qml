@@ -82,7 +82,7 @@ ColumnLayout {
                 spacing: 6
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("PushFPS 基于 Veyra 打造。Veyra 开源免费，也需要你的支持")
+                    text: qsTr("FrameWeave 基于 Veyra 打造。Veyra 开源免费，也需要你的支持")
                     color: Theme.t1
                     font.family: Theme.fontUi
                     font.pixelSize: Theme.fsH3

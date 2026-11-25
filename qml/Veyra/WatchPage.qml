@@ -156,8 +156,8 @@ VPage {
                 Text {
                     Layout.fillWidth: true
                     text: watch.kind === 0 ? qsTr("YouTube 或网页视频：先在浏览器里播放，再在这里选浏览器窗口。浏览器窗口变黑时，请在浏览器设置里关闭硬件加速（受版权保护的视频可能仍然是黑的）")
-                        : watch.kind === 1 ? qsTr("整块显示器的画面，适合全屏播放的视频。PushFPS 请放在另一块屏幕上")
-                        : watch.kind === 3 ? qsTr("支持 PushFPS 画面输入接口的应用直接把画面送进来，不用捕获窗口")
+                        : watch.kind === 1 ? qsTr("整块显示器的画面，适合全屏播放的视频。FrameWeave 请放在另一块屏幕上")
+                        : watch.kind === 3 ? qsTr("支持 FrameWeave 画面输入接口的应用直接把画面送进来，不用捕获窗口")
                         : qsTr("打开电脑上的视频文件，补帧和画面增强同样生效")
                     color: Theme.t3; font.family: Theme.fontUi; font.pixelSize: 11
                     wrapMode: Text.WordWrap
@@ -313,7 +313,7 @@ VPage {
                     VRow {
                         objectName: "watch-compare-row"
                         label: qsTr("对比片段")
-                        help: qsTr("录制前后对比视频：一边是视频原本的帧率，一边是 PushFPS。可选分屏、并排或竖屏（TikTok、Shorts、Reels），以及时长")
+                        help: qsTr("录制前后对比视频：一边是视频原本的帧率，一边是 FrameWeave。可选分屏、并排或竖屏（TikTok、Shorts、Reels），以及时长")
                         hint: watch.compareRecording ? qsTr("正在录制…") + " " + watch.recordElapsed : veyra.recording ? qsTr("录制中不可用")
                             : (watch.clipUntilStop ? qsTr("手动停止") : qsTr("%1 秒").arg(watch.clipSeconds)) + " · " + watch.clipLayout
                         VButton {
@@ -369,7 +369,7 @@ VPage {
                     VRow {
                         objectName: "watch-recdesktop-row"
                         label: qsTr("录制电脑声音")
-                        help: qsTr("录入电脑上除 PushFPS 以外的所有声音，例如浏览器或播放器里正在播放的视频声音。捕获窗口或屏幕时需要打开")
+                        help: qsTr("录入电脑上除 FrameWeave 以外的所有声音，例如浏览器或播放器里正在播放的视频声音。捕获窗口或屏幕时需要打开")
                         hint: veyra.recordingAudio !== true ? qsTr("先打开录制声音") : qsTr("浏览器或播放器里的视频声音")
                         VSwitch {
                             objectName: "watch-recdesktop"

@@ -438,7 +438,7 @@ LONG WINAPI crashFilter(EXCEPTION_POINTERS* info) {
     SYSTEMTIME st{};
     GetLocalTime(&st);
     wchar_t name[96]{};
-    swprintf_s(name, L"pushfps-crash-%04u%02u%02u-%02u%02u%02u-%lu.dmp", unsigned(st.wYear), unsigned(st.wMonth),
+    swprintf_s(name, L"frameweave-crash-%04u%02u%02u-%02u%02u%02u-%lu.dmp", unsigned(st.wYear), unsigned(st.wMonth),
                unsigned(st.wDay), unsigned(st.wHour), unsigned(st.wMinute), unsigned(st.wSecond), GetCurrentProcessId());
     const std::wstring path = (std::filesystem::path(g_crashDumpDirectory) / name).wstring();
     HANDLE file = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -760,7 +760,7 @@ static int runApplication(int argc, char** argv, QString& restartProgram, QStrin
     app.setApplicationName(QString::fromLatin1(veyra::brand::kProductName));
     app.setOrganizationName(QString::fromLatin1(veyra::brand::kProductName));
     app.setApplicationDisplayName(QString::fromLatin1(veyra::brand::kProductName));
-    veyra::log::info("app", "PushFPS QML session started (based on Veyra)");
+    veyra::log::info("app", "FrameWeave QML session started (based on Veyra)");
 
     engine::EngineController controller;
 
@@ -1381,7 +1381,7 @@ int main(int argc, char** argv) {
     if (result != 42 || program.isEmpty()) return result;
     // Player, QML engine and QApplication have all been destroyed.
     if (QProcess::startDetached(program, arguments)) return 0;
-    MessageBoxW(nullptr, L"设置已保存，但自动重启失败。请重新打开软件。\nSettings saved. Automatic restart failed; please reopen PushFPS.",
+    MessageBoxW(nullptr, L"设置已保存，但自动重启失败。请重新打开软件。\nSettings saved. Automatic restart failed; please reopen FrameWeave.",
                 veyra::brand::kProductNameW, MB_OK | MB_ICONERROR);
     return 1;
 }

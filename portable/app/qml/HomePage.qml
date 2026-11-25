@@ -98,7 +98,7 @@ Rectangle {
             onToggled: open => root.setOpen("start", open)
             VRow {
                 label: qsTr("打开时自动连接")
-                hint: qsTr("打开 PushFPS 时直接连接上次使用的采集卡")
+                hint: qsTr("打开 FrameWeave 时直接连接上次使用的采集卡")
                 VSwitch { objectName: "quick-autoconnect"; checked: app.autoConnect; onToggled: on => app.autoConnect = on }
             }
         }

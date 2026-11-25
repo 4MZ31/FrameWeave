@@ -10,13 +10,13 @@ BEGIN
   BEGIN
     BLOCK "040904b0"
     BEGIN
-      VALUE "CompanyName", "PushFPS"
-      VALUE "FileDescription", "PushFPS for OBS Studio"
+      VALUE "CompanyName", "FrameWeave"
+      VALUE "FileDescription", "FrameWeave for OBS Studio"
       VALUE "FileVersion", "1.2.0"
       VALUE "InternalName", "pushfps-obs"
       VALUE "LegalCopyright", "GPL-3.0-or-later. Fork of Veyra by Likely7."
       VALUE "OriginalFilename", "pushfps-obs.dll"
-      VALUE "ProductName", "PushFPS"
+      VALUE "ProductName", "FrameWeave"
       VALUE "ProductVersion", "1.2.0"
     END
   END

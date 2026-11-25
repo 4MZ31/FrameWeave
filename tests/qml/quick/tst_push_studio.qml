@@ -159,14 +159,14 @@ Item {
             veyra.recording = false
             verify(!mark.visible, "nothing to mark without a recording")
             veyra.recording = true
-            veyra.recordingState = ({saved: 0, active: true, path: "C:/Videos/PushFPS/rec.mp4"})
+            veyra.recordingState = ({saved: 0, active: true, path: "C:/Videos/FrameWeave/rec.mp4"})
             tryVerify(function() { return mark.visible }, 3000)
             compare(mark.count, 0)
             mark.clicked(); mark.clicked()
             compare(veyra.markersAdded, added + 2)
             compare(mark.count, 2, "the button says how many this recording has")
             verify(mark.text.indexOf("2") >= 0)
-            veyra.recordingState = ({saved: 0, active: true, path: "C:/Videos/PushFPS/clip.mp4", compare: true})
+            veyra.recordingState = ({saved: 0, active: true, path: "C:/Videos/FrameWeave/clip.mp4", compare: true})
             verify(!mark.visible, "a comparison clip takes no markers")
             veyra.recording = false; veyra.recordingState = state
         }
@@ -189,7 +189,7 @@ Item {
             compare(veyra.lastScene.type, "card")
             compare(studio.activeScene, "brb")
             compare(veyra.cardMute, true, "a card mutes the game")
-            compare(veyra.preferences.mixGameMuted, false, "and never through the mixer's saved mute: closing PushFPS on a card left that on")
+            compare(veyra.preferences.mixGameMuted, false, "and never through the mixer's saved mute: closing FrameWeave on a card left that on")
             compare(game.muted, true, "the strip shows it")
             compare(game.subtitle, qsTr("图卡场景显示时静音"))
             verify(findChild(studio, "studio-scene-brb").active)
@@ -450,7 +450,7 @@ Item {
             const desktop = control(studio, "mixer-desktop")
             compare(desktop.subtitle, qsTr("关闭：不进入录制和直播"))
             veyra.setPreference("mixDesktopOn", true)
-            compare(desktop.subtitle, qsTr("除 PushFPS 外的所有声音"))
+            compare(desktop.subtitle, qsTr("除 FrameWeave 外的所有声音"))
             desktop.moved(-12.3)
             compare(veyra.preferences.mixDesktopDb, -12)
             desktop.muteToggled()

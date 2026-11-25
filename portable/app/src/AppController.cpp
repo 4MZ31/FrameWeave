@@ -364,11 +364,11 @@ void AppController::startCamera() {
     case Qt::PermissionStatus::Undetermined:
         qApp->requestPermission(camera, this, [this](const QPermission& p) {
             if (p.status() == Qt::PermissionStatus::Granted) startCameraNow();
-            else setError(tr("PushFPS 没有使用采集卡的权限，请在系统设置的隐私与安全性中允许"));
+            else setError(tr("FrameWeave 没有使用采集卡的权限，请在系统设置的隐私与安全性中允许"));
         });
         return;
     case Qt::PermissionStatus::Denied:
-        setError(tr("PushFPS 没有使用采集卡的权限，请在系统设置的隐私与安全性中允许"));
+        setError(tr("FrameWeave 没有使用采集卡的权限，请在系统设置的隐私与安全性中允许"));
         return;
     case Qt::PermissionStatus::Granted:
         break;
@@ -755,7 +755,7 @@ QString AppController::platformName() const {
 }
 
 QString AppController::newScreenshotPath() const {
-    return Storage::screenshotFolder() + QStringLiteral("/PushFPS-") +
+    return Storage::screenshotFolder() + QStringLiteral("/FrameWeave-") +
            QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss-zzz")) + QStringLiteral(".png");
 }
 

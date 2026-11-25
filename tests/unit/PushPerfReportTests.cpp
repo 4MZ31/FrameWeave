@@ -41,7 +41,7 @@ int main() {
     const std::string r = json(session());
     std::printf("%s", r.c_str());
     check(wellFormed(r), "the report is well-formed text");
-    check(has(r, "\"report\": \"pushfps-performance\"") && has(r, "\"schema\": 1"), "it says what it is");
+    check(has(r, "\"report\": \"frameweave-performance\"") && has(r, "\"schema\": 1"), "it says what it is");
     check(has(r, "\"version\": \"3.2.5\"") && has(r, "\"windows\": \"10.0.26100\""), "the program and Windows versions");
     check(has(r, "\"name\": \"NVIDIA GeForce RTX 5090\"") && has(r, "\"driver\": \"32.0.15.7652\"") && has(r, "\"memoryMb\": 32607"), "the card, its driver and memory");
     check(has(r, "\"kind\": \"capture\"") && has(r, "\"width\": 1920") && has(r, "\"captureFps\": 59.94") && has(r, "\"captureDropped\": 3") && has(r, "\"contentFps\": 30"), "the source");

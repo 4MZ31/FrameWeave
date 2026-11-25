@@ -2293,7 +2293,7 @@ VPage {
                                         .arg((Number(st.pushFlowResponseExplained || 0) * 100).toFixed(0))
                                 }
                                 title: qsTr("PushFlow 2：Response，先测量（实验）")
-                                explanation: qsTr("Response 的设想是：在主机自己的画面到达之前，先根据右摇杆把画面转动一点。第一步只测量，不改动画面：画面自身的运动是否跟随右摇杆、有多强、晚多少。它只观察两样已经在 PushFPS 里的东西：PushFPS 自己发给主机的右摇杆（目前只有 PS5 Remote Play；接在主机上的手柄看不到），以及 Predict 运行时 PushFlow 算出的画面整体运动。不读取任何按键，不写入磁盘，不发送到任何地方；关闭开关或更换画面来源时全部清除。玩几分钟、多转动视角，这里就会显示结果，性能报告里也有")
+                                explanation: qsTr("Response 的设想是：在主机自己的画面到达之前，先根据右摇杆把画面转动一点。第一步只测量，不改动画面：画面自身的运动是否跟随右摇杆、有多强、晚多少。它只观察两样已经在 FrameWeave 里的东西：FrameWeave 自己发给主机的右摇杆（目前只有 PS5 Remote Play；接在主机上的手柄看不到），以及 Predict 运行时 PushFlow 算出的画面整体运动。不读取任何按键，不写入磁盘，不发送到任何地方；关闭开关或更换画面来源时全部清除。玩几分钟、多转动视角，这里就会显示结果，性能报告里也有")
                             }
                             PushFlow2Row {
                                 objectName: "list-pushflow2-memory-row"
@@ -2339,10 +2339,10 @@ VPage {
                                 readonly property var probe: {
                                     try { return JSON.parse(veyra.preferences.pushFlowHalfProbe || "{}") } catch (e) { return ({}) }
                                 }
-                                help: qsTr("半精度（fp16）通常让 PushFlow 的网络快一倍左右，但是否可用取决于显卡、驱动和 DirectML。测试在单独的进程里运行，出错也不会影响 PushFPS")
+                                help: qsTr("半精度（fp16）通常让 PushFlow 的网络快一倍左右，但是否可用取决于显卡、驱动和 DirectML。测试在单独的进程里运行，出错也不会影响 FrameWeave")
                                 hint: testing ? qsTr("正在测试，约需半分钟…")
                                     : pushFlowHalfRow.probe.ok === true ? qsTr("已通过测试：每帧 %1 ms，全精度 %2 ms").arg(Number(pushFlowHalfRow.probe.halfMs || 0).toFixed(1)).arg(Number(pushFlowHalfRow.probe.fullMs || 0).toFixed(1))
-                                    : pushFlowHalfRow.probe.reason === "retest" ? qsTr("显卡、驱动或 PushFPS 版本变了：请重新测试后再开启。现在使用全精度")
+                                    : pushFlowHalfRow.probe.reason === "retest" ? qsTr("显卡、驱动或 FrameWeave 版本变了：请重新测试后再开启。现在使用全精度")
                                     : pushFlowHalfRow.probe.reason === "not-faster" ? qsTr("已测试：半精度在这块显卡上并不更快，继续使用全精度")
                                     : pushFlowHalfRow.probe.reason ? qsTr("上次测试没有通过，使用全精度")
                                     : qsTr("先测试这块显卡；通过后才能开启。测试需要先停止播放")

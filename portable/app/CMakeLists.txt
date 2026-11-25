@@ -26,11 +26,11 @@ qt_add_executable(pushfps_portable
   src/VideoFrames.cpp src/VideoFrames.h
   src/VeyraShim.cpp src/VeyraShim.h)
 set_target_properties(pushfps_portable PROPERTIES
-  OUTPUT_NAME PushFPS
+  OUTPUT_NAME FrameWeave
   MACOSX_BUNDLE TRUE
   MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/packaging/Info.plist.in
-  MACOSX_BUNDLE_GUI_IDENTIFIER io.github.dosukasol.pushfps
-  MACOSX_BUNDLE_BUNDLE_NAME PushFPS
+  MACOSX_BUNDLE_GUI_IDENTIFIER io.github.4mz31.frameweave
+  MACOSX_BUNDLE_BUNDLE_NAME FrameWeave
   MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
   MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION})
 target_compile_definitions(pushfps_portable PRIVATE PUSHFPS_PORTABLE_VERSION="${PROJECT_VERSION}")

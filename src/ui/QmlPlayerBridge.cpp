@@ -98,7 +98,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
     if (impl_->prefsLoadNotice != 0) {
         const int kind = impl_->prefsLoadNotice;
         QTimer::singleShot(1500, this, [this, kind] {
-            emit notice(kind == 1 ? tr("设置文件被其他程序占用，本次使用默认设置，更改不会保存。请关闭同步或杀毒软件对该文件的锁定后重新打开 PushFPS")
+            emit notice(kind == 1 ? tr("设置文件被其他程序占用，本次使用默认设置，更改不会保存。请关闭同步或杀毒软件对该文件的锁定后重新打开 FrameWeave")
                       : kind == 2 ? tr("设置文件已损坏，本次使用默认设置，更改不会保存")
                       : kind == 3 ? tr("设置文件已损坏，已恢复上一次完好的设置。损坏的文件保留在数据文件夹里")
                                   : tr("设置文件已损坏，已改用默认设置。损坏的文件保留在数据文件夹里"), true);
@@ -495,12 +495,12 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
         // thing about how PushFlow starts that a user can have changed, and automatic is what ran before.
         if (impl_->prefInt("pushFlowMotion", 0) != 0) {
             setPreference(QStringLiteral("pushFlowMotion"), 0);
-            veyra::log::warn("pushflow", "PushFPS stopped inside PushFlow last time; the chosen motion size is back on automatic");
+            veyra::log::warn("pushflow", "FrameWeave stopped inside PushFlow last time; the chosen motion size is back on automatic");
         }
         // And every PushFlow 2 experiment is switched off: whatever was on may be what stopped it.
         if (pushflow2::parse(impl_->prefs.value(QStringLiteral("pushFlow2")).toString().toStdString()).flags.bits != 0) {
             setPreference(QStringLiteral("pushFlow2"), QString::fromStdString(pushflow2::serialize({})));
-            veyra::log::warn("pushflow", "PushFPS stopped inside PushFlow last time; the PushFlow 2 experiments are switched off");
+            veyra::log::warn("pushflow", "FrameWeave stopped inside PushFlow last time; the PushFlow 2 experiments are switched off");
         }
         if (settings().frameGenerationBackend == engine::FrameGenerationBackend::PushFlow) {
             const auto caps = effectCapabilities();
@@ -511,10 +511,10 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
                 if (settings().frameGenerationBackend != engine::FrameGenerationBackend::PushFlow) { chosen = QLatin1String(name); break; }
             }
             if (chosen.isEmpty()) setFgEnabled(false);
-            veyra::log::warn("pushflow", std::format("PushFPS stopped inside PushFlow last time; switched to {}", chosen.isEmpty() ? std::string("frame generation off") : chosen.toStdString()));
+            veyra::log::warn("pushflow", std::format("FrameWeave stopped inside PushFlow last time; switched to {}", chosen.isEmpty() ? std::string("frame generation off") : chosen.toStdString()));
             QTimer::singleShot(0, this, [this, chosen] {
-                emit notice(chosen.isEmpty() ? tr("上次 PushFPS 在 PushFlow 运行时停止，已关闭补帧。请把日志发给我们")
-                                             : tr("上次 PushFPS 在 PushFlow 运行时停止，已改用其他补帧方式。请把日志发给我们"), true);
+                emit notice(chosen.isEmpty() ? tr("上次 FrameWeave 在 PushFlow 运行时停止，已关闭补帧。请把日志发给我们")
+                                             : tr("上次 FrameWeave 在 PushFlow 运行时停止，已改用其他补帧方式。请把日志发给我们"), true);
             });
         }
     }
@@ -870,8 +870,8 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
             if (!impl_->prefs.value(QStringLiteral("obsRivaTunerHintShown")).toBool()) {
                 impl_->prefs[QStringLiteral("obsRivaTunerHintShown")] = true;
                 (void)impl_->savePrefs();
-                emit notice(tr("检测到 OBS 游戏采集和小飞机（RTSS）同时注入 PushFPS。两者默认的挂钩方式冲突，OBS 游戏采集可能抓不到画面（任何 D3D12 程序都一样）。"
-                               "在 RTSS 里添加 PushFPS.exe，并在它的设置中勾选“Use Microsoft Detours API hooking”；或在 OBS 改用窗口采集（Windows 10 1903+）"), false);
+                emit notice(tr("检测到 OBS 游戏采集和小飞机（RTSS）同时注入 FrameWeave。两者默认的挂钩方式冲突，OBS 游戏采集可能抓不到画面（任何 D3D12 程序都一样）。"
+                               "在 RTSS 里添加 FrameWeave.exe，并在它的设置中勾选“Use Microsoft Detours API hooking”；或在 OBS 改用窗口采集（Windows 10 1903+）"), false);
             }
         }
         // Overlays inject when they decide the window is a game, e.g. on entering fullscreen
@@ -898,7 +898,7 @@ QmlPlayerBridge::QmlPlayerBridge(engine::EngineController& engine, std::filesyst
         veyra::log::info("overlay-hooks", std::format("previous run: {} injected={}", kind.toStdString(), modules.toStdString()));
         if (advice.isEmpty()) return;
         const QString head = kind.startsWith(QStringLiteral("crash"))
-            ? tr("上次 PushFPS 异常退出（崩溃在 %1）").arg(kind.mid(6).trimmed())
+            ? tr("上次 FrameWeave 异常退出（崩溃在 %1）").arg(kind.mid(6).trimmed())
             : tr("上次采集时显卡设备丢失");
         emit notice(head + QStringLiteral("；") + advice, true);
     });

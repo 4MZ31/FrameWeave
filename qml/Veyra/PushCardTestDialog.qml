@@ -16,7 +16,7 @@ DialogLayer {
     key: "cardtest"
     glyph: "cpu"
     title: qsTr("测试我的显卡")
-    sub: qsTr("测出 PushFlow（PushFPS 自己的补帧）在这块显卡上有多快：1080p 和 4K，三个档位。大约一分钟")
+    sub: qsTr("测出 PushFlow（FrameWeave 自己的补帧）在这块显卡上有多快：1080p 和 4K，三个档位。大约一分钟")
     dialogWidth: 620
 
     property var status: ({})
@@ -40,11 +40,11 @@ DialogLayer {
     readonly property string reasonText: {
         const r = String(card.status.reason || "")
         if (r === "playing") return qsTr("请先停止播放再测试：测试要独占显卡，才能测得准")
-        if (r === "missing") return qsTr("没有找到 PushFlowBench.exe，请重新安装 PushFPS")
+        if (r === "missing") return qsTr("没有找到 PushFlowBench.exe，请重新安装 FrameWeave")
         if (r === "not-started") return qsTr("PushFlowBench.exe 无法启动")
         if (r === "no-pushflow") return qsTr("PushFlow 在这块显卡上没有启动（没有安装 PushFlow 组件，或显卡不支持）。其他补帧方式不受影响")
         if (r === "cancelled") return qsTr("测试已取消")
-        if (r === "stopped") return qsTr("测试没有完成：显卡驱动出错或用时超过五分钟。PushFPS 不受影响")
+        if (r === "stopped") return qsTr("测试没有完成：显卡驱动出错或用时超过五分钟。FrameWeave 不受影响")
         return ""
     }
     // What the result means for the most common case: a 30 FPS game at 4K.
@@ -75,7 +75,7 @@ DialogLayer {
         text: card.running ? qsTr("正在测试…请不要在这期间玩游戏或开始采集")
             : card.ok ? card.headline
             : card.done ? card.reasonText
-            : qsTr("测试时不能有画面在播放。结果只包含显卡型号、显存、PushFPS 版本、Windows 版本和用时，不含任何个人信息")
+            : qsTr("测试时不能有画面在播放。结果只包含显卡型号、显存、FrameWeave 版本、Windows 版本和用时，不含任何个人信息")
     }
     Text {
         objectName: "pushfps-card-test-adapter"

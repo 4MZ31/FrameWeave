@@ -153,7 +153,7 @@ static QVariantMap scanEffectCapabilities() {
     // PushFPS: PushFlow (RIFE on DirectML) runs on any DirectX 12 GPU; its runtime ships in runtime\experimental\pushflow.
     add("pushflow", H::CrossVendor, pushflow::runtimeInstalled(nr.wstring()),
         pushflow::runtimeInstalled(nr.wstring()) ? QObject::tr("需要支持 DirectX 12 的硬件显卡")
-                                                                        : QObject::tr("缺少 PushFlow 运行组件，请重新安装 PushFPS"));
+                                                                        : QObject::tr("缺少 PushFlow 运行组件，请重新安装 FrameWeave"));
     add("hdr", H::Nvidia, exists(nr / "nvngx_truehdr.dll"), QObject::tr("需要 NVIDIA RTX 显卡"));
     // PushFPS: a build without the NVIDIA Optical Flow SDK reports NVOF unavailable, and the
     // sanitizer then runs every chain on AMD FidelityFX optical flow (flow1).

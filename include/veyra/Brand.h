@@ -9,20 +9,20 @@
 // uses these constants.
 
 namespace veyra::brand {
-inline constexpr const char* kProductName = "PushFPS";
-inline constexpr const wchar_t* kProductNameW = L"PushFPS";
+inline constexpr const char* kProductName = "FrameWeave";
+inline constexpr const wchar_t* kProductNameW = L"FrameWeave";
 
 // GitHub repository that publishes PushFPS releases. The update checker only accepts a release
 // page under kReleaseTagPathPrefix, so these must match the repository's exact owner/name case.
-inline constexpr const char* kRepositoryUrl = "https://github.com/4MZ31/PushFPS";
-inline constexpr const char* kIssuesUrl = "https://github.com/4MZ31/PushFPS/issues";
-inline constexpr const char* kReleasesUrl = "https://github.com/4MZ31/PushFPS/releases";
-inline constexpr const char* kLatestReleaseApi = "https://api.github.com/repos/4MZ31/PushFPS/releases/latest";
-inline constexpr const char* kReleaseTagPathPrefix = "/4MZ31/PushFPS/releases/tag/";
+inline constexpr const char* kRepositoryUrl = "https://github.com/4MZ31/FrameWeave";
+inline constexpr const char* kIssuesUrl = "https://github.com/4MZ31/FrameWeave/issues";
+inline constexpr const char* kReleasesUrl = "https://github.com/4MZ31/FrameWeave/releases";
+inline constexpr const char* kLatestReleaseApi = "https://api.github.com/repos/4MZ31/FrameWeave/releases/latest";
+inline constexpr const char* kReleaseTagPathPrefix = "/4MZ31/FrameWeave/releases/tag/";
 
 // The fork has no update signing key. Its releases are installed manually.
 inline constexpr const char* kUpdatePublicKeyPem = "";
-inline constexpr const char* kReleaseDownloadPathPrefix = "/4MZ31/PushFPS/releases/download/";
+inline constexpr const char* kReleaseDownloadPathPrefix = "/4MZ31/FrameWeave/releases/download/";
 
 // The project PushFPS is built on; shown in About and the README credits.
 inline constexpr const char* kUpstreamName = "Veyra";

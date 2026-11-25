@@ -1,4 +1,4 @@
-# Manual helper: installs a PushFPS release on a Windows runner, opens each main screen with the program's
+# Manual helper: installs a FrameWeave release on a Windows runner, opens each main screen with the program's
 # own startup options (--page / --tab / --dialog / --size) and saves a screenshot of the real window.
 # The runner has no GPU, so NVIDIA-only controls show as unavailable, exactly as on a PC without one.
 name: screenshots
@@ -59,20 +59,20 @@ jobs:
           Add-Type -AssemblyName System.Windows.Forms
           [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
 
-      - name: Install PushFPS
+      - name: Install FrameWeave
         run: |
           if ($env:RELEASE_TAG) {
-            gh release download $env:RELEASE_TAG -R $env:GITHUB_REPOSITORY -p 'PushFPS-[0-9]*-win64.zip' -O pf.zip
+            gh release download $env:RELEASE_TAG -R $env:GITHUB_REPOSITORY -p 'FrameWeave-[0-9]*-win64.zip' -O pf.zip
           } else {
             $run = $env:RUN_ID
             if (-not $run) { $run = gh run list -R $env:GITHUB_REPOSITORY -w build-windows -b $env:BUILD_BRANCH -s success -L 1 --json databaseId -q '.[0].databaseId' }
             if (-not $run) { throw "no successful build-windows run on $env:BUILD_BRANCH" }
             Write-Host "Using build run $run ($(if ($env:RUN_ID) { 'given' } else { $env:BUILD_BRANCH }))"
-            gh run download $run -R $env:GITHUB_REPOSITORY -p 'PushFPS-*' -D art
-            Move-Item (Get-ChildItem art -Recurse -Filter 'PushFPS-*-win64.zip' | Where-Object Name -notlike '*OBS*' | Select-Object -First 1).FullName pf.zip
+            gh run download $run -R $env:GITHUB_REPOSITORY -p 'FrameWeave-*' -D art
+            Move-Item (Get-ChildItem art -Recurse -Filter 'FrameWeave-*-win64.zip' | Where-Object Name -notlike '*OBS*' | Select-Object -First 1).FullName pf.zip
           }
           Expand-Archive pf.zip -DestinationPath pf
-          & .\pf\Install-PushFPS.ps1 -Gpu NVIDIA -InstallDir D:\pf -NoShortcuts -NoLaunch
+          & .\pf\Install-FrameWeave.ps1 -Gpu NVIDIA -InstallDir D:\pf -NoShortcuts -NoLaunch
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       # The interface is loaded from disk next to the program, so another commit's qml/ can be laid over it.
@@ -155,7 +155,7 @@ jobs:
             @{ name = '45-intro-glide'; args = @('--page', 'home', '--intro-at', '3000') },
             @{ name = '46-home-classic'; args = @('--page', 'home', '--pref', 'pushSunset=false') },
             @{ name = '47-switch2-presets'; args = @('--page', 'home', '--dialog', 'games', '--pref', 'pushConsole=switch2') },
-            # README screens in the PushFPS brand (the Sunset City logo is for the app and website only).
+            # README screens in the FrameWeave brand (the Sunset City logo is for the app and website only).
             @{ name = '48-home-classic-light'; args = @('--page', 'home', '--dock-pinned', '--theme', 'light', '--pref', 'pushSunset=false') },
             @{ name = '49-home-classic-black'; args = @('--page', 'home', '--dock-pinned', '--theme', 'black', '--pref', 'pushSunset=false') },
             @{ name = '50-home-classic-pinned'; args = @('--page', 'home', '--dock-pinned', '--pref', 'pushSunset=false') },
@@ -163,12 +163,12 @@ jobs:
             # does not escape quotes, so the JSON carries \" for the Windows command line.
             @{ name = '51-go-live'; args = @('--page', 'home', '--dialog', 'stream', '--lang', 'en', '--pref', ('streamTargets=' + '[{"id":"o1","platform":"twitch","name":"","server":"","enabled":true},{"id":"o2","platform":"youtube","name":"","server":"","enabled":true},{"id":"o3","platform":"kick","name":"","server":"","enabled":false}]'.Replace('"', '\"'))) },
             @{ name = '52-optimize-goals'; args = @('--page', 'home', '--dialog', 'optimize', '--lang', 'en', '--pref', 'pushOptimizeGoal=balanced') },
-            # PushFPS 3.0/3.1 modes: streaming mode (classic and sunset), video playback mode, the comparison dialog's vertical layout.
+            # FrameWeave 3.0/3.1 modes: streaming mode (classic and sunset), video playback mode, the comparison dialog's vertical layout.
             @{ name = '60-streaming-mode'; args = @('--page', 'live', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '61-video-playback'; args = @('--page', 'watch', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '62-compare-vertical'; args = @('--page', 'home', '--dialog', 'compare', '--lang', 'en', '--pref', 'pushCompareLayout=2', '--pref', 'pushSunset=false') },
             @{ name = '63-streaming-mode-sunset'; args = @('--page', 'live', '--lang', 'en') },
-            # PushFPS 3.2: the layout editor with a webcam on a game scene, the stream dialog with a platform
+            # FrameWeave 3.2: the layout editor with a webcam on a game scene, the stream dialog with a platform
             # preset, a vertical TikTok LIVE layout, and the recording upload presets.
             @{ name = '64-layout-editor'; args = @('--page', 'live', '--dialog', 'layout', '--lang', 'en', '--pref', ('studioScenes=' + '[{"id":"game","name":"Game","type":"game","sources":[{"id":"c1","kind":"camera","target":"cam","name":"Webcam","corner":"custom","x":0.72,"y":0.62,"size":0.25,"shape":"round"}]},{"id":"brb","name":"Be right back","type":"card","title":"Be right back"}]'.Replace('"', '\"'))) },
             @{ name = '65-layout-vertical'; args = @('--page', 'live', '--dialog', 'layout', '--lang', 'en', '--pref', 'streamWidth=1080', '--pref', 'streamHeight=1920', '--pref', 'canvasY=300', '--pref', ('studioScenes=' + '[{"id":"game","name":"Game","type":"game","sources":[{"id":"c1","kind":"camera","target":"cam","name":"Webcam","corner":"custom","x":0.1,"y":0.04,"size":0.8,"shape":"round"}]}]'.Replace('"', '\"'))) },
@@ -207,10 +207,10 @@ jobs:
             # 88: the live split comparison over a playing picture. A white line between two dark edges must stand where
             # the two sides meet, from the picture's top to its bottom.
             @{ name = '88-compare-line-playing'; sender = $true; size = '1280x720'; args = @('frameinput:default', '--page', 'min', '--lang', 'en', '--compare', '0.4', '--pref', 'pushSunset=false') },
-            # PushFPS 4.0: the record dialog (PushRecordDialog), wide at the standard rate and tall, filled.
+            # FrameWeave 4.0: the record dialog (PushRecordDialog), wide at the standard rate and tall, filled.
             @{ name = '89-record-dialog'; args = @('--page', 'home', '--dialog', 'record', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '90-record-dialog-vertical'; args = @('--page', 'home', '--dialog', 'record', '--lang', 'en', '--pref', 'recordWidth=1080', '--pref', 'recordHeight=1920', '--pref', 'recordFit=1', '--pref', 'pushSunset=false') },
-            # PushFPS 4.1: the maximise button in the headers of Professional and Streaming mode, and the quick setup
+            # FrameWeave 4.1: the maximise button in the headers of Professional and Streaming mode, and the quick setup
             # rows every card has now (the method where more than one is offered, the low latency switch).
             @{ name = '91-pro-maximize'; args = @('--page', 'pro', '--lang', 'en', '--pref', 'pushSunset=false') },
             @{ name = '92-studio-maximize'; args = @('--page', 'live', '--lang', 'en', '--pref', 'pushSunset=false') },
@@ -343,11 +343,11 @@ jobs:
             if ($s.crash) {
               # pushfps-last-failure.txt as apps/veyra-qml/main.cpp writes it (UTF-16), and the session note beside it.
               New-Item -ItemType Directory -Force D:\pf\logs | Out-Null
-              $note = "crash onnxruntime.dll`n`ncode=0xC0000005 offset=0x11B640 dump=pushfps-crash-20261118-211405-1234.dmp time=2026-11-18 21:14`n"
+              $note = "crash onnxruntime.dll`n`ncode=0xC0000005 offset=0x11B640 dump=frameweave-crash-20261118-211405-1234.dmp time=2026-11-18 21:14`n"
               [System.IO.File]::WriteAllBytes('D:\pf\logs\pushfps-last-failure.txt', [System.Text.Encoding]::Unicode.GetBytes($note))
               [System.IO.File]::WriteAllText('D:\pf\logs\pushfps-last-session.txt', 'source=xbox size=1920x1080 fg=pushflow_3X_fast nr=1 sr=0 hdr=0')
             }
-            $p = Start-Process D:\pf\PushFPS.exe -ArgumentList $a -PassThru
+            $p = Start-Process D:\pf\FrameWeave.exe -ArgumentList $a -PassThru
             Start-Sleep -Seconds $(if ($s.sender) { 20 } else { 14 })
             $p.Refresh()
             $hwnd = $p.MainWindowHandle
@@ -395,7 +395,7 @@ jobs:
           Set-Location shots
           git init -q -b $branch
           git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com add *.png qml-report.txt
-          git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -q -m "PushFPS screenshots"
+          git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -q -m "FrameWeave screenshots"
           git push -q --force "https://x-access-token:$env:GH_TOKEN@github.com/$env:GITHUB_REPOSITORY.git" $branch
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 

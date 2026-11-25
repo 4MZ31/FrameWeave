@@ -1,5 +1,5 @@
 <#
-  PushFPS for OBS Studio: installer.
+  FrameWeave for OBS Studio: installer.
 
   Copies pushfps-obs.dll into OBS's per-machine plugin folder. OBS Studio 33 and newer load
   %ProgramData%\obs-studio\plugins\pushfps-obs\pushfps-obs.dll (the new layout; OBS 34 loads only
@@ -7,9 +7,9 @@
   the plugin keeps working when OBS is updated, and OBS 33+ uses the new one and skips the other.
   No administrator rights are needed and the OBS installation itself is not touched.
 
-  Usage (normally just double-click Install-PushFPS-OBS.cmd):
-    Install-PushFPS-OBS.ps1             install or update
-    Install-PushFPS-OBS.ps1 -Uninstall  remove the plugin
+  Usage (normally just double-click Install-FrameWeave-OBS.cmd):
+    Install-FrameWeave-OBS.ps1             install or update
+    Install-FrameWeave-OBS.ps1 -Uninstall  remove the plugin
 
   Works with Windows PowerShell 5.1 and PowerShell 7.
 #>
@@ -32,9 +32,9 @@ if (Test-ObsRunning) {
 if ($Uninstall) {
     if (Test-Path $pluginRoot) {
         Remove-Item -Recurse -Force $pluginRoot
-        Write-Host 'PushFPS for OBS was removed.' -ForegroundColor Green
+        Write-Host 'FrameWeave for OBS was removed.' -ForegroundColor Green
     } else {
-        Write-Host 'PushFPS for OBS is not installed.'
+        Write-Host 'FrameWeave for OBS is not installed.'
     }
     exit 0
 }
@@ -64,7 +64,7 @@ $readme = Join-Path $here 'READ ME FIRST.txt'
 if (Test-Path $readme) { Copy-Item -Force $readme (Join-Path $dataDir 'README.txt') }
 
 Write-Host ''
-Write-Host 'PushFPS for OBS is installed.' -ForegroundColor Green
-Write-Host 'Start OBS Studio, then in a scene: + (Add source) > PushFPS.'
-Write-Host 'Tools > Open PushFPS starts the app with OBS game capture support.'
+Write-Host 'FrameWeave for OBS is installed.' -ForegroundColor Green
+Write-Host 'Start OBS Studio, then in a scene: + (Add source) > FrameWeave.'
+Write-Host 'Tools > Open FrameWeave starts the app with OBS game capture support.'
 exit 0

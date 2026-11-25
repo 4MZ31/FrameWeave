@@ -521,7 +521,7 @@
 520|Giriş orijinali
 521|Giriş aralığı
 522|Giriş · optik akış
-523|PushFPS Virtual Speaker'ı kur
+523|FrameWeave Virtual Speaker'ı kur
 524|Kuruldu
 525|Kur…
 526|Anlık tekrar
@@ -796,7 +796,7 @@
 795|Parametrik parlak alanlar
 796|Parametrik açıklar
 797|Parametrik gölgeler
-798|Bir PUSHFPS1: kodu yapıştırın
+798|Bir FRAMEWEAVE1: kodu yapıştırın
 799|Renk ayarlarını yapıştır
 800|Patreon sayfası
 801|Patreon, WeChat ve Alipay
@@ -845,11 +845,11 @@
 844|HUD'u koru
 845|Canlılık
 846|Mor
-847|PushFPS Virtual Speaker
-848|PushFPS renk hazır ayarı (*.vpcolor)
-849|PushFPS oyun hazır ayarı (*.pushfps)
-850|PushFPS yeşili
-851|PushFPS hazır ayarı (*.vpreset)
+847|FrameWeave Virtual Speaker
+848|FrameWeave renk hazır ayarı (*.vpcolor)
+849|FrameWeave oyun hazır ayarı (*.frameweave)
+850|FrameWeave yeşili
+851|FrameWeave hazır ayarı (*.vpreset)
 852|Kalite
 853|Kuyruk
 854|Hızlı hazır ayarlar
@@ -1090,7 +1090,7 @@
 1089|Zamansal kararlılık
 1090|Test edildi
 1091|Veyra geliştiricisi test etti
-1092|PushFPS ile test edildi
+1092|FrameWeave ile test edildi
 1093|Doku
 1094|Doku korundu
 1095|HUD alanları uygulanmadı
@@ -1203,11 +1203,11 @@
 1202|=
 1203|ANR FG · Apex Compute · deneysel
 1204|ANR paketi (*.zip nvngx_dlssg.dll);;Tüm dosyalar (*)
-1205|ANR kuruldu (%1 dosya). PushFPS’i yeniden başlatın, ardından kare oluşturma yöntemi olarak ANR’yi seçin
-1206|ANR kare oluşturma Apex Compute tarafından yapılmıştır ve GTX 16 serisi ve daha yeni ekran kartlarını destekler. PushFPS ile birlikte dağıtılamaz: Apex’in GitHub sayfasından anr-fg paketini indirin ve burada seçin
+1205|ANR kuruldu (%1 dosya). FrameWeave’i yeniden başlatın, ardından kare oluşturma yöntemi olarak ANR’yi seçin
+1206|ANR kare oluşturma Apex Compute tarafından yapılmıştır ve GTX 16 serisi ve daha yeni ekran kartlarını destekler. FrameWeave ile birlikte dağıtılamaz: Apex’in GitHub sayfasından anr-fg paketini indirin ve burada seçin
 1207|ANR kare oluşturma, Apex Compute’un Apex Neural Rendering teknolojisidir
 1208|ANR kare oluşturma, Apex Compute
-1209|PushFPS’in temeli, Likely7
+1209|FrameWeave’in temeli, Likely7
 1210|ANR’yi indir
 1211|İndirilenden kur…
 1212|Önce Ayarlar → Bileşenler ve lisanslar bölümünden Apex’in ANR’sini kurun
@@ -1221,7 +1221,7 @@
 1220|Bu dosyada ANR’nin nvngx_dlssg.dll dosyası yok. Apex’in anr-fg paketini seçin
 1221|Apex Compute’tan indirdiğiniz ANR paketini seçin
 1222|%1 FPS'lik bir oyun %2 FPS'te çalışır (%3× kare oluşturma)
-1223|%1 çalışıyor. Hem arayüze hem videoya bağlanır ve PushFPS'i dondurabilir. Uyumlu çizimi açmak için PushFPS'i yeniden başlatın: arayüz yazılımla çizilir ve %1 yalnızca videoyu etkiler. Şimdi yeniden başlatılsın mı? Oynatma veya yayın durur.
+1223|%1 çalışıyor. Hem arayüze hem videoya bağlanır ve FrameWeave'i dondurabilir. Uyumlu çizimi açmak için FrameWeave'i yeniden başlatın: arayüz yazılımla çizilir ve %1 yalnızca videoyu etkiler. Şimdi yeniden başlatılsın mı? Oynatma veya yayın durur.
 1224|1% low yalnızca %1 FPS, yeterince kararlı değil
 1225|GTA VI gibi oyunlar için önerilen ayarlar, keskin mini harita ve HUD ile
 1226|Switch 2'yi 60 Hz'de dock'a yerleştirin. Oyunlarda HDCP yoktur, olduğu gibi yakalanır.
@@ -1281,7 +1281,7 @@
 1280|Bu yazılım ücretsiz ve açık kaynaklıdır. İşinize yararsa şunu yapabilirsiniz →
 1281|%1 algılandı
 1282|RTSS ekran üstü gösterim hizmeti algılandı
-1283|RTSS ekran üstü gösterim hizmeti çalışıyor. Uyumlu çizimi açmak ve OSD'yi yalnızca videoda göstermek için PushFPS'i yeniden başlatın. Şimdi yeniden başlatılsın mı? Oynatma veya yayın durur.
+1283|RTSS ekran üstü gösterim hizmeti çalışıyor. Uyumlu çizimi açmak ve OSD'yi yalnızca videoda göstermek için FrameWeave'i yeniden başlatın. Şimdi yeniden başlatılsın mı? Oynatma veya yayın durur.
 1284|Oyun başına önerilen ayarlar, keskin mini harita ve HUD ile (bu alanlara kare oluşturma ve efekt uygulanmaz)
 1285|Hiçbir kombinasyon hedefi kararlı biçimde tutamadı, bu yüzden ayarlarınız korundu. Daha düşük bir hedef deneyin veya diğer efektleri kapatıp yeniden çalıştırın
 1286|Çalışırken kaynağı değiştirmeyin; oynamaya devam edebilirsiniz
@@ -1289,10 +1289,10 @@
 1288|Görüntü durdu. Optimizasyon iptal edildi ve ayarlarınız geri yüklendi
 1289|Ayak seslerini ve silah seslerini öne çıkarır, rekabetçi oyunlar için
 1290|Yeşil alanlar konsol görüntüsünü olduğu gibi korur, kare oluşturma uygulanmaz; böylece yazılar ve mini harita keskin kalır
-1291|Oyunu yakalama kartınızla ekrana getirin, sonra başlatın. PushFPS mevcut her kombinasyonu gerçek görüntünüzde dener (her biri yaklaşık 10 saniye, toplam 1–2 dakika), gerçek kare hızını, 1% low değerini ve gecikmeyi ölçer, en iyisini seçer.
+1291|Oyunu yakalama kartınızla ekrana getirin, sonra başlatın. FrameWeave mevcut her kombinasyonu gerçek görüntünüzde dener (her biri yaklaşık 10 saniye, toplam 1–2 dakika), gerçek kare hızını, 1% low değerini ve gecikmeyi ölçer, en iyisini seçer.
 1292|Yarış · hız göstergesi sağ altta
 1293|Bu kartı henüz kimse bildirmedi; sonuçlarınızı GitHub'da paylaşın
-1294|Bu geçerli bir PushFPS hazır ayar kodu değil
+1294|Bu geçerli bir FrameWeave hazır ayar kodu değil
 1295|Yerleşik bir hazır ayar bu adı zaten kullanıyor
 1296|Bu bilgisayar bu kombinasyonu çalıştıramıyor
 1297|Yakalama kartı karelerin %%1'ini düşürdü
@@ -1335,22 +1335,22 @@ zh:亮|Işık
 1332|Uygulandı: %1 alan konsolun kendi piksellerini koruyor
 1333|Yardım
 1334|Geçerli görüntü biçimi otomatik HUD algılamayı desteklemiyor
-1335|15 saniyelik yan yana video kaydet: solda konsolun kendi kare hızı, sağda PushFPS
+1335|15 saniyelik yan yana video kaydet: solda konsolun kendi kare hızı, sağda FrameWeave
 1336|%1 HUD alanı bulundu. Yeşil kutuları kontrol et, gerekirse sürükleyerek düzelt, sonra Uygula’ya tıkla
 1337|Görüntü okunamadı; HUD algılama durduruldu
 1338|HUD’yi algılamak için yeterli video belleği yok
 1339|En fazla 4 kutu; önce birini sil
-1340|%1 saniyelik karşılaştırma klibi kaydediliyor: solda konsolun kendi kare hızı, sağda PushFPS
+1340|%1 saniyelik karşılaştırma klibi kaydediliyor: solda konsolun kendi kare hızı, sağda FrameWeave
 1341|Görüntü alınıyor…
 1342|Görüntü izleniyor %1 / %2
 1343|Görüntü yaklaşık 5 saniye izleniyor. Oyunda kamerayı çevir veya yürü
 1344|Saniyede gösterilen en fazla kare. Kare üretimiyle çıkışı hedef kare hızında tutar; hareket daha düzenli olur
 1345|HUD bulunamadı. Görüntü üzerinde sürükleyerek elle kutu çizebilirsin
-1346|Görüntü gelmedi. Görüntünün oynatıldığını ve PushFPS penceresinin simge durumunda olmadığını kontrol et
+1346|Görüntü gelmedi. Görüntünün oynatıldığını ve FrameWeave penceresinin simge durumunda olmadığını kontrol et
 1347|Oynatılan bir şey yok, HUD algılanamıyor
 1348|Görüntü yok. Kutuları kendi oyun görüntünde ayarlamak için bir yakalama kartı bağla ve oynatmayı başlat
 1349|Kutu ekle
-1350|Oyunun kendisinin saniyede çizdiği yeni resim sayısı. Konsol her zaman 60 Hz sinyal gönderir; 30 FPS bir oyun her resmi iki kez gösterir. PushFPS kaç kare üreteceğine buna göre karar verir
+1350|Oyunun kendisinin saniyede çizdiği yeni resim sayısı. Konsol her zaman 60 Hz sinyal gönderir; 30 FPS bir oyun her resmi iki kez gösterir. FrameWeave kaç kare üreteceğine buna göre karar verir
 1351|Yapay zekâ yakalama kartı sıkıştırmasının bıraktığı blokları ve gürültüyü temizler, ayrıntılar daha net görünür. Kare üretiminden bağımsızdır, ayrıca açılıp kapatılabilir
 1352|Görüntü neredeyse hiç hareket etmedi, HUD ayırt edilemedi. Oyunda kamerayı çevir veya hareket et, sonra tekrar dene
 1353|Bit hızı, videonun saniyede kullandığı veri miktarıdır. Hız denetimi kodlayıcının bunu nasıl dağıtacağını belirler: daha fazla veri, daha iyi kalite ve daha büyük dosya demektir
@@ -1507,20 +1507,20 @@ zh:这一帧里没有读到文字。试试只读画面的一部分，或换一�
 zh:PushFlow 的模型每生成一帧，都要把前后两个真实帧各编码一遍。开启后，每个真实帧只编码一次，结果留给下一对画面和同一对里的其他时刻使用，所以 3× 和 4× 省得更多。画面应当和不开启时一样：启动时会在你的显卡上和完整模型对比，不一致就不使用。能省多少取决于你的显卡|Her çerçeve için, PushFlow'in modeli her iki gerçek çerçeveyi tekrar kodlamaktadır. Bununla birlikte, her gerçek çerçeve bir kez kodlanır ve sonuç bir sonraki çift için tutulur ve aynı çiftin diğer anları için, bu yüzden 3× ve 4× en çok tasarruf eder. Resim aynı olmalıdır: başlangıçta grafik kartınızdaki tüm modelle karşılaştırılır ve farklılarsa kullanılmaz. Ne kadar kazandırdığı ekran kartınıza bağlıdır
 zh:开启 Predict 后，屏幕上显示的是预测帧。录制、即时回放和直播记录的是屏幕上的画面，所以也会包含这些预测帧。Dual 让它们改用真实的画面：真实帧本身，以及同一对真实帧之间真实的中间帧（Predict 已经算出了它，几乎不增加开销），时间上比屏幕晚一帧。你看到的画面和延迟都不变。只在 Predict 正在运行并且倍率是 2X 时起作用；对比短片仍然记录屏幕上的画面；录下的声音会比画面早一帧（30 FPS 时约 33 毫秒）|Tahmin ile, ekran tahmin çerçevelerini gösterir. Kayıtlar, anında tekrar oyun ve akışlar ekranda ne olduğunu kaydeder, bu yüzden bu tahminleri de içerirler. Çift onlara bunun yerine gerçek resmi verir: gerçek çerçeveler kendileri ve her bir çift gerçek çerçeve arasında doğru (Predict zaten işe yaradı, bu yüzden neredeyse hiçbir şey maliyeti yok), ekranın arkasında bir çerçeve. Ne görüyorsunuz ve onun gecikmesi değişmez. Sadece Tahmin 2X'te çalışırken davranır; karşılaştırma klipleri hala ekranda ne olduğunu kaydeder; kaydedilen ses resmin önünde bir çerçevedir (yaklaşık 33 ms 30 FPS)
 zh:普通补帧要等下一个真实帧到达，才能在两帧之间生成画面，所以真实画面会晚大约一帧才显示。Predict 不等：最新的真实帧处理完就显示，它之后的画面由已经到达的两帧预测出来。延迟更低，但预测可能出错：物体突然改变方向或新物体出现时，预测帧会和实际不同，直到下一个真实帧纠正。不可信的位置保持最新真实帧不动，不会凭空生成画面。只用于采集卡、串流等实时画面，不用于视频文件和导出。延迟降低多少、画面是否可以接受，取决于你的显卡和游戏，由你来判断|Sıradan çerçeve nesli, çerçeveleri arasında yapabilmeden önce bir sonraki gerçek çerçeveyi beklemek zorunda, bu yüzden gerçek resim bir çerçevenin geçiyle gösterilir. Tahmin beklemez: En yeni gerçek çerçeve, işlendiği kadar kısa sürede gösterilir ve çoktan gelen iki gerçek çerçeveden sonra çerçeveler. Gecikme daha düşük, ancak bir tahmin yanlış olabilir: Bir şey aniden veya yeni bir şey ortaya çıktığında, tahmin çerçevesi, bir sonraki gerçek çerçevenin doğruladığına kadar gerçekte ne olduğu farklıdır. Hareket güvenilir olmadığı yerde, en yeni gerçek çerçeve olduğu gibi bırakılır; hiçbir şey icat edilmez. Sadece bir yakalama kartı veya bir akış gibi canlı resimler için, video dosyaları veya ihracat için değil. Ne kadar gecikme kazandırdığı ve görüntünün kabul edilebilir olup olmadığı ekran kartınıza ve oyununuza bağlıdır: buna siz karar verirsiniz
-zh:Response 的设想是：在主机自己的画面到达之前，先根据右摇杆把画面转动一点。第一步只测量，不改动画面：画面自身的运动是否跟随右摇杆、有多强、晚多少。它只观察两样已经在 PushFPS 里的东西：PushFPS 自己发给主机的右摇杆（目前只有 PS5 Remote Play；接在主机上的手柄看不到），以及 Predict 运行时 PushFlow 算出的画面整体运动。不读取任何按键，不写入磁盘，不发送到任何地方；关闭开关或更换画面来源时全部清除。玩几分钟、多转动视角，这里就会显示结果，性能报告里也有|Cevap fikri, resmi konsolun kendi çerçevesi gelmeden önce sağdan biraz çevirmektir. İlk adım yalnızca ölçer ve görüntüde hiçbir şeyi değiştirmez: resmin kendi hareketi doğru çubuğu takip ediyor, nasıl güçlü ve geç? Zaten içinde olan sadece iki şeyi gözlemliyor PushFPS: Doğru çubuğu PushFPS kendisi konsola gönderir (yalnızca PS5 Remote Play şimdilik; konsola yapıştırılmış bir kontrol cihazı görülmez), ve tüm resmin hareketi PushFlow'in önceden tahmin edildiği zaman çalışır. Hiçbir düğme okumuyor, hiçbir şey diske yazmıyor, hiçbir şey hiçbir yere gönderilmez ve geçiş kapatıldığında ya da kaynak değişikliklerinde silinir. Birkaç dakika boyunca oynayın ve kamerayı çok çevirin: sonuç burada ve performans raporunda ortaya çıkıyor
+zh:Response 的设想是：在主机自己的画面到达之前，先根据右摇杆把画面转动一点。第一步只测量，不改动画面：画面自身的运动是否跟随右摇杆、有多强、晚多少。它只观察两样已经在 FrameWeave 里的东西：FrameWeave 自己发给主机的右摇杆（目前只有 PS5 Remote Play；接在主机上的手柄看不到），以及 Predict 运行时 PushFlow 算出的画面整体运动。不读取任何按键，不写入磁盘，不发送到任何地方；关闭开关或更换画面来源时全部清除。玩几分钟、多转动视角，这里就会显示结果，性能报告里也有|Cevap fikri, resmi konsolun kendi çerçevesi gelmeden önce sağdan biraz çevirmektir. İlk adım yalnızca ölçer ve görüntüde hiçbir şeyi değiştirmez: resmin kendi hareketi doğru çubuğu takip ediyor, nasıl güçlü ve geç? Zaten içinde olan sadece iki şeyi gözlemliyor FrameWeave: Doğru çubuğu FrameWeave kendisi konsola gönderir (yalnızca PS5 Remote Play şimdilik; konsola yapıştırılmış bir kontrol cihazı görülmez), ve tüm resmin hareketi PushFlow'in önceden tahmin edildiği zaman çalışır. Hiçbir düğme okumuyor, hiçbir şey diske yazmıyor, hiçbir şey hiçbir yere gönderilmez ve geçiş kapatıldığında ya da kaynak değişikliklerinde silinir. Birkaç dakika boyunca oynayın ve kamerayı çok çevirin: sonuç burada ve performans raporunda ortaya çıkıyor
 zh:愿意的话请复制结果发给我们：真实显卡的数据都来自大家|İsterseniz sonucu kopyalayıp bize gönderin: gerçek ekran kartlarının rakamları tümüyle kullanıcılardan geliyor
 zh:欢迎在 GitHub 上分享这张卡的使用结果|Bu kartın sizde nasıl çalıştığını GitHub'da paylaşın
 zh:本机控制保存的令牌无法读取，已生成新的令牌：请在设置里重新复制|Kayıtlı yerel denetim belirteci okunamadı, bu yüzden yenisi oluşturuldu: Ayarlar'dan yeniden kopyalayın
 zh:FSR 4 ML 需要支持的 RX 9000 和驱动，不可用时自动改用 FSR 3.1|FSR 4 ML, desteklenen bir RX 9000 ve sürücü gerektirir; kullanılamadığında FSR 3.1'e geçer
 zh:60→30：每两帧保留一帧，游戏不足30帧时跳过重复画面。自动去除：检测并跳过重复画面。|60→30 her iki kareden birini tutar ve oyun 30 FPS'nin altına düştüğünde yinelenen görüntüleri atlar. Otomatik kaldırma yinelenen görüntüleri algılar ve atlar.
-zh:欢迎使用 PushFPS|PushFPS'e hoş geldiniz
+zh:欢迎使用 FrameWeave|FrameWeave'e hoş geldiniz
 zh:用一分钟看一遍：接上采集卡，选好帧率，开始游戏。按 Esc 可以随时退出，以后在首页还能再看。|Nasıl işlediğini görmek için bir dakika: yakalama kartını bağlayın, kare hızını seçin ve oynayın. Esc ile turdan istediğiniz an çıkabilir, ana sayfadan yeniden açabilirsiniz.
 zh:主机的 HDMI 接到采集卡，采集卡接到这台电脑。点「采集卡」打开采集设置。|Konsolun HDMI'ı yakalama kartına, yakalama kartı da bu bilgisayara bağlanır. Ayarlarını açmak için Yakalama kartı'na tıklayın.
 zh:选好设备和格式后，在这里连接。画面出现后，剩下的都在首页的「快速设置」里。|Aygıt ve biçim seçildikten sonra buradan bağlanın. Görüntü geldiğinde geri kalan her şey ana sayfadaki Hızlı kurulum bölümündedir.
-zh:告诉 PushFPS 你玩的是什么|PushFPS'e ne oynadığınızı söyleyin
+zh:告诉 FrameWeave 你玩的是什么|FrameWeave'e ne oynadığınızı söyleyin
 zh:选你的主机和游戏本身的帧率。多数主机游戏是 30 FPS；选对了，重复的画面才会被去掉，补帧才干净。|Konsolunuzu ve oyunun kendi kare hızını seçin. Konsol oyunlarının çoğu 30 FPS'te çalışır. Doğru değerle yinelenen görüntüler kaldırılır ve kare üretimi temiz kalır.
 zh:选择目标帧率|Hedef kare hızını seçin
-zh:60、120，或者跟随显示器。PushFPS 在游戏的每两帧之间生成新的画面，补到这个帧率。|60, 120 ya da ekranınızın hızı. PushFPS bu kare hızına ulaşmak için oyunun her iki karesi arasında yeni kareler üretir.
+zh:60、120，或者跟随显示器。FrameWeave 在游戏的每两帧之间生成新的画面，补到这个帧率。|60, 120 ya da ekranınızın hızı. FrameWeave bu kare hızına ulaşmak için oyunun her iki karesi arasında yeni kareler üretir.
 zh:想要更清晰、更有层次的画面，就打开它。风格和处理尺寸可以在下面调，不喜欢随时关掉。|Daha net ve daha derin bir görüntü için açın. Görünümü ve çalışma boyutu hemen altından ayarlanır, istediğiniz an kapatabilirsiniz.
 zh:常用工具都在这一排|Araçlar bu sırada
 zh:「为我的电脑优化」实测这台电脑并选出合适的设置；「检查我的设置」找出影响画质的地方；「游戏预设」让小地图和 HUD 保持清晰。这里还能录对比片段和开播。|Bilgisayarım için optimize et bu bilgisayarı ölçer ve ona uygun ayarları seçer. Ayarlarımı denetle görüntü kalitesini düşüren şeyleri bulur. Oyun hazır ayarları mini haritayı ve HUD’u net tutar. Karşılaştırma klipleri ve canlı yayın da buradan başlar.
@@ -1552,7 +1552,7 @@ zh:旧版|Klasik
 zh:新版把导航、预览和全部快速设置放在同一个窗口里；旧版是 4.2 及更早版本的界面。两种设计的功能完全相同|Yeni; gezinmeyi, önizlemeyi ve hızlı kurulumun tamamını tek pencerede toplar. Klasik, 4.2 ve önceki sürümlerin arayüzüdür. İki tasarımın özellikleri tamamen aynıdır
 zh:更多外观设置|Diğer görünüm ayarları
 zh:语言、启动方式和窗口选项在「设置」里|Dil, başlangıç ve pencere seçenekleri Ayarlar’da
-zh:打开 PushFPS 时播放约 2 秒的开场动画，单击或按任意键可跳过|PushFPS açılırken 2 saniyelik bir giriş oynatır; atlamak için tıklayın veya bir tuşa basın
+zh:打开 FrameWeave 时播放约 2 秒的开场动画，单击或按任意键可跳过|FrameWeave açılırken 2 saniyelik bir giriş oynatır; atlamak için tıklayın veya bir tuşa basın
 zh:展开导航栏|Gezinmeyi genişlet
 zh:收起导航栏|Gezinmeyi simgelere daralt
 zh:显示右侧设置栏|Sağdaki ayar panelini göster
@@ -1562,7 +1562,7 @@ zh:连接采集卡后打开专业模式|Yakalama kartı bağlanınca Pro modunu 
 zh:关闭时留在首页，画面显示在首页中间|Kapalıyken ana sayfada kalırsınız; görüntü ortada oynar
 zh:“连接后自动全屏”已开启：连接后总是进入专业模式并全屏|"Bağlanınca tam ekran" açık: bağlanınca her zaman Pro modu tam ekran açılır
 zh:准星保持|Nişangâh Sabitleme
-zh:准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，PushFPS 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。|Nişangâh sabit dururken arkasındaki görüntü hareket ederse kare üretimi nişangâhı arka planla birlikte kaydırır: yerinden kaybolur ve iki yanında daha soluk birer kopyası belirir. Bu seçenek açıkken PushFPS nişangâhı ekranın ortasında bulur, kare üretiminden önce görüntüden çıkarır ve sonrasında olduğu gibi geri koyar. Yeni beliren ya da çizgileri hâlâ açılıp kapanan bir nişangâhın tanınması için önce kısa bir süre sabit durması gerekir.
+zh:准星静止而背后的画面在动时，补帧会把准星当成背景一起移动：它从原位消失，在两侧各出现一个较淡的重影。开启后，FrameWeave 在屏幕中央找出准星，补帧前先把它从画面里取出，补帧后再原样放回。准星刚出现或其线条正在收放时，需要先静止片刻才会被识别。|Nişangâh sabit dururken arkasındaki görüntü hareket ederse kare üretimi nişangâhı arka planla birlikte kaydırır: yerinden kaybolur ve iki yanında daha soluk birer kopyası belirir. Bu seçenek açıkken FrameWeave nişangâhı ekranın ortasında bulur, kare üretiminden önce görüntüden çıkarır ve sonrasında olduğu gibi geri koyar. Yeni beliren ya da çizgileri hâlâ açılıp kapanan bir nişangâhın tanınması için önce kısa bir süre sabit durması gerekir.
 zh:已关闭：画面移动时准星可能闪烁或出现重影|Kapalı: görüntü hareket ederken nişangâh titreyebilir veya hayalet iz bırakabilir
 zh:已开启：准星不交给补帧，补出的每一帧里都原样放回|Açık: nişangâh kare üretimine verilmez ve üretilen her kareye olduğu gibi geri konur
 zh:当前补帧方式暂不支持：可用于 NVIDIA VFG、AMD FRC 和 PushFlow|Bu kare üretimi yöntemiyle henüz değil: NVIDIA VFG, AMD FRC ve PushFlow ile çalışır
@@ -1587,7 +1587,7 @@ zh:停止播放并测试|Oynatmayı durdur ve test et
 zh:已测试：半精度在这块显卡上并不更快，继续使用全精度|Test edildi: yarı duyarlık bu ekran kartında daha hızlı değil, bu yüzden tam duyarlık kullanılmaya devam ediyor
 zh:先测试这块显卡；通过后才能开启。测试需要先停止播放|Önce bu ekran kartını test edin; test geçildikten sonra açılabilir. Test için önce oynatmanın durması gerekir
 zh:FSR 的运动估算可以更省|FSR'nin hareket kestirimi daha hafif olabilir
-zh:FSR 补帧前，PushFPS 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|FSR bir kare üretmeden önce PushFPS hareketi görüntüden kestirir. Daha hafif bir kestirim her karede ekran kartını daha az yorar; orta ve giriş seviyesi kartların yetişmesi kolaylaşır. Nesnelerin kenarları biraz kabalaşır. Görüntü kötüleşirse geri alın
+zh:FSR 补帧前，FrameWeave 先从画面里估算运动。改用更省的估算后每帧少占显卡，中低端显卡更容易跟上；物体边缘会粗一些，看起来变差就撤销|FSR bir kare üretmeden önce FrameWeave hareketi görüntüden kestirir. Daha hafif bir kestirim her karede ekran kartını daha az yorar; orta ve giriş seviyesi kartların yetişmesi kolaylaşır. Nesnelerin kenarları biraz kabalaşır. Görüntü kötüleşirse geri alın
 zh:改用更省的运动估算|Daha hafif hareket kestirimini kullan
 zh:发给 PS5 的带宽请求，主机不保证达到。有线网络下 30 Mbps 或更高会更清晰；画面卡顿就调低|PS5'ten istenen bant genişliği; konsol buna ulaşmayı garanti etmez. Kablolu ağda 30 Mbps veya üzeri daha net görünür; görüntü takılırsa düşürün
 zh:有画面播放时开始放大|Bir görüntü oynatılmaya başlayınca yükseltme başlar
@@ -1596,7 +1596,7 @@ zh:这台电脑的图形接口不能运行放大：需要 Vulkan、Metal 或 Ope
 zh:放大没能在这块显卡上启动，画面照常显示|Yükseltme bu ekran kartında başlatılamadı; görüntü her zamanki gibi gösteriliyor
 zh:0 只放大不锐化；50 为 NVIDIA 默认。一次最多放大 2 倍，更大的倍数由普通缩放补足。|0 keskinleştirmeden büyütür; 50 NVIDIA'nın varsayılanıdır. NIS her geçişte en fazla 2× büyütür; daha büyük oranlar normal ölçeklemeyle tamamlanır.
 zh:帧节奏修复|Kare ritmi düzeltme
-zh:Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 PushFPS 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。|Linux ve macOS önizlemesi: kare üretimi, Kare ritmi düzeltme ve Canlı HUD Lock PushFPS'in kendi teknolojisidir; NVIDIA, AMD veya Intel bileşeni gerektirmez.
+zh:Linux 和 macOS 预览版：补帧、帧节奏修复和实时 HUD 锁定都是 FrameWeave 自己的技术，不需要 NVIDIA、AMD 或 Intel 的组件。|Linux ve macOS önizlemesi: kare üretimi, Kare ritmi düzeltme ve Canlı HUD Lock FrameWeave'in kendi teknolojisidir; NVIDIA, AMD veya Intel bileşeni gerektirmez.
 zh:一键打开所有不影响画质的低延迟设置：显卡只排队一帧（NVIDIA 显卡用 NVIDIA 低延迟），连接后进入全屏（绕过桌面合成，少等一次刷新），屏幕支持 G-SYNC/FreeSync 时用可变刷新同步（不撕裂、不跳帧）。补帧、AI 增强、HUD 锁定和帧节奏修复保持不变。关闭后恢复之前的设置|Görüntü kalitesinden ödün vermeyen tüm düşük gecikme ayarlarını tek seferde açar: ekran kartı sıraya yalnızca bir kare alır (NVIDIA kartlarda NVIDIA Low Latency), bağlanınca tam ekran (masaüstü birleştiricisini atlar, bir yenileme daha az bekleme) ve G-SYNC/FreeSync ekranlarda değişken yenileme senkronu (yırtılma ve atlanan kare yok). Kare üretimi, yapay zekâ iyileştirmesi, HUD kilidi ve Kare ritmi düzeltme olduğu gibi kalır. Kapatınca önceki ayarlarınız geri gelir
 zh:已开启：运动估计用「快速」，帧节奏修复关闭。关闭后恢复原来的设置|Açık: hareket hızlı yolla bulunur ve Kare ritmi düzeltme kapalıdır. Kapatınca önceki ayarlar geri gelir
 zh:帧节奏修复 · 已重排 %1%|Kare ritmi düzeltme · %1% yeniden zamanlandı

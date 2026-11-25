@@ -25,7 +25,7 @@ Window {
     minimumWidth: 720
     minimumHeight: 520
     visible: true
-    title: "PushFPS"
+    title: "FrameWeave"
     color: Theme.bgOuter
     flags: Qt.Window | Qt.FramelessWindowHint | (app.alwaysOnTop ? Qt.WindowStaysOnTopHint : 0)
 

@@ -213,7 +213,7 @@ inline std::string summary(const Marker& m, const Facts& f) {
         for (char& c : v) if (c == '_') c = ' ';
         return v;
     };
-    std::string out = "PushFPS crash summary\n";
+    std::string out = "FrameWeave crash summary\n";
     out += "Version: " + orUnknown(safeField(f.version, 40)) + "\n";
     out += "Crashed in: " + orUnknown(m.module);
     if (!m.offset.empty()) out += " +" + m.offset;

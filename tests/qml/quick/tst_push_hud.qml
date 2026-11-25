@@ -13,7 +13,7 @@ Item {
     Item { id: host; anchors.fill: parent; property string dialog: ""; function close() { dialog = "" } }
     PushHudDialog { id: hud; dialogHost: host; timeoutEnabled: false }
     PushQuickSetup { id: quick; width: 560; y: 700 }
-    PushWordmark { id: mark; x: 10; y: 10; name: "PushFPS" }
+    PushWordmark { id: mark; x: 10; y: 10; name: "FrameWeave" }
     PushWordmark { id: otherMark; x: 10; y: 60; name: "Veyra" }
     ColumnLayout {
         y: 100; width: 420
@@ -221,11 +221,11 @@ Item {
             verify(none === null || !none.visible, "rows without help have no mark")
         }
         function test_wordmark_colours() {
-            compare(mark.head, "Push")
-            compare(mark.tail, "FPS")
+            compare(mark.head, "Frame")
+            compare(mark.tail, "Weave")
             compare(String(mark.tailColor), String(Theme.brandGreen))
             compare(String(mark.color), Theme.light ? String(Theme.t1) : "#ffffff")
-            verify(mark.text.indexOf(String(Theme.brandGreen)) > 0 && mark.text.indexOf("FPS") > 0, mark.text)
+            verify(mark.text.indexOf(String(Theme.brandGreen)) > 0 && mark.text.indexOf("Weave") > 0, mark.text)
             compare(otherMark.head, "Veyra")
             compare(otherMark.text, "Veyra", "a name without FPS is one colour")
         }

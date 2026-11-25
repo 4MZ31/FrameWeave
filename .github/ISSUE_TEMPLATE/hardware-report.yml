@@ -1,5 +1,5 @@
 name: Hardware report
-description: Tell us how PushFPS runs on your graphics card, so it can go on the tested hardware list.
+description: Tell us how FrameWeave runs on your graphics card, so it can go on the tested hardware list.
 title: "[Hardware] "
 labels: ["hardware report"]
 body:
@@ -8,11 +8,11 @@ body:
       value: |
         Thanks! Reports like this are how a graphics card gets onto the tested list, and how PushFlow gets faster on it.
 
-        Two things to paste, both made by PushFPS and both free of anything personal:
+        Two things to paste, both made by FrameWeave and both free of anything personal:
         1. **Performance report**: play for a few minutes, then *Settings → Performance report → Copy*.
         2. **Graphics card test** (optional, about a minute, nothing may be playing): *Settings → Test my graphics card → Copy result*.
 
-        How to measure, and what the numbers mean: [docs/BENCHMARKING.md](https://github.com/DosukaSOL/PushFPS/blob/main/docs/BENCHMARKING.md)
+        How to measure, and what the numbers mean: [docs/BENCHMARKING.md](https://github.com/4MZ31/FrameWeave/blob/main/docs/BENCHMARKING.md)
   - type: input
     id: card
     attributes:

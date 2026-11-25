@@ -73,17 +73,17 @@ engine::PushOverlayImage imageOf(const QImage& painted) {
         std::memcpy(&out.rgba[size_t(y) * out.width * 4], image.constScanLine(y), size_t(out.width) * 4);
     return out;
 }
-// The PushFPS wordmark: Push in white, FPS in logo green.
+// The FrameWeave wordmark: Frame in white, Weave in logo green.
 void drawWordmark(QPainter& painter, const QPointF& rightBaseline, int pixels) {
     const QFont font = sceneFont(pixels, QFont::Bold, true);
     const QFontMetricsF m(font);
-    const QString push = QStringLiteral("Push"), fps = QStringLiteral("FPS");
-    const qreal width = m.horizontalAdvance(push) + m.horizontalAdvance(fps);
+    const QString head = QStringLiteral("Frame"), tail = QStringLiteral("Weave");
+    const qreal width = m.horizontalAdvance(head) + m.horizontalAdvance(tail);
     painter.setFont(font);
     painter.setPen(QColor(255, 255, 255, 230));
-    painter.drawText(QPointF(rightBaseline.x() - width, rightBaseline.y()), push);
+    painter.drawText(QPointF(rightBaseline.x() - width, rightBaseline.y()), head);
     painter.setPen(QColor(141, 242, 55));
-    painter.drawText(QPointF(rightBaseline.x() - m.horizontalAdvance(fps), rightBaseline.y()), fps);
+    painter.drawText(QPointF(rightBaseline.x() - m.horizontalAdvance(tail), rightBaseline.y()), tail);
 }
 // Draws `image` to cover `area` (cropped to keep its shape).
 void drawCover(QPainter& painter, const QImage& image, const QRectF& area) {

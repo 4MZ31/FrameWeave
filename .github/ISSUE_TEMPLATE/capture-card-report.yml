@@ -1,5 +1,5 @@
 name: Capture card report
-description: Tell us how PushFPS works with your capture card, so others know which cards are tested.
+description: Tell us how FrameWeave works with your capture card, so others know which cards are tested.
 title: "[Capture card] "
 labels: ["capture card"]
 body:
@@ -12,7 +12,7 @@ body:
     id: card
     attributes:
       label: Capture card
-      description: Brand and model, and the name Windows shows (PushFPS shows it under Quick setup).
+      description: Brand and model, and the name Windows shows (FrameWeave shows it under Quick setup).
       placeholder: "Elgato 4K X (Windows: Game Capture 4K X)"
     validations:
       required: true
@@ -39,8 +39,8 @@ body:
   - type: input
     id: pc
     attributes:
-      label: Graphics card and PushFPS version
-      placeholder: "RTX 4070, PushFPS 2.2.0"
+      label: Graphics card and FrameWeave version
+      placeholder: "RTX 4070, FrameWeave 2.2.0"
   - type: textarea
     id: optimise
     attributes:

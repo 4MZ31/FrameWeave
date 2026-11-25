@@ -585,7 +585,7 @@ void QmlPlayerBridge::ps5FinishSignIn(const QString& pasted) {
     auto request = [basic](const QString& url) {
         QNetworkRequest r{QUrl(url)};
         r.setRawHeader("Authorization", basic);
-        r.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("PushFPS"));
+        r.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("FrameWeave"));
         r.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
         r.setTransferTimeout(20000);
         return r;

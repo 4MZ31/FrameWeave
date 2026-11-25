@@ -755,7 +755,7 @@ void armCrashMarker() {
     std::error_code ec;
     fs::create_directories(fs::path(crashMarkerPath()).parent_path(), ec);
     std::ofstream out(fs::path(crashMarkerPath()), std::ios::trunc);
-    out << "PushFlow was starting; if this file is still here at the next start, PushFPS stopped inside PushFlow.\n";
+    out << "PushFlow was starting; if this file is still here at the next start, FrameWeave stopped inside PushFlow.\n";
     out.flush();
 }
 constexpr size_t kSteadyInferences = 120;   // about 2 s at 2X from 30 FPS

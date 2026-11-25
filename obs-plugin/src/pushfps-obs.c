@@ -34,9 +34,9 @@ OBS_DECLARE_MODULE()
 #define PLUGIN_NAME "pushfps-obs"
 #define PLUGIN_VERSION "1.2.0"
 #define SOURCE_ID "pushfps_source"
-#define PUSHFPS_EXE L"PushFPS.exe"
-#define DEFAULT_PATH L"%LOCALAPPDATA%\\Programs\\PushFPS\\PushFPS.exe"
-#define LOCAL_KEY L"Software\\PushFPS\\OBS"
+#define PUSHFPS_EXE L"FrameWeave.exe"
+#define DEFAULT_PATH L"%LOCALAPPDATA%\\Programs\\FrameWeave\\FrameWeave.exe"
+#define LOCAL_KEY L"Software\\FrameWeave\\OBS"
 #define LOCAL_EXE L"Executable"
 #define EXE_PATH_CAP (MAX_PATH * 4)
 #define SCAN_INTERVAL 1.5f
@@ -165,7 +165,7 @@ static bool window_string(HWND hwnd, char *out, size_t out_len)
 	wide_to_utf8(wclass, cls, sizeof(cls));
 	encode_part(title, enc_title, sizeof(enc_title));
 	encode_part(cls, enc_class, sizeof(enc_class));
-	return snprintf(out, out_len, "%s:%s:PushFPS.exe", enc_title, enc_class) < (int)out_len;
+	return snprintf(out, out_len, "%s:%s:FrameWeave.exe", enc_title, enc_class) < (int)out_len;
 }
 
 /* A scene can request autostart, but only the local user chooses the installation. */
@@ -208,20 +208,20 @@ static bool choose_installed_exe(obs_properties_t *props, obs_property_t *p, voi
 	OPENFILENAMEW dialog = {0};
 	dialog.lStructSize = sizeof(dialog);
 	dialog.hwndOwner = GetActiveWindow();
-	dialog.lpstrTitle = L"Choose the local PushFPS.exe for OBS";
-	dialog.lpstrFilter = L"PushFPS (PushFPS.exe)\0PushFPS.exe\0";
+	dialog.lpstrTitle = L"Choose the local FrameWeave.exe for OBS";
+	dialog.lpstrFilter = L"FrameWeave (FrameWeave.exe)\0FrameWeave.exe\0";
 	dialog.lpstrFile = path;
 	dialog.nMaxFile = EXE_PATH_CAP;
 	dialog.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
 	if (!GetOpenFileNameW(&dialog))
 		return false;
 	if (!installed_exe(path)) {
-		MessageBoxW(dialog.hwndOwner, L"Choose PushFPS.exe on a local drive.", L"PushFPS", MB_OK | MB_ICONWARNING);
+		MessageBoxW(dialog.hwndOwner, L"Choose FrameWeave.exe on a local drive.", L"FrameWeave", MB_OK | MB_ICONWARNING);
 		return false;
 	}
 	if (RegSetKeyValueW(HKEY_CURRENT_USER, LOCAL_KEY, LOCAL_EXE, REG_SZ, path,
 	                    (DWORD)((wcslen(path) + 1) * sizeof(*path))) != ERROR_SUCCESS)
-		MessageBoxW(dialog.hwndOwner, L"Could not save the PushFPS location.", L"PushFPS", MB_OK | MB_ICONERROR);
+		MessageBoxW(dialog.hwndOwner, L"Could not save the FrameWeave location.", L"FrameWeave", MB_OK | MB_ICONERROR);
 	return false;
 }
 
@@ -237,7 +237,7 @@ static const char *launch_pushfps(void)
 	}
 	wchar_t path[EXE_PATH_CAP];
 	if (!resolve_exe_path(path, EXE_PATH_CAP))
-		return "PushFPS.exe not found; choose its location in the source properties";
+		return "FrameWeave.exe not found; choose its location in the source properties";
 	wchar_t dir[EXE_PATH_CAP];
 	wcscpy_s(dir, EXE_PATH_CAP, path);
 	wchar_t *slash = wcsrchr(dir, L'\\');
@@ -251,7 +251,7 @@ static const char *launch_pushfps(void)
 	startup.cb = sizeof(startup);
 	PROCESS_INFORMATION process = {0};
 	if (!CreateProcessW(path, command, NULL, NULL, FALSE, 0, NULL, dir, &startup, &process))
-		return "could not start PushFPS.exe";
+		return "could not start FrameWeave.exe";
 	CloseHandle(process.hThread);
 	CloseHandle(process.hProcess);
 	return "started";
@@ -286,7 +286,7 @@ static void rebuild_child(struct pushfps_source *ps, int method)
 {
 	obs_data_t *settings = child_settings(method, ps->window);
 	const char *kind = method == METHOD_GAME ? "game_capture" : "window_capture";
-	obs_source_t *fresh = obs_source_create_private(kind, "PushFPS capture", settings);
+	obs_source_t *fresh = obs_source_create_private(kind, "FrameWeave capture", settings);
 	obs_data_release(settings);
 	if (!fresh)
 		plog(LOG_WARNING, "could not create %s (is the win-capture plugin installed?)", kind);
@@ -311,7 +311,7 @@ static void rebuild_child(struct pushfps_source *ps, int method)
 static const char *ps_get_name(void *unused)
 {
 	UNUSED_PARAMETER(unused);
-	return "PushFPS";
+	return "FrameWeave";
 }
 
 static void ps_update(void *data, obs_data_t *settings)
@@ -330,7 +330,7 @@ static void *ps_create(obs_data_t *settings, obs_source_t *source)
 	ps->self = source;
 	ps->child_method = -1;
 	InitializeCriticalSection(&ps->lock);
-	strcpy_s(ps->window, sizeof(ps->window), "PushFPS::PushFPS.exe");
+	strcpy_s(ps->window, sizeof(ps->window), "FrameWeave::FrameWeave.exe");
 	ps_update(ps, settings);
 	plog(LOG_INFO, "source created");
 	return ps;
@@ -380,10 +380,10 @@ static void ps_tick(void *data, float seconds)
 				obs_source_update(ps->child, s);
 				obs_data_release(s);
 			}
-			plog(LOG_INFO, "found the PushFPS window");
+			plog(LOG_INFO, "found the FrameWeave window");
 		} else if (!hwnd && !ps->logged_missing) {
 			ps->logged_missing = true;
-			plog(LOG_INFO, "PushFPS is not running yet; waiting for it");
+			plog(LOG_INFO, "FrameWeave is not running yet; waiting for it");
 		}
 	}
 	if (rebuild)
@@ -444,7 +444,7 @@ static bool ps_launch_clicked(obs_properties_t *props, obs_property_t *p, void *
 	UNUSED_PARAMETER(data);
 	UNUSED_PARAMETER(p);
 	UNUSED_PARAMETER(props);
-	plog(LOG_INFO, "open PushFPS: %s", launch_pushfps());
+	plog(LOG_INFO, "open FrameWeave: %s", launch_pushfps());
 	return true; /* refresh the status line */
 }
 
@@ -455,26 +455,26 @@ static obs_properties_t *ps_properties(void *data)
 
 	const bool running = find_pushfps_window() != NULL;
 	obs_properties_add_text(props, "status",
-				running ? "PushFPS is running. Its picture shows here."
-					: "PushFPS is not running. Click \"Open PushFPS\" or show this source.",
+				running ? "FrameWeave is running. Its picture shows here."
+					: "FrameWeave is not running. Click \"Open FrameWeave\" or show this source.",
 				OBS_TEXT_INFO);
-	obs_properties_add_button(props, "launch", "Open PushFPS", ps_launch_clicked);
+	obs_properties_add_button(props, "launch", "Open FrameWeave", ps_launch_clicked);
 
 	obs_property_t *m = obs_properties_add_list(props, "method", "Capture method", OBS_COMBO_TYPE_LIST,
 						    OBS_COMBO_FORMAT_INT);
 	obs_property_list_add_int(m, "Game capture (full frame rate, recommended)", METHOD_GAME);
 	obs_property_list_add_int(m, "Window capture (if game capture shows nothing)", METHOD_WINDOW);
 	obs_property_set_long_description(
-		m, "Game capture receives every generated frame. It needs PushFPS started with "
-		   "--obs-game-capture (\"Open PushFPS\" does that) or Settings > Compatible > OBS Game Capture "
-		   "compatibility turned on in PushFPS.");
+		m, "Game capture receives every generated frame. It needs FrameWeave started with "
+		   "--obs-game-capture (\"Open FrameWeave\" does that) or Settings > Compatible > OBS Game Capture "
+		   "compatibility turned on in FrameWeave.");
 
-	obs_properties_add_bool(props, "autostart", "Start PushFPS when this source is shown");
+	obs_properties_add_bool(props, "autostart", "Start FrameWeave when this source is shown");
 
-	obs_properties_add_button(props, "choose_local_install", "PushFPS.exe location (this PC)", choose_installed_exe);
+	obs_properties_add_button(props, "choose_local_install", "FrameWeave.exe location (this PC)", choose_installed_exe);
 
 	obs_properties_add_text(props, "audio_hint",
-				"Sound: add an \"Application Audio Capture\" source and pick PushFPS.exe.",
+				"Sound: add an \"Application Audio Capture\" source and pick FrameWeave.exe.",
 				OBS_TEXT_INFO);
 	UNUSED_PARAMETER(ps);
 	return props;
@@ -505,17 +505,17 @@ static struct obs_source_info pushfps_source_info = {
 static void tools_open_pushfps(void *unused)
 {
 	UNUSED_PARAMETER(unused);
-	plog(LOG_INFO, "Tools > Open PushFPS: %s", launch_pushfps());
+	plog(LOG_INFO, "Tools > Open FrameWeave: %s", launch_pushfps());
 }
 
 MODULE_EXPORT const char *obs_module_name(void)
 {
-	return "PushFPS";
+	return "FrameWeave";
 }
 
 MODULE_EXPORT const char *obs_module_description(void)
 {
-	return "PushFPS source: console frame generation from a capture card, inside OBS.";
+	return "FrameWeave source: console frame generation from a capture card, inside OBS.";
 }
 
 bool obs_module_load(void)
@@ -528,5 +528,5 @@ bool obs_module_load(void)
 void obs_module_post_load(void)
 {
 	/* The frontend API is there only in the OBS app (not in obs-ffmpeg-mux etc.). */
-	obs_frontend_add_tools_menu_item("Open PushFPS", tools_open_pushfps, NULL);
+	obs_frontend_add_tools_menu_item("Open FrameWeave", tools_open_pushfps, NULL);
 }

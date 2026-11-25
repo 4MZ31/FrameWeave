@@ -15,7 +15,7 @@ DialogLayer {
     key: "latencyguide"
     glyph: "gauge"
     title: qsTr("测量总延迟")
-    sub: qsTr("PushFPS 只能测出自己的处理时间。用手机慢动作拍摄，可以看到从主机到显示器多出的全部延迟")
+    sub: qsTr("FrameWeave 只能测出自己的处理时间。用手机慢动作拍摄，可以看到从主机到显示器多出的全部延迟")
     dialogWidth: 600
 
     // 240 fps slow motion: one recorded frame is about 4.2 ms.
@@ -25,10 +25,10 @@ DialogLayer {
     readonly property real totalMs: guide.frames * guide.msPerFrame
 
     readonly property var steps: [
-        qsTr("把采集卡的 HDMI 输出（直通）接到电视或第二台显示器，PushFPS 画面放在电脑显示器上，两块屏幕并排"),
+        qsTr("把采集卡的 HDMI 输出（直通）接到电视或第二台显示器，FrameWeave 画面放在电脑显示器上，两块屏幕并排"),
         qsTr("在游戏里找一个画面会突然变化的动作，例如打开菜单或开枪"),
         qsTr("用手机慢动作（240 FPS 更准）同时拍下两块屏幕，按几次按钮"),
-        qsTr("逐帧查看视频：数一数直通屏幕变化后，PushFPS 屏幕过了几帧才变化，填在下面")
+        qsTr("逐帧查看视频：数一数直通屏幕变化后，FrameWeave 屏幕过了几帧才变化，填在下面")
     ]
 
     Repeater {
@@ -93,7 +93,7 @@ DialogLayer {
         objectName: "pushfps-latency-guide-result"
         Layout.fillWidth: true
         Layout.topMargin: 8
-        text: qsTr("PushFPS 比直通多出约 %1 毫秒（每帧约 %2 毫秒）").arg(Math.round(guide.totalMs)).arg(guide.msPerFrame.toFixed(1))
+        text: qsTr("FrameWeave 比直通多出约 %1 毫秒（每帧约 %2 毫秒）").arg(Math.round(guide.totalMs)).arg(guide.msPerFrame.toFixed(1))
         color: Theme.accent
         font.family: Theme.fontUi
         font.pixelSize: Theme.fsBody

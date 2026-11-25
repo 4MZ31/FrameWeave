@@ -101,7 +101,8 @@ Item {
         }
         function test_share_code_round_trip() {
             const code = games.shareCode(games.selected)
-            verify(code.indexOf("PUSHFPS1:") === 0)
+            verify(code.indexOf("FRAMEWEAVE1:") === 0)
+            compare(Presets.decode(code.replace("FRAMEWEAVE1:", "PUSHFPS1:"), Qt.atob).name, Presets.decode(code, Qt.atob).name)
             const back = Presets.decode(code, Qt.atob)
             compare(back.name, "GTA VI")
             compare(back.regions.length, 3)
@@ -110,7 +111,7 @@ Item {
             const unicode = Presets.decode(Presets.encode({ name: "原神 ★ test", fps: 60, regions: [] }, Qt.btoa), Qt.atob)
             compare(unicode.name, "原神 ★ test")
             compare(unicode.fps, 60)
-            compare(Presets.decode("PUSHFPS1:not-base64!!", Qt.atob), null)
+            compare(Presets.decode("FRAMEWEAVE1:not-base64!!", Qt.atob), null)
             compare(Presets.decode("hello", Qt.atob), null)
             compare(Presets.decode("", Qt.atob), null)
         }
@@ -219,7 +220,7 @@ Item {
             const b = findChild(games, "pushfps-game-preset-copy")
             verify(b !== null)
             b.clicked()
-            verify(veyra.lastCopiedText.indexOf("PUSHFPS1:") === 0)
+            verify(veyra.lastCopiedText.indexOf("FRAMEWEAVE1:") === 0)
         }
 
         // --- latency readout -------------------------------------------------
@@ -351,25 +352,25 @@ Item {
             const row = findChild(quick, "pushfps-card-row")
             veyra.captureDeviceLabel = "Game Capture HD60 S"
             compare(findChild(quick, "pushfps-card-status").text, qsTr("已测试"))
-            compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
+            compare(row.hint, qsTr("原项目用户报告可用"))
             veyra.captureDeviceLabel = "Game Capture HD60 S+"
             verify(!findChild(quick, "pushfps-card-status").visible, "its own entry, with nothing known: no mark")
             veyra.captureDeviceLabel = "Game Capture HD60 X"
-            compare(row.hint, qsTr("PushFPS 已实测"))
+            compare(row.hint, qsTr("原项目已实测"))
             veyra.captureDeviceLabel = "AVerMedia Live Gamer Ultra 2.1"
             compare(findChild(quick, "pushfps-card-status").text, qsTr("已测试"))
-            compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
+            compare(row.hint, qsTr("原项目用户报告可用"))
             // Reported in November 2026: an Elgato HD60 Pro and an ezcap Game Link Raw.
             veyra.captureDeviceLabel = "Game Capture HD60 Pro"
-            compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
+            compare(row.hint, qsTr("原项目用户报告可用"))
             veyra.captureDeviceLabel = "ezcap Game Link RAW"
-            compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
+            compare(row.hint, qsTr("原项目用户报告可用"))
             // Reported on 21 November 2026: an AVerMedia Live Streamer Ultra HD (GC571), by the name Windows gives it.
             veyra.captureDeviceLabel = "Live Streamer Ultra HD-Video"
-            compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
+            compare(row.hint, qsTr("原项目用户报告可用"))
             // Reported on 23 November 2026 (issue 19): a FEELWORLD C4K.
             veyra.captureDeviceLabel = "FEELWORLD C4K"
-            compare(row.hint, qsTr("有 PushFPS 用户报告可用"))
+            compare(row.hint, qsTr("原项目用户报告可用"))
             veyra.captureDeviceLabel = "AVerMedia Live Gamer Ultra-Video"
             verify(!findChild(quick, "pushfps-card-status").visible)
             veyra.captureDeviceLabel = "USB Video"
@@ -387,12 +388,12 @@ Item {
 
         // --- Discord ------------------------------------------------------------
         function test_share_to_discord_without_webhook() {
-            card.show("C:/Videos/PushFPS/PushFPS-Replay-1.mp4", true)
+            card.show("C:/Videos/FrameWeave/FrameWeave-Replay-1.mp4", true)
             tryVerify(() => card.opacity > 0.99, 2000)
             const b = findChild(card, "pushfps-recording-discord")
             verify(b !== null && b.visible)
             b.clicked()
-            compare(veyra.lastCopiedFile, "C:/Videos/PushFPS/PushFPS-Replay-1.mp4")
+            compare(veyra.lastCopiedFile, "C:/Videos/FrameWeave/FrameWeave-Replay-1.mp4")
             compare(veyra.discordOpened, 1)
             verify(card.shareText.length > 0)
             card.on = false
