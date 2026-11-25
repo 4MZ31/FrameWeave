@@ -102,18 +102,95 @@ if ($OwnFolder) {
     Write-Host '  The PushFPS you have is not changed.' -ForegroundColor Yellow
 }
 
+# SHA-256 through .NET: no PowerShell module is needed for it (see the module path note at the top).
+function Get-Sha256([string]$path) {
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    $stream = [System.IO.File]::OpenRead($path)
+    try { return ([System.BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '') }
+    finally { $stream.Dispose(); $sha.Dispose() }
+}
+
+# Record relative names from the delivered trees. Uninstallation only enumerates
+# real children, so a manifest entry cannot introduce an absolute or parent path.
+$installRootInfo = [IO.DirectoryInfo]::new($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($InstallDir))
+if (-not $installRootInfo.Parent) { Fail 'The installation folder cannot be a drive or share root.' }
+$InstallDir = $installRootInfo.FullName
+for ($ancestor = $installRootInfo; $ancestor; $ancestor = $ancestor.Parent) {
+    if ($ancestor.Exists -and ($ancestor.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        Fail "The installation folder goes through a link: $($ancestor.FullName)"
+    }
+}
+$manifest = Join-Path $InstallDir 'PushFPS-installed-files.txt'
+$manifestHeader = 'PushFPS installed files v1'
+$owned = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$hasManifest = $false
+if ([IO.File]::Exists($manifest)) {
+    if ([IO.File]::GetAttributes($manifest) -band [IO.FileAttributes]::ReparsePoint) { Fail 'The installed-files manifest is a link.' }
+    $lines = [IO.File]::ReadAllLines($manifest)
+    if ($lines.Length -eq 0 -or $lines[0] -ne $manifestHeader) { Fail "Unrecognized installed-files manifest in $InstallDir." }
+    foreach ($line in $lines) { if ($line -ne $manifestHeader) { [void]$owned.Add($line) } }
+    $hasManifest = $true
+}
+
+function Add-Payload([IO.DirectoryInfo]$Folder, [string]$Prefix, [string]$SkipTop = '') {
+    foreach ($entry in $Folder.EnumerateFileSystemInfos()) {
+        if (($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) -or ($entry.Name -eq $SkipTop)) { continue }
+        $name = $Prefix + $entry.Name
+        if ($name -like 'runtime_local/user-data-*' -or $name -eq 'PushFPS-installed-files.txt') { continue }
+        if ($entry -is [IO.DirectoryInfo]) {
+            [void]$owned.Add($name + '/')
+            Add-Payload $entry ($name + '/')
+        } else {
+            [void]$owned.Add($name)
+        }
+    }
+}
+
+function Remove-Payload([IO.DirectoryInfo]$Folder, [string]$Prefix) {
+    foreach ($entry in $Folder.GetFileSystemInfos()) {
+        if ($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
+        $name = $Prefix + $entry.Name
+        if ($name -like 'runtime_local/user-data-*' -or $name -eq 'PushFPS-installed-files.txt') { continue }
+        if ($entry -is [IO.DirectoryInfo]) {
+            if ($owned.Contains($name + '/')) {
+                Remove-Payload $entry ($name + '/')
+                if ($entry.GetFileSystemInfos().Length -eq 0) { $entry.Delete() }
+            }
+        } elseif ($owned.Contains($name)) {
+            # Older installers left no inventory. Only delete an identifiable
+            # file from the supplied package when its contents still match.
+            if (-not $hasManifest) {
+                $source = Join-Path $filesDir $name
+                if ((Get-Sha256 $source) -ne (Get-Sha256 $entry.FullName)) { continue }
+            }
+            Remove-Item -LiteralPath $entry.FullName -Force
+        }
+    }
+}
+
 if ($Uninstall) {
     Step 'Removing PushFPS'
-    foreach ($link in @($startMenu, $desktop)) { if (Test-Path $link) { Remove-Item $link -Force } }
-    # A PushFPS folder, or what an earlier removal could not delete of one (the virtual camera's file, loaded by
-    # another program): never any other folder.
-    $isPushFps = (Test-Path (Join-Path $InstallDir 'PushFPS.exe')) -or (Test-Path (Join-Path $InstallDir 'PushFPS-VERSION.txt')) -or (Test-Path (Join-Path $InstallDir 'virtualcam\pushfps-virtualcam64.dll'))
-    if ($isPushFps) {
-        try { Remove-Item $InstallDir -Recurse -Force -ErrorAction Stop }
-        catch { Fail "Not everything in $InstallDir could be removed: a file is in use. If the virtual camera was ever switched on, the programs that list cameras (a browser, Discord, OBS) have its file loaded. Close them, then run this again." }
-        Info "Removed $InstallDir"
-    } else {
-        Info "Nothing installed in $InstallDir"
+    if (-not $installRootInfo.Exists) { Info "Nothing installed in $InstallDir"; exit 0 }
+    if (-not $hasManifest) {
+        $versionFile = Join-Path $InstallDir 'PushFPS-VERSION.txt'
+        if (-not [IO.File]::Exists($versionFile) -or
+            ([IO.File]::GetAttributes($versionFile) -band [IO.FileAttributes]::ReparsePoint) -or
+            (Get-Content -LiteralPath $versionFile -TotalCount 1) -notmatch '^PushFPS \d+\.\d+\.\d+([-.+][\w.-]+)?$') {
+            Info "No recognizable installation record in $InstallDir. Its files were kept."
+            exit 0
+        }
+        if ([IO.Directory]::Exists($filesDir)) { Add-Payload ([IO.DirectoryInfo]::new($filesDir)) '' }
+        Info 'Legacy installation: unmatched files and runtime dependencies are kept. Reinstall before uninstalling to record the complete payload.'
+    }
+    Remove-Payload $installRootInfo ''
+    if ($hasManifest) { [IO.File]::Delete($manifest) } else { [IO.File]::Delete($versionFile) }
+    if ($installRootInfo.GetFileSystemInfos().Length -eq 0) { $installRootInfo.Delete() }
+    else { Info "Other files remain in $InstallDir." }
+    foreach ($link in @($startMenu, $desktop)) {
+        if (Test-Path -LiteralPath $link -PathType Leaf) {
+            $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut($link)
+            if ($shortcut.TargetPath -eq (Join-Path $InstallDir 'PushFPS.exe')) { Remove-Item -LiteralPath $link -Force }
+        }
     }
     exit 0
 }
@@ -142,13 +219,6 @@ $cacheDir = Join-Path $env:TEMP 'PushFPS-download'
 $zip = Join-Path $cacheDir $asset
 New-Item -ItemType Directory -Force $cacheDir | Out-Null
 
-# SHA-256 through .NET: no PowerShell module is needed for it (see the module path note at the top).
-function Get-Sha256([string]$path) {
-    $sha = [System.Security.Cryptography.SHA256]::Create()
-    $stream = [System.IO.File]::OpenRead($path)
-    try { return ([System.BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '') }
-    finally { $stream.Dispose(); $sha.Dispose() }
-}
 function Test-Download { (Test-Path $zip) -and ((Get-Sha256 $zip) -ieq $expected) }
 
 if (Test-Download) {
@@ -303,6 +373,18 @@ try {
         "Runtime SHA-256: $expected"
     ) + @($skipped | ForEach-Object { "Not installed: $_" })
     Set-Content -Path (Join-Path $InstallDir 'PushFPS-VERSION.txt') -Value $versionLines -Encoding UTF8
+    # Merge earlier inventories for upgrades. Never inventory the destination:
+    # it can also contain files belonging to its user or another program.
+    Add-Payload ([IO.DirectoryInfo]::new($runtimeRoot)) '' 'virtualcam'
+    [void]$owned.Remove('veyra_qml_ui.exe')
+    Add-Payload ([IO.DirectoryInfo]::new($filesDir)) ''
+    [void]$owned.Add('PushFPS-VERSION.txt')
+    $stagedManifest = Join-Path $InstallDir ([IO.Path]::GetRandomFileName())
+    try {
+        [IO.File]::WriteAllLines($stagedManifest, [string[]](@($manifestHeader) + @($owned)))
+        if ($hasManifest) { [IO.File]::Replace($stagedManifest, $manifest, [System.Management.Automation.Language.NullString]::Value) }
+        else { [IO.File]::Move($stagedManifest, $manifest) }
+    } finally { if ([IO.File]::Exists($stagedManifest)) { [IO.File]::Delete($stagedManifest) } }
 } finally {
     Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
 }
