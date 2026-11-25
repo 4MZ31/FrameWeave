@@ -52,7 +52,8 @@ $collection = @{
     scene_order = @(@{ name = 'Scene' })
     sources = @(
         @{ id = 'pushfps_source'; versioned_id = 'pushfps_source'; name = 'PushFPS'; uuid = $src
-           settings = @{}; enabled = $true; flags = 0; mixers = 0; volume = 1.0 },
+           # A legacy collection from a different PC must still use this PC's installation.
+           settings = @{ exe_path = 'Z:\former-pc\PushFPS.exe' }; enabled = $true; flags = 0; mixers = 0; volume = 1.0 },
         @{ id = 'scene'; versioned_id = 'scene'; name = 'Scene'; uuid = '6c1d6f52-0d55-4a45-9a70-6b2a3d6f0002'
            settings = @{ id_counter = 1; items = @(@{ name = 'PushFPS'; source_uuid = $src; visible = $true; id = 1
                                                        pos = @{ x = 0; y = 0 }; scale = @{ x = 1; y = 1 }; rot = 0; align = 5 }) } }

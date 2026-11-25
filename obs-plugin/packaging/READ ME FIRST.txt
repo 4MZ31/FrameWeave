@@ -21,7 +21,9 @@ Using it
     stays empty, choose "Window capture". If you start PushFPS yourself, turn on
     Settings > Compatible > OBS Game Capture compatibility in PushFPS once and restart it.
   - Sound: add an "Application Audio Capture" source and pick PushFPS.exe.
-  - PushFPS installed somewhere else: set "PushFPS.exe location" in the source's properties.
+  - For a custom installation, click "PushFPS.exe location (this PC)" in the source properties
+    and choose the installed PushFPS.exe once. All scenes and the Tools menu use that local choice.
+    After upgrading from an older plugin, select custom installations again on this PC.
 
 Where it goes
   %ProgramData%\obs-studio\plugins\pushfps-obs\pushfps-obs.dll for OBS Studio 33 and newer (the
