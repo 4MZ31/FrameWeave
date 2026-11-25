@@ -44,6 +44,23 @@ double rateOver(const std::deque<int64_t>& times) {
     return span > 0 ? double(times.size() - 1) * 1e9 / span : 0;
 }
 
+// The rate a readout shows (stats(now)): rateOver, except that one whose events stop falls off instead of
+// keeping the last rate it had. Once the newest event is older than a quarter of a second (or two of its
+// own intervals, if longer), the span runs up to now; a second after the newest it is 0. The quarter
+// second is there because the newest entries are written a little after the fact (a frame is kept once
+// the next one is compared with it), so a picture that moves is never read as one that stopped.
+// (Pacing reads rateOver: a picture that stands still must not change how the next one is timed.)
+double liveRate(const std::deque<int64_t>& times, int64_t now) {
+    if (times.size() < 2) return 0;
+    const double span = double(times.back() - times.front());
+    if (span <= 0) return 0;
+    const double since = double(now - times.back());
+    if (since > 1e9) return 0;
+    const double interval = span / double(times.size() - 1);
+    const bool stopped = since > std::max(2 * interval, 250e6);
+    return double(times.size() - 1) * 1e9 / (stopped ? span + since : span);
+}
+
 }  // namespace
 
 Engine::Engine(EngineSettings settings) : s_(settings), pacing_(std::make_unique<Pacing>()) {
@@ -106,6 +123,7 @@ void Engine::resetLocked() {
     jobs_.clear();
     lastQuarter_.reset();
     arrivals_.clear();
+    readoutArrivals_.clear();
     keptTimes_.clear();
     lastArrival_ = lastKeptArrival_ = lastContent_ = 0;
     lastWidth_ = lastHeight_ = 0;
@@ -172,6 +190,8 @@ void Engine::push(Gray&& luma, const std::function<Bgra()>& makeImage, int64_t a
         lastArrival_ = arrivalNs;
         arrivals_.push_back(arrivalNs);
         while (arrivals_.size() > 32) arrivals_.pop_front();
+        readoutArrivals_.push_back(arrivalNs);
+        while (readoutArrivals_.size() > 1 && readoutArrivals_.front() < arrivalNs - kReadoutWindowNs) readoutArrivals_.pop_front();
         if (s_.removeDuplicates && lastQuarter_ && quarter) {
             const auto r = compareForDuplicate(*lastQuarter_, *quarter);
             if (r.duplicate) { ++st_.duplicates; return; }
@@ -474,6 +494,15 @@ EngineStats Engine::stats() const {
     s.delayMs = delayNs_ / double(kMs);
     s.marginMs = lateMarginMs_;
     s.slackMs = slack_.empty() ? 0.0 : *std::min_element(slack_.begin(), slack_.end());
+    return s;
+}
+
+EngineStats Engine::stats(int64_t nowNs) const {
+    EngineStats s = stats();
+    std::lock_guard lk(m_);
+    s.transportFps = liveRate(readoutArrivals_, nowNs);
+    s.contentFps = liveRate(keptTimes_, nowNs);
+    s.outputFps = liveRate(shownTimes_, nowNs);
     return s;
 }
 

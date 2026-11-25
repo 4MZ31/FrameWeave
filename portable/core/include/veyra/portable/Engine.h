@@ -91,6 +91,7 @@ struct Pick {
 };
 
 struct EngineStats {
+    // stats(now) gives the three rates as a readout shows them: falling off when what they count stops.
     double transportFps = 0;   // frames per second arriving from the capture
     double contentFps = 0;     // real (non-duplicate) pictures per second
     double outputFps = 0;      // different pictures shown per second
@@ -127,6 +128,9 @@ public:
     // Render thread, once per refresh. refreshHz: the display's refresh rate (for the output count).
     Pick pick(int64_t displayNs);
     EngineStats stats() const;
+    // The same, for a readout at `nowNs` (the clock the frames are stamped with): the three rates fall off
+    // when what they count stops, and read 0 a second after the last one, instead of keeping the last rate.
+    EngineStats stats(int64_t nowNs) const;
     // Drops all frames (source change, resolution change).
     void reset();
     // Tests: waits until the worker has finished every queued pair.
@@ -167,6 +171,11 @@ private:
     int64_t lastArrival_ = 0, lastKeptArrival_ = 0, lastContent_ = 0;
     int lastWidth_ = 0, lastHeight_ = 0;
     std::deque<int64_t> arrivals_, keptTimes_;
+    // The capture's arrivals over the last kReadoutWindowNs, for the readout's signal rate only: frames
+    // that come over USB in bunches made a rate over the 32 of arrivals_ (half a second) read 64 for a
+    // 60 Hz card; over two seconds a bunch moves it by about 1 %. Pacing keeps reading arrivals_.
+    std::deque<int64_t> readoutArrivals_;
+    static constexpr int64_t kReadoutWindowNs = 2'000'000'000;
     double delayNs_ = 0;
     double lateMarginMs_ = 0;  // extra delay this machine needed (motion not ready in time)
     double estimateMsAvg_ = 0;
