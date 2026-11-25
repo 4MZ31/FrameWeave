@@ -132,7 +132,7 @@ int main() {
         Facts f;
         f.version = "4.1.0"; f.source = "capture"; f.playing = true; f.frameGeneration = true; f.fps = 119.71; f.latencyMs = 14.23;
         f.recording = true; f.recordingSeconds = 83; f.markers = 2; f.replay = true;
-        CHECK(statusJson(f) == "{\"ok\":true,\"app\":\"PushFPS\",\"api\":1,\"version\":\"4.1.0\",\"playing\":true,\"source\":\"capture\","
+        CHECK(statusJson(f) == "{\"ok\":true,\"app\":\"FrameWeave\",\"api\":1,\"version\":\"4.1.0\",\"playing\":true,\"source\":\"capture\","
                                "\"frameGeneration\":true,\"fps\":119.7,\"latencyMs\":14.2,\"recording\":true,\"recordingSeconds\":83,"
                                "\"markers\":2,\"replay\":true,\"streaming\":false}");
         Facts odd;
