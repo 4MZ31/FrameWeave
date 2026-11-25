@@ -51,5 +51,18 @@ try {
     Expect $dest 'FrameWeave.exe' 'new-app'
     Expect $dest 'personal.txt' 'personal'
     if (-not (Test-Path (Join-Path $dest 'FrameWeave-installed-files.txt'))) { throw 'Missing committed manifest' }
-    Write-Output 'PASS locked upgrade rolls back, interrupted process recovers, retry commits and preserves personal files'
+    $cameraDir = [IO.Directory]::CreateDirectory((Join-Path $dest 'virtualcam')).FullName
+    $delivered = [IO.Directory]::CreateDirectory((Join-Path $payload 'virtualcam')).FullName
+    Put $cameraDir 'camera.dll' 'A'
+    Put $delivered 'camera.dll' 'B'
+    $reader = [IO.File]::Open((Join-Path $cameraDir 'camera.dll'), 'Open', 'Read', 'Read, Delete')
+    try {
+        Run $script 0
+        Expect $cameraDir 'camera.dll' 'B'
+        Put $delivered 'camera.dll' 'C'
+        Run $script 0
+        Expect $cameraDir 'camera.dll' 'C'
+        if ($reader.ReadByte() -ne 65 -or $reader.ReadByte() -ne -1) { throw 'The held camera changed' }
+    } finally { $reader.Dispose() }
+    Write-Output 'PASS locked upgrade rolls back, interrupted process recovers, two camera updates commit while a reader keeps the original file'
 } finally { $env:TEMP = $previousTemp }

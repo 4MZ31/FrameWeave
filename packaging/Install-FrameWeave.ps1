@@ -158,7 +158,20 @@ function Restore-Install {
     # Detach a finished journal atomically. An interrupted cleanup may leave
     # stale backups, but can never replay an already completed rollback.
     $finished = $transaction + '-finished-' + [guid]::NewGuid().ToString('N')
-    [IO.Directory]::Move($transaction, $finished)
+    try { [IO.Directory]::Move($transaction, $finished) }
+    catch [UnauthorizedAccessException], [IO.IOException] {
+        # A reader sharing delete can let Windows rename its file but prevent a
+        # rename of the parent directory. Only retire backups after commit.
+        if (-not [IO.File]::Exists((Join-Path $transaction 'committed'))) { throw }
+        foreach ($backup in [IO.Directory]::GetFiles($transaction, 'old-*')) {
+            $name = [IO.Path]::GetFileName($backup)
+            if ($name -notmatch '^old-\d+$') { throw "Unexpected transaction file: $backup" }
+            $detached = "$finished-$name"
+            [IO.File]::Move($backup, $detached)
+            try { [IO.File]::Delete($detached) } catch { Info "In-use backup retained: $detached" }
+        }
+        [IO.Directory]::Move($transaction, $finished)
+    }
     foreach ($item in [IO.Directory]::EnumerateFiles($finished)) {
         if ([IO.Path]::GetFileName($item) -notmatch '^(journal|pending|committed|old-\d+)$') { throw "Unexpected transaction file: $item" }
         try { [IO.File]::Delete($item) } catch { Info "In-use backup retained: $item" }
