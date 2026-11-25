@@ -1577,7 +1577,10 @@ void EngineController::run(HWND window,std::wstring path,PlayerOptions options,s
             bool processingGraph=false;
             auto waitLive=[&]{
                 const auto due=liveScheduler?liveScheduler->wakeAt():0;
-                const auto arrivalEvent=physicalCapture?captureSource.frameEvent():nullptr;
+                auto arrivalEvent=physicalCapture?captureSource.frameEvent():nullptr;
+#ifdef VEYRA_ENABLE_REMOTEPLAY
+                if(remote)arrivalEvent=remote->frameEvent();
+#endif
                 const auto readyEvent=physicalCapture?gpuReadyEvent.handle:nullptr;
                 if(preciseDeadlines&&liveScheduler&&liveScheduler->preciseWake()){
                     deadlineWait.until(due,arrivalEvent,readyEvent,[&]{return stop_||(paused_&&!seekPreviewPending)||seekSeconds_>=0;});

@@ -22,6 +22,7 @@ public:
     bool open(const SourceOpenDesc&) override { return false; }
     const SourceInfo& info() const override { return info_; }
     SourceReadStatus read(pipeline::FramePacket&, const AVFrame**) override;
+    HANDLE frameEvent() const noexcept { return frameEvent_.get(); }
     bool seek(const pipeline::Rational&) override { return false; }
     void close() noexcept override;
     void controller(remoteplay::ControllerState state);
@@ -57,6 +58,7 @@ private:
     std::atomic<bool> alive_{false};
     bool initialized_=false, started_=false, failed_=false;
     std::optional<Frame> latest_;
+    std::unique_ptr<void,decltype(&CloseHandle)> frameEvent_{CreateEventW(nullptr,FALSE,FALSE,nullptr),&CloseHandle};
     remoteplay::PresentedArrivals presented_;   // under mutex_
     std::shared_ptr<AVFrame> view_;
     SourceInfo info_, publishedInfo_;

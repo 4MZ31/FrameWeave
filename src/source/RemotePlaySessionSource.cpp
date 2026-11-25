@@ -103,7 +103,8 @@ void RemotePlaySessionSource::run(std::stop_token stop, RemotePlayConnectDesc de
                 else Sleep(1);
             }
         } else if(ok) {
-            monitor=std::jthread([this,inbox=source.telemetryInbox()](std::stop_token cancel){
+            const auto inbox=source.telemetryInbox();
+            monitor=std::jthread([this,inbox](std::stop_token cancel){
                 while(!cancel.stop_requested()){
                     const auto s=inbox->snapshot();const auto now=remoteplay::monotonic100ns();
                     const auto age=[&](auto stamp){return stamp>0?double(now-stamp)/10000:-1.0;};
@@ -116,8 +117,8 @@ void RemotePlaySessionSource::run(std::stop_token stop, RemotePlayConnectDesc de
                     }
                     if(causes.empty())causes="none";
                     const auto input=controllerStats();
-                    log::info("remoteplay-progress",std::format("state={} received={} decoded={} inputFps={:.1f} decodeFps={:.1f} videoMbps={:.3f} receiveAgeMs={:.1f} decodeAgeMs={:.1f} decodeBusyMs={:.1f} queue={} waitingIdr={} idrRequests={} errors={} recoveries={} causes={} droppedQueued={} queuePeak={} queuePeakAgeMs={:.1f} readerClockBehind={} controller: states={} merged={} expired={} overflows={} silences={} peakPending={} peakAgeMs={:.1f} (complete-video callback; not network latency)",int(s.state),s.video.accessUnits,s.decodedFrames,s.receivedFps,s.decodedFps,s.videoMbps,age(s.lastVideo100ns),age(s.lastDecoded100ns),age(s.decodeStarted100ns),s.video.depth,s.video.waitingForIdr,s.video.idrRequests,s.errorCode,
-                        s.video.recoveries,causes,s.video.droppedQueued,s.video.highWaterDepth,double(s.video.highWaterAge100ns)/10000,s.video.readerClockBehind,
+                    log::info("remoteplay-progress",std::format("state={} received={} decoded={} inputFps={:.1f} decodeFps={:.1f} videoMbps={:.3f} receiveAgeMs={:.1f} decodeAgeMs={:.1f} decodeBusyMs={:.1f} queue={} waitingIdr={} idrRequests={} errors={} recoveries={} causes={} droppedQueued={} queuePeak={} queuePeakAgeMs={:.1f} ingressMeanMs={:.2f} decodeP95Ms={:.2f} readerClockBehind={} controller: states={} merged={} expired={} overflows={} silences={} peakPending={} peakAgeMs={:.1f} (complete-video callback; not network latency)",int(s.state),s.video.accessUnits,s.decodedFrames,s.receivedFps,s.decodedFps,s.videoMbps,age(s.lastVideo100ns),age(s.lastDecoded100ns),age(s.decodeStarted100ns),s.video.depth,s.video.waitingForIdr,s.video.idrRequests,s.errorCode,
+                        s.video.recoveries,causes,s.video.droppedQueued,s.video.highWaterDepth,double(s.video.highWaterAge100ns)/10000,s.ingressWaitMeanMs.value_or(-1),s.decodeP95Ms.value_or(-1),s.video.readerClockBehind,
                         input.states,input.merged,input.expired,input.overflows,input.silences,input.highWaterPending,double(input.highWaterAge100ns)/10000));
                     for(int i=0;i<10&&!cancel.stop_requested();++i)std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
@@ -125,10 +126,10 @@ void RemotePlaySessionSource::run(std::stop_token stop, RemotePlayConnectDesc de
             WAVEFORMATEX format{}; format.wFormatTag=WAVE_FORMAT_IEEE_FLOAT;format.nChannels=2;
             format.nSamplesPerSec=48000;format.wBitsPerSample=32;format.nBlockAlign=8;format.nAvgBytesPerSec=384000;
             audio_.setMeasuredVideoDelay(true); // PushFPS 4.5.3: our PTS are estimates; sync on the measured delay
-            if(audio_.configure(format)&&audio_.start()) {
+            if(audio_.configure(format)&&audio_.start({},sink::CaptureAudioSession::EndpointBuffer::LowLatency)) {
                 // Separate from both decoder and GPU owners. Source is closed
                 // only after this reader and the WASAPI owner have joined.
-                feeder=std::jthread([this,&source](std::stop_token cancel){
+                feeder=std::jthread([this,&source,inbox](std::stop_token cancel){
                     try {
                         float pcm[960]; double next=-1;
                         while(!cancel.stop_requested()) {
@@ -138,13 +139,14 @@ void RemotePlaySessionSource::run(std::stop_token stop, RemotePlayConnectDesc de
                                 if(!audio_.push(pcm,count*2*sizeof(float),pts,gap))
                                     log::warn("remoteplay-audio","PCM queue rejected block");
                                 next=pts+1000.0*double(count)/48000;
-                            } else std::this_thread::sleep_for(std::chrono::milliseconds(2));
+                            } else if(!inbox->waitForAudio(cancel)) break;
                         }
                     } catch(const std::exception& e) {log::error("remoteplay-audio",e.what());}
                 });
             } else log::error("remoteplay-audio","output initialization failed; video remains available");
             auto lastFrame=std::chrono::steady_clock::now();
             auto nextController=lastFrame;
+            bool retryController=false;
             auto rateStart=lastFrame;uint64_t previousReceived=receivedBase,previousDecoded=0;
             {std::lock_guard lock(mutex_);previousDecoded=rates_.decoded;}
             auto nextNativeLog=lastFrame;
@@ -161,11 +163,19 @@ void RemotePlaySessionSource::run(std::stop_token stop, RemotePlayConnectDesc de
                 }
                 const auto now=std::chrono::steady_clock::now();
                 if(!desc.request.viewOnly&&now>=nextController) {
-                    remoteplay::ControllerState controller;
-                    {std::lock_guard lock(mutex_);controller=takeControllerLocked(remoteplay::monotonic100ns());}
-                    const auto r=source.submitController(controller);
-                    if(!r.ok)log::warn("remoteplay",std::format("{} code={}",r.operation,r.code));
-                    nextController=now+std::chrono::milliseconds(4);
+                    std::optional<remoteplay::ControllerState> controller;
+                    {
+                        std::lock_guard lock(mutex_);
+                        const auto stamp=remoteplay::monotonic100ns();
+                        if(retryController||controllers_.needsSubmit(stamp))controller=takeControllerLocked(stamp);
+                    }
+                    if(controller){
+                        const auto r=source.submitController(*controller);
+                        retryController=!r.ok;
+                        if(!r.ok)log::warn("remoteplay",std::format("{} code={}",r.operation,r.code));
+                        // Keep queued press and release edges apart for Chiaki's sender.
+                        nextController=now+std::chrono::milliseconds(4);
+                    }
                 }
                 pipeline::FramePacket packet; const AVFrame* frame=nullptr;
                 const auto result=source.read(packet,&frame);
@@ -220,7 +230,14 @@ void RemotePlaySessionSource::run(std::stop_token stop, RemotePlayConnectDesc de
                         recovery_.message=snapshot.state==remoteplay::SessionState::LoginPinRequired?L"等待 PS5 登录 PIN 超时，请重新连接。":native.startupRetryAllowed?L"PS5 仍被串流会话占用，请结束其他串流或稍后重试；无需重新配对。":!native.automaticRetryAllowed?L"PS5 已结束或拒绝串流，请检查主机状态后重新连接。":L"PS5 串流未恢复，请检查主机及网络后点击连接；无需重新配对。";
                         recovery_.message+=std::format(L"（终止码 {} / 错误 {}）",native.lastQuitReason,snapshot.errorCode);break;
                     }
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    // Media and input wake the owner directly. The short deadline still
+                    // services recovery and the controller's silence watchdog.
+                    auto deadline=std::chrono::steady_clock::now()+std::chrono::milliseconds(4);
+                    if(!desc.request.viewOnly){
+                        std::lock_guard lock(mutex_);
+                        if(retryController||controllers_.pending())deadline=std::min(deadline,nextController);
+                    }
+                    inbox->waitForOwnerWork(stop,deadline);
                 }
             }
         }
@@ -263,6 +280,7 @@ void RemotePlaySessionSource::run(std::stop_token stop, RemotePlayConnectDesc de
     {std::lock_guard lock(mutex_);recovery_.active=false;}
     // run() has no early return: the owner loop and its retries are over.
     alive_.store(false);
+    if(frameEvent_)SetEvent(frameEvent_.get());
 }
 void RemotePlaySessionSource::publishDecoded(const AVFrame* frame,pipeline::FramePacket packet,const SourceInfo& info){
     auto* cloned=av_frame_clone(frame);if(!cloned)throw std::bad_alloc();
@@ -275,6 +293,7 @@ void RemotePlaySessionSource::publishDecoded(const AVFrame* frame,pipeline::Fram
     if(latest_){++skipped_;item.packet.flags|=latest_->packet.flags;
         item.packet.flags|=static_cast<pipeline::FrameFlags>(pipeline::FrameFlagBits::Drop);}
     latest_=std::move(item);
+    if(frameEvent_)SetEvent(frameEvent_.get());
 }
 void RemotePlaySessionSource::videoPresented(double pts,int64_t host,bool sourceFrame){
     if(!sourceFrame)return;
@@ -297,12 +316,18 @@ void RemotePlaySessionSource::close() noexcept {
 }
 void RemotePlaySessionSource::controller(remoteplay::ControllerState state){
     bool fits=true;
-    {std::lock_guard lock(mutex_);fits=controllers_.push(std::move(state),remoteplay::monotonic100ns());}
+    std::shared_ptr<const remoteplay::SessionInbox> inbox;
+    {std::lock_guard lock(mutex_);fits=controllers_.push(std::move(state),remoteplay::monotonic100ns());inbox=telemetryInbox_;}
+    if(inbox)inbox->wakeOwner();
     if(!fits)log::warn("remoteplay-input","Controller queue overflow; releasing before latest state");
 }
 remoteplay::ControllerState RemotePlaySessionSource::takeControllerLocked(remoteplay::HostTime now){return controllers_.take(now);}
 remoteplay::ControllerQueue::Stats RemotePlaySessionSource::controllerStats()const{std::lock_guard lock(mutex_);return controllers_.stats();}
-void RemotePlaySessionSource::loginPin(std::string pin){std::lock_guard lock(mutex_);SecureZeroMemory(pin_.data(),pin_.size());pin_=std::move(pin);}
+void RemotePlaySessionSource::loginPin(std::string pin){
+    std::shared_ptr<const remoteplay::SessionInbox> inbox;
+    {std::lock_guard lock(mutex_);SecureZeroMemory(pin_.data(),pin_.size());pin_=std::move(pin);inbox=telemetryInbox_;}
+    if(inbox)inbox->wakeOwner();
+}
 remoteplay::SessionInbox::Snapshot RemotePlaySessionSource::sessionSnapshot()const{
     std::shared_ptr<const remoteplay::SessionInbox> inbox;{std::lock_guard lock(mutex_);inbox=telemetryInbox_;if(!inbox)return snapshot_;}
     return inbox->snapshot();

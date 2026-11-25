@@ -5,6 +5,7 @@
 #include "veyra/media/NetworkInput.h"
 #include <functiondiscoverykeys_devpkey.h>
 #include <propvarutil.h>
+#include <wrl/client.h>
 #pragma comment(lib, "propsys.lib")
 
 #include <algorithm>
@@ -929,7 +930,7 @@ void AudioRenderer::unregisterEndpointNotification(){
     if(enum_)enum_->UnregisterEndpointNotificationCallback(notifier_);
     notifier_->Release();notifier_=nullptr;
 }
-bool AudioRenderer::start(AudioFormat input,double requestedBufferMs,std::wstring_view excludedEndpoint)
+bool AudioRenderer::start(AudioFormat input,double requestedBufferMs,std::wstring_view excludedEndpoint,bool preferLowLatency)
 {
     std::lock_guard endpointLock(endpointMutex_);
     if(client_||enum_)return checked(E_UNEXPECTED,"Endpoint already initialized");
@@ -972,9 +973,11 @@ bool AudioRenderer::start(AudioFormat input,double requestedBufferMs,std::wstrin
         return checked(HRESULT_FROM_WIN32(ERROR_CIRCULAR_DEPENDENCY),"Choose a real output for virtual speaker audio");
     const std::wstring deviceName=endpointName(device_);
     registerEndpointNotification();
-    hr = device_->Activate(__uuidof(IAudioClient), CLSCTX_ALL, nullptr,
-        reinterpret_cast<void**>(&client_));
-    if (!checked(hr,"Activate AudioClient")) return false;
+    const auto activateClient = [&] {
+        return checked(device_->Activate(__uuidof(IAudioClient), CLSCTX_ALL, nullptr,
+            reinterpret_cast<void**>(&client_)),"Activate AudioClient");
+    };
+    if (!activateClient()) return false;
     WAVEFORMATEX* deviceMix=nullptr;
     if(!checked(client_->GetMixFormat(&deviceMix),"GetMixFormat"))return false;
     WavePcmFormat deviceFormat;const bool known=parseWavePcm(deviceMix,sizeof(WAVEFORMATEX)+deviceMix->cbSize,deviceFormat);
@@ -1001,16 +1004,40 @@ bool AudioRenderer::start(AudioFormat input,double requestedBufferMs,std::wstrin
     log::info("audio-format",std::format("input={} mask=0x{:X} output={} mask=0x{:X} downmix={} deviceLayoutKnown={}",input.channels,input.mask,outputFormat_.channels,outputFormat_.mask,outputFormat_.channels<input.channels,known));
     sampleRate_ = kAudioRate;
     requestedBufferMs=std::clamp(requestedBufferMs,5.0,50.0);
-    const REFERENCE_TIME requestedBufferHns=static_cast<REFERENCE_TIME>(std::llround(requestedBufferMs*10000.0));
-    hr = client_->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK |
-        AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY,
-        requestedBufferHns, 0, &mix.Format, nullptr);
-    const bool initOk = checked(hr,"Initialize AudioClient");
-    if (!initOk) return false;
+    UINT32 lowPeriod=0;
+    if(preferLowLatency){
+        Microsoft::WRL::ComPtr<IAudioClient3> shared;
+        UINT32 normal=0,fundamental=0,minimum=0,maximum=0;
+        if(SUCCEEDED(client_->QueryInterface(IID_PPV_ARGS(shared.GetAddressOf())))&&
+           SUCCEEDED(shared->GetSharedModeEnginePeriod(&mix.Format,&normal,&fundamental,&minimum,&maximum))&&fundamental){
+            // Keep a modest scheduling margin while the source supplies 10 ms PCM blocks.
+            const UINT32 target=std::max(minimum,UINT32(sampleRate_/200)); // 5 ms or the driver's minimum
+            const UINT32 period=((target+fundamental-1)/fundamental)*fundamental;
+            if(period<normal&&period<=maximum){
+                hr=shared->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK,period,&mix.Format,nullptr);
+                if(SUCCEEDED(hr))lowPeriod=period;
+                else {
+                    log::info("audio-endpoint",std::format("short shared period unavailable hr=0x{:08X}; using normal shared buffering",unsigned(hr)));
+                    shared.Reset();
+                    client_->Release();client_=nullptr;
+                    if(!activateClient())return false;
+                }
+            }
+        }
+    }
+    if(!lowPeriod){
+        const auto requestedBufferHns=static_cast<REFERENCE_TIME>(std::llround(requestedBufferMs*10000.0));
+        hr=client_->Initialize(AUDCLNT_SHAREMODE_SHARED,AUDCLNT_STREAMFLAGS_EVENTCALLBACK|
+            AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM|AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY,requestedBufferHns,0,&mix.Format,nullptr);
+        if(!checked(hr,"Initialize AudioClient"))return false;
+    }
     if (!checked(client_->GetBufferSize(&bufferFrames_),"GetBufferSize")) return false;
-    REFERENCE_TIME devicePeriod=0;
-    if(!checked(client_->GetDevicePeriod(&devicePeriod,nullptr),"GetDevicePeriod"))return false;
-    devicePeriodMs_=std::max(.1,double(devicePeriod)/10000.0);
+    if(lowPeriod)devicePeriodMs_=1000.0*lowPeriod/sampleRate_;
+    else {
+        REFERENCE_TIME devicePeriod=0;
+        if(!checked(client_->GetDevicePeriod(&devicePeriod,nullptr),"GetDevicePeriod"))return false;
+        devicePeriodMs_=std::max(.1,double(devicePeriod)/10000.0);
+    }
     event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
     if(event_==nullptr)return checked(HRESULT_FROM_WIN32(GetLastError()),"CreateEvent");
     if(!checked(client_->SetEventHandle(event_),"SetEventHandle"))return false;
@@ -1023,8 +1050,8 @@ bool AudioRenderer::start(AudioFormat input,double requestedBufferMs,std::wstrin
     if(!freq)return checked(E_UNEXPECTED,"Zero audio clock frequency");
     clockFrequency_=freq;
     running_ = true;
-    veyra::log::info("audio", std::format("renderer opened {}Hz event-mode requestedBufferMs={:.1f} actualBufferMs={:.3f} buffer={} frames (not started; prefill first)",
-        sampleRate_,requestedBufferMs,1000.0*bufferFrames_/sampleRate_,bufferFrames_));
+    veyra::log::info("audio", std::format("renderer opened {}Hz event-mode requestedBufferMs={:.1f} actualBufferMs={:.3f} buffer={} frames devicePeriodMs={:.3f} shortSharedPeriod={} (not started; prefill first)",
+        sampleRate_,requestedBufferMs,1000.0*bufferFrames_/sampleRate_,bufferFrames_,devicePeriodMs_,lowPeriod!=0));
     return true;
 }
 

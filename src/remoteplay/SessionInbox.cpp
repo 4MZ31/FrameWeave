@@ -9,6 +9,9 @@ struct SessionInbox::Shared {
     mutable std::mutex mutex;Generation generation=0;SessionState state=SessionState::Idle;
     HostTime origin=0;bool accepting=false;std::uint64_t stale=0;int error=0;
     VideoIngress video;AudioIngress audio;
+    std::condition_variable_any ownerReady;
+    bool ownerWake=false;
+    void wakeOwner(){ownerWake=true;ownerReady.notify_one();}
     HostTime lastVideo=0,lastAudio=0,decodeStart=0,lastDecoded=0;
     uint64_t decodedFrames=0,receivedBytes=0,framesLost=0,referenceRecoveryEvents=0;
     bool hardwareDecode=false,decodeFallback=false,decodeConfirmed=false;
@@ -28,12 +31,13 @@ SessionInbox::Token SessionInbox::begin(HostTime origin){
     if(s.state!=SessionState::Idle)throw std::logic_error("Stop and join previous backend before a new session");
     if(s.generation==std::numeric_limits<Generation>::max())throw std::overflow_error("Session generation exhausted");
     ++s.generation;s.video.begin(s.generation);s.audio.begin(s.generation);s.origin=origin;s.state=SessionState::Connecting;s.accepting=true;s.error=0;
+    s.ownerWake=false;
     s.lastVideo=s.lastAudio=s.decodeStart=s.lastDecoded=0;s.decodedFrames=s.receivedBytes=s.framesLost=s.referenceRecoveryEvents=0;
     s.hardwareDecode=s.decodeFallback=s.decodeConfirmed=false;
     s.received.clear();s.decoded.clear();s.decodeTimes.clear();s.ingressWait.clear();
     return Token{shared_,s.generation};
 }
-void SessionInbox::invalidate(){auto& s=*shared_;std::lock_guard l(s.mutex);s.accepting=false;if(s.state!=SessionState::Idle)s.state=SessionState::Stopping;s.video.close();s.audio.close();}
+void SessionInbox::invalidate(){auto& s=*shared_;std::lock_guard l(s.mutex);s.accepting=false;if(s.state!=SessionState::Idle)s.state=SessionState::Stopping;s.video.close();s.audio.close();s.wakeOwner();}
 void SessionInbox::finishStop(){auto& s=*shared_;std::lock_guard l(s.mutex);if(s.accepting)throw std::logic_error("Invalidate before join/finishStop");s.state=SessionState::Idle;}
 bool SessionInbox::isCurrent(Generation g)const{auto& s=*shared_;std::lock_guard l(s.mutex);return s.accepting&&s.generation==g;}
 bool SessionInbox::decodedFrameReady(Generation g){
@@ -43,6 +47,19 @@ bool SessionInbox::decodedFrameReady(Generation g){
 }
 std::optional<QueuedVideo> SessionInbox::tryVideo(HostTime now){auto& s=*shared_;std::lock_guard l(s.mutex);if(!s.accepting)return {};return s.video.tryPop(now);}
 std::optional<PcmBlock> SessionInbox::tryAudio(){auto& s=*shared_;std::lock_guard l(s.mutex);if(!s.accepting)return {};return s.audio.tryPop();}
+void SessionInbox::wakeOwner() const {
+    auto& s=*shared_;
+    std::lock_guard lock(s.mutex);
+    s.wakeOwner();
+}
+bool SessionInbox::waitForOwnerWork(std::stop_token stop,std::chrono::steady_clock::time_point deadline) const {
+    auto& s=*shared_;
+    std::unique_lock lock(s.mutex);
+    const bool ready=s.ownerReady.wait_until(lock,stop,deadline,[&]{return !s.accepting||s.ownerWake||s.video.stats().depth!=0;});
+    s.ownerWake=false;
+    return ready&&s.accepting&&!stop.stop_requested();
+}
+bool SessionInbox::waitForAudio(std::stop_token stop) const {return shared_->audio.waitForData(stop);}
 bool SessionInbox::takeIdrRequest(HostTime now){auto& s=*shared_;std::lock_guard l(s.mutex);return s.accepting&&s.video.takeIdrRequest(now);}
 void SessionInbox::decodeFailed(Generation g){auto& s=*shared_;std::lock_guard l(s.mutex);if(s.accepting&&s.generation==g)s.video.requireKeyframe();}
 SessionInbox::Snapshot SessionInbox::snapshot()const{
@@ -68,7 +85,9 @@ bool SessionInbox::Token::video(VideoSample sample)const noexcept{
     try{auto s=shared_.lock();if(!s)return false;std::lock_guard l(s->mutex);if(!s->current(generation_))return false;
         if(sample.generation!=generation_)return false;
         if(sample.kind==SampleKind::AccessUnit){s->lastVideo=monotonic100ns();s->receivedBytes+=sample.payload.bytes().size();s->framesLost+=std::max(0,sample.framesLost);s->referenceRecoveryEvents+=sample.referenceRecovered?1:0;Shared::add(s->received,s->lastVideo,double(sample.payload.bytes().size()));}
-        const auto r=s->video.push(std::move(sample),monotonic100ns());return r==PushStatus::Accepted||r==PushStatus::ConfigStored;
+        const auto r=s->video.push(std::move(sample),monotonic100ns());
+        s->wakeOwner(); // An access unit or a pending IDR request may need service.
+        return r==PushStatus::Accepted||r==PushStatus::ConfigStored;
     }catch(...){failed(-1001);return false;}
 }
 bool SessionInbox::Token::audio(PcmBlock block)const noexcept{
@@ -77,15 +96,15 @@ bool SessionInbox::Token::audio(PcmBlock block)const noexcept{
 }
 void SessionInbox::Token::connected()const noexcept{
     try{auto s=shared_.lock();if(!s)return;std::lock_guard l(s->mutex);if(!s->current(generation_))return;
-        if(s->state==SessionState::Connecting||s->state==SessionState::LoginPinRequired)s->state=SessionState::WaitingFirstFrame;
+        if(s->state==SessionState::Connecting||s->state==SessionState::LoginPinRequired){s->state=SessionState::WaitingFirstFrame;s->wakeOwner();}
     }catch(...){}
 }
 void SessionInbox::Token::loginPinRequired()const noexcept{
-    try{auto s=shared_.lock();if(!s)return;std::lock_guard l(s->mutex);if(s->current(generation_))s->state=SessionState::LoginPinRequired;}catch(...){}
+    try{auto s=shared_.lock();if(!s)return;std::lock_guard l(s->mutex);if(s->current(generation_)){s->state=SessionState::LoginPinRequired;s->wakeOwner();}}catch(...){}
 }
 void SessionInbox::Token::failed(int code)const noexcept{
     try{auto s=shared_.lock();if(!s)return;std::lock_guard l(s->mutex);if(!s->current(generation_))return;
-        s->error=code;s->state=SessionState::Failed;s->accepting=false;s->video.close();s->audio.close();
+        s->error=code;s->state=SessionState::Failed;s->accepting=false;s->video.close();s->audio.close();s->wakeOwner();
     }catch(...){}
 }
 void SessionInbox::decoderBackend(bool hardware,bool fallback){

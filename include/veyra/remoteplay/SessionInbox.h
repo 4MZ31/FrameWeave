@@ -43,6 +43,10 @@ public:
     bool decodedFrameReady(Generation);
     std::optional<QueuedVideo> tryVideo(HostTime now);
     std::optional<PcmBlock> tryAudio();
+    // The owner stays in charge of all Chiaki calls. Producers only wake it.
+    void wakeOwner() const;
+    bool waitForOwnerWork(std::stop_token, std::chrono::steady_clock::time_point deadline) const;
+    bool waitForAudio(std::stop_token) const;
     bool takeIdrRequest(HostTime now);
     void decodeFailed(Generation);
     bool isCurrent(Generation)const;

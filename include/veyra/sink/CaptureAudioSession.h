@@ -31,11 +31,12 @@ struct CaptureAudioState {
 };
 class CaptureAudioSession {
 public:
+    enum class EndpointBuffer { Default, LowLatency };
     CaptureAudioSession();
     ~CaptureAudioSession();
     bool configure(const WavePcmFormat&);
     bool configure(const WAVEFORMATEX&,size_t formatBytes=sizeof(WAVEFORMATEX));
-    bool start(std::wstring excludedEndpoint={});
+    bool start(std::wstring excludedEndpoint={}, EndpointBuffer buffer=EndpointBuffer::Default);
     void stop();
     bool push(const void* data,size_t bytes,double ptsMs,bool discontinuity);
     // Arrival is the matching original capture frame, not the latest callback.

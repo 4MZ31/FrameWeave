@@ -75,6 +75,10 @@ public:
         stats_.highWaterPending = std::max(stats_.highWaterPending, pending_.size());
         return fits;
     }
+    // Pending input or a release when the input producer has stopped reporting.
+    bool needsSubmit(HostTime now) const {
+        return !pending_.empty() || (now - stamp_ > kFresh100ns && !(last_ == ControllerState{}));
+    }
     // The state to send now. With nothing waiting, the one sent last (the console keeps what it has).
     ControllerState take(HostTime now) {
         if (now - stamp_ > kFresh100ns) {

@@ -22,6 +22,7 @@ struct CaptureAudioSession::Impl : AudioPcmSource {
     struct Chunk {std::vector<uint8_t> bytes;double pts=0;bool discontinuity=false;};
     WAVEFORMATEX format{};
     std::wstring excludedEndpoint;
+    EndpointBuffer endpointBuffer=EndpointBuffer::Default;
     AudioFormat layout;unsigned validBits=0;bool floating=false;
     AudioFormat pcmFormat()const override{return layout;}
     mutable std::mutex mutex;
@@ -159,7 +160,7 @@ struct CaptureAudioSession::Impl : AudioPcmSource {
                     std::unique_lock lock(mutex);wake.wait_for(lock,std::chrono::milliseconds(650),[&]{return stop.load();});
                     if(stop)break;
                 }
-                if(!renderer.start(layout,20.0,excludedEndpoint)){if(!recoverEndpoint())break;continue;}
+                if(!renderer.start(layout,20.0,excludedEndpoint,endpointBuffer==EndpointBuffer::LowLatency)){if(!recoverEndpoint())break;continue;}
                 endpointReady=true;lastUnderruns=renderer.underruns();
                 lastUnderrunFrames=renderer.underrunFrames();lastSilenceFrames=renderer.silenceFrames();starvationSince=0;
                 {std::lock_guard lock(mutex);state.error.clear();state.outputRecovering=false;state.inputChannels=layout.channels;state.inputChannelMask=layout.mask;const auto output=renderer.outputFormat();state.outputChannels=output.channels;state.outputChannelMask=output.mask;pendingReset=true;}
@@ -173,11 +174,13 @@ struct CaptureAudioSession::Impl : AudioPcmSource {
             // Wait before collecting callbacks, so PCM arriving during the
             // endpoint wait is available for this fill instead of padded silence.
             if(renderer.started()&&!endpointEventReady){if(!renderer.waitForEvent()){if(!recoverEndpoint())break;continue;}endpointEventReady=true;}
+            const size_t endpointSamples=endpointBuffer==EndpointBuffer::LowLatency&&renderer.started()
+                ? size_t(std::ceil(renderer.capacityMs()*kAudioRate/1000))*layout.channels : 0;
             Chunk chunk;bool reset=false,syncChanged=false;double vPts=0,vHost=0,ingress=0,blockMs=0;bool video=false;int64_t arrival=0;
             std::optional<int64_t> vArrival;uint64_t observation=0;
             {
                 std::unique_lock lock(mutex);
-                if(input.empty())wake.wait_for(lock,std::chrono::milliseconds(2));
+                if(input.empty()&&(!endpointSamples||pcm.size()<endpointSamples))wake.wait_for(lock,std::chrono::milliseconds(2));
                 if(!input.empty()){chunk=std::move(input.front());input.pop_front();inputBytes-=chunk.bytes.size();convertingBytes=chunk.bytes.size();}
                 reset=pendingReset;pendingReset=false;video=haveVideo;vPts=videoPts;vHost=videoHost;
                 vArrival=videoArrival;observation=videoObservation;
@@ -464,11 +467,12 @@ bool CaptureAudioSession::configure(const WAVEFORMATEX& f,size_t bytes){
     if(!parseWavePcm(&f,bytes,parsed))return false;
     return configure(parsed);
 }
-bool CaptureAudioSession::start(std::wstring excludedEndpoint){
+bool CaptureAudioSession::start(std::wstring excludedEndpoint,EndpointBuffer buffer){
     if(!p_->format.nBlockAlign||p_->thread.joinable())return false;
     {std::lock_guard lock(p_->mutex);p_->input.clear();p_->inputBytes=p_->convertingBytes=0;p_->clearPcmLocked();p_->haveHead=p_->haveVideo=p_->haveIngress=p_->pendingReset=false;p_->lastArrival=0;p_->state={};p_->state.inputChannels=p_->layout.channels;p_->state.inputChannelMask=p_->layout.mask;p_->state.inputSampleRate=p_->format.nSamplesPerSec;p_->state.inputContainerBits=p_->format.wBitsPerSample;p_->state.inputValidBits=p_->validBits;p_->state.inputFloating=p_->floating;}
     p_->stop=false;
     p_->excludedEndpoint=std::move(excludedEndpoint);
+    p_->endpointBuffer=buffer;
     try{p_->thread=std::thread([this]{try{p_->run();}catch(const std::exception& e){log::error("capture-audio",std::format("audio thread failed: {}",e.what()));p_->fail(L"音频线程异常，请重新打开采集");}});}
     catch(const std::exception& e){log::error("capture-audio",std::format("audio thread start failed: {}",e.what()));p_->fail(L"无法创建音频线程");return false;}
     return true;

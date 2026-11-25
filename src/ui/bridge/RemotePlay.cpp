@@ -486,12 +486,13 @@ bool QmlPlayerBridge::ps5Connect() {
         i.engine.openRemotePlay(i.videoWindow, std::move(*request), i.options);
         i.openingSessionId = i.engine.snapshot().sessionId;
         refreshSubtitles({});
-        // Controller forwarding at 8 ms, as 1.4.4; view-only leaves the pad to the PS5.
+        // Match PS5 stream sampling to the session's 4 ms edge spacing.
         // Started with the session: the poll stops the pad when no session runs.
         if (!viewOnly) {
             if (!i.acquirePad(Impl::PadPs5)) veyra::log::warn("remoteplay-input", "SDL gamepad initialization failed");
             if (!i.controllerTimer) {
                 i.controllerTimer = new QTimer(this);
+                i.controllerTimer->setTimerType(Qt::PreciseTimer);
                 connect(i.controllerTimer, &QTimer::timeout, this, [this] {
                     auto& j = *impl_;
                     const auto s = j.engine.snapshot();
@@ -506,7 +507,7 @@ bool QmlPlayerBridge::ps5Connect() {
                     }
                 });
             }
-            i.controllerTimer->start(8);
+            i.controllerTimer->start(4);
         } else {
             if (i.controllerTimer) i.controllerTimer->stop();
             i.releasePad(Impl::PadPs5);
@@ -833,8 +834,7 @@ void QmlPlayerBridge::startPs5Control(bool restart) {
     i.ps5ControlNoticed.clear();
     i.ps5ControlNoPair = false;
     i.engine.startRemoteControl(std::move(desc));
-    // The pad is read on the UI thread every 8 ms, as for the PS5 stream (the
-    // session sends one state per 4 ms and queues the rest).
+    // The capture-card controller mode keeps its 8 ms UI sampling interval.
     if (!i.acquirePad(Impl::PadPs5Control)) veyra::log::warn("remoteplay-input", "SDL gamepad initialization failed");
     if (!i.ps5ControlTimer) {
         i.ps5ControlTimer = new QTimer(this);

@@ -124,13 +124,20 @@ bool AudioIngress::push(PcmBlock block){
     while(!queue_.empty()&&frames_+block.frames()>budget){frames_-=queue_.front().frames();queue_.pop_front();++stats_.dropped;gap_=true;}
     if(gap_&&!queue_.empty())queue_.front().discontinuity=true;
     block.discontinuity|=gap_;gap_=false;nextSample_=block.firstSample+block.frames();frames_+=block.frames();
-    queue_.push_back(std::move(block));++stats_.accepted;stats_.bufferedMs=1000.0*static_cast<double>(frames_)/rate_;return true;
+    queue_.push_back(std::move(block));++stats_.accepted;stats_.bufferedMs=1000.0*static_cast<double>(frames_)/rate_;
+    ready_.notify_one();
+    return true;
 }
 std::optional<PcmBlock> AudioIngress::tryPop(){
     std::lock_guard lock(mutex_);if(closed_||queue_.empty())return {};
     auto out=std::move(queue_.front());queue_.pop_front();frames_-=out.frames();++stats_.consumed;
     stats_.bufferedMs=rate_?1000.0*static_cast<double>(frames_)/rate_:0;return out;
 }
-void AudioIngress::close(){std::lock_guard lock(mutex_);closed_=true;queue_.clear();frames_=0;stats_.bufferedMs=0;}
+bool AudioIngress::waitForData(std::stop_token stop){
+    std::unique_lock lock(mutex_);
+    ready_.wait(lock,stop,[&]{return closed_||!queue_.empty();});
+    return !stop.stop_requested()&&!closed_;
+}
+void AudioIngress::close(){std::lock_guard lock(mutex_);closed_=true;queue_.clear();frames_=0;stats_.bufferedMs=0;ready_.notify_all();}
 AudioQueueStats AudioIngress::stats()const{std::lock_guard lock(mutex_);return stats_;}
 } // namespace veyra::remoteplay

@@ -210,6 +210,43 @@ TEST(inbox_failure_closes_media){SessionInbox q;auto t=q.begin(monotonic100ns())
 TEST(inbox_begin_and_stop_guards){SessionInbox q;THROWS(q.begin(-1));auto t=q.begin(monotonic100ns());THROWS(q.begin(monotonic100ns()));THROWS(q.finishStop());q.invalidate();THROWS(q.begin(monotonic100ns()));q.finishStop();CHECK(q.begin(monotonic100ns()).generation()>t.generation());}
 TEST(inbox_callbacks_race_invalidate){SessionInbox q;auto t=q.begin(monotonic100ns());std::atomic<bool> finish=false;std::thread worker([&]{while(!finish){t.connected();(void)t.audio(audio(0,480,t.generation()));}});q.invalidate();finish=true;worker.join();CHECK(!q.isCurrent(t.generation()));CHECK(!q.tryAudio());q.finishStop();CHECK(q.snapshot().state==SessionState::Idle);}
 TEST(inbox_failed_requires_backend_join){SessionInbox q;auto t=q.begin(monotonic100ns());t.failed(42);THROWS(q.begin(monotonic100ns()));q.invalidate();q.finishStop();CHECK(q.begin(monotonic100ns()).generation()>t.generation());}
+TEST(inbox_wakes_owner_for_control_and_queued_video){
+    SessionInbox q;
+    const auto token=q.begin(monotonic100ns());
+    const auto now=[] {return std::chrono::steady_clock::now();};
+    bool woke=false;
+    std::jthread owner([&](std::stop_token stop){woke=q.waitForOwnerWork(stop,now()+std::chrono::seconds(1));});
+    q.wakeOwner();
+    owner.join();
+    CHECK(woke);
+    CHECK(!q.waitForOwnerWork({},now()));
+
+    CHECK(token.video(config(token.generation(),monotonic100ns())));
+    CHECK(token.video(frame(0,true,monotonic100ns(),token.generation())));
+    CHECK(q.waitForOwnerWork({},now()));
+    CHECK(q.waitForOwnerWork({},now())); // The queue remains readable after the notification is consumed.
+    CHECK(q.tryVideo(monotonic100ns()));
+    CHECK(!q.waitForOwnerWork({},now()));
+    token.failed(32);
+    CHECK(!q.waitForOwnerWork({},now()));
+}
+TEST(inbox_wakes_pcm_reader_and_stops_without_polling){
+    SessionInbox q;
+    const auto token=q.begin(monotonic100ns());
+    bool ready=false;
+    std::jthread reader([&](std::stop_token stop){ready=q.waitForAudio(stop);});
+    CHECK(token.audio(audio(0,480,token.generation())));
+    reader.join();
+    CHECK(ready);
+    CHECK(q.tryAudio());
+
+    std::jthread stopping([&](std::stop_token stop){ready=q.waitForAudio(stop);});
+    stopping.request_stop();
+    stopping.join();
+    CHECK(!ready);
+    token.failed(33);
+    CHECK(!q.waitForAudio({}));
+}
 TEST(inbox_frame_stamped_after_the_readers_clock_is_new){
     // Through the session's boundary with the real clock, in the order the product has it: the
     // reader's clock sample, then the callback stamps and queues, then the reader gets the lock.
@@ -283,7 +320,7 @@ TEST(controller_presses_releases_and_trigger_pulls_keep_their_order){
     using namespace pad;const HostTime t0=4000*ms;
     // A quick full pull of the trigger while the owner is busy: 0, 80, 255, 120, 0. It arrives with its peak.
     ControllerQueue pull;int i=0;
-    for(std::uint8_t travel:{0,80,255,120,0}){CHECK(pull.push(held(0,travel),t0+i*8*ms));++i;}
+    for(auto travel:std::array<std::uint8_t,5>{0,80,255,120,0}){CHECK(pull.push(held(0,travel),t0+i*8*ms));++i;}
     std::vector<int> seen;while(pull.pending())seen.push_back(pull.take(t0+40*ms).r2);
     CHECK(seen==std::vector<int>({0,80,255,120,0}));
     // Held and wobbling inside one part of its travel it is a level: one state waits, the newest.
@@ -333,6 +370,20 @@ TEST(inbox_frame_stamped_after_reader_clock){
     auto v=q.tryVideo(readerNow);CHECK(v&&v->sample.wireFrameIndex==0);CHECK(q.snapshot().video.recoveries==0&&!q.snapshot().video.waitingForIdr);
 }
 TEST(inbox_real_sample_vs_config_counts){SessionInbox q;auto t=q.begin(monotonic100ns());auto now=monotonic100ns();CHECK(t.video(config(t.generation(),now)));CHECK(q.snapshot().video.accessUnits==0);CHECK(t.video(frame(0,true,monotonic100ns(),t.generation())));CHECK(q.snapshot().video.accessUnits==1);auto v=q.tryVideo(monotonic100ns());CHECK(v&&v->sample.generation==t.generation());}
+TEST(controller_dispatches_new_input_and_keeps_the_release_watchdog){
+    using namespace pad;
+    ControllerQueue queue;
+    constexpr HostTime start=2000*ms;
+    CHECK(!queue.needsSubmit(start));
+    CHECK(queue.push(held(S::Cross),start));
+    CHECK(queue.needsSubmit(start));
+    CHECK(queue.take(start).buttons==S::Cross);
+    CHECK(!queue.needsSubmit(start+ControllerQueue::kFresh100ns));
+    const auto expired=start+ControllerQueue::kFresh100ns+1;
+    CHECK(queue.needsSubmit(expired));
+    CHECK(queue.take(expired)==S{});
+    CHECK(!queue.needsSubmit(expired));
+}
 }
 TEST(recovery_keyframes_before_reconnect){
     StreamRecovery r;using A=StreamRecovery::Action;r.beginAttempt(100);r.frame(200);

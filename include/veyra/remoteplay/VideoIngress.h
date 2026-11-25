@@ -8,6 +8,7 @@
 #include <array>
 #include <memory>
 #include <mutex>
+#include <stop_token>
 namespace veyra::remoteplay {
 struct QueueLimits {
     std::size_t maxFrames=4, maxBytes=8u*1024u*1024u, maxConfigBytes=64u*1024u;
@@ -85,10 +86,13 @@ public:
     void begin(Generation);
     bool push(PcmBlock);
     std::optional<PcmBlock> tryPop();
+    bool waitForData(std::stop_token stop);
     void close();
     AudioQueueStats stats() const;
 private:
-    mutable std::mutex mutex_;std::deque<PcmBlock> queue_;
+    mutable std::mutex mutex_;
+    std::condition_variable_any ready_;
+    std::deque<PcmBlock> queue_;
     Generation generation_=0;std::uint32_t rate_=0,channels_=0,maxMs_;std::size_t frames_=0;
     std::uint64_t nextSample_=0;bool closed_=true,gap_=false;AudioQueueStats stats_{};
 };
