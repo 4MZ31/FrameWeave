@@ -139,6 +139,18 @@ Rectangle {
                         onToggled: on => veyra.setPreference("reducedMotion", on)
                     }
                 }
+                // The latency readout over the picture (PushLatencyBadge.qml) in a larger size, as on Windows.
+                VRow {
+                    objectName: "set-readout-size-row"
+                    label: qsTr("画面读数大小")
+                    hint: qsTr("画面上的延迟和帧率读数。坐得远或用手柄玩时，大一些更容易看清")
+                    VSeg {
+                        objectName: "set-readout-size"
+                        options: [{ id: "0", label: qsTr("标准") }, { id: "1", label: qsTr("大") }, { id: "2", label: qsTr("特大") }]
+                        current: String(Math.max(0, Math.min(2, Number((veyra.preferences || {}).pushLatencySize || 0))))
+                        onPicked: id => veyra.setPreference("pushLatencySize", Number(id))
+                    }
+                }
             }
 
             VCard {

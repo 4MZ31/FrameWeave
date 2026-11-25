@@ -65,7 +65,6 @@ AppController::AppController(QQmlEngine* qml, CatalogTranslator* translator, QSt
     contrast_ = std::clamp(s.value(QStringLiteral("contrast"), 1.0).toDouble(), 0.5, 1.5);
     saturation_ = std::clamp(s.value(QStringLiteral("saturation"), 1.0).toDouble(), 0.0, 2.0);
     gamma_ = std::clamp(s.value(QStringLiteral("gamma"), 1.0).toDouble(), 0.5, 2.0);
-    showStats_ = s.value(QStringLiteral("showStats"), false).toBool();
     onTop_ = s.value(QStringLiteral("alwaysOnTop"), false).toBool();
     language_ = s.value(QStringLiteral("language"), QStringLiteral("auto")).toString();
     lowLatency_ = s.value(QStringLiteral("lowLatency"), false).toBool();
@@ -414,7 +413,7 @@ const QStringList kThemes{QStringLiteral("default"), QStringLiteral("black"), QS
 const QStringList kAccents{QStringLiteral("orange"), QStringLiteral("white"), QStringLiteral("ice"), QStringLiteral("blue"),
                            QStringLiteral("violet"), QStringLiteral("rose"), QStringLiteral("amber")};
 const QStringList kFlags{QStringLiteral("pushNavCollapsed"), QStringLiteral("pushSideCollapsed"), QStringLiteral("reducedMotion"),
-                          QStringLiteral("pushCompareSwap")};
+                          QStringLiteral("pushCompareSwap"), QStringLiteral("pushLatencyOverlay")};
 const QStringList kFoldLists{QStringLiteral("pushQuickFolded"), QStringLiteral("pushProFolded")};
 // Whole percentages, as the Windows build keeps them (nisSharpness: 0..100, NVIDIA's default 50).
 const QStringList kPercents{QStringLiteral("nisSharpness")};
@@ -442,6 +441,15 @@ QVariant cleanPreference(const QString& key, const QVariant& value) {
         const QJsonDocument doc = QJsonDocument::fromJson(v.toUtf8(), &error);
         return error.error == QJsonParseError::NoError && doc.isObject() ? QVariant(v) : QVariant();
     }
+    // The latency readout (PushLatencyBadge.qml), cleaned as the Windows build's Preferences.cpp does:
+    // its size (0 standard, 1 large, 2 largest) and its place as two thousandths of the room it has.
+    if (key == QLatin1String("pushLatencySize") || key == QLatin1String("pushLatencyX") || key == QLatin1String("pushLatencyY")) {
+        bool ok = false;
+        const double v = value.toDouble(&ok);
+        if (!ok || !std::isfinite(v)) return {};
+        const long top = key == QLatin1String("pushLatencySize") ? 2L : 1000L;
+        return QVariant(int(std::clamp(std::lround(v), 0L, top)));
+    }
     if (kFoldLists.contains(key)) {
         // Section or block ids with commas: lower-case letters only, each at most once.
         QStringList ids;
@@ -459,7 +467,7 @@ QVariant cleanPreference(const QString& key, const QVariant& value) {
 
 void AppController::loadPreferences() {
     QStringList keys{QStringLiteral("pushTheme"), QStringLiteral("accent"), QStringLiteral("pushConsole"), QStringLiteral("pushProfiles")};
-    keys << kFlags << kFoldLists << kPercents;
+    keys << kFlags << kFoldLists << kPercents << QStringLiteral("pushLatencySize") << QStringLiteral("pushLatencyX") << QStringLiteral("pushLatencyY");
     for (const QString& key : keys) {
         const QVariant stored = settings_->value(QStringLiteral("ui/") + key);
         if (!stored.isValid()) continue;
@@ -468,6 +476,10 @@ void AppController::loadPreferences() {
         const QVariant clean = cleanPreference(key, value);
         if (clean.isValid()) prefs_.insert(key, clean);
     }
+    // Until the Windows readout came to the preview its own overlay was switched by `showStats`: one that
+    // was on stays on as the readout.
+    if (!prefs_.contains(QStringLiteral("pushLatencyOverlay")) && settings_->value(QStringLiteral("showStats"), false).toBool())
+        prefs_.insert(QStringLiteral("pushLatencyOverlay"), true);
 }
 
 void AppController::setPreference(const QString& key, const QVariant& value) {
@@ -656,13 +668,6 @@ void AppController::resetPicture() {
     setContrast(1);
     setSaturation(1);
     setGamma(1);
-}
-
-void AppController::setShowStats(bool v) {
-    if (v == showStats_) return;
-    showStats_ = v;
-    save(QStringLiteral("showStats"), v);
-    emit settingsChanged();
 }
 
 void AppController::setAlwaysOnTop(bool v) {
