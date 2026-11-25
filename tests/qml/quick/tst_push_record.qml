@@ -132,6 +132,25 @@ Item {
             veyra.preferences = ({ recordWidth: 3440, recordHeight: 1440 })
             compare(rec.sizeId, -1); compare(rec.shapeId, "wide"); compare(rec.plan.width, 3440)
         }
+        // 4.5.4 (issue 25: "it is using that settings instead of the config I have done in settings"): what
+        // Settings chose is a choice the dialog shows as chosen, and picking it changes nothing.
+        function test_settings_own_rate_and_size_are_shown_as_chosen() {
+            veyra.preferences = ({ recordWidth: 3440, recordHeight: 1440, recordBitrateMbps: 40 })
+            const quality = control("pushfps-record-quality"), size = control("pushfps-record-size")
+            compare(rec.qualityId, "custom"); compare(rec.sizeId, -1)
+            compare(quality.currentIndex, quality.options.length - 1, "the rate chosen in Settings is the chosen option")
+            compare(size.currentIndex, size.options.length - 1, "the size chosen in Settings is the chosen option")
+            quality.picked("custom"); size.picked("-1")
+            compare(veyra.preferences.recordBitrateMbps, 40, "picking Settings' own rate keeps it")
+            compare(veyra.preferences.recordWidth, 3440, "picking Settings' own size keeps it")
+            action(qsTr("开始录制"))
+            compare(veyra.recordingStarts, 1)
+            compare(veyra.preferences.recordBitrateMbps, 40, "starting changes nothing")
+            // Nothing from Settings: no such option.
+            veyra.recording = false
+            veyra.preferences = ({})
+            compare(quality.options.length, Record.qualities.length); compare(size.options.length, Record.sizes.length)
+        }
         function test_asking_is_a_choice_and_nothing_starts_without_a_picture() {
             verify(rec.asks && Record.asks(veyra.preferences))
             control("pushfps-record-ask").toggled(false)

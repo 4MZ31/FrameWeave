@@ -3,6 +3,7 @@
 // RemotePlaySource adapts the Chiaki callback stream to the same source
 // contract used by local files and capture cards.  Chiaki owns the network
 // protocol; this class owns FFmpeg decoder state and decoded-frame lifetime.
+#include "veyra/remoteplay/PushPacketStamps.h"
 #include "veyra/source/IFrameSource.h"
 #include "veyra/remoteplay/ChiakiBackend.h"
 #include "veyra/remoteplay/SessionInbox.h"
@@ -116,6 +117,8 @@ private:
     RemotePlayConnectDesc::DecodeMode decodeMode_=RemotePlayConnectDesc::DecodeMode::Automatic;
     std::shared_ptr<ID3D12Device> decodeDevice_;
     bool hardwareFallback_=false;
+    remoteplay::stamps::HardwareStrikes hardwareStrikes_;   // PushFPS 4.5.4 (remoteplay/PushPacketStamps.h)
+    std::uint64_t stampsDropped_=0;
     bool discardMedia_=false;
 };
 

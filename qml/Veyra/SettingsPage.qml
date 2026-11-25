@@ -987,6 +987,8 @@ VPage {
                                     if (!pr) { veyra.setPreference("recordProfile", ""); return }
                                     const prefs = OutputPresets.recordPrefs(pr)
                                     for (const k in prefs) veyra.setPreference(k, prefs[k])
+                                    // PushFPS 4.5.4: what is chosen here wins; the record window's "smaller files" share goes.
+                                    veyra.setPreference("pushRecordBitrateScale", 100)
                                 }
                             }
                         }
@@ -1017,7 +1019,11 @@ VPage {
                         }
                         VRow {
                             label: qsTr("录制码率")
-                            hint: qsTr("自动按画面尺寸和帧率选择；数字为 Mbps，越高越清晰、文件也越大")
+                            // PushFPS 4.5.4: the record window's "smaller files" (half the automatic rate) is said here too.
+                            hint: Number(veyra.preferences.recordBitrateKbps || 0) <= 0 && veyra.recordingBitrateMbps <= 0
+                                  && Number(veyra.preferences.pushRecordBitrateScale || 100) !== 100
+                                ? qsTr("自动码率的一半：录制窗口里选了“小文件”。在这里选“自动”就会用完整的自动码率")
+                                : qsTr("自动按画面尺寸和帧率选择；数字为 Mbps，越高越清晰、文件也越大")
                             VSeg {
                                 objectName: "set-recbitrate"
                                 readonly property int presetKbps: Number(veyra.preferences.recordBitrateKbps || 0)
@@ -1030,6 +1036,8 @@ VPage {
                                     if (id === "k") return
                                     veyra.setPreference("recordBitrateKbps", 0)
                                     veyra.setPreference("recordBitrateMbps", Number(id))
+                                    // PushFPS 4.5.4: a rate chosen here is the rate recorded with, nothing hidden halves it.
+                                    veyra.setPreference("pushRecordBitrateScale", 100)
                                 }
                             }
                         }
