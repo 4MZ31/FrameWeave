@@ -47,10 +47,19 @@ Rectangle {
         parent: root.threePane ? rightSlot : columnQuickSlot
         width: parent ? parent.width : 0
         spacing: 0
+        // Console and game, as the Windows build's quick setup begins (its section "setup").
+        PushSection {
+            sectionId: "setup"
+            title: qsTr("主机与游戏")
+            first: true
+            summary: setupProfiles.consoleLabel
+            open: root.isOpen("setup")
+            onToggled: open => root.setOpen("setup", open)
+            ConsoleProfiles { id: setupProfiles }
+        }
         PushSection {
             sectionId: "fg"
             title: qsTr("补帧")
-            first: true
             summary: app.targetMode === 0 ? qsTr("关") : app.targetMode === 1 ? "60 FPS" : app.targetMode === 2 ? "120 FPS" : qsTr("匹配显示器")
             open: root.isOpen("fg")
             onToggled: open => root.setOpen("fg", open)

@@ -25,6 +25,10 @@ layout(std140, binding = 0) uniform buf {
     vec4 holdZone;     // Crosshair Hold: x, y and size of its square in picture pixels; w > 0.5 = a crosshair is held
     vec4 subZone;      // Subtitle Hold: x, y, width and height of its band in picture pixels
     vec4 subFlags;     // x > 0.5 = something is held in the band
+    // The live comparison (FrameView.cpp): x > 0.5 = on; y .. z the part drawn as the original (picture u,
+    // no picture controls); w > 0.5 = the line is drawn here (not when NIS draws it after upscaling).
+    vec4 compare;
+    vec4 compareLine;  // the line in picture u: dark edges x .. y, the white core z .. w
 };
 
 layout(binding = 1) uniform sampler2D texA;
@@ -138,10 +142,17 @@ void main() {
         color = c;
     }
     color /= 255.0;
-    // Picture: brightness, contrast, saturation, gamma (neutral: 0, 1, 1, 1).
-    color = (color - 0.5) * contrast + 0.5 + brightness;
-    float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
-    color = mix(vec3(luma), color, saturation);
-    color = pow(clamp(color, 0.0, 1.0), vec3(1.0 / max(gamma, 0.1)));
+    bool original = compare.x > 0.5 && vTex.x >= compare.y && vTex.x < compare.z;
+    if (original) {
+        color = clamp(color, 0.0, 1.0);
+    } else {
+        // Picture: brightness, contrast, saturation, gamma (neutral: 0, 1, 1, 1).
+        color = (color - 0.5) * contrast + 0.5 + brightness;
+        float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
+        color = mix(vec3(luma), color, saturation);
+        color = pow(clamp(color, 0.0, 1.0), vec3(1.0 / max(gamma, 0.1)));
+    }
+    if (compare.w > 0.5 && vTex.x >= compareLine.x && vTex.x < compareLine.y)
+        color = vTex.x >= compareLine.z && vTex.x < compareLine.w ? vec3(1.0) : vec3(0.0);
     fragColor = vec4(color, 1.0) * qt_Opacity;
 }

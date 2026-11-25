@@ -57,6 +57,12 @@ class AppController : public QObject {
     Q_PROPERTY(int audioTrimMs READ audioTrimMs WRITE setAudioTrimMs NOTIFY settingsChanged)
     Q_PROPERTY(bool autoConnect READ autoConnect WRITE setAutoConnect NOTIFY settingsChanged)
     Q_PROPERTY(int fillMode READ fillMode WRITE setFillMode NOTIFY settingsChanged)
+    // The live comparison with the picture before PushFPS's processing, as the Windows build's
+    // compareMode: 0 off, 2 split (the line at compareSplit, a share of the picture's width), 1 the
+    // original alone. Frame generation pauses while it is on, as on Windows. Not kept across starts;
+    // which side is which is preference pushCompareSwap.
+    Q_PROPERTY(int compareMode READ compareMode WRITE setCompareMode NOTIFY compareChanged)
+    Q_PROPERTY(double compareSplit READ compareSplit WRITE setCompareSplit NOTIFY compareChanged)
     Q_PROPERTY(bool alwaysOnTop READ alwaysOnTop WRITE setAlwaysOnTop NOTIFY settingsChanged)
     // Upscaling with NVIDIA Image Scaling, under the Windows build's names: on or off, and the size it
     // upscales towards (1 = 2K, 2 = 4K, 4 = 5K, 5 = 6K: FrameView::upscaleTargetSize). Its sharpening is the
@@ -139,6 +145,10 @@ public:
     void setAutoConnect(bool v);
     int fillMode() const { return fillMode_; }
     void setFillMode(int m);
+    int compareMode() const { return compareMode_; }
+    void setCompareMode(int m);
+    double compareSplit() const { return compareSplit_; }
+    void setCompareSplit(double v);
     bool alwaysOnTop() const { return onTop_; }
     void setAlwaysOnTop(bool v);
     bool srEnabled() const { return srEnabled_; }
@@ -182,6 +192,7 @@ signals:
     void devicesChanged();
     void runningChanged();
     void settingsChanged();
+    void compareChanged();
     void statsChanged();
     void errorTextChanged();
     void preferencesChanged();
@@ -222,6 +233,8 @@ private:
     QByteArray audioInId_, audioOutId_;
     QString audioInName_, audioOutName_;
     int audioTrim_ = 0, fillMode_ = 0;
+    int compareMode_ = 0;
+    double compareSplit_ = 0.5;
     qreal volume_ = 1.0, brightness_ = 0, contrast_ = 1, saturation_ = 1, gamma_ = 1;
     QString language_ = QStringLiteral("auto");
     QString sourceTitle_;
