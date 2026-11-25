@@ -113,7 +113,11 @@ void QmlPlayerBridge::setupXbox() {
                     k.xboxTimer->setTimerType(Qt::PreciseTimer);
                     connect(k.xboxTimer, &QTimer::timeout, this, [this] {
                         auto& m = *impl_;
-                        if (!m.snapshot.xboxActive) { m.releasePad(Impl::PadXbox); m.xboxTimer->stop(); return; }
+                        // The gamepad ticks every 4 ms; the UI snapshot is refreshed every 16 ms.
+                        if (m.snapshot.sessionId < m.openingSessionId) return;
+                        if (!m.snapshot.xboxActive || !(m.snapshot.running || m.snapshot.transport == engine::TransportState::Opening)) {
+                            m.releasePad(Impl::PadXbox); m.xboxTimer->stop(); return;
+                        }
                         const bool focused = QGuiApplication::focusWindow() != nullptr;
                         m.engine.xboxController(m.controller.poll(focused));
                         m.controller.feedback(m.engine.xboxFeedback(), focused);
@@ -218,7 +222,10 @@ void QmlPlayerBridge::setupMoonlight() {
                     k.moonlightTimer->setTimerType(Qt::PreciseTimer);
                     connect(k.moonlightTimer, &QTimer::timeout, this, [this] {
                         auto& m = *impl_;
-                        if (!m.snapshot.moonlightActive) { m.releasePad(Impl::PadMoonlight); m.moonlightTimer->stop(); return; }
+                        if (m.snapshot.sessionId < m.openingSessionId) return;
+                        if (!m.snapshot.moonlightActive || !(m.snapshot.running || m.snapshot.transport == engine::TransportState::Opening)) {
+                            m.releasePad(Impl::PadMoonlight); m.moonlightTimer->stop(); return;
+                        }
                         const bool focused = QGuiApplication::focusWindow() != nullptr;
                         m.engine.moonlightController(m.controller.poll(focused));
                         m.controller.feedback(m.engine.moonlightFeedback(), focused);
@@ -419,11 +426,13 @@ void QmlPlayerBridge::ps5Pair(const QString& pinText) {
         target = remoteplay::profileDirectory() / (name + ".dat");
     }
     const auto format = ps5Video(impl_->ps5Form);
-    auto work = [host = std::move(host), account = *account, pin = std::move(pin), format, target](std::stop_token stop) mutable {
+    const bool viewOnly = impl_->ps5Form.value("viewOnly").toBool();
+    auto work = [host = std::move(host), account = *account, pin = std::move(pin), format, viewOnly, target](std::stop_token stop) mutable {
         auto result = remoteplay::pairLocalPs5(host, account, pin, stop); SecureZeroMemory(pin.data(), pin.size());
         Impl::Ps5Outcome out;
         if (result.result.ok && !stop.stop_requested()) {
             remoteplay::NativeConnectRequest request; request.host = host; request.video = format; request.credentials = std::move(result.credentials);
+            request.viewOnly = viewOnly;
             for (auto byte : result.mac) request.consoleId += std::format("{:02x}", byte);
             if (request.consoleId == "000000000000") request.consoleId.clear();
             if (remoteplay::saveProfile(target, request)) { out.savedPath = target.filename().wstring(); out.message = L"配对成功并已加密保存；现在可以连接。"; }

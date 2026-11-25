@@ -24,7 +24,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <shellapi.h>
+#include <commdlg.h>
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
@@ -36,6 +36,9 @@ OBS_DECLARE_MODULE()
 #define SOURCE_ID "pushfps_source"
 #define PUSHFPS_EXE L"PushFPS.exe"
 #define DEFAULT_PATH L"%LOCALAPPDATA%\\Programs\\PushFPS\\PushFPS.exe"
+#define LOCAL_KEY L"Software\\PushFPS\\OBS"
+#define LOCAL_EXE L"Executable"
+#define EXE_PATH_CAP (MAX_PATH * 4)
 #define SCAN_INTERVAL 1.5f
 
 #define plog(level, fmt, ...) blog(level, "[" PLUGIN_NAME "] " fmt, ##__VA_ARGS__)
@@ -49,7 +52,6 @@ struct pushfps_source {
 	int child_method;    /* method the child was made for, -1 = none */
 	volatile LONG wanted_method;
 	char window[1024]; /* encoded "title:class:exe" the child points at */
-	char exe_path[MAX_PATH * 4];
 	bool autostart;
 	float since_scan;
 	bool logged_missing;
@@ -57,13 +59,6 @@ struct pushfps_source {
 };
 
 /* ---------------------------------------------------------------- helpers -- */
-
-static void utf8_to_wide(const char *in, wchar_t *out, int out_len)
-{
-	out[0] = 0;
-	if (in && *in)
-		MultiByteToWideChar(CP_UTF8, 0, in, -1, out, out_len);
-}
 
 static void wide_to_utf8(const wchar_t *in, char *out, int out_len)
 {
@@ -173,18 +168,65 @@ static bool window_string(HWND hwnd, char *out, size_t out_len)
 	return snprintf(out, out_len, "%s:%s:PushFPS.exe", enc_title, enc_class) < (int)out_len;
 }
 
-static void resolve_exe_path(const char *configured, wchar_t *out, DWORD out_len)
+/* A scene can request autostart, but only the local user chooses the installation. */
+static bool installed_exe(const wchar_t *path)
 {
-	wchar_t raw[MAX_PATH * 2];
-	utf8_to_wide(configured, raw, MAX_PATH * 2);
-	if (!raw[0])
-		wcscpy_s(raw, MAX_PATH * 2, DEFAULT_PATH);
-	if (!ExpandEnvironmentStringsW(raw, out, out_len))
-		wcsncpy_s(out, out_len, raw, _TRUNCATE);
+	if (!((path[0] >= L'A' && path[0] <= L'Z') || (path[0] >= L'a' && path[0] <= L'z')) ||
+	    path[1] != L':' || path[2] != L'\\')
+		return false;
+	const wchar_t *name = wcsrchr(path, L'\\');
+	if (_wcsicmp(name + 1, PUSHFPS_EXE) != 0)
+		return false;
+	wchar_t root[] = {path[0], L':', L'\\', 0};
+	if (GetDriveTypeW(root) == DRIVE_REMOTE)
+		return false;
+	const DWORD attrs = GetFileAttributesW(path);
+	return attrs != INVALID_FILE_ATTRIBUTES && !(attrs & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+static bool resolve_exe_path(wchar_t *out, DWORD capacity)
+{
+	DWORD bytes = capacity * sizeof(*out);
+	const LSTATUS result = RegGetValueW(HKEY_CURRENT_USER, LOCAL_KEY, LOCAL_EXE, RRF_RT_REG_SZ,
+	                                    NULL, out, &bytes);
+	if (result == ERROR_FILE_NOT_FOUND || result == ERROR_PATH_NOT_FOUND) {
+		const DWORD n = ExpandEnvironmentStringsW(DEFAULT_PATH, out, capacity);
+		if (!n || n > capacity)
+			return false;
+	} else if (result != ERROR_SUCCESS) {
+		return false;
+	}
+	return installed_exe(out);
+}
+
+static bool choose_installed_exe(obs_properties_t *props, obs_property_t *p, void *data)
+{
+	UNUSED_PARAMETER(props);
+	UNUSED_PARAMETER(p);
+	UNUSED_PARAMETER(data);
+	wchar_t path[EXE_PATH_CAP] = {0};
+	OPENFILENAMEW dialog = {0};
+	dialog.lStructSize = sizeof(dialog);
+	dialog.hwndOwner = GetActiveWindow();
+	dialog.lpstrTitle = L"Choose the local PushFPS.exe for OBS";
+	dialog.lpstrFilter = L"PushFPS (PushFPS.exe)\0PushFPS.exe\0";
+	dialog.lpstrFile = path;
+	dialog.nMaxFile = EXE_PATH_CAP;
+	dialog.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+	if (!GetOpenFileNameW(&dialog))
+		return false;
+	if (!installed_exe(path)) {
+		MessageBoxW(dialog.hwndOwner, L"Choose PushFPS.exe on a local drive.", L"PushFPS", MB_OK | MB_ICONWARNING);
+		return false;
+	}
+	if (RegSetKeyValueW(HKEY_CURRENT_USER, LOCAL_KEY, LOCAL_EXE, REG_SZ, path,
+	                    (DWORD)((wcslen(path) + 1) * sizeof(*path))) != ERROR_SUCCESS)
+		MessageBoxW(dialog.hwndOwner, L"Could not save the PushFPS location.", L"PushFPS", MB_OK | MB_ICONERROR);
+	return false;
 }
 
 /* Starts PushFPS (or brings it to the front). Returns a short status for the log. */
-static const char *launch_pushfps(const char *configured_path)
+static const char *launch_pushfps(void)
 {
 	HWND existing = find_pushfps_window();
 	if (existing) {
@@ -193,17 +235,26 @@ static const char *launch_pushfps(const char *configured_path)
 		SetForegroundWindow(existing);
 		return "already running";
 	}
-	wchar_t path[MAX_PATH * 2];
-	resolve_exe_path(configured_path, path, MAX_PATH * 2);
-	if (GetFileAttributesW(path) == INVALID_FILE_ATTRIBUTES)
-		return "PushFPS.exe not found; set its location in the source properties";
-	wchar_t dir[MAX_PATH * 2];
-	wcscpy_s(dir, MAX_PATH * 2, path);
+	wchar_t path[EXE_PATH_CAP];
+	if (!resolve_exe_path(path, EXE_PATH_CAP))
+		return "PushFPS.exe not found; choose its location in the source properties";
+	wchar_t dir[EXE_PATH_CAP];
+	wcscpy_s(dir, EXE_PATH_CAP, path);
 	wchar_t *slash = wcsrchr(dir, L'\\');
-	if (slash)
+	if (slash == dir + 2)
+		slash[1] = 0; /* Keep the backslash in a drive root. */
+	else
 		*slash = 0;
-	HINSTANCE r = ShellExecuteW(NULL, L"open", path, L"--obs-game-capture", dir, SW_SHOWNORMAL);
-	return (INT_PTR)r > 32 ? "started" : "could not start PushFPS.exe";
+	wchar_t command[EXE_PATH_CAP + 32];
+	swprintf_s(command, EXE_PATH_CAP + 32, L"\"%ls\" --obs-game-capture", path);
+	STARTUPINFOW startup = {0};
+	startup.cb = sizeof(startup);
+	PROCESS_INFORMATION process = {0};
+	if (!CreateProcessW(path, command, NULL, NULL, FALSE, 0, NULL, dir, &startup, &process))
+		return "could not start PushFPS.exe";
+	CloseHandle(process.hThread);
+	CloseHandle(process.hProcess);
+	return "started";
 }
 
 /* ------------------------------------------------------------ child source -- */
@@ -267,8 +318,6 @@ static void ps_update(void *data, obs_data_t *settings)
 {
 	struct pushfps_source *ps = data;
 	InterlockedExchange(&ps->wanted_method, (LONG)obs_data_get_int(settings, "method"));
-	const char *path = obs_data_get_string(settings, "exe_path");
-	strncpy_s(ps->exe_path, sizeof(ps->exe_path), path ? path : "", _TRUNCATE);
 	ps->autostart = obs_data_get_bool(settings, "autostart");
 	ps->since_scan = SCAN_INTERVAL; /* look again on the next tick */
 }
@@ -301,7 +350,6 @@ static void ps_destroy(void *data)
 static void ps_defaults(obs_data_t *settings)
 {
 	obs_data_set_default_int(settings, "method", METHOD_GAME);
-	obs_data_set_default_string(settings, "exe_path", "");
 	obs_data_set_default_bool(settings, "autostart", true);
 }
 
@@ -309,7 +357,7 @@ static void ps_activate(void *data)
 {
 	struct pushfps_source *ps = data;
 	if (ps->autostart && !find_pushfps_window())
-		plog(LOG_INFO, "auto start: %s", launch_pushfps(ps->exe_path));
+		plog(LOG_INFO, "auto start: %s", launch_pushfps());
 }
 
 static void ps_tick(void *data, float seconds)
@@ -393,10 +441,10 @@ static void ps_enum_sources(void *data, obs_source_enum_proc_t cb, void *param)
 
 static bool ps_launch_clicked(obs_properties_t *props, obs_property_t *p, void *data)
 {
-	struct pushfps_source *ps = data;
+	UNUSED_PARAMETER(data);
 	UNUSED_PARAMETER(p);
 	UNUSED_PARAMETER(props);
-	plog(LOG_INFO, "open PushFPS: %s", launch_pushfps(ps ? ps->exe_path : ""));
+	plog(LOG_INFO, "open PushFPS: %s", launch_pushfps());
 	return true; /* refresh the status line */
 }
 
@@ -423,9 +471,7 @@ static obs_properties_t *ps_properties(void *data)
 
 	obs_properties_add_bool(props, "autostart", "Start PushFPS when this source is shown");
 
-	char filter[] = "PushFPS (PushFPS.exe)";
-	obs_properties_add_path(props, "exe_path", "PushFPS.exe location (empty = default install)", OBS_PATH_FILE,
-				filter, NULL);
+	obs_properties_add_button(props, "choose_local_install", "PushFPS.exe location (this PC)", choose_installed_exe);
 
 	obs_properties_add_text(props, "audio_hint",
 				"Sound: add an \"Application Audio Capture\" source and pick PushFPS.exe.",
@@ -456,26 +502,10 @@ static struct obs_source_info pushfps_source_info = {
 
 /* ------------------------------------------------------------------ module -- */
 
-/* Tools > Open PushFPS uses the location set in a PushFPS source, if any. */
-static bool find_configured_path(void *param, obs_source_t *source)
-{
-	char *out = param;
-	if (strcmp(obs_source_get_unversioned_id(source), SOURCE_ID) != 0)
-		return true;
-	obs_data_t *settings = obs_source_get_settings(source);
-	const char *path = obs_data_get_string(settings, "exe_path");
-	if (path && *path)
-		strncpy_s(out, MAX_PATH * 4, path, _TRUNCATE);
-	obs_data_release(settings);
-	return out[0] == 0; /* stop at the first source with a location */
-}
-
 static void tools_open_pushfps(void *unused)
 {
 	UNUSED_PARAMETER(unused);
-	char path[MAX_PATH * 4] = {0};
-	obs_enum_sources(find_configured_path, path);
-	plog(LOG_INFO, "Tools > Open PushFPS: %s", launch_pushfps(path));
+	plog(LOG_INFO, "Tools > Open PushFPS: %s", launch_pushfps());
 }
 
 MODULE_EXPORT const char *obs_module_name(void)

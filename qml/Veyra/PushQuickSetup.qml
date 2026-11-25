@@ -596,8 +596,9 @@ VGroup {
 
     function snapshot() {
         const s = { fps: quick.baseFps, target: quick.currentTarget, enhance: veyra.nrAnyEnabled === true,
-                 adaptive: veyra.fgAdaptive === true, pacing: veyra.pacingRepair === true, hudLock: veyra.hudLock === true,
-                 lowLatency: veyra.nvidiaLowLatencyAvailable === true && (veyra.nvidiaLowLatency ?? 0) > 0 }
+                 adaptive: veyra.fgAdaptive === true, pacing: veyra.pacingRepair === true, hudLock: veyra.hudLock === true }
+        if (quick.nvidiaLatency) s.lowLatency = (veyra.nvidiaLowLatency ?? 0) > 0
+        else s.lowQueue = veyra.fgLowQueue === true
         // The enhancement's look, when there is an enhancement layer to read it from.
         if (quick.lookLayer !== null) s.look = { tone: quick.lookTone, structure: quick.lookStructure, fine: quick.fineSnapshot() }
         // Crop and resize (PushCrop.js): the values while it is on, false while it is off.
@@ -691,8 +692,10 @@ VGroup {
         }
         // The fine-tuning kept with the look (profiles saved before 3.2.2 have none: it stays as it is).
         if (s.look && typeof s.look === "object") quick.applyFine(s.look.fine)
-        if (veyra.nvidiaLowLatencyAvailable === true && typeof s.lowLatency === "boolean")
+        if (quick.nvidiaLatency && typeof s.lowLatency === "boolean")
             veyra.nvidiaLowLatency = s.lowLatency ? 1 : 0
+        else if (!quick.nvidiaLatency && typeof s.lowQueue === "boolean")
+            veyra.fgLowQueue = s.lowQueue
         // Crop and resize: a profile saved with one sets it, one saved without switches it off (the
         // values stay), and a profile from before 3.2.6, which knows nothing of it, leaves it alone.
         if (s.crop === false) { if (quick.cropState.on) veyra.setPreference("pushCropOn", false) }
@@ -713,13 +716,16 @@ VGroup {
         if (veyra.presentationOwned === true) return qsTr("XeSS 补帧自己呈现画面，裁剪和缩放对它不生效")
         return qsTr("左 %1% · 上 %2% · 右 %3% · 下 %4% · 大小 %5%").arg(c.l / 10).arg(c.t / 10).arg(c.r / 10).arg(c.b / 10).arg(c.zoom)
     }
+    function rememberConsole(p) {
+        if (!p.consoles || typeof p.consoles !== "object" || Array.isArray(p.consoles)) p.consoles = {}
+        p.consoles[quick.consoleId] = snapshot()
+    }
     function switchConsole(id) {
         if (id === quick.consoleId) return
         quick.flushProfiles()
         quick.quietProfiles()
         const p = copyProfiles()
-        if (!p.consoles || typeof p.consoles !== "object") p.consoles = {}
-        p.consoles[quick.consoleId] = snapshot()
+        rememberConsole(p)
         p.game = ""
         if (!writeProfiles(p)) return
         if (!veyra.setPreference("pushConsole", id)) return
@@ -748,14 +754,15 @@ VGroup {
         const g = quick.games.find(x => x.name === name)
         const p = copyProfiles()
         p.game = g ? name : ""
-        if (!g) { writeProfiles(p); return }
+        const changesConsole = g && g.console !== quick.consoleId && quick.consoles.some(c => c.id === g.console)
+        if (changesConsole) rememberConsole(p)
+        if (!writeProfiles(p) || !g) return
+        if (changesConsole && !veyra.setPreference("pushConsole", g.console)) return
         if (g.preset) {
             const preset = (veyra.presets || []).find(x => x.name === g.preset)
             if (preset) veyra.applyPresetIndex(preset.index)
         }
-        if (quick.consoles.some(c => c.id === g.console)) veyra.setPreference("pushConsole", g.console)
         applySnapshot(g)
-        writeProfiles(p)
     }
     function deleteGame(name) {
         const p = copyProfiles()

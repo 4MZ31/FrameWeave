@@ -51,14 +51,17 @@ double rateOver(const std::deque<int64_t>& times) {
 // the next one is compared with it), so a picture that moves is never read as one that stopped.
 // (Pacing reads rateOver: a picture that stands still must not change how the next one is timed.)
 double liveRate(const std::deque<int64_t>& times, int64_t now) {
-    if (times.size() < 2) return 0;
-    const double span = double(times.back() - times.front());
-    if (span <= 0) return 0;
+    if (times.size() < 2 || now - times.back() > 1000 * kMs) return 0;
+    // A restart after a stall must not reuse intervals from the old signal.
+    auto first = times.end() - 1;
+    while (first != times.begin() && *first - *(first - 1) <= 1000 * kMs) --first;
+    const auto intervals = times.end() - first - 1;
+    const double span = double(times.back() - *first);
+    if (intervals == 0 || span <= 0) return 0;
     const double since = double(now - times.back());
-    if (since > 1e9) return 0;
-    const double interval = span / double(times.size() - 1);
+    const double interval = span / double(intervals);
     const bool stopped = since > std::max(2 * interval, 250e6);
-    return double(times.size() - 1) * 1e9 / (stopped ? span + since : span);
+    return double(intervals) * 1e9 / (stopped ? span + since : span);
 }
 
 }  // namespace

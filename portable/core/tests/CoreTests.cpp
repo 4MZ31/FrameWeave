@@ -659,6 +659,9 @@ void testEngineTiming(bool uneven, bool repair, double target, int64_t refreshNs
             display += refreshNs;
         }
     }
+    // The capture is prefilled 100 ms ahead of this simulated display. Read the
+    // counters at the last refresh, while the display is still running.
+    e.setClock([lastRefresh = display - refreshNs] { return lastRefresh; });
     const EngineStats st = e.stats();
     std::printf("  uneven=%d repair=%d target=%.0f: transport %.1f content %.1f output %.1f fps, delay %.1f ms, latency %.1f ms, late %llu\n",
                 uneven, repair, target, st.transportFps, st.contentFps, st.outputFps, st.delayMs, st.latencyMs, (unsigned long long)st.lateFields);
@@ -840,6 +843,43 @@ void testEngineOff() {
     }
 }
 
+void testEngineStalledFps() {
+    EngineSettings settings;
+    settings.frameGeneration = false;
+    int64_t now = 1'000'000'000;
+    Engine engine(settings);
+    const auto frame = [&](uint8_t shade) {
+        now += 16'666'667;
+        Bgra image(16, 16);
+        std::fill(image.px.begin(), image.px.end(), shade);
+        engine.push(std::move(image), now);
+        (void)engine.pick(now);
+    };
+    for (int i = 0; i < 90; ++i) frame(i % 2 ? 255 : 0);
+    const EngineStats moving = engine.stats(now);
+    CHECK(std::abs(moving.transportFps - 60) < 0.1 && std::abs(moving.contentFps - 60) < 0.1 &&
+          std::abs(moving.outputFps - 60) < 0.1, "moving input and output show 60 FPS");
+
+    for (int i = 0; i < 30; ++i) frame(255);
+    const EngineStats slowing = engine.stats(now);
+    CHECK(slowing.outputFps > 0 && slowing.outputFps < 45 && slowing.contentFps > 0 && slowing.contentFps < 45,
+          "a half-second freeze lowers the reported rates while earlier frames are still recent");
+    for (int i = 0; i < 60; ++i) frame(255);
+    const EngineStats still = engine.stats(now);
+    CHECK(std::abs(still.transportFps - 60) < 0.1 && still.contentFps == 0 && still.outputFps == 0,
+          "duplicate input continues at 60 FPS while content and output are still");
+    now += 2'000'000'000;
+    const EngineStats stopped = engine.stats(now);
+    CHECK(stopped.transportFps == 0 && stopped.contentFps == 0 && stopped.outputFps == 0,
+          "all rates expire even without a new capture or display callback");
+
+    frame(0);
+    frame(255);
+    const EngineStats resumed = engine.stats(now);
+    CHECK(std::abs(resumed.transportFps - 60) < 0.1 && std::abs(resumed.contentFps - 60) < 0.1 &&
+          std::abs(resumed.outputFps - 60) < 0.1, "resumed rates use only fresh intervals");
+}
+
 // Abuse: random sizes, clocks going back, resolution changes, settings flipped from another thread,
 // picks from a third thread. Run under the sanitizers in CI.
 void testEngineAbuse() {
@@ -950,6 +990,7 @@ int main(int argc, char** argv) {
     testEngineStartBudget();
     testEngineOff();
     testEngineLiveRates();
+    testEngineStalledFps();
     testEngineHardContent();
     testEngineAbuse();
     if (bench) benchmark();

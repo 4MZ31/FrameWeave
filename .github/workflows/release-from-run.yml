@@ -44,8 +44,6 @@ jobs:
       TAG: ${{ inputs.release_tag }}
       FULL_RELEASE: ${{ inputs.full_release && 'true' || 'false' }}
       NOTES_ONLY: ${{ inputs.notes_only && 'true' || 'false' }}
-      # Notes only: the signing key is not given to the job at all.
-      UPDATE_SIGNING_KEY: ${{ !inputs.notes_only && secrets.UPDATE_SIGNING_KEY || '' }}
     steps:
       - name: Check the tag
         run: echo "$TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'
@@ -54,8 +52,22 @@ jobs:
           sparse-checkout: |
             packaging/release-notes
             scripts/release
-            docs
+      - name: Resolve the tested source revision
+        id: build
+        env:
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          sha=$(bash scripts/release/build-source.sh)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - name: Read the recipe and setup guide from the build commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.build.outputs.sha }}
+          path: build-source
+          persist-credentials: false
+          sparse-checkout: |
             .github/workflows
+            docs
       - uses: actions/download-artifact@v4
         with:
           path: dist
@@ -64,6 +76,10 @@ jobs:
           run-id: ${{ inputs.run_id }}
           github-token: ${{ github.token }}
       - name: Create the release
+        env:
+          BUILD_SHA: ${{ steps.build.outputs.sha }}
+          BUILD_SOURCE: build-source
+          UPDATE_SIGNING_KEY: ${{ !inputs.notes_only && secrets.UPDATE_SIGNING_KEY || '' }}
         run: bash scripts/release/publish.sh
 
   private:
@@ -90,6 +106,7 @@ jobs:
           # The build wrote the hash file on Windows (CRLF).
           (cd dist && tr -d '\r' < "$(basename "$zip").sha256" | sha256sum -c -)
           sha=$(sha256sum "$zip" | cut -d' ' -f1)
+          build_sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq '.head_sha')
           run=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq '"\(.head_branch) at \(.head_sha[0:8]), build-windows run \(.id), result \(.conclusion)"')
           {
             echo "Private test build. Not a release: no tag, not published, the in-app updater does not know it."
@@ -109,7 +126,7 @@ jobs:
             gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$old"
           done
           # Marked a pre-release as well: should the draft ever be published by mistake, it is not "the latest release".
-          gh release create "private-test-$RUN_ID" --repo "$GITHUB_REPOSITORY" --draft --prerelease --target "$GITHUB_SHA" \
+          gh release create "private-test-$RUN_ID" --repo "$GITHUB_REPOSITORY" --draft --prerelease --target "$build_sha" \
             --title "Private test build $name" --notes-file notes.md "$zip"
           gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.name==\"Private test build $name\") | \"draft=\(.draft) prerelease=\(.prerelease) tag=\(.tag_name) assets=\([.assets[].name] | join(\",\")) url=\(.html_url)\""
           # Nothing may have been tagged or published by this job.
