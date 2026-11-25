@@ -17,7 +17,7 @@ case "$*" in
 esac
 MOCK
 chmod +x bin/gh
-export PATH="$tmp/bin:$PATH" RUN_ID=42 GITHUB_REPOSITORY=local/PushFPS FULL_RELEASE=true TAG=v1.0.0
+export PATH="$tmp/bin:$PATH" RUN_ID=42 GITHUB_REPOSITORY=local/FrameWeave FULL_RELEASE=true TAG=v1.0.0
 unset UPDATE_SIGNING_KEY NOTES_ONLY
 git init -q --bare mirror
 git init -q source
@@ -46,7 +46,7 @@ sed -i 's/pull_request/push/' run.json
 sed -i 's/"obs-integration","conclusion":"success"/"obs-integration","conclusion":"failure"/' jobs.json
 reject bash "$root/scripts/release/build-source.sh"
 
-for name in PushFPS-1.0.0-win64.zip PushFPS-1.0.0-streaming-source.zip PushFPS-OBS-Plugin-1.2.0-win64.zip; do
+for name in FrameWeave-1.0.0-win64.zip FrameWeave-1.0.0-streaming-source.zip FrameWeave-OBS-Plugin-1.2.0-win64.zip; do
   echo "$name" > "dist/$name"
   (cd dist && sha256sum "$name" | sed 's/$/\r/' > "$name.sha256")
 done
@@ -57,11 +57,11 @@ git -C source push -q origin "refs/tags/$TAG"
 reject publish
 git -C source -c user.name=test -c user.email=test@example.invalid tag -fa "$TAG" "$BUILD_SHA" -m release
 git -C source push -q --force origin "refs/tags/$TAG"
-echo changed >> dist/PushFPS-1.0.0-win64.zip
+echo changed >> dist/FrameWeave-1.0.0-win64.zip
 reject publish
-echo PushFPS-1.0.0-win64.zip > dist/PushFPS-1.0.0-win64.zip
+echo FrameWeave-1.0.0-win64.zip > dist/FrameWeave-1.0.0-win64.zip
 publish
 grep -Fxq -- "$BUILD_SHA" published
-grep -Fq -- "$BUILD_SHA" dist/PushFPS-1.0.0-components.txt
+grep -Fq -- "$BUILD_SHA" dist/FrameWeave-1.0.0-components.txt
 (cd dist && sha256sum -c SHA256SUMS.txt)
 echo 'Release provenance checks passed'
