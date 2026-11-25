@@ -202,8 +202,11 @@ Rectangle {
         Flickable {
             id: listFlick
             objectName: "pro-list"
-            x: 14; y: tabFlick.y + tabFlick.height + 10
-            width: parent.width - 18
+            // Room for a row's hover light, which reaches 7 px past the row (VRow.qml), inside this clipping
+            // list: 7 px on the left (the rows start at 7 + 7 = 14, where they always did) and on the right 7 px
+            // plus the scroll bar (10 px while the pointer is on it) plus 4 px between them (the 28 below).
+            x: 7; y: tabFlick.y + tabFlick.height + 10
+            width: parent.width - 11
             height: parent.height - y - 8
             contentHeight: list.implicitHeight + 8
             boundsBehavior: Flickable.StopAtBounds
@@ -211,7 +214,8 @@ Rectangle {
             ScrollBar.vertical: VScrollBar {}
             ColumnLayout {
                 id: list
-                width: listFlick.width - 12
+                x: 7
+                width: listFlick.width - 28
                 spacing: 4
 
                 // Quality, as the Windows build's tab: "Upscale to my screen" and the Super resolution card.

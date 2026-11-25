@@ -268,15 +268,18 @@ Rectangle {
             Flickable {
                 id: rightFlick
                 objectName: "home-desk-settings-list"
-                x: 14; y: rightTitle.y + rightTitle.height + 6
-                width: parent.width - 18
+                // Room for a row's hover light, which reaches 7 px past the row (VRow.qml), inside this clipping
+                // list: 7 px on the left (the rows start at 7 + 7 = 14, where they always did) and on the right 7 px
+                // plus the scroll bar (10 px while the pointer is on it) plus 4 px between them (the 28 below).
+                x: 7; y: rightTitle.y + rightTitle.height + 6
+                width: parent.width - 11
                 height: parent.height - y - 8
                 contentHeight: rightSlot.height
                 interactive: contentHeight > height + 1
                 boundsBehavior: Flickable.StopAtBounds
                 clip: true
                 ScrollBar.vertical: VScrollBar {}
-                Item { id: rightSlot; width: rightFlick.width - 12; height: quick.parent === rightSlot ? quick.implicitHeight : 0 }
+                Item { id: rightSlot; x: 7; width: rightFlick.width - 28; height: quick.parent === rightSlot ? quick.implicitHeight : 0 }
             }
         }
     }
